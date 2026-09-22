@@ -13,7 +13,7 @@ import (
 // Design-type guidance mirrors the client prompts so server and client
 // generation stay consistent.
 var typeGuidance = map[string]string{
-	"deck":       "A presentation deck: a cover, a statement of the thesis, evidence pages in varied forms (bullets, twoColumn, threeUp, process, bigNumber, chart, imageCaption, quote), and a closing with a specific ask. Aim for a clear narrative arc.",
+	"deck":       "A presentation deck: a cover, a statement of the thesis, evidence pages in varied forms (bullets, twoColumn, threeUp, process, timeline, bigNumber, kpiGrid, chart, table, imageCaption, quote, team), and a closing with a specific ask. Aim for a clear narrative arc.",
 	"doc":        "A multi-page document: a cover then sectioned pages, each a heading plus supporting points or a two-column layout. Favor 'bullets' and 'twoColumn'; skip agenda and section dividers.",
 	"social-set": "A set of standalone social posts on one theme; each page is self-contained with its own punchy hook. Use 'statement', 'quote', 'bigNumber' and 'imageCaption' for impact; every page gets an image intent.",
 	"poster":     "A single strong poster composition: one page, one bold message. Use the 'cover' archetype with an image intent.",
@@ -46,11 +46,14 @@ func ruleVerbosity(level string) string {
 
 // outlineSchema derives its note cap from maxNoteChars (specs.go) so the
 // prompt's advertised limit can never drift from what validation truncates at.
-var outlineSchema = fmt.Sprintf(`{"type":"object","additionalProperties":false,"required":["title","pages"],"properties":{"title":{"type":"string","maxLength":%d},"theme":{"type":"string","description":"short mood/topic phrase"},"pages":{"type":"array","minItems":1,"items":{"type":"object","additionalProperties":false,"required":["title","archetype","note"],"properties":{"title":{"type":"string","maxLength":%d,"description":"the slide heading; for a statement slide, the whole statement (max 14 words)"},"archetype":{"type":"string","enum":["cover","agenda","section","statement","bigNumber","bullets","twoColumn","threeUp","process","quote","imageCaption","chart","closing"],"description":"the slide's compositional form"},"visualRole":{"type":"string","enum":["cover","agenda","content","comparison","quote","data","closing"]},"subhead":{"type":"string","maxLength":%d,"description":"one supporting line under the title (cover, section, statement, closing, bigNumber context)"},"points":{"type":"array","maxItems":%d,"items":{"type":"string","maxLength":%d},"description":"bullets or agenda items; only for bullets/agenda"},"stat":{"type":"object","additionalProperties":false,"required":["value","label"],"properties":{"value":{"type":"string","maxLength":%d,"description":"the figure, e.g. 42%% or 3.2M"},"unit":{"type":"string","maxLength":%d},"label":{"type":"string","maxLength":%d,"description":"what the figure means"}}},"quote":{"type":"object","additionalProperties":false,"required":["text"],"properties":{"text":{"type":"string","maxLength":%d},"attribution":{"type":"string","maxLength":%d}}},"steps":{"type":"array","minItems":2,"maxItems":%d,"items":{"type":"object","additionalProperties":false,"required":["label"],"properties":{"label":{"type":"string","maxLength":%d},"detail":{"type":"string","maxLength":%d}}}},"columns":{"type":"array","minItems":2,"maxItems":%d,"items":{"type":"object","additionalProperties":false,"required":["heading","points"],"properties":{"heading":{"type":"string","maxLength":%d},"points":{"type":"array","maxItems":%d,"items":{"type":"string","maxLength":%d}}}}},"image":{"type":"object","additionalProperties":false,"required":["subject"],"properties":{"subject":{"type":"string","maxLength":%d,"description":"what the picture shows, IN ENGLISH, concrete and specific; no text in the image"},"treatment":{"type":"string","enum":["photo","illustration","abstract"]}}},"chart":{"type":"object","additionalProperties":false,"required":["kind","categories","series"],"properties":{"kind":{"type":"string","enum":["bar","line","pie","donut"]},"categories":{"type":"array","maxItems":%d,"items":{"type":"string"}},"series":{"type":"array","minItems":1,"maxItems":%d,"items":{"type":"object","additionalProperties":false,"required":["name","values"],"properties":{"name":{"type":"string"},"values":{"type":"array","items":{"type":"number"}}}}}}},"note":{"type":"string","minLength":100,"maxLength":%d,"description":"speaker note: 1-3 spoken-style sentences of plain text (no markdown) that add presenter context and delivery cues; never restate the slide's visible text"}}}}}}`,
+var outlineSchema = fmt.Sprintf(`{"type":"object","additionalProperties":false,"required":["title","pages"],"properties":{"title":{"type":"string","maxLength":%d},"theme":{"type":"string","description":"short mood/topic phrase"},"pages":{"type":"array","minItems":1,"items":{"type":"object","additionalProperties":false,"required":["title","archetype","note"],"properties":{"title":{"type":"string","maxLength":%d,"description":"the slide heading; for a statement slide, the whole statement (max 14 words)"},"archetype":{"type":"string","enum":["cover","agenda","section","statement","bigNumber","bullets","twoColumn","threeUp","process","quote","imageCaption","chart","closing","kpiGrid","timeline","table","team"],"description":"the slide's compositional form"},"visualRole":{"type":"string","enum":["cover","agenda","content","comparison","quote","data","closing"]},"subhead":{"type":"string","maxLength":%d,"description":"one supporting line under the title (cover, section, statement, closing, bigNumber context)"},"points":{"type":"array","maxItems":%d,"items":{"type":"string","maxLength":%d},"description":"bullets or agenda items; only for bullets/agenda"},"stat":{"type":"object","additionalProperties":false,"required":["value","label"],"properties":{"value":{"type":"string","maxLength":%d,"description":"the figure, e.g. 42%% or 3.2M"},"unit":{"type":"string","maxLength":%d},"label":{"type":"string","maxLength":%d,"description":"what the figure means"}}},"quote":{"type":"object","additionalProperties":false,"required":["text"],"properties":{"text":{"type":"string","maxLength":%d},"attribution":{"type":"string","maxLength":%d}}},"steps":{"type":"array","minItems":2,"maxItems":%d,"items":{"type":"object","additionalProperties":false,"required":["label"],"properties":{"label":{"type":"string","maxLength":%d},"detail":{"type":"string","maxLength":%d},"when":{"type":"string","maxLength":%d,"description":"a short time marker for a timeline step, e.g. 2019, Q3, Week 2"}}}},"columns":{"type":"array","minItems":2,"maxItems":%d,"items":{"type":"object","additionalProperties":false,"required":["heading","points"],"properties":{"heading":{"type":"string","maxLength":%d},"points":{"type":"array","maxItems":%d,"items":{"type":"string","maxLength":%d}},"icon":{"type":"string","maxLength":%d,"description":"one English keyword naming a simple icon for the column, e.g. shield, clock, users, chart"}}}},"image":{"type":"object","additionalProperties":false,"required":["subject"],"properties":{"subject":{"type":"string","maxLength":%d,"description":"what the picture shows, IN ENGLISH, concrete and specific; no text in the image"},"treatment":{"type":"string","enum":["photo","illustration","abstract"]}}},"chart":{"type":"object","additionalProperties":false,"required":["kind","categories","series"],"properties":{"kind":{"type":"string","enum":["bar","line","pie","donut"]},"categories":{"type":"array","maxItems":%d,"items":{"type":"string"}},"series":{"type":"array","minItems":1,"maxItems":%d,"items":{"type":"object","additionalProperties":false,"required":["name","values"],"properties":{"name":{"type":"string"},"values":{"type":"array","items":{"type":"number"}}}}}}},"stats":{"type":"array","minItems":2,"maxItems":%d,"items":{"type":"object","additionalProperties":false,"required":["value","label"],"properties":{"value":{"type":"string","maxLength":%d},"unit":{"type":"string","maxLength":%d},"label":{"type":"string","maxLength":%d}}},"description":"2-4 figures that belong together; only for kpiGrid"},"table":{"type":"object","additionalProperties":false,"required":["columns","rows"],"properties":{"columns":{"type":"array","minItems":1,"maxItems":%d,"items":{"type":"string","maxLength":%d}},"rows":{"type":"array","minItems":1,"maxItems":%d,"items":{"type":"array","items":{"type":"string","maxLength":%d}}}},"description":"a small table of real values from the brief or attached material; only for table"},"people":{"type":"array","minItems":1,"maxItems":%d,"items":{"type":"object","additionalProperties":false,"required":["name"],"properties":{"name":{"type":"string","maxLength":%d},"role":{"type":"string","maxLength":%d}}},"description":"the people on a team slide; only for team"},"note":{"type":"string","minLength":100,"maxLength":%d,"description":"speaker note: 1-3 spoken-style sentences of plain text (no markdown) that add presenter context and delivery cues; never restate the slide's visible text"}}}}}}`,
 	maxTitleChars, maxTitleChars, maxSubheadChars, maxPoints, maxPointChars,
 	maxStatValueChars, maxStatUnitChars, maxStatLabelChars, maxQuoteChars, maxAttribChars,
-	maxSteps, maxStepLabelChars, maxStepDetail, maxColumns, maxColHeadChars, maxColPoints, maxPointChars,
-	maxImageSubject, maxChartCats, maxChartSeries, maxNoteChars)
+	maxSteps, maxStepLabelChars, maxStepDetail, maxStepWhen, maxColumns, maxColHeadChars, maxColPoints, maxPointChars, maxColIcon,
+	maxImageSubject, maxChartCats, maxChartSeries,
+	maxStats, maxStatValueChars, maxStatUnitChars, maxStatLabelChars,
+	maxTableCols, maxTableCell, maxTableRows, maxTableCell,
+	maxPeople, maxPersonName, maxPersonRole, maxNoteChars)
 
 func outlineSystem(designType, brandClause string, pageCount int) string {
 	guide := typeGuidance[designType]
@@ -78,12 +81,18 @@ func outlineSystem(designType, brandClause string, pageCount int) string {
 			"'threeUp' (title + exactly 3 columns, each heading + 1-3 points; for features, pillars, options); " +
 			"'process' (title + 3-5 steps, each label + detail; ONLY for a real sequence); " +
 			"'quote' (quote.text + attribution); 'imageCaption' (title + image.subject + subhead as caption; the picture carries the slide); " +
-			"'chart' (title + chart with real numbers from the brief or attached material; never invent data); 'closing' (title + subhead as the call to action).",
+			"'chart' (title + chart with real numbers from the brief or attached material; never invent data); " +
+			"'kpiGrid' (title + 2-4 stats, each value + label; several figures that belong together); " +
+			"'timeline' (title + 3-5 steps, each with a short 'when' such as a year or quarter, a label and a detail; for history and roadmaps); " +
+			"'table' (title + table.columns and table.rows with real values from the brief or attached material; 2-4 columns, up to 6 rows; never invent data); " +
+			"'team' (title + 1-4 people, each name + role; no pictures are generated for people); " +
+			"'closing' (title + subhead as the call to action). " +
+			"A column may name an 'icon': one English keyword for a simple icon (shield, clock, users, chart, leaf, globe); name one for every column or for none.",
 		// Story arc and rhythm. These are the rules a good deck follows and a
 		// generated one never did: a thesis, evidence in varied forms, pacing.
 		"Plan a narrative arc before choosing forms: open with the cover, state the thesis as a 'statement' early, build with evidence, and end with a 'closing' that asks for something specific. " +
 			"Vary the forms: no more than 40 percent of pages may be 'bullets'; never place the same archetype on two adjacent pages except 'bullets' at most twice in a row; " +
-			"use 'bigNumber' whenever the brief or attached material contains a meaningful quantity; use 'section' dividers only for decks of 10 or more pages; " +
+			"use 'bigNumber' whenever the brief or attached material contains a meaningful quantity, 'kpiGrid' when two to four figures belong together, 'timeline' for dated history or a roadmap, and 'table' when the material is a small grid of real values; use 'section' dividers only for decks of 10 or more pages; " +
 			"give an 'image' intent to every 'cover', 'imageCaption', 'section' and 'closing' page and to about half of the rest, with a concrete English subject and consistent treatment across the deck.",
 		"Write copy to fit the form: a title is a headline (under 60 characters), never a sentence with a full stop; points are parallel in structure and start with the same part of speech; a statement is one idea, not a summary; a stat.label says what the number means in plain words. Never write 'Slide 1', 'Introduction' or other structural labels as content.",
 		fmt.Sprintf("The note is a REQUIRED speaker note for the presenter: 1-3 spoken-style sentences of plain text (no markdown, 100-%d characters) that add context, evidence, or delivery cues. It must never restate the slide's visible text. Never exceed the length limit; rephrase rather than clipping mid-sentence.", maxNoteChars),
@@ -262,7 +271,7 @@ func (s *Service) ShortenPage(ctx context.Context, workspaceID string, page Outl
 		return page
 	}
 	res, err := generateValidated(ctx, s, workspaceID, system, "Slide JSON:\n"+string(current), shortenSchema, false, func(v *OutlineItem) error {
-		if strings.TrimSpace(v.Title) == "" && len(v.Points) == 0 && v.Stat == nil && v.Quote == nil && len(v.Columns) == 0 && len(v.Steps) == 0 {
+		if strings.TrimSpace(v.Title) == "" && len(v.Points) == 0 && v.Stat == nil && v.Quote == nil && len(v.Columns) == 0 && len(v.Steps) == 0 && len(v.Stats) == 0 && v.Table == nil && len(v.People) == 0 {
 			return errors.New("the shortened slide has no content")
 		}
 		return nil
@@ -282,6 +291,15 @@ func (s *Service) ShortenPage(ctx context.Context, workspaceID string, page Outl
 	if out.Chart == nil {
 		out.Chart = page.Chart
 	}
+	if len(out.Stats) == 0 {
+		out.Stats = page.Stats
+	}
+	if out.Table == nil {
+		out.Table = page.Table
+	}
+	if len(out.People) == 0 {
+		out.People = page.People
+	}
 	normalizeArchetypeFields(&out)
 	// A downgrade would mean the shortened reply dropped a payload the form
 	// needs; that is a worse slide than a slightly long one.
@@ -292,7 +310,7 @@ func (s *Service) ShortenPage(ctx context.Context, workspaceID string, page Outl
 }
 
 // shortenSchema is the outline page shape, reused for a single-slide rewrite.
-var shortenSchema = `{"type":"object","required":["title","archetype"],"properties":{"title":{"type":"string"},"archetype":{"type":"string"},"subhead":{"type":"string"},"points":{"type":"array","items":{"type":"string"}},"stat":{"type":"object"},"quote":{"type":"object"},"steps":{"type":"array"},"columns":{"type":"array"},"note":{"type":"string"}}}`
+var shortenSchema = `{"type":"object","required":["title","archetype"],"properties":{"title":{"type":"string"},"archetype":{"type":"string"},"subhead":{"type":"string"},"points":{"type":"array","items":{"type":"string"}},"stat":{"type":"object"},"quote":{"type":"object"},"steps":{"type":"array"},"columns":{"type":"array"},"stats":{"type":"array"},"table":{"type":"object"},"people":{"type":"array"},"note":{"type":"string"}}}`
 
 // polishSchema constrains the per-page copy-polish reply.
 const polishSchema = `{"type":"object","required":["points"],"properties":{"points":{"type":"array","items":{"type":"string"}}}}`

@@ -43,6 +43,12 @@ type OutlineItem struct {
 	Columns   []Column     `json:"columns,omitempty"`
 	Image     *ImageIntent `json:"image,omitempty"`
 	Chart     *ChartData   `json:"chart,omitempty"`
+	// Phase 7 forms (additive): several figures that belong together, a
+	// dated sequence reuses Steps with When set, a small data table, and the
+	// people on a team (names and roles only; no portraits are generated).
+	Stats  []Stat     `json:"stats,omitempty"`
+	Table  *TableData `json:"table,omitempty"`
+	People []Person   `json:"people,omitempty"`
 }
 
 // Stat is the content of a big-number slide: one figure at display scale, its
@@ -64,12 +70,31 @@ type Quote struct {
 type Step struct {
 	Label  string `json:"label"`
 	Detail string `json:"detail,omitempty"`
+	// When is a short time marker ("2019", "Q3", "Week 2") for a timeline.
+	When string `json:"when,omitempty"`
 }
 
 // Column is one side of a comparison or one cell of a three-up.
 type Column struct {
 	Heading string   `json:"heading"`
 	Points  []string `json:"points"`
+	// Icon is one English keyword naming a simple icon for the column
+	// ("shield", "clock"); the composer matches it against its icon set.
+	Icon string `json:"icon,omitempty"`
+}
+
+// Person is one member of a team slide. Names and roles only: the composer
+// sets a monogram, never a generated portrait of a named person.
+type Person struct {
+	Name string `json:"name"`
+	Role string `json:"role,omitempty"`
+}
+
+// TableData is a small table with real values: a header row and up to a
+// handful of rows, every row as long as the header.
+type TableData struct {
+	Columns []string   `json:"columns"`
+	Rows    [][]string `json:"rows"`
 }
 
 // ImageIntent is what the picture on a slide should show and how it should be
@@ -95,6 +120,7 @@ var archetypes = map[string]bool{
 	"cover": true, "agenda": true, "section": true, "statement": true, "bigNumber": true,
 	"bullets": true, "twoColumn": true, "threeUp": true, "process": true, "quote": true,
 	"imageCaption": true, "chart": true, "closing": true,
+	"kpiGrid": true, "timeline": true, "table": true, "team": true,
 }
 
 // archetypeForRole is the default form for a page that named only a visual
@@ -110,6 +136,7 @@ var roleForArchetype = map[string]string{
 	"cover": "cover", "agenda": "agenda", "section": "content", "statement": "content",
 	"bigNumber": "data", "bullets": "content", "twoColumn": "comparison", "threeUp": "content",
 	"process": "content", "quote": "quote", "imageCaption": "content", "chart": "data", "closing": "closing",
+	"kpiGrid": "data", "timeline": "content", "table": "data", "team": "content",
 }
 
 // Content budgets, in characters. The composer sizes type from slot geometry
@@ -136,6 +163,15 @@ const (
 	maxImageSubject   = 140
 	maxChartCats      = 8
 	maxChartSeries    = 3
+	maxStats          = 4
+	maxTableCols      = 4
+	maxTableRows      = 6
+	maxTableCell      = 40
+	maxPeople         = 4
+	maxPersonName     = 40
+	maxPersonRole     = 40
+	maxStepWhen       = 20
+	maxColIcon        = 30
 )
 
 // DesignOutline is the editable plan returned by the outline endpoint.
@@ -238,6 +274,7 @@ func normalizeArchetypeFields(p *OutlineItem) {
 	for _, st := range p.Steps {
 		st.Label = clipRunes(strings.TrimSpace(st.Label), maxStepLabelChars)
 		st.Detail = clipRunes(strings.TrimSpace(st.Detail), maxStepDetail)
+		st.When = clipRunes(strings.TrimSpace(st.When), maxStepWhen)
 		if st.Label != "" {
 			steps = append(steps, st)
 		}
@@ -249,6 +286,7 @@ func normalizeArchetypeFields(p *OutlineItem) {
 	cols := p.Columns[:0]
 	for _, c := range p.Columns {
 		c.Heading = clipRunes(strings.TrimSpace(c.Heading), maxColHeadChars)
+		c.Icon = clipRunes(strings.ToLower(strings.TrimSpace(c.Icon)), maxColIcon)
 		cp := c.Points[:0]
 		for _, pt := range c.Points {
 			if t := clipRunes(strings.TrimSpace(pt), maxPointChars); t != "" {
@@ -304,10 +342,91 @@ func normalizeArchetypeFields(p *OutlineItem) {
 			p.Chart = nil
 		}
 	}
+	stats := p.Stats[:0]
+	for _, st := range p.Stats {
+		st.Value = clipRunes(strings.TrimSpace(st.Value), maxStatValueChars)
+		st.Unit = clipRunes(strings.TrimSpace(st.Unit), maxStatUnitChars)
+		st.Label = clipRunes(strings.TrimSpace(st.Label), maxStatLabelChars)
+		if st.Value != "" {
+			stats = append(stats, st)
+		}
+	}
+	if len(stats) > maxStats {
+		stats = stats[:maxStats]
+	}
+	p.Stats = stats
+	if p.Table != nil {
+		cols := p.Table.Columns[:0]
+		for _, c := range p.Table.Columns {
+			cols = append(cols, clipRunes(strings.TrimSpace(c), maxTableCell))
+		}
+		if len(cols) > maxTableCols {
+			cols = cols[:maxTableCols]
+		}
+		rows := p.Table.Rows[:0]
+		for _, r := range p.Table.Rows {
+			// Every row is exactly as long as the header: extra cells are
+			// dropped, missing ones are blank, an empty row is not a row.
+			row := make([]string, len(cols))
+			any := false
+			for i := range cols {
+				if i < len(r) {
+					row[i] = clipRunes(strings.TrimSpace(r[i]), maxTableCell)
+					if row[i] != "" {
+						any = true
+					}
+				}
+			}
+			if any {
+				rows = append(rows, row)
+			}
+		}
+		if len(rows) > maxTableRows {
+			rows = rows[:maxTableRows]
+		}
+		p.Table.Columns, p.Table.Rows = cols, rows
+		if len(cols) == 0 || len(rows) == 0 {
+			p.Table = nil
+		}
+	}
+	people := p.People[:0]
+	for _, per := range p.People {
+		per.Name = clipRunes(strings.TrimSpace(per.Name), maxPersonName)
+		per.Role = clipRunes(strings.TrimSpace(per.Role), maxPersonRole)
+		if per.Name != "" {
+			people = append(people, per)
+		}
+	}
+	if len(people) > maxPeople {
+		people = people[:maxPeople]
+	}
+	p.People = people
 	// Downgrade an archetype whose payload did not survive.
 	switch p.Archetype {
 	case "bigNumber":
 		if p.Stat == nil {
+			p.Archetype = "bullets"
+		}
+	case "kpiGrid":
+		// One figure is a bigNumber; none is a list.
+		switch len(p.Stats) {
+		case 0:
+			p.Archetype = "bullets"
+		case 1:
+			one := p.Stats[0]
+			p.Stat = &one
+			p.Archetype = "bigNumber"
+		}
+	case "timeline":
+		if len(p.Steps) < 2 {
+			p.Archetype = "bullets"
+		}
+	case "table":
+		if p.Table == nil {
+			p.Archetype = "bullets"
+		}
+	case "team":
+		if len(p.People) == 0 {
 			p.Archetype = "bullets"
 		}
 	case "quote":

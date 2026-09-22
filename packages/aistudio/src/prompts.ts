@@ -9,7 +9,7 @@ import { composeRules, contentOnlyRule, lengthLimitRule, scopedInstructionRule, 
 
 // Mirrors typeGuidance in backend/internal/aistudio/generate.go; change together.
 const TYPE_GUIDANCE: Record<DesignType, string> = {
-  deck: "A presentation deck: a cover, a statement of the thesis, evidence pages in varied forms (bullets, twoColumn, threeUp, process, bigNumber, chart, imageCaption, quote), and a closing with a specific ask. Aim for a clear narrative arc.",
+  deck: "A presentation deck: a cover, a statement of the thesis, evidence pages in varied forms (bullets, twoColumn, threeUp, process, timeline, bigNumber, kpiGrid, chart, table, imageCaption, quote, team), and a closing with a specific ask. Aim for a clear narrative arc.",
   doc: "A multi-page document: a cover then sectioned pages, each a heading plus supporting points or a two-column layout. Favor 'bullets' and 'twoColumn'; skip agenda and section dividers.",
   "social-set": "A set of standalone social posts on one theme; each page is self-contained with its own punchy hook. Use 'statement', 'quote', 'bigNumber' and 'imageCaption' for impact; every page gets an image intent.",
   poster: "A single strong poster composition: one page, one bold message. Use the 'cover' archetype with an image intent.",
@@ -29,12 +29,18 @@ export const archetypeCatalogRule =
   "'threeUp' (title + exactly 3 columns, each heading + 1-3 points; for features, pillars, options); " +
   "'process' (title + 3-5 steps, each label + detail; ONLY for a real sequence); " +
   "'quote' (quote.text + attribution); 'imageCaption' (title + image.subject + subhead as caption; the picture carries the slide); " +
-  "'chart' (title + chart with real numbers from the brief or attached material; never invent data); 'closing' (title + subhead as the call to action).";
+  "'chart' (title + chart with real numbers from the brief or attached material; never invent data); " +
+  "'kpiGrid' (title + 2-4 stats, each value + label; several figures that belong together); " +
+  "'timeline' (title + 3-5 steps, each with a short 'when' such as a year or quarter, a label and a detail; for history and roadmaps); " +
+  "'table' (title + table.columns and table.rows with real values from the brief or attached material; 2-4 columns, up to 6 rows; never invent data); " +
+  "'team' (title + 1-4 people, each name + role; no pictures are generated for people); " +
+  "'closing' (title + subhead as the call to action). " +
+  "A column may name an 'icon': one English keyword for a simple icon (shield, clock, users, chart, leaf, globe); name one for every column or for none.";
 
 export const storyArcRule =
   "Plan a narrative arc before choosing forms: open with the cover, state the thesis as a 'statement' early, build with evidence, and end with a 'closing' that asks for something specific. " +
   "Vary the forms: no more than 40 percent of pages may be 'bullets'; never place the same archetype on two adjacent pages except 'bullets' at most twice in a row; " +
-  "use 'bigNumber' whenever the brief or attached material contains a meaningful quantity; use 'section' dividers only for decks of 10 or more pages; " +
+  "use 'bigNumber' whenever the brief or attached material contains a meaningful quantity, 'kpiGrid' when two to four figures belong together, 'timeline' for dated history or a roadmap, and 'table' when the material is a small grid of real values; use 'section' dividers only for decks of 10 or more pages; " +
   "give an 'image' intent to every 'cover', 'imageCaption', 'section' and 'closing' page and to about half of the rest, with a concrete English subject and consistent treatment across the deck.";
 
 export const copyToFormRule =

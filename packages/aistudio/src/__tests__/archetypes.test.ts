@@ -28,6 +28,10 @@ function pageFor(a: Archetype): Record<string, unknown> {
     case "chart": return { ...base, subhead: "Retreat slowed in every year the belt was maintained.", chart: { kind: "bar", categories: ["2021", "2022", "2023", "2024"], series: [{ name: "Retreat (m)", values: [4.1, 3.2, 1.9, 0.8] }] } };
     case "closing": return { ...base, title: "Fund the next five kilometres", subhead: "Decision needed by March", image: { subject: "volunteers planting grass", treatment: "photo" } };
     case "agenda": return { ...base, points: ["The problem", "What we tried", "What worked", "The ask"] };
+    case "kpiGrid": return { ...base, stats: [{ value: "40", unit: "%", label: "more erosion since 2019" }, { value: "2", label: "villages relocated" }, { value: "3.2", unit: "km", label: "of dune belt rebuilt" }] };
+    case "timeline": return { ...base, steps: [{ when: "2019", label: "Survey", detail: "Map the retreat line" }, { when: "2021", label: "Plant", detail: "Native grass in the lee of the dune" }, { when: "2023", label: "Fence", detail: "Sand fences trap what the wind carries" }, { when: "2025", label: "Monitor" }] };
+    case "table": return { ...base, table: { columns: ["Year", "Retreat (m)", "Cost"], rows: [["2021", "4.1", "$120k"], ["2022", "3.2", "$95k"], ["2023", "1.9", "$80k"], ["2024", "0.8", "$60k"]] } };
+    case "team": return { ...base, people: [{ name: "Ada Okoro", role: "Coastal engineer" }, { name: "Leif Brandt", role: "Ecologist" }, { name: "Mira Sato", role: "Community lead" }] };
   }
 }
 
@@ -256,5 +260,69 @@ describe("art direction", () => {
     expect(prompts[0].startsWith("a dune belt at dawn,")).toBe(true);
     // The same outline and system always write the same clause.
     expect(artDirectionFor("calm, coastal, restrained", deck.system.colors)).toBe(clause);
+  });
+});
+
+
+describe("phase 7 forms", () => {
+  const ds = deriveDesignSystem(theme, size, { seed: 2, catalog: catalogEntryForSeed(2) });
+  const names = (nodes: { name?: string }[]) => nodes.map((n) => n.name);
+
+  it("sets a grid of figures, two by two for four", () => {
+    const three = normalizeOutline({ title: "T", pages: [pageFor("kpiGrid")] }).pages[0];
+    const p3 = composeArchetypePage(three, ds, { index: 1, total: 4 });
+    expect(names(p3.nodes as never).filter((n) => n === "Figure")).toHaveLength(3);
+    const four = normalizeOutline({ title: "T", pages: [{ ...pageFor("kpiGrid"), stats: [...(pageFor("kpiGrid").stats as unknown[]), { value: "12", label: "months" }] }] }).pages[0];
+    const p4 = composeArchetypePage(four, ds, { index: 1, total: 4 });
+    const figures = (p4.nodes as { name?: string; transform: { y: number } }[]).filter((n) => n.name === "Figure");
+    expect(figures).toHaveLength(4);
+    expect(new Set(figures.map((f) => Math.round(f.transform.y))).size).toBe(2);
+  });
+
+  it("draws a timeline with markers, segments between them, and the time above each", () => {
+    const item = normalizeOutline({ title: "T", pages: [pageFor("timeline")] }).pages[0];
+    const page = composeArchetypePage(item, ds, { index: 2, total: 4 });
+    const n = names(page.nodes as never);
+    expect(n.filter((x) => x === "Marker")).toHaveLength(4);
+    expect(n.filter((x) => x === "Sequence")).toHaveLength(3);
+    expect(n.filter((x) => x === "When")).toHaveLength(4);
+  });
+
+  it("sets a table with a tinted header row and numbers flush right, in the system face the renderers use", () => {
+    const item = normalizeOutline({ title: "T", pages: [pageFor("table")] }).pages[0];
+    const page = composeArchetypePage(item, ds, { index: 2, total: 4 });
+    const tbl = (page.nodes as { type: string; rows?: number; cols?: number; cells?: { row: number; col: number; align: string; content: { fontId: string; weight: number }[] }[]; headerStyle?: { enabled: boolean } }[]).find((x) => x.type === "table")!;
+    expect(tbl.rows).toBe(5);
+    expect(tbl.cols).toBe(3);
+    expect(tbl.headerStyle?.enabled).toBe(true);
+    const cells = tbl.cells!;
+    expect(cells.filter((c) => c.row === 0).every((c) => c.content[0].weight === 700)).toBe(true);
+    expect(cells.find((c) => c.row === 1 && c.col === 1)!.align).toBe("right");
+    expect(cells.find((c) => c.row === 1 && c.col === 0)!.align).toBe("right");
+    expect(cells.every((c) => c.content[0].fontId === "system")).toBe(true);
+  });
+
+  it("sets a team as monograms with names and roles, never a generated portrait", () => {
+    const item = normalizeOutline({ title: "T", pages: [pageFor("team")] }).pages[0];
+    const page = composeArchetypePage(item, ds, { index: 3, total: 4 });
+    const monograms = (page.nodes as { name?: string; content?: { runs: { text: string }[] }[] }[]).filter((n) => n.name === "Monogram");
+    expect(monograms.map((m) => m.content![0].runs[0].text)).toEqual(["AO", "LB", "MS"]);
+    expect(Object.keys(page.imagePrompts)).toHaveLength(0);
+  });
+
+  it("downgrades a form whose payload did not survive, and promotes one figure to a bigNumber", () => {
+    const pages = normalizeOutline({ title: "T", pages: [
+      { title: "a", archetype: "kpiGrid" },
+      { title: "b", archetype: "kpiGrid", stats: [{ value: "40", label: "x" }] },
+      { title: "c", archetype: "timeline", steps: [{ label: "one" }] },
+      { title: "d", archetype: "table", table: { columns: ["a"], rows: [[""]] } },
+      { title: "e", archetype: "table", table: { columns: ["a", "b"], rows: [["1", "2", "extra"], ["", ""], ["3"]] } },
+      { title: "f", archetype: "team" },
+      { title: "g", archetype: "twoColumn", columns: [{ heading: "a", points: ["p"], icon: " Shield " }, { heading: "b", points: ["q"] }] },
+    ] }).pages;
+    expect(pages.map((p) => p.archetype)).toEqual(["bullets", "bigNumber", "bullets", "bullets", "table", "bullets", "twoColumn"]);
+    expect(pages[1].stat?.value).toBe("40");
+    expect(pages[4].table?.rows).toEqual([["1", "2"], ["3", ""]]);
+    expect(pages[6].columns?.[0].icon).toBe("shield");
   });
 });

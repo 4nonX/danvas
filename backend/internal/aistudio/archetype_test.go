@@ -104,6 +104,17 @@ func TestOutlineArchetypeDowngradesWithoutPayload(t *testing.T) {
 		// A quote with no quote payload but a first point promotes the point.
 		{OutlineItem{Title: "t", Archetype: "quote", Points: []string{"Less, but better."}}, "quote"},
 		{OutlineItem{Title: "t", Archetype: "chart", Chart: &ChartData{Kind: "bar", Categories: []string{"Q1"}, Series: []ChartSeries{{Name: "s", Values: []float64{1, 2, 3}}}}}, "chart"},
+		// Phase 7 forms: a grid of one figure is a bigNumber, of none a list.
+		{OutlineItem{Title: "t", Archetype: "kpiGrid"}, "bullets"},
+		{OutlineItem{Title: "t", Archetype: "kpiGrid", Stats: []Stat{{Value: "40", Label: "x"}}}, "bigNumber"},
+		{OutlineItem{Title: "t", Archetype: "kpiGrid", Stats: []Stat{{Value: "40", Label: "x"}, {Value: "3", Label: "y"}}}, "kpiGrid"},
+		{OutlineItem{Title: "t", Archetype: "timeline", Steps: []Step{{Label: "one", When: "2019"}}}, "bullets"},
+		{OutlineItem{Title: "t", Archetype: "timeline", Steps: []Step{{Label: "one", When: "2019"}, {Label: "two"}}}, "timeline"},
+		{OutlineItem{Title: "t", Archetype: "table"}, "bullets"},
+		{OutlineItem{Title: "t", Archetype: "table", Table: &TableData{Columns: []string{"a"}, Rows: [][]string{{""}}}}, "bullets"},
+		{OutlineItem{Title: "t", Archetype: "table", Table: &TableData{Columns: []string{"a", "b"}, Rows: [][]string{{"1", "2", "extra"}}}}, "table"},
+		{OutlineItem{Title: "t", Archetype: "team"}, "bullets"},
+		{OutlineItem{Title: "t", Archetype: "team", People: []Person{{Name: "Ada", Role: "Lead"}}}, "team"},
 	}
 	for i, c := range cases {
 		o := &DesignOutline{Pages: []OutlineItem{c.in}}
@@ -113,6 +124,23 @@ func TestOutlineArchetypeDowngradesWithoutPayload(t *testing.T) {
 		if got := o.Pages[0].Archetype; got != c.want {
 			t.Errorf("case %d: archetype %q, want %q", i, got, c.want)
 		}
+	}
+	// A kpiGrid of one figure carries it over as the page's stat, a table row
+	// is cut to the header's width, and a column icon is lower-cased.
+	one := &DesignOutline{Pages: []OutlineItem{{Title: "t", Archetype: "kpiGrid", Stats: []Stat{{Value: "40", Unit: "%", Label: "x"}}}}}
+	_ = validateOutline(one)
+	if one.Pages[0].Stat == nil || one.Pages[0].Stat.Value != "40" {
+		t.Fatalf("single figure should become the page's stat: %+v", one.Pages[0].Stat)
+	}
+	tbl := &DesignOutline{Pages: []OutlineItem{{Title: "t", Archetype: "table", Table: &TableData{Columns: []string{"a", "b"}, Rows: [][]string{{"1", "2", "extra"}, {"", ""}, {"3"}}}}}}
+	_ = validateOutline(tbl)
+	if rows := tbl.Pages[0].Table.Rows; len(rows) != 2 || len(rows[0]) != 2 || rows[1][1] != "" {
+		t.Fatalf("table rows should match the header and drop empty rows: %v", rows)
+	}
+	col := &DesignOutline{Pages: []OutlineItem{{Title: "t", Archetype: "twoColumn", Columns: []Column{{Heading: "a", Icon: " Shield "}, {Heading: "b"}}}}}
+	_ = validateOutline(col)
+	if col.Pages[0].Columns[0].Icon != "shield" {
+		t.Fatalf("icon keyword should be trimmed and lower-cased, got %q", col.Pages[0].Columns[0].Icon)
 	}
 	// The chart case above also trims values to the category count.
 	o := &DesignOutline{Pages: []OutlineItem{{Title: "t", Archetype: "chart", Chart: &ChartData{Kind: "bar", Categories: []string{"Q1"}, Series: []ChartSeries{{Name: "s", Values: []float64{1, 2, 3}}}}}}}

@@ -46,6 +46,7 @@ The rules from `28-presentations-completion-tasks.md` apply unchanged. In brief:
 | E23 | 7 Claude quality | Claude 5 defaults, output budgets sized to the payload, truncation reported, cached system prompts | done 2026-09-22 |
 | E24 | 7 Claude quality | Server-side picture ladder: reuse, licensed stock, then generation, tagged for reuse, as the editor's queue | done 2026-09-22 |
 | E25 | 7 Claude quality | Deck-level art direction on every picture prompt: mood, palette tones, one light, one rule set | done 2026-09-22 |
+| E26 | 7 Claude quality | Four more slide forms, both doors: kpiGrid, timeline, table, team, with typed payloads, budgets and downgrades | done 2026-09-22 |
 
 Deferred (documented, deliberately not tasks): outbound webhooks on job completion (revisit once the API has real consumers); publish-as-website / custom domain (overlaps the website feature); AI voice/TTS narration (`23-ai-media.md`); a paid/community template marketplace beyond the existing `@hc/templates` marketplace scaffolding; Zapier/Make connectors (build on the API once it is stable).
 
@@ -177,3 +178,7 @@ The pitch: with a Claude key the outline, story and copy are the model's work an
 ### E25: Art direction for the deck's pictures
 
 - Shipped: the design system carries an `artDirection` clause derived once per deck (`artDirectionFor` in designSystem.ts): the outline's own mood words, the palette's two hue families in plain words (`hueName`), one soft directional light with room for text, and the rules every slide picture obeys (no text, logos, watermarks or borders). The composer appends it to every picture prompt after the subject and the treatment, so six pictures in one deck are lit and toned as a series instead of six unrelated renders. The subject still leads the prompt, so the picture ladder's stock routing reads it unchanged. Deterministic: the editor and the API write the same clause for the same outline and system.
+
+### E26: kpiGrid, timeline, table, team
+
+- Shipped, mirrored in `outline.ts` and `specs.go` with the prompt catalog word for word on both sides: `kpiGrid` (two to four `stats`, set one row or two by two, each figure on its own accent rule; one figure downgrades to `bigNumber`, none to `bullets`), `timeline` (`steps` with a short `when`, markers on one line with segments drawn between them, time above, label and detail beneath; fewer than two steps downgrades to `bullets`), `table` (`table.columns` and `table.rows` of real values, at most four by six, every row cut or padded to the header's width, a tinted bold header row, numbers flush right, type stepping down until the rows fit; set as a real table node in the system face the renderers use), and `team` (`people` with name and role, a monogram in the accent on its own rule; no portrait is ever generated for a named person). A column may now name an `icon` keyword, lower-cased and clipped, which the composer's icon set (E27) reads. The quality loop (no overflow, no overlap, AA contrast, everything inside the page) runs over the new forms with the rest.

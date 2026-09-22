@@ -82,6 +82,12 @@ const T = {
   kicker: 0.02,
   pageNumber: 0.018,
   caption: 0.03,
+  kpiFigure: 0.16,
+  tableCell: 0.026,
+  timelineWhen: 0.026,
+  monogram: 0.06,
+  personName: 0.034,
+  personRole: 0.027,
 } as const;
 
 // Average glyph advance as a fraction of the em, per role. Headings are set
@@ -393,6 +399,10 @@ class Composer {
       case "chart": this.chart(); break;
       case "closing": this.closing(); break;
       case "agenda": this.agenda(); break;
+      case "kpiGrid": this.kpiGrid(); break;
+      case "timeline": this.timeline(); break;
+      case "table": this.table(); break;
+      case "team": this.team(); break;
       default: this.bullets(); break;
     }
     return {
@@ -710,6 +720,186 @@ class Composer {
       transform: { x: r.x, y: r.y, scaleX: 1, scaleY: 1, rotation: 0 },
       size: { width: r.width, height: r.height },
     } as never) as Node);
+    this.furniture();
+  }
+
+  /** n equal cells across the content width, gutter between them. */
+  private cells(n: number, y: number, height: number): Rect[] {
+    const g = this.ds.gutter;
+    const w = (this.W - 2 * this.m - g * (n - 1)) / n;
+    return Array.from({ length: n }, (_, i) => ({ x: this.m + i * (w + g), y, width: w, height }));
+  }
+
+  /** The title at the top of a reading page; returns where the body starts
+   *  and how much height is left for it. */
+  private headed(): { bodyTop: number; bodyH: number } {
+    const u = this.ds.unit;
+    const top = this.m + u * 4;
+    const title = this.text({ name: "Title", rect: { ...this.span(0, 12), y: top, height: this.H * 0.2 }, paragraphs: [this.item.title], role: "heading", base: this.H * T.title, bold: true, lineHeight: 1.08 });
+    this.nodes.push(title.node);
+    const bodyTop = top + title.height + u * 5;
+    return { bodyTop, bodyH: this.H - this.m - bodyTop };
+  }
+
+  /** Two to four figures that belong together: one row, or two by two for
+   *  four, each figure on its own accent rule with its label beneath. */
+  private kpiGrid(): void {
+    const stats = (this.item.stats ?? []).slice(0, 4);
+    const u = this.ds.unit;
+    const { bodyTop, bodyH } = this.headed();
+    const perRow = stats.length === 4 ? 2 : stats.length;
+    const rows = stats.length === 4 ? 2 : 1;
+    const figureH = Math.round(this.H * T.kpiFigure);
+    const build = (y0: number) => {
+      const out: Node[] = [];
+      let bottom = y0;
+      for (let r = 0; r < rows; r++) {
+        const rowStats = stats.slice(r * perRow, (r + 1) * perRow);
+        // Measure the row's tallest label first so every row sits on one grid.
+        const cellsR = this.cells(rowStats.length, 0, figureH);
+        let labelH = 0;
+        rowStats.forEach((st, i) => {
+          labelH = Math.max(labelH, this.text({ name: "Label", rect: { x: cellsR[i].x, y: 0, width: cellsR[i].width, height: u * 10 }, paragraphs: [st.label], role: "heading", base: this.H * T.statLabel, bold: true, lineHeight: 1.2 }).height);
+        });
+        const rowTop = bottom + (r > 0 ? u * 5 : 0);
+        rowStats.forEach((st, i) => {
+          const c = cellsR[i];
+          out.push(this.accentRule(c.x, rowTop));
+          const fig = this.numeral({ x: c.x, y: rowTop + u * 2, width: c.width, height: figureH }, st.value, st.unit, this.ds.colors.accentOnPaper);
+          out.push(fig.node);
+          out.push(this.text({ name: "Label", rect: { x: c.x, y: rowTop + u * 2 + figureH + u * 1.5, width: c.width, height: labelH }, paragraphs: [st.label], role: "heading", base: this.H * T.statLabel, bold: true, lineHeight: 1.2 }).node);
+        });
+        bottom = rowTop + u * 2 + figureH + u * 1.5 + labelH;
+      }
+      return { nodes: out, height: bottom - y0 };
+    };
+    const h = build(0).height;
+    this.nodes.push(...build(bodyTop + Math.max(0, Math.round((bodyH - h) / 2))).nodes);
+    this.furniture();
+  }
+
+  /** A dated sequence: markers on one line, the time above each, the label
+   *  and detail beneath. Segments are drawn between the markers, never
+   *  through them. */
+  private timeline(): void {
+    const steps = (this.item.steps ?? []).slice(0, 5);
+    const u = this.ds.unit;
+    const { bodyTop, bodyH } = this.headed();
+    const dot = Math.round(u * 2.2);
+    const lineColor = mix(this.ds.colors.ink, this.ds.colors.paper, 0.8);
+    const build = (y0: number) => {
+      const out: Node[] = [];
+      const cellsR = this.cells(steps.length, 0, 0);
+      // The time markers share one height so every dot sits on one line.
+      let whenH = 0;
+      steps.forEach((st, i) => {
+        if (st.when) whenH = Math.max(whenH, this.text({ name: "When", rect: { x: cellsR[i].x, y: 0, width: cellsR[i].width, height: u * 6 }, paragraphs: [st.when], role: "heading", base: this.H * T.timelineWhen, bold: true, color: this.muted, align: "center", lineHeight: 1.2 }).height);
+      });
+      const lineY = y0 + (whenH ? whenH + u * 2 : 0);
+      let bottom = lineY + dot;
+      steps.forEach((st, i) => {
+        const c = cellsR[i];
+        const cx = c.x + c.width / 2;
+        if (st.when) out.push(this.text({ name: "When", rect: { x: c.x, y: y0, width: c.width, height: whenH }, paragraphs: [st.when], role: "heading", base: this.H * T.timelineWhen, bold: true, color: this.muted, align: "center", lineHeight: 1.2, exactSize: Math.round(this.H * T.timelineWhen) }).node);
+        out.push(this.rect("Marker", { x: cx - dot / 2, y: lineY, width: dot, height: dot }, this.accent, Math.round(dot / 2)));
+        if (i < steps.length - 1) {
+          const nx = cellsR[i + 1].x + cellsR[i + 1].width / 2;
+          const x0 = cx + dot / 2 + u;
+          const x1 = nx - dot / 2 - u;
+          if (x1 > x0) out.push(this.rect("Sequence", { x: x0, y: lineY + Math.round(dot / 2) - Math.round(this.ds.rule / 2), width: x1 - x0, height: this.ds.rule }, lineColor));
+        }
+        const ly = lineY + dot + u * 2;
+        const label = this.text({ name: "Label", rect: { x: c.x, y: ly, width: c.width, height: u * 8 }, paragraphs: [st.label], role: "heading", base: this.H * T.stepLabel, bold: true, align: "center", lineHeight: 1.15 });
+        out.push(label.node);
+        let b = ly + label.height;
+        if (st.detail) {
+          const dy = b + u;
+          const det = this.text({ name: "Detail", rect: { x: c.x, y: dy, width: c.width, height: Math.max(u * 4, this.H - this.m - dy) }, paragraphs: [st.detail], role: "body", base: this.H * T.detail, color: this.muted, align: "center", lineHeight: 1.4 });
+          out.push(det.node);
+          b = dy + det.height;
+        }
+        bottom = Math.max(bottom, b);
+      });
+      return { nodes: out, height: bottom - y0 };
+    };
+    const h = build(0).height;
+    this.nodes.push(...build(bodyTop + Math.max(0, Math.round((bodyH - h) / 2))).nodes);
+    this.furniture();
+  }
+
+  /** A small table of real values: a tinted header row, rules between rows,
+   *  numbers set flush right. Type steps down until the rows fit. */
+  private table(): void {
+    const tb = this.item.table!;
+    const u = this.ds.unit;
+    const { bodyTop, bodyH } = this.headed();
+    const rows = tb.rows.length + 1;
+    const cols = tb.columns.length;
+    const rowFor = (size: number) => Math.round(size * 2.6);
+    let size = Math.round(this.H * T.tableCell);
+    while (size > 12 && rowFor(size) * rows > bodyH) size -= 1;
+    const rowH = rowFor(size);
+    const width = this.W - 2 * this.m;
+    const height = rowH * rows;
+    const r = this.mirror({ x: this.m, y: bodyTop + Math.max(0, Math.round((bodyH - height) / 2)), width, height });
+    const numeric = /^[\s\d.,%+\-$€£]+$/;
+    const cells: unknown[] = [];
+    const push = (row: number, col: number, text: string, header: boolean) => {
+      cells.push({
+        row, col, rowSpan: 1, colSpan: 1,
+        align: !header && numeric.test(text) && text.trim() !== "" ? "right" : "left",
+        content: [{ text, fontId: "system", fontSize: size, weight: header ? 700 : 400, color: structuredClone(this.ink) }],
+      });
+    };
+    tb.columns.forEach((c, i) => push(0, i, c, true));
+    tb.rows.forEach((row, ri) => row.forEach((c, ci) => push(ri + 1, ci, c, false)));
+    this.nodes.push(createNode("table", {
+      name: "Table",
+      transform: { x: r.x, y: r.y, scaleX: 1, scaleY: 1, rotation: 0 },
+      size: { width: r.width, height: r.height },
+      rows, cols,
+      colWidths: Array.from({ length: cols }, () => Math.round(width / cols)),
+      rowHeights: Array.from({ length: rows }, () => rowH),
+      cells,
+      headerStyle: { enabled: true, fill: { type: "solid", color: structuredClone(this.ds.colors.tint) }, textColor: structuredClone(this.ink), bold: true },
+      borderStyle: { show: true, color: structuredClone(mix(this.ds.colors.ink, this.ds.colors.paper, 0.8)), width: Math.max(1, Math.round(u * 0.12)) },
+    } as never) as Node);
+    void u;
+    this.furniture();
+  }
+
+  /** The people on a team: a monogram in the accent on its own rule, the
+   *  name and the role beneath. No portraits are generated for named people. */
+  private team(): void {
+    const people = (this.item.people ?? []).slice(0, 4);
+    const u = this.ds.unit;
+    const { bodyTop, bodyH } = this.headed();
+    const initials = (name: string) => name.trim().split(/\s+/).slice(0, 2).map((w) => Array.from(w)[0]?.toUpperCase() ?? "").join("");
+    const monoH = Math.round(this.H * T.monogram * 1.15);
+    const build = (y0: number) => {
+      const out: Node[] = [];
+      const cellsR = this.cells(people.length, 0, 0);
+      let bottom = y0;
+      people.forEach((per, i) => {
+        const c = cellsR[i];
+        out.push(this.accentRule(c.x, y0));
+        out.push(this.text({ name: "Monogram", rect: { x: c.x, y: y0 + u * 2, width: c.width, height: monoH }, paragraphs: [initials(per.name)], role: "heading", base: this.H * T.monogram, bold: true, color: this.accent, exactSize: Math.round(this.H * T.monogram), lineHeight: 1.15, tracking: 0.04 }).node);
+        const ny = y0 + u * 2 + monoH + u * 1.5;
+        const name = this.text({ name: "Name", rect: { x: c.x, y: ny, width: c.width, height: u * 8 }, paragraphs: [per.name], role: "heading", base: this.H * T.personName, bold: true, lineHeight: 1.15 });
+        out.push(name.node);
+        let b = ny + name.height;
+        if (per.role) {
+          const ry = b + u * 0.5;
+          const role = this.text({ name: "Role", rect: { x: c.x, y: ry, width: c.width, height: u * 8 }, paragraphs: [per.role], role: "body", base: this.H * T.personRole, color: this.muted, lineHeight: 1.35 });
+          out.push(role.node);
+          b = ry + role.height;
+        }
+        bottom = Math.max(bottom, b);
+      });
+      return { nodes: out, height: bottom - y0 };
+    };
+    const h = build(0).height;
+    this.nodes.push(...build(bodyTop + Math.max(0, Math.round((bodyH - h) / 2))).nodes);
     this.furniture();
   }
 

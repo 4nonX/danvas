@@ -36,10 +36,15 @@ export type Archetype =
   | "quote"
   | "imageCaption"
   | "chart"
-  | "closing";
+  | "closing"
+  | "kpiGrid"
+  | "timeline"
+  | "table"
+  | "team";
 export const archetypes: Archetype[] = [
   "cover", "agenda", "section", "statement", "bigNumber", "bullets", "twoColumn",
   "threeUp", "process", "quote", "imageCaption", "chart", "closing",
+  "kpiGrid", "timeline", "table", "team",
 ];
 
 /** The default form for a page that named only a visual role: every page from
@@ -55,12 +60,22 @@ export const roleForArchetype: Record<Archetype, VisualRole> = {
   cover: "cover", agenda: "agenda", section: "content", statement: "content",
   bigNumber: "data", bullets: "content", twoColumn: "comparison", threeUp: "content",
   process: "content", quote: "quote", imageCaption: "content", chart: "data", closing: "closing",
+  kpiGrid: "data", timeline: "content", table: "data", team: "content",
 };
 
 export interface Stat { value: string; unit?: string; label: string }
 export interface Quote { text: string; attribution?: string }
-export interface Step { label: string; detail?: string }
-export interface Column { heading: string; points: string[] }
+/** `when` is a short time marker ("2019", "Q3", "Week 2") for a timeline. */
+export interface Step { label: string; detail?: string; when?: string }
+/** `icon` is one English keyword naming a simple icon for the column
+ *  ("shield", "clock"); the composer matches it against its icon set. */
+export interface Column { heading: string; points: string[]; icon?: string }
+/** One member of a team slide. Names and roles only: the composer sets a
+ *  monogram, never a generated portrait of a named person. */
+export interface Person { name: string; role?: string }
+/** A small table with real values: a header row and up to a handful of
+ *  rows, every row as long as the header. */
+export interface TableData { columns: string[]; rows: string[][] }
 export type ImageTreatment = "photo" | "illustration" | "abstract";
 export interface ImageIntent { subject: string; treatment: ImageTreatment }
 export type ChartKind = "bar" | "line" | "pie" | "donut";
@@ -75,6 +90,7 @@ export const archetypeBudgets = {
   statValue: 12, statUnit: 8, statLabel: 60, quote: 200, attribution: 60,
   steps: 5, stepLabel: 30, stepDetail: 90, columns: 3, columnHeading: 40, columnPoints: 4,
   imageSubject: 140, chartCategories: 8, chartSeries: 3,
+  stats: 4, tableColumns: 4, tableRows: 6, tableCell: 40, people: 4, personName: 40, personRole: 40, stepWhen: 20, columnIcon: 30,
 } as const;
 
 export interface OutlineItem {
@@ -96,6 +112,12 @@ export interface OutlineItem {
   columns?: Column[];
   image?: ImageIntent;
   chart?: ChartData;
+  /** Phase 7 forms (additive): several figures that belong together, a
+   *  small data table, and the people on a team; a dated sequence reuses
+   *  `steps` with `when` set. */
+  stats?: Stat[];
+  table?: TableData;
+  people?: Person[];
 }
 
 /** Hard cap on a speaker note; the prompt asks for 100..500 chars and the
@@ -214,7 +236,8 @@ function normalizeArchetypeFields(p: Record<string, unknown>, archetype: Archety
       const r = (x ?? {}) as Record<string, unknown>;
       const label = clipToBudget(r.label, b.stepLabel);
       const detail = clipToBudget(r.detail, b.stepDetail);
-      return label ? { label, ...(detail ? { detail } : {}) } : null;
+      const when = clipToBudget(r.when, b.stepWhen);
+      return label ? { label, ...(detail ? { detail } : {}), ...(when ? { when } : {}) } : null;
     })
     .filter((x): x is Step => !!x)
     .slice(0, b.steps);
@@ -224,7 +247,8 @@ function normalizeArchetypeFields(p: Record<string, unknown>, archetype: Archety
       const r = (x ?? {}) as Record<string, unknown>;
       const heading = clipToBudget(r.heading, b.columnHeading);
       const pts = strList(r.points, b.columnPoints, b.point);
-      return heading || pts.length ? { heading, points: pts } : null;
+      const icon = clipToBudget(r.icon, b.columnIcon).toLowerCase();
+      return heading || pts.length ? { heading, points: pts, ...(icon ? { icon } : {}) } : null;
     })
     .filter((x): x is Column => !!x)
     .slice(0, b.columns);
@@ -253,9 +277,50 @@ function normalizeArchetypeFields(p: Record<string, unknown>, archetype: Archety
     if (categories.length && series.length) out.chart = { kind, categories, series };
   }
 
+  const stats = (Array.isArray(p.stats) ? p.stats : [])
+    .map((x) => {
+      const r = (x ?? {}) as Record<string, unknown>;
+      const value = clipToBudget(r.value, b.statValue);
+      if (!value) return null;
+      const unit = clipToBudget(r.unit, b.statUnit);
+      return { value, label: clipToBudget(r.label, b.statLabel), ...(unit ? { unit } : {}) } as Stat;
+    })
+    .filter((x): x is Stat => !!x)
+    .slice(0, b.stats);
+  if (stats.length) out.stats = stats;
+  const tb = p.table as Record<string, unknown> | undefined;
+  if (tb && typeof tb === "object") {
+    const columns = (Array.isArray(tb.columns) ? tb.columns : []).map((c) => clipToBudget(c, b.tableCell)).slice(0, b.tableColumns);
+    // Every row is exactly as long as the header: extra cells are dropped,
+    // missing ones are blank, an empty row is not a row.
+    const rows = (Array.isArray(tb.rows) ? tb.rows : [])
+      .map((r) => columns.map((_, i) => clipToBudget(Array.isArray(r) ? r[i] : undefined, b.tableCell)))
+      .filter((r) => r.some((c) => c !== ""))
+      .slice(0, b.tableRows);
+    if (columns.length && rows.length) out.table = { columns, rows };
+  }
+  const people = (Array.isArray(p.people) ? p.people : [])
+    .map((x) => {
+      const r = (x ?? {}) as Record<string, unknown>;
+      const name = clipToBudget(r.name, b.personName);
+      const role = clipToBudget(r.role, b.personRole);
+      return name ? ({ name, ...(role ? { role } : {}) } as Person) : null;
+    })
+    .filter((x): x is Person => !!x)
+    .slice(0, b.people);
+  if (people.length) out.people = people;
+
   // Downgrade an archetype whose payload did not survive.
   switch (archetype) {
     case "bigNumber": if (!out.stat) out.archetype = "bullets"; break;
+    case "kpiGrid":
+      // One figure is a bigNumber; none is a list.
+      if (!out.stats) out.archetype = "bullets";
+      else if (out.stats.length === 1) { out.stat = out.stats[0]; out.archetype = "bigNumber"; }
+      break;
+    case "timeline": if ((out.steps?.length ?? 0) < 2) out.archetype = "bullets"; break;
+    case "table": if (!out.table) out.archetype = "bullets"; break;
+    case "team": if (!out.people) out.archetype = "bullets"; break;
     case "quote":
       if (!out.quote) {
         if (points[0]) out.quote = { text: clipToBudget(points[0], b.quote) };
@@ -341,10 +406,13 @@ export const outlineJsonSchema = {
           points: { type: "array", maxItems: archetypeBudgets.points, items: { type: "string", maxLength: archetypeBudgets.point }, description: "bullets or agenda items; only for bullets/agenda" },
           stat: { type: "object", additionalProperties: false, required: ["value", "label"], properties: { value: { type: "string", maxLength: archetypeBudgets.statValue, description: "the figure, e.g. 42% or 3.2M" }, unit: { type: "string", maxLength: archetypeBudgets.statUnit }, label: { type: "string", maxLength: archetypeBudgets.statLabel, description: "what the figure means" } } },
           quote: { type: "object", additionalProperties: false, required: ["text"], properties: { text: { type: "string", maxLength: archetypeBudgets.quote }, attribution: { type: "string", maxLength: archetypeBudgets.attribution } } },
-          steps: { type: "array", minItems: 2, maxItems: archetypeBudgets.steps, items: { type: "object", additionalProperties: false, required: ["label"], properties: { label: { type: "string", maxLength: archetypeBudgets.stepLabel }, detail: { type: "string", maxLength: archetypeBudgets.stepDetail } } } },
-          columns: { type: "array", minItems: 2, maxItems: archetypeBudgets.columns, items: { type: "object", additionalProperties: false, required: ["heading", "points"], properties: { heading: { type: "string", maxLength: archetypeBudgets.columnHeading }, points: { type: "array", maxItems: archetypeBudgets.columnPoints, items: { type: "string", maxLength: archetypeBudgets.point } } } } },
+          steps: { type: "array", minItems: 2, maxItems: archetypeBudgets.steps, items: { type: "object", additionalProperties: false, required: ["label"], properties: { label: { type: "string", maxLength: archetypeBudgets.stepLabel }, detail: { type: "string", maxLength: archetypeBudgets.stepDetail }, when: { type: "string", maxLength: archetypeBudgets.stepWhen, description: "a short time marker for a timeline step, e.g. 2019, Q3, Week 2" } } } },
+          columns: { type: "array", minItems: 2, maxItems: archetypeBudgets.columns, items: { type: "object", additionalProperties: false, required: ["heading", "points"], properties: { heading: { type: "string", maxLength: archetypeBudgets.columnHeading }, points: { type: "array", maxItems: archetypeBudgets.columnPoints, items: { type: "string", maxLength: archetypeBudgets.point } }, icon: { type: "string", maxLength: archetypeBudgets.columnIcon, description: "one English keyword naming a simple icon for the column, e.g. shield, clock, users, chart" } } } },
           image: { type: "object", additionalProperties: false, required: ["subject"], properties: { subject: { type: "string", maxLength: archetypeBudgets.imageSubject, description: "what the picture shows, IN ENGLISH, concrete and specific; no text in the image" }, treatment: { type: "string", enum: ["photo", "illustration", "abstract"] } } },
           chart: { type: "object", additionalProperties: false, required: ["kind", "categories", "series"], properties: { kind: { type: "string", enum: ["bar", "line", "pie", "donut"] }, categories: { type: "array", maxItems: archetypeBudgets.chartCategories, items: { type: "string" } }, series: { type: "array", minItems: 1, maxItems: archetypeBudgets.chartSeries, items: { type: "object", additionalProperties: false, required: ["name", "values"], properties: { name: { type: "string" }, values: { type: "array", items: { type: "number" } } } } } } },
+          stats: { type: "array", minItems: 2, maxItems: archetypeBudgets.stats, items: { type: "object", additionalProperties: false, required: ["value", "label"], properties: { value: { type: "string", maxLength: archetypeBudgets.statValue }, unit: { type: "string", maxLength: archetypeBudgets.statUnit }, label: { type: "string", maxLength: archetypeBudgets.statLabel } } }, description: "2-4 figures that belong together; only for kpiGrid" },
+          table: { type: "object", additionalProperties: false, required: ["columns", "rows"], properties: { columns: { type: "array", minItems: 1, maxItems: archetypeBudgets.tableColumns, items: { type: "string", maxLength: archetypeBudgets.tableCell } }, rows: { type: "array", minItems: 1, maxItems: archetypeBudgets.tableRows, items: { type: "array", items: { type: "string", maxLength: archetypeBudgets.tableCell } } } }, description: "a small table of real values from the brief or attached material; only for table" },
+          people: { type: "array", minItems: 1, maxItems: archetypeBudgets.people, items: { type: "object", additionalProperties: false, required: ["name"], properties: { name: { type: "string", maxLength: archetypeBudgets.personName }, role: { type: "string", maxLength: archetypeBudgets.personRole } } }, description: "the people on a team slide; only for team" },
           note: {
             type: "string",
             minLength: 100,
