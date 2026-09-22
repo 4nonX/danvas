@@ -61,6 +61,27 @@ type Input struct {
 	// Motion is the entrance motion on the composed pages: "subtle" (the
 	// bundle's default when empty) or "none".
 	Motion string `json:"motion,omitempty"`
+	// BrandFonts are the workspace brand kit's faces by role; the generated
+	// theme sets headings and body in them. A catalog theme or a template
+	// keeps its own.
+	BrandFonts *BrandFonts `json:"brandFonts,omitempty"`
+	// Logo is the brand kit's primary logo; the composer places it small on
+	// every archetype page and lists the asset in the file.
+	Logo *Logo `json:"logo,omitempty"`
+}
+
+// BrandFonts mirrors the editor's brandFonts: a face for headings and one for
+// body copy, either optional.
+type BrandFonts struct {
+	Heading string `json:"heading,omitempty"`
+	Body    string `json:"body,omitempty"`
+}
+
+// Logo is an asset the composer may place: its id (the file's asset ref) and
+// the URL that ref carries.
+type Logo struct {
+	AssetID string `json:"assetId"`
+	URL     string `json:"url"`
 }
 
 // PageReport is the reviewer's verdict on one composed page. Mirrors

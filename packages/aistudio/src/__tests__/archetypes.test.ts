@@ -401,3 +401,40 @@ describe("motion", () => {
     expect(applyMotion(stray, "none")[0].animation).toBeUndefined();
   });
 });
+
+describe("brand logo", () => {
+  const logo = { assetId: "asset-logo", url: "/api/v1/assets/asset-logo/content", aspect: 3 };
+
+  it("places the logo on every archetype page, top-leading on impact pages and bottom-leading on reading pages, without collisions", () => {
+    const ds = deriveDesignSystem(theme, size, { seed: 1, catalog: catalogEntryForSeed(1), logo });
+    for (const a of archetypes) {
+      const item = normalizeOutline({ title: "T", pages: [pageFor(a)] }).pages[0];
+      const page = composeArchetypePage(item, ds, { index: 3, total: 10 });
+      type N = { name?: string; type: string; fit?: string; source?: { assetId: string }; transform: { x: number; y: number }; size: { width: number; height: number }; data?: { brandLogo?: boolean } };
+      const logos = (page.nodes as N[]).filter((n) => n.name === "Logo");
+      expect(logos, a).toHaveLength(1);
+      const l = logos[0];
+      expect(l.type).toBe("image");
+      expect(l.fit).toBe("contain");
+      expect(l.source?.assetId).toBe("asset-logo");
+      expect(l.data?.brandLogo).toBe(true);
+      expect(l.size.width / l.size.height).toBeCloseTo(3, 0);
+      if (page.impact) expect(l.transform.y).toBeLessThan(ds.margin);
+      else expect(l.transform.y + l.size.height).toBeGreaterThan(size.height - ds.margin);
+      expect(qualityCheck({ background: page.background, nodes: page.nodes, size }).issues, a).toEqual([]);
+      // The logo is furniture: no entrance, and not a picture to regenerate.
+      expect((l as { animation?: unknown }).animation).toBeUndefined();
+      expect(Object.keys(page.imagePrompts).some((k) => k.includes("logo"))).toBe(false);
+    }
+  });
+
+  it("places nothing when the workspace has no logo, or the logo has no url", () => {
+    const none = deriveDesignSystem(theme, size, { seed: 2, catalog: catalogEntryForSeed(2) });
+    const noUrl = deriveDesignSystem(theme, size, { seed: 2, catalog: catalogEntryForSeed(2), logo: { assetId: "x", url: "" } });
+    for (const ds of [none, noUrl]) {
+      const item = normalizeOutline({ title: "T", pages: [pageFor("bullets")] }).pages[0];
+      const page = composeArchetypePage(item, ds, { index: 1, total: 4 });
+      expect((page.nodes as { name?: string }[]).filter((n) => n.name === "Logo")).toHaveLength(0);
+    }
+  });
+});

@@ -35846,7 +35846,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         return pool[i];
       }
       function deriveDesignSystem(theme, size2, opts = {}) {
-        var _a5, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l;
+        var _a5, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m;
         const width = Math.max(1, Math.round(size2.width));
         const height = Math.max(1, Math.round(size2.height));
         const short = Math.min(width, height);
@@ -35904,7 +35904,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           body: theme.fontBody || ((_j = opts.catalog) == null ? void 0 : _j.fontBody) || seeded.body
         };
         const unit = Math.max(4, Math.round(short * 0.012));
-        return {
+        return __spreadValues({
           size: { width, height },
           unit,
           margin: unit * 6,
@@ -35920,7 +35920,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           dir: (_k = opts.dir) != null ? _k : "ltr",
           artDirection: artDirectionFor(opts.mood, colors),
           motion: (_l = opts.motion) != null ? _l : "subtle"
-        };
+        }, ((_m = opts.logo) == null ? void 0 : _m.assetId) && opts.logo.url ? { logo: __spreadValues({}, opts.logo) } : {});
       }
       function designSystemSlots(ds) {
         const c = ds.colors;
@@ -36128,6 +36128,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
       var MOTION = {
         "Kicker": null,
         "Page number": null,
+        "Logo": null,
         "Image": { preset: "fade", durationMs: 700 },
         "Accent": { preset: "fade", durationMs: 350 },
         "Divider": { preset: "fade", durationMs: 350 },
@@ -36311,6 +36312,20 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           const w = this.ds.unit * 8;
           return this.rect("Accent", { x, y, width: w, height: this.ds.rule }, this.accent, Math.round(this.ds.rule / 2));
         }
+        /** The brand logo as an image node fitted into a box. Tagged so brand
+         *  tooling recognises it as the kit's logo, not a picture to regenerate. */
+        logoNode(r0) {
+          const logo = this.ds.logo;
+          const r = this.mirror(r0);
+          return (0, schema_1.createNode)("image", {
+            name: "Logo",
+            source: { assetId: logo.assetId, naturalWidth: 0, naturalHeight: 0 },
+            fit: "contain",
+            transform: { x: r.x, y: r.y, scaleX: 1, scaleY: 1, rotation: 0 },
+            size: { width: r.width, height: r.height },
+            data: { brandLogo: true }
+          });
+        }
         /** An icon from the set, baked into a path node at its final size: the
          *  glyph's contours scaled from the pack's box into the square, filled in
          *  one color under the even-odd rule so its interior contours cut holes.
@@ -36363,10 +36378,16 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         /** Reading-page furniture: the deck title small at the top, the page number
          *  small at the bottom. Impact pages stay quiet. */
         furniture(region) {
-          var _a5, _b;
+          var _a5, _b, _c;
           const u = this.ds.unit;
           const x0 = (_a5 = region == null ? void 0 : region.x) != null ? _a5 : this.m;
           const w0 = (_b = region == null ? void 0 : region.width) != null ? _b : this.W - 2 * this.m;
+          if (this.ds.logo) {
+            const h = this.impact ? u * 4 : u * 3;
+            const w = Math.round(h * ((_c = this.ds.logo.aspect) != null ? _c : 2.5));
+            const y = this.impact ? u * 2 : this.H - u * 4.5;
+            this.nodes.push(this.logoNode({ x: x0, y, width: Math.min(w, w0), height: h }));
+          }
           if (!this.impact && this.ds.kicker) {
             const kicker = this.text({
               name: "Kicker",
@@ -37019,7 +37040,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
       function measureDeck(pages, size2, margin) {
         const area = { x: margin, y: margin, w: size2.width - 2 * margin, h: size2.height - 2 * margin };
         const reports = pages.map((p, i) => {
-          const boxes = p.nodes.filter((n) => n.name !== "Kicker" && n.name !== "Page number").map(boxOf).filter((b) => !!b);
+          const boxes = p.nodes.filter((n) => n.name !== "Kicker" && n.name !== "Page number" && n.name !== "Logo").map(boxOf).filter((b) => !!b);
           return {
             index: i,
             archetype: p.archetype,
@@ -37301,7 +37322,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         return composeDeckFileWithReport2(input2).file;
       }
       function composeDeckFileWithReport2(input2) {
-        var _a5, _b, _c, _d, _e, _f;
+        var _a5, _b, _c, _d, _e, _f, _g, _h;
         const outline = (0, outline_1.normalizeOutline)(input2.outline);
         const width = Math.max(1, Math.round(input2.width));
         const height = Math.max(1, Math.round(input2.height));
@@ -37320,8 +37341,8 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           record2 = themeRecordFromCatalog(entry);
           catalog = entry;
         } else {
-          theme = (0, theme_1.deckThemes)({ brandPalette: (_a5 = input2.brandPalette) != null ? _a5 : [], kicker: outline.title, count: 1, seed })[0];
-          if (!((_b = input2.brandPalette) != null ? _b : []).length)
+          theme = (0, theme_1.deckThemes)({ brandPalette: (_a5 = input2.brandPalette) != null ? _a5 : [], kicker: outline.title, count: 1, seed, fontHeading: (_b = input2.brandFonts) == null ? void 0 : _b.heading, fontBody: (_c = input2.brandFonts) == null ? void 0 : _c.body })[0];
+          if (!((_d = input2.brandPalette) != null ? _d : []).length)
             catalog = (0, designSystem_1.catalogEntryForMood)(outline.theme, seed);
         }
         let pages;
@@ -37329,17 +37350,17 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         let layoutsOut;
         let system = null;
         let report = null;
-        if ((_d = (_c = input2.layoutSet) == null ? void 0 : _c.layouts) == null ? void 0 : _d.length) {
-          masters = structuredClone((_e = input2.layoutSet.masters) != null ? _e : []);
+        if ((_f = (_e = input2.layoutSet) == null ? void 0 : _e.layouts) == null ? void 0 : _f.length) {
+          masters = structuredClone((_g = input2.layoutSet.masters) != null ? _g : []);
           layoutsOut = structuredClone(input2.layoutSet.layouts);
           const layouts = layoutsOut;
           const byId = new Map(layouts.map((l) => [l.id, l]));
           const masterById = new Map((masters != null ? masters : []).map((m) => [m.id, m]));
           const selection = (0, layoutSchema_1.repairLayoutSelection)(null, outline.pages, layouts);
-          const themedBg = (0, layout_1.layoutDesign)({ layout: "centered", background: theme.background, blocks: [], dir: (_f = input2.dir) != null ? _f : "ltr" }, { width, height }).background;
+          const themedBg = (0, layout_1.layoutDesign)({ layout: "centered", background: theme.background, blocks: [], dir: (_h = input2.dir) != null ? _h : "ltr" }, { width, height }).background;
           const overfullByPage = [];
           pages = outline.pages.map((item, i) => {
-            var _a6, _b2, _c2, _d2, _e2, _f2, _g, _h, _i;
+            var _a6, _b2, _c2, _d2, _e2, _f2, _g2, _h2, _i;
             const overfull = [];
             overfullByPage.push(overfull);
             const layout = (_a6 = byId.get(selection[i])) != null ? _a6 : layouts[0];
@@ -37406,8 +37427,8 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
               const c = n.content;
               return c.some((par) => par.runs.some((run) => run.text.trim()));
             });
-            const titlePh = ((_g = layout.placeholders) != null ? _g : []).find((p) => p.role === "title");
-            const authoredBg = !!((_h = layout.background) != null ? _h : master == null ? void 0 : master.background);
+            const titlePh = ((_g2 = layout.placeholders) != null ? _g2 : []).find((p) => p.role === "title");
+            const authoredBg = !!((_h2 = layout.background) != null ? _h2 : master == null ? void 0 : master.background);
             if (treatment.accent && titlePh && !authoredBg) {
               const bar = (0, deckStyle_1.accentRuleRect)({ x: titlePh.rect.x * sx, y: titlePh.rect.y * sy, width: titlePh.rect.width * sx, height: titlePh.rect.height * sy }, { width, height });
               const accentColor = (0, color_1.fromHex)(treatment.accent);
@@ -37447,7 +37468,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             };
           }), { width, height }, Math.round(Math.min(width, height) * 0.012) * 6);
         } else {
-          const deck = (0, deck_1.layoutDeck)(outline, theme, { width, height }, { dir: input2.dir, catalog, brandPalette: input2.brandPalette, seed, motion: input2.motion });
+          const deck = (0, deck_1.layoutDeck)(outline, theme, { width, height }, { dir: input2.dir, catalog, brandPalette: input2.brandPalette, seed, motion: input2.motion, logo: input2.logo });
           system = deck.system;
           report = deck.report;
           pages = deck.pages.map((p, i) => __spreadValues({
@@ -37467,7 +37488,9 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           unit: "px",
           dpi: 96,
           pages,
-          assets: [],
+          // The logo is the one asset a composed deck references before any
+          // picture lands; the archetype door placed it on every page.
+          assets: (system == null ? void 0 : system.logo) ? [{ id: system.logo.assetId, kind: "image", url: system.logo.url, mime: "image/*", checksum: "" }] : [],
           fonts: []
         }, masters ? { masters } : {}), layoutsOut ? { layouts: layoutsOut } : {}), {
           // The file's theme record carries the very slots the pages were painted

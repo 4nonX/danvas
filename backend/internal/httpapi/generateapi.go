@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"errors"
 	"hycanvas/backend/internal/ai"
+	"hycanvas/backend/internal/brand"
 	"hycanvas/backend/internal/stock"
 	"hycanvas/backend/internal/uploads"
 	"net/http"
@@ -32,8 +33,8 @@ import (
 	"hycanvas/backend/internal/templates"
 )
 
-func mountGenerate(api chi.Router, svc *aistudio.Service, aiSvc *ai.Service, up *uploads.Service, st *stock.Service, acct *accounts.Service, p *persistence.Service, reg *jobs.Registry, tpl *templates.Service) {
-	api.With(requireAuth(acct)).Post("/generate/presentation", generatePresentationHandler(svc, aiSvc, up, st, acct, p, reg, tpl))
+func mountGenerate(api chi.Router, svc *aistudio.Service, aiSvc *ai.Service, up *uploads.Service, st *stock.Service, br *brand.Service, acct *accounts.Service, p *persistence.Service, reg *jobs.Registry, tpl *templates.Service) {
+	api.With(requireAuth(acct)).Post("/generate/presentation", generatePresentationHandler(svc, aiSvc, up, st, br, acct, p, reg, tpl))
 	// The built-in theme catalog (F40 E12): harmless metadata, any session or
 	// valid key may list it (the generation themeId is validated against it).
 	api.With(requireAuth(acct)).Get("/themes", func(w http.ResponseWriter, _ *http.Request) {
@@ -244,7 +245,7 @@ func planGeneration(ctx context.Context, acct *accounts.Service, userID string, 
 // startGenerationJob runs a validated plan through the job registry:
 // server-side outline generation (per-page copy polish), goja composition,
 // then a normal persistence.Create through the write boundary.
-func startGenerationJob(svc *aistudio.Service, aiSvc *ai.Service, up *uploads.Service, st *stock.Service, p *persistence.Service, reg *jobs.Registry, userID string, plan generatePlan) *jobs.Job {
+func startGenerationJob(svc *aistudio.Service, aiSvc *ai.Service, up *uploads.Service, st *stock.Service, br *brand.Service, p *persistence.Service, reg *jobs.Registry, userID string, plan generatePlan) *jobs.Job {
 	job := reg.Start(userID, "generate-presentation")
 	go func() {
 		// A panic in this background goroutine would kill the PROCESS (the
@@ -259,15 +260,24 @@ func startGenerationJob(svc *aistudio.Service, aiSvc *ai.Service, up *uploads.Se
 		// on its own bounded clock.
 		ctx, cancel := context.WithTimeout(context.Background(), generateTimeout)
 		defer cancel()
-		outline, err := svc.GenerateDesign(ctx, plan.Workspace, plan.Dt, plan.Brief, "", plan.PageCount)
+		// The workspace's brand kit grounds the deck the way it grounds the
+		// editor's: voice into the outline, palette into the theme unless the
+		// caller named one, fonts into the type, the logo onto the pages.
+		grounding := groundInBrand(ctx, br, up, plan.Workspace, userID)
+		palette := plan.Palette
+		if len(palette) == 0 {
+			palette = grounding.Palette
+		}
+		outline, err := svc.GenerateDesign(ctx, plan.Workspace, plan.Dt, plan.Brief, grounding.Clause, plan.PageCount)
 		if err != nil {
 			reg.Fail(job.ID, userMessageForAI(err))
 			return
 		}
 		compose := func() ([]byte, composer.Report, error) {
 			return composer.ComposeWithReport(ctx, composer.Input{
-				Outline: outline, Width: plan.Size.w, Height: plan.Size.h, BrandPalette: plan.Palette,
+				Outline: outline, Width: plan.Size.w, Height: plan.Size.h, BrandPalette: palette,
 				ThemeID: plan.ThemeID, LayoutSet: plan.LayoutSet, ThemeRecord: plan.ThemeRecord, Motion: plan.Motion,
+				BrandFonts: grounding.Fonts, Logo: grounding.Logo,
 			})
 		}
 		fileJSON, report, err := compose()
@@ -282,7 +292,7 @@ func startGenerationJob(svc *aistudio.Service, aiSvc *ai.Service, up *uploads.Se
 		if len(report.Shorten) > 0 {
 			for _, i := range report.Shorten {
 				if i >= 0 && i < len(outline.Pages) {
-					outline.Pages[i] = svc.ShortenPage(ctx, plan.Workspace, outline.Pages[i], "")
+					outline.Pages[i] = svc.ShortenPage(ctx, plan.Workspace, outline.Pages[i], grounding.Clause)
 				}
 			}
 			if again, againReport, err2 := compose(); err2 == nil {
@@ -359,7 +369,7 @@ func resolveTemplateForGeneration(ctx context.Context, tpl *templates.Service, u
 	return layoutSet, theme, nil
 }
 
-func generatePresentationHandler(svc *aistudio.Service, aiSvc *ai.Service, up *uploads.Service, st *stock.Service, acct *accounts.Service, p *persistence.Service, reg *jobs.Registry, tpl *templates.Service) http.HandlerFunc {
+func generatePresentationHandler(svc *aistudio.Service, aiSvc *ai.Service, up *uploads.Service, st *stock.Service, br *brand.Service, acct *accounts.Service, p *persistence.Service, reg *jobs.Registry, tpl *templates.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var body generateInput
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
@@ -411,7 +421,7 @@ func generatePresentationHandler(svc *aistudio.Service, aiSvc *ai.Service, up *u
 			return
 		}
 		// Key-authed calls are audited by the auth middleware; nothing extra here.
-		job := startGenerationJob(svc, aiSvc, up, st, p, reg, u.ID, plan)
+		job := startGenerationJob(svc, aiSvc, up, st, br, p, reg, u.ID, plan)
 		w.Header().Set("Location", "/api/v1/jobs/"+job.ID)
 		writeJSON(w, http.StatusAccepted, map[string]any{"jobId": job.ID, "poll": "/api/v1/jobs/" + job.ID})
 	}

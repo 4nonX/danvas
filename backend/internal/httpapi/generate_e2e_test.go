@@ -128,7 +128,7 @@ func TestGenerationJobPlacesImages_DB(t *testing.T) {
 
 	plan := generatePlan{Workspace: ws.ID, Dt: "presentation", PageCount: 1, Brief: "a one-slide deck about the shoreline"}
 	plan.Size.w, plan.Size.h = 1920, 1080
-	job := startGenerationJob(studio, aiSvc, up, st, persist, reg, user.ID, plan)
+	job := startGenerationJob(studio, aiSvc, up, st, nil, persist, reg, user.ID, plan)
 
 	var done *jobs.Job
 	for deadline := time.Now().Add(90 * time.Second); time.Now().Before(deadline); {

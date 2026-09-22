@@ -96,7 +96,7 @@ export function measureDeck(pages: MeasurablePage[], size: { width: number; heig
   const reports: PageReport[] = pages.map((p, i) => {
     // Furniture (kicker, page number) is not content: it must not count as
     // filling the page.
-    const boxes = p.nodes.filter((n) => n.name !== "Kicker" && n.name !== "Page number").map(boxOf).filter((b): b is Box => !!b);
+    const boxes = p.nodes.filter((n) => n.name !== "Kicker" && n.name !== "Page number" && n.name !== "Logo").map(boxOf).filter((b): b is Box => !!b);
     return {
       index: i,
       archetype: p.archetype,

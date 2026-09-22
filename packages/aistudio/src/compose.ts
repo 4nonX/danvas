@@ -29,7 +29,7 @@ import { fallbackLayoutFill, repairLayoutSelection } from "./layoutSchema";
 import { accentRuleRect, pageTreatment, slotTypeScale } from "./deckStyle";
 import { reflowPage } from "./reflow";
 import { themeSlotNames } from "./themeGen";
-import { catalogEntryForMood, designSystemSlots, type DeckMotion } from "./designSystem";
+import { catalogEntryForMood, designSystemSlots, type DeckLogo, type DeckMotion } from "./designSystem";
 import { applyMotion } from "./archetypes";
 import { measureDeck, type DeckReport } from "./measure";
 import { themeCatalogEntry, type ThemeCatalogEntry } from "./themeCatalog";
@@ -60,6 +60,12 @@ export interface ComposeDeckInput {
   dir?: "ltr" | "rtl";
   /** Entrance motion on the composed pages: "subtle" (default) or "none". */
   motion?: DeckMotion;
+  /** The brand kit's faces by role; the generated theme sets headings and
+   *  body in them. A catalog theme or a template keeps its own. */
+  brandFonts?: { heading?: string; body?: string };
+  /** The brand kit's primary logo, placed on every archetype page and listed
+   *  in the file's assets. */
+  logo?: DeckLogo | null;
 }
 
 /** A T19 theme record as a generation DeckTheme (the template path's
@@ -182,7 +188,7 @@ export function composeDeckFileWithReport(input: ComposeDeckInput): { file: Desi
     record = themeRecordFromCatalog(entry);
     catalog = entry;
   } else {
-    theme = deckThemes({ brandPalette: input.brandPalette ?? [], kicker: outline.title, count: 1, seed })[0];
+    theme = deckThemes({ brandPalette: input.brandPalette ?? [], kicker: outline.title, count: 1, seed, fontHeading: input.brandFonts?.heading, fontBody: input.brandFonts?.body })[0];
     if (!(input.brandPalette ?? []).length) catalog = catalogEntryForMood(outline.theme, seed);
   }
 
@@ -342,7 +348,7 @@ export function composeDeckFileWithReport(input: ComposeDeckInput): { file: Desi
       Math.round(Math.min(width, height) * 0.012) * 6,
     );
   } else {
-    const deck = layoutDeck(outline, theme, { width, height }, { dir: input.dir, catalog, brandPalette: input.brandPalette, seed, motion: input.motion });
+    const deck = layoutDeck(outline, theme, { width, height }, { dir: input.dir, catalog, brandPalette: input.brandPalette, seed, motion: input.motion, logo: input.logo });
     system = deck.system;
     report = deck.report;
     pages = deck.pages.map((p, i) => ({
@@ -364,7 +370,9 @@ export function composeDeckFileWithReport(input: ComposeDeckInput): { file: Desi
     unit: "px",
     dpi: 96,
     pages,
-    assets: [],
+    // The logo is the one asset a composed deck references before any
+    // picture lands; the archetype door placed it on every page.
+    assets: system?.logo ? [{ id: system.logo.assetId, kind: "image", url: system.logo.url, mime: "image/*", checksum: "" }] : [],
     fonts: [],
     ...(masters ? { masters } : {}),
     ...(layoutsOut ? { layouts: layoutsOut } : {}),

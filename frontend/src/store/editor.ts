@@ -1596,6 +1596,24 @@ function newEffectOfKind(kind: Effect["kind"]): Effect | null {
   }
 }
 
+/** The asset ref a composed deck's brand logo needs in the file, or null. */
+function deckLogoRef(deck: DeckResult): AssetRef | null {
+  const logo = deck.system?.logo;
+  return logo?.assetId && logo.url ? { id: logo.assetId, kind: "image", url: logo.url, mime: "image/*", checksum: "" } : null;
+}
+
+/** Add an asset ref unless the file already lists that id; true when added. */
+function addAssetRef(doc: { assets: AssetRef[] }, ref: AssetRef): boolean {
+  if (doc.assets.some((a) => a.id === ref.id)) return false;
+  doc.assets.push(ref);
+  return true;
+}
+
+function removeAssetRef(doc: { assets: AssetRef[] }, id: string): void {
+  const i = doc.assets.findIndex((a) => a.id === id);
+  if (i >= 0) doc.assets.splice(i, 1);
+}
+
 export const useEditor = create<EditorState>((set, get) => {
   // Cache for pageContentBounds(): keyed by (rev, page index) so panning (which
   // calls it every frame via the MiniMap) is O(1) unless the scene changed.
@@ -2239,9 +2257,12 @@ export const useEditor = create<EditorState>((set, get) => {
         live.splice(0, live.length, ...(structuredClone(pages) as unknown[]));
         set({ activePage: Math.max(0, Math.min(activePage, live.length - 1)), selection });
       };
+      // The brand logo the composer placed references an asset the file must
+      // list; it rides in the same undo step as the pages.
+      const logoRef = deckLogoRef(deck);
       perform(
-        () => replaceAll(after, 0, []),
-        () => replaceAll(before, prevActive, prevSel), // restore the user's prior view on undo
+        () => { replaceAll(after, 0, []); if (logoRef) addAssetRef(get().doc, logoRef); },
+        () => { replaceAll(before, prevActive, prevSel); if (logoRef) removeAssetRef(get().doc, logoRef.id); }, // restore the user's prior view on undo
       );
       return pageIds;
     },
@@ -2264,9 +2285,14 @@ export const useEditor = create<EditorState>((set, get) => {
       const snapshot = structuredClone(newPages);
       const prevSel = get().selection;
       const prevActive = get().activePage;
+      const logoRef = deckLogoRef(deck);
+      // Only an asset ref this step ADDED is removed on undo: a deck appended
+      // to one that already carried the logo leaves the earlier ref alone.
+      let addedLogoRef = false;
       perform(
         () => {
           (get().doc.pages as unknown as unknown[]).push(...(structuredClone(snapshot) as unknown[]));
+          if (logoRef) addedLogoRef = addAssetRef(get().doc, logoRef);
           set({ activePage: get().doc.pages.length - newPages.length, selection: [] });
         },
         () => {
@@ -2275,6 +2301,7 @@ export const useEditor = create<EditorState>((set, get) => {
             const i = live.findIndex((p) => p.id === id);
             if (i >= 0) live.splice(i, 1);
           }
+          if (logoRef && addedLogoRef) removeAssetRef(get().doc, logoRef.id);
           set({ activePage: Math.min(prevActive, get().doc.pages.length - 1), selection: prevSel });
         },
       );

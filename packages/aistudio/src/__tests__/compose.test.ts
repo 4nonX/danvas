@@ -99,3 +99,19 @@ describe("layout-grounded composition (F40 E14)", () => {
     expect(content.content[0].runs[0].style.fontFamily).toBe("Inter");
   });
 });
+
+describe("composeDeckFile brand grounding", () => {
+  it("lists the logo asset and sets brand fonts on the generated theme", async () => {
+    const { composeDeckFile } = await import("../compose");
+    const input = JSON.parse(readFileSync(path.join(testdata, "compose-input.json"), "utf8"));
+    const out = composeDeckFile({ ...input, brandFonts: { heading: "Fraunces", body: "Nunito" }, logo: { assetId: "asset-logo", url: "/api/v1/assets/asset-logo/content" } });
+    expect(out.assets).toEqual([{ id: "asset-logo", kind: "image", url: "/api/v1/assets/asset-logo/content", mime: "image/*", checksum: "" }]);
+    type N = { name?: string; content?: { runs: { style: { fontFamily: string } }[] }[] };
+    const pages = out.pages as { children: N[] }[];
+    expect(pages.every((p) => p.children.some((n) => n.name === "Logo"))).toBe(true);
+    const title = pages[1].children.find((n) => n.name === "Title")!;
+    expect(title.content![0].runs[0].style.fontFamily).toBe("Fraunces");
+    const points = pages[1].children.find((n) => n.name === "Points")!;
+    expect(points.content![0].runs[0].style.fontFamily).toBe("Nunito");
+  });
+});

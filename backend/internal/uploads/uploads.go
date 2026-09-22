@@ -160,6 +160,11 @@ func (s *Service) contentURL(id string) string {
 	return s.publicURL + "/api/v1/assets/" + id + "/content"
 }
 
+// AssetURL is the URL a design file references an asset by, the same one the
+// list and upload views carry. Exported for callers that compose a file
+// around an asset they only know by id (a brand kit's logo).
+func (s *Service) AssetURL(id string) string { return s.contentURL(id) }
+
 func (s *Service) toUploaded(a assetRow) UploadedAsset {
 	kind := strings.ToLower(a.Kind)
 	if a.MediaKind != "" {

@@ -148,7 +148,7 @@ export function iconGlyphFor(keyword: string | undefined): string | null {
  *  order with a short stagger. Furniture (the kicker, the page number) is
  *  already there when the page arrives. */
 const MOTION: Record<string, { preset: "fade" | "rise"; durationMs: number } | null> = {
-  "Kicker": null, "Page number": null,
+  "Kicker": null, "Page number": null, "Logo": null,
   "Image": { preset: "fade", durationMs: 700 },
   "Accent": { preset: "fade", durationMs: 350 }, "Divider": { preset: "fade", durationMs: 350 },
   "Sequence": { preset: "fade", durationMs: 350 }, "Marker": { preset: "fade", durationMs: 350 }, "Icon": { preset: "fade", durationMs: 350 },
@@ -368,6 +368,21 @@ class Composer {
     return this.rect("Accent", { x, y, width: w, height: this.ds.rule }, this.accent, Math.round(this.ds.rule / 2));
   }
 
+  /** The brand logo as an image node fitted into a box. Tagged so brand
+   *  tooling recognises it as the kit's logo, not a picture to regenerate. */
+  private logoNode(r0: Rect): Node {
+    const logo = this.ds.logo!;
+    const r = this.mirror(r0);
+    return createNode("image", {
+      name: "Logo",
+      source: { assetId: logo.assetId, naturalWidth: 0, naturalHeight: 0 },
+      fit: "contain",
+      transform: { x: r.x, y: r.y, scaleX: 1, scaleY: 1, rotation: 0 },
+      size: { width: r.width, height: r.height },
+      data: { brandLogo: true },
+    } as never) as Node;
+  }
+
   /** An icon from the set, baked into a path node at its final size: the
    *  glyph's contours scaled from the pack's box into the square, filled in
    *  one color under the even-odd rule so its interior contours cut holes.
@@ -431,6 +446,17 @@ class Composer {
     const u = this.ds.unit;
     const x0 = region?.x ?? this.m;
     const w0 = region?.width ?? this.W - 2 * this.m;
+    // The brand's logo, small and in the same place on every page so the deck
+    // reads as the brand's: top-leading on impact pages, where nothing else
+    // sits above the margin, and bottom-leading on reading pages, level with
+    // the page number on the trailing side. Fitted into its box, never
+    // stretched; the editor and the API list the asset in the file.
+    if (this.ds.logo) {
+      const h = this.impact ? u * 4 : u * 3;
+      const w = Math.round(h * (this.ds.logo.aspect ?? 2.5));
+      const y = this.impact ? u * 2 : this.H - u * 4.5;
+      this.nodes.push(this.logoNode({ x: x0, y, width: Math.min(w, w0), height: h }));
+    }
     if (!this.impact && this.ds.kicker) {
       const kicker = this.text({
         name: "Kicker", rect: { x: x0, y: u * 2.5, width: w0, height: u * 3 },

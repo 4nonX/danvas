@@ -23,7 +23,7 @@ import {
   type DesignOutline, type DesignType, type GenerationDials, type OutlineItem,
   toolCatalog, assistantSystemPrompt, parseAssistantReply, planMutates, summarizeDesign, type PlanStep,
   deriveOutline, switchOutline, sourcesOutlineItem, type PageText, type SourceCitation,
-  themeCatalogEntry, deckThemeFromCatalog, themeRecordFromCatalog, deckThemeFromRecord, pageTreatment, catalogEntryForMood, themeRecordFromDesignSystem } from "@hc/aistudio";
+  themeCatalogEntry, deckThemeFromCatalog, themeRecordFromCatalog, deckThemeFromRecord, pageTreatment, catalogEntryForMood, themeRecordFromDesignSystem , type DeckLogo } from "@hc/aistudio";
 import { builtinMasterAndLayouts, type SlideLayout } from "@hc/schema";
 import { promptText } from "@/lib/promptDialog";
 import { downloadHycFile } from "@/lib/hycFile";
@@ -1961,8 +1961,8 @@ type ResolvedPayload =
   | { kind: "diagram"; spec: DiagramSpec }
   | { kind: "clusters"; clusters: { title: string; ids: string[] }[] }
   | { kind: "summary"; text: string }
-  | { kind: "outline"; outline: DesignOutline; size: { width: number; height: number }; brandPalette: string[]; brandFonts: { heading?: string; body?: string }; heroPlans: { pageIndex: number; prompt: string; subject: string; size: string }[]; workspaceId: string; designId: string | null; append: boolean; themeId?: string; themeRecord?: Theme }
-  | { kind: "layoutDeck"; deckTitle: string; themeRecord: Theme; pages: { layoutId: string; name: string; note?: string; fill: LayoutFill; fillPrompt: string; verbatim?: boolean; background: unknown; accent: string | null }[]; background: unknown; imageSize: string; size: { width: number; height: number }; brandPalette: string[]; brandFonts: { heading?: string; body?: string }; styleClause: string; heroPlans: { pageIndex: number; prompt: string; subject: string }[]; generateAllowed: boolean; workspaceId: string; designId: string | null; append: boolean }
+  | { kind: "outline"; outline: DesignOutline; size: { width: number; height: number }; brandPalette: string[]; brandFonts: { heading?: string; body?: string }; brandLogo: DeckLogo | null; heroPlans: { pageIndex: number; prompt: string; subject: string; size: string }[]; workspaceId: string; designId: string | null; append: boolean; themeId?: string; themeRecord?: Theme }
+  | { kind: "layoutDeck"; deckTitle: string; themeRecord: Theme; pages: { layoutId: string; name: string; note?: string; fill: LayoutFill; fillPrompt: string; verbatim?: boolean; background: unknown; accent: string | null }[]; background: unknown; imageSize: string; size: { width: number; height: number }; brandPalette: string[]; brandFonts: { heading?: string; body?: string }; brandLogo: DeckLogo | null; styleClause: string; heroPlans: { pageIndex: number; prompt: string; subject: string }[]; generateAllowed: boolean; workspaceId: string; designId: string | null; append: boolean }
   | { kind: "splitSlide"; pageIndex: number; pageId: string; halves: { layoutId: string; name: string; fill: LayoutFill }[] }
   | { kind: "insertComparison"; layoutId: string; name: string; fill: LayoutFill; afterIndex: number; afterPageId: string }
   | { kind: "webSearch"; query: string; count: number }
@@ -1996,6 +1996,9 @@ interface AssistantDeps {
   voiceClause: string;
   brandPalette: string[];
   brandFonts: { heading?: string; body?: string };
+  /** The brand kit's primary logo with its asset URL, placed on every page of
+   *  a generated deck; null when the workspace has none or it has not loaded. */
+  brandLogo?: DeckLogo | null;
   imageCapable: boolean;
   /** Whether the provider supports image EDITING (some generate but cannot edit). */
   editImageCapable: boolean;
@@ -2936,6 +2939,7 @@ async function resolvePlanStep(step: PlanStep, deps: AssistantDeps): Promise<{ p
               size,
               brandPalette: deps.brandPalette,
               brandFonts: deps.brandFonts,
+              brandLogo: deps.brandLogo ?? null,
               styleClause,
               heroPlans,
               generateAllowed: deps.imageCapable,
@@ -2967,7 +2971,7 @@ async function resolvePlanStep(step: PlanStep, deps: AssistantDeps): Promise<{ p
             ),
           }));
       }
-      return { payload: { kind: "outline", outline, size, brandPalette: deps.brandPalette, brandFonts: deps.brandFonts, heroPlans, workspaceId: deps.workspaceId, designId: deps.designId ?? null, append, themeId: deps.styleThemeId, themeRecord: deps.styleThemeRecord } };
+      return { payload: { kind: "outline", outline, size, brandPalette: deps.brandPalette, brandFonts: deps.brandFonts, brandLogo: deps.brandLogo ?? null, heroPlans, workspaceId: deps.workspaceId, designId: deps.designId ?? null, append, themeId: deps.styleThemeId, themeRecord: deps.styleThemeRecord } };
     }
     default:
       return {};
@@ -3397,7 +3401,7 @@ function runPlanStep(step: PlanStep, ctx?: { brandTargets?: BrandFixTarget[]; pa
         return true;
       }
       if (ctx?.payload?.kind !== "outline") return false;
-      const { outline, size, brandPalette, brandFonts, heroPlans, workspaceId, designId, append, themeId, themeRecord } = ctx.payload;
+      const { outline, size, brandPalette, brandFonts, brandLogo, heroPlans, workspaceId, designId, append, themeId, themeRecord } = ctx.payload;
       const clean: DesignOutline = { ...outline, pages: outline.pages.map((p) => ({ ...p, points: p.points.map((s) => s.trim()).filter(Boolean) })) };
       // F40 E12/E14: a template's theme record wins, then a chosen catalog
       // theme; else seed the default hue from the title so different briefs
@@ -3414,7 +3418,7 @@ function runPlanStep(step: PlanStep, ctx?: { brandTargets?: BrandFixTarget[]; pa
       // slots and pairing when one is chosen or when nothing else names a
       // palette, so an unbranded brief still gets a designed deck.
       const catalog = chosenEntry ?? (!themeRecord && !brandPalette.length ? catalogEntryForMood(clean.theme, seed) : null);
-      const deck = layoutDeck(clean, themes[0], size, { catalog, brandPalette, seed });
+      const deck = layoutDeck(clean, themes[0], size, { catalog, brandPalette, seed, logo: brandLogo });
       const base = append ? st.doc.pages.length : 0;
       const ids = append ? st.appendDeckPages(deck, size) : st.buildDeckFromOutline(deck, size);
       if (!ids.length) return false;
@@ -3479,12 +3483,13 @@ function runPlanStep(step: PlanStep, ctx?: { brandTargets?: BrandFixTarget[]; pa
   }
 }
 
-function AssistantPanel({ workspaceId, aiReady, voiceClause, brandPalette, brandFonts, imageCapable, editImageCapable }: {
+function AssistantPanel({ workspaceId, aiReady, voiceClause, brandPalette, brandFonts, brandLogo, imageCapable, editImageCapable }: {
   workspaceId: string | null;
   aiReady: boolean;
   voiceClause: string;
   brandPalette: string[];
   brandFonts: { heading?: string; body?: string };
+  brandLogo: DeckLogo | null;
   imageCapable: boolean;
   editImageCapable: boolean;
 }) {
@@ -3775,7 +3780,7 @@ function AssistantPanel({ workspaceId, aiReady, voiceClause, brandPalette, brand
     reviewAbort.current = aborter;
     setReview((r) => ({ outline: null, loading: true, dials, themeId: r?.themeId, templateId: r?.templateId }));
     try {
-      const deps: AssistantDeps = { workspaceId, voiceClause, brandPalette, brandFonts, imageCapable, editImageCapable, sources, dials, designId, signal: aborter.signal };
+      const deps: AssistantDeps = { workspaceId, voiceClause, brandPalette, brandFonts, brandLogo, imageCapable, editImageCapable, sources, dials, designId, signal: aborter.signal };
       // A planned webSearch grounds the OUTLINE, and in the review flow the
       // outline is fetched here (the reviewed outline then bypasses the
       // execute-time fetch entirely) - so the search must run FIRST or its
@@ -3846,7 +3851,7 @@ function AssistantPanel({ workspaceId, aiReady, voiceClause, brandPalette, brand
         setTurns((t) => [...t, { role: "assistant", text: msg }]);
         toast.error(msg);
       };
-      const deps: AssistantDeps = { workspaceId, voiceClause, brandPalette, brandFonts, imageCapable, editImageCapable, sources, reviewedOutline, dials, designId, citations, styleThemeId, signal: aborter.signal, onStage: setStage, onDegraded: (w) => { if (!degraded.includes(w)) degraded.push(w); } };
+      const deps: AssistantDeps = { workspaceId, voiceClause, brandPalette, brandFonts, brandLogo, imageCapable, editImageCapable, sources, reviewedOutline, dials, designId, citations, styleThemeId, signal: aborter.signal, onStage: setStage, onDegraded: (w) => { if (!degraded.includes(w)) degraded.push(w); } };
       // F40 E14: a template base contributes its layout system + theme. The
       // adoption happens BEFORE the resolve pass so the layout-grounded path
       // naturally picks up the adopted layouts from the document.
@@ -5189,6 +5194,28 @@ export function AiPanel({ workspaceId }: { workspaceId: string | null }) {
     const body = byRole("body") ?? byRole("text") ?? byRole("para") ?? fonts[fonts.length - 1]?.fontFamily;
     return { heading, body };
   }, [brandFontList]);
+  // The brand's primary logo, with the URL its asset serves at, so a
+  // generated deck carries it on every page. The kit stores only the asset id;
+  // the workspace's asset list supplies the URL, fetched once per kit change.
+  const brandLogos = useBrand((s) => s.kit?.logos ?? null);
+  const firstLogoAssetId = brandLogos?.[0]?.assetId ?? null;
+  // The resolved URL is keyed by the asset it belongs to, so a kit change
+  // invalidates it at render time (the key no longer matches) with no
+  // synchronous state write inside the effect.
+  const [resolvedLogo, setResolvedLogo] = useState<{ assetId: string; url: string } | null>(null);
+  useEffect(() => {
+    if (!workspaceId || !firstLogoAssetId) return;
+    let cancelled = false;
+    oc.listAssets(workspaceId)
+      .then((assets) => {
+        if (cancelled) return;
+        const hit = (assets as UploadedAsset[]).find((a) => a.id === firstLogoAssetId);
+        if (hit?.url) setResolvedLogo({ assetId: hit.id, url: hit.url });
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [workspaceId, firstLogoAssetId]);
+  const brandLogo: DeckLogo | null = firstLogoAssetId && resolvedLogo?.assetId === firstLogoAssetId ? resolvedLogo : null;
   // Let the user bypass brand-voice grounding for the very next action.
   const [ignoreVoice, setIgnoreVoice] = useState(false);
   const voiceClause = !ignoreVoice ? brandVoiceClause(brandVoice) : "";
@@ -5373,7 +5400,7 @@ export function AiPanel({ workspaceId }: { workspaceId: string | null }) {
           {/* Single conversational surface: one thread plans and applies every
               capability (write, image, whole-design, restyle, chart, critique).
               The model routes the intent to the right tool from the catalog. */}
-          <AssistantPanel workspaceId={workspaceId} aiReady voiceClause={voiceClause} brandPalette={brandPalette} brandFonts={brandFonts} imageCapable={imageCapable} editImageCapable={editImageCapable} />
+          <AssistantPanel workspaceId={workspaceId} aiReady voiceClause={voiceClause} brandPalette={brandPalette} brandFonts={brandFonts} brandLogo={brandLogo} imageCapable={imageCapable} editImageCapable={editImageCapable} />
         </div>
       )}
     </PanelShell>

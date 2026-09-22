@@ -69,9 +69,16 @@ export interface DesignSystem {
    *  every element one quiet entrance in reading order; "none" leaves the
    *  deck still. */
   motion: DeckMotion;
+  /** The brand's logo when the workspace has one. */
+  logo?: DeckLogo;
 }
 
 export type DeckMotion = "subtle" | "none";
+
+/** The brand's primary logo: the asset the file references and the URL that
+ *  reference carries. `aspect` (width over height) sizes the box the logo is
+ *  fitted into; unknown means a wide box the picture is contained in. */
+export interface DeckLogo { assetId: string; url: string; aspect?: number }
 
 /** Type pairings for a deck that arrives with no brand fonts and no catalog
  *  theme. Chosen by seed, never the same one for every deck, and none of them
@@ -221,6 +228,8 @@ export interface DeriveOptions {
   mood?: string;
   /** Entrance motion on the composed pages; defaults to "subtle". */
   motion?: DeckMotion;
+  /** The brand's logo, placed small on every archetype page. */
+  logo?: DeckLogo | null;
   /** Brand colors: the first is the primary, the second (if any) the accent. */
   brandPalette?: string[];
   dir?: "ltr" | "rtl";
@@ -310,6 +319,7 @@ export function deriveDesignSystem(theme: DeckTheme, size: { width: number; heig
     dir: opts.dir ?? "ltr",
     artDirection: artDirectionFor(opts.mood, colors),
     motion: opts.motion ?? "subtle",
+    ...(opts.logo?.assetId && opts.logo.url ? { logo: { ...opts.logo } } : {}),
   };
 }
 
