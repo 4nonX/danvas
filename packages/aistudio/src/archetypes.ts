@@ -21,6 +21,7 @@
 import { createNode, type Color, type Fill, type Node } from "@hc/schema";
 import type { Archetype, OutlineItem } from "./outline";
 import type { DesignSystem } from "./designSystem";
+import { ICON_BOX, ICON_GLYPHS, ICON_KEYWORDS } from "./iconset";
 import type { PageVariant } from "./measure";
 import { ladderFrom } from "./deckStyle";
 
@@ -83,6 +84,7 @@ const T = {
   pageNumber: 0.018,
   caption: 0.03,
   kpiFigure: 0.16,
+  icon: 0.07,
   tableCell: 0.026,
   timelineWhen: 0.026,
   monogram: 0.06,
@@ -120,6 +122,22 @@ export function keepLastWordCompany(text: string): string {
   while (gap > 0 && text[gap - 1] === " ") gap--;
   if (gap === word) return text; // the word is not preceded by a space
   return text.slice(0, gap) + "\u00A0" + text.slice(word, end);
+}
+
+/** The glyph a keyword names, or null when the set has no picture for it.
+ *  Matched whole, then by the first word the keyword contains that the set
+ *  knows ("cloud storage" finds the cloud), so a model that writes a phrase
+ *  still gets a picture and one that invents a word gets none. */
+export function iconGlyphFor(keyword: string | undefined): string | null {
+  if (!keyword) return null;
+  const k = keyword.trim().toLowerCase();
+  if (!k) return null;
+  const direct = ICON_KEYWORDS[k];
+  if (direct) return direct;
+  for (const w of k.split(/[^a-z]+/)) {
+    if (w && ICON_KEYWORDS[w]) return ICON_KEYWORDS[w];
+  }
+  return null;
 }
 
 class Composer {
@@ -303,6 +321,34 @@ class Composer {
   private accentRule(x: number, y: number): Node {
     const w = this.ds.unit * 8;
     return this.rect("Accent", { x, y, width: w, height: this.ds.rule }, this.accent, Math.round(this.ds.rule / 2));
+  }
+
+  /** An icon from the set, baked into a path node at its final size: the
+   *  glyph's contours scaled from the pack's box into the square, filled in
+   *  one color under the even-odd rule so its interior contours cut holes.
+   *  Coordinates are in node space at final size (transform scale 1), so the
+   *  quality loop and the renderers see the same box. */
+  private icon(glyph: string, x: number, y: number, size: number, color: Color): Node | null {
+    const contours = ICON_GLYPHS[glyph];
+    if (!contours?.length) return null;
+    const k = size / ICON_BOX;
+    const pt = (p: { x: number; y: number }) => ({ x: Math.round(p.x * k * 100) / 100, y: Math.round(p.y * k * 100) / 100 });
+    const scaled = contours.map((c) => ({
+      closed: c.closed,
+      segments: c.segments.map((sg) => ({ ...pt(sg), ...(sg.cIn ? { cIn: pt(sg.cIn) } : {}), ...(sg.cOut ? { cOut: pt(sg.cOut) } : {}) })),
+    }));
+    const [first, ...rest] = scaled;
+    const r = this.mirror({ x, y, width: size, height: size });
+    return createNode("path", {
+      name: "Icon",
+      transform: { x: r.x, y: r.y, scaleX: 1, scaleY: 1, rotation: 0 },
+      size: { width: size, height: size },
+      segments: first.segments,
+      closed: first.closed,
+      ...(rest.length ? { contours: rest } : {}),
+      fills: [{ type: "solid", color: structuredClone(color) }],
+      data: { icon: glyph },
+    } as never) as Node;
   }
 
   /** A picture region: the same neutral stand-in the editor materializes for
@@ -575,12 +621,24 @@ class Composer {
     // Two passes: measure each column at y=0 to learn the tallest, then place
     // every column so that block is centered in what remains under the title.
     // A short comparison used to sit under the title with a void beneath it.
-    const build = (c: { heading: string; points: string[] }, inner: { x: number; width: number }, y0: number) => {
+    // Icons are all or nothing: one column with a picture and two without
+    // reads as a mistake, so a column set gets icons only when every column
+    // named one the set knows.
+    const glyphs = cols.map((c) => iconGlyphFor(c.icon));
+    const withIcons = glyphs.length > 0 && glyphs.every((g) => !!g);
+    const iconSize = Math.round(this.H * T.icon);
+    const build = (c: { heading: string; points: string[] }, inner: { x: number; width: number }, y0: number, glyph: string | null) => {
       const out: Node[] = [];
-      out.push(this.accentRule(inner.x, y0));
-      const head = this.text({ name: "Heading", rect: { x: inner.x, y: y0 + u * 2.5, width: inner.width, height: u * 10 }, paragraphs: [c.heading], role: "heading", base: this.H * T.colHead, bold: true, lineHeight: 1.15 });
+      let y = y0;
+      if (withIcons && glyph) {
+        const ic = this.icon(glyph, inner.x, y, iconSize, this.accent);
+        if (ic) out.push(ic);
+        y += iconSize + u * 2;
+      }
+      out.push(this.accentRule(inner.x, y));
+      const head = this.text({ name: "Heading", rect: { x: inner.x, y: y + u * 2.5, width: inner.width, height: u * 10 }, paragraphs: [c.heading], role: "heading", base: this.H * T.colHead, bold: true, lineHeight: 1.15 });
       out.push(head.node);
-      let bottom = y0 + u * 2.5 + head.height;
+      let bottom = y + u * 2.5 + head.height;
       const pts = c.points;
       if (pts.length) {
         const py = bottom + u * 2;
@@ -590,7 +648,7 @@ class Composer {
       }
       return { nodes: out, height: bottom - y0 };
     };
-    const tallest = Math.max(...cols.map((c, i) => build(c, inners[i], 0).height));
+    const tallest = Math.max(...cols.map((c, i) => build(c, inners[i], 0, glyphs[i]).height));
     const y0 = bodyTop + Math.max(0, Math.round((bodyH - tallest) / 2));
     if (n === 2) {
       // The rule between the columns is the comparison: it says "versus", and
@@ -599,7 +657,7 @@ class Composer {
       const x = gap.x + gap.width / 2 - this.ds.rule / 2;
       this.nodes.push(this.rect("Divider", { x, y: y0, width: this.ds.rule, height: tallest }, mix(this.ds.colors.ink, this.ds.colors.paper, 0.8)));
     }
-    cols.forEach((c, i) => this.nodes.push(...build(c, inners[i], y0).nodes));
+    cols.forEach((c, i) => this.nodes.push(...build(c, inners[i], y0, glyphs[i]).nodes));
     this.furniture();
   }
 

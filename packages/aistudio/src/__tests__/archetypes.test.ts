@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { archetypes, normalizeOutline, type Archetype } from "../outline";
 import { deriveDesignSystem, catalogEntryForSeed, catalogEntryForMood, designSystemSlots, hueName, artDirectionFor } from "../designSystem";
-import { archetypeIsImpact, composeArchetypePage, keepLastWordCompany } from "../archetypes";
+import { archetypeIsImpact, composeArchetypePage, keepLastWordCompany, iconGlyphFor } from "../archetypes";
+import { ICON_GLYPHS, ICON_KEYWORDS } from "../iconset";
 import { layoutDeck } from "../deck";
 import { deckThemes } from "../theme";
 import { qualityCheck } from "../quality";
@@ -324,5 +325,44 @@ describe("phase 7 forms", () => {
     expect(pages[1].stat?.value).toBe("40");
     expect(pages[4].table?.rows).toEqual([["1", "2"], ["3", ""]]);
     expect(pages[6].columns?.[0].icon).toBe("shield");
+  });
+});
+
+describe("icons", () => {
+  const ds = deriveDesignSystem(theme, size, { seed: 2, catalog: catalogEntryForSeed(2) });
+
+  it("resolves keywords, synonyms and phrases, and nothing for an invented word", () => {
+    expect(iconGlyphFor("shield")).toBe("shield");
+    expect(iconGlyphFor("Security")).toBe("shield");
+    expect(iconGlyphFor("cloud storage")).toBe("cloud");
+    expect(iconGlyphFor("flibbertigibbet")).toBeNull();
+    expect(iconGlyphFor("")).toBeNull();
+    // Every keyword points at a glyph that exists, and every glyph is closed geometry.
+    for (const g of Object.values(ICON_KEYWORDS)) expect(ICON_GLYPHS[g]?.length).toBeGreaterThan(0);
+    for (const contours of Object.values(ICON_GLYPHS)) for (const c of contours) expect(c.segments.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("places one icon per column above its heading when every column names one, and none otherwise", () => {
+    const base = pageFor("twoColumn") as { columns: { heading: string; points: string[]; icon?: string }[] };
+    const both = { ...base, columns: [{ ...base.columns[0], icon: "shield" }, { ...base.columns[1], icon: "leaf" }] };
+    const item = normalizeOutline({ title: "T", pages: [both] }).pages[0];
+    const page = composeArchetypePage(item, ds, { index: 1, total: 4 });
+    type N = { name?: string; type: string; transform: { x: number; y: number }; size: { width: number; height: number }; data?: { icon?: string }; fills?: unknown[]; contours?: unknown[] };
+    const icons = (page.nodes as N[]).filter((n) => n.name === "Icon");
+    expect(icons).toHaveLength(2);
+    expect(icons.map((i) => i.data?.icon)).toEqual(["shield", "leaf"]);
+    expect(icons.every((i) => i.type === "path" && i.fills?.length === 1)).toBe(true);
+    // Above the heading, inside the page, square.
+    const headings = (page.nodes as N[]).filter((n) => n.name === "Heading");
+    icons.forEach((ic, i) => {
+      expect(ic.transform.y + ic.size.height).toBeLessThanOrEqual(headings[i].transform.y);
+      expect(ic.size.width).toBe(ic.size.height);
+      expect(ic.transform.x).toBeGreaterThanOrEqual(0);
+    });
+    expect(qualityCheck({ background: page.background, nodes: page.nodes, size }).issues).toEqual([]);
+    // One column without a known icon: no icons at all.
+    const one = { ...base, columns: [{ ...base.columns[0], icon: "shield" }, { ...base.columns[1] }] };
+    const p1 = composeArchetypePage(normalizeOutline({ title: "T", pages: [one] }).pages[0], ds, { index: 1, total: 4 });
+    expect((p1.nodes as N[]).filter((n) => n.name === "Icon")).toHaveLength(0);
   });
 });
