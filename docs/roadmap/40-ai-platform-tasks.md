@@ -45,6 +45,7 @@ The rules from `28-presentations-completion-tasks.md` apply unchanged. In brief:
 | E22 | 6 Design quality | Pictures in API and MCP decks, real list markers in every exporter, widow control | done 2026-09-12 |
 | E23 | 7 Claude quality | Claude 5 defaults, output budgets sized to the payload, truncation reported, cached system prompts | done 2026-09-22 |
 | E24 | 7 Claude quality | Server-side picture ladder: reuse, licensed stock, then generation, tagged for reuse, as the editor's queue | done 2026-09-22 |
+| E25 | 7 Claude quality | Deck-level art direction on every picture prompt: mood, palette tones, one light, one rule set | done 2026-09-22 |
 
 Deferred (documented, deliberately not tasks): outbound webhooks on job completion (revisit once the API has real consumers); publish-as-website / custom domain (overlaps the website feature); AI voice/TTS narration (`23-ai-media.md`); a paid/community template marketplace beyond the existing `@hc/templates` marketplace scaffolding; Zapier/Make connectors (build on the API once it is stable).
 
@@ -172,3 +173,7 @@ The pitch: with a Claude key the outline, story and copy are the model's work an
 ### E24: The picture ladder on the server
 
 - Shipped: `placePictures` (httpapi `generateimages.go`) runs the editor's image queue ladder for API and MCP decks, step for step: an asset the workspace already tagged with the prompt key is reused at no cost; a short concrete subject (five significant words or fewer, no stylized marker, recovered from the composed prompt) is matched against licensed stock, taking only a hit that asks for no credit and has an absolute URL, imported into the workspace and stamped with the same provenance the editor writes (`origin`, `stockAssetId`, `license`); everything else is generated; whatever lands is tagged with the prompt key. The key is the editor's algorithm byte for byte, so API decks and editor decks reuse each other's pictures. With a text-only provider such as Anthropic, the first two steps still fill what they can and the result reports `reused`, `stock`, `generated` and `unsupported` separately. The stock step honours `STOCK_PHOTO_PROVIDER=off` like the rest of the product.
+
+### E25: Art direction for the deck's pictures
+
+- Shipped: the design system carries an `artDirection` clause derived once per deck (`artDirectionFor` in designSystem.ts): the outline's own mood words, the palette's two hue families in plain words (`hueName`), one soft directional light with room for text, and the rules every slide picture obeys (no text, logos, watermarks or borders). The composer appends it to every picture prompt after the subject and the treatment, so six pictures in one deck are lit and toned as a series instead of six unrelated renders. The subject still leads the prompt, so the picture ladder's stock routing reads it unchanged. Deterministic: the editor and the API write the same clause for the same outline and system.

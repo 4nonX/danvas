@@ -35668,6 +35668,8 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
     "packages/aistudio/dist/designSystem.js"(exports) {
       "use strict";
       Object.defineProperty(exports, "__esModule", { value: true });
+      exports.hueName = hueName;
+      exports.artDirectionFor = artDirectionFor;
       exports.catalogEntryForSeed = catalogEntryForSeed;
       exports.catalogEntryForMood = catalogEntryForMood;
       exports.deriveDesignSystem = deriveDesignSystem;
@@ -35715,6 +35717,34 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         if ((0, color_1.contrastRatio)(out, ground) < 3)
           out = (0, color_1.fixToAA)(out, ground);
         return out;
+      }
+      function hueName(c) {
+        const { h, s, l } = (0, color_1.rgbToHsl)(c);
+        if (l >= 0.92)
+          return "off-white";
+        if (l <= 0.12)
+          return "near-black";
+        if (s < 0.12)
+          return l > 0.5 ? "light grey" : "charcoal";
+        const deg = (h % 360 + 360) % 360;
+        const name = deg < 15 ? "red" : deg < 40 ? "orange" : deg < 60 ? "amber" : deg < 75 ? "yellow" : deg < 100 ? "lime" : deg < 160 ? "green" : deg < 185 ? "teal" : deg < 205 ? "cyan" : deg < 250 ? "blue" : deg < 275 ? "indigo" : deg < 300 ? "violet" : deg < 335 ? "magenta" : deg < 345 ? "pink" : "red";
+        if (l < 0.3)
+          return `deep ${name}`;
+        if (l > 0.72)
+          return `pale ${name}`;
+        return name;
+      }
+      function artDirectionFor(mood, colors) {
+        const moodWords = (mood != null ? mood : "").toLowerCase().split(/[^a-z]+/).filter((w) => w.length > 2).slice(0, 4);
+        const tones = Array.from(/* @__PURE__ */ new Set([hueName(colors.primary), hueName(colors.accent)])).join(" and ");
+        const parts = [
+          "one consistent series across the deck",
+          moodWords.length ? `${moodWords.join(", ")} mood` : "",
+          `${tones} tones in the palette`,
+          "soft directional light, uncluttered composition, generous negative space for text",
+          "no text, no logos, no watermarks, no borders"
+        ].filter(Boolean);
+        return parts.join(", ");
       }
       function catalogEntryForSeed(seed) {
         const n = themeCatalog_1.themeCatalog.length;
@@ -35820,7 +35850,8 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           impactBackground,
           paperBackground,
           kicker: theme.kicker,
-          dir: (_k = opts.dir) != null ? _k : "ltr"
+          dir: (_k = opts.dir) != null ? _k : "ltr",
+          artDirection: artDirectionFor(opts.mood, colors)
         };
       }
       function designSystemSlots(ds) {
@@ -35974,7 +36005,20 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
       function keepLastWordCompany(text2) {
         if (text2.trim().split(/\s+/).length < 3)
           return text2;
-        return text2.replace(/ +(\S+)\s*$/, "\xA0$1");
+        let end = text2.length;
+        while (end > 0 && /\s/.test(text2[end - 1]))
+          end--;
+        let word2 = end;
+        while (word2 > 0 && !/\s/.test(text2[word2 - 1]))
+          word2--;
+        if (word2 === end)
+          return text2;
+        let gap = word2;
+        while (gap > 0 && text2[gap - 1] === " ")
+          gap--;
+        if (gap === word2)
+          return text2;
+        return text2.slice(0, gap) + "\xA0" + text2.slice(word2, end);
       }
       var Composer = class {
         constructor(ds, item, ctx, impact) {
@@ -36139,8 +36183,8 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           const im = this.item.image;
           const treatment = (_a5 = im == null ? void 0 : im.treatment) != null ? _a5 : "photo";
           const subject = (im == null ? void 0 : im.subject) || this.item.title;
-          const style = treatment === "illustration" ? "flat editorial illustration, limited palette, no text" : treatment === "abstract" ? "abstract composition, soft forms, no text" : "clean professional photography, natural light, no text";
-          return `${subject}, ${style}`;
+          const style = treatment === "illustration" ? "flat editorial illustration, limited palette" : treatment === "abstract" ? "abstract composition, soft forms" : "clean professional photography";
+          return `${subject}, ${style}, ${this.ds.artDirection}`;
         }
         /** Reading-page furniture: the deck title small at the top, the page number
          *  small at the bottom. Impact pages stay quiet. */
@@ -36655,9 +36699,9 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
       var archetypes_1 = require_archetypes();
       var measure_1 = require_measure();
       function layoutDeck(outline, theme, size2, opts) {
-        var _a5;
+        var _a5, _b;
         const themed = __spreadProps(__spreadValues({}, theme), { kicker: (_a5 = theme.kicker) != null ? _a5 : outline.title });
-        const system = (0, designSystem_1.deriveDesignSystem)(themed, size2, opts);
+        const system = (0, designSystem_1.deriveDesignSystem)(themed, size2, __spreadProps(__spreadValues({}, opts), { mood: (_b = opts == null ? void 0 : opts.mood) != null ? _b : outline.theme }));
         const total = outline.pages.length;
         const composeAll = (variants2) => outline.pages.map((item, i) => (0, archetypes_1.composeArchetypePage)(item, system, { index: i, total, variant: variants2[i] }));
         const measure = (composed2) => (0, measure_1.measureDeck)(composed2.map((c) => (0, measure_1.toMeasurable)(c, (0, quality_1.qualityCheck)({ background: c.background, nodes: c.nodes, size: system.size }).issues)), system.size, system.margin);

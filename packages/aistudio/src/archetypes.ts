@@ -319,10 +319,13 @@ class Composer {
     const treatment = im?.treatment ?? "photo";
     const subject = im?.subject || this.item.title;
     const style =
-      treatment === "illustration" ? "flat editorial illustration, limited palette, no text" :
-      treatment === "abstract" ? "abstract composition, soft forms, no text" :
-      "clean professional photography, natural light, no text";
-    return `${subject}, ${style}`;
+      treatment === "illustration" ? "flat editorial illustration, limited palette" :
+      treatment === "abstract" ? "abstract composition, soft forms" :
+      "clean professional photography";
+    // Subject first (the picture ladder reads it back as everything before
+    // the first comma), then the treatment, then the deck's art direction so
+    // every picture in the deck is lit and toned the same way.
+    return `${subject}, ${style}, ${this.ds.artDirection}`;
   }
 
   /** Reading-page furniture: the deck title small at the top, the page number

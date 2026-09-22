@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { archetypes, normalizeOutline, type Archetype } from "../outline";
-import { deriveDesignSystem, catalogEntryForSeed, catalogEntryForMood, designSystemSlots } from "../designSystem";
+import { deriveDesignSystem, catalogEntryForSeed, catalogEntryForMood, designSystemSlots, hueName, artDirectionFor } from "../designSystem";
 import { archetypeIsImpact, composeArchetypePage, keepLastWordCompany } from "../archetypes";
 import { layoutDeck } from "../deck";
 import { deckThemes } from "../theme";
@@ -224,5 +224,37 @@ describe("lists and widows", () => {
     expect(title.runs[0].text).toBe("Why the shoreline is retreating");
     // Body copy is left alone.
     for (const p of paragraphsOf(page.nodes as never, "Points")) expect(p.runs[0].text).not.toContain(" ");
+  });
+});
+
+describe("art direction", () => {
+  it("names hues plainly and deterministically", () => {
+    const c = (r: number, g: number, b: number) => ({ srgb: { r, g, b, a: 1 } });
+    expect(hueName(c(0.1, 0.5, 0.45))).toBe("teal");
+    expect(hueName(c(0.9, 0.9, 0.9))).toBe("light grey");
+    expect(hueName(c(0.05, 0.05, 0.08))).toBe("near-black");
+    expect(hueName(c(0.98, 0.97, 0.95))).toBe("off-white");
+    expect(hueName(c(0.55, 0.1, 0.1))).toBe("red");
+    expect(hueName(c(0.2, 0.05, 0.4))).toBe("deep indigo");
+  });
+
+  it("gives every picture in a deck the same closing clause, carrying the mood and the palette", () => {
+    const outline = normalizeOutline({
+      title: "T",
+      theme: "calm, coastal, restrained",
+      pages: [pageFor("cover"), pageFor("bullets"), pageFor("imageCaption"), pageFor("closing")],
+    });
+    const deck = layoutDeck(outline, theme, size, { catalog: catalogEntryForSeed(3), seed: 3 });
+    const prompts = deck.pages.flatMap((p) => Object.values(p.imagePrompts));
+    expect(prompts.length).toBeGreaterThanOrEqual(4);
+    const clause = deck.system.artDirection;
+    expect(clause).toContain("calm, coastal, restrained mood");
+    expect(clause).toContain("tones in the palette");
+    expect(clause).toContain("no text, no logos");
+    for (const p of prompts) expect(p.endsWith(clause)).toBe(true);
+    // The subject still leads, so the picture ladder can recover it.
+    expect(prompts[0].startsWith("a dune belt at dawn,")).toBe(true);
+    // The same outline and system always write the same clause.
+    expect(artDirectionFor("calm, coastal, restrained", deck.system.colors)).toBe(clause);
   });
 });

@@ -49,7 +49,9 @@ export function layoutDeck(
   // Default the kicker to the deck title so content pages carry it, unless the
   // theme already set one.
   const themed: DeckTheme = { ...theme, kicker: theme.kicker ?? outline.title };
-  const system = deriveDesignSystem(themed, size, opts);
+  // The outline's own mood phrase directs the deck's pictures unless the
+  // caller named one.
+  const system = deriveDesignSystem(themed, size, { ...opts, mood: opts?.mood ?? outline.theme });
   const total = outline.pages.length;
   const composeAll = (variants: Record<number, PageVariant>) =>
     outline.pages.map((item, i) => composeArchetypePage(item, system, { index: i, total, variant: variants[i] }));

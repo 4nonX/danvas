@@ -61,6 +61,10 @@ export interface DesignSystem {
   /** The deck title, shown small on reading pages so they belong together. */
   kicker?: string;
   dir: "ltr" | "rtl";
+  /** One clause appended to every picture prompt so the deck's pictures read
+   *  as a series: the mood the outline named, the palette's tones, one light,
+   *  and the rules a slide picture always follows. */
+  artDirection: string;
 }
 
 /** Type pairings for a deck that arrives with no brand fonts and no catalog
@@ -113,6 +117,44 @@ function accentFor(seed: Color, ground: Color, onDark: boolean): Color {
   // Large text threshold: an accent carries rules and numerals, never body.
   if (contrastRatio(out, ground) < 3) out = fixToAA(out, ground);
   return out;
+}
+
+/** A plain name for a color's hue family, for prompts a picture model reads.
+ *  Low saturation is a neutral whatever its hue; very light and very dark
+ *  colors are named by tone. */
+export function hueName(c: Color): string {
+  const { h, s, l } = rgbToHsl(c);
+  if (l >= 0.92) return "off-white";
+  if (l <= 0.12) return "near-black";
+  if (s < 0.12) return l > 0.5 ? "light grey" : "charcoal";
+  const deg = ((h % 360) + 360) % 360;
+  const name =
+    deg < 15 ? "red" : deg < 40 ? "orange" : deg < 60 ? "amber" : deg < 75 ? "yellow" :
+    deg < 100 ? "lime" : deg < 160 ? "green" : deg < 185 ? "teal" : deg < 205 ? "cyan" :
+    deg < 250 ? "blue" : deg < 275 ? "indigo" : deg < 300 ? "violet" : deg < 335 ? "magenta" : deg < 345 ? "pink" : "red";
+  if (l < 0.3) return `deep ${name}`;
+  if (l > 0.72) return `pale ${name}`;
+  return name;
+}
+
+/** The art direction clause for a deck's pictures: the outline's mood, the
+ *  palette's two hue families, one consistent light, and the constraints every
+ *  slide picture obeys. Deterministic, so the two doors write the same clause. */
+export function artDirectionFor(mood: string | undefined, colors: { primary: Color; accent: Color; deep: Color }): string {
+  const moodWords = (mood ?? "")
+    .toLowerCase()
+    .split(/[^a-z]+/)
+    .filter((w) => w.length > 2)
+    .slice(0, 4);
+  const tones = Array.from(new Set([hueName(colors.primary), hueName(colors.accent)])).join(" and ");
+  const parts = [
+    "one consistent series across the deck",
+    moodWords.length ? `${moodWords.join(", ")} mood` : "",
+    `${tones} tones in the palette`,
+    "soft directional light, uncluttered composition, generous negative space for text",
+    "no text, no logos, no watermarks, no borders",
+  ].filter(Boolean);
+  return parts.join(", ");
 }
 
 /** Choose a catalog entry deterministically from a seed. */
@@ -168,6 +210,9 @@ export function catalogEntryForMood(mood: string, seed: number): ThemeCatalogEnt
 export interface DeriveOptions {
   /** A catalog theme: its six slots are used as-is. */
   catalog?: ThemeCatalogEntry | null;
+  /** The outline's own mood phrase ("calm, coastal, restrained"), folded into
+   *  the art direction every picture prompt carries. */
+  mood?: string;
   /** Brand colors: the first is the primary, the second (if any) the accent. */
   brandPalette?: string[];
   dir?: "ltr" | "rtl";
@@ -255,6 +300,7 @@ export function deriveDesignSystem(theme: DeckTheme, size: { width: number; heig
     paperBackground,
     kicker: theme.kicker,
     dir: opts.dir ?? "ltr",
+    artDirection: artDirectionFor(opts.mood, colors),
   };
 }
 
