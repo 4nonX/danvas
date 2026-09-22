@@ -25,6 +25,7 @@ import (
 	"errors"
 	"fmt"
 	"hycanvas/backend/internal/ai"
+	"hycanvas/backend/internal/stock"
 	"hycanvas/backend/internal/uploads"
 	"io"
 	"net/http"
@@ -59,17 +60,18 @@ type mcpDeps struct {
 	keys *apikeys.Service
 	acct *accounts.Service
 	ai   *aistudio.Service
-	// gen and up fill the composed deck's picture regions server-side.
+	// gen, up and stock fill the composed deck's picture regions server-side.
 	gen   *ai.Service
 	up    *uploads.Service
+	stock *stock.Service
 	p     *persistence.Service
 	reg   *jobs.Registry
 	share *sharing.Service
 	tpl   *templates.Service
 }
 
-func mountMCP(r chi.Router, keys *apikeys.Service, acct *accounts.Service, studio *aistudio.Service, gen *ai.Service, up *uploads.Service, p *persistence.Service, reg *jobs.Registry, share *sharing.Service, tpl *templates.Service) {
-	d := mcpDeps{keys: keys, acct: acct, ai: studio, gen: gen, up: up, p: p, reg: reg, share: share, tpl: tpl}
+func mountMCP(r chi.Router, keys *apikeys.Service, acct *accounts.Service, studio *aistudio.Service, gen *ai.Service, up *uploads.Service, st *stock.Service, p *persistence.Service, reg *jobs.Registry, share *sharing.Service, tpl *templates.Service) {
+	d := mcpDeps{keys: keys, acct: acct, ai: studio, gen: gen, up: up, stock: st, p: p, reg: reg, share: share, tpl: tpl}
 	r.Post("/mcp", d.handle)
 	// The spec allows refusing the server-initiated stream outright.
 	r.Get("/mcp", func(w http.ResponseWriter, _ *http.Request) {
@@ -309,7 +311,7 @@ func (d mcpDeps) callTool(r *http.Request, key *apikeys.KeyInfo, name string, ar
 		if rej != nil {
 			return toolResult(rej.Msg, true)
 		}
-		job := startGenerationJob(d.ai, d.gen, d.up, d.p, d.reg, key.UserID, plan)
+		job := startGenerationJob(d.ai, d.gen, d.up, d.stock, d.p, d.reg, key.UserID, plan)
 		d.keys.Audit(ctx, key, "mcp:generate_presentation", "")
 		// Wait inline while the client's request allows; a slow generation
 		// degrades to a poll handle instead of a broken connection.

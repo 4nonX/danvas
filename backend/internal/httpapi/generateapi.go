@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"errors"
 	"hycanvas/backend/internal/ai"
+	"hycanvas/backend/internal/stock"
 	"hycanvas/backend/internal/uploads"
 	"net/http"
 	"regexp"
@@ -31,8 +32,8 @@ import (
 	"hycanvas/backend/internal/templates"
 )
 
-func mountGenerate(api chi.Router, svc *aistudio.Service, aiSvc *ai.Service, up *uploads.Service, acct *accounts.Service, p *persistence.Service, reg *jobs.Registry, tpl *templates.Service) {
-	api.With(requireAuth(acct)).Post("/generate/presentation", generatePresentationHandler(svc, aiSvc, up, acct, p, reg, tpl))
+func mountGenerate(api chi.Router, svc *aistudio.Service, aiSvc *ai.Service, up *uploads.Service, st *stock.Service, acct *accounts.Service, p *persistence.Service, reg *jobs.Registry, tpl *templates.Service) {
+	api.With(requireAuth(acct)).Post("/generate/presentation", generatePresentationHandler(svc, aiSvc, up, st, acct, p, reg, tpl))
 	// The built-in theme catalog (F40 E12): harmless metadata, any session or
 	// valid key may list it (the generation themeId is validated against it).
 	api.With(requireAuth(acct)).Get("/themes", func(w http.ResponseWriter, _ *http.Request) {
@@ -232,7 +233,7 @@ func planGeneration(ctx context.Context, acct *accounts.Service, userID string, 
 // startGenerationJob runs a validated plan through the job registry:
 // server-side outline generation (per-page copy polish), goja composition,
 // then a normal persistence.Create through the write boundary.
-func startGenerationJob(svc *aistudio.Service, aiSvc *ai.Service, up *uploads.Service, p *persistence.Service, reg *jobs.Registry, userID string, plan generatePlan) *jobs.Job {
+func startGenerationJob(svc *aistudio.Service, aiSvc *ai.Service, up *uploads.Service, st *stock.Service, p *persistence.Service, reg *jobs.Registry, userID string, plan generatePlan) *jobs.Job {
 	job := reg.Start(userID, "generate-presentation")
 	go func() {
 		// A panic in this background goroutine would kill the PROCESS (the
@@ -282,12 +283,12 @@ func startGenerationJob(svc *aistudio.Service, aiSvc *ai.Service, up *uploads.Se
 			reg.Fail(job.ID, "composition produced an unreadable file")
 			return
 		}
-		// Pictures, through the workspace's own image provider, before the
-		// deck is saved: the composer left a tagged stand-in in every picture
-		// region, and this is the server-side twin of the editor's queue.
+		// Pictures before the deck is saved: the composer left a tagged
+		// stand-in in every picture region, and this is the server-side twin
+		// of the editor's queue, same ladder (reuse, stock, generate).
 		images := imagePlacement{}
-		if aiSvc != nil && up != nil {
-			images = placeGeneratedImages(ctx, file, userID, plan.Workspace, aiSvc.Image, uploadAdapter(up))
+		if up != nil {
+			images = placePictures(ctx, file, userID, plan.Workspace, pictureSourcesFor(aiSvc, up, st))
 		}
 		rec, err := p.Create(ctx, plan.Workspace, outline.Title, file, &userID)
 		if err != nil {
@@ -347,7 +348,7 @@ func resolveTemplateForGeneration(ctx context.Context, tpl *templates.Service, u
 	return layoutSet, theme, nil
 }
 
-func generatePresentationHandler(svc *aistudio.Service, aiSvc *ai.Service, up *uploads.Service, acct *accounts.Service, p *persistence.Service, reg *jobs.Registry, tpl *templates.Service) http.HandlerFunc {
+func generatePresentationHandler(svc *aistudio.Service, aiSvc *ai.Service, up *uploads.Service, st *stock.Service, acct *accounts.Service, p *persistence.Service, reg *jobs.Registry, tpl *templates.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var body generateInput
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
@@ -397,7 +398,7 @@ func generatePresentationHandler(svc *aistudio.Service, aiSvc *ai.Service, up *u
 			return
 		}
 		// Key-authed calls are audited by the auth middleware; nothing extra here.
-		job := startGenerationJob(svc, aiSvc, up, p, reg, u.ID, plan)
+		job := startGenerationJob(svc, aiSvc, up, st, p, reg, u.ID, plan)
 		w.Header().Set("Location", "/api/v1/jobs/"+job.ID)
 		writeJSON(w, http.StatusAccepted, map[string]any{"jobId": job.ID, "poll": "/api/v1/jobs/" + job.ID})
 	}
