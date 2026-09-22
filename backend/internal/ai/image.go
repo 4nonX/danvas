@@ -106,48 +106,49 @@ func (s *Service) GetImageConfig(ctx context.Context, workspaceID string) (*Imag
 	}, nil
 }
 
-// SetImageConfig upserts (or clears, with provider "") the dedicated image
-// provider. The rules match SetConfig, plus one of its own: the provider must
-// actually be able to generate images. Accepting a text-only provider here
-// would store a configuration whose only possible outcome is a failed call.
-func (s *Service) SetImageConfig(ctx context.Context, workspaceID string, in ImageConfigInput) (*ImageConfigView, error) {
-	if in.Provider == "" {
-		const del = `DELETE FROM "ai_image_configs" WHERE "workspace_id" = $1`
-		if _, err := s.db.Exec(ctx, del, workspaceID); err != nil {
-			return nil, err
-		}
-		return nil, nil
-	}
+// resolvedImageConfig is an ImageConfigInput checked the way SetImageConfig
+// checks it, before anything is written; VerifyImageCandidate shares it so the
+// test and the save can never disagree about what a candidate means.
+type resolvedImageConfig struct {
+	in              ImageConfigInput
+	existing        *imageRow
+	providerChanged bool
+	baseURL         string
+}
+
+// resolveImageConfig applies SetImageConfig's validation and PATCH semantics to
+// a non-empty candidate without writing it.
+func (s *Service) resolveImageConfig(ctx context.Context, workspaceID string, in ImageConfigInput) (resolvedImageConfig, error) {
 	if !providerSet[in.Provider] {
-		return nil, ErrBadRequest
+		return resolvedImageConfig{}, ErrBadRequest
 	}
 	if !ResolveRoute(in.Provider, "", in.Model, FeatureImage).Supported {
-		return nil, ErrImageUnsupported
+		return resolvedImageConfig{}, ErrImageUnsupported
 	}
 	if in.BaseURL != nil {
 		trimmed := strings.TrimSpace(*in.BaseURL)
 		in.BaseURL = &trimmed
 		if trimmed != "" && !isSafeBaseURL(trimmed, s.allowLocal) {
-			return nil, ErrBadRequest
+			return resolvedImageConfig{}, ErrBadRequest
 		}
 	}
 	existing, err := s.getImageRow(ctx, workspaceID)
 	if err != nil {
-		return nil, err
+		return resolvedImageConfig{}, err
 	}
 	providerChanged := existing != nil && existing.provider != in.Provider
 
 	// A provider change may never silently carry the old vendor's key.
 	in.APIKey = strings.TrimSpace(in.APIKey)
 	if providerChanged && in.APIKey == "" && existing.keyCipher != nil {
-		return nil, ErrKeyRequiredForProviderChange
+		return resolvedImageConfig{}, ErrKeyRequiredForProviderChange
 	}
 	// Unlike the search config there is no keyless image provider, so a first
 	// save must bring one; there would otherwise be nothing to authenticate
 	// with and every generation would 401.
 	hasStoredKey := existing != nil && !providerChanged && existing.keyCipher != nil
 	if in.APIKey == "" && !hasStoredKey {
-		return nil, ErrImageKeyRequired
+		return resolvedImageConfig{}, ErrImageKeyRequired
 	}
 
 	// PATCH semantics for the base URL, as in SetConfig: nil preserves, "" clears,
@@ -162,25 +163,44 @@ func (s *Service) SetImageConfig(ctx context.Context, workspaceID string, in Ima
 		resolvedBase = deref(existing.baseURL)
 	}
 	if p := PresetFor(in.Provider); p != nil && p.NeedsBaseURL && resolvedBase == "" {
-		return nil, ErrBaseURLRequired
+		return resolvedImageConfig{}, ErrBaseURLRequired
 	}
 	// A signing provider's endpoint carries the region its signature is scoped
 	// to. A host without one cannot be signed, and the failure would arrive as
 	// a rejected-credential error pointing at a key that is perfectly fine.
 	if in.Provider == string(ProviderBedrock) && bedrockRegionFrom(resolvedBase) == "" {
-		return nil, ErrBaseURLRequired
+		return resolvedImageConfig{}, ErrBaseURLRequired
 	}
-
-	model := nilIfEmpty(strings.TrimSpace(in.Model))
-	baseURL := nilIfEmpty(resolvedBase)
 
 	in.APISecret = strings.TrimSpace(in.APISecret)
 	if p := PresetFor(in.Provider); p != nil && p.NeedsSecret {
 		hasStoredSecret := existing != nil && !providerChanged && in.APIKey == "" && existing.secretCipher != nil
 		if in.APISecret == "" && !hasStoredSecret {
-			return nil, ErrSecretRequired
+			return resolvedImageConfig{}, ErrSecretRequired
 		}
 	}
+	return resolvedImageConfig{in: in, existing: existing, providerChanged: providerChanged, baseURL: resolvedBase}, nil
+}
+
+// SetImageConfig upserts (or clears, with provider "") the dedicated image
+// provider. The rules match SetConfig, plus one of its own: the provider must
+// actually be able to generate images. Accepting a text-only provider here
+// would store a configuration whose only possible outcome is a failed call.
+func (s *Service) SetImageConfig(ctx context.Context, workspaceID string, in ImageConfigInput) (*ImageConfigView, error) {
+	if in.Provider == "" {
+		const del = `DELETE FROM "ai_image_configs" WHERE "workspace_id" = $1`
+		if _, err := s.db.Exec(ctx, del, workspaceID); err != nil {
+			return nil, err
+		}
+		return nil, nil
+	}
+	rc, err := s.resolveImageConfig(ctx, workspaceID, in)
+	if err != nil {
+		return nil, err
+	}
+	in = rc.in
+	model := nilIfEmpty(strings.TrimSpace(in.Model))
+	baseURL := nilIfEmpty(rc.baseURL)
 
 	var cipher, iv, tag *string
 	var sCipher, sIV, sTag *string
@@ -270,6 +290,59 @@ func (s *Service) VerifyImageConfig(ctx context.Context, workspaceID string) (Im
 	if err != nil {
 		return ImageCheck{}, err
 	}
+	return s.probeImageCredentials(ctx, cfg)
+}
+
+// VerifyImageCandidate probes a CANDIDATE image provider without saving it
+// (#46), so a wrong key or host is caught before it replaces a working one.
+// An untouched key or secret is the stored one, as on a save.
+func (s *Service) VerifyImageCandidate(ctx context.Context, workspaceID string, in ImageConfigInput) (ImageCheck, error) {
+	if in.Provider == "" {
+		return ImageCheck{}, ErrBadRequest // clearing it has nothing to test
+	}
+	rc, err := s.resolveImageConfig(ctx, workspaceID, in)
+	if err != nil {
+		return ImageCheck{}, err
+	}
+	in, ex := rc.in, rc.existing
+	keepStored := ex != nil && !rc.providerChanged
+	key := in.APIKey
+	if key == "" && keepStored && ex.keyCipher != nil && ex.keyIV != nil && ex.keyTag != nil {
+		v, err := secrets.DecryptAISecret(secrets.Encrypted{Cipher: *ex.keyCipher, IV: *ex.keyIV, Tag: *ex.keyTag}, s.secret)
+		if err != nil {
+			return ImageCheck{}, ErrBadRequest
+		}
+		key = v
+	}
+	if key == "" {
+		return ImageCheck{}, ErrImageKeyRequired // resolveImageConfig already refuses this; kept as a guard
+	}
+	secret := in.APISecret
+	if secret == "" && in.APIKey == "" && keepStored && ex.secretCipher != nil && ex.secretIV != nil && ex.secretTag != nil {
+		v, err := secrets.DecryptAISecret(secrets.Encrypted{Cipher: *ex.secretCipher, IV: *ex.secretIV, Tag: *ex.secretTag}, s.secret)
+		if err != nil {
+			return ImageCheck{}, ErrBadRequest
+		}
+		secret = v
+	}
+	baseURL, model := rc.baseURL, strings.TrimSpace(in.Model)
+	if p := PresetFor(in.Provider); p != nil {
+		if baseURL == "" {
+			baseURL = p.BaseURL
+		}
+		if model == "" {
+			model = p.DefaultImageModel
+		}
+	}
+	return s.probeImageCredentials(ctx, CallConfig{
+		Provider: Provider(in.Provider), APIKey: key, APISecret: secret,
+		BaseURL: baseURL, Model: model, ImageModel: model,
+	})
+}
+
+// probeImageCredentials lists models on the provider's host with its key: the
+// same host and credential an image call uses, at no cost.
+func (s *Service) probeImageCredentials(ctx context.Context, cfg CallConfig) (ImageCheck, error) {
 	// Azure scopes every operation to a deployment and lists models on a
 	// different route than the one this transport builds, so it goes
 	// unverified rather than being reported as broken. Bedrock is the same

@@ -321,6 +321,23 @@ func buildDescribeImageRequest(cfg CallConfig, in DescribeImageInput) httpReques
 	}
 }
 
+// joinTextBlocks returns the text of a content-block reply, skipping blocks
+// that carry none. Reading only the FIRST block returned an empty answer from
+// any model that reasons before it answers: the reply then opens with a
+// thinking block (Anthropic's "thinking", Bedrock's "reasoningContent"), whose
+// "text" is empty, and the real answer sits in a later block.
+func joinTextBlocks(blocks []struct {
+	Text string `json:"text"`
+}) string {
+	parts := make([]string, 0, len(blocks))
+	for _, b := range blocks {
+		if t := strings.TrimSpace(b.Text); t != "" {
+			parts = append(parts, t)
+		}
+	}
+	return strings.Join(parts, "\n")
+}
+
 func parseTextResponse(provider Provider, raw []byte) string {
 	if provider == ProviderBedrock {
 		var j struct {
@@ -333,10 +350,7 @@ func parseTextResponse(provider Provider, raw []byte) string {
 			} `json:"output"`
 		}
 		_ = json.Unmarshal(raw, &j)
-		if c := j.Output.Message.Content; len(c) > 0 {
-			return strings.TrimSpace(c[0].Text)
-		}
-		return ""
+		return joinTextBlocks(j.Output.Message.Content)
 	}
 	if provider == ProviderAnthropic {
 		var j struct {
@@ -345,10 +359,7 @@ func parseTextResponse(provider Provider, raw []byte) string {
 			} `json:"content"`
 		}
 		_ = json.Unmarshal(raw, &j)
-		if len(j.Content) > 0 {
-			return strings.TrimSpace(j.Content[0].Text)
-		}
-		return ""
+		return joinTextBlocks(j.Content)
 	}
 	var j struct {
 		Choices []struct {
@@ -518,6 +529,12 @@ func isSafeBaseURL(raw string, allowLocalhostHTTP bool) bool {
 // response (the service maps it to a friendly 502 without echoing the body).
 var errProviderFailed = errors.New("provider request failed")
 
+// errProviderTransport is a call that never got an HTTP answer: DNS, TLS, a
+// refused connection, a timeout. It still matches errProviderFailed, so every
+// existing check holds; badGateway uses it to tell a wrong host from a wrong
+// key.
+var errProviderTransport = fmt.Errorf("%w: no response", errProviderFailed)
+
 // httpStatusError carries the provider's HTTP status so a caller can decide
 // whether a failure is negotiable (a 4xx rejecting an unsupported request
 // parameter) without ever echoing the provider's body. It IS an
@@ -612,7 +629,7 @@ func (s *Service) do(httpReq *http.Request, timeout time.Duration) ([]byte, erro
 	defer cancel()
 	res, err := s.client.Do(httpReq.WithContext(ctx))
 	if err != nil {
-		return nil, errProviderFailed
+		return nil, errProviderTransport
 	}
 	defer res.Body.Close()
 	// Do not echo the provider's error body to the client (may leak internals);

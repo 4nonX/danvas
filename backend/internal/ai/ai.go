@@ -47,7 +47,8 @@ func (e *UpstreamError) Error() string {
 
 // badGateway classifies a failed provider call: the upstream status (never the
 // body) is logged and attached for the API layer's mapping. A transport error
-// (DNS, TLS, timeout) has no status and stays the bare ErrBadGateway.
+// (DNS, TLS, timeout) has no status and is marked ErrProviderUnreachable.
+// Anything else without a status (an oversized reply) stays bare ErrBadGateway.
 func badGateway(cfg CallConfig, err error) error {
 	var se *httpStatusError
 	if errors.As(err, &se) {
@@ -55,6 +56,9 @@ func badGateway(cfg CallConfig, err error) error {
 		return errors.Join(ErrBadGateway, &UpstreamError{Provider: string(cfg.Provider), Status: se.status})
 	}
 	slog.Warn("ai provider call failed", "provider", cfg.Provider, "err", err)
+	if errors.Is(err, errProviderTransport) {
+		return errors.Join(ErrBadGateway, ErrProviderUnreachable)
+	}
 	return ErrBadGateway
 }
 
@@ -81,6 +85,16 @@ var (
 	// halves are needed to produce a signature, so one alone is not a usable
 	// credential.
 	ErrSecretRequired = errors.New("provider requires a secret access key")
+
+	// ErrKeyRequired is a connection test with no key to test: none typed and
+	// none stored for this provider. Distinct from ErrBadRequest so the form
+	// can name the missing field.
+	ErrKeyRequired = errors.New("provider requires an API key")
+
+	// ErrProviderUnreachable rides alongside ErrBadGateway when the call never
+	// got an HTTP answer (DNS, TLS, refused, timeout). That is nearly always a
+	// wrong base URL, and saying "the request failed" pointed at nothing.
+	ErrProviderUnreachable = errors.New("provider could not be reached")
 	// ErrDescribeImageUnsupported is the vision-specific capability rejection.
 	// It was ErrBadRequest, which the API renders as "no provider configured" -
 	// told to a workspace that has one, sometimes two, and whose only real
@@ -211,12 +225,23 @@ var providerSet = func() map[string]bool {
 	return m
 }()
 
-// SetConfig upserts the workspace's provider config. A new apiKey is encrypted;
-// changing the provider without a new key clears the stored key (so an old
-// vendor's key is never sent to a different vendor).
-func (s *Service) SetConfig(ctx context.Context, workspaceID string, in ConfigInput) (*ConfigView, error) {
+// resolvedConfig is a ConfigInput checked against the stored row and the
+// registry: exactly what SetConfig would persist, before anything is persisted.
+// TestConfig resolves through the same path, so a candidate that passes the
+// test is the candidate that saves, and one the save would refuse is refused by
+// the test with the same reason.
+type resolvedConfig struct {
+	in              ConfigInput // key and secret trimmed, base URL resolved
+	existing        *configRow
+	providerChanged bool
+	baseURL         string
+}
+
+// resolveConfig applies SetConfig's validation and PATCH semantics to a
+// candidate without writing it.
+func (s *Service) resolveConfig(ctx context.Context, workspaceID string, in ConfigInput) (resolvedConfig, error) {
 	if !providerSet[in.Provider] {
-		return nil, ErrBadRequest
+		return resolvedConfig{}, ErrBadRequest
 	}
 	// Statically decidable URL rejections run before any DB access: an
 	// explicitly supplied URL is trimmed (pasted whitespace must not persist;
@@ -226,15 +251,15 @@ func (s *Service) SetConfig(ctx context.Context, workspaceID string, in ConfigIn
 		trimmed := strings.TrimSpace(*in.BaseURL)
 		in.BaseURL = &trimmed
 		if trimmed != "" && !isSafeBaseURL(trimmed, s.allowLocal) {
-			return nil, ErrBadRequest
+			return resolvedConfig{}, ErrBadRequest
 		}
 		if p := PresetFor(in.Provider); p != nil && p.NeedsBaseURL && trimmed == "" {
-			return nil, ErrBaseURLRequired
+			return resolvedConfig{}, ErrBaseURLRequired
 		}
 	}
 	existing, err := s.getRow(ctx, workspaceID)
 	if err != nil {
-		return nil, err
+		return resolvedConfig{}, err
 	}
 	providerChanged := existing != nil && existing.provider != in.Provider
 
@@ -244,7 +269,7 @@ func (s *Service) SetConfig(ctx context.Context, workspaceID string, in ConfigIn
 	// With no stored key there is nothing to protect, so the change is free.
 	in.APIKey = strings.TrimSpace(in.APIKey)
 	if providerChanged && in.APIKey == "" && existing.keyCipher != nil {
-		return nil, ErrKeyRequiredForProviderChange
+		return resolvedConfig{}, ErrKeyRequiredForProviderChange
 	}
 
 	// Resolve the base URL under PATCH semantics: nil preserves the stored
@@ -263,18 +288,14 @@ func (s *Service) SetConfig(ctx context.Context, workspaceID string, in ConfigIn
 		resolvedBase = deref(existing.baseURL)
 	}
 	if p := PresetFor(in.Provider); p != nil && p.NeedsBaseURL && resolvedBase == "" {
-		return nil, ErrBaseURLRequired
+		return resolvedConfig{}, ErrBaseURLRequired
 	}
 	// A signing provider's endpoint carries the region its signature is scoped
 	// to. A host without one cannot be signed, and the failure would arrive as
 	// a rejected-credential error pointing at a key that is perfectly fine.
 	if in.Provider == string(ProviderBedrock) && bedrockRegionFrom(resolvedBase) == "" {
-		return nil, ErrBaseURLRequired
+		return resolvedConfig{}, ErrBaseURLRequired
 	}
-
-	model := nilIfEmpty(strings.TrimSpace(in.Model))
-	imageModel := nilIfEmpty(strings.TrimSpace(in.ImageModel))
-	baseURL := nilIfEmpty(resolvedBase)
 
 	// A signing provider needs both halves. Accept a stored secret when the key
 	// is unchanged, but a NEW key must bring its own: the pair is one credential.
@@ -282,9 +303,24 @@ func (s *Service) SetConfig(ctx context.Context, workspaceID string, in ConfigIn
 	if p := PresetFor(in.Provider); p != nil && p.NeedsSecret {
 		hasStoredSecret := existing != nil && !providerChanged && in.APIKey == "" && existing.secretCipher != nil
 		if in.APISecret == "" && !hasStoredSecret {
-			return nil, ErrSecretRequired
+			return resolvedConfig{}, ErrSecretRequired
 		}
 	}
+	return resolvedConfig{in: in, existing: existing, providerChanged: providerChanged, baseURL: resolvedBase}, nil
+}
+
+// SetConfig upserts the workspace's provider config. A new apiKey is encrypted;
+// changing the provider without a new key clears the stored key (so an old
+// vendor's key is never sent to a different vendor).
+func (s *Service) SetConfig(ctx context.Context, workspaceID string, in ConfigInput) (*ConfigView, error) {
+	rc, err := s.resolveConfig(ctx, workspaceID, in)
+	if err != nil {
+		return nil, err
+	}
+	in = rc.in
+	model := nilIfEmpty(strings.TrimSpace(in.Model))
+	imageModel := nilIfEmpty(strings.TrimSpace(in.ImageModel))
+	baseURL := nilIfEmpty(rc.baseURL)
 
 	var cipher, iv, tag *string
 	var sCipher, sIV, sTag *string
@@ -339,6 +375,87 @@ func (s *Service) SetConfig(ctx context.Context, workspaceID string, in ConfigIn
 		return nil, err
 	}
 	return s.GetConfig(ctx, workspaceID)
+}
+
+// testPrompt is the whole of a connection test: the shortest reply that
+// proves the key, the host and the model all work. It costs the workspace's own
+// tokens, so it asks for one word rather than a real generation.
+const testPrompt = "Reply with the single word: ok"
+
+// TestConfig runs one minimal real call against a CANDIDATE config, without
+// persisting it (#46).
+//
+// Testing only the stored config meant a new key could be checked only after
+// saving it over the one that worked. The candidate resolves through the same
+// path as SetConfig, so fields left out mean what they mean on a save: an
+// untouched key or secret is the stored one, and a nil base URL is the stored
+// host. Nothing here writes to ai_configs; usage is metered like any call,
+// because the tokens were really spent.
+func (s *Service) TestConfig(ctx context.Context, workspaceID string, in ConfigInput) error {
+	rc, err := s.resolveConfig(ctx, workspaceID, in)
+	if err != nil {
+		return err
+	}
+	cfg, err := s.candidateCallConfig(rc)
+	if err != nil {
+		return err
+	}
+	if err := s.enforce(ctx, workspaceID, string(cfg.Provider), estimateTokens(testPrompt, 1024)); err != nil {
+		return err
+	}
+	out, err := s.generateText(cfg, testPrompt, "")
+	if err != nil {
+		return badGateway(cfg, err)
+	}
+	s.meter(ctx, workspaceID, countTokens(testPrompt)+countTokens(out))
+	return nil
+}
+
+// candidateCallConfig builds the outbound config for a resolved candidate: the
+// typed key and secret when given, the stored ones otherwise (never across a
+// provider change, which resolveConfig already refused keyless), and the
+// registry's defaults for whatever is still empty, as callConfig does.
+func (s *Service) candidateCallConfig(rc resolvedConfig) (CallConfig, error) {
+	in, ex := rc.in, rc.existing
+	keepStored := ex != nil && !rc.providerChanged
+	key := in.APIKey
+	if key == "" && keepStored && ex.keyCipher != nil && ex.keyIV != nil && ex.keyTag != nil {
+		v, err := secrets.DecryptAISecret(secrets.Encrypted{Cipher: *ex.keyCipher, IV: *ex.keyIV, Tag: *ex.keyTag}, s.secret)
+		if err != nil {
+			return CallConfig{}, ErrBadRequest
+		}
+		key = v
+	}
+	if key == "" {
+		return CallConfig{}, ErrKeyRequired
+	}
+	// The secret travels with the key: a new key without one means no secret,
+	// exactly as SetConfig would store it.
+	secret := in.APISecret
+	if secret == "" && in.APIKey == "" && keepStored && ex.secretCipher != nil && ex.secretIV != nil && ex.secretTag != nil {
+		v, err := secrets.DecryptAISecret(secrets.Encrypted{Cipher: *ex.secretCipher, IV: *ex.secretIV, Tag: *ex.secretTag}, s.secret)
+		if err != nil {
+			return CallConfig{}, ErrBadRequest
+		}
+		secret = v
+	}
+	baseURL := rc.baseURL
+	model, imageModel := strings.TrimSpace(in.Model), strings.TrimSpace(in.ImageModel)
+	if p := PresetFor(in.Provider); p != nil {
+		if baseURL == "" {
+			baseURL = p.BaseURL
+		}
+		if model == "" {
+			model = p.DefaultModel
+		}
+		if imageModel == "" {
+			imageModel = p.DefaultImageModel
+		}
+	}
+	return CallConfig{
+		Provider: Provider(in.Provider), APIKey: key, APISecret: secret,
+		BaseURL: baseURL, Model: model, ImageModel: imageModel,
+	}, nil
 }
 
 // DeleteConfig disconnects the workspace's AI provider: the row, and with it
