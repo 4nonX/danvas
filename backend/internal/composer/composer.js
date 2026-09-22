@@ -35846,7 +35846,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         return pool[i];
       }
       function deriveDesignSystem(theme, size2, opts = {}) {
-        var _a5, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
+        var _a5, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l;
         const width = Math.max(1, Math.round(size2.width));
         const height = Math.max(1, Math.round(size2.height));
         const short = Math.min(width, height);
@@ -35918,7 +35918,8 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           paperBackground,
           kicker: theme.kicker,
           dir: (_k = opts.dir) != null ? _k : "ltr",
-          artDirection: artDirectionFor(opts.mood, colors)
+          artDirection: artDirectionFor(opts.mood, colors),
+          motion: (_l = opts.motion) != null ? _l : "subtle"
         };
       }
       function designSystemSlots(ds) {
@@ -36051,6 +36052,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
       exports.archetypeIsImpact = archetypeIsImpact;
       exports.keepLastWordCompany = keepLastWordCompany;
       exports.iconGlyphFor = iconGlyphFor;
+      exports.applyMotion = applyMotion;
       exports.composeArchetypePage = composeArchetypePage;
       var schema_1 = require_dist();
       var iconset_1 = require_iconset();
@@ -36122,6 +36124,47 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             return iconset_1.ICON_KEYWORDS[w];
         }
         return null;
+      }
+      var MOTION = {
+        "Kicker": null,
+        "Page number": null,
+        "Image": { preset: "fade", durationMs: 700 },
+        "Accent": { preset: "fade", durationMs: 350 },
+        "Divider": { preset: "fade", durationMs: 350 },
+        "Sequence": { preset: "fade", durationMs: 350 },
+        "Marker": { preset: "fade", durationMs: 350 },
+        "Icon": { preset: "fade", durationMs: 350 },
+        "Title": { preset: "rise", durationMs: 550 },
+        "Statement": { preset: "rise", durationMs: 550 },
+        "Quote": { preset: "rise", durationMs: 550 },
+        "Figure": { preset: "rise", durationMs: 550 },
+        "Mark": { preset: "rise", durationMs: 550 },
+        "Chart": { preset: "fade", durationMs: 500 },
+        "Table": { preset: "fade", durationMs: 500 }
+      };
+      var MOTION_DEFAULT = { preset: "rise", durationMs: 450 };
+      var MOTION_STAGGER_MS = 120;
+      var MOTION_MAX_DELAY_MS = 1080;
+      function applyMotion(nodes, motion) {
+        let i = 0;
+        for (const n of nodes) {
+          const spec = n.name !== void 0 && n.name in MOTION ? MOTION[n.name] : MOTION_DEFAULT;
+          if (motion === "none" || !spec) {
+            delete n.animation;
+            continue;
+          }
+          n.animation = {
+            entrance: {
+              preset: spec.preset,
+              durationMs: spec.durationMs,
+              delayMs: Math.min(MOTION_MAX_DELAY_MS, i * MOTION_STAGGER_MS),
+              easing: "ease-out-cubic",
+              startMode: "delay"
+            }
+          };
+          i += 1;
+        }
+        return nodes;
       }
       var Composer = class {
         constructor(ds, item, ctx, impact) {
@@ -36431,6 +36474,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
               this.bullets();
               break;
           }
+          applyMotion(this.nodes, this.ds.motion);
           return {
             background: structuredClone(this.impact ? this.ds.impactBackground : this.ds.paperBackground),
             nodes: this.nodes,
@@ -37188,6 +37232,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
       var reflow_1 = require_reflow();
       var themeGen_1 = require_themeGen();
       var designSystem_1 = require_designSystem();
+      var archetypes_1 = require_archetypes();
       var measure_1 = require_measure();
       var themeCatalog_1 = require_themeCatalog();
       function deckThemeFromRecord(rec, kicker) {
@@ -37294,7 +37339,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           const themedBg = (0, layout_1.layoutDesign)({ layout: "centered", background: theme.background, blocks: [], dir: (_f = input2.dir) != null ? _f : "ltr" }, { width, height }).background;
           const overfullByPage = [];
           pages = outline.pages.map((item, i) => {
-            var _a6, _b2, _c2, _d2, _e2, _f2, _g, _h;
+            var _a6, _b2, _c2, _d2, _e2, _f2, _g, _h, _i;
             const overfull = [];
             overfullByPage.push(overfull);
             const layout = (_a6 = byId.get(selection[i])) != null ? _a6 : layouts[0];
@@ -37380,6 +37425,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
                 }));
               }
             }
+            (0, archetypes_1.applyMotion)(children, (_i = input2.motion) != null ? _i : "subtle");
             return __spreadValues({
               id: `api-page-${i + 1}`,
               name: item.title || `Page ${i + 1}`,
@@ -37401,7 +37447,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             };
           }), { width, height }, Math.round(Math.min(width, height) * 0.012) * 6);
         } else {
-          const deck = (0, deck_1.layoutDeck)(outline, theme, { width, height }, { dir: input2.dir, catalog, brandPalette: input2.brandPalette, seed });
+          const deck = (0, deck_1.layoutDeck)(outline, theme, { width, height }, { dir: input2.dir, catalog, brandPalette: input2.brandPalette, seed, motion: input2.motion });
           system = deck.system;
           report = deck.report;
           pages = deck.pages.map((p, i) => __spreadValues({

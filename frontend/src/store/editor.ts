@@ -2627,7 +2627,7 @@ export const useEditor = create<EditorState>((set, get) => {
       ensureDocArrays(doc);
       const page = doc.pages.find((p) => p.id === pageId);
       if (!page) return false; // design changed: a late resolution never lands elsewhere
-      type Tagged = { id: string; type: string; data?: { placeholderId?: string }; transform?: { x: number; y: number }; size?: { width: number; height: number } };
+      type Tagged = { id: string; type: string; data?: { placeholderId?: string }; transform?: { x: number; y: number }; size?: { width: number; height: number }; animation?: unknown };
       const slot = (page.children as unknown as Tagged[]).find((n) => n.data?.placeholderId === placeholderId);
       if (!slot) return false; // slot gone (user deleted it): nothing to fill
       const rect = {
@@ -2645,6 +2645,9 @@ export const useEditor = create<EditorState>((set, get) => {
         size: { width: rect.width, height: rect.height },
       } as Partial<Node>);
       node.data = { placeholderId, aiImagePrompt: prompt };
+      // The stand-in's entrance is the picture's entrance: the composer gave
+      // the region its place in the page's reveal, and the picture takes it.
+      if (slot.animation) (node as unknown as { animation?: unknown }).animation = structuredClone(slot.animation);
       const ref: AssetRef = { id: assetId, kind: "image", url, mime: "image/*", checksum: "" };
       const replacedId = slot.id;
       const replacedSnapshot = structuredClone(slot);

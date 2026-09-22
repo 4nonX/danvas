@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { archetypes, normalizeOutline, type Archetype } from "../outline";
 import { deriveDesignSystem, catalogEntryForSeed, catalogEntryForMood, designSystemSlots, hueName, artDirectionFor } from "../designSystem";
-import { archetypeIsImpact, composeArchetypePage, keepLastWordCompany, iconGlyphFor } from "../archetypes";
+import { archetypeIsImpact, composeArchetypePage, keepLastWordCompany, iconGlyphFor, applyMotion } from "../archetypes";
 import { ICON_GLYPHS, ICON_KEYWORDS } from "../iconset";
 import { layoutDeck } from "../deck";
 import { deckThemes } from "../theme";
@@ -364,5 +364,40 @@ describe("icons", () => {
     const one = { ...base, columns: [{ ...base.columns[0], icon: "shield" }, { ...base.columns[1] }] };
     const p1 = composeArchetypePage(normalizeOutline({ title: "T", pages: [one] }).pages[0], ds, { index: 1, total: 4 });
     expect((p1.nodes as N[]).filter((n) => n.name === "Icon")).toHaveLength(0);
+  });
+});
+
+describe("motion", () => {
+  type Animated = { name?: string; animation?: { entrance?: { preset: string; delayMs: number; durationMs: number; startMode?: string } } };
+  const entrances = (nodes: Animated[]) => nodes.filter((n) => n.animation?.entrance);
+
+  it("gives every element one entrance in z-order, furniture none, and stays deterministic", () => {
+    const ds = deriveDesignSystem(theme, size, { seed: 2, catalog: catalogEntryForSeed(2) });
+    const item = normalizeOutline({ title: "T", pages: [pageFor("bullets")] }).pages[0];
+    const page = composeArchetypePage(item, ds, { index: 1, total: 4 });
+    const nodes = page.nodes as Animated[];
+    for (const n of nodes) {
+      if (n.name === "Kicker" || n.name === "Page number") expect(n.animation).toBeUndefined();
+      else expect(n.animation?.entrance).toBeDefined();
+    }
+    const ents = entrances(nodes).map((n) => n.animation!.entrance!);
+    // The picture fades, the title rises, delays never run backwards and stay short.
+    expect(nodes.find((n) => n.name === "Image")!.animation!.entrance!.preset).toBe("fade");
+    expect(nodes.find((n) => n.name === "Title")!.animation!.entrance!.preset).toBe("rise");
+    for (let i = 1; i < ents.length; i++) expect(ents[i].delayMs).toBeGreaterThanOrEqual(ents[i - 1].delayMs);
+    expect(Math.max(...ents.map((e) => e.delayMs + e.durationMs))).toBeLessThanOrEqual(1080 + 700);
+    // Same input, same entrances (ids are minted fresh and are not compared).
+    const again = composeArchetypePage(item, ds, { index: 1, total: 4 });
+    const shape = (ns: Animated[]) => JSON.stringify(ns.map((n) => ({ name: n.name, animation: n.animation })));
+    expect(shape(again.nodes as Animated[])).toBe(shape(nodes));
+  });
+
+  it("leaves the deck still when motion is none, and strips a stray entrance", () => {
+    const ds = deriveDesignSystem(theme, size, { seed: 2, catalog: catalogEntryForSeed(2), motion: "none" });
+    const item = normalizeOutline({ title: "T", pages: [pageFor("cover")] }).pages[0];
+    const page = composeArchetypePage(item, ds, { index: 0, total: 4 });
+    expect(entrances(page.nodes as Animated[])).toHaveLength(0);
+    const stray: Animated[] = [{ name: "Title", animation: { entrance: { preset: "rise", delayMs: 0, durationMs: 1 } } }];
+    expect(applyMotion(stray, "none")[0].animation).toBeUndefined();
   });
 });

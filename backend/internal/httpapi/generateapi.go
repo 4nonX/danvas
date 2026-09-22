@@ -89,7 +89,10 @@ type generateInput struct {
 	ThemeID      string   `json:"themeId"`
 	TemplateID   string   `json:"templateId"`
 	BrandPalette []string `json:"brandPalette"`
-	Sources      []struct {
+	// Motion is the entrance motion on the composed pages: "subtle" (default)
+	// or "none".
+	Motion  string `json:"motion"`
+	Sources []struct {
 		Name string `json:"name"`
 		Text string `json:"text"`
 	} `json:"sources"`
@@ -104,6 +107,7 @@ type generatePlan struct {
 	Brief     string
 	Palette   []string
 	ThemeID   string
+	Motion    string
 	// Template contribution (E14), resolved by the caller (needs the
 	// templates service): the layout system and/or theme record.
 	LayoutSet   any
@@ -168,6 +172,12 @@ func planGeneration(ctx context.Context, acct *accounts.Service, userID string, 
 	if themeID != "" && !aistudio.ValidThemeID(themeID) {
 		return plan, &generateReject{http.StatusBadRequest, "invalid_theme_id", "unknown themeId; list the built-in themes at GET /v1/themes"}
 	}
+	motion := strings.ToLower(strings.TrimSpace(in.Motion))
+	switch motion {
+	case "", "subtle", "none":
+	default:
+		return plan, &generateReject{http.StatusBadRequest, "invalid_motion", "motion must be 'subtle' or 'none'"}
+	}
 
 	// The tighter generation budget: keyed per API key when present, else
 	// per user, on top of the general per-key budget.
@@ -227,6 +237,7 @@ func planGeneration(ctx context.Context, acct *accounts.Service, userID string, 
 	plan.Brief = brief
 	plan.Palette = palette
 	plan.ThemeID = themeID
+	plan.Motion = motion
 	return plan, nil
 }
 
@@ -256,7 +267,7 @@ func startGenerationJob(svc *aistudio.Service, aiSvc *ai.Service, up *uploads.Se
 		compose := func() ([]byte, composer.Report, error) {
 			return composer.ComposeWithReport(ctx, composer.Input{
 				Outline: outline, Width: plan.Size.w, Height: plan.Size.h, BrandPalette: plan.Palette,
-				ThemeID: plan.ThemeID, LayoutSet: plan.LayoutSet, ThemeRecord: plan.ThemeRecord,
+				ThemeID: plan.ThemeID, LayoutSet: plan.LayoutSet, ThemeRecord: plan.ThemeRecord, Motion: plan.Motion,
 			})
 		}
 		fileJSON, report, err := compose()
@@ -383,6 +394,8 @@ func generatePresentationHandler(svc *aistudio.Service, aiSvc *ai.Service, up *u
 				problemWithCode(w, r, rej.Status, http.StatusText(rej.Status), rej.Msg, "template_without_style")
 			case "invalid_theme_id":
 				problemWithCode(w, r, rej.Status, http.StatusText(rej.Status), rej.Msg, "invalid_theme_id")
+			case "invalid_motion":
+				problemWithCode(w, r, rej.Status, http.StatusText(rej.Status), rej.Msg, "invalid_motion")
 			case "generation_rate_limited":
 				problemWithCode(w, r, rej.Status, http.StatusText(rej.Status), rej.Msg, "generation_rate_limited")
 			case "missing_workspaceid":

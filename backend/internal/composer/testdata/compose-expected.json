@@ -54,7 +54,16 @@
             }
           ],
           "name": "Accent",
-          "cornerRadius": 3
+          "cornerRadius": 3,
+          "animation": {
+            "entrance": {
+              "preset": "fade",
+              "durationMs": 350,
+              "delayMs": 0,
+              "easing": "ease-out-cubic",
+              "startMode": "delay"
+            }
+          }
         },
         {
           "id": "n-47",
@@ -112,7 +121,16 @@
               }
             }
           ],
-          "name": "Title"
+          "name": "Title",
+          "animation": {
+            "entrance": {
+              "preset": "rise",
+              "durationMs": 550,
+              "delayMs": 120,
+              "easing": "ease-out-cubic",
+              "startMode": "delay"
+            }
+          }
         },
         {
           "id": "n-48",
@@ -170,7 +188,16 @@
               }
             }
           ],
-          "name": "Subhead"
+          "name": "Subhead",
+          "animation": {
+            "entrance": {
+              "preset": "rise",
+              "durationMs": 450,
+              "delayMs": 240,
+              "easing": "ease-out-cubic",
+              "startMode": "delay"
+            }
+          }
         }
       ],
       "notes": "Welcome everyone and set the stakes: energy is the second-largest overhead for most small shops."
@@ -248,7 +275,16 @@
               }
             }
           ],
-          "name": "Title"
+          "name": "Title",
+          "animation": {
+            "entrance": {
+              "preset": "rise",
+              "durationMs": 550,
+              "delayMs": 0,
+              "easing": "ease-out-cubic",
+              "startMode": "delay"
+            }
+          }
         },
         {
           "id": "n-52",
@@ -372,7 +408,16 @@
               }
             }
           ],
-          "name": "Points"
+          "name": "Points",
+          "animation": {
+            "entrance": {
+              "preset": "rise",
+              "durationMs": 450,
+              "delayMs": 120,
+              "easing": "ease-out-cubic",
+              "startMode": "delay"
+            }
+          }
         },
         {
           "id": "n-53",
@@ -565,7 +610,16 @@
               }
             }
           ],
-          "name": "Title"
+          "name": "Title",
+          "animation": {
+            "entrance": {
+              "preset": "rise",
+              "durationMs": 550,
+              "delayMs": 0,
+              "easing": "ease-out-cubic",
+              "startMode": "delay"
+            }
+          }
         },
         {
           "id": "n-58",
@@ -689,7 +743,16 @@
               }
             }
           ],
-          "name": "Points"
+          "name": "Points",
+          "animation": {
+            "entrance": {
+              "preset": "rise",
+              "durationMs": 450,
+              "delayMs": 120,
+              "easing": "ease-out-cubic",
+              "startMode": "delay"
+            }
+          }
         },
         {
           "id": "n-59",
@@ -883,7 +946,16 @@
               }
             }
           ],
-          "name": "Title"
+          "name": "Title",
+          "animation": {
+            "entrance": {
+              "preset": "rise",
+              "durationMs": 550,
+              "delayMs": 0,
+              "easing": "ease-out-cubic",
+              "startMode": "delay"
+            }
+          }
         },
         {
           "id": "n-70",
@@ -916,7 +988,16 @@
             }
           ],
           "name": "Divider",
-          "cornerRadius": 0
+          "cornerRadius": 0,
+          "animation": {
+            "entrance": {
+              "preset": "fade",
+              "durationMs": 350,
+              "delayMs": 120,
+              "easing": "ease-out-cubic",
+              "startMode": "delay"
+            }
+          }
         },
         {
           "id": "n-71",
@@ -1330,6 +1411,15 @@
           ],
           "data": {
             "icon": "coin"
+          },
+          "animation": {
+            "entrance": {
+              "preset": "fade",
+              "durationMs": 350,
+              "delayMs": 240,
+              "easing": "ease-out-cubic",
+              "startMode": "delay"
+            }
           }
         },
         {
@@ -1363,7 +1453,16 @@
             }
           ],
           "name": "Accent",
-          "cornerRadius": 3
+          "cornerRadius": 3,
+          "animation": {
+            "entrance": {
+              "preset": "fade",
+              "durationMs": 350,
+              "delayMs": 360,
+              "easing": "ease-out-cubic",
+              "startMode": "delay"
+            }
+          }
         },
         {
           "id": "n-73",
@@ -1421,7 +1520,16 @@
               }
             }
           ],
-          "name": "Heading"
+          "name": "Heading",
+          "animation": {
+            "entrance": {
+              "preset": "rise",
+              "durationMs": 450,
+              "delayMs": 480,
+              "easing": "ease-out-cubic",
+              "startMode": "delay"
+            }
+          }
         },
         {
           "id": "n-74",
@@ -1514,7 +1622,16 @@
               }
             }
           ],
-          "name": "Points"
+          "name": "Points",
+          "animation": {
+            "entrance": {
+              "preset": "rise",
+              "durationMs": 450,
+              "delayMs": 600,
+              "easing": "ease-out-cubic",
+              "startMode": "delay"
+            }
+          }
         },
         {
           "id": "n-75",
@@ -1867,6 +1984,15 @@
           ],
           "data": {
             "icon": "calendar"
+          },
+          "animation": {
+            "entrance": {
+              "preset": "fade",
+              "durationMs": 350,
+              "delayMs": 720,
+              "easing": "ease-out-cubic",
+              "startMode": "delay"
+            }
           }
         },
         {
@@ -1900,7 +2026,16 @@
             }
           ],
           "name": "Accent",
-          "cornerRadius": 3
+          "cornerRadius": 3,
+          "animation": {
+            "entrance": {
+              "preset": "fade",
+              "durationMs": 350,
+              "delayMs": 840,
+              "easing": "ease-out-cubic",
+              "startMode": "delay"
+            }
+          }
         },
         {
           "id": "n-77",
@@ -1958,7 +2093,16 @@
               }
             }
           ],
-          "name": "Heading"
+          "name": "Heading",
+          "animation": {
+            "entrance": {
+              "preset": "rise",
+              "durationMs": 450,
+              "delayMs": 960,
+              "easing": "ease-out-cubic",
+              "startMode": "delay"
+            }
+          }
         },
         {
           "id": "n-78",
@@ -2051,7 +2195,16 @@
               }
             }
           ],
-          "name": "Points"
+          "name": "Points",
+          "animation": {
+            "entrance": {
+              "preset": "rise",
+              "durationMs": 450,
+              "delayMs": 1080,
+              "easing": "ease-out-cubic",
+              "startMode": "delay"
+            }
+          }
         },
         {
           "id": "n-79",
@@ -2220,7 +2373,16 @@
             }
           ],
           "name": "Accent",
-          "cornerRadius": 3
+          "cornerRadius": 3,
+          "animation": {
+            "entrance": {
+              "preset": "fade",
+              "durationMs": 350,
+              "delayMs": 0,
+              "easing": "ease-out-cubic",
+              "startMode": "delay"
+            }
+          }
         },
         {
           "id": "n-84",
@@ -2278,7 +2440,16 @@
               }
             }
           ],
-          "name": "Title"
+          "name": "Title",
+          "animation": {
+            "entrance": {
+              "preset": "rise",
+              "durationMs": 550,
+              "delayMs": 120,
+              "easing": "ease-out-cubic",
+              "startMode": "delay"
+            }
+          }
         },
         {
           "id": "n-85",
@@ -2336,7 +2507,16 @@
               }
             }
           ],
-          "name": "Subhead"
+          "name": "Subhead",
+          "animation": {
+            "entrance": {
+              "preset": "rise",
+              "durationMs": 450,
+              "delayMs": 240,
+              "easing": "ease-out-cubic",
+              "startMode": "delay"
+            }
+          }
         },
         {
           "id": "n-86",

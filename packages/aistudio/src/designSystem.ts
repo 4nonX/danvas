@@ -65,7 +65,13 @@ export interface DesignSystem {
    *  as a series: the mood the outline named, the palette's tones, one light,
    *  and the rules a slide picture always follows. */
   artDirection: string;
+  /** Entrance motion on the composed pages: "subtle" (the default) gives
+   *  every element one quiet entrance in reading order; "none" leaves the
+   *  deck still. */
+  motion: DeckMotion;
 }
+
+export type DeckMotion = "subtle" | "none";
 
 /** Type pairings for a deck that arrives with no brand fonts and no catalog
  *  theme. Chosen by seed, never the same one for every deck, and none of them
@@ -213,6 +219,8 @@ export interface DeriveOptions {
   /** The outline's own mood phrase ("calm, coastal, restrained"), folded into
    *  the art direction every picture prompt carries. */
   mood?: string;
+  /** Entrance motion on the composed pages; defaults to "subtle". */
+  motion?: DeckMotion;
   /** Brand colors: the first is the primary, the second (if any) the accent. */
   brandPalette?: string[];
   dir?: "ltr" | "rtl";
@@ -301,6 +309,7 @@ export function deriveDesignSystem(theme: DeckTheme, size: { width: number; heig
     kicker: theme.kicker,
     dir: opts.dir ?? "ltr",
     artDirection: artDirectionFor(opts.mood, colors),
+    motion: opts.motion ?? "subtle",
   };
 }
 

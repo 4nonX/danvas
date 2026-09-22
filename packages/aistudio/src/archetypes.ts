@@ -20,7 +20,7 @@
 
 import { createNode, type Color, type Fill, type Node } from "@hc/schema";
 import type { Archetype, OutlineItem } from "./outline";
-import type { DesignSystem } from "./designSystem";
+import type { DeckMotion, DesignSystem } from "./designSystem";
 import { ICON_BOX, ICON_GLYPHS, ICON_KEYWORDS } from "./iconset";
 import type { PageVariant } from "./measure";
 import { ladderFrom } from "./deckStyle";
@@ -138,6 +138,51 @@ export function iconGlyphFor(keyword: string | undefined): string | null {
     if (w && ICON_KEYWORDS[w]) return ICON_KEYWORDS[w];
   }
   return null;
+}
+
+// --- motion --------------------------------------------------------------
+
+/** How each kind of element enters, by the name the composer gave it. One
+ *  orchestrated reveal per page rather than an effect per element: pictures
+ *  and marks fade in, headings rise, everything else follows in reading
+ *  order with a short stagger. Furniture (the kicker, the page number) is
+ *  already there when the page arrives. */
+const MOTION: Record<string, { preset: "fade" | "rise"; durationMs: number } | null> = {
+  "Kicker": null, "Page number": null,
+  "Image": { preset: "fade", durationMs: 700 },
+  "Accent": { preset: "fade", durationMs: 350 }, "Divider": { preset: "fade", durationMs: 350 },
+  "Sequence": { preset: "fade", durationMs: 350 }, "Marker": { preset: "fade", durationMs: 350 }, "Icon": { preset: "fade", durationMs: 350 },
+  "Title": { preset: "rise", durationMs: 550 }, "Statement": { preset: "rise", durationMs: 550 },
+  "Quote": { preset: "rise", durationMs: 550 }, "Figure": { preset: "rise", durationMs: 550 }, "Mark": { preset: "rise", durationMs: 550 },
+  "Chart": { preset: "fade", durationMs: 500 }, "Table": { preset: "fade", durationMs: 500 },
+};
+const MOTION_DEFAULT = { preset: "rise" as const, durationMs: 450 };
+const MOTION_STAGGER_MS = 120;
+const MOTION_MAX_DELAY_MS = 1080;
+
+/** Give the page's elements their entrances, in z-order, and return the same
+ *  array. Deterministic, so the editor and the API animate the same deck the
+ *  same way; "none" removes any entrance a caller may have left on a node. */
+export function applyMotion<N extends { name?: string; animation?: unknown }>(nodes: N[], motion: DeckMotion): N[] {
+  let i = 0;
+  for (const n of nodes) {
+    const spec = n.name !== undefined && n.name in MOTION ? MOTION[n.name] : MOTION_DEFAULT;
+    if (motion === "none" || !spec) {
+      delete n.animation;
+      continue;
+    }
+    n.animation = {
+      entrance: {
+        preset: spec.preset,
+        durationMs: spec.durationMs,
+        delayMs: Math.min(MOTION_MAX_DELAY_MS, i * MOTION_STAGGER_MS),
+        easing: "ease-out-cubic",
+        startMode: "delay",
+      },
+    };
+    i += 1;
+  }
+  return nodes;
 }
 
 class Composer {
@@ -451,6 +496,7 @@ class Composer {
       case "team": this.team(); break;
       default: this.bullets(); break;
     }
+    applyMotion(this.nodes as Array<Node & { animation?: unknown }>, this.ds.motion);
     return {
       background: structuredClone(this.impact ? this.ds.impactBackground : this.ds.paperBackground),
       nodes: this.nodes,

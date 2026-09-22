@@ -161,6 +161,8 @@ func aiProblem(w http.ResponseWriter, r *http.Request, err error) {
 		problemWithCode(w, r, status, title, detail, "ai_key_required")
 	case "ai_provider_unreachable":
 		problemWithCode(w, r, status, title, detail, "ai_provider_unreachable")
+	case "ai_reply_truncated":
+		problemWithCode(w, r, status, title, detail, "ai_reply_truncated")
 	case "ai_not_configured":
 		problemWithCode(w, r, status, title, detail, "ai_not_configured")
 	case "ai_provider_auth_failed":

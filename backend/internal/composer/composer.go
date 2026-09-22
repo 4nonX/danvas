@@ -58,6 +58,9 @@ type Input struct {
 	LayoutSet   any    `json:"layoutSet,omitempty"`
 	ThemeRecord any    `json:"themeRecord,omitempty"`
 	Dir         string `json:"dir,omitempty"`
+	// Motion is the entrance motion on the composed pages: "subtle" (the
+	// bundle's default when empty) or "none".
+	Motion string `json:"motion,omitempty"`
 }
 
 // PageReport is the reviewer's verdict on one composed page. Mirrors

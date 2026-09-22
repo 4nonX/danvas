@@ -106,6 +106,14 @@
           "templateId": {
             "type": "string",
             "description": "A template id: the deck is composed on that template's layout system and theme (workspace templates and public built-ins; see the MCP list_templates tool)."
+          },
+          "motion": {
+            "type": "string",
+            "enum": [
+              "subtle",
+              "none"
+            ],
+            "description": "Entrance motion on the composed slides: one quiet reveal per page in reading order (default), or none."
           }
         }
       },

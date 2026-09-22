@@ -29,7 +29,8 @@ import { fallbackLayoutFill, repairLayoutSelection } from "./layoutSchema";
 import { accentRuleRect, pageTreatment, slotTypeScale } from "./deckStyle";
 import { reflowPage } from "./reflow";
 import { themeSlotNames } from "./themeGen";
-import { catalogEntryForMood, designSystemSlots } from "./designSystem";
+import { catalogEntryForMood, designSystemSlots, type DeckMotion } from "./designSystem";
+import { applyMotion } from "./archetypes";
 import { measureDeck, type DeckReport } from "./measure";
 import { themeCatalogEntry, type ThemeCatalogEntry } from "./themeCatalog";
 import type { DeckTheme } from "./outline";
@@ -57,6 +58,8 @@ export interface ComposeDeckInput {
    *  materialized text (fonts by role, ink readable against the background). */
   themeRecord?: Theme;
   dir?: "ltr" | "rtl";
+  /** Entrance motion on the composed pages: "subtle" (default) or "none". */
+  motion?: DeckMotion;
 }
 
 /** A T19 theme record as a generation DeckTheme (the template path's
@@ -314,6 +317,8 @@ export function composeDeckFileWithReport(input: ComposeDeckInput): { file: Desi
           } as never) as never);
         }
       }
+      // The same quiet reveal the archetype door gives its pages.
+      applyMotion(children as Array<{ name?: string; animation?: unknown }>, input.motion ?? "subtle");
       return {
         id: `api-page-${i + 1}`,
         name: item.title || `Page ${i + 1}`,
@@ -337,7 +342,7 @@ export function composeDeckFileWithReport(input: ComposeDeckInput): { file: Desi
       Math.round(Math.min(width, height) * 0.012) * 6,
     );
   } else {
-    const deck = layoutDeck(outline, theme, { width, height }, { dir: input.dir, catalog, brandPalette: input.brandPalette, seed });
+    const deck = layoutDeck(outline, theme, { width, height }, { dir: input.dir, catalog, brandPalette: input.brandPalette, seed, motion: input.motion });
     system = deck.system;
     report = deck.report;
     pages = deck.pages.map((p, i) => ({
