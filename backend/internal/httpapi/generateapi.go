@@ -11,6 +11,7 @@ package httpapi
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"hycanvas/backend/internal/ai"
 	"hycanvas/backend/internal/uploads"
 	"net/http"
@@ -406,5 +407,10 @@ func generatePresentationHandler(svc *aistudio.Service, aiSvc *ai.Service, up *u
 // internals: the aistudio service already returns coded, human-safe errors
 // for the common cases (no provider configured, quota, refusal).
 func userMessageForAI(err error) string {
+	// A cut-off reply is joined onto the gateway error; the user needs the
+	// reason, not the wrapper.
+	if errors.Is(err, ai.ErrReplyTruncated) {
+		return ai.ErrReplyTruncated.Error()
+	}
 	return cutUTF8(err.Error(), 300)
 }

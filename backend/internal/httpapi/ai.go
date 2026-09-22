@@ -111,6 +111,9 @@ func aiFailure(err error) (status int, title, detail, code string) {
 		if errors.Is(err, ai.ErrProviderUnreachable) {
 			return http.StatusBadGateway, "Bad Gateway", "could not reach the AI provider; check the base URL, and that the server can reach that host", "ai_provider_unreachable"
 		}
+		if errors.Is(err, ai.ErrReplyTruncated) {
+			return http.StatusBadGateway, "Bad Gateway", ai.ErrReplyTruncated.Error(), "ai_reply_truncated"
+		}
 		var up *ai.UpstreamError
 		upstream := 0
 		if errors.As(err, &up) {

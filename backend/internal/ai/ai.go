@@ -59,6 +59,9 @@ func badGateway(cfg CallConfig, err error) error {
 	if errors.Is(err, errProviderTransport) {
 		return errors.Join(ErrBadGateway, ErrProviderUnreachable)
 	}
+	if errors.Is(err, ErrReplyTruncated) {
+		return errors.Join(ErrBadGateway, ErrReplyTruncated)
+	}
 	return ErrBadGateway
 }
 
@@ -68,6 +71,11 @@ var (
 	// Groq, OpenRouter). Distinct from ErrBadRequest so the API can tell the user
 	// their provider can't do images, not that their request/config is malformed.
 	ErrImageUnsupported = errors.New("provider does not support image generation")
+	// ErrReplyTruncated is returned when the model stopped at its output cap,
+	// so the reply is incomplete. Distinct from a parse failure so the caller
+	// can say what happened and the user can ask for less rather than retry
+	// the same request into the same wall.
+	ErrReplyTruncated = errors.New("the AI reply was cut off before it finished; ask for fewer pages or less detail per page")
 	// ErrBaseURLRequired is returned when a config for an endpoint-routed
 	// provider (Azure/custom) is saved without a base URL. Distinct from
 	// ErrBadRequest so the UI can point the user at the missing field.

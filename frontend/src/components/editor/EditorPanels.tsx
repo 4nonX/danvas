@@ -5144,7 +5144,7 @@ export function PolishPanel() {
 // loads, so these only need the ids, URL flags, and defaults to stay usable.
 const FALLBACK_PRESETS: AiProviderPreset[] = [
   { id: "openai", label: "OpenAI", baseUrl: "", defaultModel: "gpt-4o-mini", defaultImageModel: "dall-e-3", capabilities: { text: true, image: true, describeImage: true, editImage: true } },
-  { id: "anthropic", label: "Anthropic (Claude)", baseUrl: "", defaultModel: "claude-opus-4-8", capabilities: { text: true, image: false, describeImage: true, editImage: false } },
+  { id: "anthropic", label: "Anthropic (Claude)", baseUrl: "", defaultModel: "claude-opus-5", capabilities: { text: true, image: false, describeImage: true, editImage: false } },
   { id: "deepseek", label: "DeepSeek", baseUrl: "", defaultModel: "deepseek-chat", capabilities: { text: true, image: false, describeImage: false, editImage: false } },
   { id: "moonshot", label: "Moonshot (Kimi)", baseUrl: "", defaultModel: "kimi-latest", capabilities: { text: true, image: false, describeImage: true, editImage: false } },
   { id: "zhipu", label: "Zhipu AI (GLM)", baseUrl: "", defaultModel: "glm-4.6", defaultImageModel: "cogview-4-250304", capabilities: { text: true, image: true, describeImage: false, editImage: false } },

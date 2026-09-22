@@ -54,7 +54,7 @@ You are implementing one task at a time from the table below. For each session:
 | T20 | 4 Design | Import a deck as a reusable layout set | done 2026-08-24 |
 | T21 | 4 Design | Brand kit draft from a company domain | done 2026-08-24 |
 | T22 | 5 Tail | PPTX fidelity golden set + present-and-record camera bubble | done 2026-08-24 |
-| T23 | 5 Tail | Programmatic generation API (blocked) | blocked: integrations layer |
+| T23 | 5 Tail | Programmatic generation API | done 2026-08-28 (shipped as E01 to E08 in `40-ai-platform-tasks.md`: API keys, `POST /generate/presentation`, MCP) |
 
 Dependencies: T06 and T07 before T09/T12/T14/T16; T01 before any task adding assistant tools (T13, T14, T16); T11 before T12; T12 before T13/T14/T20. Everything in Phase 0 is independent and can be done first in any order.
 

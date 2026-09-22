@@ -43,6 +43,7 @@ The rules from `28-presentations-completion-tasks.md` apply unchanged. In brief:
 | E20 | 6 Design quality | Measure, fix, report: deterministic variants plus one bounded shortening pass in the API | done 2026-09-12 |
 | E21 | 6 Design quality | Mood-driven palette and pairing from the outline's own theme phrase | done 2026-09-12 |
 | E22 | 6 Design quality | Pictures in API and MCP decks, real list markers in every exporter, widow control | done 2026-09-12 |
+| E23 | 7 Claude quality | Claude 5 defaults, output budgets sized to the payload, truncation reported, cached system prompts | done 2026-09-22 |
 
 Deferred (documented, deliberately not tasks): outbound webhooks on job completion (revisit once the API has real consumers); publish-as-website / custom domain (overlaps the website feature); AI voice/TTS narration (`23-ai-media.md`); a paid/community template marketplace beyond the existing `@hc/templates` marketplace scaffolding; Zapier/Make connectors (build on the API once it is stable).
 
@@ -158,3 +159,11 @@ The pitch: the outline was the ceiling on quality. A page carried a title, up to
 
 - Shipped, the template door too: the layout-slot compose path (`composeDeckFile` with a layout set) and the editor's placeholder fill and layout switch write points as real list items, and the reflow estimate (`reflowPage`, `list` on a slot) takes the marker gutter off the wrap width, so the two doors and the live editor agree. The layout switch still strips a leading bullet character when it reads a deck written before this change.
 - Verified end to end: `TestGenerationJobPlacesImages_DB` runs the generation job against a stand-in provider answering over HTTP in the OpenAI-compatible dialect, with the real database, encrypted provider config, job registry, local storage driver and persistence; the saved deck carries one image node pointing at a stored asset and no stand-in. Pictures in the API path draw on the same provider and meter as the editor's queue, so there is no separate budget for them.
+
+## Phase 7: Generation quality on Claude
+
+The pitch: with a Claude key the outline, story and copy are the model's work and the composer guarantees the layout, so the remaining distance to a deck a designer would sign is in what the model is asked for and what the composer can draw. This phase closes the transport gaps first, then the visual ones.
+
+### E23: Claude 5 defaults, budgets, truncation, caching
+
+- Shipped: the Anthropic transport defaults to `claude-opus-5` (one constant, mirrored by the frontend's offline preset list); the Bedrock default stays on the account-enabled snapshot id and is only changed against the console's model list. Output caps are sized to the payload: 4096 tokens for conversational text and 16384 for structured calls (a forty-page outline with a speaker note per page), on Anthropic and Bedrock alike, and the structured fallback keeps the structured budget. Every dialect's stop reason is read (`stop_reason`, `stopReason`, `finish_reason`), so a reply cut at the cap is reported as `ai_reply_truncated` with a message that says what to change, instead of reaching the repair passes as JSON that merely failed to parse. The system prompt goes to Anthropic as a content block with a cache breakpoint, so the long outline rules and archetype catalog are cached across a workspace's calls. Bedrock prompt caching is left out on purpose: its cache points are model-dependent and a wrong one fails the whole call.

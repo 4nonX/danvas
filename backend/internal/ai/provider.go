@@ -113,6 +113,45 @@ func bedrockCreds(cfg CallConfig) *awsCreds {
 // bedrockConverse builds a Converse request. Converse is the reason this stays
 // small: one request and response shape across every model family Bedrock
 // hosts, so Claude, Llama and Nova all read the same here.
+// Model defaults for the two Claude transports. One place, so a new
+// generation is adopted with one edit and the frontend mirror (EditorPanels
+// FALLBACK_PRESETS) has one value to follow. The Bedrock id carries AWS's
+// snapshot date and must match a model enabled in the account's region, so it
+// is only changed against the console's model list.
+const (
+	defaultAnthropicModel = "claude-opus-5"
+	defaultBedrockModel   = "anthropic.claude-sonnet-4-5-20250929-v1:0"
+)
+
+// Output budgets. Claude stops at max_tokens exactly, and a reply that stops
+// early is a truncated JSON document to the caller, so the caps are sized for
+// the largest thing each call produces: a conversational answer or critique
+// for text, a whole forty-page outline with a speaker note per page for
+// structured calls. Only the tokens actually produced cost anything.
+const (
+	anthropicTextMaxTokens       = 4096
+	anthropicStructuredMaxTokens = 16384
+	bedrockTextMaxTokens         = 4096
+	bedrockStructuredMaxTokens   = 16384
+)
+
+// outputBudget names which cap a plain text request should carry.
+type outputBudget int
+
+const (
+	budgetConversation outputBudget = iota
+	budgetStructured
+)
+
+// anthropicSystem sends the system prompt as a content block with a cache
+// breakpoint. Every generation call in a workspace reuses the same long
+// system prompt (the outline rules, the archetype catalog), so caching the
+// prefix cuts input cost and latency on every call after the first; prompts
+// under the model's minimum cacheable length are simply not cached.
+func anthropicSystem(system string) []any {
+	return []any{map[string]any{"type": "text", "text": system, "cache_control": map[string]any{"type": "ephemeral"}}}
+}
+
 func bedrockConverse(cfg CallConfig, model string, content []any, system string, maxTokens int) httpRequest {
 	body := map[string]any{
 		"messages":        []any{map[string]any{"role": "user", "content": content}},
@@ -130,18 +169,34 @@ func bedrockConverse(cfg CallConfig, model string, content []any, system string,
 }
 
 func buildTextRequest(cfg CallConfig, prompt, system string) httpRequest {
+	return buildTextRequestWithBudget(cfg, prompt, system, budgetConversation)
+}
+
+// buildTextRequestWithBudget is buildTextRequest with the output cap chosen
+// for the payload: a structured call that has to fall back to plain text
+// keeps the structured budget, or the fallback would truncate the very
+// document it is retrying.
+func buildTextRequestWithBudget(cfg CallConfig, prompt, system string, budget outputBudget) httpRequest {
 	if cfg.Provider == ProviderBedrock {
-		return bedrockConverse(cfg, orDefault(cfg.Model, "anthropic.claude-sonnet-4-5-20250929-v1:0"),
-			[]any{map[string]any{"text": prompt}}, system, 1024)
+		cap := bedrockTextMaxTokens
+		if budget == budgetStructured {
+			cap = bedrockStructuredMaxTokens
+		}
+		return bedrockConverse(cfg, orDefault(cfg.Model, defaultBedrockModel),
+			[]any{map[string]any{"text": prompt}}, system, cap)
 	}
 	if cfg.Provider == ProviderAnthropic {
+		cap := anthropicTextMaxTokens
+		if budget == budgetStructured {
+			cap = anthropicStructuredMaxTokens
+		}
 		body := map[string]any{
-			"model":      orDefault(cfg.Model, "claude-opus-4-8"),
-			"max_tokens": 1024,
+			"model":      orDefault(cfg.Model, defaultAnthropicModel),
+			"max_tokens": cap,
 			"messages":   []any{map[string]any{"role": "user", "content": prompt}},
 		}
 		if system != "" {
-			body["system"] = system
+			body["system"] = anthropicSystem(system)
 		}
 		return httpRequest{
 			url: orDefault(cfg.BaseURL, "https://api.anthropic.com") + "/v1/messages",
@@ -185,18 +240,16 @@ func buildStructuredTextRequest(cfg CallConfig, prompt, system, schemaJSON strin
 	// the prompt and validates with repair passes, so the plain request is the
 	// honest fallback rather than sending a parameter that would 400.
 	if cfg.Provider == ProviderBedrock {
-		return buildTextRequest(cfg, prompt, system)
+		return buildTextRequestWithBudget(cfg, prompt, system, budgetStructured)
 	}
 	var schema any
 	if err := json.Unmarshal([]byte(schemaJSON), &schema); err != nil || schema == nil {
-		return buildTextRequest(cfg, prompt, system)
+		return buildTextRequestWithBudget(cfg, prompt, system, budgetStructured)
 	}
 	if cfg.Provider == ProviderAnthropic {
 		body := map[string]any{
-			// A larger cap than plain Text: structured payloads (a whole deck
-			// outline) routinely exceed the 1024-token conversational default.
-			"model":      orDefault(cfg.Model, "claude-opus-4-8"),
-			"max_tokens": 4096,
+			"model":      orDefault(cfg.Model, defaultAnthropicModel),
+			"max_tokens": anthropicStructuredMaxTokens,
 			"messages":   []any{map[string]any{"role": "user", "content": prompt}},
 			"tools": []any{map[string]any{
 				"name":         structuredToolName,
@@ -206,7 +259,7 @@ func buildStructuredTextRequest(cfg CallConfig, prompt, system, schemaJSON strin
 			"tool_choice": map[string]any{"type": "tool", "name": structuredToolName},
 		}
 		if system != "" {
-			body["system"] = system
+			body["system"] = anthropicSystem(system)
 		}
 		return httpRequest{
 			url: orDefault(cfg.BaseURL, "https://api.anthropic.com") + "/v1/messages",
@@ -286,7 +339,7 @@ func buildDescribeImageRequest(cfg CallConfig, in DescribeImageInput) httpReques
 		if format == "jpg" {
 			format = "jpeg"
 		}
-		return bedrockConverse(cfg, orDefault(cfg.Model, "anthropic.claude-sonnet-4-5-20250929-v1:0"), []any{
+		return bedrockConverse(cfg, orDefault(cfg.Model, defaultBedrockModel), []any{
 			map[string]any{"image": map[string]any{"format": format, "source": map[string]any{"bytes": in.ImageBase64}}},
 			map[string]any{"text": in.Instruction},
 		}, "", 300)
@@ -298,7 +351,7 @@ func buildDescribeImageRequest(cfg CallConfig, in DescribeImageInput) httpReques
 				"content-type": "application/json", "x-api-key": cfg.APIKey, "anthropic-version": "2023-06-01",
 			},
 			body: map[string]any{
-				"model": orDefault(cfg.Model, "claude-opus-4-8"), "max_tokens": 300,
+				"model": orDefault(cfg.Model, defaultAnthropicModel), "max_tokens": 300,
 				"messages": []any{map[string]any{"role": "user", "content": []any{
 					map[string]any{"type": "image", "source": map[string]any{"type": "base64", "media_type": mime, "data": in.ImageBase64}},
 					map[string]any{"type": "text", "text": in.Instruction},
@@ -652,7 +705,39 @@ func (s *Service) generateText(cfg CallConfig, prompt, system string) (string, e
 	if err != nil {
 		return "", err
 	}
+	if replyTruncated(cfg.Provider, raw) {
+		return "", ErrReplyTruncated
+	}
 	return parseTextResponse(cfg.Provider, raw), nil
+}
+
+// replyTruncated reports a reply the model stopped because it hit the output
+// cap. Every dialect says so in its own field; without reading it, a cut-off
+// deck outline reached the caller as JSON that merely failed to parse, and
+// the repair passes then asked the model to fix a document that was fine.
+func replyTruncated(provider Provider, raw []byte) bool {
+	switch provider {
+	case ProviderAnthropic:
+		var j struct {
+			StopReason string `json:"stop_reason"`
+		}
+		_ = json.Unmarshal(raw, &j)
+		return j.StopReason == "max_tokens"
+	case ProviderBedrock:
+		var j struct {
+			StopReason string `json:"stopReason"`
+		}
+		_ = json.Unmarshal(raw, &j)
+		return j.StopReason == "max_tokens"
+	default:
+		var j struct {
+			Choices []struct {
+				FinishReason string `json:"finish_reason"`
+			} `json:"choices"`
+		}
+		_ = json.Unmarshal(raw, &j)
+		return len(j.Choices) > 0 && j.Choices[0].FinishReason == "length"
+	}
 }
 
 // generateStructuredText asks for native schema-constrained output, and on a
@@ -666,19 +751,19 @@ func (s *Service) generateStructuredText(cfg CallConfig, prompt, system, schemaJ
 		if !isNegotiable4xx(err) {
 			return "", err
 		}
-		plain := buildTextRequest(cfg, prompt, system)
-		// Keep the structured-scale output budget on the fallback: the plain
-		// builder's conversational 1024-token Anthropic cap would truncate a
-		// whole-deck outline into unparseable JSON on every retry.
-		if cfg.Provider == ProviderAnthropic {
-			if body, ok := plain.body.(map[string]any); ok {
-				body["max_tokens"] = 4096
-			}
-		}
-		if raw, err = s.postJSON(plain); err != nil {
+		// The fallback keeps the structured-scale output budget: a
+		// conversational cap would truncate the whole-deck outline it is
+		// retrying.
+		if raw, err = s.postJSON(buildTextRequestWithBudget(cfg, prompt, system, budgetStructured)); err != nil {
 			return "", err
 		}
+		if replyTruncated(cfg.Provider, raw) {
+			return "", ErrReplyTruncated
+		}
 		return parseTextResponse(cfg.Provider, raw), nil
+	}
+	if replyTruncated(cfg.Provider, raw) {
+		return "", ErrReplyTruncated
 	}
 	return parseStructuredResponse(cfg.Provider, raw), nil
 }
