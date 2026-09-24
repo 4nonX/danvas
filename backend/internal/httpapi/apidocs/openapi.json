@@ -147,7 +147,7 @@
             ]
           },
           "result": {
-            "description": "On completion of a generation job: { designId, title, pageCount, editorUrl, images }.",
+            "description": "On completion of a generation job: { designId, title, pageCount, editorUrl, quality, images }. quality is the composer's verdict on the saved deck: { ok, stillLong (pages whose copy is still long after one shortening pass), bulletShare (share of pages set as plain bullets) }. images reports the picture regions: { requested, placed, reused, stock, generated, unsupported }; a region that could not be filled keeps its stand-in and can be filled in the editor, and unsupported is true when the workspace's provider cannot generate images at all.",
             "type": "object"
           },
           "error": {
