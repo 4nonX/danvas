@@ -82,6 +82,11 @@ type BrandFonts struct {
 type Logo struct {
 	AssetID string `json:"assetId"`
 	URL     string `json:"url"`
+	// Aspect is width over height when the asset's dimensions are known, so
+	// the composer's box fits the picture; zero means unknown.
+	Aspect float64 `json:"aspect,omitempty"`
+	// MinSizePx is the brand kit's floor on the logo's width.
+	MinSizePx int `json:"minSizePx,omitempty"`
 }
 
 // PageReport is the reviewer's verdict on one composed page. Mirrors

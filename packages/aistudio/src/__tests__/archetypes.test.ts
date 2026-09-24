@@ -428,6 +428,25 @@ describe("brand logo", () => {
     }
   });
 
+  it("honours the kit's minimum width and sizes the box to the picture's aspect, within the room the margin leaves", () => {
+    const item = normalizeOutline({ title: "T", pages: [pageFor("bullets")] }).pages[0];
+    type N = { name?: string; size: { width: number; height: number } };
+    const wide = deriveDesignSystem(theme, size, { seed: 1, catalog: catalogEntryForSeed(1), logo: { ...logo, aspect: 4, minSizePx: 200 } });
+    const page = composeArchetypePage(item, wide, { index: 1, total: 4 });
+    const l = (page.nodes as N[]).find((n) => n.name === "Logo")!;
+    expect(l.size.width).toBeGreaterThanOrEqual(200);
+    expect(l.size.width / l.size.height).toBeCloseTo(4, 0);
+    expect(qualityCheck({ background: page.background, nodes: page.nodes, size }).issues).toEqual([]);
+    // A floor the margin cannot hold is capped rather than allowed to collide
+    // with the page's content.
+    const huge = deriveDesignSystem(theme, size, { seed: 1, catalog: catalogEntryForSeed(1), logo: { ...logo, aspect: 4, minSizePx: 2000 } });
+    const capped = composeArchetypePage(item, huge, { index: 1, total: 4 });
+    const c = (capped.nodes as N[]).find((n) => n.name === "Logo")!;
+    expect(c.size.width).toBeLessThan(2000);
+    expect(c.size.height).toBeLessThanOrEqual(huge.unit * 4);
+    expect(qualityCheck({ background: capped.background, nodes: capped.nodes, size }).issues).toEqual([]);
+  });
+
   it("places nothing when the workspace has no logo, or the logo has no url", () => {
     const none = deriveDesignSystem(theme, size, { seed: 2, catalog: catalogEntryForSeed(2) });
     const noUrl = deriveDesignSystem(theme, size, { seed: 2, catalog: catalogEntryForSeed(2), logo: { assetId: "x", url: "" } });

@@ -452,10 +452,20 @@ class Composer {
     // the page number on the trailing side. Fitted into its box, never
     // stretched; the editor and the API list the asset in the file.
     if (this.ds.logo) {
-      const h = this.impact ? u * 4 : u * 3;
-      const w = Math.round(h * (this.ds.logo.aspect ?? 2.5));
-      const y = this.impact ? u * 2 : this.H - u * 4.5;
-      this.nodes.push(this.logoNode({ x: x0, y, width: Math.min(w, w0), height: h }));
+      const aspect = this.ds.logo.aspect && this.ds.logo.aspect > 0 ? this.ds.logo.aspect : 2.5;
+      let h = this.impact ? u * 4 : u * 3;
+      let w = Math.round(h * aspect);
+      // The kit's floor on the logo's width wins over the deck's scale, up to
+      // the room the margin leaves: a brand that says "never under 120px"
+      // gets 120px.
+      const min = this.ds.logo.minSizePx ?? 0;
+      if (min > w) {
+        const hMax = this.impact ? u * 6 : u * 4;
+        h = Math.min(hMax, min / aspect);
+        w = Math.round(h * aspect);
+      }
+      const y = this.impact ? u * 2 : this.H - u * 1.5 - h;
+      this.nodes.push(this.logoNode({ x: x0, y, width: Math.min(w, w0), height: Math.round(h) }));
     }
     if (!this.impact && this.ds.kicker) {
       const kicker = this.text({

@@ -1602,14 +1602,17 @@ function deckLogoRef(deck: DeckResult): AssetRef | null {
   return logo?.assetId && logo.url ? { id: logo.assetId, kind: "image", url: logo.url, mime: "image/*", checksum: "" } : null;
 }
 
-/** Add an asset ref unless the file already lists that id; true when added. */
-function addAssetRef(doc: { assets: AssetRef[] }, ref: AssetRef): boolean {
+/** Add an asset ref unless the file already lists that id; true when added.
+ *  An older file may carry no asset list at all, so the list is ensured first. */
+function addAssetRef(doc: DesignFile, ref: AssetRef): boolean {
+  ensureDocArrays(doc);
   if (doc.assets.some((a) => a.id === ref.id)) return false;
   doc.assets.push(ref);
   return true;
 }
 
-function removeAssetRef(doc: { assets: AssetRef[] }, id: string): void {
+function removeAssetRef(doc: DesignFile, id: string): void {
+  if (!Array.isArray(doc.assets)) return;
   const i = doc.assets.findIndex((a) => a.id === id);
   if (i >= 0) doc.assets.splice(i, 1);
 }

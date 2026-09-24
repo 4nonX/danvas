@@ -5199,10 +5199,11 @@ export function AiPanel({ workspaceId }: { workspaceId: string | null }) {
   // the workspace's asset list supplies the URL, fetched once per kit change.
   const brandLogos = useBrand((s) => s.kit?.logos ?? null);
   const firstLogoAssetId = brandLogos?.[0]?.assetId ?? null;
-  // The resolved URL is keyed by the asset it belongs to, so a kit change
-  // invalidates it at render time (the key no longer matches) with no
-  // synchronous state write inside the effect.
-  const [resolvedLogo, setResolvedLogo] = useState<{ assetId: string; url: string } | null>(null);
+  const firstLogoMinSize = brandLogos?.[0]?.minSizePx;
+  // The resolved URL (and the picture's aspect, once it has loaded) is keyed
+  // by the asset it belongs to, so a kit change invalidates it at render time
+  // (the key no longer matches) with no synchronous state write in the effect.
+  const [resolvedLogo, setResolvedLogo] = useState<{ assetId: string; url: string; aspect?: number } | null>(null);
   useEffect(() => {
     if (!workspaceId || !firstLogoAssetId) return;
     let cancelled = false;
@@ -5210,12 +5211,23 @@ export function AiPanel({ workspaceId }: { workspaceId: string | null }) {
       .then((assets) => {
         if (cancelled) return;
         const hit = (assets as UploadedAsset[]).find((a) => a.id === firstLogoAssetId);
-        if (hit?.url) setResolvedLogo({ assetId: hit.id, url: hit.url });
+        if (!hit?.url) return;
+        setResolvedLogo({ assetId: hit.id, url: hit.url });
+        // The box the composer fits the logo into should match the picture,
+        // so it sits on the margin instead of centered in a guessed box.
+        if (typeof Image !== "undefined") {
+          const img = new Image();
+          img.onload = () => {
+            if (!cancelled && img.naturalWidth > 0 && img.naturalHeight > 0) setResolvedLogo({ assetId: hit.id, url: hit.url, aspect: img.naturalWidth / img.naturalHeight });
+          };
+          img.src = resolveAssetUrl(hit.url);
+        }
       })
       .catch(() => {});
     return () => { cancelled = true; };
   }, [workspaceId, firstLogoAssetId]);
-  const brandLogo: DeckLogo | null = firstLogoAssetId && resolvedLogo?.assetId === firstLogoAssetId ? resolvedLogo : null;
+  const brandLogo: DeckLogo | null =
+    firstLogoAssetId && resolvedLogo?.assetId === firstLogoAssetId ? { ...resolvedLogo, ...(firstLogoMinSize ? { minSizePx: firstLogoMinSize } : {}) } : null;
   // Let the user bypass brand-voice grounding for the very next action.
   const [ignoreVoice, setIgnoreVoice] = useState(false);
   const voiceClause = !ignoreVoice ? brandVoiceClause(brandVoice) : "";

@@ -36383,10 +36383,17 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           const x0 = (_a5 = region == null ? void 0 : region.x) != null ? _a5 : this.m;
           const w0 = (_b = region == null ? void 0 : region.width) != null ? _b : this.W - 2 * this.m;
           if (this.ds.logo) {
-            const h = this.impact ? u * 4 : u * 3;
-            const w = Math.round(h * ((_c = this.ds.logo.aspect) != null ? _c : 2.5));
-            const y = this.impact ? u * 2 : this.H - u * 4.5;
-            this.nodes.push(this.logoNode({ x: x0, y, width: Math.min(w, w0), height: h }));
+            const aspect = this.ds.logo.aspect && this.ds.logo.aspect > 0 ? this.ds.logo.aspect : 2.5;
+            let h = this.impact ? u * 4 : u * 3;
+            let w = Math.round(h * aspect);
+            const min2 = (_c = this.ds.logo.minSizePx) != null ? _c : 0;
+            if (min2 > w) {
+              const hMax = this.impact ? u * 6 : u * 4;
+              h = Math.min(hMax, min2 / aspect);
+              w = Math.round(h * aspect);
+            }
+            const y = this.impact ? u * 2 : this.H - u * 1.5 - h;
+            this.nodes.push(this.logoNode({ x: x0, y, width: Math.min(w, w0), height: Math.round(h) }));
           }
           if (!this.impact && this.ds.kicker) {
             const kicker = this.text({

@@ -14,6 +14,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"image"
+	_ "image/gif"  // logo dimensions
+	_ "image/jpeg" // logo dimensions
+	_ "image/png"  // logo dimensions
 	"math"
 	"strings"
 
@@ -52,15 +56,31 @@ func groundInBrand(ctx context.Context, br *brand.Service, up *uploads.Service, 
 		}
 	}
 	assetURL := func(string) string { return "" }
+	assetAspect := func(string) float64 { return 0 }
 	if up != nil {
 		assetURL = up.AssetURL
+		// Width over height from the file's header, so the composer's box
+		// fits the picture. Only the raster formats the standard library
+		// decodes; anything else is placed in a box of unknown aspect.
+		assetAspect = func(id string) float64 {
+			rc, _, _, err := up.OpenContentInWorkspace(ctx, workspaceID, id)
+			if err != nil {
+				return 0
+			}
+			defer rc.Close()
+			cfg, _, err := image.DecodeConfig(rc)
+			if err != nil || cfg.Width <= 0 || cfg.Height <= 0 {
+				return 0
+			}
+			return float64(cfg.Width) / float64(cfg.Height)
+		}
 	}
-	return brandGroundingFromKit(kit, assetURL)
+	return brandGroundingFromKit(kit, assetURL, assetAspect)
 }
 
 // brandGroundingFromKit derives the grounding from one kit. Pure, so the
 // derivations can be checked against the editor's.
-func brandGroundingFromKit(kit brand.BrandKit, assetURL func(id string) string) brandGrounding {
+func brandGroundingFromKit(kit brand.BrandKit, assetURL func(id string) string, assetAspect func(id string) float64) brandGrounding {
 	var g brandGrounding
 
 	// Voice, word for word with the editor's brandVoiceClause.
@@ -126,13 +146,14 @@ func brandGroundingFromKit(kit brand.BrandKit, assetURL func(id string) string) 
 
 	// The primary logo: the first one the kit lists.
 	var logos []struct {
-		AssetID string `json:"assetId"`
+		AssetID   string  `json:"assetId"`
+		MinSizePx float64 `json:"minSizePx"`
 	}
 	if len(kit.Logos) > 0 && json.Unmarshal(kit.Logos, &logos) == nil {
 		for _, l := range logos {
 			if id := strings.TrimSpace(l.AssetID); id != "" {
 				if url := assetURL(id); url != "" {
-					g.Logo = &composer.Logo{AssetID: id, URL: url}
+					g.Logo = &composer.Logo{AssetID: id, URL: url, Aspect: assetAspect(id), MinSizePx: int(math.Round(math.Max(0, l.MinSizePx)))}
 				}
 				break
 			}

@@ -77,8 +77,10 @@ export type DeckMotion = "subtle" | "none";
 
 /** The brand's primary logo: the asset the file references and the URL that
  *  reference carries. `aspect` (width over height) sizes the box the logo is
- *  fitted into; unknown means a wide box the picture is contained in. */
-export interface DeckLogo { assetId: string; url: string; aspect?: number }
+ *  fitted into, so a contained picture fills its box and sits on the margin;
+ *  unknown means a wide box the picture is centered in. `minSizePx` is the
+ *  kit's own floor on the logo's width, which the composer never goes under. */
+export interface DeckLogo { assetId: string; url: string; aspect?: number; minSizePx?: number }
 
 /** Type pairings for a deck that arrives with no brand fonts and no catalog
  *  theme. Chosen by seed, never the same one for every deck, and none of them
