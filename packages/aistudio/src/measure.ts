@@ -23,8 +23,14 @@ import type { ComposedPage } from "./archetypes";
 export type PageVariant =
   /** Bullets split across two unnamed columns: the remedy for a long list. */
   | "twoUp"
-  /** Bullets set one step larger: the remedy for a short list on an empty page. */
+  /** The form set one step larger: the remedy for short content on an empty
+   *  page, for bullets and for the horizontal forms (columns, process,
+   *  timeline, team, agenda) whose content sits in one band. */
   | "large";
+
+/** Forms whose content runs across the page in one band: short content
+ *  leaves the bands above and below empty, and the remedy is scale. */
+const horizontalForms = new Set<Archetype>(["twoColumn", "threeUp", "process", "timeline", "team", "agenda"]);
 
 export interface PageReport {
   index: number;
@@ -138,6 +144,10 @@ export function measureDeck(pages: MeasurablePage[], size: { width: number; heig
 export function planVariants(report: DeckReport, outline: DesignOutline): Record<number, PageVariant> {
   const out: Record<number, PageVariant> = {};
   for (const r of report.pages) {
+    if (horizontalForms.has(r.archetype)) {
+      if (!r.impact && r.whitespace > sparseThreshold) out[r.index] = "large";
+      continue;
+    }
     if (r.archetype !== "bullets") continue;
     const points = outline.pages[r.index]?.points.length ?? 0;
     if (report.repetition.includes(r.index) && points >= 4) out[r.index] = "twoUp";

@@ -36090,6 +36090,8 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         personName: 0.034,
         personRole: 0.027
       };
+      var LARGE_KEYS = /* @__PURE__ */ new Set(["point", "agendaItem", "colHead", "stepNumber", "stepLabel", "detail", "timelineWhen", "icon", "monogram", "personName", "personRole"]);
+      var LARGE_SCALE = 1.3;
       var ADVANCE = { heading: 0.55, body: 0.5 };
       var LIST_GUTTER_EM = 1.6;
       function keepLastWordCompany(text2) {
@@ -36209,6 +36211,12 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         get accent() {
           return this.impact ? this.ds.colors.accentOnDeep : this.ds.colors.accentOnPaper;
         }
+        /** A type size from the scale, in pixels, stepped up when the fixer set
+         *  this page "large" and the size is one the variant governs. */
+        sz(key) {
+          const large = this.ctx.variant === "large" && LARGE_KEYS.has(key) ? LARGE_SCALE : 1;
+          return this.H * T[key] * large;
+        }
         // --- measurement -----------------------------------------------------------
         lines(text2, size2, width, role) {
           const perLine = Math.max(1, Math.floor(width / (size2 * ADVANCE[role])));
@@ -36274,7 +36282,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         /** A stat as one paragraph of two runs: the figure at display scale and the
          *  unit beside it at a third of that, sharing a baseline. */
         numeral(rect, value, unit, color) {
-          const base = this.H * T.numeral;
+          const base = this.sz("numeral");
           const size2 = this.fit([value + (unit ? " " + unit : "")], rect.width, rect.height, base, 1, "heading", 0);
           const r = this.mirror(rect);
           const runStyle = (fontSize) => ({
@@ -36401,9 +36409,9 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
               rect: { x: x0, y: u * 2.5, width: w0, height: u * 3 },
               paragraphs: [this.ds.kicker],
               role: "body",
-              base: this.H * T.kicker,
+              base: this.sz("kicker"),
               color: this.muted,
-              exactSize: Math.round(this.H * T.kicker)
+              exactSize: Math.round(this.sz("kicker"))
             });
             this.nodes.push(kicker.node);
           }
@@ -36413,10 +36421,10 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
               rect: { x: x0 + w0 - u * 8, y: this.H - u * 4.5, width: u * 8, height: u * 3 },
               paragraphs: [String(this.ctx.index + 1)],
               role: "body",
-              base: this.H * T.pageNumber,
+              base: this.sz("pageNumber"),
               color: this.muted,
               align: this.ds.dir === "rtl" ? "left" : "right",
-              exactSize: Math.round(this.H * T.pageNumber)
+              exactSize: Math.round(this.sz("pageNumber"))
             });
             this.nodes.push(n.node);
           }
@@ -36533,8 +36541,8 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           }
           this.cluster(region, [
             { kind: "rule" },
-            this.titleBlock(this.H * T.coverTitle),
-            ...this.subheadBlock(this.H * T.coverSub, (_a5 = this.item.subhead) != null ? _a5 : this.item.points[0])
+            this.titleBlock(this.sz("coverTitle")),
+            ...this.subheadBlock(this.sz("coverSub"), (_a5 = this.item.subhead) != null ? _a5 : this.item.points[0])
           ], 3);
           this.furniture();
         }
@@ -36547,16 +36555,16 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           const region = this.span(0, hasImage ? 7 : 8);
           this.cluster(region, [
             { kind: "rule" },
-            this.titleBlock(this.H * T.sectionTitle),
-            ...this.subheadBlock(this.H * T.statementSub, this.item.subhead)
+            this.titleBlock(this.sz("sectionTitle")),
+            ...this.subheadBlock(this.sz("statementSub"), this.item.subhead)
           ], 3);
           this.furniture(hasImage ? { x: region.x, width: region.width } : void 0);
         }
         statement() {
           this.cluster(this.span(0, 10), [
             { kind: "rule" },
-            { kind: "text", maxFrac: 0.6, make: (r) => this.text({ name: "Statement", rect: r, paragraphs: [this.item.title], role: "heading", base: this.H * T.statement, bold: true, lineHeight: 1.12 }) },
-            ...this.subheadBlock(this.H * T.statementSub, this.item.subhead)
+            { kind: "text", maxFrac: 0.6, make: (r) => this.text({ name: "Statement", rect: r, paragraphs: [this.item.title], role: "heading", base: this.sz("statement"), bold: true, lineHeight: 1.12 }) },
+            ...this.subheadBlock(this.sz("statementSub"), this.item.subhead)
           ], 3);
           this.furniture();
         }
@@ -36567,7 +36575,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           const rightCols = hasImage ? this.span(7, 5) : this.span(8, 4);
           const u = this.ds.unit;
           const figureH = Math.round(this.H * 0.36);
-          const labelProbe = this.text({ name: "Label", rect: { x: left.x, y: 0, width: left.width, height: u * 12 }, paragraphs: [stat.label], role: "heading", base: this.H * T.statLabel, bold: true, lineHeight: 1.2 });
+          const labelProbe = this.text({ name: "Label", rect: { x: left.x, y: 0, width: left.width, height: u * 12 }, paragraphs: [stat.label], role: "heading", base: this.sz("statLabel"), bold: true, lineHeight: 1.2 });
           const blockH = u * 3 + figureH + u * 2 + labelProbe.height;
           const areaTop = this.m + u * 4;
           const top = areaTop + u * 3 + Math.max(0, Math.round((this.H - this.m - areaTop - blockH) / 2));
@@ -36576,16 +36584,16 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           this.nodes.push(this.accentRule(left.x, top - u * 3));
           this.nodes.push(fig.node);
           const labelY = top + figureRect.height + u * 2;
-          const label = this.text({ name: "Label", rect: { x: left.x, y: labelY, width: left.width, height: u * 12 }, paragraphs: [stat.label], role: "heading", base: this.H * T.statLabel, bold: true, lineHeight: 1.2 });
+          const label = this.text({ name: "Label", rect: { x: left.x, y: labelY, width: left.width, height: u * 12 }, paragraphs: [stat.label], role: "heading", base: this.sz("statLabel"), bold: true, lineHeight: 1.2 });
           this.nodes.push(label.node);
           if (hasImage) {
             this.nodes.push(this.imageSlot({ x: rightCols.x, y: top, width: rightCols.width, height: labelY + label.height - top }, this.imagePrompt(), this.ds.radius * 2));
             if (this.item.subhead) {
-              const ctxText = this.text({ name: "Context", rect: { x: left.x, y: labelY + label.height + u * 2, width: left.width, height: this.H - this.m - (labelY + label.height + u * 2) }, paragraphs: [this.item.subhead], role: "body", base: this.H * T.detail, color: this.muted });
+              const ctxText = this.text({ name: "Context", rect: { x: left.x, y: labelY + label.height + u * 2, width: left.width, height: this.H - this.m - (labelY + label.height + u * 2) }, paragraphs: [this.item.subhead], role: "body", base: this.sz("detail"), color: this.muted });
               this.nodes.push(ctxText.node);
             }
           } else if (this.item.subhead) {
-            const ctxText = this.text({ name: "Context", rect: { x: rightCols.x, y: top, width: rightCols.width, height: labelY + label.height - top }, paragraphs: [this.item.subhead], role: "body", base: this.H * T.caption, color: this.muted, valign: "bottom", lineHeight: 1.45 });
+            const ctxText = this.text({ name: "Context", rect: { x: rightCols.x, y: top, width: rightCols.width, height: labelY + label.height - top }, paragraphs: [this.item.subhead], role: "body", base: this.sz("caption"), color: this.muted, valign: "bottom", lineHeight: 1.45 });
             this.nodes.push(ctxText.node);
           }
           this.furniture();
@@ -36607,23 +36615,23 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             const half = Math.ceil(points.length / 2);
             const [l, r] = [this.span(0, 6), this.span(6, 6)];
             const u2 = this.ds.unit;
-            const title = this.text({ name: "Title", rect: __spreadProps(__spreadValues({}, this.span(0, 12)), { y: content.y, height: this.H * 0.2 }), paragraphs: [this.item.title], role: "heading", base: this.H * T.title, bold: true, lineHeight: 1.08 });
+            const title = this.text({ name: "Title", rect: __spreadProps(__spreadValues({}, this.span(0, 12)), { y: content.y, height: this.H * 0.2 }), paragraphs: [this.item.title], role: "heading", base: this.sz("title"), bold: true, lineHeight: 1.08 });
             const bodyTop = content.y + title.height + u2 * 4;
             const avail = this.H - this.m - bodyTop;
-            const make = (span, pts, y02) => this.text({ name: "Points", rect: { x: span.x, y: y02, width: span.width - this.ds.gutter, height: avail }, paragraphs: pts, role: "body", base: this.H * T.point, lineHeight: 1.35, paraGap: 0.55, list: "bullet" });
+            const make = (span, pts, y02) => this.text({ name: "Points", rect: { x: span.x, y: y02, width: span.width - this.ds.gutter, height: avail }, paragraphs: pts, role: "body", base: this.sz("point"), lineHeight: 1.35, paraGap: 0.55, list: "bullet" });
             const tallest = Math.max(make(l, points.slice(0, half), 0).height, make(r, points.slice(half), 0).height);
             const y0 = bodyTop + Math.max(0, Math.round((avail - tallest) / 2));
             const total = title.height + u2 * 4 + tallest;
             const shift = Math.max(0, Math.round((content.height - total) / 2));
-            this.nodes.push(this.text({ name: "Title", rect: __spreadProps(__spreadValues({}, this.span(0, 12)), { y: content.y + shift, height: this.H * 0.2 }), paragraphs: [this.item.title], role: "heading", base: this.H * T.title, bold: true, lineHeight: 1.08 }).node);
+            this.nodes.push(this.text({ name: "Title", rect: __spreadProps(__spreadValues({}, this.span(0, 12)), { y: content.y + shift, height: this.H * 0.2 }), paragraphs: [this.item.title], role: "heading", base: this.sz("title"), bold: true, lineHeight: 1.08 }).node);
             this.nodes.push(make(l, points.slice(0, half), y0 - (bodyTop - (content.y + shift + title.height + u2 * 4))).node);
             this.nodes.push(make(r, points.slice(half), y0 - (bodyTop - (content.y + shift + title.height + u2 * 4))).node);
             this.furniture();
             return;
           }
-          const pointBase = variant === "large" ? this.H * T.agendaItem : this.H * T.point;
+          const pointBase = variant === "large" ? this.H * T.agendaItem : this.sz("point");
           this.cluster(content, [
-            this.titleBlock(this.H * T.title),
+            this.titleBlock(this.sz("title")),
             { kind: "text", maxFrac: 0.7, make: (r) => this.text({ name: "Points", rect: r, paragraphs: points, role: "body", base: pointBase, lineHeight: 1.35, paraGap: 0.55, list: "bullet" }) }
           ], 3, true);
           this.furniture();
@@ -36633,8 +36641,8 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           const content = { y: this.m + u * 4, height: this.H - 2 * this.m - u * 4 };
           const left = __spreadValues(__spreadValues({}, this.span(0, 4)), content);
           const right = __spreadValues(__spreadValues({}, this.span(5, 7)), content);
-          this.cluster(left, [{ kind: "rule" }, this.titleBlock(this.H * T.title)], 3);
-          this.cluster(right, [{ kind: "text", maxFrac: 1, make: (r) => this.text({ name: "Agenda", rect: r, paragraphs: this.item.points, role: "body", base: this.H * T.agendaItem, lineHeight: 1.35, paraGap: 0.7, list: "number" }) }], 0);
+          this.cluster(left, [{ kind: "rule" }, this.titleBlock(this.sz("title"))], 3);
+          this.cluster(right, [{ kind: "text", maxFrac: 1, make: (r) => this.text({ name: "Agenda", rect: r, paragraphs: this.item.points, role: "body", base: this.sz("agendaItem"), lineHeight: 1.35, paraGap: 0.7, list: "number" }) }], 0);
           this.furniture();
         }
         columns(n) {
@@ -36642,7 +36650,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           const cols = ((_a5 = this.item.columns) != null ? _a5 : []).slice(0, n);
           const u = this.ds.unit;
           const top = this.m + u * 4;
-          const title = this.text({ name: "Title", rect: __spreadProps(__spreadValues({}, this.span(0, 12)), { y: top, height: this.H * 0.2 }), paragraphs: [this.item.title], role: "heading", base: this.H * T.title, bold: true, lineHeight: 1.08 });
+          const title = this.text({ name: "Title", rect: __spreadProps(__spreadValues({}, this.span(0, 12)), { y: top, height: this.H * 0.2 }), paragraphs: [this.item.title], role: "heading", base: this.sz("title"), bold: true, lineHeight: 1.08 });
           this.nodes.push(title.node);
           const bodyTop = top + title.height + u * 4;
           const bodyH = this.H - this.m - bodyTop;
@@ -36650,7 +36658,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           const inners = cols.map((_, i) => n === 3 ? { x: spans[i].x, width: spans[i].width - this.ds.gutter } : spans[i]);
           const glyphs = cols.map((c) => iconGlyphFor(c.icon));
           const withIcons = glyphs.length > 0 && glyphs.every((g) => !!g);
-          const iconSize = Math.round(this.H * T.icon);
+          const iconSize = Math.round(this.sz("icon"));
           const build = (c, inner, y02, glyph) => {
             const out = [];
             let y = y02;
@@ -36661,13 +36669,13 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
               y += iconSize + u * 2;
             }
             out.push(this.accentRule(inner.x, y));
-            const head = this.text({ name: "Heading", rect: { x: inner.x, y: y + u * 2.5, width: inner.width, height: u * 10 }, paragraphs: [c.heading], role: "heading", base: this.H * T.colHead, bold: true, lineHeight: 1.15 });
+            const head = this.text({ name: "Heading", rect: { x: inner.x, y: y + u * 2.5, width: inner.width, height: u * 10 }, paragraphs: [c.heading], role: "heading", base: this.sz("colHead"), bold: true, lineHeight: 1.15 });
             out.push(head.node);
             let bottom = y + u * 2.5 + head.height;
             const pts = c.points;
             if (pts.length) {
               const py = bottom + u * 2;
-              const body = this.text({ name: "Points", rect: { x: inner.x, y: py, width: inner.width, height: Math.max(u * 4, this.H - this.m - py) }, paragraphs: pts, role: "body", base: this.H * T.point * (n === 3 ? 0.92 : 1), lineHeight: 1.35, paraGap: 0.5, list: "bullet" });
+              const body = this.text({ name: "Points", rect: { x: inner.x, y: py, width: inner.width, height: Math.max(u * 4, this.H - this.m - py) }, paragraphs: pts, role: "body", base: this.sz("point") * (n === 3 ? 0.92 : 1), lineHeight: 1.35, paraGap: 0.5, list: "bullet" });
               out.push(body.node);
               bottom = py + body.height;
             }
@@ -36688,13 +36696,13 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           const steps = (_a5 = this.item.steps) != null ? _a5 : [];
           const u = this.ds.unit;
           const top = this.m + u * 4;
-          const title = this.text({ name: "Title", rect: __spreadProps(__spreadValues({}, this.span(0, 12)), { y: top, height: this.H * 0.2 }), paragraphs: [this.item.title], role: "heading", base: this.H * T.title, bold: true, lineHeight: 1.08 });
+          const title = this.text({ name: "Title", rect: __spreadProps(__spreadValues({}, this.span(0, 12)), { y: top, height: this.H * 0.2 }), paragraphs: [this.item.title], role: "heading", base: this.sz("title"), bold: true, lineHeight: 1.08 });
           this.nodes.push(title.node);
           const bodyTop = top + title.height + u * 5;
           const n = steps.length;
           if (n <= 4) {
             const perCols = Math.floor(12 / n);
-            const numSize = Math.round(this.H * T.stepNumber);
+            const numSize = Math.round(this.sz("stepNumber"));
             const numBox = Math.round(numSize * 1.15);
             const lineColor = mix(this.ds.colors.ink, this.ds.colors.paper, 0.8);
             const build = (y0) => {
@@ -36713,12 +36721,12 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
                     out.push(this.rect("Sequence", { x: x0, y: lineY, width: x1 - x0, height: this.ds.rule }, lineColor));
                 }
                 const ly = y0 + numBox + u * 2;
-                const label = this.text({ name: "Label", rect: { x: inner.x, y: ly, width: inner.width, height: u * 8 }, paragraphs: [st.label], role: "heading", base: this.H * T.stepLabel, bold: true, lineHeight: 1.15 });
+                const label = this.text({ name: "Label", rect: { x: inner.x, y: ly, width: inner.width, height: u * 8 }, paragraphs: [st.label], role: "heading", base: this.sz("stepLabel"), bold: true, lineHeight: 1.15 });
                 out.push(label.node);
                 let b = ly + label.height;
                 if (st.detail) {
                   const dy = b + u;
-                  const det = this.text({ name: "Detail", rect: { x: inner.x, y: dy, width: inner.width, height: Math.max(u * 4, this.H - this.m - dy) }, paragraphs: [st.detail], role: "body", base: this.H * T.detail, color: this.muted, lineHeight: 1.4 });
+                  const det = this.text({ name: "Detail", rect: { x: inner.x, y: dy, width: inner.width, height: Math.max(u * 4, this.H - this.m - dy) }, paragraphs: [st.detail], role: "body", base: this.sz("detail"), color: this.muted, lineHeight: 1.4 });
                   out.push(det.node);
                   b = dy + det.height;
                 }
@@ -36731,7 +36739,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             this.nodes.push(...build(bodyTop + Math.max(0, Math.round((avail - rowH) / 2))).nodes);
           } else {
             const items = steps.map((st) => `${st.label}${st.detail ? `: ${st.detail}` : ""}`);
-            this.nodes.push(this.text({ name: "Steps", rect: __spreadProps(__spreadValues({}, this.span(0, 10)), { y: bodyTop, height: this.H - this.m - bodyTop }), paragraphs: items, role: "body", base: this.H * T.point, lineHeight: 1.35, paraGap: 0.7, list: "number" }).node);
+            this.nodes.push(this.text({ name: "Steps", rect: __spreadProps(__spreadValues({}, this.span(0, 10)), { y: bodyTop, height: this.H - this.m - bodyTop }), paragraphs: items, role: "body", base: this.sz("point"), lineHeight: 1.35, paraGap: 0.7, list: "number" }).node);
           }
           this.furniture();
         }
@@ -36742,8 +36750,8 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           const markSize = Math.round(this.H * 0.2);
           this.cluster(region, [
             { kind: "text", maxFrac: 0.2, make: (r) => this.text({ name: "Mark", rect: __spreadProps(__spreadValues({}, r), { height: Math.round(markSize * 0.75) }), paragraphs: ["\u201C"], role: "heading", base: markSize, bold: true, color: this.accent, exactSize: markSize, lineHeight: 0.75 }) },
-            { kind: "text", maxFrac: 0.55, make: (r) => this.text({ name: "Quote", rect: r, paragraphs: [q.text], role: "heading", base: this.H * T.quote, lineHeight: 1.2 }) },
-            ...q.attribution ? [{ kind: "text", maxFrac: 0.15, make: (r) => this.text({ name: "Attribution", rect: r, paragraphs: [q.attribution], role: "body", base: this.H * T.attribution, color: this.muted }) }] : []
+            { kind: "text", maxFrac: 0.55, make: (r) => this.text({ name: "Quote", rect: r, paragraphs: [q.text], role: "heading", base: this.sz("quote"), lineHeight: 1.2 }) },
+            ...q.attribution ? [{ kind: "text", maxFrac: 0.15, make: (r) => this.text({ name: "Attribution", rect: r, paragraphs: [q.attribution], role: "body", base: this.sz("attribution"), color: this.muted }) }] : []
           ], 2.5);
           void u;
           this.furniture();
@@ -36759,8 +36767,8 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           const u = this.ds.unit;
           this.cluster(__spreadProps(__spreadValues({}, textSpan), { y: this.m + u * 4, height: this.H - 2 * this.m - u * 4 }), [
             { kind: "rule" },
-            this.titleBlock(this.H * T.title * 0.95),
-            ...this.subheadBlock(this.H * T.caption, (_a5 = this.item.subhead) != null ? _a5 : this.item.points[0])
+            this.titleBlock(this.sz("title") * 0.95),
+            ...this.subheadBlock(this.sz("caption"), (_a5 = this.item.subhead) != null ? _a5 : this.item.points[0])
           ], 2.5);
           this.furniture({ x: textSpan.x, width: textSpan.width });
         }
@@ -36768,11 +36776,11 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           const c = this.item.chart;
           const u = this.ds.unit;
           const top = this.m + u * 4;
-          const title = this.text({ name: "Title", rect: __spreadProps(__spreadValues({}, this.span(0, 8)), { y: top, height: this.H * 0.18 }), paragraphs: [this.item.title], role: "heading", base: this.H * T.title, bold: true, lineHeight: 1.08 });
+          const title = this.text({ name: "Title", rect: __spreadProps(__spreadValues({}, this.span(0, 8)), { y: top, height: this.H * 0.18 }), paragraphs: [this.item.title], role: "heading", base: this.sz("title"), bold: true, lineHeight: 1.08 });
           this.nodes.push(title.node);
           let y = top + title.height + u * 1.5;
           if (this.item.subhead) {
-            const take = this.text({ name: "Takeaway", rect: __spreadProps(__spreadValues({}, this.span(0, 8)), { y, height: u * 8 }), paragraphs: [this.item.subhead], role: "body", base: this.H * T.caption, color: this.muted });
+            const take = this.text({ name: "Takeaway", rect: __spreadProps(__spreadValues({}, this.span(0, 8)), { y, height: u * 8 }), paragraphs: [this.item.subhead], role: "body", base: this.sz("caption"), color: this.muted });
             this.nodes.push(take.node);
             y += take.height + u * 3;
           } else {
@@ -36786,6 +36794,15 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             categories: [...c.categories],
             series: c.series.map((s, i) => ({ name: s.name, values: [...s.values], color: structuredClone(palette[i % palette.length]) })),
             options: {},
+            // Chart text scales from one base size; the renderers' built-in 11px
+            // is fine print on a 1920-wide slide. Bars and lines carry their
+            // values, a legend only when there is more than one series.
+            style: {
+              fontSize: Math.round(this.sz("caption") * 0.85),
+              valueLabels: c.kind === "bar" || c.kind === "line",
+              legend: { show: c.series.length > 1, position: "bottom" },
+              axes: { showX: true, showY: c.kind === "bar" || c.kind === "line" }
+            },
             transform: { x: r.x, y: r.y, scaleX: 1, scaleY: 1, rotation: 0 },
             size: { width: r.width, height: r.height }
           }));
@@ -36802,7 +36819,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         headed() {
           const u = this.ds.unit;
           const top = this.m + u * 4;
-          const title = this.text({ name: "Title", rect: __spreadProps(__spreadValues({}, this.span(0, 12)), { y: top, height: this.H * 0.2 }), paragraphs: [this.item.title], role: "heading", base: this.H * T.title, bold: true, lineHeight: 1.08 });
+          const title = this.text({ name: "Title", rect: __spreadProps(__spreadValues({}, this.span(0, 12)), { y: top, height: this.H * 0.2 }), paragraphs: [this.item.title], role: "heading", base: this.sz("title"), bold: true, lineHeight: 1.08 });
           this.nodes.push(title.node);
           const bodyTop = top + title.height + u * 5;
           return { bodyTop, bodyH: this.H - this.m - bodyTop };
@@ -36816,7 +36833,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           const { bodyTop, bodyH } = this.headed();
           const perRow = stats.length === 4 ? 2 : stats.length;
           const rows = stats.length === 4 ? 2 : 1;
-          const figureH = Math.round(this.H * T.kpiFigure);
+          const figureH = Math.round(this.sz("kpiFigure"));
           const build = (y0) => {
             const out = [];
             let bottom = y0;
@@ -36825,7 +36842,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
               const cellsR = this.cells(rowStats.length, 0, figureH);
               let labelH = 0;
               rowStats.forEach((st, i) => {
-                labelH = Math.max(labelH, this.text({ name: "Label", rect: { x: cellsR[i].x, y: 0, width: cellsR[i].width, height: u * 10 }, paragraphs: [st.label], role: "heading", base: this.H * T.statLabel, bold: true, lineHeight: 1.2 }).height);
+                labelH = Math.max(labelH, this.text({ name: "Label", rect: { x: cellsR[i].x, y: 0, width: cellsR[i].width, height: u * 10 }, paragraphs: [st.label], role: "heading", base: this.sz("statLabel"), bold: true, lineHeight: 1.2 }).height);
               });
               const rowTop = bottom + (r > 0 ? u * 5 : 0);
               rowStats.forEach((st, i) => {
@@ -36833,7 +36850,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
                 out.push(this.accentRule(c.x, rowTop));
                 const fig = this.numeral({ x: c.x, y: rowTop + u * 2, width: c.width, height: figureH }, st.value, st.unit, this.ds.colors.accentOnPaper);
                 out.push(fig.node);
-                out.push(this.text({ name: "Label", rect: { x: c.x, y: rowTop + u * 2 + figureH + u * 1.5, width: c.width, height: labelH }, paragraphs: [st.label], role: "heading", base: this.H * T.statLabel, bold: true, lineHeight: 1.2 }).node);
+                out.push(this.text({ name: "Label", rect: { x: c.x, y: rowTop + u * 2 + figureH + u * 1.5, width: c.width, height: labelH }, paragraphs: [st.label], role: "heading", base: this.sz("statLabel"), bold: true, lineHeight: 1.2 }).node);
               });
               bottom = rowTop + u * 2 + figureH + u * 1.5 + labelH;
             }
@@ -36859,7 +36876,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             let whenH = 0;
             steps.forEach((st, i) => {
               if (st.when)
-                whenH = Math.max(whenH, this.text({ name: "When", rect: { x: cellsR[i].x, y: 0, width: cellsR[i].width, height: u * 6 }, paragraphs: [st.when], role: "heading", base: this.H * T.timelineWhen, bold: true, color: this.muted, align: "center", lineHeight: 1.2 }).height);
+                whenH = Math.max(whenH, this.text({ name: "When", rect: { x: cellsR[i].x, y: 0, width: cellsR[i].width, height: u * 6 }, paragraphs: [st.when], role: "heading", base: this.sz("timelineWhen"), bold: true, color: this.muted, align: "center", lineHeight: 1.2 }).height);
             });
             const lineY = y0 + (whenH ? whenH + u * 2 : 0);
             let bottom = lineY + dot;
@@ -36867,7 +36884,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
               const c = cellsR[i];
               const cx = c.x + c.width / 2;
               if (st.when)
-                out.push(this.text({ name: "When", rect: { x: c.x, y: y0, width: c.width, height: whenH }, paragraphs: [st.when], role: "heading", base: this.H * T.timelineWhen, bold: true, color: this.muted, align: "center", lineHeight: 1.2, exactSize: Math.round(this.H * T.timelineWhen) }).node);
+                out.push(this.text({ name: "When", rect: { x: c.x, y: y0, width: c.width, height: whenH }, paragraphs: [st.when], role: "heading", base: this.sz("timelineWhen"), bold: true, color: this.muted, align: "center", lineHeight: 1.2, exactSize: Math.round(this.sz("timelineWhen")) }).node);
               out.push(this.rect("Marker", { x: cx - dot / 2, y: lineY, width: dot, height: dot }, this.accent, Math.round(dot / 2)));
               if (i < steps.length - 1) {
                 const nx = cellsR[i + 1].x + cellsR[i + 1].width / 2;
@@ -36877,12 +36894,12 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
                   out.push(this.rect("Sequence", { x: x0, y: lineY + Math.round(dot / 2) - Math.round(this.ds.rule / 2), width: x1 - x0, height: this.ds.rule }, lineColor));
               }
               const ly = lineY + dot + u * 2;
-              const label = this.text({ name: "Label", rect: { x: c.x, y: ly, width: c.width, height: u * 8 }, paragraphs: [st.label], role: "heading", base: this.H * T.stepLabel, bold: true, align: "center", lineHeight: 1.15 });
+              const label = this.text({ name: "Label", rect: { x: c.x, y: ly, width: c.width, height: u * 8 }, paragraphs: [st.label], role: "heading", base: this.sz("stepLabel"), bold: true, align: "center", lineHeight: 1.15 });
               out.push(label.node);
               let b = ly + label.height;
               if (st.detail) {
                 const dy = b + u;
-                const det = this.text({ name: "Detail", rect: { x: c.x, y: dy, width: c.width, height: Math.max(u * 4, this.H - this.m - dy) }, paragraphs: [st.detail], role: "body", base: this.H * T.detail, color: this.muted, align: "center", lineHeight: 1.4 });
+                const det = this.text({ name: "Detail", rect: { x: c.x, y: dy, width: c.width, height: Math.max(u * 4, this.H - this.m - dy) }, paragraphs: [st.detail], role: "body", base: this.sz("detail"), color: this.muted, align: "center", lineHeight: 1.4 });
                 out.push(det.node);
                 b = dy + det.height;
               }
@@ -36903,14 +36920,18 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           const rows = tb.rows.length + 1;
           const cols = tb.columns.length;
           const rowFor = (size3) => Math.round(size3 * 2.6);
-          let size2 = Math.round(this.H * T.tableCell);
+          let size2 = Math.round(this.sz("tableCell"));
           while (size2 > 12 && rowFor(size2) * rows > bodyH)
             size2 -= 1;
           const rowH = rowFor(size2);
           const width = this.W - 2 * this.m;
           const height = rowH * rows;
           const r = this.mirror({ x: this.m, y: bodyTop + Math.max(0, Math.round((bodyH - height) / 2)), width, height });
-          const numeric = /^[\s\d.,%+\-$€£]+$/;
+          const numeric = /^[\s\d.,%+\-$€£]+(?:\s?[a-zA-Z%]{1,3})?$/;
+          const rightAligned = tb.columns.map((_, ci) => ci > 0 && tb.rows.every((row) => {
+            var _a5, _b;
+            return numeric.test((_a5 = row[ci]) != null ? _a5 : "") && ((_b = row[ci]) != null ? _b : "").trim() !== "";
+          }));
           const cells = [];
           const push = (row, col, text2, header) => {
             cells.push({
@@ -36918,7 +36939,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
               col,
               rowSpan: 1,
               colSpan: 1,
-              align: !header && numeric.test(text2) && text2.trim() !== "" ? "right" : "left",
+              align: rightAligned[col] ? "right" : "left",
               content: [{ text: text2, fontId: "system", fontSize: size2, weight: header ? 700 : 400, color: structuredClone(this.ink) }]
             });
           };
@@ -36950,7 +36971,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             var _a6, _b;
             return (_b = (_a6 = Array.from(w)[0]) == null ? void 0 : _a6.toUpperCase()) != null ? _b : "";
           }).join("");
-          const monoH = Math.round(this.H * T.monogram * 1.15);
+          const monoH = Math.round(this.sz("monogram") * 1.15);
           const build = (y0) => {
             const out = [];
             const cellsR = this.cells(people.length, 0, 0);
@@ -36958,14 +36979,14 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             people.forEach((per, i) => {
               const c = cellsR[i];
               out.push(this.accentRule(c.x, y0));
-              out.push(this.text({ name: "Monogram", rect: { x: c.x, y: y0 + u * 2, width: c.width, height: monoH }, paragraphs: [initials(per.name)], role: "heading", base: this.H * T.monogram, bold: true, color: this.accent, exactSize: Math.round(this.H * T.monogram), lineHeight: 1.15, tracking: 0.04 }).node);
+              out.push(this.text({ name: "Monogram", rect: { x: c.x, y: y0 + u * 2, width: c.width, height: monoH }, paragraphs: [initials(per.name)], role: "heading", base: this.sz("monogram"), bold: true, color: this.accent, exactSize: Math.round(this.sz("monogram")), lineHeight: 1.15, tracking: 0.04 }).node);
               const ny = y0 + u * 2 + monoH + u * 1.5;
-              const name = this.text({ name: "Name", rect: { x: c.x, y: ny, width: c.width, height: u * 8 }, paragraphs: [per.name], role: "heading", base: this.H * T.personName, bold: true, lineHeight: 1.15 });
+              const name = this.text({ name: "Name", rect: { x: c.x, y: ny, width: c.width, height: u * 8 }, paragraphs: [per.name], role: "heading", base: this.sz("personName"), bold: true, lineHeight: 1.15 });
               out.push(name.node);
               let b = ny + name.height;
               if (per.role) {
                 const ry = b + u * 0.5;
-                const role = this.text({ name: "Role", rect: { x: c.x, y: ry, width: c.width, height: u * 8 }, paragraphs: [per.role], role: "body", base: this.H * T.personRole, color: this.muted, lineHeight: 1.35 });
+                const role = this.text({ name: "Role", rect: { x: c.x, y: ry, width: c.width, height: u * 8 }, paragraphs: [per.role], role: "body", base: this.sz("personRole"), color: this.muted, lineHeight: 1.35 });
                 out.push(role.node);
                 b = ry + role.height;
               }
@@ -36987,8 +37008,8 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           const region = this.span(0, hasImage ? 7 : 8);
           this.cluster(region, [
             { kind: "rule" },
-            this.titleBlock(this.H * T.sectionTitle),
-            ...this.subheadBlock(this.H * T.coverSub, (_a5 = this.item.subhead) != null ? _a5 : this.item.points[0], this.ink)
+            this.titleBlock(this.sz("sectionTitle")),
+            ...this.subheadBlock(this.sz("coverSub"), (_a5 = this.item.subhead) != null ? _a5 : this.item.points[0], this.ink)
           ], 3);
           this.furniture(hasImage ? { x: region.x, width: region.width } : void 0);
         }
@@ -37014,6 +37035,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
       exports.measureDeck = measureDeck;
       exports.planVariants = planVariants;
       exports.toMeasurable = toMeasurable;
+      var horizontalForms = /* @__PURE__ */ new Set(["twoColumn", "threeUp", "process", "timeline", "team", "agenda"]);
       function boxOf(n) {
         var _a5, _b, _c, _d;
         const t = n.transform;
@@ -37081,6 +37103,11 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         var _a5, _b;
         const out = {};
         for (const r of report.pages) {
+          if (horizontalForms.has(r.archetype)) {
+            if (!r.impact && r.whitespace > exports.sparseThreshold)
+              out[r.index] = "large";
+            continue;
+          }
           if (r.archetype !== "bullets")
             continue;
           const points = (_b = (_a5 = outline.pages[r.index]) == null ? void 0 : _a5.points.length) != null ? _b : 0;

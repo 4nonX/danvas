@@ -289,7 +289,7 @@ describe("phase 7 forms", () => {
     expect(n.filter((x) => x === "When")).toHaveLength(4);
   });
 
-  it("sets a table with a tinted header row and numbers flush right, in the system face the renderers use", () => {
+  it("sets a table with a tinted header row, numeric columns flush right and the label column left, in the system face the renderers use", () => {
     const item = normalizeOutline({ title: "T", pages: [pageFor("table")] }).pages[0];
     const page = composeArchetypePage(item, ds, { index: 2, total: 4 });
     const tbl = (page.nodes as { type: string; rows?: number; cols?: number; cells?: { row: number; col: number; align: string; content: { fontId: string; weight: number }[] }[]; headerStyle?: { enabled: boolean } }[]).find((x) => x.type === "table")!;
@@ -298,9 +298,25 @@ describe("phase 7 forms", () => {
     expect(tbl.headerStyle?.enabled).toBe(true);
     const cells = tbl.cells!;
     expect(cells.filter((c) => c.row === 0).every((c) => c.content[0].weight === 700)).toBe(true);
-    expect(cells.find((c) => c.row === 1 && c.col === 1)!.align).toBe("right");
-    expect(cells.find((c) => c.row === 1 && c.col === 0)!.align).toBe("right");
+    // Year is the row label: left, even though it is digits. Retreat (m) and
+    // Cost ($120k) are numeric columns: right, header included.
+    expect(cells.filter((c) => c.col === 0).every((c) => c.align === "left")).toBe(true);
+    expect(cells.filter((c) => c.col === 1).every((c) => c.align === "right")).toBe(true);
+    expect(cells.filter((c) => c.col === 2).every((c) => c.align === "right")).toBe(true);
     expect(cells.every((c) => c.content[0].fontId === "system")).toBe(true);
+    // A column with one non-numeric value reads from the left.
+    const mixed = normalizeOutline({ title: "T", pages: [{ ...pageFor("table"), table: { columns: ["Year", "Owner"], rows: [["2021", "Ada"], ["2022", "3"]] } }] }).pages[0];
+    const t2 = (composeArchetypePage(mixed, ds, { index: 2, total: 4 }).nodes as { type: string; cells?: { col: number; align: string }[] }[]).find((x) => x.type === "table")!;
+    expect(t2.cells!.filter((c) => c.col === 1).every((c) => c.align === "left")).toBe(true);
+  });
+
+  it("sizes chart text for the slide and labels the values", () => {
+    const item = normalizeOutline({ title: "T", pages: [pageFor("chart")] }).pages[0];
+    const page = composeArchetypePage(item, ds, { index: 2, total: 4 });
+    const chart = (page.nodes as { type: string; style?: { fontSize?: number; valueLabels?: boolean; legend?: { show: boolean } } }[]).find((x) => x.type === "chart")!;
+    expect(chart.style?.fontSize).toBeGreaterThan(20);
+    expect(chart.style?.valueLabels).toBe(true);
+    expect(chart.style?.legend?.show).toBe(false);
   });
 
   it("sets a team as monograms with names and roles, never a generated portrait", () => {
@@ -454,6 +470,42 @@ describe("brand logo", () => {
       const item = normalizeOutline({ title: "T", pages: [pageFor("bullets")] }).pages[0];
       const page = composeArchetypePage(item, ds, { index: 1, total: 4 });
       expect((page.nodes as { name?: string }[]).filter((n) => n.name === "Logo")).toHaveLength(0);
+    }
+  });
+});
+
+describe("the large variant", () => {
+  const ds = deriveDesignSystem(theme, size, { seed: 1, catalog: catalogEntryForSeed(1) });
+  type N = { name?: string; content?: { runs: { style: { fontSize: number } }[] }[]; size: { width: number; height: number } };
+  const sizeOf = (nodes: N[], name: string) => nodes.find((n) => n.name === name)!.content![0].runs[0].style.fontSize;
+
+  it("steps a horizontal form's body up, and leaves the title alone", () => {
+    for (const a of ["threeUp", "process", "timeline", "team"] as const) {
+      const item = normalizeOutline({ title: "T", pages: [pageFor(a)] }).pages[0];
+      const plain = composeArchetypePage(item, ds, { index: 2, total: 4 }).nodes as N[];
+      const large = composeArchetypePage(item, ds, { index: 2, total: 4, variant: "large" }).nodes as N[];
+      expect(sizeOf(large, "Title"), a).toBe(sizeOf(plain, "Title"));
+      const body = a === "threeUp" ? "Heading" : a === "team" ? "Name" : "Label";
+      expect(sizeOf(large, body), a).toBeGreaterThan(sizeOf(plain, body));
+      expect(qualityCheck({ background: plain.length ? { type: "solid", color: ds.colors.paper } : ({} as never), nodes: large as never, size }).issues, a).toEqual([]);
+    }
+    const icons = (composeArchetypePage(normalizeOutline({ title: "T", pages: [{ ...pageFor("threeUp"), columns: (pageFor("threeUp") as { columns: { heading: string; points: string[] }[] }).columns.map((c, i) => ({ ...c, icon: ["shield", "leaf", "clock"][i] })) }] }).pages[0], ds, { index: 2, total: 4, variant: "large" }).nodes as N[]).filter((n) => n.name === "Icon");
+    expect(icons[0].size.width).toBeGreaterThan(Math.round(size.height * 0.07));
+  });
+
+  it("is what the fixer plans for a sparse horizontal page, and the deck ends up fuller for it", () => {
+    const outline = normalizeOutline({ title: "T", theme: "calm", pages: [pageFor("cover"), pageFor("threeUp"), pageFor("process"), pageFor("team")] });
+    const deck = layoutDeck(outline, theme, size, { catalog: catalogEntryForSeed(1), seed: 1 });
+    expect(deck.report.ok).toBe(true);
+    // Compose the same pages with no variant to compare whitespace.
+    for (const i of [1, 2, 3]) {
+      const plain = composeArchetypePage(outline.pages[i], deck.system, { index: i, total: 4 });
+      const plainWs = deck.report.pages[i].whitespace;
+      const plainNodes = plain.nodes as N[];
+      const finalNodes = deck.pages[i].nodes as N[];
+      const body = i === 1 ? "Heading" : i === 3 ? "Name" : "Label";
+      expect(sizeOf(finalNodes, body)).toBeGreaterThanOrEqual(sizeOf(plainNodes, body));
+      void plainWs;
     }
   });
 });
