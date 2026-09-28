@@ -65,15 +65,15 @@ export function archetypeIsImpact(a: Archetype): boolean {
 
 // Type sizes as fractions of page height. One scale for the whole deck.
 const T = {
-  coverTitle: 0.1,
-  coverSub: 0.036,
-  sectionTitle: 0.075,
-  statement: 0.068,
+  coverTitle: 0.108,
+  coverSub: 0.034,
+  sectionTitle: 0.085,
+  statement: 0.072,
   statementSub: 0.03,
   numeral: 0.3,
   unit: 0.09,
   statLabel: 0.036,
-  title: 0.058,
+  title: 0.07,
   point: 0.034,
   agendaItem: 0.04,
   colHead: 0.036,
@@ -89,6 +89,9 @@ const T = {
   icon: 0.07,
   pageIcon: 0.075,
   sectionNumber: 0.085,
+  eyebrow: 0.02,
+  footer: 0.019,
+  badge: 0.052,
   tableCell: 0.026,
   timelineWhen: 0.026,
   monogram: 0.06,
@@ -159,8 +162,9 @@ export function iconGlyphFor(keyword: string | undefined): string | null {
  *  order with a short stagger. Furniture (the kicker, the page number) is
  *  already there when the page arrives. */
 const MOTION: Record<string, { preset: "fade" | "rise"; durationMs: number } | null> = {
-  "Kicker": null, "Page number": null, "Logo": null,
+  "Kicker": null, "Page number": null, "Logo": null, "Footer": null,
   "Image": { preset: "fade", durationMs: 700 }, "Decor": { preset: "fade", durationMs: 600 },
+  "Panel": { preset: "fade", durationMs: 450 }, "Eyebrow": { preset: "fade", durationMs: 350 }, "Badge": { preset: "fade", durationMs: 350 },
   "Section number": { preset: "rise", durationMs: 550 },
   "Accent": { preset: "fade", durationMs: 350 }, "Divider": { preset: "fade", durationMs: 350 },
   "Sequence": { preset: "fade", durationMs: 350 }, "Marker": { preset: "fade", durationMs: 350 }, "Icon": { preset: "fade", durationMs: 350 },
@@ -233,17 +237,34 @@ class Composer {
     return this.ds.dir === "rtl" ? "right" : "left";
   }
 
+  /** Whether this page sits on the deep ground: every impact page, and every
+   *  page of a deck whose theme keeps its reading pages dark. */
+  private get onDeep(): boolean {
+    return this.impact || this.ds.readingGround === "deep";
+  }
   private get ground(): Color {
-    return this.impact ? this.ds.colors.deep : this.ds.colors.paper;
+    return this.onDeep ? this.ds.colors.deep : this.ds.colors.paper;
   }
   private get ink(): Color {
-    return this.impact ? this.ds.colors.inkOnDeep : this.ds.colors.ink;
+    return this.onDeep ? this.ds.colors.inkOnDeep : this.ds.colors.ink;
   }
   private get muted(): Color {
-    return this.impact ? this.ds.colors.mutedOnDeep : this.ds.colors.mutedOnPaper;
+    return this.onDeep ? this.ds.colors.mutedOnDeep : this.ds.colors.mutedOnPaper;
   }
   private get accent(): Color {
-    return this.impact ? this.ds.colors.accentOnDeep : this.ds.colors.accentOnPaper;
+    return this.onDeep ? this.ds.colors.accentOnDeep : this.ds.colors.accentOnPaper;
+  }
+  /** The accent for small text, held to AA. */
+  private get accentInk(): Color {
+    return this.onDeep ? this.ds.colors.accentInkOnDeep : this.ds.colors.accentInkOnPaper;
+  }
+  /** The fill of a panel or a picture stand-in: lifted off the ground a little. */
+  private get lifted(): Color {
+    return this.onDeep ? mix(this.ds.colors.deep, this.ds.colors.inkOnDeep, 0.08) : this.ds.colors.tint;
+  }
+  /** Where a reading page's content starts: under the eyebrow band. */
+  private get top(): number {
+    return this.m + this.ds.unit * 7;
   }
 
   /** A type size from the scale, in pixels, stepped up when the fixer set
@@ -345,8 +366,8 @@ class Composer {
 
   /** A stat as one paragraph of two runs: the figure at display scale and the
    *  unit beside it at a third of that, sharing a baseline. */
-  private numeral(rect: Rect, value: string, unit: string | undefined, color: Color): { node: Node; height: number } {
-    const base = this.sz("numeral");
+  private numeral(rect: Rect, value: string, unit: string | undefined, color: Color, baseSize?: number): { node: Node; height: number } {
+    const base = baseSize ?? this.sz("numeral");
     const size = this.fit([value + (unit ? " " + unit : "")], rect.width, rect.height, base, 1.0, "heading", 0);
     const r = this.mirror(rect);
     // Line height one: the baseline sits on the box's bottom edge, so a tall
@@ -386,8 +407,28 @@ class Composer {
 
   /** The accent rule: the deck's one repeated mark. Short, above a heading. */
   private accentRule(x: number, y: number): Node {
-    const w = this.ds.unit * 8;
-    return this.rect("Accent", { x, y, width: w, height: this.ds.rule }, this.accent, Math.round(this.ds.rule / 2));
+    const w = Math.round(this.ds.unit * 7);
+    const h = Math.max(6, Math.round(this.ds.unit * 0.6));
+    return this.rect("Accent", { x, y, width: w, height: h }, this.accent, Math.round(h / 2));
+  }
+
+  /** A tinted, rounded panel drawn behind a cell's content. Tagged so the
+   *  quality loop knows the content sits on it on purpose. */
+  private panel(r: Rect): Node {
+    const n = this.rect("Panel", r, this.lifted, Math.round(this.ds.radius * 3), { panel: true });
+    return n;
+  }
+
+  /** The eyebrow: two or three words, small and tracked, in the accent. */
+  private eyebrowNode(text: string, rect: Rect, align?: "left" | "right" | "center"): Node {
+    return this.text({ name: "Eyebrow", rect, paragraphs: [text], role: "body", base: this.sz("eyebrow"), color: this.accentInk, exactSize: Math.round(this.sz("eyebrow")), tracking: 0.18, lineHeight: 1.2, align }).node;
+  }
+
+  /** An eyebrow as a cluster block, for impact pages that name one. */
+  private eyebrowBlock(): Array<{ kind: "text"; make: (rect: Rect) => { node: Node; height: number }; maxFrac: number }> {
+    const e = this.item.eyebrow?.trim();
+    if (!e) return [];
+    return [{ kind: "text", maxFrac: 0.1, make: (r: Rect) => this.text({ name: "Eyebrow", rect: r, paragraphs: [e], role: "body", base: this.sz("eyebrow"), color: this.accentInk, exactSize: Math.round(this.sz("eyebrow")), tracking: 0.18, lineHeight: 1.2 }) }];
   }
 
   /** The brand logo as an image node fitted into a box. Tagged so brand
@@ -441,7 +482,7 @@ class Composer {
     const id = `img-${this.ctx.index + 1}-${this.slotSeq}`;
     this.prompts[id] = prompt;
     // On the deep ground a slightly lifted panel; on paper the system's tint.
-    const fill = this.impact ? mix(this.ds.colors.deep, this.ds.colors.inkOnDeep, 0.1) : this.ds.colors.tint;
+    const fill = this.lifted;
     return this.rect("Image", r, fill, radius, { placeholderId: id, aiImagePrompt: prompt });
   }
 
@@ -466,13 +507,20 @@ class Composer {
    *  small at the bottom. Impact pages stay quiet. */
   private furniture(region?: { x: number; width: number }): void {
     const u = this.ds.unit;
+    // A page whose picture bleeds to an edge keeps its furniture in the text
+    // column, so nothing sits on the picture; every other page runs the
+    // footer across the full width.
     const x0 = region?.x ?? this.m;
     const w0 = region?.width ?? this.W - 2 * this.m;
+    const fx0 = x0;
+    const fw0 = w0;
     // The brand's logo, small and in the same place on every page so the deck
     // reads as the brand's: top-leading on impact pages, where nothing else
     // sits above the margin, and bottom-leading on reading pages, level with
     // the page number on the trailing side. Fitted into its box, never
     // stretched; the editor and the API list the asset in the file.
+    // The logo's footprint, so the footer text starts after it.
+    let logoW = 0;
     if (this.ds.logo) {
       const aspect = this.ds.logo.aspect && this.ds.logo.aspect > 0 ? this.ds.logo.aspect : 2.5;
       let h = this.impact ? u * 4 : u * 3;
@@ -487,20 +535,35 @@ class Composer {
         w = Math.round(h * aspect);
       }
       const y = this.impact ? u * 2 : this.H - u * 1.5 - h;
-      this.nodes.push(this.logoNode({ x: x0, y, width: Math.min(w, w0), height: Math.round(h) }));
+      const placedW = Math.min(w, fw0);
+      this.nodes.push(this.logoNode({ x: this.impact ? x0 : fx0, y, width: placedW, height: Math.round(h) }));
+      if (!this.impact) logoW = placedW + u * 2;
     }
-    if (!this.impact && this.ds.kicker) {
-      const kicker = this.text({
-        name: "Kicker", rect: { x: x0, y: u * 2.5, width: w0, height: u * 3 },
-        paragraphs: [this.ds.kicker], role: "body", base: this.sz("kicker"), color: this.muted, exactSize: Math.round(this.sz("kicker")),
-      });
-      this.nodes.push(kicker.node);
+    // The eyebrow band on a reading page: the short rule, then two or three
+    // words on what the page is about, in the accent, above the title. A
+    // page the outline gave no eyebrow shows the deck's name there instead.
+    if (!this.impact) {
+      const label = this.item.eyebrow?.trim() || this.ds.kicker;
+      this.nodes.push(this.accentRule(x0, this.m + u * 0.5));
+      if (label) this.nodes.push(this.eyebrowNode(label, { x: x0, y: this.m + u * 2.2, width: w0, height: u * 2.8 }));
+    }
+    // The footer: the deck's name on the leading side (after the logo when
+    // there is one), the page's place in the deck on the trailing side.
+    const footerY = this.H - u * 4.2;
+    // The deck's name on one line; a narrow text column (a picture page)
+    // drops it rather than wrap it, and keeps the page number.
+    const footerW = fw0 - logoW - u * 14;
+    if (this.item.archetype !== "cover" && this.ds.kicker && footerW >= u * 24) {
+      this.nodes.push(this.text({
+        name: "Footer", rect: { x: fx0 + logoW, y: footerY, width: footerW, height: u * 2.6 },
+        paragraphs: [this.ds.kicker], role: "body", base: this.sz("footer"), color: this.muted, exactSize: Math.round(this.sz("footer")), tracking: 0.04,
+      }).node);
     }
     if (this.item.archetype !== "cover") {
       const n = this.text({
-        name: "Page number", rect: { x: x0 + w0 - u * 8, y: this.H - u * 4.5, width: u * 8, height: u * 3 },
-        paragraphs: [String(this.ctx.index + 1)], role: "body", base: this.sz("pageNumber"), color: this.muted,
-        align: this.ds.dir === "rtl" ? "left" : "right", exactSize: Math.round(this.sz("pageNumber")),
+        name: "Page number", rect: { x: fx0 + fw0 - u * 12, y: footerY, width: u * 12, height: u * 2.6 },
+        paragraphs: [`${String(this.ctx.index + 1).padStart(2, "0")} / ${String(this.ctx.total).padStart(2, "0")}`], role: "body", base: this.sz("footer"), color: this.muted,
+        align: this.ds.dir === "rtl" ? "left" : "right", exactSize: Math.round(this.sz("footer")), tracking: 0.04,
       });
       this.nodes.push(n.node);
     }
@@ -514,7 +577,7 @@ class Composer {
     const u = this.ds.unit;
     // First pass: measure with each block offered its share of the region.
     const measured = blocks.map((b) => {
-      if (b.kind === "rule") return { b, height: this.ds.rule, node: null as Node | null };
+      if (b.kind === "rule") return { b, height: Math.max(6, Math.round(this.ds.unit * 0.6)), node: null as Node | null };
       if (b.kind === "icon") return { b, height: b.size, node: null as Node | null };
       const probe = b.make({ x: region.x, y: region.y, width: region.width, height: Math.max(u * 2, region.height * b.maxFrac) });
       return { b, height: probe.height, node: null as Node | null };
@@ -561,7 +624,20 @@ class Composer {
       opacity: 0.55,
       data: { decor: true },
     } as never) as Node;
-    const out: Node[] = [disc];
+    // A second, smaller disc in a gradient of the deck's two hues, bleeding
+    // off the top trailing corner: the one bright mark on a deep ground.
+    const cd = Math.round(this.H * 0.4);
+    const cr = this.mirror({ x: Math.round(this.W - cd * 0.55), y: Math.round(-cd * 0.45), width: cd, height: cd });
+    const corner = createNode("shape", {
+      name: "Decor",
+      shape: "ellipse",
+      transform: { x: cr.x, y: cr.y, scaleX: 1, scaleY: 1, rotation: 0 },
+      size: { width: cr.width, height: cr.height },
+      fills: [{ type: "gradient", gradient: "linear", angle: 135, stops: [{ position: 0, color: structuredClone(this.ds.colors.accentOnDeep) }, { position: 1, color: structuredClone(this.ds.colors.primary) }] }],
+      opacity: 0.9,
+      data: { decor: true },
+    } as never) as Node;
+    const out: Node[] = [corner, disc];
     const glyph = iconGlyphFor(this.item.icon);
     if (glyph) {
       const size = Math.round(d * 0.38);
@@ -600,7 +676,7 @@ class Composer {
     }
     applyMotion(this.nodes as Array<Node & { animation?: unknown }>, this.ds.motion);
     return {
-      background: structuredClone(this.impact ? this.ds.impactBackground : this.ds.paperBackground),
+      background: structuredClone(this.impact ? this.ds.impactBackground : this.onDeep ? ({ type: "solid", color: this.ds.colors.deep } as Fill) : this.ds.paperBackground),
       nodes: this.nodes,
       imagePrompts: this.prompts,
       impact: this.impact,
@@ -609,7 +685,7 @@ class Composer {
     };
   }
 
-  private titleBlock(base: number, bold = true) {
+  private titleBlock(base: number, bold = false) {
     return {
       kind: "text" as const,
       maxFrac: 0.5,
@@ -635,6 +711,7 @@ class Composer {
       this.decor(this.span(8, 4));
     }
     this.cluster(region, [
+      ...this.eyebrowBlock(),
       { kind: "rule" },
       this.titleBlock(this.sz("coverTitle")),
       ...this.subheadBlock(this.sz("coverSub"), this.item.subhead ?? this.item.points[0]),
@@ -658,6 +735,7 @@ class Composer {
       ? [{ kind: "text" as const, maxFrac: 0.25, make: (r: Rect) => this.text({ name: "Section number", rect: r, paragraphs: [String(n).padStart(2, "0")], role: "heading", base: this.sz("sectionNumber"), bold: true, color: this.accent, exactSize: Math.round(this.sz("sectionNumber")), lineHeight: 1.05, tracking: 0.02 }) }]
       : [];
     this.cluster(region, [
+      ...this.eyebrowBlock(),
       ...number,
       { kind: "rule" },
       this.titleBlock(this.sz("sectionTitle")),
@@ -669,9 +747,10 @@ class Composer {
   private statement(): void {
     // One idea, set large, with room around it. The type is the visual.
     this.cluster(this.span(0, 10), [
+      ...this.eyebrowBlock(),
       ...this.pageIconBlock(),
       { kind: "rule" },
-      { kind: "text", maxFrac: 0.6, make: (r) => this.text({ name: "Statement", rect: r, paragraphs: [this.item.title], role: "heading", base: this.sz("statement"), bold: true, lineHeight: 1.12 }) },
+      { kind: "text", maxFrac: 0.6, make: (r) => this.text({ name: "Statement", rect: r, paragraphs: [this.item.title], role: "heading", base: this.sz("statement"), bold: false, lineHeight: 1.12 }) },
       ...this.subheadBlock(this.sz("statementSub"), this.item.subhead),
     ], 3);
     this.furniture();
@@ -695,14 +774,14 @@ class Composer {
     const iconH = glyph ? iconSize + u * 2 : 0;
     // The numeral is fitted first so the rule and the icon sit on the
     // glyphs, not on the top of a box taller than them.
-    const probeFig = this.numeral({ x: left.x, y: 0, width: left.width, height: figureH }, stat.value, stat.unit, this.ds.colors.accentOnPaper);
+    const probeFig = this.numeral({ x: left.x, y: 0, width: left.width, height: figureH }, stat.value, stat.unit, this.accent);
     const figH = probeFig.height;
     const blockH = iconH + u * 3 + figH + u * 2 + labelProbe.height;
-    const areaTop = this.m + u * 4;
-    const offset = Math.max(0, Math.round((this.H - this.m - areaTop - blockH) / 2));
+    const areaTop = this.top;
+    const offset = Math.max(0, Math.round((this.bodyBottom - areaTop - blockH) / 2));
     const top = areaTop + offset + iconH + u * 3;
     const figureRect = { x: left.x, y: top, width: left.width, height: figH };
-    const fig = this.numeral(figureRect, stat.value, stat.unit, this.ds.colors.accentOnPaper);
+    const fig = this.numeral(figureRect, stat.value, stat.unit, this.accent);
     if (glyph) {
       const ic = this.icon(glyph, left.x, areaTop + offset, iconSize, this.accent);
       if (ic) this.nodes.push(ic);
@@ -715,7 +794,7 @@ class Composer {
     if (hasImage) {
       this.nodes.push(this.imageSlot({ x: rightCols.x, y: top, width: rightCols.width, height: labelY + label.height - top }, this.imagePrompt(), this.ds.radius * 2));
       if (this.item.subhead) {
-        const ctxText = this.text({ name: "Context", rect: { x: left.x, y: labelY + label.height + u * 2, width: left.width, height: this.H - this.m - (labelY + label.height + u * 2) }, paragraphs: [this.item.subhead], role: "body", base: this.sz("detail"), color: this.muted });
+        const ctxText = this.text({ name: "Context", rect: { x: left.x, y: labelY + label.height + u * 2, width: left.width, height: Math.max(u * 4, this.bodyBottom - (labelY + label.height + u * 2)) }, paragraphs: [this.item.subhead], role: "body", base: this.sz("detail"), color: this.muted });
         this.nodes.push(ctxText.node);
       }
     } else if (this.item.subhead) {
@@ -733,7 +812,7 @@ class Composer {
     const textCols = hasImage ? 7 : 8;
     const region = hasImage && imageLeading ? this.span(5, 7) : this.span(0, textCols);
     const u = this.ds.unit;
-    const content = { ...region, y: this.m + u * 4, height: this.H - 2 * this.m - u * 4 };
+    const content = { ...region, y: this.top, height: this.bodyBottom - this.top };
     if (hasImage) {
       const s = imageLeading ? this.span(0, 4) : this.span(8, 4);
       this.nodes.push(this.imageSlot({ x: s.x, y: content.y, width: s.width, height: content.height }, this.imagePrompt(), this.ds.radius * 2));
@@ -746,7 +825,7 @@ class Composer {
       const half = Math.ceil(points.length / 2);
       const [l, r] = [this.span(0, 6), this.span(6, 6)];
       const u2 = this.ds.unit;
-      const title = this.text({ name: "Title", rect: { ...this.span(0, 12), y: content.y, height: this.H * 0.2 }, paragraphs: [this.item.title], role: "heading", base: this.sz("title"), bold: true, lineHeight: 1.08 });
+      const title = this.text({ name: "Title", rect: { ...this.span(0, 12), y: content.y, height: this.H * 0.2 }, paragraphs: [this.item.title], role: "heading", base: this.sz("title"), bold: false, lineHeight: 1.08 });
       const bodyTop = content.y + title.height + u2 * 4;
       const avail = this.H - this.m - bodyTop;
       const make = (span: Rect, pts: string[], y0: number) => this.text({ name: "Points", rect: { x: span.x, y: y0, width: span.width - this.ds.gutter, height: avail }, paragraphs: pts, role: "body", base: this.sz("point"), lineHeight: 1.35, paraGap: 0.55, list: "bullet" });
@@ -755,7 +834,7 @@ class Composer {
       // Re-anchor the title so the whole cluster is centered, as cluster() does.
       const total = title.height + u2 * 4 + tallest;
       const shift = Math.max(0, Math.round((content.height - total) / 2));
-      this.nodes.push(this.text({ name: "Title", rect: { ...this.span(0, 12), y: content.y + shift, height: this.H * 0.2 }, paragraphs: [this.item.title], role: "heading", base: this.sz("title"), bold: true, lineHeight: 1.08 }).node);
+      this.nodes.push(this.text({ name: "Title", rect: { ...this.span(0, 12), y: content.y + shift, height: this.H * 0.2 }, paragraphs: [this.item.title], role: "heading", base: this.sz("title"), bold: false, lineHeight: 1.08 }).node);
       this.nodes.push(make(l, points.slice(0, half), y0 - (bodyTop - (content.y + shift + title.height + u2 * 4))).node);
       this.nodes.push(make(r, points.slice(half), y0 - (bodyTop - (content.y + shift + title.height + u2 * 4))).node);
       this.furniture();
@@ -772,26 +851,47 @@ class Composer {
 
   private agenda(): void {
     const u = this.ds.unit;
-    const content = { y: this.m + u * 4, height: this.H - 2 * this.m - u * 4 };
+    const content = { y: this.top, height: this.bodyBottom - this.top };
     // Title on the leading third, the numbered list on the trailing two thirds:
-    // an agenda IS a sequence, so the numbers carry information.
+    // an agenda IS a sequence, so the numbers carry information. Each item
+    // is a numbered badge and a label, the way a designed agenda reads.
     const left = { ...this.span(0, 4), ...content };
     const right = { ...this.span(5, 7), ...content };
-    this.cluster(left, [{ kind: "rule" }, this.titleBlock(this.sz("title"))], 3);
-    this.cluster(right, [{ kind: "text", maxFrac: 1, make: (r) => this.text({ name: "Agenda", rect: r, paragraphs: this.item.points, role: "body", base: this.sz("agendaItem"), lineHeight: 1.35, paraGap: 0.7, list: "number" }) }], 0);
+    this.cluster(left, [this.titleBlock(this.sz("title"))], 3);
+    const items = this.item.points.slice(0, 8);
+    const badge = Math.round(this.sz("badge"));
+    const gapY = u * 2.2;
+    const labelX = right.x + badge + u * 2;
+    const labelW = right.width - badge - u * 2;
+    const rows = items.map((pt) => {
+      const label = this.text({ name: "Agenda item", rect: { x: labelX, y: 0, width: labelW, height: u * 8 }, paragraphs: [pt], role: "heading", base: this.sz("agendaItem"), lineHeight: 1.2 });
+      return { pt, h: Math.max(badge, label.height) };
+    });
+    const total = rows.reduce((a, r) => a + r.h, 0) + gapY * Math.max(0, rows.length - 1);
+    let y = right.y + Math.max(0, Math.round((right.height - total) / 2));
+    rows.forEach((row, i) => {
+      this.nodes.push(this.rect("Badge", { x: right.x, y, width: badge, height: badge }, this.lifted, Math.round(badge * 0.28), { panel: true }));
+      this.nodes.push(this.text({ name: "Number", rect: { x: right.x, y, width: badge, height: badge }, paragraphs: [String(i + 1).padStart(2, "0")], role: "body", base: this.sz("eyebrow"), color: this.accentInk, bold: true, exactSize: Math.round(this.sz("eyebrow")), align: "center", valign: "middle", lineHeight: 1, tracking: 0.04 }).node);
+      this.nodes.push(this.text({ name: "Agenda item", rect: { x: labelX, y: y + Math.max(0, Math.round((badge - row.h) / 2)), width: labelW, height: row.h }, paragraphs: [row.pt], role: "heading", base: this.sz("agendaItem"), lineHeight: 1.2, valign: "middle" }).node);
+      y += row.h + gapY;
+    });
     this.furniture();
   }
 
   private columns(n: 2 | 3): void {
     const cols = (this.item.columns ?? []).slice(0, n);
     const u = this.ds.unit;
-    const top = this.m + u * 4;
-    const title = this.text({ name: "Title", rect: { ...this.span(0, 12), y: top, height: this.H * 0.2 }, paragraphs: [this.item.title], role: "heading", base: this.sz("title"), bold: true, lineHeight: 1.08 });
+    const top = this.top;
+    const title = this.text({ name: "Title", rect: { ...this.span(0, 12), y: top, height: this.H * 0.2 }, paragraphs: [this.item.title], role: "heading", base: this.sz("title"), bold: false, lineHeight: 1.08 });
     this.nodes.push(title.node);
     const bodyTop = top + title.height + u * 4;
     const bodyH = this.H - this.m - bodyTop;
-    const spans = n === 2 ? [this.span(0, 5), this.span(7, 5)] : [this.span(0, 4), this.span(4, 4), this.span(8, 4)];
-    const inners = cols.map((_, i) => (n === 3 ? { x: spans[i].x, width: spans[i].width - this.ds.gutter } : spans[i]));
+    // Each column sits on a tinted panel; the panel's outer rect is the
+    // column, the content is inset by the padding.
+    const pad = u * 3;
+    const spans = n === 2 ? [this.span(0, 6), this.span(6, 6)] : [this.span(0, 4), this.span(4, 4), this.span(8, 4)];
+    const outers = spans.map((sp, i) => ({ x: sp.x, width: sp.width - (i < n - 1 ? this.ds.gutter : 0) }));
+    const inners = outers.map((o) => ({ x: o.x + pad, width: o.width - 2 * pad }));
     // Two passes: measure each column at y=0 to learn the tallest, then place
     // every column so that block is centered in what remains under the title.
     // A short comparison used to sit under the title with a void beneath it.
@@ -816,30 +916,27 @@ class Composer {
       const pts = c.points;
       if (pts.length) {
         const py = bottom + u * 2;
-        const body = this.text({ name: "Points", rect: { x: inner.x, y: py, width: inner.width, height: Math.max(u * 4, this.H - this.m - py) }, paragraphs: pts, role: "body", base: this.sz("point") * (n === 3 ? 0.92 : 1), lineHeight: 1.35, paraGap: 0.5, list: "bullet" });
+        const body = this.text({ name: "Points", rect: { x: inner.x, y: py, width: inner.width, height: Math.max(u * 4, this.bodyBottom - py) }, paragraphs: pts, role: "body", base: this.sz("point") * (n === 3 ? 0.92 : 1), lineHeight: 1.35, paraGap: 0.5, list: "bullet" });
         out.push(body.node);
         bottom = py + body.height;
       }
       return { nodes: out, height: bottom - y0 };
     };
     const tallest = Math.max(...cols.map((c, i) => build(c, inners[i], 0, glyphs[i]).height));
-    const y0 = bodyTop + Math.min(u * 8, Math.max(0, Math.round((bodyH - tallest) / 2)));
-    if (n === 2) {
-      // The rule between the columns is the comparison: it says "versus", and
-      // it runs the height of the content, not of the page.
-      const gap = this.span(5, 2);
-      const x = gap.x + gap.width / 2 - this.ds.rule / 2;
-      this.nodes.push(this.rect("Divider", { x, y: y0, width: this.ds.rule, height: tallest }, mix(this.ds.colors.ink, this.ds.colors.paper, 0.8)));
-    }
-    cols.forEach((c, i) => this.nodes.push(...build(c, inners[i], y0, glyphs[i]).nodes));
+    const panelH = tallest + 2 * pad;
+    const y0 = bodyTop + Math.min(u * 8, Math.max(0, Math.round((bodyH - panelH) / 2)));
+    cols.forEach((c, i) => {
+      this.nodes.push(this.panel({ x: outers[i].x, y: y0, width: outers[i].width, height: panelH }));
+      this.nodes.push(...build(c, inners[i], y0 + pad, glyphs[i]).nodes);
+    });
     this.furniture();
   }
 
   private process(): void {
     const steps = this.item.steps ?? [];
     const u = this.ds.unit;
-    const top = this.m + u * 4;
-    const title = this.text({ name: "Title", rect: { ...this.span(0, 12), y: top, height: this.H * 0.2 }, paragraphs: [this.item.title], role: "heading", base: this.sz("title"), bold: true, lineHeight: 1.08 });
+    const top = this.top;
+    const title = this.text({ name: "Title", rect: { ...this.span(0, 12), y: top, height: this.H * 0.2 }, paragraphs: [this.item.title], role: "heading", base: this.sz("title"), bold: false, lineHeight: 1.08 });
     this.nodes.push(title.node);
     const bodyTop = top + title.height + u * 5;
     const n = steps.length;
@@ -858,7 +955,7 @@ class Composer {
         steps.forEach((st, i) => {
           const s = this.span(i * perCols, perCols);
           const inner = { x: s.x, width: s.width - this.ds.gutter };
-          out.push(this.text({ name: "Step", rect: { x: inner.x, y: y0, width: numBox, height: numBox }, paragraphs: [String(i + 1)], role: "heading", base: numSize, bold: true, color: this.ds.colors.accentOnPaper, exactSize: numSize, valign: "middle", align: "left", lineHeight: 1 }).node);
+          out.push(this.text({ name: "Step", rect: { x: inner.x, y: y0, width: numBox, height: numBox }, paragraphs: [String(i + 1)], role: "heading", base: numSize, bold: true, color: this.accent, exactSize: numSize, valign: "middle", align: "left", lineHeight: 1 }).node);
           if (i < n - 1) {
             const next = this.span((i + 1) * perCols, perCols);
             const x0 = inner.x + numBox + u;
@@ -871,7 +968,7 @@ class Composer {
           let b = ly + label.height;
           if (st.detail) {
             const dy = b + u;
-            const det = this.text({ name: "Detail", rect: { x: inner.x, y: dy, width: inner.width, height: Math.max(u * 4, this.H - this.m - dy) }, paragraphs: [st.detail], role: "body", base: this.sz("detail"), color: this.muted, lineHeight: 1.4 });
+            const det = this.text({ name: "Detail", rect: { x: inner.x, y: dy, width: inner.width, height: Math.max(u * 4, this.bodyBottom - dy) }, paragraphs: [st.detail], role: "body", base: this.sz("detail"), color: this.muted, lineHeight: 1.4 });
             out.push(det.node);
             b = dy + det.height;
           }
@@ -880,12 +977,12 @@ class Composer {
         return { nodes: out, height: bottom - y0 };
       };
       const rowH = build(0).height;
-      const avail = this.H - this.m - bodyTop;
+      const avail = this.bodyBottom - bodyTop;
       this.nodes.push(...build(bodyTop + Math.min(u * 8, Math.max(0, Math.round((avail - rowH) / 2)))).nodes);
     } else {
       // Five steps: a numbered list down the page.
       const items = steps.map((st) => `${st.label}${st.detail ? `: ${st.detail}` : ""}`);
-      this.nodes.push(this.text({ name: "Steps", rect: { ...this.span(0, 10), y: bodyTop, height: this.H - this.m - bodyTop }, paragraphs: items, role: "body", base: this.sz("point"), lineHeight: 1.35, paraGap: 0.7, list: "number" }).node);
+      this.nodes.push(this.text({ name: "Steps", rect: { ...this.span(0, 10), y: bodyTop, height: this.bodyBottom - bodyTop }, paragraphs: items, role: "body", base: this.sz("point"), lineHeight: 1.35, paraGap: 0.7, list: "number" }).node);
     }
     this.furniture();
   }
@@ -918,7 +1015,7 @@ class Composer {
     this.nodes.push(this.imageSlot(imgRect, this.imagePrompt()));
     const textSpan = imageLeading ? this.span(8, 4) : this.span(0, 4);
     const u = this.ds.unit;
-    this.cluster({ ...textSpan, y: this.m + u * 4, height: this.H - 2 * this.m - u * 4 }, [
+    this.cluster({ ...textSpan, y: this.top, height: this.bodyBottom - this.top }, [
       { kind: "rule" },
       this.titleBlock(this.sz("title") * 0.95),
       ...this.subheadBlock(this.sz("caption"), this.item.subhead ?? this.item.points[0]),
@@ -930,8 +1027,8 @@ class Composer {
   private chart(): void {
     const c = this.item.chart!;
     const u = this.ds.unit;
-    const top = this.m + u * 4;
-    const title = this.text({ name: "Title", rect: { ...this.span(0, 8), y: top, height: this.H * 0.18 }, paragraphs: [this.item.title], role: "heading", base: this.sz("title"), bold: true, lineHeight: 1.08 });
+    const top = this.top;
+    const title = this.text({ name: "Title", rect: { ...this.span(0, 8), y: top, height: this.H * 0.18 }, paragraphs: [this.item.title], role: "heading", base: this.sz("title"), bold: false, lineHeight: 1.08 });
     this.nodes.push(title.node);
     let y = top + title.height + u * 1.5;
     if (this.item.subhead) {
@@ -941,7 +1038,7 @@ class Composer {
     } else {
       y += u * 2;
     }
-    const r = this.mirror({ ...this.span(0, 12), y, height: this.H - this.m - y });
+    const r = this.mirror({ ...this.span(0, 12), y, height: this.bodyBottom - y });
     const palette = [this.ds.colors.accentOnPaper, this.ds.colors.primary, this.ds.colors.deep];
     this.nodes.push(createNode("chart", {
       name: "Chart",
@@ -971,15 +1068,20 @@ class Composer {
     return Array.from({ length: n }, (_, i) => ({ x: this.m + i * (w + g), y, width: w, height }));
   }
 
+  /** Where the body of a reading page must end: above the footer band. */
+  private get bodyBottom(): number {
+    return this.H - this.ds.unit * 6;
+  }
+
   /** The title at the top of a reading page; returns where the body starts
-   *  and how much height is left for it. */
+   *  and how much height is left for it above the footer. */
   private headed(): { bodyTop: number; bodyH: number } {
     const u = this.ds.unit;
-    const top = this.m + u * 4;
-    const title = this.text({ name: "Title", rect: { ...this.span(0, 12), y: top, height: this.H * 0.2 }, paragraphs: [this.item.title], role: "heading", base: this.sz("title"), bold: true, lineHeight: 1.08 });
+    const top = this.top;
+    const title = this.text({ name: "Title", rect: { ...this.span(0, 12), y: top, height: this.H * 0.2 }, paragraphs: [this.item.title], role: "heading", base: this.sz("title"), bold: false, lineHeight: 1.08 });
     this.nodes.push(title.node);
-    const bodyTop = top + title.height + u * 5;
-    return { bodyTop, bodyH: this.H - this.m - bodyTop };
+    const bodyTop = top + title.height + u * 4;
+    return { bodyTop, bodyH: this.bodyBottom - bodyTop };
   }
 
   /** Two to four figures that belong together: one row, or two by two for
@@ -1005,29 +1107,41 @@ class Composer {
         const cellsR = this.cells(rowStats.length, 0, figureH);
         let labelH = 0;
         rowStats.forEach((st, i) => {
-          labelH = Math.max(labelH, this.text({ name: "Label", rect: { x: cellsR[i].x, y: 0, width: cellsR[i].width, height: u * 10 }, paragraphs: [st.label], role: "heading", base: this.sz("statLabel"), bold: true, lineHeight: 1.2 }).height);
+          labelH = Math.max(labelH, this.text({ name: "Label", rect: { x: cellsR[i].x, y: 0, width: cellsR[i].width - u * 6, height: u * 8 }, paragraphs: [st.label], role: "heading", base: this.sz("statLabel") * (rows > 1 ? 0.85 : 1), bold: true, lineHeight: 1.2 }).height);
         });
-        const rowTop = bottom + (r > 0 ? u * 5 : 0);
+        const rowTop = bottom + (r > 0 ? u * 3 : 0);
+        const pad = u * 3;
+        // The figures are fitted first: a row's numerals share the height of
+        // the tallest, so the rule, the figure and the label stack on what the
+        // glyphs measure and not on the box they were offered.
+        const cw = cellsR[0].width - 2 * pad;
+        const figH = Math.max(...rowStats.map((st) => this.numeral({ x: 0, y: 0, width: cw, height: figureH }, st.value, st.unit, this.accent, figureH).height));
+        const contentH = iconH + u * 2 + figH + u * 1.5 + labelH;
         rowStats.forEach((st, i) => {
           const c = cellsR[i];
+          // The cell's panel first, then its content inset by the padding.
+          out.push(this.panel({ x: c.x, y: rowTop, width: c.width, height: contentH + 2 * pad }));
+          const cx = c.x + pad;
+          const cy = rowTop + pad;
           if (withIcons) {
-            const ic = this.icon(glyphs[r * perRow + i]!, c.x, rowTop, iconSize, this.accent);
+            const ic = this.icon(glyphs[r * perRow + i]!, cx, cy, iconSize, this.accent);
             if (ic) out.push(ic);
           }
-          const ruleY = rowTop + iconH;
-          out.push(this.accentRule(c.x, ruleY));
-          const fig = this.numeral({ x: c.x, y: ruleY + u * 2, width: c.width, height: figureH }, st.value, st.unit, this.ds.colors.accentOnPaper);
+          const ruleY = cy + iconH;
+          out.push(this.accentRule(cx, ruleY));
+          const fig = this.numeral({ x: cx, y: ruleY + u * 2, width: cw, height: figH }, st.value, st.unit, this.accent, figureH);
           out.push(fig.node);
-          out.push(this.text({ name: "Label", rect: { x: c.x, y: ruleY + u * 2 + figureH + u * 1.5, width: c.width, height: labelH }, paragraphs: [st.label], role: "heading", base: this.sz("statLabel"), bold: true, lineHeight: 1.2 }).node);
+          out.push(this.text({ name: "Label", rect: { x: cx, y: ruleY + u * 2 + figH + u * 1.5, width: cw, height: labelH }, paragraphs: [st.label], role: "heading", base: this.sz("statLabel") * (rows > 1 ? 0.85 : 1), bold: true, lineHeight: 1.2 }).node);
         });
-        bottom = rowTop + iconH + u * 2 + figureH + u * 1.5 + labelH;
+        bottom = rowTop + contentH + 2 * pad;
       }
       return { nodes: out, height: bottom - y0 };
     };
     // Two rows of figures with icons and labels can outgrow the page; the
-    // figures step down until the grid fits above the furniture.
+    // figures step down until the grid fits above the footer, and if that is
+    // not enough the row gap and the panel padding tighten too.
     let h = build(0).height;
-    while (h > bodyH && figureH > u * 6) {
+    while (h > bodyH && figureH > u * 4) {
       figureH -= u;
       h = build(0).height;
     }
@@ -1079,7 +1193,7 @@ class Composer {
         let b = ly + label.height;
         if (st.detail) {
           const dy = b + u;
-          const det = this.text({ name: "Detail", rect: { x: c.x, y: dy, width: c.width, height: Math.max(u * 4, this.H - this.m - dy) }, paragraphs: [st.detail], role: "body", base: this.sz("detail"), color: this.muted, align: "center", lineHeight: 1.4 });
+          const det = this.text({ name: "Detail", rect: { x: c.x, y: dy, width: c.width, height: Math.max(u * 4, this.bodyBottom - dy) }, paragraphs: [st.detail], role: "body", base: this.sz("detail"), color: this.muted, align: "center", lineHeight: 1.4 });
           out.push(det.node);
           b = dy + det.height;
         }
@@ -1149,23 +1263,33 @@ class Composer {
       const out: Node[] = [];
       const cellsR = this.cells(people.length, 0, 0);
       let bottom = y0;
+      const pad = u * 3;
+      const cards: Node[][] = [];
       people.forEach((per, i) => {
         const c = cellsR[i];
-        out.push(this.accentRule(c.x, y0));
-        out.push(this.text({ name: "Monogram", rect: { x: c.x, y: y0 + u * 2, width: c.width, height: monoH }, paragraphs: [initials(per.name)], role: "heading", base: this.sz("monogram"), bold: true, color: this.accent, exactSize: Math.round(this.sz("monogram")), lineHeight: 1.15, tracking: 0.04 }).node);
-        const ny = y0 + u * 2 + monoH + u * 1.5;
-        const name = this.text({ name: "Name", rect: { x: c.x, y: ny, width: c.width, height: u * 8 }, paragraphs: [per.name], role: "heading", base: this.sz("personName"), bold: true, lineHeight: 1.15 });
-        out.push(name.node);
+        const card: Node[] = [];
+        const cx = c.x + pad;
+        const cw = c.width - 2 * pad;
+        const cy = y0 + pad;
+        card.push(this.accentRule(cx, cy));
+        card.push(this.text({ name: "Monogram", rect: { x: cx, y: cy + u * 2, width: cw, height: monoH }, paragraphs: [initials(per.name)], role: "heading", base: this.sz("monogram"), bold: true, color: this.accent, exactSize: Math.round(this.sz("monogram")), lineHeight: 1.15, tracking: 0.04 }).node);
+        const ny = cy + u * 2 + monoH + u * 1.5;
+        const name = this.text({ name: "Name", rect: { x: cx, y: ny, width: cw, height: u * 8 }, paragraphs: [per.name], role: "heading", base: this.sz("personName"), bold: true, lineHeight: 1.15 });
+        card.push(name.node);
         let b = ny + name.height;
         if (per.role) {
           const ry = b + u * 0.5;
-          const role = this.text({ name: "Role", rect: { x: c.x, y: ry, width: c.width, height: u * 8 }, paragraphs: [per.role], role: "body", base: this.sz("personRole"), color: this.muted, lineHeight: 1.35 });
-          out.push(role.node);
+          const role = this.text({ name: "Role", rect: { x: cx, y: ry, width: cw, height: u * 8 }, paragraphs: [per.role], role: "body", base: this.sz("personRole"), color: this.muted, lineHeight: 1.35 });
+          card.push(role.node);
           b = ry + role.height;
         }
         bottom = Math.max(bottom, b);
+        cards.push(card);
       });
-      return { nodes: out, height: bottom - y0 };
+      // Every card is as tall as the tallest, on its own panel.
+      const panelH = bottom - y0 + pad;
+      cards.forEach((card, i) => out.push(this.panel({ x: cellsR[i].x, y: y0, width: cellsR[i].width, height: panelH }), ...card));
+      return { nodes: out, height: panelH };
     };
     const h = build(0).height;
     this.nodes.push(...build(bodyTop + Math.min(u * 8, Math.max(0, Math.round((bodyH - h) / 2)))).nodes);
@@ -1181,6 +1305,7 @@ class Composer {
     if (!hasImage) this.decor(this.span(8, 4));
     const region = this.span(0, hasImage ? 7 : 8);
     this.cluster(region, [
+      ...this.eyebrowBlock(),
       { kind: "rule" },
       this.titleBlock(this.sz("sectionTitle")),
       ...this.subheadBlock(this.sz("coverSub"), this.item.subhead ?? this.item.points[0], this.ink),

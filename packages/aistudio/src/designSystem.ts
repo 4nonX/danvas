@@ -43,6 +43,10 @@ export interface DesignSystemColors {
   mutedOnPaper: Color;
   accentOnPaper: Color;
   accentOnDeep: Color;
+  /** The accent pushed to 4.5:1, for small accent text (eyebrows, badge
+   *  numbers) that the large-text threshold does not cover. */
+  accentInkOnPaper: Color;
+  accentInkOnDeep: Color;
 }
 
 export interface DesignSystem {
@@ -71,6 +75,10 @@ export interface DesignSystem {
   motion: DeckMotion;
   /** The brand's logo when the workspace has one. */
   logo?: DeckLogo;
+  /** The ground of reading pages. Dark and tech themes keep every page on
+   *  the deep ground with a bright accent, the way a tech review deck reads;
+   *  the rest alternate the deep ground for impact pages with paper. */
+  readingGround: "paper" | "deep";
 }
 
 export type DeckMotion = "subtle" | "none";
@@ -279,6 +287,8 @@ export function deriveDesignSystem(theme: DeckTheme, size: { width: number; heig
     mutedOnPaper: mutedFor(inkOnPaper, paper),
     accentOnPaper: accentFor(accent, paper, false),
     accentOnDeep: accentFor(accent, deep, true),
+    accentInkOnPaper: fixToAA(accentFor(accent, paper, false), paper),
+    accentInkOnDeep: fixToAA(accentFor(accent, deep, true), deep),
   };
 
   // Backgrounds -------------------------------------------------------------
@@ -322,6 +332,7 @@ export function deriveDesignSystem(theme: DeckTheme, size: { width: number; heig
     artDirection: artDirectionFor(opts.mood, colors),
     motion: opts.motion ?? "subtle",
     ...(opts.logo?.assetId && opts.logo.url ? { logo: { ...opts.logo } } : {}),
+    readingGround: opts.catalog?.style === "dark" || opts.catalog?.style === "tech" ? "deep" : "paper",
   };
 }
 

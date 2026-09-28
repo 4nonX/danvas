@@ -93,6 +93,7 @@ export const archetypeBudgets = {
   steps: 5, stepLabel: 30, stepDetail: 90, columns: 3, columnHeading: 40, columnPoints: 4,
   imageSubject: 140, chartCategories: 8, chartSeries: 3,
   stats: 4, tableColumns: 4, tableRows: 6, tableCell: 40, people: 4, personName: 40, personRole: 40, stepWhen: 20, columnIcon: 30,
+  eyebrow: 24,
 } as const;
 
 export interface OutlineItem {
@@ -124,6 +125,9 @@ export interface OutlineItem {
    *  statements show it beside the title, a big number above the figure,
    *  covers, sections and closings inside their decor. */
   icon?: string;
+  /** Two or three words saying what the page is about ("The problem",
+   *  "Traction", "The ask"), set small and tracked above the title. */
+  eyebrow?: string;
 }
 
 /** Hard cap on a speaker note; the prompt asks for 100..500 chars and the
@@ -241,6 +245,8 @@ function normalizeArchetypeFields(p: Record<string, unknown>, archetype: Archety
   if (pageIcon) out.icon = pageIcon;
   const subhead = clipToBudget(p.subhead, b.subhead);
   if (subhead) out.subhead = subhead;
+  const eyebrow = clipToBudget(p.eyebrow, b.eyebrow);
+  if (eyebrow) out.eyebrow = eyebrow;
 
   const st = p.stat as Record<string, unknown> | undefined;
   if (st && typeof st === "object") {
@@ -433,6 +439,7 @@ export const outlineJsonSchema = {
           archetype: { type: "string", enum: archetypes, description: "the slide's compositional form" },
           visualRole: { type: "string", enum: visualRoles },
           subhead: { type: "string", maxLength: archetypeBudgets.subhead, description: "one supporting line under the title (cover, section, statement, closing, bigNumber context)" },
+          eyebrow: { type: "string", maxLength: archetypeBudgets.eyebrow, description: "two or three words naming what the page is about, set small above the title, e.g. The problem, Traction, The ask; every reading page has one" },
           points: { type: "array", maxItems: archetypeBudgets.points, items: { type: "string", maxLength: archetypeBudgets.point }, description: "bullets or agenda items; only for bullets/agenda" },
           stat: { type: "object", additionalProperties: false, required: ["value", "label"], properties: { value: { type: "string", maxLength: archetypeBudgets.statValue, description: "the figure, e.g. 42% or 3.2M" }, unit: { type: "string", maxLength: archetypeBudgets.statUnit }, label: { type: "string", maxLength: archetypeBudgets.statLabel, description: "what the figure means" }, icon: { type: "string", maxLength: archetypeBudgets.columnIcon, description: "one English keyword naming a simple icon for the figure" } } },
           icon: { type: "string", maxLength: archetypeBudgets.columnIcon, description: "one English keyword naming a simple icon for the page (bullets, statement, bigNumber, cover, section, closing), e.g. shield, clock, users, chart, leaf, globe, bolt, heart, coin, truck, calendar" },

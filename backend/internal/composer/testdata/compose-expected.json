@@ -24,7 +24,69 @@
       },
       "children": [
         {
-          "id": "n-46",
+          "id": "n-57",
+          "transform": {
+            "x": 1682,
+            "y": -194,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0
+          },
+          "size": {
+            "width": 432,
+            "height": 432
+          },
+          "opacity": 0.9,
+          "blendMode": "normal",
+          "type": "shape",
+          "shape": "ellipse",
+          "fills": [
+            {
+              "type": "gradient",
+              "gradient": "linear",
+              "angle": 135,
+              "stops": [
+                {
+                  "position": 0,
+                  "color": {
+                    "srgb": {
+                      "r": 0.9725000000000001,
+                      "g": 0.8250002999999999,
+                      "b": 0.5274999999999999,
+                      "a": 1
+                    }
+                  }
+                },
+                {
+                  "position": 1,
+                  "color": {
+                    "srgb": {
+                      "r": 0.054901960784313725,
+                      "g": 0.47843137254901963,
+                      "b": 0.37254901960784315,
+                      "a": 1
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "name": "Decor",
+          "data": {
+            "decor": true
+          },
+          "animation": {
+            "entrance": {
+              "preset": "fade",
+              "durationMs": 600,
+              "delayMs": 0,
+              "easing": "ease-out-cubic",
+              "startMode": "delay"
+            }
+          }
+        },
+        {
+          "id": "n-56",
           "transform": {
             "x": 1318,
             "y": 216,
@@ -61,24 +123,24 @@
             "entrance": {
               "preset": "fade",
               "durationMs": 600,
-              "delayMs": 0,
+              "delayMs": 120,
               "easing": "ease-out-cubic",
               "startMode": "delay"
             }
           }
         },
         {
-          "id": "n-49",
+          "id": "n-60",
           "transform": {
             "x": 78,
-            "y": 355,
+            "y": 346,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
           },
           "size": {
-            "width": 104,
-            "height": 5
+            "width": 91,
+            "height": 8
           },
           "opacity": 1,
           "blendMode": "normal",
@@ -98,29 +160,29 @@
             }
           ],
           "name": "Accent",
-          "cornerRadius": 3,
+          "cornerRadius": 4,
           "animation": {
             "entrance": {
               "preset": "fade",
               "durationMs": 350,
-              "delayMs": 120,
+              "delayMs": 240,
               "easing": "ease-out-cubic",
               "startMode": "delay"
             }
           }
         },
         {
-          "id": "n-50",
+          "id": "n-61",
           "transform": {
             "x": 78,
-            "y": 399,
+            "y": 393,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
           },
           "size": {
             "width": 1167.3333333333335,
-            "height": 234
+            "height": 253
           },
           "opacity": 1,
           "blendMode": "normal",
@@ -128,7 +190,7 @@
           "box": {
             "mode": "fixed",
             "width": 1167.3333333333335,
-            "height": 234,
+            "height": 253,
             "autoFit": {
               "enabled": false,
               "min": 8,
@@ -143,8 +205,8 @@
                   "text": "Solar for Small Business",
                   "style": {
                     "fontFamily": "Lora",
-                    "fontStyle": "Bold",
-                    "fontSize": 108,
+                    "fontStyle": "Regular",
+                    "fontSize": 117,
                     "fill": {
                       "type": "solid",
                       "color": {
@@ -170,24 +232,24 @@
             "entrance": {
               "preset": "rise",
               "durationMs": 550,
-              "delayMs": 240,
+              "delayMs": 360,
               "easing": "ease-out-cubic",
               "startMode": "delay"
             }
           }
         },
         {
-          "id": "n-51",
+          "id": "n-62",
           "transform": {
             "x": 78,
-            "y": 672,
+            "y": 685,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
           },
           "size": {
             "width": 1167.3333333333335,
-            "height": 53
+            "height": 50
           },
           "opacity": 1,
           "blendMode": "normal",
@@ -195,7 +257,7 @@
           "box": {
             "mode": "fixed",
             "width": 1167.3333333333335,
-            "height": 53,
+            "height": 50,
             "autoFit": {
               "enabled": false,
               "min": 8,
@@ -211,7 +273,7 @@
                   "style": {
                     "fontFamily": "Nunito",
                     "fontStyle": "Regular",
-                    "fontSize": 39,
+                    "fontSize": 37,
                     "fill": {
                       "type": "solid",
                       "color": {
@@ -237,7 +299,7 @@
             "entrance": {
               "preset": "rise",
               "durationMs": 450,
-              "delayMs": 360,
+              "delayMs": 480,
               "easing": "ease-out-cubic",
               "startMode": "delay"
             }
@@ -264,17 +326,17 @@
       },
       "children": [
         {
-          "id": "n-54",
+          "id": "n-65",
           "transform": {
             "x": 78,
-            "y": 401,
+            "y": 414,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
           },
           "size": {
             "width": 1167.3333333333335,
-            "height": 69
+            "height": 83
           },
           "opacity": 1,
           "blendMode": "normal",
@@ -282,7 +344,7 @@
           "box": {
             "mode": "fixed",
             "width": 1167.3333333333335,
-            "height": 69,
+            "height": 83,
             "autoFit": {
               "enabled": false,
               "min": 8,
@@ -297,8 +359,8 @@
                   "text": "The Cost Problem",
                   "style": {
                     "fontFamily": "Lora",
-                    "fontStyle": "Bold",
-                    "fontSize": 63,
+                    "fontStyle": "Regular",
+                    "fontSize": 76,
                     "fill": {
                       "type": "solid",
                       "color": {
@@ -331,10 +393,10 @@
           }
         },
         {
-          "id": "n-55",
+          "id": "n-66",
           "transform": {
             "x": 78,
-            "y": 509,
+            "y": 536,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
@@ -464,17 +526,59 @@
           }
         },
         {
-          "id": "n-56",
+          "id": "n-67",
           "transform": {
             "x": 78,
-            "y": 32.5,
+            "y": 84.5,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0
+          },
+          "size": {
+            "width": 91,
+            "height": 8
+          },
+          "opacity": 1,
+          "blendMode": "normal",
+          "type": "shape",
+          "shape": "rect",
+          "fills": [
+            {
+              "type": "solid",
+              "color": {
+                "srgb": {
+                  "r": 0.59535,
+                  "g": 0.4095003779999998,
+                  "b": 0.03464999999999996,
+                  "a": 1
+                }
+              }
+            }
+          ],
+          "name": "Accent",
+          "cornerRadius": 4,
+          "animation": {
+            "entrance": {
+              "preset": "fade",
+              "durationMs": 350,
+              "delayMs": 240,
+              "easing": "ease-out-cubic",
+              "startMode": "delay"
+            }
+          }
+        },
+        {
+          "id": "n-68",
+          "transform": {
+            "x": 78,
+            "y": 106.6,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
           },
           "size": {
             "width": 1764,
-            "height": 31
+            "height": 27
           },
           "opacity": 1,
           "blendMode": "normal",
@@ -482,7 +586,7 @@
           "box": {
             "mode": "fixed",
             "width": 1764,
-            "height": 31,
+            "height": 27,
             "autoFit": {
               "enabled": false,
               "min": 8,
@@ -499,6 +603,75 @@
                     "fontFamily": "Nunito",
                     "fontStyle": "Regular",
                     "fontSize": 22,
+                    "letterSpacing": 3.96,
+                    "fill": {
+                      "type": "solid",
+                      "color": {
+                        "srgb": {
+                          "r": 0.59535,
+                          "g": 0.4095003779999998,
+                          "b": 0.03464999999999996,
+                          "a": 1
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
+              "style": {
+                "align": "left",
+                "direction": "auto"
+              }
+            }
+          ],
+          "name": "Eyebrow",
+          "animation": {
+            "entrance": {
+              "preset": "fade",
+              "durationMs": 350,
+              "delayMs": 360,
+              "easing": "ease-out-cubic",
+              "startMode": "delay"
+            }
+          }
+        },
+        {
+          "id": "n-69",
+          "transform": {
+            "x": 78,
+            "y": 1025.4,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0
+          },
+          "size": {
+            "width": 1582,
+            "height": 30
+          },
+          "opacity": 1,
+          "blendMode": "normal",
+          "type": "text",
+          "box": {
+            "mode": "fixed",
+            "width": 1582,
+            "height": 30,
+            "autoFit": {
+              "enabled": false,
+              "min": 8,
+              "max": 512
+            },
+            "verticalAlign": "top"
+          },
+          "content": [
+            {
+              "runs": [
+                {
+                  "text": "Solar for Small Business",
+                  "style": {
+                    "fontFamily": "Nunito",
+                    "fontStyle": "Regular",
+                    "fontSize": 21,
+                    "letterSpacing": 0.84,
                     "fill": {
                       "type": "solid",
                       "color": {
@@ -519,28 +692,28 @@
               }
             }
           ],
-          "name": "Kicker"
+          "name": "Footer"
         },
         {
-          "id": "n-57",
+          "id": "n-70",
           "transform": {
-            "x": 1738,
-            "y": 1021.5,
+            "x": 1686,
+            "y": 1025.4,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
           },
           "size": {
-            "width": 104,
-            "height": 27
+            "width": 156,
+            "height": 30
           },
           "opacity": 1,
           "blendMode": "normal",
           "type": "text",
           "box": {
             "mode": "fixed",
-            "width": 104,
-            "height": 27,
+            "width": 156,
+            "height": 30,
             "autoFit": {
               "enabled": false,
               "min": 8,
@@ -552,11 +725,12 @@
             {
               "runs": [
                 {
-                  "text": "2",
+                  "text": "02 / 05",
                   "style": {
                     "fontFamily": "Nunito",
                     "fontStyle": "Regular",
-                    "fontSize": 19,
+                    "fontSize": 21,
+                    "letterSpacing": 0.84,
                     "fill": {
                       "type": "solid",
                       "color": {
@@ -599,17 +773,17 @@
       },
       "children": [
         {
-          "id": "n-60",
+          "id": "n-73",
           "transform": {
             "x": 78,
-            "y": 401,
+            "y": 414,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
           },
           "size": {
             "width": 1167.3333333333335,
-            "height": 69
+            "height": 83
           },
           "opacity": 1,
           "blendMode": "normal",
@@ -617,7 +791,7 @@
           "box": {
             "mode": "fixed",
             "width": 1167.3333333333335,
-            "height": 69,
+            "height": 83,
             "autoFit": {
               "enabled": false,
               "min": 8,
@@ -632,8 +806,8 @@
                   "text": "Payback Timeline",
                   "style": {
                     "fontFamily": "Lora",
-                    "fontStyle": "Bold",
-                    "fontSize": 63,
+                    "fontStyle": "Regular",
+                    "fontSize": 76,
                     "fill": {
                       "type": "solid",
                       "color": {
@@ -666,10 +840,10 @@
           }
         },
         {
-          "id": "n-61",
+          "id": "n-74",
           "transform": {
             "x": 78,
-            "y": 509,
+            "y": 536,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
@@ -799,17 +973,59 @@
           }
         },
         {
-          "id": "n-62",
+          "id": "n-75",
           "transform": {
             "x": 78,
-            "y": 32.5,
+            "y": 84.5,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0
+          },
+          "size": {
+            "width": 91,
+            "height": 8
+          },
+          "opacity": 1,
+          "blendMode": "normal",
+          "type": "shape",
+          "shape": "rect",
+          "fills": [
+            {
+              "type": "solid",
+              "color": {
+                "srgb": {
+                  "r": 0.59535,
+                  "g": 0.4095003779999998,
+                  "b": 0.03464999999999996,
+                  "a": 1
+                }
+              }
+            }
+          ],
+          "name": "Accent",
+          "cornerRadius": 4,
+          "animation": {
+            "entrance": {
+              "preset": "fade",
+              "durationMs": 350,
+              "delayMs": 240,
+              "easing": "ease-out-cubic",
+              "startMode": "delay"
+            }
+          }
+        },
+        {
+          "id": "n-76",
+          "transform": {
+            "x": 78,
+            "y": 106.6,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
           },
           "size": {
             "width": 1764,
-            "height": 31
+            "height": 27
           },
           "opacity": 1,
           "blendMode": "normal",
@@ -817,7 +1033,7 @@
           "box": {
             "mode": "fixed",
             "width": 1764,
-            "height": 31,
+            "height": 27,
             "autoFit": {
               "enabled": false,
               "min": 8,
@@ -834,6 +1050,75 @@
                     "fontFamily": "Nunito",
                     "fontStyle": "Regular",
                     "fontSize": 22,
+                    "letterSpacing": 3.96,
+                    "fill": {
+                      "type": "solid",
+                      "color": {
+                        "srgb": {
+                          "r": 0.59535,
+                          "g": 0.4095003779999998,
+                          "b": 0.03464999999999996,
+                          "a": 1
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
+              "style": {
+                "align": "left",
+                "direction": "auto"
+              }
+            }
+          ],
+          "name": "Eyebrow",
+          "animation": {
+            "entrance": {
+              "preset": "fade",
+              "durationMs": 350,
+              "delayMs": 360,
+              "easing": "ease-out-cubic",
+              "startMode": "delay"
+            }
+          }
+        },
+        {
+          "id": "n-77",
+          "transform": {
+            "x": 78,
+            "y": 1025.4,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0
+          },
+          "size": {
+            "width": 1582,
+            "height": 30
+          },
+          "opacity": 1,
+          "blendMode": "normal",
+          "type": "text",
+          "box": {
+            "mode": "fixed",
+            "width": 1582,
+            "height": 30,
+            "autoFit": {
+              "enabled": false,
+              "min": 8,
+              "max": 512
+            },
+            "verticalAlign": "top"
+          },
+          "content": [
+            {
+              "runs": [
+                {
+                  "text": "Solar for Small Business",
+                  "style": {
+                    "fontFamily": "Nunito",
+                    "fontStyle": "Regular",
+                    "fontSize": 21,
+                    "letterSpacing": 0.84,
                     "fill": {
                       "type": "solid",
                       "color": {
@@ -854,28 +1139,28 @@
               }
             }
           ],
-          "name": "Kicker"
+          "name": "Footer"
         },
         {
-          "id": "n-63",
+          "id": "n-78",
           "transform": {
-            "x": 1738,
-            "y": 1021.5,
+            "x": 1686,
+            "y": 1025.4,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
           },
           "size": {
-            "width": 104,
-            "height": 27
+            "width": 156,
+            "height": 30
           },
           "opacity": 1,
           "blendMode": "normal",
           "type": "text",
           "box": {
             "mode": "fixed",
-            "width": 104,
-            "height": 27,
+            "width": 156,
+            "height": 30,
             "autoFit": {
               "enabled": false,
               "min": 8,
@@ -887,11 +1172,12 @@
             {
               "runs": [
                 {
-                  "text": "3",
+                  "text": "03 / 05",
                   "style": {
                     "fontFamily": "Nunito",
                     "fontStyle": "Regular",
-                    "fontSize": 19,
+                    "fontSize": 21,
+                    "letterSpacing": 0.84,
                     "fill": {
                       "type": "solid",
                       "color": {
@@ -935,17 +1221,17 @@
       },
       "children": [
         {
-          "id": "n-64",
+          "id": "n-79",
           "transform": {
             "x": 78,
-            "y": 130,
+            "y": 169,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
           },
           "size": {
             "width": 1764,
-            "height": 69
+            "height": 83
           },
           "opacity": 1,
           "blendMode": "normal",
@@ -953,7 +1239,7 @@
           "box": {
             "mode": "fixed",
             "width": 1764,
-            "height": 69,
+            "height": 83,
             "autoFit": {
               "enabled": false,
               "min": 8,
@@ -968,8 +1254,8 @@
                   "text": "Two Ways to Pay",
                   "style": {
                     "fontFamily": "Lora",
-                    "fontStyle": "Bold",
-                    "fontSize": 63,
+                    "fontStyle": "Regular",
+                    "fontSize": 76,
                     "fill": {
                       "type": "solid",
                       "color": {
@@ -1002,17 +1288,17 @@
           }
         },
         {
-          "id": "n-73",
+          "id": "n-88",
           "transform": {
-            "x": 957.5000000000002,
-            "y": 355,
+            "x": 78,
+            "y": 408,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
           },
           "size": {
-            "width": 5,
-            "height": 395.5
+            "width": 843,
+            "height": 402.5
           },
           "opacity": 1,
           "blendMode": "normal",
@@ -1023,20 +1309,23 @@
               "type": "solid",
               "color": {
                 "srgb": {
-                  "r": 0.7691882297882353,
-                  "g": 0.8092117702117647,
-                  "b": 0.7992058851058824,
+                  "r": 0.8771372549019608,
+                  "g": 0.9321960784313725,
+                  "b": 0.9184313725490196,
                   "a": 1
                 }
               }
             }
           ],
-          "name": "Divider",
-          "cornerRadius": 0,
+          "name": "Panel",
+          "cornerRadius": 30,
+          "data": {
+            "panel": true
+          },
           "animation": {
             "entrance": {
               "preset": "fade",
-              "durationMs": 350,
+              "durationMs": 450,
               "delayMs": 120,
               "easing": "ease-out-cubic",
               "startMode": "delay"
@@ -1044,88 +1333,88 @@
           }
         },
         {
-          "id": "n-74",
+          "id": "n-89",
           "transform": {
-            "x": 78,
-            "y": 355,
+            "x": 117,
+            "y": 447,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
           },
           "size": {
-            "width": 98,
-            "height": 98
+            "width": 76,
+            "height": 76
           },
           "opacity": 1,
           "blendMode": "normal",
           "type": "path",
           "segments": [
             {
-              "x": 69.42,
-              "y": 13.64,
+              "x": 53.83,
+              "y": 10.58,
               "cOut": {
-                "x": 86.58,
-                "y": 23.54
+                "x": 67.14,
+                "y": 18.26
               }
             },
             {
-              "x": 87.37,
-              "y": 62.97,
+              "x": 67.76,
+              "y": 48.83,
               "cIn": {
-                "x": 94.15,
-                "y": 44.34
+                "x": 73.01,
+                "y": 34.39
               },
               "cOut": {
-                "x": 80.59,
-                "y": 81.59
+                "x": 62.5,
+                "y": 63.27
               }
             },
             {
-              "x": 41.91,
-              "y": 89.21,
+              "x": 32.5,
+              "y": 69.19,
               "cIn": {
-                "x": 61.43,
-                "y": 92.65
+                "x": 47.64,
+                "y": 71.85
               },
               "cOut": {
-                "x": 22.39,
-                "y": 85.77
+                "x": 17.37,
+                "y": 66.52
               }
             },
             {
-              "x": 8.17,
-              "y": 49,
+              "x": 6.33,
+              "y": 38,
               "cIn": {
-                "x": 8.17,
-                "y": 68.82
+                "x": 6.33,
+                "y": 53.37
               }
             },
             {
-              "x": 8.19,
-              "y": 47.68,
+              "x": 6.35,
+              "y": 36.97,
               "cOut": {
-                "x": 8.65,
-                "y": 33.33
+                "x": 6.71,
+                "y": 25.85
               }
             },
             {
-              "x": 29.16,
-              "y": 13.31,
+              "x": 22.61,
+              "y": 10.32,
               "cIn": {
-                "x": 16.62,
-                "y": 20.29
+                "x": 12.89,
+                "y": 15.73
               },
               "cOut": {
-                "x": 41.7,
-                "y": 6.34
+                "x": 32.34,
+                "y": 4.91
               }
             },
             {
-              "x": 69.42,
-              "y": 13.64,
+              "x": 53.83,
+              "y": 10.58,
               "cIn": {
-                "x": 56.99,
-                "y": 6.46
+                "x": 44.19,
+                "y": 5.01
               }
             }
           ],
@@ -1136,231 +1425,231 @@
               "closed": true,
               "segments": [
                 {
-                  "x": 49,
-                  "y": 24.5,
+                  "x": 38,
+                  "y": 19,
                   "cOut": {
-                    "x": 46.75,
-                    "y": 24.5
+                    "x": 36.25,
+                    "y": 19
                   }
                 },
                 {
-                  "x": 44.92,
-                  "y": 28.58,
+                  "x": 34.83,
+                  "y": 22.17,
                   "cIn": {
-                    "x": 44.92,
-                    "y": 26.33
+                    "x": 34.83,
+                    "y": 20.42
                   },
                   "cOut": {
-                    "x": 38.15,
-                    "y": 28.58
+                    "x": 29.59,
+                    "y": 22.17
                   }
                 },
                 {
-                  "x": 32.67,
-                  "y": 40.83,
+                  "x": 25.33,
+                  "y": 31.67,
                   "cIn": {
-                    "x": 32.67,
-                    "y": 34.07
+                    "x": 25.33,
+                    "y": 26.42
                   },
                   "cOut": {
-                    "x": 32.67,
-                    "y": 47.6
+                    "x": 25.33,
+                    "y": 36.91
                   }
                 },
                 {
-                  "x": 44.92,
-                  "y": 53.08,
+                  "x": 34.83,
+                  "y": 41.17,
                   "cIn": {
-                    "x": 38.15,
-                    "y": 53.08
+                    "x": 29.59,
+                    "y": 41.17
                   }
                 },
                 {
-                  "x": 44.92,
-                  "y": 61.25,
+                  "x": 34.83,
+                  "y": 47.5,
                   "cOut": {
-                    "x": 43.54,
-                    "y": 61.32
+                    "x": 33.77,
+                    "y": 47.56
                   }
                 },
                 {
-                  "x": 41.38,
-                  "y": 59.62,
+                  "x": 32.09,
+                  "y": 46.24,
                   "cIn": {
-                    "x": 42.22,
-                    "y": 60.72
+                    "x": 32.74,
+                    "y": 47.09
                   }
                 },
                 {
-                  "x": 41.1,
-                  "y": 59.21,
+                  "x": 31.88,
+                  "y": 45.92,
                   "cOut": {
-                    "x": 39.94,
-                    "y": 57.34
+                    "x": 30.98,
+                    "y": 44.47
                   }
                 },
                 {
-                  "x": 35.59,
-                  "y": 57.83,
+                  "x": 27.6,
+                  "y": 44.85,
                   "cIn": {
-                    "x": 37.5,
-                    "y": 56.73
+                    "x": 29.08,
+                    "y": 43.99
                   },
                   "cOut": {
-                    "x": 33.68,
-                    "y": 58.93
+                    "x": 26.12,
+                    "y": 45.7
                   }
                 },
                 {
-                  "x": 34.03,
-                  "y": 63.29,
+                  "x": 26.39,
+                  "y": 49.08,
                   "cIn": {
-                    "x": 32.99,
-                    "y": 61.34
+                    "x": 25.59,
+                    "y": 47.57
                   },
                   "cOut": {
-                    "x": 36.15,
-                    "y": 66.96
+                    "x": 28.03,
+                    "y": 51.93
                   }
                 },
                 {
-                  "x": 44.26,
-                  "y": 69.41,
+                  "x": 34.32,
+                  "y": 53.83,
                   "cIn": {
-                    "x": 40.02,
-                    "y": 69.28
+                    "x": 31.04,
+                    "y": 53.73
                   }
                 },
                 {
-                  "x": 44.92,
-                  "y": 69.41,
+                  "x": 34.83,
+                  "y": 53.83,
                   "cOut": {
-                    "x": 44.92,
-                    "y": 71.48
+                    "x": 34.83,
+                    "y": 55.44
                   }
                 },
                 {
-                  "x": 48.52,
-                  "y": 73.47,
+                  "x": 37.63,
+                  "y": 56.98,
                   "cIn": {
-                    "x": 46.46,
-                    "y": 73.23
+                    "x": 36.03,
+                    "y": 56.79
                   }
                 },
                 {
-                  "x": 49,
-                  "y": 73.5,
+                  "x": 38,
+                  "y": 57,
                   "cOut": {
-                    "x": 51.25,
-                    "y": 73.5
+                    "x": 39.75,
+                    "y": 57
                   }
                 },
                 {
-                  "x": 53.08,
-                  "y": 69.42,
+                  "x": 41.17,
+                  "y": 53.83,
                   "cIn": {
-                    "x": 53.08,
-                    "y": 71.67
+                    "x": 41.17,
+                    "y": 55.58
                   }
                 },
                 {
-                  "x": 53.8,
-                  "y": 69.4,
+                  "x": 41.72,
+                  "y": 53.82,
                   "cOut": {
-                    "x": 60.42,
-                    "y": 69.01
+                    "x": 46.86,
+                    "y": 53.52
                   }
                 },
                 {
-                  "x": 65.34,
-                  "y": 56.81,
+                  "x": 50.67,
+                  "y": 44.05,
                   "cIn": {
-                    "x": 65.53,
-                    "y": 63.43
+                    "x": 50.82,
+                    "y": 49.19
                   },
                   "cOut": {
-                    "x": 65.15,
-                    "y": 50.18
+                    "x": 50.52,
+                    "y": 38.92
                   }
                 },
                 {
-                  "x": 53.08,
-                  "y": 44.92,
+                  "x": 41.17,
+                  "y": 34.83,
                   "cIn": {
-                    "x": 59.71,
-                    "y": 44.91
+                    "x": 46.31,
+                    "y": 34.83
                   }
                 },
                 {
-                  "x": 53.08,
-                  "y": 36.75,
+                  "x": 41.17,
+                  "y": 28.5,
                   "cOut": {
-                    "x": 54.55,
-                    "y": 36.7
+                    "x": 42.3,
+                    "y": 28.46
                   }
                 },
                 {
-                  "x": 56.62,
-                  "y": 38.38,
+                  "x": 43.91,
+                  "y": 29.76,
                   "cIn": {
-                    "x": 55.82,
-                    "y": 37.32
+                    "x": 43.29,
+                    "y": 28.94
                   }
                 },
                 {
-                  "x": 56.9,
-                  "y": 38.79,
+                  "x": 44.12,
+                  "y": 30.08,
                   "cOut": {
-                    "x": 58.06,
-                    "y": 40.66
+                    "x": 45.02,
+                    "y": 31.53
                   }
                 },
                 {
-                  "x": 62.41,
-                  "y": 40.17,
+                  "x": 48.4,
+                  "y": 31.15,
                   "cIn": {
-                    "x": 60.5,
-                    "y": 41.27
+                    "x": 46.92,
+                    "y": 32.01
                   },
                   "cOut": {
-                    "x": 64.32,
-                    "y": 39.07
+                    "x": 49.88,
+                    "y": 30.3
                   }
                 },
                 {
-                  "x": 63.97,
-                  "y": 34.71,
+                  "x": 49.61,
+                  "y": 26.92,
                   "cIn": {
-                    "x": 65.01,
-                    "y": 36.66
+                    "x": 50.41,
+                    "y": 28.43
                   },
                   "cOut": {
-                    "x": 61.85,
-                    "y": 31.04
+                    "x": 47.97,
+                    "y": 24.07
                   }
                 },
                 {
-                  "x": 53.74,
-                  "y": 28.58,
+                  "x": 41.68,
+                  "y": 22.17,
                   "cIn": {
-                    "x": 57.98,
-                    "y": 28.72
+                    "x": 44.97,
+                    "y": 22.27
                   }
                 },
                 {
-                  "x": 53.08,
-                  "y": 28.58,
+                  "x": 41.17,
+                  "y": 22.17,
                   "cOut": {
-                    "x": 53.08,
-                    "y": 26.33
+                    "x": 41.17,
+                    "y": 20.42
                   }
                 },
                 {
-                  "x": 49,
-                  "y": 24.5,
+                  "x": 38,
+                  "y": 19,
                   "cIn": {
-                    "x": 51.25,
-                    "y": 24.5
+                    "x": 39.75,
+                    "y": 19
                   }
                 }
               ]
@@ -1369,36 +1658,36 @@
               "closed": true,
               "segments": [
                 {
-                  "x": 53.08,
-                  "y": 53.08,
+                  "x": 41.17,
+                  "y": 41.17,
                   "cOut": {
-                    "x": 55.34,
-                    "y": 53.08
+                    "x": 42.91,
+                    "y": 41.17
                   }
                 },
                 {
-                  "x": 57.17,
-                  "y": 57.17,
+                  "x": 44.33,
+                  "y": 44.33,
                   "cIn": {
-                    "x": 57.17,
-                    "y": 54.91
+                    "x": 44.33,
+                    "y": 42.59
                   },
                   "cOut": {
-                    "x": 57.17,
-                    "y": 59.42
+                    "x": 44.33,
+                    "y": 46.08
                   }
                 },
                 {
-                  "x": 53.08,
-                  "y": 61.25,
+                  "x": 41.17,
+                  "y": 47.5,
                   "cIn": {
-                    "x": 55.34,
-                    "y": 61.25
+                    "x": 42.91,
+                    "y": 47.5
                   }
                 },
                 {
-                  "x": 53.08,
-                  "y": 53.08
+                  "x": 41.17,
+                  "y": 41.17
                 }
               ]
             },
@@ -1406,35 +1695,35 @@
               "closed": true,
               "segments": [
                 {
-                  "x": 44.92,
-                  "y": 36.75
+                  "x": 34.83,
+                  "y": 28.5
                 },
                 {
-                  "x": 44.92,
-                  "y": 44.92,
+                  "x": 34.83,
+                  "y": 34.83,
                   "cOut": {
-                    "x": 42.66,
-                    "y": 44.92
+                    "x": 33.09,
+                    "y": 34.83
                   }
                 },
                 {
-                  "x": 40.83,
-                  "y": 40.83,
+                  "x": 31.67,
+                  "y": 31.67,
                   "cIn": {
-                    "x": 40.83,
-                    "y": 43.09
+                    "x": 31.67,
+                    "y": 33.41
                   },
                   "cOut": {
-                    "x": 40.83,
-                    "y": 38.58
+                    "x": 31.67,
+                    "y": 29.92
                   }
                 },
                 {
-                  "x": 44.92,
-                  "y": 36.75,
+                  "x": 34.83,
+                  "y": 28.5,
                   "cIn": {
-                    "x": 42.66,
-                    "y": 36.75
+                    "x": 33.09,
+                    "y": 28.5
                   }
                 }
               ]
@@ -1467,17 +1756,17 @@
           }
         },
         {
-          "id": "n-75",
+          "id": "n-90",
           "transform": {
-            "x": 78,
-            "y": 479,
+            "x": 117,
+            "y": 549,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
           },
           "size": {
-            "width": 104,
-            "height": 5
+            "width": 91,
+            "height": 8
           },
           "opacity": 1,
           "blendMode": "normal",
@@ -1497,7 +1786,7 @@
             }
           ],
           "name": "Accent",
-          "cornerRadius": 3,
+          "cornerRadius": 4,
           "animation": {
             "entrance": {
               "preset": "fade",
@@ -1509,25 +1798,25 @@
           }
         },
         {
-          "id": "n-76",
+          "id": "n-91",
           "transform": {
-            "x": 78,
-            "y": 511.5,
+            "x": 117,
+            "y": 581.5,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
           },
           "size": {
-            "width": 719.8333333333334,
-            "height": 59
+            "width": 765,
+            "height": 45
           },
           "opacity": 1,
           "blendMode": "normal",
           "type": "text",
           "box": {
             "mode": "fixed",
-            "width": 719.8333333333334,
-            "height": 59,
+            "width": 765,
+            "height": 45,
             "autoFit": {
               "enabled": false,
               "min": 8,
@@ -1543,7 +1832,7 @@
                   "style": {
                     "fontFamily": "Lora",
                     "fontStyle": "Bold",
-                    "fontSize": 51,
+                    "fontSize": 39,
                     "fill": {
                       "type": "solid",
                       "color": {
@@ -1576,25 +1865,25 @@
           }
         },
         {
-          "id": "n-77",
+          "id": "n-92",
           "transform": {
-            "x": 78,
-            "y": 596.5,
+            "x": 117,
+            "y": 652.5,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
           },
           "size": {
-            "width": 719.8333333333334,
-            "height": 154
+            "width": 765,
+            "height": 119
           },
           "opacity": 1,
           "blendMode": "normal",
           "type": "text",
           "box": {
             "mode": "fixed",
-            "width": 719.8333333333334,
-            "height": 154,
+            "width": 765,
+            "height": 119,
             "autoFit": {
               "enabled": false,
               "min": 8,
@@ -1610,7 +1899,7 @@
                   "style": {
                     "fontFamily": "Nunito",
                     "fontStyle": "Regular",
-                    "fontSize": 48,
+                    "fontSize": 37,
                     "fill": {
                       "type": "solid",
                       "color": {
@@ -1641,7 +1930,7 @@
                   "style": {
                     "fontFamily": "Nunito",
                     "fontStyle": "Regular",
-                    "fontSize": 48,
+                    "fontSize": 37,
                     "fill": {
                       "type": "solid",
                       "color": {
@@ -1678,184 +1967,229 @@
           }
         },
         {
-          "id": "n-78",
+          "id": "n-93",
           "transform": {
-            "x": 1122.1666666666667,
-            "y": 355,
+            "x": 973.0000000000001,
+            "y": 408,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
           },
           "size": {
-            "width": 98,
-            "height": 98
+            "width": 869,
+            "height": 402.5
+          },
+          "opacity": 1,
+          "blendMode": "normal",
+          "type": "shape",
+          "shape": "rect",
+          "fills": [
+            {
+              "type": "solid",
+              "color": {
+                "srgb": {
+                  "r": 0.8771372549019608,
+                  "g": 0.9321960784313725,
+                  "b": 0.9184313725490196,
+                  "a": 1
+                }
+              }
+            }
+          ],
+          "name": "Panel",
+          "cornerRadius": 30,
+          "data": {
+            "panel": true
+          },
+          "animation": {
+            "entrance": {
+              "preset": "fade",
+              "durationMs": 450,
+              "delayMs": 720,
+              "easing": "ease-out-cubic",
+              "startMode": "delay"
+            }
+          }
+        },
+        {
+          "id": "n-94",
+          "transform": {
+            "x": 1012.0000000000001,
+            "y": 447,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0
+          },
+          "size": {
+            "width": 76,
+            "height": 76
           },
           "opacity": 1,
           "blendMode": "normal",
           "type": "path",
           "segments": [
             {
-              "x": 65.33,
-              "y": 8.17,
+              "x": 50.67,
+              "y": 6.33,
               "cOut": {
-                "x": 67.4,
-                "y": 8.17
+                "x": 52.27,
+                "y": 6.33
               }
             },
             {
-              "x": 69.39,
-              "y": 11.77,
+              "x": 53.81,
+              "y": 9.13,
               "cIn": {
-                "x": 69.15,
-                "y": 9.72
+                "x": 53.62,
+                "y": 7.54
               }
             },
             {
-              "x": 69.42,
-              "y": 12.25
+              "x": 53.83,
+              "y": 9.5
             },
             {
-              "x": 69.42,
-              "y": 16.33
+              "x": 53.83,
+              "y": 12.67
             },
             {
-              "x": 73.5,
-              "y": 16.33,
+              "x": 57,
+              "y": 12.67,
               "cOut": {
-                "x": 79.99,
-                "y": 16.33
+                "x": 62.03,
+                "y": 12.67
               }
             },
             {
-              "x": 85.73,
-              "y": 27.86,
+              "x": 66.48,
+              "y": 21.61,
               "cIn": {
-                "x": 85.35,
-                "y": 21.39
+                "x": 66.19,
+                "y": 16.59
               }
             },
             {
-              "x": 85.75,
-              "y": 28.58
+              "x": 66.5,
+              "y": 22.17
             },
             {
-              "x": 85.75,
-              "y": 77.58,
+              "x": 66.5,
+              "y": 60.17,
               "cOut": {
-                "x": 85.75,
-                "y": 84.07
+                "x": 66.5,
+                "y": 65.2
               }
             },
             {
-              "x": 74.22,
-              "y": 89.81,
+              "x": 57.56,
+              "y": 69.65,
               "cIn": {
-                "x": 80.69,
-                "y": 89.43
+                "x": 62.58,
+                "y": 69.36
               }
             },
             {
-              "x": 73.5,
-              "y": 89.83
+              "x": 57,
+              "y": 69.67
             },
             {
-              "x": 24.5,
-              "y": 89.83,
+              "x": 19,
+              "y": 69.67,
               "cOut": {
-                "x": 18.01,
-                "y": 89.83
+                "x": 13.97,
+                "y": 69.67
               }
             },
             {
-              "x": 12.27,
-              "y": 78.3,
+              "x": 9.52,
+              "y": 60.72,
               "cIn": {
-                "x": 12.65,
-                "y": 84.78
+                "x": 9.81,
+                "y": 65.75
               }
             },
             {
-              "x": 12.25,
-              "y": 77.58
+              "x": 9.5,
+              "y": 60.17
             },
             {
-              "x": 12.25,
-              "y": 28.58,
+              "x": 9.5,
+              "y": 22.17,
               "cOut": {
-                "x": 12.25,
-                "y": 22.09
+                "x": 9.5,
+                "y": 17.13
               }
             },
             {
-              "x": 23.78,
-              "y": 16.35,
+              "x": 18.44,
+              "y": 12.68,
               "cIn": {
-                "x": 17.31,
-                "y": 16.73
+                "x": 13.42,
+                "y": 12.98
               }
             },
             {
-              "x": 24.5,
-              "y": 16.33
+              "x": 19,
+              "y": 12.67
             },
             {
-              "x": 28.58,
-              "y": 16.33
+              "x": 22.17,
+              "y": 12.67
             },
             {
-              "x": 28.58,
-              "y": 12.25,
+              "x": 22.17,
+              "y": 9.5,
               "cOut": {
-                "x": 28.59,
-                "y": 10.09
+                "x": 22.17,
+                "y": 7.82
               }
             },
             {
-              "x": 32.43,
-              "y": 8.18,
+              "x": 25.15,
+              "y": 6.34,
               "cIn": {
-                "x": 30.27,
-                "y": 8.31
+                "x": 23.47,
+                "y": 6.44
               },
               "cOut": {
-                "x": 34.59,
-                "y": 8.05
+                "x": 26.82,
+                "y": 6.24
               }
             },
             {
-              "x": 36.72,
-              "y": 11.77,
+              "x": 28.48,
+              "y": 9.13,
               "cIn": {
-                "x": 36.47,
-                "y": 9.63
+                "x": 28.28,
+                "y": 7.47
               }
             },
             {
-              "x": 36.75,
-              "y": 12.25
+              "x": 28.5,
+              "y": 9.5
             },
             {
-              "x": 36.75,
-              "y": 16.33
+              "x": 28.5,
+              "y": 12.67
             },
             {
-              "x": 61.25,
-              "y": 16.33
+              "x": 47.5,
+              "y": 12.67
             },
             {
-              "x": 61.25,
-              "y": 12.25,
+              "x": 47.5,
+              "y": 9.5,
               "cOut": {
-                "x": 61.25,
-                "y": 10
+                "x": 47.5,
+                "y": 7.75
               }
             },
             {
-              "x": 65.33,
-              "y": 8.17,
+              "x": 50.67,
+              "y": 6.33,
               "cIn": {
-                "x": 63.08,
-                "y": 8.17
+                "x": 48.92,
+                "y": 6.33
               }
             }
           ],
@@ -1866,56 +2200,56 @@
               "closed": true,
               "segments": [
                 {
-                  "x": 77.58,
-                  "y": 36.75
+                  "x": 60.17,
+                  "y": 28.5
                 },
                 {
-                  "x": 20.42,
-                  "y": 36.75
+                  "x": 15.83,
+                  "y": 28.5
                 },
                 {
-                  "x": 20.42,
-                  "y": 76.05,
+                  "x": 15.83,
+                  "y": 58.98,
                   "cOut": {
-                    "x": 20.42,
-                    "y": 78.93
+                    "x": 15.83,
+                    "y": 61.21
                   }
                 },
                 {
-                  "x": 24.02,
-                  "y": 81.63,
+                  "x": 18.63,
+                  "y": 63.3,
                   "cIn": {
-                    "x": 21.99,
-                    "y": 81.3
+                    "x": 17.06,
+                    "y": 63.05
                   }
                 },
                 {
-                  "x": 24.5,
-                  "y": 81.67
+                  "x": 19,
+                  "y": 63.33
                 },
                 {
-                  "x": 73.5,
-                  "y": 81.67,
+                  "x": 57,
+                  "y": 63.33,
                   "cOut": {
-                    "x": 75.59,
-                    "y": 81.67
+                    "x": 58.62,
+                    "y": 63.33
                   }
                 },
                 {
-                  "x": 77.55,
-                  "y": 76.71,
+                  "x": 60.14,
+                  "y": 59.49,
                   "cIn": {
-                    "x": 77.32,
-                    "y": 79.5
+                    "x": 59.96,
+                    "y": 61.65
                   }
                 },
                 {
-                  "x": 77.58,
-                  "y": 76.05
+                  "x": 60.17,
+                  "y": 58.98
                 },
                 {
-                  "x": 77.58,
-                  "y": 36.75
+                  "x": 60.17,
+                  "y": 28.5
                 }
               ]
             },
@@ -1923,92 +2257,92 @@
               "closed": true,
               "segments": [
                 {
-                  "x": 49,
-                  "y": 49,
+                  "x": 38,
+                  "y": 38,
                   "cOut": {
-                    "x": 51.07,
-                    "y": 49
+                    "x": 39.61,
+                    "y": 38
                   }
                 },
                 {
-                  "x": 53.05,
-                  "y": 52.61,
+                  "x": 41.14,
+                  "y": 40.8,
                   "cIn": {
-                    "x": 52.81,
-                    "y": 50.55
+                    "x": 40.96,
+                    "y": 39.2
                   }
                 },
                 {
-                  "x": 53.08,
-                  "y": 53.08
+                  "x": 41.17,
+                  "y": 41.17
                 },
                 {
-                  "x": 53.08,
-                  "y": 65.33,
+                  "x": 41.17,
+                  "y": 50.67,
                   "cOut": {
-                    "x": 53.08,
-                    "y": 67.49
+                    "x": 41.16,
+                    "y": 52.34
                   }
                 },
                 {
-                  "x": 49.24,
-                  "y": 69.4,
+                  "x": 38.19,
+                  "y": 53.82,
                   "cIn": {
-                    "x": 51.4,
-                    "y": 69.28
+                    "x": 39.86,
+                    "y": 53.73
                   },
                   "cOut": {
-                    "x": 47.08,
-                    "y": 69.53
+                    "x": 36.51,
+                    "y": 53.92
                   }
                 },
                 {
-                  "x": 44.95,
-                  "y": 65.81,
+                  "x": 34.86,
+                  "y": 51.04,
                   "cIn": {
-                    "x": 45.2,
-                    "y": 67.95
+                    "x": 35.05,
+                    "y": 52.7
                   }
                 },
                 {
-                  "x": 44.92,
-                  "y": 65.33
+                  "x": 34.83,
+                  "y": 50.67
                 },
                 {
-                  "x": 44.92,
-                  "y": 57.17,
+                  "x": 34.83,
+                  "y": 44.33,
                   "cOut": {
-                    "x": 42.76,
-                    "y": 57.16
+                    "x": 33.16,
+                    "y": 44.33
                   }
                 },
                 {
-                  "x": 40.85,
-                  "y": 53.32,
+                  "x": 31.68,
+                  "y": 41.35,
                   "cIn": {
-                    "x": 40.97,
-                    "y": 55.48
+                    "x": 31.77,
+                    "y": 43.03
                   },
                   "cOut": {
-                    "x": 40.72,
-                    "y": 51.16
+                    "x": 31.58,
+                    "y": 39.68
                   }
                 },
                 {
-                  "x": 44.44,
-                  "y": 49.03,
+                  "x": 34.46,
+                  "y": 38.02,
                   "cIn": {
-                    "x": 42.3,
-                    "y": 49.28
+                    "x": 32.8,
+                    "y": 38.22
                   }
                 },
                 {
-                  "x": 44.92,
-                  "y": 49
+                  "x": 34.83,
+                  "y": 38
                 },
                 {
-                  "x": 49,
-                  "y": 49
+                  "x": 38,
+                  "y": 38
                 }
               ]
             }
@@ -2033,24 +2367,24 @@
             "entrance": {
               "preset": "fade",
               "durationMs": 350,
-              "delayMs": 720,
+              "delayMs": 840,
               "easing": "ease-out-cubic",
               "startMode": "delay"
             }
           }
         },
         {
-          "id": "n-79",
+          "id": "n-95",
           "transform": {
-            "x": 1122.1666666666667,
-            "y": 479,
+            "x": 1012.0000000000001,
+            "y": 549,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
           },
           "size": {
-            "width": 104,
-            "height": 5
+            "width": 91,
+            "height": 8
           },
           "opacity": 1,
           "blendMode": "normal",
@@ -2070,37 +2404,37 @@
             }
           ],
           "name": "Accent",
-          "cornerRadius": 3,
+          "cornerRadius": 4,
           "animation": {
             "entrance": {
               "preset": "fade",
               "durationMs": 350,
-              "delayMs": 840,
+              "delayMs": 960,
               "easing": "ease-out-cubic",
               "startMode": "delay"
             }
           }
         },
         {
-          "id": "n-80",
+          "id": "n-96",
           "transform": {
-            "x": 1122.1666666666667,
-            "y": 511.5,
+            "x": 1012.0000000000001,
+            "y": 581.5,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
           },
           "size": {
-            "width": 719.8333333333334,
-            "height": 59
+            "width": 791,
+            "height": 45
           },
           "opacity": 1,
           "blendMode": "normal",
           "type": "text",
           "box": {
             "mode": "fixed",
-            "width": 719.8333333333334,
-            "height": 59,
+            "width": 791,
+            "height": 45,
             "autoFit": {
               "enabled": false,
               "min": 8,
@@ -2116,7 +2450,7 @@
                   "style": {
                     "fontFamily": "Lora",
                     "fontStyle": "Bold",
-                    "fontSize": 51,
+                    "fontSize": 39,
                     "fill": {
                       "type": "solid",
                       "color": {
@@ -2142,32 +2476,32 @@
             "entrance": {
               "preset": "rise",
               "durationMs": 450,
-              "delayMs": 960,
+              "delayMs": 1080,
               "easing": "ease-out-cubic",
               "startMode": "delay"
             }
           }
         },
         {
-          "id": "n-81",
+          "id": "n-97",
           "transform": {
-            "x": 1122.1666666666667,
-            "y": 596.5,
+            "x": 1012.0000000000001,
+            "y": 652.5,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
           },
           "size": {
-            "width": 719.8333333333334,
-            "height": 154
+            "width": 791,
+            "height": 119
           },
           "opacity": 1,
           "blendMode": "normal",
           "type": "text",
           "box": {
             "mode": "fixed",
-            "width": 719.8333333333334,
-            "height": 154,
+            "width": 791,
+            "height": 119,
             "autoFit": {
               "enabled": false,
               "min": 8,
@@ -2183,7 +2517,7 @@
                   "style": {
                     "fontFamily": "Nunito",
                     "fontStyle": "Regular",
-                    "fontSize": 48,
+                    "fontSize": 37,
                     "fill": {
                       "type": "solid",
                       "color": {
@@ -2214,7 +2548,7 @@
                   "style": {
                     "fontFamily": "Nunito",
                     "fontStyle": "Regular",
-                    "fontSize": 48,
+                    "fontSize": 37,
                     "fill": {
                       "type": "solid",
                       "color": {
@@ -2251,17 +2585,59 @@
           }
         },
         {
-          "id": "n-82",
+          "id": "n-98",
           "transform": {
             "x": 78,
-            "y": 32.5,
+            "y": 84.5,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0
+          },
+          "size": {
+            "width": 91,
+            "height": 8
+          },
+          "opacity": 1,
+          "blendMode": "normal",
+          "type": "shape",
+          "shape": "rect",
+          "fills": [
+            {
+              "type": "solid",
+              "color": {
+                "srgb": {
+                  "r": 0.59535,
+                  "g": 0.4095003779999998,
+                  "b": 0.03464999999999996,
+                  "a": 1
+                }
+              }
+            }
+          ],
+          "name": "Accent",
+          "cornerRadius": 4,
+          "animation": {
+            "entrance": {
+              "preset": "fade",
+              "durationMs": 350,
+              "delayMs": 1080,
+              "easing": "ease-out-cubic",
+              "startMode": "delay"
+            }
+          }
+        },
+        {
+          "id": "n-99",
+          "transform": {
+            "x": 78,
+            "y": 106.6,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
           },
           "size": {
             "width": 1764,
-            "height": 31
+            "height": 27
           },
           "opacity": 1,
           "blendMode": "normal",
@@ -2269,7 +2645,7 @@
           "box": {
             "mode": "fixed",
             "width": 1764,
-            "height": 31,
+            "height": 27,
             "autoFit": {
               "enabled": false,
               "min": 8,
@@ -2286,6 +2662,75 @@
                     "fontFamily": "Nunito",
                     "fontStyle": "Regular",
                     "fontSize": 22,
+                    "letterSpacing": 3.96,
+                    "fill": {
+                      "type": "solid",
+                      "color": {
+                        "srgb": {
+                          "r": 0.59535,
+                          "g": 0.4095003779999998,
+                          "b": 0.03464999999999996,
+                          "a": 1
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
+              "style": {
+                "align": "left",
+                "direction": "auto"
+              }
+            }
+          ],
+          "name": "Eyebrow",
+          "animation": {
+            "entrance": {
+              "preset": "fade",
+              "durationMs": 350,
+              "delayMs": 1080,
+              "easing": "ease-out-cubic",
+              "startMode": "delay"
+            }
+          }
+        },
+        {
+          "id": "n-100",
+          "transform": {
+            "x": 78,
+            "y": 1025.4,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0
+          },
+          "size": {
+            "width": 1582,
+            "height": 30
+          },
+          "opacity": 1,
+          "blendMode": "normal",
+          "type": "text",
+          "box": {
+            "mode": "fixed",
+            "width": 1582,
+            "height": 30,
+            "autoFit": {
+              "enabled": false,
+              "min": 8,
+              "max": 512
+            },
+            "verticalAlign": "top"
+          },
+          "content": [
+            {
+              "runs": [
+                {
+                  "text": "Solar for Small Business",
+                  "style": {
+                    "fontFamily": "Nunito",
+                    "fontStyle": "Regular",
+                    "fontSize": 21,
+                    "letterSpacing": 0.84,
                     "fill": {
                       "type": "solid",
                       "color": {
@@ -2306,28 +2751,28 @@
               }
             }
           ],
-          "name": "Kicker"
+          "name": "Footer"
         },
         {
-          "id": "n-83",
+          "id": "n-101",
           "transform": {
-            "x": 1738,
-            "y": 1021.5,
+            "x": 1686,
+            "y": 1025.4,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
           },
           "size": {
-            "width": 104,
-            "height": 27
+            "width": 156,
+            "height": 30
           },
           "opacity": 1,
           "blendMode": "normal",
           "type": "text",
           "box": {
             "mode": "fixed",
-            "width": 104,
-            "height": 27,
+            "width": 156,
+            "height": 30,
             "autoFit": {
               "enabled": false,
               "min": 8,
@@ -2339,11 +2784,12 @@
             {
               "runs": [
                 {
-                  "text": "4",
+                  "text": "04 / 05",
                   "style": {
                     "fontFamily": "Nunito",
                     "fontStyle": "Regular",
-                    "fontSize": 19,
+                    "fontSize": 21,
+                    "letterSpacing": 0.84,
                     "fill": {
                       "type": "solid",
                       "color": {
@@ -2387,7 +2833,69 @@
       },
       "children": [
         {
-          "id": "n-84",
+          "id": "n-103",
+          "transform": {
+            "x": 1682,
+            "y": -194,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0
+          },
+          "size": {
+            "width": 432,
+            "height": 432
+          },
+          "opacity": 0.9,
+          "blendMode": "normal",
+          "type": "shape",
+          "shape": "ellipse",
+          "fills": [
+            {
+              "type": "gradient",
+              "gradient": "linear",
+              "angle": 135,
+              "stops": [
+                {
+                  "position": 0,
+                  "color": {
+                    "srgb": {
+                      "r": 0.9725000000000001,
+                      "g": 0.8250002999999999,
+                      "b": 0.5274999999999999,
+                      "a": 1
+                    }
+                  }
+                },
+                {
+                  "position": 1,
+                  "color": {
+                    "srgb": {
+                      "r": 0.054901960784313725,
+                      "g": 0.47843137254901963,
+                      "b": 0.37254901960784315,
+                      "a": 1
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "name": "Decor",
+          "data": {
+            "decor": true
+          },
+          "animation": {
+            "entrance": {
+              "preset": "fade",
+              "durationMs": 600,
+              "delayMs": 0,
+              "easing": "ease-out-cubic",
+              "startMode": "delay"
+            }
+          }
+        },
+        {
+          "id": "n-102",
           "transform": {
             "x": 1318,
             "y": 216,
@@ -2424,24 +2932,24 @@
             "entrance": {
               "preset": "fade",
               "durationMs": 600,
-              "delayMs": 0,
+              "delayMs": 120,
               "easing": "ease-out-cubic",
               "startMode": "delay"
             }
           }
         },
         {
-          "id": "n-87",
+          "id": "n-106",
           "transform": {
             "x": 78,
-            "y": 428,
+            "y": 422,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
           },
           "size": {
-            "width": 104,
-            "height": 5
+            "width": 91,
+            "height": 8
           },
           "opacity": 1,
           "blendMode": "normal",
@@ -2461,29 +2969,29 @@
             }
           ],
           "name": "Accent",
-          "cornerRadius": 3,
+          "cornerRadius": 4,
           "animation": {
             "entrance": {
               "preset": "fade",
               "durationMs": 350,
-              "delayMs": 120,
+              "delayMs": 240,
               "easing": "ease-out-cubic",
               "startMode": "delay"
             }
           }
         },
         {
-          "id": "n-88",
+          "id": "n-107",
           "transform": {
             "x": 78,
-            "y": 472,
+            "y": 469,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
           },
           "size": {
             "width": 1167.3333333333335,
-            "height": 88
+            "height": 100
           },
           "opacity": 1,
           "blendMode": "normal",
@@ -2491,7 +2999,7 @@
           "box": {
             "mode": "fixed",
             "width": 1167.3333333333335,
-            "height": 88,
+            "height": 100,
             "autoFit": {
               "enabled": false,
               "min": 8,
@@ -2506,8 +3014,8 @@
                   "text": "Start This Quarter",
                   "style": {
                     "fontFamily": "Lora",
-                    "fontStyle": "Bold",
-                    "fontSize": 81,
+                    "fontStyle": "Regular",
+                    "fontSize": 92,
                     "fill": {
                       "type": "solid",
                       "color": {
@@ -2533,24 +3041,24 @@
             "entrance": {
               "preset": "rise",
               "durationMs": 550,
-              "delayMs": 240,
+              "delayMs": 360,
               "easing": "ease-out-cubic",
               "startMode": "delay"
             }
           }
         },
         {
-          "id": "n-89",
+          "id": "n-108",
           "transform": {
             "x": 78,
-            "y": 599,
+            "y": 608,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
           },
           "size": {
             "width": 1167.3333333333335,
-            "height": 53
+            "height": 50
           },
           "opacity": 1,
           "blendMode": "normal",
@@ -2558,7 +3066,7 @@
           "box": {
             "mode": "fixed",
             "width": 1167.3333333333335,
-            "height": 53,
+            "height": 50,
             "autoFit": {
               "enabled": false,
               "min": 8,
@@ -2574,7 +3082,7 @@
                   "style": {
                     "fontFamily": "Nunito",
                     "fontStyle": "Regular",
-                    "fontSize": 39,
+                    "fontSize": 37,
                     "fill": {
                       "type": "solid",
                       "color": {
@@ -2600,32 +3108,32 @@
             "entrance": {
               "preset": "rise",
               "durationMs": 450,
-              "delayMs": 360,
+              "delayMs": 480,
               "easing": "ease-out-cubic",
               "startMode": "delay"
             }
           }
         },
         {
-          "id": "n-90",
+          "id": "n-109",
           "transform": {
-            "x": 1738,
-            "y": 1021.5,
+            "x": 78,
+            "y": 1025.4,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
           },
           "size": {
-            "width": 104,
-            "height": 27
+            "width": 1582,
+            "height": 30
           },
           "opacity": 1,
           "blendMode": "normal",
           "type": "text",
           "box": {
             "mode": "fixed",
-            "width": 104,
-            "height": 27,
+            "width": 1582,
+            "height": 30,
             "autoFit": {
               "enabled": false,
               "min": 8,
@@ -2637,11 +3145,71 @@
             {
               "runs": [
                 {
-                  "text": "5",
+                  "text": "Solar for Small Business",
                   "style": {
                     "fontFamily": "Nunito",
                     "fontStyle": "Regular",
-                    "fontSize": 19,
+                    "fontSize": 21,
+                    "letterSpacing": 0.84,
+                    "fill": {
+                      "type": "solid",
+                      "color": {
+                        "srgb": {
+                          "r": 0.8908410392353001,
+                          "g": 0.9397587407646999,
+                          "b": 0.92752931538235,
+                          "a": 1
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
+              "style": {
+                "align": "left",
+                "direction": "auto"
+              }
+            }
+          ],
+          "name": "Footer"
+        },
+        {
+          "id": "n-110",
+          "transform": {
+            "x": 1686,
+            "y": 1025.4,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0
+          },
+          "size": {
+            "width": 156,
+            "height": 30
+          },
+          "opacity": 1,
+          "blendMode": "normal",
+          "type": "text",
+          "box": {
+            "mode": "fixed",
+            "width": 156,
+            "height": 30,
+            "autoFit": {
+              "enabled": false,
+              "min": 8,
+              "max": 512
+            },
+            "verticalAlign": "top"
+          },
+          "content": [
+            {
+              "runs": [
+                {
+                  "text": "05 / 05",
+                  "style": {
+                    "fontFamily": "Nunito",
+                    "fontStyle": "Regular",
+                    "fontSize": 21,
+                    "letterSpacing": 0.84,
                     "fill": {
                       "type": "solid",
                       "color": {

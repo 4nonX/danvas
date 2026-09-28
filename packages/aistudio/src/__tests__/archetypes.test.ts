@@ -147,10 +147,15 @@ describe("layoutDeck", () => {
     for (const p of deck.pages) {
       expect(p.quality.issues, `${p.archetype}: ${JSON.stringify(p.quality.issues)}`).toEqual([]);
     }
-    // Reading pages carry the kicker; impact pages stay quiet.
-    const kickers = deck.pages.filter((p) => p.nodes.some((n) => n.name === "Kicker"));
-    expect(kickers.every((p) => !archetypeIsImpact(p.archetype))).toBe(true);
-    expect(kickers.length).toBeGreaterThan(0);
+    // Reading pages carry the eyebrow band (the deck's name when the outline
+    // gave no eyebrow) and the footer; a cover has neither, and no impact
+    // page has an eyebrow it was not given.
+    const eyebrows = deck.pages.filter((p) => p.nodes.some((n) => n.name === "Eyebrow"));
+    expect(eyebrows.every((p) => !archetypeIsImpact(p.archetype))).toBe(true);
+    expect(eyebrows.length).toBeGreaterThan(0);
+    const footers = deck.pages.filter((p) => p.nodes.some((n) => n.name === "Footer"));
+    expect(footers.length).toBe(deck.pages.length - 1);
+    expect(deck.pages[0].nodes.some((n) => n.name === "Footer" || n.name === "Page number")).toBe(false);
   });
 
   it("is byte-for-byte deterministic", () => {
@@ -393,7 +398,7 @@ describe("motion", () => {
     const page = composeArchetypePage(item, ds, { index: 1, total: 4 });
     const nodes = page.nodes as Animated[];
     for (const n of nodes) {
-      if (n.name === "Kicker" || n.name === "Page number") expect(n.animation).toBeUndefined();
+      if (n.name === "Kicker" || n.name === "Page number" || n.name === "Footer" || n.name === "Logo") expect(n.animation).toBeUndefined();
       else expect(n.animation?.entrance).toBeDefined();
     }
     const ents = entrances(nodes).map((n) => n.animation!.entrance!);
@@ -542,6 +547,11 @@ describe("icons and decor across the deck", () => {
     expect(named(f, "Icon")).toHaveLength(4);
     expect(named(f, "Figure")).toHaveLength(4);
     clean(f as never);
+    // The figure's glyphs sit under the rule, never rising into the icon: the
+    // figure box starts below the icon's bottom in every cell.
+    const icons = named(f, "Icon");
+    const figures = named(f, "Figure");
+    figures.forEach((fig, i) => expect(fig.transform.y).toBeGreaterThan(icons[i].transform.y + icons[i].size.height));
     const withOne = normalizeOutline({ title: "T", pages: [{ ...grid, stats: grid.stats.map((st, i) => (i === 0 ? { ...st, icon: "leaf" } : st)) }] }).pages[0];
     expect(named(composeArchetypePage(withOne, ds, { index: 1, total: 4 }), "Icon")).toHaveLength(0);
     const tl = pageFor("timeline") as { steps: { label: string; icon?: string }[] };
@@ -559,12 +569,13 @@ describe("icons and decor across the deck", () => {
       const bare = { ...pageFor(a), image: undefined, icon: "rocket" };
       const page = composeArchetypePage(normalizeOutline({ title: "T", pages: [bare] }).pages[0], ds, { index: 0, total: 4, section: 2 });
       const decor = named(page, "Decor");
-      expect(decor.length, a).toBe(2);
+      // The gradient corner disc, the soft disc, and the icon set in it.
+      expect(decor.length, a).toBe(3);
       expect(decor.every((d) => d.data?.decor)).toBe(true);
       expect((page.nodes as N[])[0].name).toBe("Decor");
-      // The disc sits on the trailing side, clear of the text column.
+      // The discs sit on the trailing side, clear of the text column.
       const title = (page.nodes as N[]).find((n) => n.name === "Title")!;
-      expect(decor[0].transform.x).toBeGreaterThan(title.transform.x + title.size.width - ds.gutter * 3);
+      expect(decor[1].transform.x).toBeGreaterThan(title.transform.x + title.size.width - ds.gutter * 3);
       clean(page as never);
       const pictured = composeArchetypePage(normalizeOutline({ title: "T", pages: [pageFor(a)] }).pages[0], ds, { index: 0, total: 4 });
       expect(named(pictured, "Decor")).toHaveLength(0);
@@ -597,5 +608,26 @@ describe("figures", () => {
     const page = composeArchetypePage(item, ds, { index: 1, total: 4 });
     const fig = (page.nodes as { name?: string; content?: { runs: { style: { lineHeight?: number } }[] }[] }[]).find((n) => n.name === "Figure")!;
     expect(fig.content![0].runs.every((r) => r.style.lineHeight === 1)).toBe(true);
+  });
+});
+
+describe("furniture on a picture page", () => {
+  it("keeps the eyebrow, the footer and the page number in the text column, clear of the picture", () => {
+    const ds = deriveDesignSystem(theme, size, { seed: 1, catalog: catalogEntryForSeed(1) });
+    const item = normalizeOutline({ title: "T", pages: [{ ...pageFor("imageCaption"), eyebrow: "After two seasons" }] }).pages[0];
+    const page = composeArchetypePage(item, ds, { index: 3, total: 4 });
+    type N = { name?: string; transform: { x: number }; size: { width: number; height: number } };
+    // The picture bleeds to the bottom edge, so every piece of furniture
+    // stays in the text column: the name on one line, the number at the
+    // column's trailing edge, nothing over the picture.
+    const picture = (page.nodes as N[]).find((n) => n.name === "Image")!;
+    const overlapsPicture = (n: N) => n.transform.x < picture.transform.x + picture.size.width && n.transform.x + n.size.width > picture.transform.x;
+    for (const name of ["Footer", "Eyebrow", "Page number"]) {
+      const n = (page.nodes as N[]).find((x) => x.name === name)!;
+      expect(n, name).toBeDefined();
+      expect(overlapsPicture(n), name).toBe(false);
+      expect(n.size.height, name).toBeLessThan(ds.unit * 3);
+    }
+    expect(qualityCheck({ background: page.background, nodes: page.nodes, size }).issues).toEqual([]);
   });
 });

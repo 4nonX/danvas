@@ -75,7 +75,8 @@ export function qualityCheck(page: PageInput): QualityReport {
     // Ornament (a decor disc bleeding off the edge, the icon set in it) is
     // drawn behind everything and may cross the page edge and each other on
     // purpose; it is neither an overlap nor an overflow.
-    if ((n as { data?: { decor?: boolean } }).data?.decor) continue;
+    // A panel is drawn behind the content it holds; that is not an overlap.
+    if ((n as { data?: { decor?: boolean; panel?: boolean } }).data?.decor || (n as { data?: { panel?: boolean } }).data?.panel) continue;
     const box = nodeBox(n);
     if (!box) continue;
     boxes.push(box);

@@ -52,6 +52,9 @@ type OutlineItem struct {
 	People []Person   `json:"people,omitempty"`
 	// Icon is one English keyword naming a simple icon for the page.
 	Icon string `json:"icon,omitempty"`
+	// Eyebrow is two or three words saying what the page is about, set small
+	// above the title.
+	Eyebrow string `json:"eyebrow,omitempty"`
 }
 
 // Stat is the content of a big-number slide: one figure at display scale, its
@@ -177,6 +180,7 @@ const (
 	maxPersonRole     = 40
 	maxStepWhen       = 20
 	maxColIcon        = 30
+	maxEyebrowChars   = 24
 )
 
 // DesignOutline is the editable plan returned by the outline endpoint.
@@ -280,6 +284,7 @@ func normalizeArchetypeFields(p *OutlineItem) {
 	p.Icon = iconKeyword(p.Icon)
 	p.Title = undashTitle(clipRunes(strings.TrimSpace(p.Title), maxTitleChars))
 	p.Subhead = clipRunes(strings.TrimSpace(p.Subhead), maxSubheadChars)
+	p.Eyebrow = clipRunes(strings.TrimSpace(p.Eyebrow), maxEyebrowChars)
 	if p.Archetype == "statement" {
 		p.Title = clipRunes(p.Title, maxStatementChars)
 	}

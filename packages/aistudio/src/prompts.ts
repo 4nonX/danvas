@@ -35,6 +35,7 @@ export const archetypeCatalogRule =
   "'table' (title + table.columns and table.rows with real values from the brief or attached material; 2-4 columns, up to 6 rows; never invent data); " +
   "'team' (title + 1-4 people, each name + role; no pictures are generated for people); " +
   "'closing' (title + subhead as the call to action). " +
+  "Every page except the cover names an 'eyebrow': two or three words saying what the page is about (The problem, What we tried, Traction, The ask), set small above the title. " +
   "Icons: a column, a kpiGrid stat, a timeline step, and a bullets, statement, bigNumber, cover, section or closing page may each name an 'icon', one English keyword for a simple icon (shield, clock, users, chart, leaf, globe, bolt, heart, coin, truck, calendar, rocket, target, star, lock, cloud); name one for every item in a set or for none, and name one for most pages that can carry one.";
 
 export const storyArcRule =
