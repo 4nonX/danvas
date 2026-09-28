@@ -44,7 +44,7 @@ export const storyArcRule =
   "give an 'image' intent to every 'cover', 'imageCaption', 'section' and 'closing' page and to about half of the rest, with a concrete English subject and consistent treatment across the deck.";
 
 export const copyToFormRule =
-  "Write copy to fit the form: a title is a headline (under 60 characters), never a sentence with a full stop; points are parallel in structure and start with the same part of speech; a statement is one idea, not a summary; a stat.label says what the number means in plain words. Never write 'Slide 1', 'Introduction' or other structural labels as content.";
+  "Write copy to fit the form: a title is a headline (under 60 characters), never a sentence with a full stop; points are parallel in structure and start with the same part of speech; a statement is one idea, not a summary; a stat.label says what the number means in plain words. Never write 'Slide 1', 'Introduction' or other structural labels as content. Never use a dash as a separator inside a title; write a subhead instead. Every figure comes from the brief or the attached material, exactly as given; never invent, round or extrapolate a number.";
 
 /** System prompt asking the model for a DesignOutline (titles + points + roles),
  *  never positions or styling. The client validates with normalizeOutline. */

@@ -25,6 +25,7 @@ import {
   deriveOutline, switchOutline, sourcesOutlineItem, type PageText, type SourceCitation,
   themeCatalogEntry, deckThemeFromCatalog, themeRecordFromCatalog, deckThemeFromRecord, pageTreatment, catalogEntryForMood, themeRecordFromDesignSystem , type DeckLogo } from "@hc/aistudio";
 import { builtinMasterAndLayouts, type SlideLayout } from "@hc/schema";
+import { shouldGroundInLayouts } from "@/lib/generationRoute";
 import { promptText } from "@/lib/promptDialog";
 import { downloadHycFile } from "@/lib/hycFile";
 import { generateAltText } from "@/lib/altText";
@@ -2019,6 +2020,9 @@ interface AssistantDeps {
   /** A built-in catalog theme chosen in the review card (F40 E12): the deck is
    *  composed on it instead of the title-seeded generated theme. */
   styleThemeId?: string;
+  /** True when a template's layout system was adopted into the document for
+   *  this generation, so the deck is grounded in those layouts. */
+  templateAdopted?: boolean;
   /** A template's theme record (F40 E14): wins over styleThemeId; the deck is
    *  composed on the template's palette and fonts. */
   styleThemeRecord?: Theme;
@@ -2843,11 +2847,16 @@ async function resolvePlanStep(step: PlanStep, deps: AssistantDeps): Promise<{ p
       // engine only when layout grounding is impossible.
       {
         const docLayouts = (st.doc as unknown as { layouts?: SlideLayout[] }).layouts;
-        const layouts = docLayouts?.length ? docLayouts : builtinMasterAndLayouts(size).layouts;
+        const layouts = docLayouts ?? [];
+        // Only a template's own layouts ground a deck. The builtin slide
+        // layouts every presentation carries are scaffolding, and grounding
+        // in them turned every generated deck into title-and-bullets pages
+        // whatever the outline planned; those decks now compose through the
+        // archetype door below, the same one the API takes.
         // Picture slots stay available on text-only providers: the image queue
         // still resolves them via asset reuse and stock (no image provider
         // needed) and quietly skips a miss (generateAllowed=false).
-        if (layouts.length && (dt === "deck" || dt === "doc")) {
+        if (shouldGroundInLayouts({ designType: dt, docLayouts, templateAdopted: deps.templateAdopted })) {
           const items = outline.pages;
           const ids = layouts.map((l) => l.id);
           let selection: string[];
@@ -3422,6 +3431,8 @@ function runPlanStep(step: PlanStep, ctx?: { brandTargets?: BrandFixTarget[]; pa
       const base = append ? st.doc.pages.length : 0;
       const ids = append ? st.appendDeckPages(deck, size) : st.buildDeckFromOutline(deck, size);
       if (!ids.length) return false;
+      // A fresh design takes the deck's title, as the layout-grounded path does.
+      if (clean.title.trim() && isUntitledDoc(st.doc.title)) st.setDocTitle(clean.title.trim().slice(0, 120));
       // T19 (d): stamp the generated visual system as the file theme (record
       // only - these pages already wear its colors; a remap from any outgoing
       // theme would misfire). Appending never overrides an existing theme.
@@ -3864,6 +3875,7 @@ function AssistantPanel({ workspaceId, aiReady, voiceClause, brandPalette, brand
           if (!stillOnDesign()) { wrongDesign(); return; }
           if (hasLayouts) {
             useEditor.getState().adoptLayoutSet(tplFile.masters ?? [], tplFile.layouts ?? []);
+            deps.templateAdopted = true;
           }
           if (tplFile.theme) {
             deps.styleThemeRecord = tplFile.theme;

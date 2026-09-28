@@ -51,6 +51,7 @@ The rules from `28-presentations-completion-tasks.md` apply unchanged. In brief:
 | E28 | 7 Claude quality | One quiet reveal per slide: deterministic entrance motion on both doors, off by request | done 2026-09-22 |
 | E29 | 7 Claude quality | Brand grounding on every door: voice, palette, fonts and the logo on every page | done 2026-09-22 |
 | E30 | 7 Claude quality | Looked at a sixteen-page deck end to end: large variant for sparse horizontal forms, readable chart text, table alignment | done 2026-09-27 |
+| E31 | 7 Claude quality | The editor generates through the archetype door; slot layouts ground a deck only when a template governs it | done 2026-09-28 |
 
 Deferred (documented, deliberately not tasks): outbound webhooks on job completion (revisit once the API has real consumers); publish-as-website / custom domain (overlaps the website feature); AI voice/TTS narration (`23-ai-media.md`); a paid/community template marketplace beyond the existing `@hc/templates` marketplace scaffolding; Zapier/Make connectors (build on the API once it is stable).
 
@@ -205,5 +206,10 @@ The pitch: with a Claude key the outline, story and copy are the model's work an
 
 - Done: a sixteen-page deck using every form, with brand fonts and a logo, was composed through the API door and rastered page by page through the Go renderer. The report was clean (no overfull copy, six percent bullets, no repetition) and the pages held up, with three things a designer would have changed, now changed: the fixer's `large` variant applies to the horizontal forms (twoColumn, threeUp, process, timeline, team, agenda) when a page is sparse, stepping the body type, icons and numerals up 1.3x while titles keep their scale; chart text scales from the slide (`style.fontSize`) with value labels on bars and lines and a legend only for several series; a table column is set flush right only when every value in it is numeric, and the first column, the row's label, always reads from the left.
 - Known and accepted: server-side rasters and PDFs draw generated decks in the embedded fallback face unless the host registers font files (`LoadFontDir`), which is how every design exports today; the editor loads the pairing from the catalog, and every pairing and catalog family was checked against it.
+
+### E31: The editor's door
+
+- Found by generating a real deck from the editor and reading the saved file: every page carried a builtin `layoutId` and only Title and Text boxes, no figures, lists, icons, chart, table, pictures, logo or motion. The editor grounded every deck and doc in the builtin slide layouts (`layouts.length && dt === "deck"`, always true, since every presentation carries them), so the archetype composer, and with it Phases 6 and 7, only ever ran on the API, MCP and markdown doors. `shouldGroundInLayouts` (frontend `lib/generationRoute.ts`) now grounds a deck in slot layouts only when a template governs the document: one adopted for this generation, or authored layouts the design was made from (any layout whose master is not the builtin one). Everything else composes through the archetype door, the same code the API runs. The archetype door also names an untitled design after the deck, as the grounded path did.
+- Also tightened the copy rule on both sides: no dash as a separator inside a title, and every figure taken from the brief or the material exactly as given; the real deck had invented revenue figures and a dashed title.
 
 Still outside this phase: a workspace knowledge base (reusable sources, approved copy, product facts) that every generation could draw on. Today grounding is per request (`sources`, up to eight) plus the brand kit's voice; a saved, searchable library is the next step and needs its own table, CRUD, retrieval and UI.
