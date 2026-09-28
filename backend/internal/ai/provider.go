@@ -13,6 +13,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -162,7 +163,7 @@ func bedrockConverse(cfg CallConfig, model string, content []any, system string,
 		body["system"] = []any{map[string]any{"text": system}}
 	}
 	return httpRequest{
-		url:     strings.TrimRight(cfg.BaseURL, "/") + "/model/" + url.PathEscape(model) + "/converse",
+		url:     strings.TrimRight(cfg.BaseURL, "/") + "/model/" + awsPathSegment(model) + "/converse",
 		headers: map[string]string{"content-type": "application/json"},
 		body:    body,
 		sign:    bedrockCreds(cfg),
@@ -484,7 +485,7 @@ func buildImageRequest(cfg CallConfig, prompt, size string) httpRequest {
 		// image-generation shape. The body is the MODEL's own, which is why
 		// this one is not portable the way the text path is.
 		return httpRequest{
-			url:     strings.TrimRight(cfg.BaseURL, "/") + "/model/" + url.PathEscape(model) + "/invoke",
+			url:     strings.TrimRight(cfg.BaseURL, "/") + "/model/" + awsPathSegment(model) + "/invoke",
 			headers: map[string]string{"content-type": "application/json"},
 			body: map[string]any{
 				"taskType":              "TEXT_IMAGE",
@@ -688,7 +689,11 @@ func (s *Service) do(httpReq *http.Request, timeout time.Duration) ([]byte, erro
 	defer res.Body.Close()
 	// Do not echo the provider's error body to the client (may leak internals);
 	// the status alone travels so callers can negotiate unsupported parameters.
+	// The provider's own reason goes to the server log, bounded, because a
+	// bare 403 cannot tell an operator a rejected key from a missing IAM
+	// permission from a signature mismatch.
 	if res.StatusCode < 200 || res.StatusCode >= 300 {
+		slog.Warn("ai provider rejected the request", "host", httpReq.URL.Host, "status", res.StatusCode, "reason", upstreamReason(res.Body))
 		return nil, &httpStatusError{status: res.StatusCode}
 	}
 	if cl, err := strconv.ParseInt(res.Header.Get("content-length"), 10, 64); err == nil && cl > maxResponseBytes {
@@ -699,6 +704,44 @@ func (s *Service) do(httpReq *http.Request, timeout time.Duration) ([]byte, erro
 		return nil, errProviderFailed
 	}
 	return body, nil
+}
+
+// upstreamReason reads the human-readable reason out of a provider's error
+// body: the "message" most APIs carry (AWS, Anthropic and OpenAI-compatible
+// dialects alike), else the body's first line. Bounded and stripped of
+// control characters so a log line stays one line; never returned to a
+// client.
+func upstreamReason(r io.Reader) string {
+	raw, _ := io.ReadAll(io.LimitReader(r, 4096))
+	var j struct {
+		Message string `json:"message"`
+		Msg     string `json:"Message"`
+		Error   struct {
+			Message string `json:"message"`
+		} `json:"error"`
+	}
+	_ = json.Unmarshal(raw, &j)
+	reason := firstNonEmptyString(j.Message, j.Msg, j.Error.Message, string(raw))
+	reason = strings.Map(func(r rune) rune {
+		if r < 0x20 || r == 0x7f {
+			return ' '
+		}
+		return r
+	}, reason)
+	reason = strings.Join(strings.Fields(reason), " ")
+	if len(reason) > 240 {
+		reason = reason[:240] + "..."
+	}
+	return reason
+}
+
+func firstNonEmptyString(vals ...string) string {
+	for _, v := range vals {
+		if strings.TrimSpace(v) != "" {
+			return v
+		}
+	}
+	return ""
 }
 
 func (s *Service) generateText(cfg CallConfig, prompt, system string) (string, error) {
