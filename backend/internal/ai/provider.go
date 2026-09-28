@@ -115,12 +115,13 @@ func bedrockCreds(cfg CallConfig) *awsCreds {
 // hosts, so Claude, Llama and Nova all read the same here.
 // Model defaults for the two Claude transports. One place, so a new
 // generation is adopted with one edit and the frontend mirror (EditorPanels
-// FALLBACK_PRESETS) has one value to follow. The Bedrock id carries AWS's
-// snapshot date and must match a model enabled in the account's region, so it
-// is only changed against the console's model list.
+// FALLBACK_PRESETS) has one value to follow. The Bedrock id is a cross-region
+// inference profile (the "us." prefix routes the call across the US regions),
+// which is how AWS exposes the current Claude models; it must match a profile
+// enabled in the account, so it is only changed against the console's list.
 const (
 	defaultAnthropicModel = "claude-opus-5"
-	defaultBedrockModel   = "anthropic.claude-sonnet-4-5-20250929-v1:0"
+	defaultBedrockModel   = "us.anthropic.claude-opus-4-7"
 )
 
 // Output budgets. Claude stops at max_tokens exactly, and a reply that stops

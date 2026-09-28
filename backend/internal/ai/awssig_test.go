@@ -91,7 +91,8 @@ func TestBedrockRequestShapes(t *testing.T) {
 		APIKey:    "AKIDEXAMPLE",
 		APISecret: "secret",
 		BaseURL:   "https://bedrock-runtime.eu-west-1.amazonaws.com",
-		Model:     "anthropic.claude-sonnet-4-5-20250929-v1:0",
+		// A versioned profile id: the colon must survive path escaping.
+		Model: "us.anthropic.claude-opus-4-7-v1:0",
 	}
 
 	text := buildTextRequest(cfg, "write a headline", "be terse")
@@ -99,7 +100,7 @@ func TestBedrockRequestShapes(t *testing.T) {
 		t.Fatalf("text should go to the Converse route: %s", text.url)
 	}
 	// The model id contains a colon, which must survive path escaping.
-	if !strings.Contains(text.url, "v1%3A0") && !strings.Contains(text.url, "v1:0") {
+	if !strings.Contains(text.url, "/model/us.anthropic.claude-opus-4-7-v1%3A0/") && !strings.Contains(text.url, "/model/us.anthropic.claude-opus-4-7-v1:0/") {
 		t.Fatalf("model id lost in the path: %s", text.url)
 	}
 	if text.sign == nil || text.sign.Region != "eu-west-1" || text.sign.Service != "bedrock" {

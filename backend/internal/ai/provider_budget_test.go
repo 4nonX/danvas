@@ -32,9 +32,19 @@ func TestAnthropicRequestDefaultsAndCaching(t *testing.T) {
 	if strings.Contains(string(bare), `"system"`) {
 		t.Fatalf("empty system prompt must not send a system block:\n%s", bare)
 	}
-	// The registry and the transport agree on the default.
+	// The registry and the transport agree on the defaults, and the Bedrock
+	// default is the cross-region profile the deployment uses.
 	if p := PresetFor("anthropic"); p == nil || p.DefaultModel != defaultAnthropicModel {
 		t.Fatalf("registry default %v, transport default %s", p, defaultAnthropicModel)
+	}
+	if defaultBedrockModel != "us.anthropic.claude-opus-4-7" {
+		t.Fatalf("bedrock default = %s", defaultBedrockModel)
+	}
+	if p := PresetFor("bedrock"); p == nil || p.DefaultModel != defaultBedrockModel {
+		t.Fatalf("bedrock registry default %v, transport default %s", p, defaultBedrockModel)
+	}
+	if req := buildTextRequest(CallConfig{Provider: ProviderBedrock, APIKey: "AKIA", APISecret: "s", BaseURL: "https://bedrock-runtime.us-east-1.amazonaws.com"}, "hi", ""); !strings.Contains(req.url, "/model/us.anthropic.claude-opus-4-7/converse") {
+		t.Fatalf("bedrock default model not on the route: %s", req.url)
 	}
 	// Bedrock's plain call and its structured fallback carry the matching caps.
 	bcfg := CallConfig{Provider: ProviderBedrock, APIKey: "AKIA", APISecret: "s", BaseURL: "https://bedrock-runtime.us-east-1.amazonaws.com"}

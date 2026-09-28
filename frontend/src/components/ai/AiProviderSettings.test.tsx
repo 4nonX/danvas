@@ -36,7 +36,7 @@ const { AiProviderSettings } = await import("./AiProviderSettings");
 
 const caps = (image: boolean) => ({ text: true, image, describeImage: false, editImage: false });
 const PRESETS: AiProviderPreset[] = [
-  { id: "bedrock", label: "Amazon Bedrock", baseUrl: "", defaultModel: "anthropic.claude-sonnet-4-5-20250929-v1:0", defaultImageModel: "amazon.nova-canvas-v1:0", capabilities: caps(true), needsBaseUrl: true, needsSecret: true },
+  { id: "bedrock", label: "Amazon Bedrock", baseUrl: "", defaultModel: "us.anthropic.claude-opus-4-7", defaultImageModel: "amazon.nova-canvas-v1:0", capabilities: caps(true), needsBaseUrl: true, needsSecret: true },
   { id: "openai", label: "OpenAI", baseUrl: "https://api.openai.com/v1", defaultModel: "gpt-4o-mini", defaultImageModel: "dall-e-3", capabilities: caps(true) },
   { id: "deepseek", label: "DeepSeek", baseUrl: "https://api.deepseek.com/v1", defaultModel: "deepseek-chat", capabilities: caps(false) },
   { id: "together", label: "Together AI", baseUrl: "https://api.together.xyz/v1", defaultModel: "llama", defaultImageModel: "flux", capabilities: caps(true) },
