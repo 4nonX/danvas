@@ -33913,6 +33913,8 @@ ${err.toString()}`);
       exports.outlineJsonSchema = exports.OutlineError = exports.maxNoteChars = exports.archetypeBudgets = exports.roleForArchetype = exports.archetypeForRole = exports.archetypes = exports.visualRoles = exports.designTypes = void 0;
       exports.normalizeNote = normalizeNote;
       exports.clipToBudget = clipToBudget;
+      exports.bareFigure = bareFigure;
+      exports.undashTitle = undashTitle;
       exports.normalizeOutline = normalizeOutline;
       exports.outlineItemToSpec = outlineItemToSpec;
       exports.designTypes = ["deck", "doc", "social-set", "poster"];
@@ -34031,6 +34033,12 @@ ${err.toString()}`);
       function strList(v, maxItems, maxChars) {
         return (Array.isArray(v) ? v : []).map((x) => clipToBudget(x, maxChars)).filter(Boolean).slice(0, maxItems);
       }
+      function bareFigure(v) {
+        return clipToBudget(v, exports.archetypeBudgets.statValue).replace(/^[\s\u2190-\u21FF\u25B2-\u25BF\u2B05-\u2B0D]+|[\s\u2190-\u21FF\u25B2-\u25BF\u2B05-\u2B0D]+$/g, "").trim();
+      }
+      function undashTitle(title) {
+        return title.replace(/\s+[\u2013\u2014]\s+|\s+-\s+/g, ": ");
+      }
       function iconKeyword(v) {
         return clipToBudget(v, exports.archetypeBudgets.columnIcon).toLowerCase();
       }
@@ -34046,7 +34054,7 @@ ${err.toString()}`);
           out.subhead = subhead;
         const st = p.stat;
         if (st && typeof st === "object") {
-          const value = clipToBudget(st.value, b.statValue);
+          const value = bareFigure(st.value);
           if (value) {
             const unit = clipToBudget(st.unit, b.statUnit);
             const icon = iconKeyword(st.icon);
@@ -34103,7 +34111,7 @@ ${err.toString()}`);
         }
         const stats = (Array.isArray(p.stats) ? p.stats : []).map((x) => {
           const r = x != null ? x : {};
-          const value = clipToBudget(r.value, b.statValue);
+          const value = bareFigure(r.value);
           if (!value)
             return null;
           const unit = clipToBudget(r.unit, b.statUnit);
@@ -34207,7 +34215,7 @@ ${err.toString()}`);
           const titleMax = typed.archetype === "statement" ? exports.archetypeBudgets.statement : exports.archetypeBudgets.title;
           pages.push(__spreadValues(__spreadValues({
             id: nextId(),
-            title: clipToBudget(pTitle, titleMax) || "Untitled",
+            title: undashTitle(clipToBudget(pTitle, titleMax)) || "Untitled",
             points,
             visualRole
           }, note ? { note } : {}), typed));
@@ -36306,6 +36314,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             fontFamily: this.ds.fonts.heading,
             fontStyle: "Bold",
             fontSize,
+            lineHeight: 1,
             letterSpacing: -0.02 * fontSize,
             fill: { type: "solid", color: structuredClone(color) }
           });
@@ -37667,7 +37676,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
       };
       exports.archetypeCatalogRule = "Every page names an archetype, its compositional form: 'cover' (title + subhead); 'agenda' (title + 3-6 points naming the sections to come, in order; only for decks of 6 or more pages); 'section' (a divider: short title, optional subhead); 'statement' (ONE idea as the title, at most 14 words, optional subhead; no points); 'bigNumber' (stat.value + stat.label, optional subhead as context; the figure is the slide); 'bullets' (title + 3-5 points, each a complete thought under 90 characters); 'twoColumn' (title + exactly 2 columns, each heading + 2-4 points; for comparisons and before/after); 'threeUp' (title + exactly 3 columns, each heading + 1-3 points; for features, pillars, options); 'process' (title + 3-5 steps, each label + detail; ONLY for a real sequence); 'quote' (quote.text + attribution); 'imageCaption' (title + image.subject + subhead as caption; the picture carries the slide); 'chart' (title + chart with real numbers from the brief or attached material; never invent data); 'kpiGrid' (title + 2-4 stats, each value + label; several figures that belong together); 'timeline' (title + 3-5 steps, each with a short 'when' such as a year or quarter, a label and a detail; for history and roadmaps); 'table' (title + table.columns and table.rows with real values from the brief or attached material; 2-4 columns, up to 6 rows; never invent data); 'team' (title + 1-4 people, each name + role; no pictures are generated for people); 'closing' (title + subhead as the call to action). Icons: a column, a kpiGrid stat, a timeline step, and a bullets, statement, bigNumber, cover, section or closing page may each name an 'icon', one English keyword for a simple icon (shield, clock, users, chart, leaf, globe, bolt, heart, coin, truck, calendar, rocket, target, star, lock, cloud); name one for every item in a set or for none, and name one for most pages that can carry one.";
       exports.storyArcRule = "Plan a narrative arc before choosing forms: open with the cover, state the thesis as a 'statement' early, build with evidence, and end with a 'closing' that asks for something specific. Vary the forms: no more than 40 percent of pages may be 'bullets'; never place the same archetype on two adjacent pages except 'bullets' at most twice in a row; use 'bigNumber' whenever the brief or attached material contains a meaningful quantity, 'kpiGrid' when two to four figures belong together, 'timeline' for dated history or a roadmap, and 'table' when the material is a small grid of real values; use 'section' dividers only for decks of 10 or more pages; give an 'image' intent to every 'cover', 'imageCaption', 'section' and 'closing' page and to about half of the rest, with a concrete English subject and consistent treatment across the deck.";
-      exports.copyToFormRule = "Write copy to fit the form: a title is a headline (under 60 characters), never a sentence with a full stop; points are parallel in structure and start with the same part of speech; a statement is one idea, not a summary; a stat.label says what the number means in plain words. Never write 'Slide 1', 'Introduction' or other structural labels as content. Never use a dash as a separator inside a title; write a subhead instead. Every figure comes from the brief or the attached material, exactly as given; never invent, round or extrapolate a number.";
+      exports.copyToFormRule = "Write copy to fit the form: a title is a headline (under 60 characters), never a sentence with a full stop; points are parallel in structure and start with the same part of speech; a statement is one idea, not a summary; a stat.label says what the number means in plain words. Never write 'Slide 1', 'Introduction' or other structural labels as content. Never use a dash as a separator anywhere in slide copy (titles, subheads, points, labels); use a colon or a new sentence. A stat.value is the bare figure (42%, 3.2M, 312): no arrows, no words, no plus or minus for direction; the label says whether it rose or fell. Every figure comes from the brief or the attached material, exactly as given; never invent, round or extrapolate a number.";
       function outlineSystemPrompt(designType, brandClause, pageCount, verbosity) {
         const count = pageCount && pageCount > 0 ? `Aim for about ${pageCount} pages. ` : "";
         return [

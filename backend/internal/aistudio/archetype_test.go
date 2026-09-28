@@ -151,6 +151,12 @@ func TestOutlineArchetypeDowngradesWithoutPayload(t *testing.T) {
 	if !strings.Contains(outlineSchema, `"icon":{"type":"string"`) {
 		t.Fatal("schema should offer icon keywords")
 	}
+	// A stat value is the bare figure; a headline carries no dash separator.
+	fig := &DesignOutline{Pages: []OutlineItem{{Title: "Harborline \u2014 Board Update", Archetype: "kpiGrid", Stats: []Stat{{Value: "\u219367%", Label: "a"}, {Value: "\u25b2 3.2M", Label: "b"}, {Value: "-11%", Label: "c"}}}}}
+	_ = validateOutline(fig)
+	if pg := fig.Pages[0]; pg.Title != "Harborline: Board Update" || pg.Stats[0].Value != "67%" || pg.Stats[1].Value != "3.2M" || pg.Stats[2].Value != "-11%" {
+		t.Fatalf("figure/title normalization: %+v", pg)
+	}
 	// The chart case above also trims values to the category count.
 	o := &DesignOutline{Pages: []OutlineItem{{Title: "t", Archetype: "chart", Chart: &ChartData{Kind: "bar", Categories: []string{"Q1"}, Series: []ChartSeries{{Name: "s", Values: []float64{1, 2, 3}}}}}}}
 	_ = validateOutline(o)

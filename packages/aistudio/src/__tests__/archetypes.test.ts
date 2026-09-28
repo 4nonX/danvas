@@ -589,3 +589,13 @@ describe("icons and decor across the deck", () => {
     expect(firstBody - (title.transform.y + title.size.height)).toBeLessThanOrEqual(ds.unit * 13);
   });
 });
+
+describe("figures", () => {
+  it("sets a numeral with line height one, so the glyphs sit on the box and never rise into the rule", () => {
+    const ds = deriveDesignSystem(theme, size, { seed: 1, catalog: catalogEntryForSeed(1) });
+    const item = normalizeOutline({ title: "T", pages: [pageFor("bigNumber")] }).pages[0];
+    const page = composeArchetypePage(item, ds, { index: 1, total: 4 });
+    const fig = (page.nodes as { name?: string; content?: { runs: { style: { lineHeight?: number } }[] }[] }[]).find((n) => n.name === "Figure")!;
+    expect(fig.content![0].runs.every((r) => r.style.lineHeight === 1)).toBe(true);
+  });
+});

@@ -215,6 +215,20 @@ function strList(v: unknown, maxItems: number, maxChars: number): string[] {
  *  then downgrade an archetype whose payload did not survive to a form its
  *  content can support: no stat means no big number. Mirrors
  *  normalizeArchetypeFields in specs.go. */
+/** A stat value as the bare figure: a model sometimes writes the direction
+ *  into it ("↓67%", "▲ 3.2M"); the label carries direction, and an arrow set
+ *  at display scale rises into the rule above the figure. Mirrored in
+ *  specs.go. */
+export function bareFigure(v: unknown): string {
+  return clipToBudget(v, archetypeBudgets.statValue).replace(/^[\s\u2190-\u21FF\u25B2-\u25BF\u2B05-\u2B0D]+|[\s\u2190-\u21FF\u25B2-\u25BF\u2B05-\u2B0D]+$/g, "").trim();
+}
+
+/** A headline never carries a dash as a separator; the house style has none,
+ *  and a colon says the same thing. Mirrored in specs.go. */
+export function undashTitle(title: string): string {
+  return title.replace(/\s+[\u2013\u2014]\s+|\s+-\s+/g, ": ");
+}
+
 /** An icon keyword, lower-cased and clipped; empty when there is none. */
 function iconKeyword(v: unknown): string {
   return clipToBudget(v, archetypeBudgets.columnIcon).toLowerCase();
@@ -230,7 +244,7 @@ function normalizeArchetypeFields(p: Record<string, unknown>, archetype: Archety
 
   const st = p.stat as Record<string, unknown> | undefined;
   if (st && typeof st === "object") {
-    const value = clipToBudget(st.value, b.statValue);
+    const value = bareFigure(st.value);
     if (value) {
       const unit = clipToBudget(st.unit, b.statUnit);
       const icon = iconKeyword(st.icon);
@@ -295,7 +309,7 @@ function normalizeArchetypeFields(p: Record<string, unknown>, archetype: Archety
   const stats = (Array.isArray(p.stats) ? p.stats : [])
     .map((x) => {
       const r = (x ?? {}) as Record<string, unknown>;
-      const value = clipToBudget(r.value, b.statValue);
+      const value = bareFigure(r.value);
       if (!value) return null;
       const unit = clipToBudget(r.unit, b.statUnit);
       const icon = iconKeyword(r.icon);
@@ -386,7 +400,7 @@ export function normalizeOutline(parsed: unknown): DesignOutline {
     const titleMax = typed.archetype === "statement" ? archetypeBudgets.statement : archetypeBudgets.title;
     pages.push({
       id: nextId(),
-      title: clipToBudget(pTitle, titleMax) || "Untitled",
+      title: undashTitle(clipToBudget(pTitle, titleMax)) || "Untitled",
       points,
       visualRole,
       ...(note ? { note } : {}),

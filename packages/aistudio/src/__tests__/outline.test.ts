@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  bareFigure,
+  undashTitle,
   archetypes,
   archetypeBudgets,
   normalizeOutline,
@@ -278,5 +280,24 @@ describe("archetype-aware outlines", () => {
     expect(prompt).toContain("no more than 40 percent");
     expect(prompt).toContain("Never write 'Slide 1'");
     expect(outlineJsonSchema.properties.pages.items.required).toContain("archetype");
+  });
+});
+
+describe("figures and headlines as a designer would set them", () => {
+  it("strips a direction arrow from a stat value and keeps signs, units and words the label owns", () => {
+    expect(bareFigure("↓67%")).toBe("67%");
+    expect(bareFigure("▲ 3.2M")).toBe("3.2M");
+    expect(bareFigure(" 312 ")).toBe("312");
+    expect(bareFigure("-11%")).toBe("-11%");
+    const page = normalizeOutline({ title: "T", pages: [{ title: "x", archetype: "kpiGrid", stats: [{ value: "↓67%", label: "a" }, { value: "→ 4", label: "b" }] }] }).pages[0];
+    expect(page.stats?.map((s) => s.value)).toEqual(["67%", "4"]);
+  });
+
+  it("turns a dash separator in a title into a colon", () => {
+    expect(undashTitle("On-Time Delivery Rate — 2025 by Quarter")).toBe("On-Time Delivery Rate: 2025 by Quarter");
+    expect(undashTitle("Q1 – Q4")).toBe("Q1: Q4");
+    expect(undashTitle("On-time rate")).toBe("On-time rate");
+    const page = normalizeOutline({ title: "T", pages: [{ title: "Harborline — Board Update", archetype: "statement" }] }).pages[0];
+    expect(page.title).toBe("Harborline: Board Update");
   });
 });

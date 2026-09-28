@@ -349,10 +349,13 @@ class Composer {
     const base = this.sz("numeral");
     const size = this.fit([value + (unit ? " " + unit : "")], rect.width, rect.height, base, 1.0, "heading", 0);
     const r = this.mirror(rect);
+    // Line height one: the baseline sits on the box's bottom edge, so a tall
+    // glyph never rises past the box's top into the rule above it.
     const runStyle = (fontSize: number) => ({
       fontFamily: this.ds.fonts.heading,
       fontStyle: "Bold",
       fontSize,
+      lineHeight: 1,
       letterSpacing: -0.02 * fontSize,
       fill: { type: "solid", color: structuredClone(color) },
     });

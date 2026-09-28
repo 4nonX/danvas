@@ -2054,6 +2054,16 @@ function abortError(): DOMException {
 /** Whether a document still carries a placeholder name, so generation may set
  *  one. Matches the labels new designs are created with, in any language, plus
  *  an empty title. */
+/** Name an untitled design after its generated deck: the file's title now,
+ *  and the record the dashboard lists, which only a rename call updates.
+ *  The rename is best effort; the file title already carries the name. */
+function adoptDeckTitle(title: string, designId: string | null | undefined): void {
+  const value = title.trim().slice(0, 120);
+  if (!value) return;
+  useEditor.getState().setDocTitle(value);
+  if (designId) void oc.renameDesign(designId, value).catch(() => {});
+}
+
 function isUntitledDoc(title: string | undefined): boolean {
   const t = (title ?? "").trim();
   if (!t) return true;
@@ -3329,7 +3339,7 @@ function runPlanStep(step: PlanStep, ctx?: { brandTargets?: BrandFixTarget[]; pa
         // kept the raw prompt as its title, and one generated in the editor
         // kept its placeholder name however good the deck was. A title the
         // user chose is never overwritten.
-        if (deckTitle.trim() && isUntitledDoc(st.doc.title)) st.setDocTitle(deckTitle.trim().slice(0, 120));
+        if (deckTitle.trim() && isUntitledDoc(st.doc.title)) adoptDeckTitle(deckTitle, designId);
         const turnId = st.currentTurnId();
         const imageTasks: Parameters<typeof enqueueAiImages>[0] = [];
         const availableIds = new Set(installed.map((l) => l.id));
@@ -3431,8 +3441,9 @@ function runPlanStep(step: PlanStep, ctx?: { brandTargets?: BrandFixTarget[]; pa
       const base = append ? st.doc.pages.length : 0;
       const ids = append ? st.appendDeckPages(deck, size) : st.buildDeckFromOutline(deck, size);
       if (!ids.length) return false;
-      // A fresh design takes the deck's title, as the layout-grounded path does.
-      if (clean.title.trim() && isUntitledDoc(st.doc.title)) st.setDocTitle(clean.title.trim().slice(0, 120));
+      // A fresh design takes the deck's title, in the file and on the record
+      // the dashboard lists, as the layout-grounded path does.
+      if (clean.title.trim() && isUntitledDoc(st.doc.title)) adoptDeckTitle(clean.title, designId);
       // T19 (d): stamp the generated visual system as the file theme (record
       // only - these pages already wear its colors; a remap from any outgoing
       // theme would misfire). Appending never overrides an existing theme.

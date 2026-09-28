@@ -2,6 +2,7 @@ package aistudio
 
 import (
 	"errors"
+	"regexp"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -253,6 +254,23 @@ func clipRunes(s string, n int) string {
 // second-guess a half-filled stat or a one-column comparison. A page whose
 // archetype needs a payload it does not have falls back to the plain form its
 // content can support: no stat means no big number.
+// bareFigure strips the direction a model sometimes writes into a stat value
+// ("↓67%", "▲ 3.2M"): the label carries direction, and an arrow set at display
+// scale rises into the rule above the figure. Mirrors bareFigure in outline.ts.
+func bareFigure(v string) string {
+	return strings.TrimSpace(strings.TrimFunc(clipRunes(strings.TrimSpace(v), maxStatValueChars), func(r rune) bool {
+		return unicode.IsSpace(r) || (r >= 0x2190 && r <= 0x21FF) || (r >= 0x25B2 && r <= 0x25BF) || (r >= 0x2B05 && r <= 0x2B0D)
+	}))
+}
+
+// undashTitle replaces a dash used as a separator in a headline with a colon.
+// Mirrors undashTitle in outline.ts.
+func undashTitle(title string) string {
+	return titleDash.ReplaceAllString(title, ": ")
+}
+
+var titleDash = regexp.MustCompile(`\s+[\x{2013}\x{2014}]\s+|\s+-\s+`)
+
 // iconKeyword lower-cases and clips an icon keyword; empty when there is none.
 func iconKeyword(v string) string {
 	return clipRunes(strings.ToLower(strings.TrimSpace(v)), maxColIcon)
@@ -260,13 +278,13 @@ func iconKeyword(v string) string {
 
 func normalizeArchetypeFields(p *OutlineItem) {
 	p.Icon = iconKeyword(p.Icon)
-	p.Title = clipRunes(strings.TrimSpace(p.Title), maxTitleChars)
+	p.Title = undashTitle(clipRunes(strings.TrimSpace(p.Title), maxTitleChars))
 	p.Subhead = clipRunes(strings.TrimSpace(p.Subhead), maxSubheadChars)
 	if p.Archetype == "statement" {
 		p.Title = clipRunes(p.Title, maxStatementChars)
 	}
 	if p.Stat != nil {
-		p.Stat.Value = clipRunes(strings.TrimSpace(p.Stat.Value), maxStatValueChars)
+		p.Stat.Value = bareFigure(p.Stat.Value)
 		p.Stat.Unit = clipRunes(strings.TrimSpace(p.Stat.Unit), maxStatUnitChars)
 		p.Stat.Label = clipRunes(strings.TrimSpace(p.Stat.Label), maxStatLabelChars)
 		p.Stat.Icon = iconKeyword(p.Stat.Icon)
@@ -356,7 +374,7 @@ func normalizeArchetypeFields(p *OutlineItem) {
 	}
 	stats := p.Stats[:0]
 	for _, st := range p.Stats {
-		st.Value = clipRunes(strings.TrimSpace(st.Value), maxStatValueChars)
+		st.Value = bareFigure(st.Value)
 		st.Unit = clipRunes(strings.TrimSpace(st.Unit), maxStatUnitChars)
 		st.Label = clipRunes(strings.TrimSpace(st.Label), maxStatLabelChars)
 		st.Icon = iconKeyword(st.Icon)
