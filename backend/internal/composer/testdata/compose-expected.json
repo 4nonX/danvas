@@ -26,6 +26,50 @@
         {
           "id": "n-46",
           "transform": {
+            "x": 1318,
+            "y": 216,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0
+          },
+          "size": {
+            "width": 648,
+            "height": 648
+          },
+          "opacity": 0.55,
+          "blendMode": "normal",
+          "type": "shape",
+          "shape": "ellipse",
+          "fills": [
+            {
+              "type": "solid",
+              "color": {
+                "srgb": {
+                  "r": 0.054901960784313725,
+                  "g": 0.47843137254901963,
+                  "b": 0.37254901960784315,
+                  "a": 1
+                }
+              }
+            }
+          ],
+          "name": "Decor",
+          "data": {
+            "decor": true
+          },
+          "animation": {
+            "entrance": {
+              "preset": "fade",
+              "durationMs": 600,
+              "delayMs": 0,
+              "easing": "ease-out-cubic",
+              "startMode": "delay"
+            }
+          }
+        },
+        {
+          "id": "n-49",
+          "transform": {
             "x": 78,
             "y": 355,
             "scaleX": 1,
@@ -59,14 +103,14 @@
             "entrance": {
               "preset": "fade",
               "durationMs": 350,
-              "delayMs": 0,
+              "delayMs": 120,
               "easing": "ease-out-cubic",
               "startMode": "delay"
             }
           }
         },
         {
-          "id": "n-47",
+          "id": "n-50",
           "transform": {
             "x": 78,
             "y": 399,
@@ -126,14 +170,14 @@
             "entrance": {
               "preset": "rise",
               "durationMs": 550,
-              "delayMs": 120,
+              "delayMs": 240,
               "easing": "ease-out-cubic",
               "startMode": "delay"
             }
           }
         },
         {
-          "id": "n-48",
+          "id": "n-51",
           "transform": {
             "x": 78,
             "y": 672,
@@ -193,7 +237,7 @@
             "entrance": {
               "preset": "rise",
               "durationMs": 450,
-              "delayMs": 240,
+              "delayMs": 360,
               "easing": "ease-out-cubic",
               "startMode": "delay"
             }
@@ -220,7 +264,7 @@
       },
       "children": [
         {
-          "id": "n-51",
+          "id": "n-54",
           "transform": {
             "x": 78,
             "y": 401,
@@ -287,7 +331,7 @@
           }
         },
         {
-          "id": "n-52",
+          "id": "n-55",
           "transform": {
             "x": 78,
             "y": 509,
@@ -420,7 +464,7 @@
           }
         },
         {
-          "id": "n-53",
+          "id": "n-56",
           "transform": {
             "x": 78,
             "y": 32.5,
@@ -478,7 +522,7 @@
           "name": "Kicker"
         },
         {
-          "id": "n-54",
+          "id": "n-57",
           "transform": {
             "x": 1738,
             "y": 1021.5,
@@ -555,7 +599,7 @@
       },
       "children": [
         {
-          "id": "n-57",
+          "id": "n-60",
           "transform": {
             "x": 78,
             "y": 401,
@@ -622,7 +666,7 @@
           }
         },
         {
-          "id": "n-58",
+          "id": "n-61",
           "transform": {
             "x": 78,
             "y": 509,
@@ -755,7 +799,7 @@
           }
         },
         {
-          "id": "n-59",
+          "id": "n-62",
           "transform": {
             "x": 78,
             "y": 32.5,
@@ -813,7 +857,7 @@
           "name": "Kicker"
         },
         {
-          "id": "n-60",
+          "id": "n-63",
           "transform": {
             "x": 1738,
             "y": 1021.5,
@@ -891,7 +935,7 @@
       },
       "children": [
         {
-          "id": "n-61",
+          "id": "n-64",
           "transform": {
             "x": 78,
             "y": 130,
@@ -958,10 +1002,10 @@
           }
         },
         {
-          "id": "n-70",
+          "id": "n-73",
           "transform": {
             "x": 957.5000000000002,
-            "y": 429,
+            "y": 355,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
@@ -1000,10 +1044,10 @@
           }
         },
         {
-          "id": "n-71",
+          "id": "n-74",
           "transform": {
             "x": 78,
-            "y": 429,
+            "y": 355,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
@@ -1423,10 +1467,10 @@
           }
         },
         {
-          "id": "n-72",
+          "id": "n-75",
           "transform": {
             "x": 78,
-            "y": 553,
+            "y": 479,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
@@ -1465,10 +1509,10 @@
           }
         },
         {
-          "id": "n-73",
+          "id": "n-76",
           "transform": {
             "x": 78,
-            "y": 585.5,
+            "y": 511.5,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
@@ -1532,10 +1576,10 @@
           }
         },
         {
-          "id": "n-74",
+          "id": "n-77",
           "transform": {
             "x": 78,
-            "y": 670.5,
+            "y": 596.5,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
@@ -1634,10 +1678,10 @@
           }
         },
         {
-          "id": "n-75",
+          "id": "n-78",
           "transform": {
             "x": 1122.1666666666667,
-            "y": 429,
+            "y": 355,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
@@ -1996,10 +2040,10 @@
           }
         },
         {
-          "id": "n-76",
+          "id": "n-79",
           "transform": {
             "x": 1122.1666666666667,
-            "y": 553,
+            "y": 479,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
@@ -2038,10 +2082,10 @@
           }
         },
         {
-          "id": "n-77",
+          "id": "n-80",
           "transform": {
             "x": 1122.1666666666667,
-            "y": 585.5,
+            "y": 511.5,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
@@ -2105,10 +2149,10 @@
           }
         },
         {
-          "id": "n-78",
+          "id": "n-81",
           "transform": {
             "x": 1122.1666666666667,
-            "y": 670.5,
+            "y": 596.5,
             "scaleX": 1,
             "scaleY": 1,
             "rotation": 0
@@ -2207,7 +2251,7 @@
           }
         },
         {
-          "id": "n-79",
+          "id": "n-82",
           "transform": {
             "x": 78,
             "y": 32.5,
@@ -2265,7 +2309,7 @@
           "name": "Kicker"
         },
         {
-          "id": "n-80",
+          "id": "n-83",
           "transform": {
             "x": 1738,
             "y": 1021.5,
@@ -2343,7 +2387,51 @@
       },
       "children": [
         {
-          "id": "n-83",
+          "id": "n-84",
+          "transform": {
+            "x": 1318,
+            "y": 216,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0
+          },
+          "size": {
+            "width": 648,
+            "height": 648
+          },
+          "opacity": 0.55,
+          "blendMode": "normal",
+          "type": "shape",
+          "shape": "ellipse",
+          "fills": [
+            {
+              "type": "solid",
+              "color": {
+                "srgb": {
+                  "r": 0.054901960784313725,
+                  "g": 0.47843137254901963,
+                  "b": 0.37254901960784315,
+                  "a": 1
+                }
+              }
+            }
+          ],
+          "name": "Decor",
+          "data": {
+            "decor": true
+          },
+          "animation": {
+            "entrance": {
+              "preset": "fade",
+              "durationMs": 600,
+              "delayMs": 0,
+              "easing": "ease-out-cubic",
+              "startMode": "delay"
+            }
+          }
+        },
+        {
+          "id": "n-87",
           "transform": {
             "x": 78,
             "y": 428,
@@ -2378,14 +2466,14 @@
             "entrance": {
               "preset": "fade",
               "durationMs": 350,
-              "delayMs": 0,
+              "delayMs": 120,
               "easing": "ease-out-cubic",
               "startMode": "delay"
             }
           }
         },
         {
-          "id": "n-84",
+          "id": "n-88",
           "transform": {
             "x": 78,
             "y": 472,
@@ -2445,14 +2533,14 @@
             "entrance": {
               "preset": "rise",
               "durationMs": 550,
-              "delayMs": 120,
+              "delayMs": 240,
               "easing": "ease-out-cubic",
               "startMode": "delay"
             }
           }
         },
         {
-          "id": "n-85",
+          "id": "n-89",
           "transform": {
             "x": 78,
             "y": 599,
@@ -2512,14 +2600,14 @@
             "entrance": {
               "preset": "rise",
               "durationMs": 450,
-              "delayMs": 240,
+              "delayMs": 360,
               "easing": "ease-out-cubic",
               "startMode": "delay"
             }
           }
         },
         {
-          "id": "n-86",
+          "id": "n-90",
           "transform": {
             "x": 1738,
             "y": 1021.5,

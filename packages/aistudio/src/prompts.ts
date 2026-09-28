@@ -35,7 +35,7 @@ export const archetypeCatalogRule =
   "'table' (title + table.columns and table.rows with real values from the brief or attached material; 2-4 columns, up to 6 rows; never invent data); " +
   "'team' (title + 1-4 people, each name + role; no pictures are generated for people); " +
   "'closing' (title + subhead as the call to action). " +
-  "A column may name an 'icon': one English keyword for a simple icon (shield, clock, users, chart, leaf, globe); name one for every column or for none.";
+  "Icons: a column, a kpiGrid stat, a timeline step, and a bullets, statement, bigNumber, cover, section or closing page may each name an 'icon', one English keyword for a simple icon (shield, clock, users, chart, leaf, globe, bolt, heart, coin, truck, calendar, rocket, target, star, lock, cloud); name one for every item in a set or for none, and name one for most pages that can carry one.";
 
 export const storyArcRule =
   "Plan a narrative arc before choosing forms: open with the cover, state the thesis as a 'statement' early, build with evidence, and end with a 'closing' that asks for something specific. " +

@@ -45,6 +45,8 @@ export interface ComposeContext {
   /** A compose-time variation chosen by the fixer (measure.ts), never by the
    *  model: two-up bullets for a long list, larger bullets for a sparse page. */
   variant?: PageVariant;
+  /** For a section divider: its one-based number among the deck's sections. */
+  section?: number;
 }
 
 interface Rect {
@@ -85,6 +87,8 @@ const T = {
   caption: 0.03,
   kpiFigure: 0.16,
   icon: 0.07,
+  pageIcon: 0.075,
+  sectionNumber: 0.085,
   tableCell: 0.026,
   timelineWhen: 0.026,
   monogram: 0.06,
@@ -156,7 +160,8 @@ export function iconGlyphFor(keyword: string | undefined): string | null {
  *  already there when the page arrives. */
 const MOTION: Record<string, { preset: "fade" | "rise"; durationMs: number } | null> = {
   "Kicker": null, "Page number": null, "Logo": null,
-  "Image": { preset: "fade", durationMs: 700 },
+  "Image": { preset: "fade", durationMs: 700 }, "Decor": { preset: "fade", durationMs: 600 },
+  "Section number": { preset: "rise", durationMs: 550 },
   "Accent": { preset: "fade", durationMs: 350 }, "Divider": { preset: "fade", durationMs: 350 },
   "Sequence": { preset: "fade", durationMs: 350 }, "Marker": { preset: "fade", durationMs: 350 }, "Icon": { preset: "fade", durationMs: 350 },
   "Title": { preset: "rise", durationMs: 550 }, "Statement": { preset: "rise", durationMs: 550 },
@@ -502,11 +507,12 @@ class Composer {
    *  centered when it is shorter than the region. Each block is measured at
    *  the size it fits at, so the cluster's height is honest before anything
    *  is placed. */
-  private cluster(region: Rect, blocks: Array<{ kind: "rule" } | { kind: "text"; make: (rect: Rect) => { node: Node; height: number } ; maxFrac: number }>, gapUnits = 2, center = true): void {
+  private cluster(region: Rect, blocks: Array<{ kind: "rule" } | { kind: "icon"; glyph: string; size: number } | { kind: "text"; make: (rect: Rect) => { node: Node; height: number } ; maxFrac: number }>, gapUnits = 2, center = true): void {
     const u = this.ds.unit;
     // First pass: measure with each block offered its share of the region.
     const measured = blocks.map((b) => {
       if (b.kind === "rule") return { b, height: this.ds.rule, node: null as Node | null };
+      if (b.kind === "icon") return { b, height: b.size, node: null as Node | null };
       const probe = b.make({ x: region.x, y: region.y, width: region.width, height: Math.max(u * 2, region.height * b.maxFrac) });
       return { b, height: probe.height, node: null as Node | null };
     });
@@ -515,12 +521,55 @@ class Composer {
     for (const mrow of measured) {
       if (mrow.b.kind === "rule") {
         this.nodes.push(this.accentRule(region.x, y));
+      } else if (mrow.b.kind === "icon") {
+        const ic = this.icon(mrow.b.glyph, region.x, y, mrow.b.size, this.accent);
+        if (ic) this.nodes.push(ic);
       } else {
         const made = mrow.b.make({ x: region.x, y, width: region.width, height: mrow.height });
         this.nodes.push(made.node);
       }
       y += mrow.height + gapUnits * u;
     }
+  }
+
+  /** The page's own icon as a cluster block, or nothing when the outline
+   *  named none the set knows. */
+  private pageIconBlock(): Array<{ kind: "icon"; glyph: string; size: number }> {
+    const glyph = iconGlyphFor(this.item.icon);
+    return glyph ? [{ kind: "icon", glyph, size: Math.round(this.sz("pageIcon")) }] : [];
+  }
+
+  /** The decor an impact page carries where a picture would go: one large
+   *  soft disc of the deck's own hue, bleeding off the trailing edge, with
+   *  the page's icon set in it when the outline named one. Ornament, not
+   *  content: tagged so the quality loop and the measure ignore it, drawn
+   *  behind everything. Only where nothing else sits (never over a picture). */
+  private decor(region: Rect): void {
+    const d = Math.round(this.H * 0.6);
+    const cx = region.x + region.width * 0.65;
+    const cy = this.H * 0.5;
+    const r = this.mirror({ x: Math.round(cx - d / 2), y: Math.round(cy - d / 2), width: d, height: d });
+    const disc = createNode("shape", {
+      name: "Decor",
+      shape: "ellipse",
+      transform: { x: r.x, y: r.y, scaleX: 1, scaleY: 1, rotation: 0 },
+      size: { width: r.width, height: r.height },
+      fills: [{ type: "solid", color: structuredClone(mix(this.ds.colors.deep, this.ds.colors.primary, 0.6)) }],
+      opacity: 0.55,
+      data: { decor: true },
+    } as never) as Node;
+    const out: Node[] = [disc];
+    const glyph = iconGlyphFor(this.item.icon);
+    if (glyph) {
+      const size = Math.round(d * 0.38);
+      const ic = this.icon(glyph, Math.round(cx - size / 2), Math.round(cy - size / 2), size, this.ds.colors.accentOnDeep);
+      if (ic) {
+        (ic as unknown as { name: string; data: Record<string, unknown> }).name = "Decor";
+        (ic as unknown as { data: Record<string, unknown> }).data = { ...((ic as unknown as { data?: Record<string, unknown> }).data ?? {}), decor: true };
+        out.push(ic);
+      }
+    }
+    this.nodes.unshift(...out);
   }
 
   // --- archetypes --------------------------------------------------------------
@@ -579,6 +628,8 @@ class Composer {
       // margins, so it reads as the ground the words sit against.
       const s = this.span(7, 5);
       this.nodes.push(this.imageSlot({ x: s.x, y: 0, width: this.W - s.x, height: this.H }, this.imagePrompt()));
+    } else {
+      this.decor(this.span(8, 4));
     }
     this.cluster(region, [
       { kind: "rule" },
@@ -593,9 +644,18 @@ class Composer {
     if (hasImage) {
       const s = this.span(8, 4);
       this.nodes.push(this.imageSlot({ x: s.x, y: 0, width: this.W - s.x, height: this.H }, this.imagePrompt()));
+    } else {
+      this.decor(this.span(8, 4));
     }
     const region = this.span(0, hasImage ? 7 : 8);
+    // A divider says where it sits in the deck: its number, large and in the
+    // accent, above the rule.
+    const n = this.ctx.section;
+    const number = n
+      ? [{ kind: "text" as const, maxFrac: 0.25, make: (r: Rect) => this.text({ name: "Section number", rect: r, paragraphs: [String(n).padStart(2, "0")], role: "heading", base: this.sz("sectionNumber"), bold: true, color: this.accent, exactSize: Math.round(this.sz("sectionNumber")), lineHeight: 1.05, tracking: 0.02 }) }]
+      : [];
     this.cluster(region, [
+      ...number,
       { kind: "rule" },
       this.titleBlock(this.sz("sectionTitle")),
       ...this.subheadBlock(this.sz("statementSub"), this.item.subhead),
@@ -606,6 +666,7 @@ class Composer {
   private statement(): void {
     // One idea, set large, with room around it. The type is the visual.
     this.cluster(this.span(0, 10), [
+      ...this.pageIconBlock(),
       { kind: "rule" },
       { kind: "text", maxFrac: 0.6, make: (r) => this.text({ name: "Statement", rect: r, paragraphs: [this.item.title], role: "heading", base: this.sz("statement"), bold: true, lineHeight: 1.12 }) },
       ...this.subheadBlock(this.sz("statementSub"), this.item.subhead),
@@ -625,11 +686,24 @@ class Composer {
     // should sit where the eye lands, not under the top margin.
     const figureH = Math.round(this.H * 0.36);
     const labelProbe = this.text({ name: "Label", rect: { x: left.x, y: 0, width: left.width, height: u * 12 }, paragraphs: [stat.label], role: "heading", base: this.sz("statLabel"), bold: true, lineHeight: 1.2 });
-    const blockH = u * 3 + figureH + u * 2 + labelProbe.height;
+    // The page's icon, when named, sits above the rule and the figure.
+    const glyph = iconGlyphFor(stat.icon ?? this.item.icon);
+    const iconSize = glyph ? Math.round(this.sz("pageIcon")) : 0;
+    const iconH = glyph ? iconSize + u * 2 : 0;
+    // The numeral is fitted first so the rule and the icon sit on the
+    // glyphs, not on the top of a box taller than them.
+    const probeFig = this.numeral({ x: left.x, y: 0, width: left.width, height: figureH }, stat.value, stat.unit, this.ds.colors.accentOnPaper);
+    const figH = probeFig.height;
+    const blockH = iconH + u * 3 + figH + u * 2 + labelProbe.height;
     const areaTop = this.m + u * 4;
-    const top = areaTop + u * 3 + Math.max(0, Math.round((this.H - this.m - areaTop - blockH) / 2));
-    const figureRect = { x: left.x, y: top, width: left.width, height: figureH };
+    const offset = Math.max(0, Math.round((this.H - this.m - areaTop - blockH) / 2));
+    const top = areaTop + offset + iconH + u * 3;
+    const figureRect = { x: left.x, y: top, width: left.width, height: figH };
     const fig = this.numeral(figureRect, stat.value, stat.unit, this.ds.colors.accentOnPaper);
+    if (glyph) {
+      const ic = this.icon(glyph, left.x, areaTop + offset, iconSize, this.accent);
+      if (ic) this.nodes.push(ic);
+    }
     this.nodes.push(this.accentRule(left.x, top - u * 3));
     this.nodes.push(fig.node);
     const labelY = top + figureRect.height + u * 2;
@@ -686,6 +760,7 @@ class Composer {
     }
     const pointBase = variant === "large" ? this.H * T.agendaItem : this.sz("point");
     this.cluster(content, [
+      ...this.pageIconBlock(),
       this.titleBlock(this.sz("title")),
       { kind: "text", maxFrac: 0.7, make: (r) => this.text({ name: "Points", rect: r, paragraphs: points, role: "body", base: pointBase, lineHeight: 1.35, paraGap: 0.55, list: "bullet" }) },
     ], 3, true);
@@ -745,7 +820,7 @@ class Composer {
       return { nodes: out, height: bottom - y0 };
     };
     const tallest = Math.max(...cols.map((c, i) => build(c, inners[i], 0, glyphs[i]).height));
-    const y0 = bodyTop + Math.max(0, Math.round((bodyH - tallest) / 2));
+    const y0 = bodyTop + Math.min(u * 8, Math.max(0, Math.round((bodyH - tallest) / 2)));
     if (n === 2) {
       // The rule between the columns is the comparison: it says "versus", and
       // it runs the height of the content, not of the page.
@@ -803,7 +878,7 @@ class Composer {
       };
       const rowH = build(0).height;
       const avail = this.H - this.m - bodyTop;
-      this.nodes.push(...build(bodyTop + Math.max(0, Math.round((avail - rowH) / 2))).nodes);
+      this.nodes.push(...build(bodyTop + Math.min(u * 8, Math.max(0, Math.round((avail - rowH) / 2)))).nodes);
     } else {
       // Five steps: a numbered list down the page.
       const items = steps.map((st) => `${st.label}${st.detail ? `: ${st.detail}` : ""}`);
@@ -912,7 +987,12 @@ class Composer {
     const { bodyTop, bodyH } = this.headed();
     const perRow = stats.length === 4 ? 2 : stats.length;
     const rows = stats.length === 4 ? 2 : 1;
-    const figureH = Math.round(this.sz("kpiFigure"));
+    let figureH = Math.round(this.sz("kpiFigure"));
+    // Icons are all or nothing across the grid, as on column pages.
+    const glyphs = stats.map((st) => iconGlyphFor(st.icon));
+    const withIcons = glyphs.length > 0 && glyphs.every((g) => !!g);
+    const iconSize = Math.round(this.sz("icon"));
+    const iconH = withIcons ? iconSize + u * 1.5 : 0;
     const build = (y0: number) => {
       const out: Node[] = [];
       let bottom = y0;
@@ -927,17 +1007,28 @@ class Composer {
         const rowTop = bottom + (r > 0 ? u * 5 : 0);
         rowStats.forEach((st, i) => {
           const c = cellsR[i];
-          out.push(this.accentRule(c.x, rowTop));
-          const fig = this.numeral({ x: c.x, y: rowTop + u * 2, width: c.width, height: figureH }, st.value, st.unit, this.ds.colors.accentOnPaper);
+          if (withIcons) {
+            const ic = this.icon(glyphs[r * perRow + i]!, c.x, rowTop, iconSize, this.accent);
+            if (ic) out.push(ic);
+          }
+          const ruleY = rowTop + iconH;
+          out.push(this.accentRule(c.x, ruleY));
+          const fig = this.numeral({ x: c.x, y: ruleY + u * 2, width: c.width, height: figureH }, st.value, st.unit, this.ds.colors.accentOnPaper);
           out.push(fig.node);
-          out.push(this.text({ name: "Label", rect: { x: c.x, y: rowTop + u * 2 + figureH + u * 1.5, width: c.width, height: labelH }, paragraphs: [st.label], role: "heading", base: this.sz("statLabel"), bold: true, lineHeight: 1.2 }).node);
+          out.push(this.text({ name: "Label", rect: { x: c.x, y: ruleY + u * 2 + figureH + u * 1.5, width: c.width, height: labelH }, paragraphs: [st.label], role: "heading", base: this.sz("statLabel"), bold: true, lineHeight: 1.2 }).node);
         });
-        bottom = rowTop + u * 2 + figureH + u * 1.5 + labelH;
+        bottom = rowTop + iconH + u * 2 + figureH + u * 1.5 + labelH;
       }
       return { nodes: out, height: bottom - y0 };
     };
-    const h = build(0).height;
-    this.nodes.push(...build(bodyTop + Math.max(0, Math.round((bodyH - h) / 2))).nodes);
+    // Two rows of figures with icons and labels can outgrow the page; the
+    // figures step down until the grid fits above the furniture.
+    let h = build(0).height;
+    while (h > bodyH && figureH > u * 6) {
+      figureH -= u;
+      h = build(0).height;
+    }
+    this.nodes.push(...build(bodyTop + Math.min(u * 8, Math.max(0, Math.round((bodyH - h) / 2)))).nodes);
     this.furniture();
   }
 
@@ -948,7 +1039,10 @@ class Composer {
     const steps = (this.item.steps ?? []).slice(0, 5);
     const u = this.ds.unit;
     const { bodyTop, bodyH } = this.headed();
-    const dot = Math.round(u * 2.2);
+    // With an icon on every step the markers are the icons; otherwise dots.
+    const glyphs = steps.map((st) => iconGlyphFor(st.icon));
+    const withIcons = glyphs.length > 0 && glyphs.every((g) => !!g);
+    const dot = withIcons ? Math.round(this.sz("icon")) : Math.round(u * 2.2);
     const lineColor = mix(this.ds.colors.ink, this.ds.colors.paper, 0.8);
     const build = (y0: number) => {
       const out: Node[] = [];
@@ -964,7 +1058,12 @@ class Composer {
         const c = cellsR[i];
         const cx = c.x + c.width / 2;
         if (st.when) out.push(this.text({ name: "When", rect: { x: c.x, y: y0, width: c.width, height: whenH }, paragraphs: [st.when], role: "heading", base: this.sz("timelineWhen"), bold: true, color: this.muted, align: "center", lineHeight: 1.2, exactSize: Math.round(this.sz("timelineWhen")) }).node);
-        out.push(this.rect("Marker", { x: cx - dot / 2, y: lineY, width: dot, height: dot }, this.accent, Math.round(dot / 2)));
+        if (withIcons) {
+          const ic = this.icon(glyphs[i]!, Math.round(cx - dot / 2), lineY, dot, this.accent);
+          if (ic) { (ic as unknown as { name: string }).name = "Marker"; out.push(ic); }
+        } else {
+          out.push(this.rect("Marker", { x: cx - dot / 2, y: lineY, width: dot, height: dot }, this.accent, Math.round(dot / 2)));
+        }
         if (i < steps.length - 1) {
           const nx = cellsR[i + 1].x + cellsR[i + 1].width / 2;
           const x0 = cx + dot / 2 + u;
@@ -986,7 +1085,7 @@ class Composer {
       return { nodes: out, height: bottom - y0 };
     };
     const h = build(0).height;
-    this.nodes.push(...build(bodyTop + Math.max(0, Math.round((bodyH - h) / 2))).nodes);
+    this.nodes.push(...build(bodyTop + Math.min(u * 8, Math.max(0, Math.round((bodyH - h) / 2)))).nodes);
     this.furniture();
   }
 
@@ -1004,7 +1103,7 @@ class Composer {
     const rowH = rowFor(size);
     const width = this.W - 2 * this.m;
     const height = rowH * rows;
-    const r = this.mirror({ x: this.m, y: bodyTop + Math.max(0, Math.round((bodyH - height) / 2)), width, height });
+    const r = this.mirror({ x: this.m, y: bodyTop + Math.min(u * 8, Math.max(0, Math.round((bodyH - height) / 2))), width, height });
     // A column is set flush right when every one of its values is a number
     // (a unit or currency mark allowed), and the header follows its column;
     // the first column is the row's label and always reads from the left.
@@ -1066,7 +1165,7 @@ class Composer {
       return { nodes: out, height: bottom - y0 };
     };
     const h = build(0).height;
-    this.nodes.push(...build(bodyTop + Math.max(0, Math.round((bodyH - h) / 2))).nodes);
+    this.nodes.push(...build(bodyTop + Math.min(u * 8, Math.max(0, Math.round((bodyH - h) / 2)))).nodes);
     this.furniture();
   }
 
@@ -1076,6 +1175,7 @@ class Composer {
       const s = this.span(8, 4);
       this.nodes.push(this.imageSlot({ x: s.x, y: 0, width: this.W - s.x, height: this.H }, this.imagePrompt()));
     }
+    if (!hasImage) this.decor(this.span(8, 4));
     const region = this.span(0, hasImage ? 7 : 8);
     this.cluster(region, [
       { kind: "rule" },

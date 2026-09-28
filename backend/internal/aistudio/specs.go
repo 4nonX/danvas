@@ -49,6 +49,8 @@ type OutlineItem struct {
 	Stats  []Stat     `json:"stats,omitempty"`
 	Table  *TableData `json:"table,omitempty"`
 	People []Person   `json:"people,omitempty"`
+	// Icon is one English keyword naming a simple icon for the page.
+	Icon string `json:"icon,omitempty"`
 }
 
 // Stat is the content of a big-number slide: one figure at display scale, its
@@ -57,6 +59,7 @@ type Stat struct {
 	Value string `json:"value"`
 	Unit  string `json:"unit,omitempty"`
 	Label string `json:"label"`
+	Icon  string `json:"icon,omitempty"`
 }
 
 // Quote is a pull quote with its source.
@@ -72,6 +75,7 @@ type Step struct {
 	Detail string `json:"detail,omitempty"`
 	// When is a short time marker ("2019", "Q3", "Week 2") for a timeline.
 	When string `json:"when,omitempty"`
+	Icon string `json:"icon,omitempty"`
 }
 
 // Column is one side of a comparison or one cell of a three-up.
@@ -249,7 +253,13 @@ func clipRunes(s string, n int) string {
 // second-guess a half-filled stat or a one-column comparison. A page whose
 // archetype needs a payload it does not have falls back to the plain form its
 // content can support: no stat means no big number.
+// iconKeyword lower-cases and clips an icon keyword; empty when there is none.
+func iconKeyword(v string) string {
+	return clipRunes(strings.ToLower(strings.TrimSpace(v)), maxColIcon)
+}
+
 func normalizeArchetypeFields(p *OutlineItem) {
+	p.Icon = iconKeyword(p.Icon)
 	p.Title = clipRunes(strings.TrimSpace(p.Title), maxTitleChars)
 	p.Subhead = clipRunes(strings.TrimSpace(p.Subhead), maxSubheadChars)
 	if p.Archetype == "statement" {
@@ -259,6 +269,7 @@ func normalizeArchetypeFields(p *OutlineItem) {
 		p.Stat.Value = clipRunes(strings.TrimSpace(p.Stat.Value), maxStatValueChars)
 		p.Stat.Unit = clipRunes(strings.TrimSpace(p.Stat.Unit), maxStatUnitChars)
 		p.Stat.Label = clipRunes(strings.TrimSpace(p.Stat.Label), maxStatLabelChars)
+		p.Stat.Icon = iconKeyword(p.Stat.Icon)
 		if p.Stat.Value == "" {
 			p.Stat = nil
 		}
@@ -275,6 +286,7 @@ func normalizeArchetypeFields(p *OutlineItem) {
 		st.Label = clipRunes(strings.TrimSpace(st.Label), maxStepLabelChars)
 		st.Detail = clipRunes(strings.TrimSpace(st.Detail), maxStepDetail)
 		st.When = clipRunes(strings.TrimSpace(st.When), maxStepWhen)
+		st.Icon = iconKeyword(st.Icon)
 		if st.Label != "" {
 			steps = append(steps, st)
 		}
@@ -286,7 +298,7 @@ func normalizeArchetypeFields(p *OutlineItem) {
 	cols := p.Columns[:0]
 	for _, c := range p.Columns {
 		c.Heading = clipRunes(strings.TrimSpace(c.Heading), maxColHeadChars)
-		c.Icon = clipRunes(strings.ToLower(strings.TrimSpace(c.Icon)), maxColIcon)
+		c.Icon = iconKeyword(c.Icon)
 		cp := c.Points[:0]
 		for _, pt := range c.Points {
 			if t := clipRunes(strings.TrimSpace(pt), maxPointChars); t != "" {
@@ -347,6 +359,7 @@ func normalizeArchetypeFields(p *OutlineItem) {
 		st.Value = clipRunes(strings.TrimSpace(st.Value), maxStatValueChars)
 		st.Unit = clipRunes(strings.TrimSpace(st.Unit), maxStatUnitChars)
 		st.Label = clipRunes(strings.TrimSpace(st.Label), maxStatLabelChars)
+		st.Icon = iconKeyword(st.Icon)
 		if st.Value != "" {
 			stats = append(stats, st)
 		}

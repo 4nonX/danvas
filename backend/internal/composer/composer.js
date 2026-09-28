@@ -33866,10 +33866,13 @@ ${err.toString()}`);
         return a.x < b.x + b.w - tol && a.x + a.w > b.x + tol && a.y < b.y + b.h - tol && a.y + a.h > b.y + tol;
       }
       function qualityCheck(page) {
+        var _a5;
         const issues = [];
         const bgRefs = backgroundReferences(page.background);
         const boxes = [];
         for (const n of page.nodes) {
+          if ((_a5 = n.data) == null ? void 0 : _a5.decor)
+            continue;
           const box = nodeBox(n);
           if (!box)
             continue;
@@ -34028,10 +34031,16 @@ ${err.toString()}`);
       function strList(v, maxItems, maxChars) {
         return (Array.isArray(v) ? v : []).map((x) => clipToBudget(x, maxChars)).filter(Boolean).slice(0, maxItems);
       }
+      function iconKeyword(v) {
+        return clipToBudget(v, exports.archetypeBudgets.columnIcon).toLowerCase();
+      }
       function normalizeArchetypeFields(p, archetype, points) {
         var _a5, _b, _c, _d, _e, _f;
         const b = exports.archetypeBudgets;
         const out = { archetype };
+        const pageIcon = iconKeyword(p.icon);
+        if (pageIcon)
+          out.icon = pageIcon;
         const subhead = clipToBudget(p.subhead, b.subhead);
         if (subhead)
           out.subhead = subhead;
@@ -34040,7 +34049,8 @@ ${err.toString()}`);
           const value = clipToBudget(st.value, b.statValue);
           if (value) {
             const unit = clipToBudget(st.unit, b.statUnit);
-            out.stat = __spreadValues({ value, label: clipToBudget(st.label, b.statLabel) }, unit ? { unit } : {});
+            const icon = iconKeyword(st.icon);
+            out.stat = __spreadValues(__spreadValues({ value, label: clipToBudget(st.label, b.statLabel) }, unit ? { unit } : {}), icon ? { icon } : {});
           }
         }
         const q = p.quote;
@@ -34056,7 +34066,8 @@ ${err.toString()}`);
           const label = clipToBudget(r.label, b.stepLabel);
           const detail = clipToBudget(r.detail, b.stepDetail);
           const when = clipToBudget(r.when, b.stepWhen);
-          return label ? __spreadValues(__spreadValues({ label }, detail ? { detail } : {}), when ? { when } : {}) : null;
+          const icon = iconKeyword(r.icon);
+          return label ? __spreadValues(__spreadValues(__spreadValues({ label }, detail ? { detail } : {}), when ? { when } : {}), icon ? { icon } : {}) : null;
         }).filter((x) => !!x).slice(0, b.steps);
         if (steps.length)
           out.steps = steps;
@@ -34064,7 +34075,7 @@ ${err.toString()}`);
           const r = x != null ? x : {};
           const heading = clipToBudget(r.heading, b.columnHeading);
           const pts = strList(r.points, b.columnPoints, b.point);
-          const icon = clipToBudget(r.icon, b.columnIcon).toLowerCase();
+          const icon = iconKeyword(r.icon);
           return heading || pts.length ? __spreadValues({ heading, points: pts }, icon ? { icon } : {}) : null;
         }).filter((x) => !!x).slice(0, b.columns);
         if (columns.length)
@@ -34096,7 +34107,8 @@ ${err.toString()}`);
           if (!value)
             return null;
           const unit = clipToBudget(r.unit, b.statUnit);
-          return __spreadValues({ value, label: clipToBudget(r.label, b.statLabel) }, unit ? { unit } : {});
+          const icon = iconKeyword(r.icon);
+          return __spreadValues(__spreadValues({ value, label: clipToBudget(r.label, b.statLabel) }, unit ? { unit } : {}), icon ? { icon } : {});
         }).filter((x) => !!x).slice(0, b.stats);
         if (stats.length)
           out.stats = stats;
@@ -34225,13 +34237,14 @@ ${err.toString()}`);
                 visualRole: { type: "string", enum: exports.visualRoles },
                 subhead: { type: "string", maxLength: exports.archetypeBudgets.subhead, description: "one supporting line under the title (cover, section, statement, closing, bigNumber context)" },
                 points: { type: "array", maxItems: exports.archetypeBudgets.points, items: { type: "string", maxLength: exports.archetypeBudgets.point }, description: "bullets or agenda items; only for bullets/agenda" },
-                stat: { type: "object", additionalProperties: false, required: ["value", "label"], properties: { value: { type: "string", maxLength: exports.archetypeBudgets.statValue, description: "the figure, e.g. 42% or 3.2M" }, unit: { type: "string", maxLength: exports.archetypeBudgets.statUnit }, label: { type: "string", maxLength: exports.archetypeBudgets.statLabel, description: "what the figure means" } } },
+                stat: { type: "object", additionalProperties: false, required: ["value", "label"], properties: { value: { type: "string", maxLength: exports.archetypeBudgets.statValue, description: "the figure, e.g. 42% or 3.2M" }, unit: { type: "string", maxLength: exports.archetypeBudgets.statUnit }, label: { type: "string", maxLength: exports.archetypeBudgets.statLabel, description: "what the figure means" }, icon: { type: "string", maxLength: exports.archetypeBudgets.columnIcon, description: "one English keyword naming a simple icon for the figure" } } },
+                icon: { type: "string", maxLength: exports.archetypeBudgets.columnIcon, description: "one English keyword naming a simple icon for the page (bullets, statement, bigNumber, cover, section, closing), e.g. shield, clock, users, chart, leaf, globe, bolt, heart, coin, truck, calendar" },
                 quote: { type: "object", additionalProperties: false, required: ["text"], properties: { text: { type: "string", maxLength: exports.archetypeBudgets.quote }, attribution: { type: "string", maxLength: exports.archetypeBudgets.attribution } } },
-                steps: { type: "array", minItems: 2, maxItems: exports.archetypeBudgets.steps, items: { type: "object", additionalProperties: false, required: ["label"], properties: { label: { type: "string", maxLength: exports.archetypeBudgets.stepLabel }, detail: { type: "string", maxLength: exports.archetypeBudgets.stepDetail }, when: { type: "string", maxLength: exports.archetypeBudgets.stepWhen, description: "a short time marker for a timeline step, e.g. 2019, Q3, Week 2" } } } },
+                steps: { type: "array", minItems: 2, maxItems: exports.archetypeBudgets.steps, items: { type: "object", additionalProperties: false, required: ["label"], properties: { label: { type: "string", maxLength: exports.archetypeBudgets.stepLabel }, detail: { type: "string", maxLength: exports.archetypeBudgets.stepDetail }, when: { type: "string", maxLength: exports.archetypeBudgets.stepWhen, description: "a short time marker for a timeline step, e.g. 2019, Q3, Week 2" }, icon: { type: "string", maxLength: exports.archetypeBudgets.columnIcon, description: "one English keyword naming a simple icon for the step" } } } },
                 columns: { type: "array", minItems: 2, maxItems: exports.archetypeBudgets.columns, items: { type: "object", additionalProperties: false, required: ["heading", "points"], properties: { heading: { type: "string", maxLength: exports.archetypeBudgets.columnHeading }, points: { type: "array", maxItems: exports.archetypeBudgets.columnPoints, items: { type: "string", maxLength: exports.archetypeBudgets.point } }, icon: { type: "string", maxLength: exports.archetypeBudgets.columnIcon, description: "one English keyword naming a simple icon for the column, e.g. shield, clock, users, chart" } } } },
                 image: { type: "object", additionalProperties: false, required: ["subject"], properties: { subject: { type: "string", maxLength: exports.archetypeBudgets.imageSubject, description: "what the picture shows, IN ENGLISH, concrete and specific; no text in the image" }, treatment: { type: "string", enum: ["photo", "illustration", "abstract"] } } },
                 chart: { type: "object", additionalProperties: false, required: ["kind", "categories", "series"], properties: { kind: { type: "string", enum: ["bar", "line", "pie", "donut"] }, categories: { type: "array", maxItems: exports.archetypeBudgets.chartCategories, items: { type: "string" } }, series: { type: "array", minItems: 1, maxItems: exports.archetypeBudgets.chartSeries, items: { type: "object", additionalProperties: false, required: ["name", "values"], properties: { name: { type: "string" }, values: { type: "array", items: { type: "number" } } } } } } },
-                stats: { type: "array", minItems: 2, maxItems: exports.archetypeBudgets.stats, items: { type: "object", additionalProperties: false, required: ["value", "label"], properties: { value: { type: "string", maxLength: exports.archetypeBudgets.statValue }, unit: { type: "string", maxLength: exports.archetypeBudgets.statUnit }, label: { type: "string", maxLength: exports.archetypeBudgets.statLabel } } }, description: "2-4 figures that belong together; only for kpiGrid" },
+                stats: { type: "array", minItems: 2, maxItems: exports.archetypeBudgets.stats, items: { type: "object", additionalProperties: false, required: ["value", "label"], properties: { value: { type: "string", maxLength: exports.archetypeBudgets.statValue }, unit: { type: "string", maxLength: exports.archetypeBudgets.statUnit }, label: { type: "string", maxLength: exports.archetypeBudgets.statLabel }, icon: { type: "string", maxLength: exports.archetypeBudgets.columnIcon, description: "one English keyword naming a simple icon for the figure" } } }, description: "2-4 figures that belong together; only for kpiGrid" },
                 table: { type: "object", additionalProperties: false, required: ["columns", "rows"], properties: { columns: { type: "array", minItems: 1, maxItems: exports.archetypeBudgets.tableColumns, items: { type: "string", maxLength: exports.archetypeBudgets.tableCell } }, rows: { type: "array", minItems: 1, maxItems: exports.archetypeBudgets.tableRows, items: { type: "array", items: { type: "string", maxLength: exports.archetypeBudgets.tableCell } } } }, description: "a small table of real values from the brief or attached material; only for table" },
                 people: { type: "array", minItems: 1, maxItems: exports.archetypeBudgets.people, items: { type: "object", additionalProperties: false, required: ["name"], properties: { name: { type: "string", maxLength: exports.archetypeBudgets.personName }, role: { type: "string", maxLength: exports.archetypeBudgets.personRole } } }, description: "the people on a team slide; only for team" },
                 note: {
@@ -36084,6 +36097,8 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         caption: 0.03,
         kpiFigure: 0.16,
         icon: 0.07,
+        pageIcon: 0.075,
+        sectionNumber: 0.085,
         tableCell: 0.026,
         timelineWhen: 0.026,
         monogram: 0.06,
@@ -36132,6 +36147,8 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         "Page number": null,
         "Logo": null,
         "Image": { preset: "fade", durationMs: 700 },
+        "Decor": { preset: "fade", durationMs: 600 },
+        "Section number": { preset: "rise", durationMs: 550 },
         "Accent": { preset: "fade", durationMs: 350 },
         "Divider": { preset: "fade", durationMs: 350 },
         "Sequence": { preset: "fade", durationMs: 350 },
@@ -36438,6 +36455,8 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           const measured = blocks.map((b) => {
             if (b.kind === "rule")
               return { b, height: this.ds.rule, node: null };
+            if (b.kind === "icon")
+              return { b, height: b.size, node: null };
             const probe = b.make({ x: region.x, y: region.y, width: region.width, height: Math.max(u * 2, region.height * b.maxFrac) });
             return { b, height: probe.height, node: null };
           });
@@ -36446,12 +36465,55 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           for (const mrow of measured) {
             if (mrow.b.kind === "rule") {
               this.nodes.push(this.accentRule(region.x, y));
+            } else if (mrow.b.kind === "icon") {
+              const ic = this.icon(mrow.b.glyph, region.x, y, mrow.b.size, this.accent);
+              if (ic)
+                this.nodes.push(ic);
             } else {
               const made = mrow.b.make({ x: region.x, y, width: region.width, height: mrow.height });
               this.nodes.push(made.node);
             }
             y += mrow.height + gapUnits * u;
           }
+        }
+        /** The page's own icon as a cluster block, or nothing when the outline
+         *  named none the set knows. */
+        pageIconBlock() {
+          const glyph = iconGlyphFor(this.item.icon);
+          return glyph ? [{ kind: "icon", glyph, size: Math.round(this.sz("pageIcon")) }] : [];
+        }
+        /** The decor an impact page carries where a picture would go: one large
+         *  soft disc of the deck's own hue, bleeding off the trailing edge, with
+         *  the page's icon set in it when the outline named one. Ornament, not
+         *  content: tagged so the quality loop and the measure ignore it, drawn
+         *  behind everything. Only where nothing else sits (never over a picture). */
+        decor(region) {
+          var _a5;
+          const d = Math.round(this.H * 0.6);
+          const cx = region.x + region.width * 0.65;
+          const cy = this.H * 0.5;
+          const r = this.mirror({ x: Math.round(cx - d / 2), y: Math.round(cy - d / 2), width: d, height: d });
+          const disc = (0, schema_1.createNode)("shape", {
+            name: "Decor",
+            shape: "ellipse",
+            transform: { x: r.x, y: r.y, scaleX: 1, scaleY: 1, rotation: 0 },
+            size: { width: r.width, height: r.height },
+            fills: [{ type: "solid", color: structuredClone(mix(this.ds.colors.deep, this.ds.colors.primary, 0.6)) }],
+            opacity: 0.55,
+            data: { decor: true }
+          });
+          const out = [disc];
+          const glyph = iconGlyphFor(this.item.icon);
+          if (glyph) {
+            const size2 = Math.round(d * 0.38);
+            const ic = this.icon(glyph, Math.round(cx - size2 / 2), Math.round(cy - size2 / 2), size2, this.ds.colors.accentOnDeep);
+            if (ic) {
+              ic.name = "Decor";
+              ic.data = __spreadProps(__spreadValues({}, (_a5 = ic.data) != null ? _a5 : {}), { decor: true });
+              out.push(ic);
+            }
+          }
+          this.nodes.unshift(...out);
         }
         // --- archetypes --------------------------------------------------------------
         compose() {
@@ -36538,6 +36600,8 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           if (hasImage) {
             const s = this.span(7, 5);
             this.nodes.push(this.imageSlot({ x: s.x, y: 0, width: this.W - s.x, height: this.H }, this.imagePrompt()));
+          } else {
+            this.decor(this.span(8, 4));
           }
           this.cluster(region, [
             { kind: "rule" },
@@ -36551,9 +36615,14 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           if (hasImage) {
             const s = this.span(8, 4);
             this.nodes.push(this.imageSlot({ x: s.x, y: 0, width: this.W - s.x, height: this.H }, this.imagePrompt()));
+          } else {
+            this.decor(this.span(8, 4));
           }
           const region = this.span(0, hasImage ? 7 : 8);
+          const n = this.ctx.section;
+          const number4 = n ? [{ kind: "text", maxFrac: 0.25, make: (r) => this.text({ name: "Section number", rect: r, paragraphs: [String(n).padStart(2, "0")], role: "heading", base: this.sz("sectionNumber"), bold: true, color: this.accent, exactSize: Math.round(this.sz("sectionNumber")), lineHeight: 1.05, tracking: 0.02 }) }] : [];
           this.cluster(region, [
+            ...number4,
             { kind: "rule" },
             this.titleBlock(this.sz("sectionTitle")),
             ...this.subheadBlock(this.sz("statementSub"), this.item.subhead)
@@ -36562,6 +36631,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         }
         statement() {
           this.cluster(this.span(0, 10), [
+            ...this.pageIconBlock(),
             { kind: "rule" },
             { kind: "text", maxFrac: 0.6, make: (r) => this.text({ name: "Statement", rect: r, paragraphs: [this.item.title], role: "heading", base: this.sz("statement"), bold: true, lineHeight: 1.12 }) },
             ...this.subheadBlock(this.sz("statementSub"), this.item.subhead)
@@ -36569,6 +36639,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           this.furniture();
         }
         bigNumber() {
+          var _a5;
           const stat = this.item.stat;
           const hasImage = !!this.item.image;
           const left = this.span(0, hasImage ? 6 : 7);
@@ -36576,11 +36647,22 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           const u = this.ds.unit;
           const figureH = Math.round(this.H * 0.36);
           const labelProbe = this.text({ name: "Label", rect: { x: left.x, y: 0, width: left.width, height: u * 12 }, paragraphs: [stat.label], role: "heading", base: this.sz("statLabel"), bold: true, lineHeight: 1.2 });
-          const blockH = u * 3 + figureH + u * 2 + labelProbe.height;
+          const glyph = iconGlyphFor((_a5 = stat.icon) != null ? _a5 : this.item.icon);
+          const iconSize = glyph ? Math.round(this.sz("pageIcon")) : 0;
+          const iconH = glyph ? iconSize + u * 2 : 0;
+          const probeFig = this.numeral({ x: left.x, y: 0, width: left.width, height: figureH }, stat.value, stat.unit, this.ds.colors.accentOnPaper);
+          const figH = probeFig.height;
+          const blockH = iconH + u * 3 + figH + u * 2 + labelProbe.height;
           const areaTop = this.m + u * 4;
-          const top = areaTop + u * 3 + Math.max(0, Math.round((this.H - this.m - areaTop - blockH) / 2));
-          const figureRect = { x: left.x, y: top, width: left.width, height: figureH };
+          const offset = Math.max(0, Math.round((this.H - this.m - areaTop - blockH) / 2));
+          const top = areaTop + offset + iconH + u * 3;
+          const figureRect = { x: left.x, y: top, width: left.width, height: figH };
           const fig = this.numeral(figureRect, stat.value, stat.unit, this.ds.colors.accentOnPaper);
+          if (glyph) {
+            const ic = this.icon(glyph, left.x, areaTop + offset, iconSize, this.accent);
+            if (ic)
+              this.nodes.push(ic);
+          }
           this.nodes.push(this.accentRule(left.x, top - u * 3));
           this.nodes.push(fig.node);
           const labelY = top + figureRect.height + u * 2;
@@ -36631,6 +36713,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           }
           const pointBase = variant === "large" ? this.H * T.agendaItem : this.sz("point");
           this.cluster(content, [
+            ...this.pageIconBlock(),
             this.titleBlock(this.sz("title")),
             { kind: "text", maxFrac: 0.7, make: (r) => this.text({ name: "Points", rect: r, paragraphs: points, role: "body", base: pointBase, lineHeight: 1.35, paraGap: 0.55, list: "bullet" }) }
           ], 3, true);
@@ -36682,7 +36765,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             return { nodes: out, height: bottom - y02 };
           };
           const tallest = Math.max(...cols.map((c, i) => build(c, inners[i], 0, glyphs[i]).height));
-          const y0 = bodyTop + Math.max(0, Math.round((bodyH - tallest) / 2));
+          const y0 = bodyTop + Math.min(u * 8, Math.max(0, Math.round((bodyH - tallest) / 2)));
           if (n === 2) {
             const gap = this.span(5, 2);
             const x = gap.x + gap.width / 2 - this.ds.rule / 2;
@@ -36736,7 +36819,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             };
             const rowH = build(0).height;
             const avail = this.H - this.m - bodyTop;
-            this.nodes.push(...build(bodyTop + Math.max(0, Math.round((avail - rowH) / 2))).nodes);
+            this.nodes.push(...build(bodyTop + Math.min(u * 8, Math.max(0, Math.round((avail - rowH) / 2)))).nodes);
           } else {
             const items = steps.map((st) => `${st.label}${st.detail ? `: ${st.detail}` : ""}`);
             this.nodes.push(this.text({ name: "Steps", rect: __spreadProps(__spreadValues({}, this.span(0, 10)), { y: bodyTop, height: this.H - this.m - bodyTop }), paragraphs: items, role: "body", base: this.sz("point"), lineHeight: 1.35, paraGap: 0.7, list: "number" }).node);
@@ -36833,7 +36916,11 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           const { bodyTop, bodyH } = this.headed();
           const perRow = stats.length === 4 ? 2 : stats.length;
           const rows = stats.length === 4 ? 2 : 1;
-          const figureH = Math.round(this.sz("kpiFigure"));
+          let figureH = Math.round(this.sz("kpiFigure"));
+          const glyphs = stats.map((st) => iconGlyphFor(st.icon));
+          const withIcons = glyphs.length > 0 && glyphs.every((g) => !!g);
+          const iconSize = Math.round(this.sz("icon"));
+          const iconH = withIcons ? iconSize + u * 1.5 : 0;
           const build = (y0) => {
             const out = [];
             let bottom = y0;
@@ -36847,17 +36934,27 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
               const rowTop = bottom + (r > 0 ? u * 5 : 0);
               rowStats.forEach((st, i) => {
                 const c = cellsR[i];
-                out.push(this.accentRule(c.x, rowTop));
-                const fig = this.numeral({ x: c.x, y: rowTop + u * 2, width: c.width, height: figureH }, st.value, st.unit, this.ds.colors.accentOnPaper);
+                if (withIcons) {
+                  const ic = this.icon(glyphs[r * perRow + i], c.x, rowTop, iconSize, this.accent);
+                  if (ic)
+                    out.push(ic);
+                }
+                const ruleY = rowTop + iconH;
+                out.push(this.accentRule(c.x, ruleY));
+                const fig = this.numeral({ x: c.x, y: ruleY + u * 2, width: c.width, height: figureH }, st.value, st.unit, this.ds.colors.accentOnPaper);
                 out.push(fig.node);
-                out.push(this.text({ name: "Label", rect: { x: c.x, y: rowTop + u * 2 + figureH + u * 1.5, width: c.width, height: labelH }, paragraphs: [st.label], role: "heading", base: this.sz("statLabel"), bold: true, lineHeight: 1.2 }).node);
+                out.push(this.text({ name: "Label", rect: { x: c.x, y: ruleY + u * 2 + figureH + u * 1.5, width: c.width, height: labelH }, paragraphs: [st.label], role: "heading", base: this.sz("statLabel"), bold: true, lineHeight: 1.2 }).node);
               });
-              bottom = rowTop + u * 2 + figureH + u * 1.5 + labelH;
+              bottom = rowTop + iconH + u * 2 + figureH + u * 1.5 + labelH;
             }
             return { nodes: out, height: bottom - y0 };
           };
-          const h = build(0).height;
-          this.nodes.push(...build(bodyTop + Math.max(0, Math.round((bodyH - h) / 2))).nodes);
+          let h = build(0).height;
+          while (h > bodyH && figureH > u * 6) {
+            figureH -= u;
+            h = build(0).height;
+          }
+          this.nodes.push(...build(bodyTop + Math.min(u * 8, Math.max(0, Math.round((bodyH - h) / 2)))).nodes);
           this.furniture();
         }
         /** A dated sequence: markers on one line, the time above each, the label
@@ -36868,7 +36965,9 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           const steps = ((_a5 = this.item.steps) != null ? _a5 : []).slice(0, 5);
           const u = this.ds.unit;
           const { bodyTop, bodyH } = this.headed();
-          const dot = Math.round(u * 2.2);
+          const glyphs = steps.map((st) => iconGlyphFor(st.icon));
+          const withIcons = glyphs.length > 0 && glyphs.every((g) => !!g);
+          const dot = withIcons ? Math.round(this.sz("icon")) : Math.round(u * 2.2);
           const lineColor = mix(this.ds.colors.ink, this.ds.colors.paper, 0.8);
           const build = (y0) => {
             const out = [];
@@ -36885,7 +36984,15 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
               const cx = c.x + c.width / 2;
               if (st.when)
                 out.push(this.text({ name: "When", rect: { x: c.x, y: y0, width: c.width, height: whenH }, paragraphs: [st.when], role: "heading", base: this.sz("timelineWhen"), bold: true, color: this.muted, align: "center", lineHeight: 1.2, exactSize: Math.round(this.sz("timelineWhen")) }).node);
-              out.push(this.rect("Marker", { x: cx - dot / 2, y: lineY, width: dot, height: dot }, this.accent, Math.round(dot / 2)));
+              if (withIcons) {
+                const ic = this.icon(glyphs[i], Math.round(cx - dot / 2), lineY, dot, this.accent);
+                if (ic) {
+                  ic.name = "Marker";
+                  out.push(ic);
+                }
+              } else {
+                out.push(this.rect("Marker", { x: cx - dot / 2, y: lineY, width: dot, height: dot }, this.accent, Math.round(dot / 2)));
+              }
               if (i < steps.length - 1) {
                 const nx = cellsR[i + 1].x + cellsR[i + 1].width / 2;
                 const x0 = cx + dot / 2 + u;
@@ -36908,7 +37015,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             return { nodes: out, height: bottom - y0 };
           };
           const h = build(0).height;
-          this.nodes.push(...build(bodyTop + Math.max(0, Math.round((bodyH - h) / 2))).nodes);
+          this.nodes.push(...build(bodyTop + Math.min(u * 8, Math.max(0, Math.round((bodyH - h) / 2)))).nodes);
           this.furniture();
         }
         /** A small table of real values: a tinted header row, rules between rows,
@@ -36926,7 +37033,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           const rowH = rowFor(size2);
           const width = this.W - 2 * this.m;
           const height = rowH * rows;
-          const r = this.mirror({ x: this.m, y: bodyTop + Math.max(0, Math.round((bodyH - height) / 2)), width, height });
+          const r = this.mirror({ x: this.m, y: bodyTop + Math.min(u * 8, Math.max(0, Math.round((bodyH - height) / 2))), width, height });
           const numeric = /^[\s\d.,%+\-$€£]+(?:\s?[a-zA-Z%]{1,3})?$/;
           const rightAligned = tb.columns.map((_, ci) => ci > 0 && tb.rows.every((row) => {
             var _a5, _b;
@@ -36995,7 +37102,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             return { nodes: out, height: bottom - y0 };
           };
           const h = build(0).height;
-          this.nodes.push(...build(bodyTop + Math.max(0, Math.round((bodyH - h) / 2))).nodes);
+          this.nodes.push(...build(bodyTop + Math.min(u * 8, Math.max(0, Math.round((bodyH - h) / 2)))).nodes);
           this.furniture();
         }
         closing() {
@@ -37005,6 +37112,8 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             const s = this.span(8, 4);
             this.nodes.push(this.imageSlot({ x: s.x, y: 0, width: this.W - s.x, height: this.H }, this.imagePrompt()));
           }
+          if (!hasImage)
+            this.decor(this.span(8, 4));
           const region = this.span(0, hasImage ? 7 : 8);
           this.cluster(region, [
             { kind: "rule" },
@@ -37069,7 +37178,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
       function measureDeck(pages, size2, margin) {
         const area = { x: margin, y: margin, w: size2.width - 2 * margin, h: size2.height - 2 * margin };
         const reports = pages.map((p, i) => {
-          const boxes = p.nodes.filter((n) => n.name !== "Kicker" && n.name !== "Page number" && n.name !== "Logo").map(boxOf).filter((b) => !!b);
+          const boxes = p.nodes.filter((n) => n.name !== "Kicker" && n.name !== "Page number" && n.name !== "Logo" && n.name !== "Decor").map(boxOf).filter((b) => !!b);
           return {
             index: i,
             archetype: p.archetype,
@@ -37141,7 +37250,9 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         const themed = __spreadProps(__spreadValues({}, theme), { kicker: (_a5 = theme.kicker) != null ? _a5 : outline.title });
         const system = (0, designSystem_1.deriveDesignSystem)(themed, size2, __spreadProps(__spreadValues({}, opts), { mood: (_b = opts == null ? void 0 : opts.mood) != null ? _b : outline.theme }));
         const total = outline.pages.length;
-        const composeAll = (variants2) => outline.pages.map((item, i) => (0, archetypes_1.composeArchetypePage)(item, system, { index: i, total, variant: variants2[i] }));
+        let sections = 0;
+        const sectionNumbers = outline.pages.map((item) => item.archetype === "section" ? ++sections : void 0);
+        const composeAll = (variants2) => outline.pages.map((item, i) => (0, archetypes_1.composeArchetypePage)(item, system, { index: i, total, variant: variants2[i], section: sectionNumbers[i] }));
         const measure = (composed2) => (0, measure_1.measureDeck)(composed2.map((c) => (0, measure_1.toMeasurable)(c, (0, quality_1.qualityCheck)({ background: c.background, nodes: c.nodes, size: system.size }).issues)), system.size, system.margin);
         let composed = composeAll({});
         let report = measure(composed);
@@ -37554,7 +37665,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         "social-set": "A set of standalone social posts on one theme; each page is self-contained with its own punchy hook. Use 'statement', 'quote', 'bigNumber' and 'imageCaption' for impact; every page gets an image intent.",
         poster: "A single strong poster composition: one page, one bold message. Use the 'cover' archetype with an image intent."
       };
-      exports.archetypeCatalogRule = "Every page names an archetype, its compositional form: 'cover' (title + subhead); 'agenda' (title + 3-6 points naming the sections to come, in order; only for decks of 6 or more pages); 'section' (a divider: short title, optional subhead); 'statement' (ONE idea as the title, at most 14 words, optional subhead; no points); 'bigNumber' (stat.value + stat.label, optional subhead as context; the figure is the slide); 'bullets' (title + 3-5 points, each a complete thought under 90 characters); 'twoColumn' (title + exactly 2 columns, each heading + 2-4 points; for comparisons and before/after); 'threeUp' (title + exactly 3 columns, each heading + 1-3 points; for features, pillars, options); 'process' (title + 3-5 steps, each label + detail; ONLY for a real sequence); 'quote' (quote.text + attribution); 'imageCaption' (title + image.subject + subhead as caption; the picture carries the slide); 'chart' (title + chart with real numbers from the brief or attached material; never invent data); 'kpiGrid' (title + 2-4 stats, each value + label; several figures that belong together); 'timeline' (title + 3-5 steps, each with a short 'when' such as a year or quarter, a label and a detail; for history and roadmaps); 'table' (title + table.columns and table.rows with real values from the brief or attached material; 2-4 columns, up to 6 rows; never invent data); 'team' (title + 1-4 people, each name + role; no pictures are generated for people); 'closing' (title + subhead as the call to action). A column may name an 'icon': one English keyword for a simple icon (shield, clock, users, chart, leaf, globe); name one for every column or for none.";
+      exports.archetypeCatalogRule = "Every page names an archetype, its compositional form: 'cover' (title + subhead); 'agenda' (title + 3-6 points naming the sections to come, in order; only for decks of 6 or more pages); 'section' (a divider: short title, optional subhead); 'statement' (ONE idea as the title, at most 14 words, optional subhead; no points); 'bigNumber' (stat.value + stat.label, optional subhead as context; the figure is the slide); 'bullets' (title + 3-5 points, each a complete thought under 90 characters); 'twoColumn' (title + exactly 2 columns, each heading + 2-4 points; for comparisons and before/after); 'threeUp' (title + exactly 3 columns, each heading + 1-3 points; for features, pillars, options); 'process' (title + 3-5 steps, each label + detail; ONLY for a real sequence); 'quote' (quote.text + attribution); 'imageCaption' (title + image.subject + subhead as caption; the picture carries the slide); 'chart' (title + chart with real numbers from the brief or attached material; never invent data); 'kpiGrid' (title + 2-4 stats, each value + label; several figures that belong together); 'timeline' (title + 3-5 steps, each with a short 'when' such as a year or quarter, a label and a detail; for history and roadmaps); 'table' (title + table.columns and table.rows with real values from the brief or attached material; 2-4 columns, up to 6 rows; never invent data); 'team' (title + 1-4 people, each name + role; no pictures are generated for people); 'closing' (title + subhead as the call to action). Icons: a column, a kpiGrid stat, a timeline step, and a bullets, statement, bigNumber, cover, section or closing page may each name an 'icon', one English keyword for a simple icon (shield, clock, users, chart, leaf, globe, bolt, heart, coin, truck, calendar, rocket, target, star, lock, cloud); name one for every item in a set or for none, and name one for most pages that can carry one.";
       exports.storyArcRule = "Plan a narrative arc before choosing forms: open with the cover, state the thesis as a 'statement' early, build with evidence, and end with a 'closing' that asks for something specific. Vary the forms: no more than 40 percent of pages may be 'bullets'; never place the same archetype on two adjacent pages except 'bullets' at most twice in a row; use 'bigNumber' whenever the brief or attached material contains a meaningful quantity, 'kpiGrid' when two to four figures belong together, 'timeline' for dated history or a roadmap, and 'table' when the material is a small grid of real values; use 'section' dividers only for decks of 10 or more pages; give an 'image' intent to every 'cover', 'imageCaption', 'section' and 'closing' page and to about half of the rest, with a concrete English subject and consistent treatment across the deck.";
       exports.copyToFormRule = "Write copy to fit the form: a title is a headline (under 60 characters), never a sentence with a full stop; points are parallel in structure and start with the same part of speech; a statement is one idea, not a summary; a stat.label says what the number means in plain words. Never write 'Slide 1', 'Introduction' or other structural labels as content. Never use a dash as a separator inside a title; write a subhead instead. Every figure comes from the brief or the attached material, exactly as given; never invent, round or extrapolate a number.";
       function outlineSystemPrompt(designType, brandClause, pageCount, verbosity) {

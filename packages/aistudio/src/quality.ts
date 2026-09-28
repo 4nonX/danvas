@@ -72,6 +72,10 @@ export function qualityCheck(page: PageInput): QualityReport {
   const boxes: Box[] = [];
 
   for (const n of page.nodes) {
+    // Ornament (a decor disc bleeding off the edge, the icon set in it) is
+    // drawn behind everything and may cross the page edge and each other on
+    // purpose; it is neither an overlap nor an overflow.
+    if ((n as { data?: { decor?: boolean } }).data?.decor) continue;
     const box = nodeBox(n);
     if (!box) continue;
     boxes.push(box);

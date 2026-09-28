@@ -142,6 +142,15 @@ func TestOutlineArchetypeDowngradesWithoutPayload(t *testing.T) {
 	if col.Pages[0].Columns[0].Icon != "shield" {
 		t.Fatalf("icon keyword should be trimmed and lower-cased, got %q", col.Pages[0].Columns[0].Icon)
 	}
+	// Page, stat and step icons are normalized the same way.
+	ic := &DesignOutline{Pages: []OutlineItem{{Title: "t", Archetype: "timeline", Icon: " Rocket ", Steps: []Step{{Label: "a", Icon: "Leaf"}, {Label: "b"}}, Stats: []Stat{{Value: "1", Label: "x", Icon: " USERS"}}}}}
+	_ = validateOutline(ic)
+	if pg := ic.Pages[0]; pg.Icon != "rocket" || pg.Steps[0].Icon != "leaf" || pg.Stats[0].Icon != "users" {
+		t.Fatalf("icon fields not normalized: %+v", pg)
+	}
+	if !strings.Contains(outlineSchema, `"icon":{"type":"string"`) {
+		t.Fatal("schema should offer icon keywords")
+	}
 	// The chart case above also trims values to the category count.
 	o := &DesignOutline{Pages: []OutlineItem{{Title: "t", Archetype: "chart", Chart: &ChartData{Kind: "bar", Categories: []string{"Q1"}, Series: []ChartSeries{{Name: "s", Values: []float64{1, 2, 3}}}}}}}
 	_ = validateOutline(o)

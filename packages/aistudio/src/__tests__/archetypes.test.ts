@@ -509,3 +509,83 @@ describe("the large variant", () => {
     }
   });
 });
+
+describe("icons and decor across the deck", () => {
+  const ds = deriveDesignSystem(theme, size, { seed: 1, catalog: catalogEntryForSeed(1) });
+  type N = { name?: string; type: string; data?: { icon?: string; decor?: boolean }; transform: { x: number; y: number }; size: { width: number; height: number } };
+  const named = (page: { nodes: unknown[] }, name: string) => (page.nodes as N[]).filter((n) => n.name === name);
+  const clean = (page: { background: never; nodes: never }) => expect(qualityCheck({ background: page.background, nodes: page.nodes, size }).issues).toEqual([]);
+
+  it("sets a page icon beside the title on bullets and statements, and above the figure on a big number", () => {
+    for (const a of ["bullets", "statement", "bigNumber"] as const) {
+      const item = normalizeOutline({ title: "T", pages: [{ ...pageFor(a), icon: "Shield" }] }).pages[0];
+      expect(item.icon).toBe("shield");
+      const page = composeArchetypePage(item, ds, { index: 1, total: 4 });
+      expect(named(page, "Icon"), a).toHaveLength(1);
+      expect(named(page, "Icon")[0].data?.icon).toBe("shield");
+      clean(page as never);
+    }
+    const none = composeArchetypePage(normalizeOutline({ title: "T", pages: [{ ...pageFor("bullets"), icon: "flibbertigibbet" }] }).pages[0], ds, { index: 1, total: 4 });
+    expect(named(none, "Icon")).toHaveLength(0);
+  });
+
+  it("puts a stat's icon above each figure of a grid, and a step's icon in place of a timeline marker, all or nothing", () => {
+    const grid = pageFor("kpiGrid") as { stats: { value: string; label: string; icon?: string }[] };
+    const withAll = normalizeOutline({ title: "T", pages: [{ ...grid, stats: grid.stats.map((st, i) => ({ ...st, icon: ["leaf", "users", "bolt"][i] })) }] }).pages[0];
+    const g = composeArchetypePage(withAll, ds, { index: 1, total: 4 });
+    expect(named(g, "Icon")).toHaveLength(3);
+    clean(g as never);
+    // Four figures with icons and two-line labels still fit above the
+    // furniture: the figures step down rather than run into the page number.
+    const four = normalizeOutline({ title: "T", pages: [{ ...grid, stats: [...grid.stats, { value: "1,200", label: "volunteer days across all six survey points" }].map((st, i) => ({ ...st, icon: ["leaf", "users", "bolt", "home"][i], label: st.label + " over the last full season" })) }] }).pages[0];
+    const f = composeArchetypePage(four, ds, { index: 1, total: 4 });
+    expect(named(f, "Icon")).toHaveLength(4);
+    expect(named(f, "Figure")).toHaveLength(4);
+    clean(f as never);
+    const withOne = normalizeOutline({ title: "T", pages: [{ ...grid, stats: grid.stats.map((st, i) => (i === 0 ? { ...st, icon: "leaf" } : st)) }] }).pages[0];
+    expect(named(composeArchetypePage(withOne, ds, { index: 1, total: 4 }), "Icon")).toHaveLength(0);
+    const tl = pageFor("timeline") as { steps: { label: string; icon?: string }[] };
+    const iconTimeline = normalizeOutline({ title: "T", pages: [{ ...tl, steps: tl.steps.map((st, i) => ({ ...st, icon: ["search", "seedling", "shield", "eye"][i] })) }] }).pages[0];
+    const t = composeArchetypePage(iconTimeline, ds, { index: 2, total: 4 });
+    const markers = named(t, "Marker");
+    expect(markers).toHaveLength(4);
+    expect(markers.every((m) => m.type === "path")).toBe(true);
+    expect(named(t, "Sequence")).toHaveLength(3);
+    clean(t as never);
+  });
+
+  it("gives a cover, section or closing without a picture a decor disc behind the words, and none over a picture", () => {
+    for (const a of ["cover", "section", "closing"] as const) {
+      const bare = { ...pageFor(a), image: undefined, icon: "rocket" };
+      const page = composeArchetypePage(normalizeOutline({ title: "T", pages: [bare] }).pages[0], ds, { index: 0, total: 4, section: 2 });
+      const decor = named(page, "Decor");
+      expect(decor.length, a).toBe(2);
+      expect(decor.every((d) => d.data?.decor)).toBe(true);
+      expect((page.nodes as N[])[0].name).toBe("Decor");
+      // The disc sits on the trailing side, clear of the text column.
+      const title = (page.nodes as N[]).find((n) => n.name === "Title")!;
+      expect(decor[0].transform.x).toBeGreaterThan(title.transform.x + title.size.width - ds.gutter * 3);
+      clean(page as never);
+      const pictured = composeArchetypePage(normalizeOutline({ title: "T", pages: [pageFor(a)] }).pages[0], ds, { index: 0, total: 4 });
+      expect(named(pictured, "Decor")).toHaveLength(0);
+    }
+  });
+
+  it("numbers section dividers in deck order", () => {
+    const outline = normalizeOutline({ title: "T", pages: [pageFor("cover"), pageFor("section"), pageFor("bullets"), pageFor("section"), pageFor("closing")] });
+    const deck = layoutDeck(outline, theme, size, { catalog: catalogEntryForSeed(1), seed: 1 });
+    const numberOf = (i: number) => (deck.pages[i].nodes as { name?: string; content?: { runs: { text: string }[] }[] }[]).find((n) => n.name === "Section number")?.content?.[0].runs[0].text;
+    expect(numberOf(1)).toBe("01");
+    expect(numberOf(3)).toBe("02");
+    expect(numberOf(2)).toBeUndefined();
+    expect(deck.report.ok).toBe(true);
+  });
+
+  it("keeps a short body near its title instead of floating it mid-page", () => {
+    const item = normalizeOutline({ title: "T", pages: [pageFor("threeUp")] }).pages[0];
+    const page = composeArchetypePage(item, ds, { index: 1, total: 4 });
+    const title = named(page, "Title")[0];
+    const firstBody = (page.nodes as N[]).filter((n) => n.name === "Heading" || n.name === "Icon" || n.name === "Accent").reduce((m, n) => Math.min(m, n.transform.y), Infinity);
+    expect(firstBody - (title.transform.y + title.size.height)).toBeLessThanOrEqual(ds.unit * 13);
+  });
+});

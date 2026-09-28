@@ -53,8 +53,11 @@ export function layoutDeck(
   // caller named one.
   const system = deriveDesignSystem(themed, size, { ...opts, mood: opts?.mood ?? outline.theme });
   const total = outline.pages.length;
+  // Section dividers are numbered in deck order.
+  let sections = 0;
+  const sectionNumbers = outline.pages.map((item) => (item.archetype === "section" ? ++sections : undefined));
   const composeAll = (variants: Record<number, PageVariant>) =>
-    outline.pages.map((item, i) => composeArchetypePage(item, system, { index: i, total, variant: variants[i] }));
+    outline.pages.map((item, i) => composeArchetypePage(item, system, { index: i, total, variant: variants[i], section: sectionNumbers[i] }));
   const measure = (composed: ComposedPage[]) =>
     measureDeck(
       composed.map((c) => toMeasurable(c, qualityCheck({ background: c.background, nodes: c.nodes, size: system.size }).issues)),
