@@ -95,7 +95,7 @@ func aiFailure(err error) (status int, title, detail, code string) {
 	case errors.Is(err, ai.ErrEditImageUnsupported):
 		return http.StatusBadRequest, "Bad Request", "your AI provider does not support image editing; switch to a provider with image editing (e.g. OpenAI) in AI settings", "ai_image_edit_unsupported"
 	case errors.Is(err, ai.ErrSecretRequired):
-		return http.StatusBadRequest, "Bad Request", "this provider signs its requests and needs a secret access key as well as the access key ID", "ai_secret_required"
+		return http.StatusBadRequest, "Bad Request", "this provider signs its requests and needs both an access key and a secret key", "ai_secret_required"
 	case errors.Is(err, ai.ErrBaseURLRequired):
 		return http.StatusBadRequest, "Bad Request", "this provider needs a base URL; enter your endpoint URL in AI settings", "ai_base_url_required"
 	case errors.Is(err, ai.ErrKeyRequired):

@@ -123,26 +123,29 @@ describe("the stored API key", () => {
 });
 
 describe("a provider that signs its requests", () => {
-  it("asks for a secret access key, and only for the provider that needs one", async () => {
+  it("asks for an access key and a secret key, and only for the provider that needs them", async () => {
     renderForm();
     await screen.findByRole("group", { name: "Image provider" });
     // OpenAI is selected: no second credential exists for it.
-    expect(screen.queryByLabelText("Secret access key")).toBeNull();
+    expect(screen.queryByLabelText("Secret key")).toBeNull();
 
     fireEvent.change(mainField("Provider"), { target: { value: "bedrock" } });
-    expect(mainField("Secret access key")).toBeTruthy();
+    expect(mainField("Secret key")).toBeTruthy();
+    // The first credential is named for what it is on a signing provider.
+    expect(mainField("Access key")).toBeTruthy();
+    expect(screen.queryByLabelText("API key")).toBeNull();
   });
 
   it("refuses to save a signing provider with only half its credential", async () => {
     renderForm();
     await screen.findByRole("group", { name: "Image provider" });
     fireEvent.change(mainField("Provider"), { target: { value: "bedrock" } });
-    fireEvent.change(mainField("API key"), { target: { value: "AKIDEXAMPLE" } });
+    fireEvent.change(mainField("Access key"), { target: { value: "AKIDEXAMPLE" } });
     fireEvent.change(mainField("Base URL"), { target: { value: "https://bedrock-runtime.us-east-1.amazonaws.com" } });
 
     fireEvent.click(screen.getByRole("button", { name: "Save provider" }));
 
-    // An access key ID alone cannot produce a signature, so this never reaches
+    // An access key alone cannot produce a signature, so this never reaches
     // the server.
     await waitFor(() => expect(toast.error).toHaveBeenCalled());
     expect(oc.setAiConfig).not.toHaveBeenCalled();
@@ -153,8 +156,8 @@ describe("a provider that signs its requests", () => {
     renderForm();
     await screen.findByRole("group", { name: "Image provider" });
     fireEvent.change(mainField("Provider"), { target: { value: "bedrock" } });
-    fireEvent.change(mainField("API key"), { target: { value: "AKIDEXAMPLE" } });
-    fireEvent.change(mainField("Secret access key"), { target: { value: "secret" } });
+    fireEvent.change(mainField("Access key"), { target: { value: "AKIDEXAMPLE" } });
+    fireEvent.change(mainField("Secret key"), { target: { value: "secret" } });
     fireEvent.change(mainField("Base URL"), { target: { value: "https://bedrock-runtime.us-east-1.amazonaws.com" } });
 
     fireEvent.click(screen.getByRole("button", { name: "Save provider" }));
@@ -177,8 +180,8 @@ describe("a provider that signs its requests", () => {
     // offered with nowhere to put the second half of its credential, and every
     // save was refused with no way to satisfy it.
     fireEvent.change(section.getByLabelText("Provider"), { target: { value: "bedrock" } });
-    fireEvent.change(section.getByLabelText("API key"), { target: { value: "AKIDEXAMPLE" } });
-    fireEvent.change(section.getByLabelText("Secret access key"), { target: { value: "secret" } });
+    fireEvent.change(section.getByLabelText("Access key"), { target: { value: "AKIDEXAMPLE" } });
+    fireEvent.change(section.getByLabelText("Secret key"), { target: { value: "secret" } });
     fireEvent.change(section.getByLabelText("Base URL"), { target: { value: "https://bedrock-runtime.us-east-1.amazonaws.com" } });
 
     fireEvent.click(screen.getByRole("button", { name: "Save provider" }));
@@ -195,7 +198,7 @@ describe("a provider that signs its requests", () => {
     renderForm();
     const section = within(await screen.findByRole("group", { name: "Image provider" }));
     fireEvent.change(section.getByLabelText("Provider"), { target: { value: "bedrock" } });
-    fireEvent.change(section.getByLabelText("API key"), { target: { value: "AKIDEXAMPLE" } });
+    fireEvent.change(section.getByLabelText("Access key"), { target: { value: "AKIDEXAMPLE" } });
     fireEvent.change(section.getByLabelText("Base URL"), { target: { value: "https://bedrock-runtime.us-east-1.amazonaws.com" } });
 
     fireEvent.click(screen.getByRole("button", { name: "Save provider" }));
@@ -209,11 +212,11 @@ describe("a provider that signs its requests", () => {
     renderForm();
     await screen.findByRole("group", { name: "Image provider" });
     fireEvent.change(mainField("Provider"), { target: { value: "bedrock" } });
-    fireEvent.change(mainField("Secret access key"), { target: { value: "aws-secret" } });
+    fireEvent.change(mainField("Secret key"), { target: { value: "aws-secret" } });
     // Away to a provider with no secret, and back.
     fireEvent.change(mainField("Provider"), { target: { value: "deepseek" } });
     fireEvent.change(mainField("Provider"), { target: { value: "bedrock" } });
-    expect((mainField("Secret access key") as HTMLInputElement).value).toBe("");
+    expect((mainField("Secret key") as HTMLInputElement).value).toBe("");
   });
 });
 

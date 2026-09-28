@@ -92,7 +92,7 @@ var (
 	// (Bedrock) is saved with an access key ID but no secret access key. Both
 	// halves are needed to produce a signature, so one alone is not a usable
 	// credential.
-	ErrSecretRequired = errors.New("provider requires a secret access key")
+	ErrSecretRequired = errors.New("provider requires a secret key as well as an access key")
 
 	// ErrKeyRequired is a connection test with no key to test: none typed and
 	// none stored for this provider. Distinct from ErrBadRequest so the form

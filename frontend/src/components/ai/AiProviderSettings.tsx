@@ -601,23 +601,6 @@ export function AiProviderSettings({
           />
         </label>
 
-        {requiresSecret && (
-          <label className={labelCls}>
-            {tr("editor.secret_access_key")}
-            <input
-              type="password"
-              value={apiSecret}
-              onChange={(e) => setApiSecret(e.target.value)}
-              placeholder={
-                sameProvider && config?.hasSecret && !apiKey.trim()
-                  ? tr("editor.api_key_leave_blank_to_keep")
-                  : tr("editor.secret_access_key")
-              }
-              className={fieldCls}
-            />
-          </label>
-        )}
-
         {/* Only the STORED provider has a stored key. Showing the masked
             stand-in after switching the select claimed a key existed for the
             new provider, and the only hint otherwise was the save being
@@ -630,7 +613,7 @@ export function AiProviderSettings({
             itself had no label at all. */}
         {sameProvider && config?.hasKey && !replacingKey ? (
           <div className={labelCls}>
-            <span>{tr("editor.api_key")}</span>
+            <span>{(requiresSecret ? tr("editor.access_key") : tr("editor.api_key"))}</span>
             <span className={`${fieldCls}${invalid("key")} flex items-center justify-between gap-2`}>
               <span className="truncate tracking-[0.2em] text-neutral-500" aria-label={tr("editor.a_key_is_stored")}>
                 {"\u2022".repeat(16)}
@@ -646,17 +629,37 @@ export function AiProviderSettings({
           </div>
         ) : (
           <label className={labelCls}>
-            {tr("editor.api_key")}
+            {(requiresSecret ? tr("editor.access_key") : tr("editor.api_key"))}
             <input
               type="password"
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               // "Leave blank to keep" is only true for the provider the key
-              // belongs to; on a switched provider a key is required.
-              placeholder={sameProvider && config?.hasKey ? tr("editor.api_key_leave_blank_to_keep") : tr("editor.api_key")}
+              // belongs to; on a switched provider a key is required. A
+              // signing provider calls its first credential the access key.
+              placeholder={sameProvider && config?.hasKey ? tr("editor.api_key_leave_blank_to_keep") : (requiresSecret ? tr("editor.access_key") : tr("editor.api_key"))}
               autoFocus={replacingKey}
               aria-invalid={badField === "key" || undefined}
               className={fieldCls + invalid("key")}
+            />
+          </label>
+        )}
+
+        {/* A signing provider's second credential, after the access key it
+            belongs with. */}
+        {requiresSecret && (
+          <label className={labelCls}>
+            {tr("editor.secret_key")}
+            <input
+              type="password"
+              value={apiSecret}
+              onChange={(e) => setApiSecret(e.target.value)}
+              placeholder={
+                sameProvider && config?.hasSecret && !apiKey.trim()
+                  ? tr("editor.api_key_leave_blank_to_keep")
+                  : tr("editor.secret_key")
+              }
+              className={fieldCls}
             />
           </label>
         )}
@@ -783,23 +786,6 @@ export function AiProviderSettings({
                   />
                 </label>
 
-                {!!imgPreset?.needsSecret && (
-                  <label className={labelCls}>
-                    {tr("editor.secret_access_key")}
-                    <input
-                      type="password"
-                      value={imgSecret}
-                      onChange={(e) => setImgSecret(e.target.value)}
-                      placeholder={
-                        imgSameProvider && imgHasSecret && !imgKey.trim()
-                          ? tr("editor.api_key_leave_blank_to_keep")
-                          : tr("editor.secret_access_key")
-                      }
-                      className={fieldCls}
-                    />
-                  </label>
-                )}
-
                 <label className={labelCls}>
                   {tr("editor.base_url")}
                   <input
@@ -813,7 +799,7 @@ export function AiProviderSettings({
                 {/* A <div> for the same reason as the main key above. */}
                 {imgShowsStoredKey ? (
                   <div className={labelCls}>
-                    <span>{tr("editor.api_key")}</span>
+                    <span>{(imgPreset?.needsSecret ? tr("editor.access_key") : tr("editor.api_key"))}</span>
                     <span className={`${fieldCls} flex items-center justify-between gap-2`}>
                       <span className="truncate tracking-[0.2em] text-neutral-500" aria-label={tr("editor.a_key_is_stored")}>
                         {"\u2022".repeat(16)}
@@ -829,13 +815,30 @@ export function AiProviderSettings({
                   </div>
                 ) : (
                   <label className={labelCls}>
-                    {tr("editor.api_key")}
+                    {(imgPreset?.needsSecret ? tr("editor.access_key") : tr("editor.api_key"))}
                     <input
                       type="password"
                       value={imgKey}
                       onChange={(e) => setImgKey(e.target.value)}
-                      placeholder={imgSameProvider && imgHasKey ? tr("editor.api_key_leave_blank_to_keep") : tr("editor.api_key")}
+                      placeholder={imgSameProvider && imgHasKey ? tr("editor.api_key_leave_blank_to_keep") : (imgPreset?.needsSecret ? tr("editor.access_key") : tr("editor.api_key"))}
                       autoFocus={replacingImgKey}
+                      className={fieldCls}
+                    />
+                  </label>
+                )}
+
+                {!!imgPreset?.needsSecret && (
+                  <label className={labelCls}>
+                    {tr("editor.secret_key")}
+                    <input
+                      type="password"
+                      value={imgSecret}
+                      onChange={(e) => setImgSecret(e.target.value)}
+                      placeholder={
+                        imgSameProvider && imgHasSecret && !imgKey.trim()
+                          ? tr("editor.api_key_leave_blank_to_keep")
+                          : tr("editor.secret_key")
+                      }
                       className={fieldCls}
                     />
                   </label>
