@@ -79,7 +79,11 @@ export interface Person { name: string; role?: string }
  *  rows, every row as long as the header. */
 export interface TableData { columns: string[]; rows: string[][] }
 export type ImageTreatment = "photo" | "illustration" | "abstract";
-export interface ImageIntent { subject: string; treatment: ImageTreatment }
+/** `illustration` is one English keyword naming a drawing from the deck's
+ *  illustration set ("growth", "handshake", "security"); when the set knows
+ *  it, the composer draws it in place of the picture and no image is
+ *  generated for that region. */
+export interface ImageIntent { subject: string; treatment: ImageTreatment; illustration?: string }
 export type ChartKind = "bar" | "line" | "pie" | "donut";
 export interface ChartData { kind: ChartKind; categories: string[]; series: { name: string; values: number[] }[] }
 
@@ -293,7 +297,8 @@ function normalizeArchetypeFields(p: Record<string, unknown>, archetype: Archety
     const subject = clipToBudget(im.subject, b.imageSubject);
     if (subject) {
       const t = im.treatment;
-      out.image = { subject, treatment: t === "illustration" || t === "abstract" ? t : "photo" };
+      const illustration = iconKeyword(im.illustration);
+      out.image = { subject, treatment: t === "illustration" || t === "abstract" ? t : "photo", ...(illustration ? { illustration } : {}) };
     }
   }
   const ch = p.chart as Record<string, unknown> | undefined;
@@ -446,7 +451,7 @@ export const outlineJsonSchema = {
           quote: { type: "object", additionalProperties: false, required: ["text"], properties: { text: { type: "string", maxLength: archetypeBudgets.quote }, attribution: { type: "string", maxLength: archetypeBudgets.attribution } } },
           steps: { type: "array", minItems: 2, maxItems: archetypeBudgets.steps, items: { type: "object", additionalProperties: false, required: ["label"], properties: { label: { type: "string", maxLength: archetypeBudgets.stepLabel }, detail: { type: "string", maxLength: archetypeBudgets.stepDetail }, when: { type: "string", maxLength: archetypeBudgets.stepWhen, description: "a short time marker for a timeline step, e.g. 2019, Q3, Week 2" }, icon: { type: "string", maxLength: archetypeBudgets.columnIcon, description: "one English keyword naming a simple icon for the step" } } } },
           columns: { type: "array", minItems: 2, maxItems: archetypeBudgets.columns, items: { type: "object", additionalProperties: false, required: ["heading", "points"], properties: { heading: { type: "string", maxLength: archetypeBudgets.columnHeading }, points: { type: "array", maxItems: archetypeBudgets.columnPoints, items: { type: "string", maxLength: archetypeBudgets.point } }, icon: { type: "string", maxLength: archetypeBudgets.columnIcon, description: "one English keyword naming a simple icon for the column, e.g. shield, clock, users, chart" } } } },
-          image: { type: "object", additionalProperties: false, required: ["subject"], properties: { subject: { type: "string", maxLength: archetypeBudgets.imageSubject, description: "what the picture shows, IN ENGLISH, concrete and specific; no text in the image" }, treatment: { type: "string", enum: ["photo", "illustration", "abstract"] } } },
+          image: { type: "object", additionalProperties: false, required: ["subject"], properties: { subject: { type: "string", maxLength: archetypeBudgets.imageSubject, description: "what the picture shows, IN ENGLISH, concrete and specific; no text in the image" }, treatment: { type: "string", enum: ["photo", "illustration", "abstract"] }, illustration: { type: "string", maxLength: archetypeBudgets.columnIcon, description: "one English keyword naming a flat drawing for the page instead of a photo, e.g. growth, handshake, rocket, target, security, chart, analysis, team, idea, money, logistics; use on covers, sections and closings of an internal or product deck" } } },
           chart: { type: "object", additionalProperties: false, required: ["kind", "categories", "series"], properties: { kind: { type: "string", enum: ["bar", "line", "pie", "donut"] }, categories: { type: "array", maxItems: archetypeBudgets.chartCategories, items: { type: "string" } }, series: { type: "array", minItems: 1, maxItems: archetypeBudgets.chartSeries, items: { type: "object", additionalProperties: false, required: ["name", "values"], properties: { name: { type: "string" }, values: { type: "array", items: { type: "number" } } } } } } },
           stats: { type: "array", minItems: 2, maxItems: archetypeBudgets.stats, items: { type: "object", additionalProperties: false, required: ["value", "label"], properties: { value: { type: "string", maxLength: archetypeBudgets.statValue }, unit: { type: "string", maxLength: archetypeBudgets.statUnit }, label: { type: "string", maxLength: archetypeBudgets.statLabel }, icon: { type: "string", maxLength: archetypeBudgets.columnIcon, description: "one English keyword naming a simple icon for the figure" } } }, description: "2-4 figures that belong together; only for kpiGrid" },
           table: { type: "object", additionalProperties: false, required: ["columns", "rows"], properties: { columns: { type: "array", minItems: 1, maxItems: archetypeBudgets.tableColumns, items: { type: "string", maxLength: archetypeBudgets.tableCell } }, rows: { type: "array", minItems: 1, maxItems: archetypeBudgets.tableRows, items: { type: "array", items: { type: "string", maxLength: archetypeBudgets.tableCell } } } }, description: "a small table of real values from the brief or attached material; only for table" },

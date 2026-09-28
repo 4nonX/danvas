@@ -43,7 +43,8 @@
     "gen:ai-tools": "node scripts/gen-ai-tools.mjs",
     "test:frontend": "npm run test -w frontend",
     "gen:compose-fixture": "node scripts/gen-compose-fixture.mjs",
-    "gen:deck-icons": "node scripts/gen-deck-icons.mjs"
+    "gen:deck-icons": "node scripts/gen-deck-icons.mjs",
+    "gen:deck-illustrations": "node scripts/gen-deck-illustrations.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.1.0",

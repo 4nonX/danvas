@@ -22,6 +22,7 @@ import { createNode, type Color, type Fill, type Node } from "@hc/schema";
 import type { Archetype, OutlineItem } from "./outline";
 import type { DeckMotion, DesignSystem } from "./designSystem";
 import { ICON_BOX, ICON_GLYPHS, ICON_KEYWORDS } from "./iconset";
+import { ILLUSTRATIONS, ILLUSTRATION_KEYWORDS, type IllustrationDrawing } from "./illustrationset";
 import type { PageVariant } from "./measure";
 import { ladderFrom } from "./deckStyle";
 
@@ -165,6 +166,7 @@ const MOTION: Record<string, { preset: "fade" | "rise"; durationMs: number } | n
   "Kicker": null, "Page number": null, "Logo": null, "Footer": null,
   "Image": { preset: "fade", durationMs: 700 }, "Decor": { preset: "fade", durationMs: 600 },
   "Panel": { preset: "fade", durationMs: 450 }, "Eyebrow": { preset: "fade", durationMs: 350 }, "Badge": { preset: "fade", durationMs: 350 },
+  "Illustration": { preset: "fade", durationMs: 700 },
   "Section number": { preset: "rise", durationMs: 550 },
   "Accent": { preset: "fade", durationMs: 350 }, "Divider": { preset: "fade", durationMs: 350 },
   "Sequence": { preset: "fade", durationMs: 350 }, "Marker": { preset: "fade", durationMs: 350 }, "Icon": { preset: "fade", durationMs: 350 },
@@ -199,6 +201,37 @@ export function applyMotion<N extends { name?: string; animation?: unknown }>(no
     i += 1;
   }
   return nodes;
+}
+
+/** The drawing a keyword names, or null when the set has no drawing for
+ *  it; matched whole, then by the first known word in a phrase. */
+export function illustrationFor(keyword: string | undefined): string | null {
+  if (!keyword) return null;
+  const k = keyword.trim().toLowerCase();
+  if (!k) return null;
+  if (ILLUSTRATION_KEYWORDS[k]) return ILLUSTRATION_KEYWORDS[k];
+  for (const w of k.split(/[^a-z]+/)) if (w && ILLUSTRATION_KEYWORDS[w]) return ILLUSTRATION_KEYWORDS[w];
+  return null;
+}
+
+/** Decode a baked path string (M/L/C/Z, absolute coordinates) into the
+ *  schema's contours, scaled by k and offset by (ox, oy). */
+export function decodeDrawingPath(path: string, k: number, ox: number, oy: number): Array<{ segments: Array<{ x: number; y: number; cIn?: { x: number; y: number }; cOut?: { x: number; y: number } }>; closed: boolean }> {
+  const out: Array<{ segments: Array<{ x: number; y: number; cIn?: { x: number; y: number }; cOut?: { x: number; y: number } }>; closed: boolean }> = [];
+  const re = /([MLCZ])([^MLCZ]*)/g;
+  let cur: (typeof out)[number] | null = null;
+  const pt = (x: number, y: number) => ({ x: Math.round((x * k + ox) * 100) / 100, y: Math.round((y * k + oy) * 100) / 100 });
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(path))) {
+    const nums = m[2].trim() ? m[2].trim().split(/[\s,]+/).map(Number) : [];
+    switch (m[1]) {
+      case "M": cur = { segments: [pt(nums[0], nums[1])], closed: false }; out.push(cur); break;
+      case "L": if (cur) cur.segments.push(pt(nums[0], nums[1])); break;
+      case "C": if (cur) { const last = cur.segments[cur.segments.length - 1]; last.cOut = pt(nums[0], nums[1]); cur.segments.push({ ...pt(nums[4], nums[5]), cIn: pt(nums[2], nums[3]) }); } break;
+      case "Z": if (cur) cur.closed = true; break;
+    }
+  }
+  return out.filter((c) => c.segments.length >= 2);
 }
 
 class Composer {
@@ -486,6 +519,65 @@ class Composer {
     return this.rect("Image", r, fill, radius, { placeholderId: id, aiImagePrompt: prompt });
   }
 
+  /** A drawing from the illustration set, fitted into a rect and recolored
+   *  to the deck: the pack's line becomes the page's ink, its accent the
+   *  deck's accent, its greys tints of the ground, its white the ground's
+   *  own lift. One path node per fill layer, grouped, so the drawing is
+   *  editable vector everywhere and the quality loop sees one box. */
+  private illustration(name: string, r0: Rect): Node | null {
+    const d: IllustrationDrawing | undefined = ILLUSTRATIONS[name];
+    if (!d) return null;
+    const k = Math.min(r0.width / d.w, r0.height / d.h);
+    const w = Math.round(d.w * k);
+    const h = Math.round(d.h * k);
+    const r = this.mirror({ x: r0.x + Math.round((r0.width - w) / 2), y: r0.y + Math.round((r0.height - h) / 2), width: w, height: h });
+    const c = this.ds.colors;
+    const ground = this.ground;
+    const roleColor = (role: string): Color => {
+      switch (role) {
+        case "line": case "stroke": return this.ink;
+        case "accent": return this.accent;
+        case "white": return this.onDeep ? mix(c.deep, c.inkOnDeep, 0.16) : c.paper;
+        case "grey": return this.onDeep ? mix(c.deep, c.inkOnDeep, 0.3) : mix(ground, this.ink, 0.18);
+        case "grey2": return this.onDeep ? mix(c.deep, c.inkOnDeep, 0.22) : mix(ground, this.ink, 0.1);
+        case "grey3": return this.onDeep ? mix(c.deep, c.inkOnDeep, 0.45) : mix(ground, this.ink, 0.4);
+        default: return this.ink;
+      }
+    };
+    const children: Node[] = [];
+    for (const [role, path] of d.layers) {
+      const contours = decodeDrawingPath(path, k, 0, 0);
+      if (!contours.length) continue;
+      const [first, ...rest] = contours;
+      const color = roleColor(role);
+      const stroke = role === "stroke";
+      children.push(createNode("path", {
+        name: role,
+        transform: { x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0 },
+        size: { width: w, height: h },
+        segments: first.segments,
+        closed: first.closed,
+        ...(rest.length ? { contours: rest } : {}),
+        ...(stroke
+          ? { stroke: { fill: { type: "solid", color: structuredClone(color) }, width: Math.max(1, Math.round(k)), align: "center", cap: "round", join: "round" } }
+          : { fills: [{ type: "solid", color: structuredClone(color) }] }),
+      } as never) as Node);
+    }
+    if (!children.length) return null;
+    return createNode("group", {
+      name: "Illustration",
+      children,
+      transform: { x: r.x, y: r.y, scaleX: 1, scaleY: 1, rotation: 0 },
+      size: { width: w, height: h },
+      data: { illustration: name },
+    } as never) as Node;
+  }
+
+  /** The drawing the outline named for this page, when the set knows it. */
+  private get namedIllustration(): string | null {
+    return illustrationFor(this.item.image?.illustration);
+  }
+
   /** What the picture should show, in the deck's treatment. Falls back to the
    *  slide's own subject when the outline named no image, so a form that
    *  needs a picture (cover, imageCaption) always gets a usable prompt. */
@@ -699,10 +791,18 @@ class Composer {
   }
 
   private cover(): void {
-    const hasImage = !!this.item.image;
-    const textCols = hasImage ? 6 : 8;
+    const drawing = this.namedIllustration;
+    const hasImage = !!this.item.image && !drawing;
+    const textCols = hasImage || drawing ? 6 : 8;
     const region = this.span(0, textCols);
-    if (hasImage) {
+    if (drawing) {
+      // A drawing where the picture would go, sized to the trailing half
+      // with the page's own air around it; nothing bleeds.
+      const s = this.span(7, 5);
+      const u = this.ds.unit;
+      const ill = this.illustration(drawing, { x: s.x, y: this.m + u * 2, width: s.width, height: this.H - 2 * this.m - u * 4 });
+      if (ill) this.nodes.push(ill);
+    } else if (hasImage) {
       // Half-bleed picture on the trailing side: to the page edges, not the
       // margins, so it reads as the ground the words sit against.
       const s = this.span(7, 5);
@@ -720,14 +820,20 @@ class Composer {
   }
 
   private section(): void {
-    const hasImage = !!this.item.image;
-    if (hasImage) {
+    const drawing = this.namedIllustration;
+    const hasImage = !!this.item.image && !drawing;
+    if (drawing) {
+      const s = this.span(7, 5);
+      const u = this.ds.unit;
+      const ill = this.illustration(drawing, { x: s.x, y: this.m + u * 2, width: s.width, height: this.H - 2 * this.m - u * 4 });
+      if (ill) this.nodes.push(ill);
+    } else if (hasImage) {
       const s = this.span(8, 4);
       this.nodes.push(this.imageSlot({ x: s.x, y: 0, width: this.W - s.x, height: this.H }, this.imagePrompt()));
     } else {
       this.decor(this.span(8, 4));
     }
-    const region = this.span(0, hasImage ? 7 : 8);
+    const region = this.span(0, hasImage ? 7 : drawing ? 6 : 8);
     // A divider says where it sits in the deck: its number, large and in the
     // accent, above the rule.
     const n = this.ctx.section;
@@ -1012,7 +1118,10 @@ class Composer {
     const imgRect = imageLeading
       ? { x: 0, y: 0, width: s.x + s.width - this.ds.gutter / 2, height: this.H }
       : { x: s.x - this.ds.gutter / 2, y: 0, width: this.W - s.x + this.ds.gutter / 2, height: this.H };
-    this.nodes.push(this.imageSlot(imgRect, this.imagePrompt()));
+    const drawing = this.namedIllustration;
+    const ill = drawing ? this.illustration(drawing, { x: s.x, y: this.m + this.ds.unit * 2, width: s.width, height: this.H - 2 * this.m - this.ds.unit * 4 }) : null;
+    if (ill) this.nodes.push(ill);
+    else this.nodes.push(this.imageSlot(imgRect, this.imagePrompt()));
     const textSpan = imageLeading ? this.span(8, 4) : this.span(0, 4);
     const u = this.ds.unit;
     this.cluster({ ...textSpan, y: this.top, height: this.bodyBottom - this.top }, [
@@ -1297,13 +1406,19 @@ class Composer {
   }
 
   private closing(): void {
-    const hasImage = !!this.item.image;
-    if (hasImage) {
+    const drawing = this.namedIllustration;
+    const hasImage = !!this.item.image && !drawing;
+    if (drawing) {
+      const s = this.span(7, 5);
+      const u = this.ds.unit;
+      const ill = this.illustration(drawing, { x: s.x, y: this.m + u * 2, width: s.width, height: this.H - 2 * this.m - u * 4 });
+      if (ill) this.nodes.push(ill);
+    } else if (hasImage) {
       const s = this.span(8, 4);
       this.nodes.push(this.imageSlot({ x: s.x, y: 0, width: this.W - s.x, height: this.H }, this.imagePrompt()));
     }
-    if (!hasImage) this.decor(this.span(8, 4));
-    const region = this.span(0, hasImage ? 7 : 8);
+    if (!hasImage && !drawing) this.decor(this.span(8, 4));
+    const region = this.span(0, hasImage ? 7 : drawing ? 6 : 8);
     this.cluster(region, [
       ...this.eyebrowBlock(),
       { kind: "rule" },

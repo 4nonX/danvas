@@ -111,6 +111,10 @@ type TableData struct {
 type ImageIntent struct {
 	Subject   string `json:"subject"`
 	Treatment string `json:"treatment,omitempty"` // photo | illustration | abstract
+	// Illustration is one English keyword naming a drawing from the deck's
+	// illustration set; when the set knows it, the composer draws it in
+	// place of the picture and no image is generated for that region.
+	Illustration string `json:"illustration,omitempty"`
 }
 
 // ChartData is a small dataset for a chart slide, in the shape the chart node
@@ -342,6 +346,7 @@ func normalizeArchetypeFields(p *OutlineItem) {
 	p.Columns = cols
 	if p.Image != nil {
 		p.Image.Subject = clipRunes(strings.TrimSpace(p.Image.Subject), maxImageSubject)
+		p.Image.Illustration = iconKeyword(p.Image.Illustration)
 		switch p.Image.Treatment {
 		case "photo", "illustration", "abstract":
 		default:

@@ -151,6 +151,15 @@ func TestOutlineArchetypeDowngradesWithoutPayload(t *testing.T) {
 	if !strings.Contains(outlineSchema, `"icon":{"type":"string"`) {
 		t.Fatal("schema should offer icon keywords")
 	}
+	// An illustration keyword on the picture intent is normalized like an icon.
+	il := &DesignOutline{Pages: []OutlineItem{{Title: "t", Archetype: "cover", Image: &ImageIntent{Subject: "a rocket", Illustration: " Rocket "}}}}
+	_ = validateOutline(il)
+	if il.Pages[0].Image == nil || il.Pages[0].Image.Illustration != "rocket" {
+		t.Fatalf("illustration keyword not normalized: %+v", il.Pages[0].Image)
+	}
+	if !strings.Contains(outlineSchema, `"illustration":{"type":"string"`) {
+		t.Fatal("schema should offer illustration keywords")
+	}
 	// A stat value is the bare figure; a headline carries no dash separator.
 	fig := &DesignOutline{Pages: []OutlineItem{{Title: "Harborline \u2014 Board Update", Archetype: "kpiGrid", Stats: []Stat{{Value: "\u219367%", Label: "a"}, {Value: "\u25b2 3.2M", Label: "b"}, {Value: "-11%", Label: "c"}}}}}
 	_ = validateOutline(fig)

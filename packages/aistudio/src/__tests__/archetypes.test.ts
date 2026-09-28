@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { archetypes, normalizeOutline, type Archetype } from "../outline";
 import { deriveDesignSystem, catalogEntryForSeed, catalogEntryForMood, designSystemSlots, hueName, artDirectionFor } from "../designSystem";
-import { archetypeIsImpact, composeArchetypePage, keepLastWordCompany, iconGlyphFor, applyMotion } from "../archetypes";
+import { archetypeIsImpact, composeArchetypePage, keepLastWordCompany, iconGlyphFor, applyMotion, illustrationFor, decodeDrawingPath } from "../archetypes";
+import { ILLUSTRATIONS, ILLUSTRATION_KEYWORDS } from "../illustrationset";
 import { ICON_GLYPHS, ICON_KEYWORDS } from "../iconset";
 import { layoutDeck } from "../deck";
 import { deckThemes } from "../theme";
@@ -629,5 +630,58 @@ describe("furniture on a picture page", () => {
       expect(n.size.height, name).toBeLessThan(ds.unit * 3);
     }
     expect(qualityCheck({ background: page.background, nodes: page.nodes, size }).issues).toEqual([]);
+  });
+});
+
+describe("illustrations", () => {
+  const ds = deriveDesignSystem(theme, size, { seed: 1, catalog: catalogEntryForSeed(1) });
+  type N = { name?: string; type: string; transform: { x: number; y: number }; size: { width: number; height: number }; data?: { illustration?: string; aiImagePrompt?: string }; children?: N[]; fills?: { color: { srgb: { r: number; g: number; b: number } } }[]; stroke?: unknown };
+
+  it("resolves keywords and phrases, and nothing for an invented word; every keyword points at a baked drawing", () => {
+    expect(illustrationFor("growth")).toBe("Growth");
+    expect(illustrationFor("Partnership")).toBe("Handshake");
+    expect(illustrationFor("a rocket launch")).toBe("RocketLaunch");
+    expect(illustrationFor("flibbertigibbet")).toBeNull();
+    for (const d of Object.values(ILLUSTRATION_KEYWORDS)) expect(ILLUSTRATIONS[d]?.layers.length).toBeGreaterThan(0);
+    // Every baked drawing decodes to closed geometry with the pack's box.
+    for (const [name, d] of Object.entries(ILLUSTRATIONS)) {
+      expect(d.w, name).toBe(400);
+      for (const [, path] of d.layers) expect(decodeDrawingPath(path, 1, 0, 0).length, name).toBeGreaterThan(0);
+    }
+  });
+
+  it("draws a named illustration in the picture's place on a cover, recolored to the deck, and generates no picture for it", () => {
+    const item = normalizeOutline({ title: "T", pages: [{ ...pageFor("cover"), image: { subject: "a rocket", treatment: "illustration", illustration: "rocket" } }] }).pages[0];
+    expect(item.image?.illustration).toBe("rocket");
+    const page = composeArchetypePage(item, ds, { index: 0, total: 4 });
+    const ill = (page.nodes as N[]).find((n) => n.name === "Illustration")!;
+    expect(ill.type).toBe("group");
+    expect(ill.data?.illustration).toBe("RocketLaunch");
+    expect(ill.children!.length).toBeGreaterThan(2);
+    expect(ill.children!.every((c) => c.type === "path")).toBe(true);
+    // The pack's accent became the deck's accent on the deep ground.
+    const accentLayer = ill.children!.find((c) => c.name === "accent")!;
+    const a = ds.colors.accentOnDeep.srgb;
+    expect(accentLayer.fills![0].color.srgb).toEqual({ r: a.r, g: a.g, b: a.b, a: 1 });
+    // No stand-in and no picture prompt: the drawing IS the picture.
+    expect((page.nodes as N[]).some((n) => n.data?.aiImagePrompt)).toBe(false);
+    expect(Object.keys(page.imagePrompts)).toHaveLength(0);
+    // Inside the page, on the trailing side, clean.
+    expect(ill.transform.x).toBeGreaterThan(size.width / 2);
+    expect(ill.transform.x + ill.size.width).toBeLessThanOrEqual(size.width);
+    expect(qualityCheck({ background: page.background, nodes: page.nodes, size }).issues).toEqual([]);
+  });
+
+  it("falls back to a picture stand-in when the keyword is unknown, and works on sections, closings and picture pages", () => {
+    const unknown = normalizeOutline({ title: "T", pages: [{ ...pageFor("cover"), image: { subject: "x", treatment: "photo", illustration: "flibbertigibbet" } }] }).pages[0];
+    const p0 = composeArchetypePage(unknown, ds, { index: 0, total: 4 });
+    expect((p0.nodes as N[]).some((n) => n.name === "Image")).toBe(true);
+    for (const a of ["section", "closing", "imageCaption"] as const) {
+      const item = normalizeOutline({ title: "T", pages: [{ ...pageFor(a), image: { subject: "x", treatment: "illustration", illustration: "handshake" } }] }).pages[0];
+      const page = composeArchetypePage(item, ds, { index: 2, total: 4, section: 1 });
+      expect((page.nodes as N[]).filter((n) => n.name === "Illustration"), a).toHaveLength(1);
+      expect((page.nodes as N[]).some((n) => n.name === "Image"), a).toBe(false);
+      expect(qualityCheck({ background: page.background, nodes: page.nodes, size }).issues, a).toEqual([]);
+    }
   });
 });
