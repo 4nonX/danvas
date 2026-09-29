@@ -123,6 +123,16 @@
           "jobId": {
             "type": "string"
           },
+          "look": {
+            "type": "string",
+            "enum": [
+              "classic",
+              "editorial",
+              "bold",
+              "technical"
+            ],
+            "description": "The deck's house style: what the forms are made of (pairing, rules, corners, panels, the impact-page construction). Omit to let the model name one from the brief; a chosen theme's fonts and a brand kit's fonts keep their pairing either way."
+          },
           "poll": {
             "type": "string",
             "description": "Path to poll for the result."

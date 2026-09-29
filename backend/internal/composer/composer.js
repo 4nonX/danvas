@@ -34866,6 +34866,7 @@ ${err.toString()}`);
       exports.sanitizeEditedOutline = sanitizeEditedOutline;
       var outline_1 = require_outline();
       var promptRules_1 = require_promptRules();
+      var look_1 = require_look();
       exports.dialTones = ["auto", "general", "persuasive", "inspiring", "instructive", "engaging"];
       exports.dialLooks = ["auto", "classic", "editorial", "bold", "technical"];
       exports.dialAudiences = ["auto", "general", "business", "investor", "teacher", "student"];
@@ -34910,7 +34911,7 @@ ${err.toString()}`);
           const note = (0, outline_1.normalizeNote)(item.note);
           pages.push(__spreadValues({ id: item.id, title: title || "Untitled", points, visualRole }, note ? { note } : {}));
         }
-        return { title: clip((_d = outline.title) != null ? _d : "", exports.maxOutlineTitleChars) || "Untitled", theme: ((_e = outline.theme) != null ? _e : "").trim(), pages };
+        return __spreadValues({ title: clip((_d = outline.title) != null ? _d : "", exports.maxOutlineTitleChars) || "Untitled", theme: ((_e = outline.theme) != null ? _e : "").trim(), pages }, (0, look_1.isDeckLook)(outline.look) ? { look: outline.look } : {});
       }
     }
   });
@@ -35569,6 +35570,14 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
       var layout_1 = require_layout();
       exports.themeSlotNames = ["primary", "accent", "deep", "tint", "ink", "paper"];
       exports.themeFontFamilies = [
+        // The four looks' pairings (look.ts), so a deck's theme record names the
+        // faces its text is set in rather than falling back to Inter.
+        "Fraunces",
+        "Source Serif 4",
+        "Archivo Black",
+        "Space Grotesk",
+        "IBM Plex Sans",
+        "IBM Plex Mono",
         "Inter",
         "Poppins",
         "Playfair Display",
@@ -38956,7 +38965,11 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           // The file's theme record carries the very slots the pages were painted
           // with, so the theme picker shows the deck's palette and a later swap can
           // remap it precisely.
-          theme: record2 != null ? record2 : themeRecordFromSlots(system ? (0, designSystem_1.designSystemSlots)(system) : null, theme, outline.theme)
+          // The record carries the pairing the pages were set in: the design
+          // system's, which is the look's or the seeded one for an unbranded deck,
+          // as the editor door already stamps it. The deck theme's own fonts are
+          // empty for such a deck and used to leave the record with none.
+          theme: record2 != null ? record2 : system ? themeRecordFromDesignSystem(system, theme, outline.theme) : themeRecordFromSlots(null, theme, outline.theme)
         });
         return { file: file2, report: report != null ? report : { pages: [], bulletShare: 0, repetition: [], shorten: [], ok: true } };
       }

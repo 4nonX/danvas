@@ -70,3 +70,11 @@ describe("sanitizeEditedOutline", () => {
     expect(o.title).toBe("Untitled");
   });
 });
+
+describe("a review edit keeps the deck's look", () => {
+  it("carries a valid look through and drops an invalid one", () => {
+    const base = { title: "T", theme: "calm", pages: [{ id: "p1", title: "One", points: ["a"], visualRole: "content" as const, archetype: "bullets" as const, note: "" }] };
+    expect(sanitizeEditedOutline({ ...base, look: "editorial" }).look).toBe("editorial");
+    expect(sanitizeEditedOutline({ ...base, look: "fancy" } as unknown as typeof base).look).toBeUndefined();
+  });
+});

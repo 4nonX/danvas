@@ -234,6 +234,7 @@ func mcpToolList() []map[string]any {
 				"themeId":    str("A built-in theme id from list_themes (e.g. 'theme-slate'); omit for an auto-picked look."),
 				"templateId": str("A template id from list_templates: the deck is composed on that template's layout system and theme."),
 				"motion":     map[string]any{"type": "string", "enum": []string{"subtle", "none"}, "description": "Entrance motion on the slides; defaults to subtle."},
+				"look":       map[string]any{"type": "string", "enum": []string{"classic", "editorial", "bold", "technical"}, "description": "The deck's house style; omit to let the model choose from the brief."},
 				"brandPalette": map[string]any{
 					"type": "array", "items": map[string]any{"type": "string", "pattern": "^#[0-9a-fA-F]{6}$"}, "maxItems": 12,
 					"description": "Brand hex colors to ground the theme in.",

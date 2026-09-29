@@ -3359,6 +3359,8 @@
           }
         }
       }
-    ]
+    ],
+    "fontHeading": "Lora",
+    "fontBody": "Nunito"
   }
 }

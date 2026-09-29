@@ -402,7 +402,11 @@ export function composeDeckFileWithReport(input: ComposeDeckInput): { file: Desi
     // The file's theme record carries the very slots the pages were painted
     // with, so the theme picker shows the deck's palette and a later swap can
     // remap it precisely.
-    theme: record ?? themeRecordFromSlots(system ? designSystemSlots(system) : null, theme, outline.theme),
+    // The record carries the pairing the pages were set in: the design
+    // system's, which is the look's or the seeded one for an unbranded deck,
+    // as the editor door already stamps it. The deck theme's own fonts are
+    // empty for such a deck and used to leave the record with none.
+    theme: record ?? (system ? themeRecordFromDesignSystem(system, theme, outline.theme) : themeRecordFromSlots(null, theme, outline.theme)),
   } as unknown as DesignFile;
   return { file, report: report ?? { pages: [], bulletShare: 0, repetition: [], shorten: [], ok: true } };
 }

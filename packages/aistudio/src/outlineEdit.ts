@@ -4,6 +4,7 @@
 
 import { normalizeNote, type DesignOutline, type OutlineItem, type VisualRole, visualRoles } from "./outline";
 import { verbosityRule, type Verbosity } from "./promptRules";
+import { isDeckLook } from "./look";
 
 /** Optional generation dials, all defaulting to auto (omitted from the prompt). */
 export interface GenerationDials {
@@ -66,5 +67,6 @@ export function sanitizeEditedOutline(outline: DesignOutline): DesignOutline {
     const note = normalizeNote(item.note);
     pages.push({ id: item.id, title: title || "Untitled", points, visualRole, ...(note ? { note } : {}) });
   }
-  return { title: clip(outline.title ?? "", maxOutlineTitleChars) || "Untitled", theme: (outline.theme ?? "").trim(), pages };
+  // The look the model named survives an edit of the pages.
+  return { title: clip(outline.title ?? "", maxOutlineTitleChars) || "Untitled", theme: (outline.theme ?? "").trim(), pages, ...(isDeckLook(outline.look) ? { look: outline.look } : {}) };
 }
