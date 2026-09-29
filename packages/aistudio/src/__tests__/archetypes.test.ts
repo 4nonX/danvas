@@ -213,6 +213,11 @@ describe("lists and widows", () => {
     expect(keepLastWordCompany("Why the shoreline is retreating")).toBe("Why the shoreline is retreating");
     expect(keepLastWordCompany("Two words")).toBe("Two words");
     expect(keepLastWordCompany("One")).toBe("One");
+    // The pair is one unbreakable chunk to every renderer: when it cannot
+    // hold one line of the column it is left as two words.
+    expect(keepLastWordCompany("History restore overwrites conversation", 13)).toBe("History restore overwrites conversation");
+    expect(keepLastWordCompany("History restore overwrites conversation", 23)).toBe("History restore overwrites\u00A0conversation");
+    expect(keepLastWordCompany("Meridian: Q3 update", 13)).toBe("Meridian: Q3\u00A0update");
     // Whitespace around the join: the run of spaces before the last word
     // collapses into the single no-break space, and trailing whitespace goes.
     expect(keepLastWordCompany("a b   c")).toBe("a b c");
@@ -709,5 +714,20 @@ describe("a figure holds one line", () => {
     const sizes = page.nodes.filter((n) => n.name === "Figure").map((n) => (n as unknown as { content: { runs: { style: { fontSize: number } }[] }[] }).content[0].runs[0].style.fontSize);
     expect(sizes.length).toBe(2);
     expect(new Set(sizes).size).toBe(1);
+  });
+});
+
+describe("a heading in a narrow column", () => {
+  it("never joins a pair that would run past the box, and steps the type down before a word does", () => {
+    const square = deriveDesignSystem(theme, { width: 1080, height: 1080 }, { seed: 1 });
+    const item = normalizeOutline({ title: "T", pages: [{ ...pageFor("cover"), title: "History restore overwrites conversation", image: { subject: "a chart", treatment: "illustration", illustration: "analysis" } }] }).pages[0];
+    const page = composeArchetypePage(item, square, { index: 0, total: 1 });
+    const title = page.nodes.find((n) => n.name === "Title") as unknown as { size: { width: number }; content: { runs: { text: string; style: { fontSize: number } }[] }[] };
+    const text = title.content[0].runs[0].text;
+    const size = title.content[0].runs[0].style.fontSize;
+    expect(text).not.toContain("\u00A0");
+    // The longest word holds one line of the column at the chosen size.
+    const longest = Math.max(...text.split(" ").map((w) => w.length));
+    expect(longest * 0.55 * size).toBeLessThanOrEqual(title.size.width);
   });
 });

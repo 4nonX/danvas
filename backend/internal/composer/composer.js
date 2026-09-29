@@ -36183,7 +36183,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
       var ADVANCE = { heading: 0.55, body: 0.5 };
       var NUMERAL_ADVANCE = 0.62;
       var LIST_GUTTER_EM = 1.6;
-      function keepLastWordCompany(text2) {
+      function keepLastWordCompany(text2, maxChars = Infinity) {
         if (text2.trim().split(/\s+/).length < 3)
           return text2;
         let end = text2.length;
@@ -36198,6 +36198,11 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         while (gap > 0 && text2[gap - 1] === " ")
           gap--;
         if (gap === word2)
+          return text2;
+        let prev = gap;
+        while (prev > 0 && !/\s/.test(text2[prev - 1]))
+          prev--;
+        if (Array.from(text2.slice(prev, gap)).length + 1 + Array.from(text2.slice(word2, end)).length > maxChars)
           return text2;
         return text2.slice(0, gap) + "\xA0" + text2.slice(word2, end);
       }
@@ -36377,20 +36382,52 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         }
         // --- measurement -----------------------------------------------------------
         lines(text2, size2, width, role) {
-          const perLine = Math.max(1, Math.floor(width / (size2 * ADVANCE[role])));
+          const perLine = Math.max(1, width / (size2 * ADVANCE[role]));
           let n = 0;
-          for (const seg of text2.split("\n"))
-            n += Math.max(1, Math.ceil(Array.from(seg).length / perLine));
+          for (const seg of text2.split("\n")) {
+            const words = seg.split(" ").filter((w) => w.length > 0);
+            if (!words.length) {
+              n += 1;
+              continue;
+            }
+            let lineLen = 0;
+            let lines = 1;
+            for (const w of words) {
+              const wl = Array.from(w).length;
+              if (lineLen === 0) {
+                lineLen = wl;
+                continue;
+              }
+              if (lineLen + 1 + wl <= perLine)
+                lineLen += 1 + wl;
+              else {
+                lines++;
+                lineLen = wl;
+              }
+            }
+            n += lines;
+          }
           return n;
+        }
+        /** The longest chunk no line break can split, in characters. */
+        longestChunk(paragraphs) {
+          let longest = 0;
+          for (const p of paragraphs)
+            for (const w of p.split(/[ \n]+/))
+              longest = Math.max(longest, Array.from(w).length);
+          return longest;
         }
         /** The largest ladder size at which the paragraphs fit the region.
          *  gutterEm is the list marker gutter, in ems, taken off the wrap width. */
         fit(paragraphs, width, height, base, lineHeight, role, paraGap, gutterEm = 0) {
-          for (const size2 of (0, deckStyle_1.ladderFrom)(base, this.ds.size)) {
+          const ladder = (0, deckStyle_1.ladderFrom)(base, this.ds.size);
+          const longest = this.longestChunk(paragraphs);
+          for (const size2 of ladder) {
+            if (longest * ADVANCE[role] * size2 > Math.max(1, width - gutterEm * size2))
+              continue;
             if (this.measure(paragraphs, width, size2, lineHeight, role, paraGap, gutterEm) <= height)
               return size2;
           }
-          const ladder = (0, deckStyle_1.ladderFrom)(base, this.ds.size);
           return ladder[ladder.length - 1];
         }
         measure(paragraphs, width, size2, lineHeight, role, paraGap, gutterEm = 0) {
@@ -36407,9 +36444,11 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           var _a5, _b, _c, _d, _e, _f, _g;
           const lineHeight = (_a5 = opts.lineHeight) != null ? _a5 : opts.role === "heading" ? 1.1 : 1.4;
           const paraGap = (_b = opts.paraGap) != null ? _b : opts.role === "heading" ? 0.2 : 0.45;
-          const paragraphs = (opts.paragraphs.length ? opts.paragraphs : [""]).map((p) => opts.role === "heading" ? keepLastWordCompany(p) : p);
+          const plain = opts.paragraphs.length ? opts.paragraphs : [""];
           const gutterEm = opts.list ? LIST_GUTTER_EM : 0;
-          const size2 = (_c = opts.exactSize) != null ? _c : this.fit(paragraphs, opts.rect.width, opts.rect.height, opts.base, lineHeight, opts.role, paraGap, gutterEm);
+          const size2 = (_c = opts.exactSize) != null ? _c : this.fit(plain, opts.rect.width, opts.rect.height, opts.base, lineHeight, opts.role, paraGap, gutterEm);
+          const lineChars = Math.max(1, opts.rect.width - gutterEm * size2) / (size2 * ADVANCE[opts.role]);
+          const paragraphs = plain.map((p) => opts.role === "heading" ? keepLastWordCompany(p, lineChars) : p);
           const needed = this.measure(paragraphs, opts.rect.width, size2, lineHeight, opts.role, paraGap, gutterEm);
           if (!opts.exactSize && needed > opts.rect.height)
             this.overfull.push(opts.name);

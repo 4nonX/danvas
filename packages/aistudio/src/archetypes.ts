@@ -119,8 +119,10 @@ const LIST_GUTTER_EM = 1.6;
 
 /** Join a heading's last two words with a no-break space so the final word
  *  never sits alone on the last line. Only when there are enough words that
- *  the join cannot force one overlong line: a two-word title is left as is. */
-export function keepLastWordCompany(text: string): string {
+ *  the join cannot force one overlong line: a two-word title is left as is,
+ *  and so is one whose joined pair would not hold one line of `maxChars`
+ *  characters, since the pair is one unbreakable chunk to every renderer. */
+export function keepLastWordCompany(text: string, maxChars = Infinity): string {
   if (text.trim().split(/\s+/).length < 3) return text;
   // Walked backwards rather than matched. The pattern this replaces,
   // / +(\S+)\s*$/, backtracks quadratically when a long unbroken run of
@@ -139,6 +141,10 @@ export function keepLastWordCompany(text: string): string {
   let gap = word;
   while (gap > 0 && text[gap - 1] === " ") gap--;
   if (gap === word) return text; // the word is not preceded by a space
+  let prev = gap;
+  while (prev > 0 && !/\s/.test(text[prev - 1])) prev--;
+  // The pair as one chunk: the previous word, one space, the last word.
+  if (Array.from(text.slice(prev, gap)).length + 1 + Array.from(text.slice(word, end)).length > maxChars) return text;
   return text.slice(0, gap) + "\u00A0" + text.slice(word, end);
 }
 
@@ -313,19 +319,47 @@ class Composer {
   // --- measurement -----------------------------------------------------------
 
   private lines(text: string, size: number, width: number, role: "heading" | "body"): number {
-    const perLine = Math.max(1, Math.floor(width / (size * ADVANCE[role])));
+    // Greedy by words, the way both renderers break a line: a word moves to
+    // the next line whole, and a chunk no line can hold (a long word, a pair
+    // joined by a no-break space) takes a line of its own and runs past the
+    // box, exactly as it will when drawn. Counting characters instead made a
+    // narrow column look like it held copy it could not.
+    const perLine = Math.max(1, width / (size * ADVANCE[role]));
     let n = 0;
-    for (const seg of text.split("\n")) n += Math.max(1, Math.ceil(Array.from(seg).length / perLine));
+    for (const seg of text.split("\n")) {
+      const words = seg.split(" ").filter((w) => w.length > 0);
+      if (!words.length) { n += 1; continue; }
+      let lineLen = 0;
+      let lines = 1;
+      for (const w of words) {
+        const wl = Array.from(w).length;
+        if (lineLen === 0) { lineLen = wl; continue; }
+        if (lineLen + 1 + wl <= perLine) lineLen += 1 + wl;
+        else { lines++; lineLen = wl; }
+      }
+      n += lines;
+    }
     return n;
+  }
+
+  /** The longest chunk no line break can split, in characters. */
+  private longestChunk(paragraphs: string[]): number {
+    let longest = 0;
+    for (const p of paragraphs) for (const w of p.split(/[ \n]+/)) longest = Math.max(longest, Array.from(w).length);
+    return longest;
   }
 
   /** The largest ladder size at which the paragraphs fit the region.
    *  gutterEm is the list marker gutter, in ems, taken off the wrap width. */
   private fit(paragraphs: string[], width: number, height: number, base: number, lineHeight: number, role: "heading" | "body", paraGap: number, gutterEm = 0): number {
-    for (const size of ladderFrom(base, this.ds.size)) {
+    const ladder = ladderFrom(base, this.ds.size);
+    const longest = this.longestChunk(paragraphs);
+    for (const size of ladder) {
+      // A word no line can hold runs past the box in every renderer; the
+      // type steps down first.
+      if (longest * ADVANCE[role] * size > Math.max(1, width - gutterEm * size)) continue;
       if (this.measure(paragraphs, width, size, lineHeight, role, paraGap, gutterEm) <= height) return size;
     }
-    const ladder = ladderFrom(base, this.ds.size);
     return ladder[ladder.length - 1];
   }
 
@@ -362,10 +396,15 @@ class Composer {
   }): { node: Node; height: number; size: number } {
     const lineHeight = opts.lineHeight ?? (opts.role === "heading" ? 1.1 : 1.4);
     const paraGap = opts.paraGap ?? (opts.role === "heading" ? 0.2 : 0.45);
-    // A heading never leaves its last word alone on the final line.
-    const paragraphs = (opts.paragraphs.length ? opts.paragraphs : [""]).map((p) => (opts.role === "heading" ? keepLastWordCompany(p) : p));
+    const plain = opts.paragraphs.length ? opts.paragraphs : [""];
     const gutterEm = opts.list ? LIST_GUTTER_EM : 0;
-    const size = opts.exactSize ?? this.fit(paragraphs, opts.rect.width, opts.rect.height, opts.base, lineHeight, opts.role, paraGap, gutterEm);
+    const size = opts.exactSize ?? this.fit(plain, opts.rect.width, opts.rect.height, opts.base, lineHeight, opts.role, paraGap, gutterEm);
+    // A heading never leaves its last word alone on the final line, when the
+    // pair the join makes still holds one line at this size. The joined words
+    // are one unbreakable chunk to every renderer, and in a narrow column at
+    // display size that chunk ran past the box and over the picture beside it.
+    const lineChars = Math.max(1, opts.rect.width - gutterEm * size) / (size * ADVANCE[opts.role]);
+    const paragraphs = plain.map((p) => (opts.role === "heading" ? keepLastWordCompany(p, lineChars) : p));
     const needed = this.measure(paragraphs, opts.rect.width, size, lineHeight, opts.role, paraGap, gutterEm);
     // At the floor and still over: the ladder is exhausted. Recorded for the
     // report rather than hidden by a clip, because only shorter copy fixes it.
