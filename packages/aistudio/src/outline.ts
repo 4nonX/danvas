@@ -40,11 +40,12 @@ export type Archetype =
   | "kpiGrid"
   | "timeline"
   | "table"
+  | "composition"
   | "team";
 export const archetypes: Archetype[] = [
   "cover", "agenda", "section", "statement", "bigNumber", "bullets", "twoColumn",
   "threeUp", "process", "quote", "imageCaption", "chart", "closing",
-  "kpiGrid", "timeline", "table", "team",
+  "kpiGrid", "timeline", "table", "team", "composition",
 ];
 
 /** The default form for a page that named only a visual role: every page from
@@ -60,7 +61,7 @@ export const roleForArchetype: Record<Archetype, VisualRole> = {
   cover: "cover", agenda: "agenda", section: "content", statement: "content",
   bigNumber: "data", bullets: "content", twoColumn: "comparison", threeUp: "content",
   process: "content", quote: "quote", imageCaption: "content", chart: "data", closing: "closing",
-  kpiGrid: "data", timeline: "content", table: "data", team: "content",
+  kpiGrid: "data", timeline: "content", table: "data", team: "content", composition: "content",
 };
 
 /** `icon` is one English keyword naming a simple icon for the figure. */
@@ -84,6 +85,17 @@ export type ImageTreatment = "photo" | "illustration" | "abstract";
  *  it, the composer draws it in place of the picture and no image is
  *  generated for that region. */
 export interface ImageIntent { subject: string; treatment: ImageTreatment; illustration?: string }
+/** A cell of a bespoke page: content the model places on a 12-column by
+ *  6-row grid when no catalog form fits (a diagram, a comparison built from
+ *  shapes, a page that is one typographic gesture). The composer keeps the
+ *  grid honest: a cell is clamped to it, a cell that overlaps an earlier one
+ *  is dropped, and a link between two cells is drawn as an arrow. */
+export type CompositionKind = "heading" | "body" | "list" | "figure" | "label" | "icon" | "picture";
+export type CompositionTone = "plain" | "tint" | "accent" | "deep";
+export interface CompositionCell { col: number; span: number; row: number; rows: number; kind: CompositionKind; text?: string; points?: string[]; value?: string; unit?: string; icon?: string; tone?: CompositionTone }
+export interface Composition { cells: CompositionCell[]; links?: [number, number][] }
+export const compositionKinds: CompositionKind[] = ["heading", "body", "list", "figure", "label", "icon", "picture"];
+export const compositionTones: CompositionTone[] = ["plain", "tint", "accent", "deep"];
 export type ChartKind = "bar" | "line" | "pie" | "donut";
 export interface ChartData { kind: ChartKind; categories: string[]; series: { name: string; values: number[] }[] }
 
@@ -98,6 +110,7 @@ export const archetypeBudgets = {
   imageSubject: 140, chartCategories: 12, chartSeries: 4,
   stats: 4, tableColumns: 5, tableRows: 8, tableCell: 60, people: 4, personName: 40, personRole: 40, stepWhen: 20, columnIcon: 30,
   eyebrow: 24,
+  compositionCells: 8, compositionText: 140, compositionPoints: 4, compositionPoint: 70, compositionLinks: 8,
 } as const;
 
 export interface OutlineItem {
@@ -125,6 +138,9 @@ export interface OutlineItem {
   stats?: Stat[];
   table?: TableData;
   people?: Person[];
+  /** A bespoke page: cells on a grid with optional arrows; only for the
+   *  composition form. */
+  composition?: Composition;
   /** One English keyword naming a simple icon for the page: bullets and
    *  statements show it beside the title, a big number above the figure,
    *  covers, sections and closings inside their decor. */
@@ -379,6 +395,11 @@ function normalizeArchetypeFields(p: Record<string, unknown>, archetype: Archety
     .filter((x): x is Person => !!x)
     .slice(0, b.people);
   if (people.length) out.people = people;
+  const comp = p.composition as Record<string, unknown> | undefined;
+  if (comp && typeof comp === "object") {
+    const composition = normalizeComposition(comp, b);
+    if (composition) out.composition = composition;
+  }
 
   // Downgrade an archetype whose payload did not survive.
   switch (archetype) {
@@ -402,8 +423,71 @@ function normalizeArchetypeFields(p: Record<string, unknown>, archetype: Archety
     case "threeUp": if ((out.columns?.length ?? 0) < 2) out.archetype = "bullets"; break;
     case "imageCaption": if (!out.image) out.archetype = "statement"; break;
     case "chart": if (!out.chart) out.archetype = "bullets"; break;
+    case "composition": if (!out.composition) out.archetype = "bullets"; break;
   }
   return out;
+}
+
+const GRID_COLS = 12;
+const GRID_ROWS = 6;
+
+/** Clamp every cell to the grid, drop what has no content for its kind or
+ *  overlaps an earlier cell, and keep only links whose both ends survived.
+ *  Mirrored in specs.go. */
+export function normalizeComposition(raw: Record<string, unknown>, b: typeof archetypeBudgets): Composition | null {
+  const clampInt = (v: unknown, lo: number, hi: number, dflt: number) => {
+    const n = typeof v === "number" ? Math.round(v) : typeof v === "string" ? Math.round(Number(v)) : NaN;
+    return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : dflt;
+  };
+  const kept: CompositionCell[] = [];
+  const keptIndex = new Map<number, number>();
+  const rawCells = Array.isArray(raw.cells) ? raw.cells : [];
+  rawCells.forEach((x, i) => {
+    if (kept.length >= b.compositionCells) return;
+    const r = (x ?? {}) as Record<string, unknown>;
+    const kind = str(r.kind) as CompositionKind;
+    if (!compositionKinds.includes(kind)) return;
+    const col = clampInt(r.col, 0, GRID_COLS - 1, 0);
+    const span = clampInt(r.span, 1, GRID_COLS - col, GRID_COLS - col);
+    const row = clampInt(r.row, 0, GRID_ROWS - 1, 0);
+    const rows = clampInt(r.rows, 1, GRID_ROWS - row, 1);
+    const text = clipToBudget(r.text, b.compositionText);
+    const points = strList(r.points, b.compositionPoints, b.compositionPoint);
+    const fig = splitFigure(r.value, r.unit);
+    const icon = iconKeyword(r.icon);
+    const toneRaw = str(r.tone) as CompositionTone;
+    const tone = compositionTones.includes(toneRaw) && toneRaw !== "plain" ? toneRaw : undefined;
+    // A cell must carry what its kind shows.
+    if ((kind === "heading" || kind === "body" || kind === "label") && !text) return;
+    if (kind === "list" && !points.length) return;
+    if (kind === "figure" && !fig.value) return;
+    if (kind === "icon" && !icon) return;
+    // A cell that overlaps one already placed is dropped; the grid stays honest.
+    const clash = kept.some((k) => col < k.col + k.span && col + span > k.col && row < k.row + k.rows && row + rows > k.row);
+    if (clash) return;
+    keptIndex.set(i, kept.length);
+    kept.push({
+      col, span, row, rows, kind,
+      ...(text ? { text } : {}),
+      ...(points.length ? { points } : {}),
+      ...(fig.value ? { value: fig.value } : {}),
+      ...(fig.unit ? { unit: fig.unit } : {}),
+      ...(icon ? { icon } : {}),
+      ...(tone ? { tone } : {}),
+    });
+  });
+  if (!kept.length) return null;
+  const links: [number, number][] = [];
+  for (const l of Array.isArray(raw.links) ? raw.links : []) {
+    if (links.length >= b.compositionLinks) break;
+    if (!Array.isArray(l) || l.length < 2) continue;
+    const a = keptIndex.get(clampInt(l[0], 0, 1e6, -1));
+    const c = keptIndex.get(clampInt(l[1], 0, 1e6, -1));
+    if (a === undefined || c === undefined || a === c) continue;
+    if (links.some(([x, y]) => x === a && y === c)) continue;
+    links.push([a, c]);
+  }
+  return { cells: kept, ...(links.length ? { links } : {}) };
 }
 
 /** Validate + normalize a parsed model value into a DesignOutline. Drops empty
@@ -484,6 +568,7 @@ export const outlineJsonSchema = {
           chart: { type: "object", additionalProperties: false, required: ["kind", "categories", "series"], properties: { kind: { type: "string", enum: ["bar", "line", "pie", "donut"] }, categories: { type: "array", maxItems: archetypeBudgets.chartCategories, items: { type: "string" } }, series: { type: "array", minItems: 1, maxItems: archetypeBudgets.chartSeries, items: { type: "object", additionalProperties: false, required: ["name", "values"], properties: { name: { type: "string" }, values: { type: "array", items: { type: "number" } } } } } } },
           stats: { type: "array", minItems: 2, maxItems: archetypeBudgets.stats, items: { type: "object", additionalProperties: false, required: ["value", "label"], properties: { value: { type: "string", maxLength: archetypeBudgets.statValue }, unit: { type: "string", maxLength: archetypeBudgets.statUnit }, label: { type: "string", maxLength: archetypeBudgets.statLabel }, icon: { type: "string", maxLength: archetypeBudgets.columnIcon, description: "one English keyword naming a simple icon for the figure" } } }, description: "2-4 figures that belong together; only for kpiGrid" },
           table: { type: "object", additionalProperties: false, required: ["columns", "rows"], properties: { columns: { type: "array", minItems: 1, maxItems: archetypeBudgets.tableColumns, items: { type: "string", maxLength: archetypeBudgets.tableCell } }, rows: { type: "array", minItems: 1, maxItems: archetypeBudgets.tableRows, items: { type: "array", items: { type: "string", maxLength: archetypeBudgets.tableCell } } } }, description: "a small table of real values from the brief or attached material; only for table" },
+          composition: { type: "object", additionalProperties: false, required: ["cells"], properties: { cells: { type: "array", minItems: 1, maxItems: archetypeBudgets.compositionCells, items: { type: "object", additionalProperties: false, required: ["col", "span", "row", "rows", "kind"], properties: { col: { type: "integer", minimum: 0, maximum: 11 }, span: { type: "integer", minimum: 1, maximum: 12 }, row: { type: "integer", minimum: 0, maximum: 5 }, rows: { type: "integer", minimum: 1, maximum: 6 }, kind: { type: "string", enum: ["heading", "body", "list", "figure", "label", "icon", "picture"] }, text: { type: "string", maxLength: archetypeBudgets.compositionText }, points: { type: "array", maxItems: archetypeBudgets.compositionPoints, items: { type: "string", maxLength: archetypeBudgets.compositionPoint } }, value: { type: "string", maxLength: archetypeBudgets.statValue }, unit: { type: "string", maxLength: archetypeBudgets.statUnit }, icon: { type: "string", maxLength: archetypeBudgets.columnIcon }, tone: { type: "string", enum: ["plain", "tint", "accent", "deep"] } } } }, links: { type: "array", maxItems: archetypeBudgets.compositionLinks, items: { type: "array", minItems: 2, maxItems: 2, items: { type: "integer", minimum: 0 } } } }, description: "a bespoke page: up to 8 cells placed on a 12-column by 6-row grid (col 0-11, span, row 0-5, rows), each a heading, body, list, figure, label, icon or picture with an optional tone (tint, accent, deep) that paints a panel behind it; links are pairs of cell indexes drawn as arrows; cells never overlap; only for composition, and only when no catalog form fits" },
           people: { type: "array", minItems: 1, maxItems: archetypeBudgets.people, items: { type: "object", additionalProperties: false, required: ["name"], properties: { name: { type: "string", maxLength: archetypeBudgets.personName }, role: { type: "string", maxLength: archetypeBudgets.personRole } } }, description: "the people on a team slide; only for team" },
           note: {
             type: "string",

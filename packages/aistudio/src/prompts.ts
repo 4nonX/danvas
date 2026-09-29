@@ -33,7 +33,7 @@ export const archetypeCatalogRule =
   "'kpiGrid' (title + 2-4 stats, each value + label; several figures that belong together); " +
   "'timeline' (title + 3-5 steps, each with a short 'when' such as a year or quarter, a label and a detail; for history and roadmaps); " +
   "'table' (title + table.columns and table.rows with real values from the brief or attached material; 2-4 columns, up to 6 rows; never invent data); " +
-  "'team' (title + 1-4 people, each name + role; no pictures are generated for people); " +
+  "'team' (title + 1-4 people, each name + role; no pictures are generated for people); 'composition' (a bespoke page for what no other form holds: a diagram, a comparison built from shapes, a page that is one typographic gesture; up to 8 cells on a 12-column by 6-row grid, each a heading, body, list, figure, label, icon or picture with an optional tone of tint, accent or deep, cells never overlapping, and optional links drawn as arrows between cells; at most one per deck); " +
   "'closing' (title + subhead as the call to action). " +
   "Every page except the cover names an 'eyebrow': two or three words saying what the page is about (The problem, What we tried, Traction, The ask), set small above the title. " +
   "Icons: a column, a kpiGrid stat, a timeline step, and a bullets, statement, bigNumber, cover, section or closing page may each name an 'icon', one English keyword for a simple icon (shield, clock, users, chart, leaf, globe, bolt, heart, coin, truck, calendar, rocket, target, star, lock, cloud); name one for every item in a set or for none, and name one for most pages that can carry one.";

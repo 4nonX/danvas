@@ -38,6 +38,15 @@ function pageFor(a: Archetype): Record<string, unknown> {
     case "timeline": return { ...base, steps: [{ when: "2019", label: "Survey", detail: "Map the retreat line" }, { when: "2021", label: "Plant", detail: "Native grass in the lee of the dune" }, { when: "2023", label: "Fence", detail: "Sand fences trap what the wind carries" }, { when: "2025", label: "Monitor" }] };
     case "table": return { ...base, table: { columns: ["Year", "Retreat (m)", "Cost"], rows: [["2021", "4.1", "$120k"], ["2022", "3.2", "$95k"], ["2023", "1.9", "$80k"], ["2024", "0.8", "$60k"]] } };
     case "team": return { ...base, people: [{ name: "Ada Okoro", role: "Coastal engineer" }, { name: "Leif Brandt", role: "Ecologist" }, { name: "Mira Sato", role: "Community lead" }] };
+    case "composition": return { ...base, title: "How a season of work runs", composition: { cells: [
+      { col: 0, span: 4, row: 0, rows: 3, kind: "heading", text: "Survey the retreat line", tone: "tint" },
+      { col: 4, span: 4, row: 0, rows: 3, kind: "list", points: ["Plant native grass", "Fence the lee", "Monitor monthly"], tone: "deep" },
+      { col: 8, span: 4, row: 0, rows: 3, kind: "figure", value: "68%", text: "less retreat where planted", tone: "accent" },
+      { col: 0, span: 12, row: 3, rows: 1, kind: "label", text: "One season, three moves" },
+      { col: 0, span: 6, row: 4, rows: 2, kind: "body", text: "Each move builds on the one before it, and the survey line is the judge of all three." },
+      { col: 6, span: 2, row: 4, rows: 2, kind: "icon", icon: "leaf" },
+      { col: 8, span: 4, row: 4, rows: 2, kind: "picture" },
+    ], links: [[0, 1], [1, 2]] } };
   }
 }
 
@@ -830,5 +839,32 @@ describe("a table with long values", () => {
     expect(t.transform.y + t.size.height).toBeLessThanOrEqual(1080 - ds.unit * 6 + 1);
     expect(sizePx).toBeGreaterThanOrEqual(12);
     expect(qualityCheck({ background: page.background, nodes: page.nodes, size }).issues).toEqual([]);
+  });
+});
+
+describe("a bespoke composition page", () => {
+  it("draws every cell in its grid rect, panels behind toned cells, and arrows where the links asked", () => {
+    const ds = deriveDesignSystem(theme, size, { seed: 1, catalog: catalogEntryForSeed(1) });
+    const item = normalizeOutline({ title: "T", pages: [pageFor("composition")] }).pages[0];
+    expect(item.archetype).toBe("composition");
+    const page = composeArchetypePage(item, ds, { index: 2, total: 5 });
+    const names = page.nodes.map((n) => n.name);
+    expect(names.filter((n) => n === "Panel").length).toBe(3);
+    expect(names.filter((n) => n === "Arrow").length).toBe(2);
+    expect(names).toContain("Heading");
+    expect(names).toContain("Points");
+    expect(names).toContain("Figure");
+    expect(names).toContain("Icon");
+    expect(names).toContain("Page number");
+    expect(qualityCheck({ background: page.background, nodes: page.nodes, size }).issues).toEqual([]);
+    // Text on the deep panel took the deep ground's ink.
+    const points = page.nodes.find((n) => n.name === "Points") as unknown as { content: { runs: { style: { fill: { color: unknown } } }[] }[] };
+    expect(points.content[0].runs[0].style.fill.color).toEqual(ds.colors.inkOnDeep);
+  });
+
+  it("composes clean on a square post too", () => {
+    const out = composeDeckFileWithReport({ outline: { title: "T", pages: [pageFor("composition")] }, width: 1080, height: 1080, designType: "social" });
+    expect(out.report.pages[0].issues).toEqual([]);
+    expect(out.file.pages[0].children.map((n) => n.name)).not.toContain("Page number");
   });
 });

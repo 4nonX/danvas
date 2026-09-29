@@ -50,12 +50,41 @@ type OutlineItem struct {
 	Stats  []Stat     `json:"stats,omitempty"`
 	Table  *TableData `json:"table,omitempty"`
 	People []Person   `json:"people,omitempty"`
+	// Composition is a bespoke page: cells on a 12 by 6 grid with optional
+	// links, for what no catalog form holds.
+	Composition *Composition `json:"composition,omitempty"`
 	// Icon is one English keyword naming a simple icon for the page.
 	Icon string `json:"icon,omitempty"`
 	// Eyebrow is two or three words saying what the page is about, set small
 	// above the title.
 	Eyebrow string `json:"eyebrow,omitempty"`
 }
+
+// CompositionCell is one cell of a bespoke page on the 12-column by 6-row
+// grid. Mirrors CompositionCell in outline.ts.
+type CompositionCell struct {
+	Col    int      `json:"col"`
+	Span   int      `json:"span"`
+	Row    int      `json:"row"`
+	Rows   int      `json:"rows"`
+	Kind   string   `json:"kind"`
+	Text   string   `json:"text,omitempty"`
+	Points []string `json:"points,omitempty"`
+	Value  string   `json:"value,omitempty"`
+	Unit   string   `json:"unit,omitempty"`
+	Icon   string   `json:"icon,omitempty"`
+	Tone   string   `json:"tone,omitempty"`
+}
+
+// Composition is a bespoke page: its cells and the links drawn as arrows
+// between them, as pairs of cell indexes.
+type Composition struct {
+	Cells []CompositionCell `json:"cells"`
+	Links [][]int           `json:"links,omitempty"`
+}
+
+var compositionKinds = map[string]bool{"heading": true, "body": true, "list": true, "figure": true, "label": true, "icon": true, "picture": true}
+var compositionTones = map[string]bool{"tint": true, "accent": true, "deep": true}
 
 // Stat is the content of a big-number slide: one figure at display scale, its
 // unit, and the line that says what it means.
@@ -132,7 +161,7 @@ var archetypes = map[string]bool{
 	"cover": true, "agenda": true, "section": true, "statement": true, "bigNumber": true,
 	"bullets": true, "twoColumn": true, "threeUp": true, "process": true, "quote": true,
 	"imageCaption": true, "chart": true, "closing": true,
-	"kpiGrid": true, "timeline": true, "table": true, "team": true,
+	"kpiGrid": true, "timeline": true, "table": true, "team": true, "composition": true,
 }
 
 // archetypeForRole is the default form for a page that named only a visual
@@ -148,7 +177,7 @@ var roleForArchetype = map[string]string{
 	"cover": "cover", "agenda": "agenda", "section": "content", "statement": "content",
 	"bigNumber": "data", "bullets": "content", "twoColumn": "comparison", "threeUp": "content",
 	"process": "content", "quote": "quote", "imageCaption": "content", "chart": "data", "closing": "closing",
-	"kpiGrid": "data", "timeline": "content", "table": "data", "team": "content",
+	"kpiGrid": "data", "timeline": "content", "table": "data", "team": "content", "composition": "content",
 }
 
 // Content budgets, in characters. The composer sizes type from slot geometry
@@ -185,6 +214,13 @@ const (
 	maxStepWhen       = 20
 	maxColIcon        = 30
 	maxEyebrowChars   = 24
+	maxCompCells      = 8
+	maxCompText       = 140
+	maxCompPoints     = 4
+	maxCompPoint      = 70
+	maxCompLinks      = 8
+	gridCols          = 12
+	gridRows          = 6
 )
 
 // DesignOutline is the editable plan returned by the outline endpoint.
@@ -290,6 +326,113 @@ func bareFigure(v string) string {
 	return strings.TrimSpace(strings.TrimFunc(clipRunes(strings.TrimSpace(v), maxStatValueChars), func(r rune) bool {
 		return unicode.IsSpace(r) || (r >= 0x2190 && r <= 0x21FF) || (r >= 0x25B2 && r <= 0x25BF) || (r >= 0x2B05 && r <= 0x2B0D)
 	}))
+}
+
+// normalizeComposition clamps every cell to the grid, drops what has no
+// content for its kind or overlaps an earlier cell, and keeps only links whose
+// both ends survived. Mirrors normalizeComposition in outline.ts.
+func normalizeComposition(c *Composition) *Composition {
+	clamp := func(v, lo, hi int) int {
+		if v < lo {
+			return lo
+		}
+		if v > hi {
+			return hi
+		}
+		return v
+	}
+	var kept []CompositionCell
+	keptIndex := map[int]int{}
+	for i, raw := range c.Cells {
+		if len(kept) >= maxCompCells {
+			break
+		}
+		if !compositionKinds[raw.Kind] {
+			continue
+		}
+		col := clamp(raw.Col, 0, gridCols-1)
+		span := raw.Span
+		if span < 1 {
+			span = gridCols - col
+		}
+		span = clamp(span, 1, gridCols-col)
+		row := clamp(raw.Row, 0, gridRows-1)
+		rows := clamp(raw.Rows, 1, gridRows-row)
+		text := clipRunes(strings.TrimSpace(raw.Text), maxCompText)
+		var points []string
+		for _, pt := range raw.Points {
+			if len(points) >= maxCompPoints {
+				break
+			}
+			if t := clipRunes(strings.TrimSpace(pt), maxCompPoint); t != "" {
+				points = append(points, t)
+			}
+		}
+		value, unit := splitFigure(raw.Value, raw.Unit)
+		icon := iconKeyword(raw.Icon)
+		tone := strings.ToLower(strings.TrimSpace(raw.Tone))
+		if !compositionTones[tone] {
+			tone = ""
+		}
+		switch raw.Kind {
+		case "heading", "body", "label":
+			if text == "" {
+				continue
+			}
+		case "list":
+			if len(points) == 0 {
+				continue
+			}
+		case "figure":
+			if value == "" {
+				continue
+			}
+		case "icon":
+			if icon == "" {
+				continue
+			}
+		}
+		clash := false
+		for _, k := range kept {
+			if col < k.Col+k.Span && col+span > k.Col && row < k.Row+k.Rows && row+rows > k.Row {
+				clash = true
+				break
+			}
+		}
+		if clash {
+			continue
+		}
+		keptIndex[i] = len(kept)
+		kept = append(kept, CompositionCell{Col: col, Span: span, Row: row, Rows: rows, Kind: raw.Kind, Text: text, Points: points, Value: value, Unit: unit, Icon: icon, Tone: tone})
+	}
+	if len(kept) == 0 {
+		return nil
+	}
+	var links [][]int
+	for _, l := range c.Links {
+		if len(links) >= maxCompLinks {
+			break
+		}
+		if len(l) < 2 {
+			continue
+		}
+		a, okA := keptIndex[l[0]]
+		b, okB := keptIndex[l[1]]
+		if !okA || !okB || a == b {
+			continue
+		}
+		dup := false
+		for _, e := range links {
+			if e[0] == a && e[1] == b {
+				dup = true
+				break
+			}
+		}
+		if !dup {
+			links = append(links, []int{a, b})
+		}
+	}
+	return &Composition{Cells: kept, Links: links}
 }
 
 // splitFigure keeps a figure to one token so it never wraps inside the
@@ -484,6 +627,9 @@ func normalizeArchetypeFields(p *OutlineItem) {
 		people = people[:maxPeople]
 	}
 	p.People = people
+	if p.Composition != nil {
+		p.Composition = normalizeComposition(p.Composition)
+	}
 	// Downgrade an archetype whose payload did not survive.
 	switch p.Archetype {
 	case "bigNumber":
@@ -506,6 +652,10 @@ func normalizeArchetypeFields(p *OutlineItem) {
 		}
 	case "table":
 		if p.Table == nil {
+			p.Archetype = "bullets"
+		}
+	case "composition":
+		if p.Composition == nil {
 			p.Archetype = "bullets"
 		}
 	case "team":

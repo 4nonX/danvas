@@ -19,7 +19,8 @@
 // what a designer does with a short slide and what generated decks never did.
 
 import { createNode, roundedCorners, type Color, type Fill, type Node } from "@hc/schema";
-import type { Archetype, DesignType, OutlineItem } from "./outline";
+import type { Archetype, CompositionCell, DesignType, OutlineItem } from "./outline";
+import { contrastRatio } from "@hc/color";
 import type { DeckMotion, DesignSystem } from "./designSystem";
 import { ICON_BOX, ICON_GLYPHS, ICON_KEYWORDS } from "./iconset";
 import { ILLUSTRATIONS, ILLUSTRATION_KEYWORDS, type IllustrationDrawing } from "./illustrationset";
@@ -827,6 +828,7 @@ class Composer {
       case "timeline": this.timeline(); break;
       case "table": this.table(); break;
       case "team": this.team(); break;
+      case "composition": this.composition(); break;
       default: this.bullets(); break;
     }
     applyMotion(this.nodes as Array<Node & { animation?: unknown }>, this.ds.motion);
@@ -1580,6 +1582,150 @@ class Composer {
     this.furniture();
   }
 
+  /** A bespoke page: the model's cells on a 12-column by 6-row grid, each
+   *  set in the deck's own type and colour, with arrows where it asked for
+   *  them. The grid keeps it honest: the normalizer dropped anything that
+   *  overlapped or left the grid, so nothing here collides or leaves the
+   *  page. A cell with a tone sits on its own panel and takes that panel's
+   *  inks. */
+  private composition(): void {
+    const comp = this.item.composition!;
+    const u = this.ds.unit;
+    const g = this.ds.gutter;
+    const c = this.ds.colors;
+    const bodyTop = this.top;
+    const bodyH = this.bodyBottom - bodyTop;
+    const colW = (this.W - 2 * this.m - g * 11) / 12;
+    const rowH = (bodyH - g * 5) / 6;
+    const rects: Rect[] = comp.cells.map((cell) => ({
+      x: this.m + cell.col * (colW + g),
+      y: bodyTop + cell.row * (rowH + g),
+      width: cell.span * colW + (cell.span - 1) * g,
+      height: cell.rows * rowH + (cell.rows - 1) * g,
+    }));
+    // A link is drawn only between cells that touch on the grid, to the
+    // right or below, so an arrow never crosses a third cell. The source
+    // cell gives up four units on the side that faces its target, and the
+    // arrow takes that room.
+    const links = comp.links ?? [];
+    const arrows: { from: number; to: number; dir: "right" | "down" }[] = [];
+    for (const [from, to] of links) {
+      const a = comp.cells[from];
+      const b = comp.cells[to];
+      if (!a || !b) continue;
+      const rowsTouch = a.row < b.row + b.rows && a.row + a.rows > b.row;
+      const colsTouch = a.col < b.col + b.span && a.col + a.span > b.col;
+      if (b.col === a.col + a.span && rowsTouch) {
+        rects[from] = { ...rects[from], width: Math.max(u * 4, rects[from].width - u * 4) };
+        arrows.push({ from, to, dir: "right" });
+      } else if (b.row === a.row + a.rows && colsTouch) {
+        rects[from] = { ...rects[from], height: Math.max(u * 4, rects[from].height - u * 4) };
+        arrows.push({ from, to, dir: "down" });
+      }
+    }
+    const pad = u * 2.5;
+    const inkOn = (ground: Color) => (contrastRatio(WHITE_INK, ground) >= contrastRatio(BLACK_INK, ground) ? WHITE_INK : BLACK_INK);
+    comp.cells.forEach((cell, i) => {
+      const r = rects[i];
+      const tone = cell.tone ?? "plain";
+      let ink = this.ink;
+      let muted = this.muted;
+      let accentInk = this.accentInk;
+      let accent = this.accent;
+      if (tone === "deep") {
+        this.nodes.push(this.rect("Panel", r, c.deep, Math.round(this.ds.radius * 3), { panel: true }));
+        ink = c.inkOnDeep; muted = c.mutedOnDeep; accentInk = c.accentInkOnDeep; accent = c.accentOnDeep;
+      } else if (tone === "accent") {
+        this.nodes.push(this.rect("Panel", r, accent, Math.round(this.ds.radius * 3), { panel: true }));
+        ink = inkOn(accent); muted = mix(ink, accent, 0.25); accentInk = ink;
+      } else if (tone === "tint") {
+        this.nodes.push(this.panel(r));
+      }
+      const inner: Rect = tone === "plain" ? r : { x: r.x + pad, y: r.y + pad, width: r.width - 2 * pad, height: r.height - 2 * pad };
+      const large = cell.span >= 6 && cell.rows >= 2;
+      switch (cell.kind) {
+        case "heading":
+          this.nodes.push(this.text({ name: "Heading", rect: inner, paragraphs: [cell.text ?? ""], role: "heading", base: large ? this.sz("statement") : this.sz("colHead"), bold: !large, color: ink, lineHeight: 1.1 }).node);
+          break;
+        case "body":
+          this.nodes.push(this.text({ name: "Body", rect: inner, paragraphs: [cell.text ?? ""], role: "body", base: this.sz("point"), color: ink, lineHeight: 1.4 }).node);
+          break;
+        case "list":
+          this.nodes.push(this.text({ name: "Points", rect: inner, paragraphs: cell.points ?? [], role: "body", base: this.sz("point"), color: ink, lineHeight: 1.35, paraGap: 0.5, list: "bullet" }).node);
+          break;
+        case "label":
+          this.nodes.push(this.text({ name: "Label", rect: inner, paragraphs: [cell.text ?? ""], role: "body", base: this.sz("eyebrow"), color: accentInk, exactSize: Math.round(this.sz("eyebrow")), tracking: 0.18, lineHeight: 1.2 }).node);
+          break;
+        case "figure": {
+          // The numeral's box is the room it was offered (its glyphs sit on
+          // the box's bottom edge), so the label starts under that box.
+          const figH = Math.round(cell.text ? inner.height * 0.6 : inner.height);
+          const fig = this.numeral({ x: inner.x, y: inner.y, width: inner.width, height: figH }, cell.value ?? "", cell.unit, accentInk, Math.min(this.sz("numeral"), figH));
+          this.nodes.push(fig.node);
+          if (cell.text) this.nodes.push(this.text({ name: "Label", rect: { x: inner.x, y: inner.y + figH + u, width: inner.width, height: Math.max(u * 2, inner.height - figH - u) }, paragraphs: [cell.text], role: "heading", base: this.sz("statLabel"), bold: true, color: ink, lineHeight: 1.2 }).node);
+          break;
+        }
+        case "icon": {
+          const glyph = iconGlyphFor(cell.icon);
+          if (!glyph) break;
+          const size = Math.round(Math.min(inner.width, inner.height, this.sz("icon") * 2));
+          const ic = this.icon(glyph, Math.round(inner.x + (inner.width - size) / 2), Math.round(inner.y + (inner.height - size) / 2), size, accent);
+          if (ic) this.nodes.push(ic);
+          break;
+        }
+        case "picture": {
+          const drawing = this.namedIllustration;
+          const ill = drawing ? this.illustration(drawing, inner) : null;
+          if (ill) this.nodes.push(ill);
+          else this.nodes.push(this.imageSlot(r, this.imagePrompt(), Math.round(this.ds.radius * 3)));
+          break;
+        }
+      }
+    });
+    // Arrows in the room the source cells gave up.
+    const lineColor = mix(this.ink, this.ground, 0.5);
+    for (const ar of arrows) {
+      const a = rects[ar.from];
+      const b = rects[ar.to];
+      if (ar.dir === "right") {
+        const y = Math.round(Math.max(a.y, b.y) + (Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y)) / 2);
+        const x0 = a.x + a.width + u * 0.5;
+        const x1 = b.x - u * 0.5;
+        if (x1 - x0 > u) {
+          this.nodes.push(this.rect("Sequence", { x: x0, y: y - Math.round(this.ds.rule / 2), width: x1 - x0 - u, height: this.ds.rule }, lineColor));
+          this.nodes.push(this.arrowHead(x1, y, u * 1.2, "right", lineColor));
+        }
+      } else {
+        const x = Math.round(Math.max(a.x, b.x) + (Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x)) / 2);
+        const y0 = a.y + a.height + u * 0.5;
+        const y1 = b.y - u * 0.5;
+        if (y1 - y0 > u) {
+          this.nodes.push(this.rect("Sequence", { x: x - Math.round(this.ds.rule / 2), y: y0, width: this.ds.rule, height: y1 - y0 - u }, lineColor));
+          this.nodes.push(this.arrowHead(x, y1, u * 1.2, "down", lineColor));
+        }
+      }
+    }
+    this.furniture();
+  }
+
+  /** A small filled triangle at the tip of a connector. Ornament to the
+   *  quality loop, like a decor disc: it sits in a gutter and never counts
+   *  as an overlap. */
+  private arrowHead(x: number, y: number, size: number, dir: "right" | "down", color: Color): Node {
+    const s = Math.round(size);
+    const pts = dir === "right" ? [{ x: 0, y: 0 }, { x: s, y: s / 2 }, { x: 0, y: s }] : [{ x: 0, y: 0 }, { x: s, y: 0 }, { x: s / 2, y: s }];
+    const r = this.mirror(dir === "right" ? { x: x - s, y: y - s / 2, width: s, height: s } : { x: x - s / 2, y: y - s, width: s, height: s });
+    return createNode("path", {
+      name: "Arrow",
+      transform: { x: r.x, y: r.y, scaleX: 1, scaleY: 1, rotation: 0 },
+      size: { width: s, height: s },
+      segments: pts,
+      closed: true,
+      fills: [{ type: "solid", color: structuredClone(color) }],
+      data: { decor: true },
+    } as never) as Node;
+  }
+
   private closing(): void {
     const drawing = this.namedIllustration;
     const hasImage = !!this.item.image && !drawing;
@@ -1613,6 +1759,9 @@ class Composer {
     this.furniture(hasImage ? { x: region.x, width: region.width } : undefined);
   }
 }
+
+const WHITE_INK: Color = { srgb: { r: 1, g: 1, b: 1, a: 1 } };
+const BLACK_INK: Color = { srgb: { r: 0, g: 0, b: 0, a: 1 } };
 
 function mix(a: Color, b: Color, t: number): Color {
   const l = (x: number, y: number) => x + (y - x) * t;

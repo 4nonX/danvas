@@ -33980,12 +33980,13 @@ ${err.toString()}`);
     "packages/aistudio/dist/outline.js"(exports) {
       "use strict";
       Object.defineProperty(exports, "__esModule", { value: true });
-      exports.outlineJsonSchema = exports.OutlineError = exports.maxNoteChars = exports.archetypeBudgets = exports.roleForArchetype = exports.archetypeForRole = exports.archetypes = exports.visualRoles = exports.designTypes = void 0;
+      exports.outlineJsonSchema = exports.OutlineError = exports.maxNoteChars = exports.archetypeBudgets = exports.compositionTones = exports.compositionKinds = exports.roleForArchetype = exports.archetypeForRole = exports.archetypes = exports.visualRoles = exports.designTypes = void 0;
       exports.normalizeNote = normalizeNote;
       exports.clipToBudget = clipToBudget;
       exports.bareFigure = bareFigure;
       exports.splitFigure = splitFigure;
       exports.undashTitle = undashTitle;
+      exports.normalizeComposition = normalizeComposition;
       exports.normalizeOutline = normalizeOutline;
       exports.outlineItemToSpec = outlineItemToSpec;
       exports.designTypes = ["deck", "doc", "social-set", "poster"];
@@ -34007,7 +34008,8 @@ ${err.toString()}`);
         "kpiGrid",
         "timeline",
         "table",
-        "team"
+        "team",
+        "composition"
       ];
       exports.archetypeForRole = {
         cover: "cover",
@@ -34035,8 +34037,11 @@ ${err.toString()}`);
         kpiGrid: "data",
         timeline: "content",
         table: "data",
-        team: "content"
+        team: "content",
+        composition: "content"
       };
+      exports.compositionKinds = ["heading", "body", "list", "figure", "label", "icon", "picture"];
+      exports.compositionTones = ["plain", "tint", "accent", "deep"];
       exports.archetypeBudgets = {
         title: 60,
         subhead: 120,
@@ -34066,7 +34071,12 @@ ${err.toString()}`);
         personRole: 40,
         stepWhen: 20,
         columnIcon: 30,
-        eyebrow: 24
+        eyebrow: 24,
+        compositionCells: 8,
+        compositionText: 140,
+        compositionPoints: 4,
+        compositionPoint: 70,
+        compositionLinks: 8
       };
       exports.maxNoteChars = 500;
       var OutlineError = class extends Error {
@@ -34228,6 +34238,12 @@ ${err.toString()}`);
         }).filter((x) => !!x).slice(0, b.people);
         if (people.length)
           out.people = people;
+        const comp = p.composition;
+        if (comp && typeof comp === "object") {
+          const composition = normalizeComposition(comp, b);
+          if (composition)
+            out.composition = composition;
+        }
         switch (archetype) {
           case "bigNumber":
             if (!out.stat)
@@ -34278,8 +34294,77 @@ ${err.toString()}`);
             if (!out.chart)
               out.archetype = "bullets";
             break;
+          case "composition":
+            if (!out.composition)
+              out.archetype = "bullets";
+            break;
         }
         return out;
+      }
+      var GRID_COLS = 12;
+      var GRID_ROWS = 6;
+      function normalizeComposition(raw, b) {
+        const clampInt = (v, lo, hi, dflt) => {
+          const n = typeof v === "number" ? Math.round(v) : typeof v === "string" ? Math.round(Number(v)) : NaN;
+          return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : dflt;
+        };
+        const kept = [];
+        const keptIndex = /* @__PURE__ */ new Map();
+        const rawCells = Array.isArray(raw.cells) ? raw.cells : [];
+        rawCells.forEach((x, i) => {
+          if (kept.length >= b.compositionCells)
+            return;
+          const r = x != null ? x : {};
+          const kind = str(r.kind);
+          if (!exports.compositionKinds.includes(kind))
+            return;
+          const col = clampInt(r.col, 0, GRID_COLS - 1, 0);
+          const span = clampInt(r.span, 1, GRID_COLS - col, GRID_COLS - col);
+          const row = clampInt(r.row, 0, GRID_ROWS - 1, 0);
+          const rows = clampInt(r.rows, 1, GRID_ROWS - row, 1);
+          const text2 = clipToBudget(r.text, b.compositionText);
+          const points = strList(r.points, b.compositionPoints, b.compositionPoint);
+          const fig = splitFigure(r.value, r.unit);
+          const icon = iconKeyword(r.icon);
+          const toneRaw = str(r.tone);
+          const tone = exports.compositionTones.includes(toneRaw) && toneRaw !== "plain" ? toneRaw : void 0;
+          if ((kind === "heading" || kind === "body" || kind === "label") && !text2)
+            return;
+          if (kind === "list" && !points.length)
+            return;
+          if (kind === "figure" && !fig.value)
+            return;
+          if (kind === "icon" && !icon)
+            return;
+          const clash = kept.some((k) => col < k.col + k.span && col + span > k.col && row < k.row + k.rows && row + rows > k.row);
+          if (clash)
+            return;
+          keptIndex.set(i, kept.length);
+          kept.push(__spreadValues(__spreadValues(__spreadValues(__spreadValues(__spreadValues(__spreadValues({
+            col,
+            span,
+            row,
+            rows,
+            kind
+          }, text2 ? { text: text2 } : {}), points.length ? { points } : {}), fig.value ? { value: fig.value } : {}), fig.unit ? { unit: fig.unit } : {}), icon ? { icon } : {}), tone ? { tone } : {}));
+        });
+        if (!kept.length)
+          return null;
+        const links = [];
+        for (const l of Array.isArray(raw.links) ? raw.links : []) {
+          if (links.length >= b.compositionLinks)
+            break;
+          if (!Array.isArray(l) || l.length < 2)
+            continue;
+          const a = keptIndex.get(clampInt(l[0], 0, 1e6, -1));
+          const c = keptIndex.get(clampInt(l[1], 0, 1e6, -1));
+          if (a === void 0 || c === void 0 || a === c)
+            continue;
+          if (links.some(([x, y]) => x === a && y === c))
+            continue;
+          links.push([a, c]);
+        }
+        return __spreadValues({ cells: kept }, links.length ? { links } : {});
       }
       function normalizeOutline(parsed) {
         if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
@@ -34348,6 +34433,7 @@ ${err.toString()}`);
                 chart: { type: "object", additionalProperties: false, required: ["kind", "categories", "series"], properties: { kind: { type: "string", enum: ["bar", "line", "pie", "donut"] }, categories: { type: "array", maxItems: exports.archetypeBudgets.chartCategories, items: { type: "string" } }, series: { type: "array", minItems: 1, maxItems: exports.archetypeBudgets.chartSeries, items: { type: "object", additionalProperties: false, required: ["name", "values"], properties: { name: { type: "string" }, values: { type: "array", items: { type: "number" } } } } } } },
                 stats: { type: "array", minItems: 2, maxItems: exports.archetypeBudgets.stats, items: { type: "object", additionalProperties: false, required: ["value", "label"], properties: { value: { type: "string", maxLength: exports.archetypeBudgets.statValue }, unit: { type: "string", maxLength: exports.archetypeBudgets.statUnit }, label: { type: "string", maxLength: exports.archetypeBudgets.statLabel }, icon: { type: "string", maxLength: exports.archetypeBudgets.columnIcon, description: "one English keyword naming a simple icon for the figure" } } }, description: "2-4 figures that belong together; only for kpiGrid" },
                 table: { type: "object", additionalProperties: false, required: ["columns", "rows"], properties: { columns: { type: "array", minItems: 1, maxItems: exports.archetypeBudgets.tableColumns, items: { type: "string", maxLength: exports.archetypeBudgets.tableCell } }, rows: { type: "array", minItems: 1, maxItems: exports.archetypeBudgets.tableRows, items: { type: "array", items: { type: "string", maxLength: exports.archetypeBudgets.tableCell } } } }, description: "a small table of real values from the brief or attached material; only for table" },
+                composition: { type: "object", additionalProperties: false, required: ["cells"], properties: { cells: { type: "array", minItems: 1, maxItems: exports.archetypeBudgets.compositionCells, items: { type: "object", additionalProperties: false, required: ["col", "span", "row", "rows", "kind"], properties: { col: { type: "integer", minimum: 0, maximum: 11 }, span: { type: "integer", minimum: 1, maximum: 12 }, row: { type: "integer", minimum: 0, maximum: 5 }, rows: { type: "integer", minimum: 1, maximum: 6 }, kind: { type: "string", enum: ["heading", "body", "list", "figure", "label", "icon", "picture"] }, text: { type: "string", maxLength: exports.archetypeBudgets.compositionText }, points: { type: "array", maxItems: exports.archetypeBudgets.compositionPoints, items: { type: "string", maxLength: exports.archetypeBudgets.compositionPoint } }, value: { type: "string", maxLength: exports.archetypeBudgets.statValue }, unit: { type: "string", maxLength: exports.archetypeBudgets.statUnit }, icon: { type: "string", maxLength: exports.archetypeBudgets.columnIcon }, tone: { type: "string", enum: ["plain", "tint", "accent", "deep"] } } } }, links: { type: "array", maxItems: exports.archetypeBudgets.compositionLinks, items: { type: "array", minItems: 2, maxItems: 2, items: { type: "integer", minimum: 0 } } } }, description: "a bespoke page: up to 8 cells placed on a 12-column by 6-row grid (col 0-11, span, row 0-5, rows), each a heading, body, list, figure, label, icon or picture with an optional tone (tint, accent, deep) that paints a panel behind it; links are pairs of cell indexes drawn as arrows; cells never overlap; only for composition, and only when no catalog form fits" },
                 people: { type: "array", minItems: 1, maxItems: exports.archetypeBudgets.people, items: { type: "object", additionalProperties: false, required: ["name"], properties: { name: { type: "string", maxLength: exports.archetypeBudgets.personName }, role: { type: "string", maxLength: exports.archetypeBudgets.personRole } } }, description: "the people on a team slide; only for team" },
                 note: {
                   type: "string",
@@ -36254,6 +36340,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
       exports.decodeDrawingPath = decodeDrawingPath;
       exports.composeArchetypePage = composeArchetypePage;
       var schema_1 = require_dist();
+      var color_1 = require_dist2();
       var iconset_1 = require_iconset();
       var illustrationset_1 = require_illustrationset();
       var deckStyle_1 = require_deckStyle();
@@ -36981,6 +37068,9 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             case "team":
               this.team();
               break;
+            case "composition":
+              this.composition();
+              break;
             default:
               this.bullets();
               break;
@@ -37672,6 +37762,154 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           this.nodes.push(...build(bodyTop + Math.min(u * 8, Math.max(0, Math.round((bodyH - h) / 2)))).nodes);
           this.furniture();
         }
+        /** A bespoke page: the model's cells on a 12-column by 6-row grid, each
+         *  set in the deck's own type and colour, with arrows where it asked for
+         *  them. The grid keeps it honest: the normalizer dropped anything that
+         *  overlapped or left the grid, so nothing here collides or leaves the
+         *  page. A cell with a tone sits on its own panel and takes that panel's
+         *  inks. */
+        composition() {
+          var _a5;
+          const comp = this.item.composition;
+          const u = this.ds.unit;
+          const g = this.ds.gutter;
+          const c = this.ds.colors;
+          const bodyTop = this.top;
+          const bodyH = this.bodyBottom - bodyTop;
+          const colW = (this.W - 2 * this.m - g * 11) / 12;
+          const rowH = (bodyH - g * 5) / 6;
+          const rects = comp.cells.map((cell) => ({
+            x: this.m + cell.col * (colW + g),
+            y: bodyTop + cell.row * (rowH + g),
+            width: cell.span * colW + (cell.span - 1) * g,
+            height: cell.rows * rowH + (cell.rows - 1) * g
+          }));
+          const links = (_a5 = comp.links) != null ? _a5 : [];
+          const arrows = [];
+          for (const [from2, to] of links) {
+            const a = comp.cells[from2];
+            const b = comp.cells[to];
+            if (!a || !b)
+              continue;
+            const rowsTouch = a.row < b.row + b.rows && a.row + a.rows > b.row;
+            const colsTouch = a.col < b.col + b.span && a.col + a.span > b.col;
+            if (b.col === a.col + a.span && rowsTouch) {
+              rects[from2] = __spreadProps(__spreadValues({}, rects[from2]), { width: Math.max(u * 4, rects[from2].width - u * 4) });
+              arrows.push({ from: from2, to, dir: "right" });
+            } else if (b.row === a.row + a.rows && colsTouch) {
+              rects[from2] = __spreadProps(__spreadValues({}, rects[from2]), { height: Math.max(u * 4, rects[from2].height - u * 4) });
+              arrows.push({ from: from2, to, dir: "down" });
+            }
+          }
+          const pad = u * 2.5;
+          const inkOn = (ground) => (0, color_1.contrastRatio)(WHITE_INK, ground) >= (0, color_1.contrastRatio)(BLACK_INK, ground) ? WHITE_INK : BLACK_INK;
+          comp.cells.forEach((cell, i) => {
+            var _a6, _b, _c, _d, _e, _f;
+            const r = rects[i];
+            const tone = (_a6 = cell.tone) != null ? _a6 : "plain";
+            let ink = this.ink;
+            let muted = this.muted;
+            let accentInk = this.accentInk;
+            let accent = this.accent;
+            if (tone === "deep") {
+              this.nodes.push(this.rect("Panel", r, c.deep, Math.round(this.ds.radius * 3), { panel: true }));
+              ink = c.inkOnDeep;
+              muted = c.mutedOnDeep;
+              accentInk = c.accentInkOnDeep;
+              accent = c.accentOnDeep;
+            } else if (tone === "accent") {
+              this.nodes.push(this.rect("Panel", r, accent, Math.round(this.ds.radius * 3), { panel: true }));
+              ink = inkOn(accent);
+              muted = mix(ink, accent, 0.25);
+              accentInk = ink;
+            } else if (tone === "tint") {
+              this.nodes.push(this.panel(r));
+            }
+            const inner = tone === "plain" ? r : { x: r.x + pad, y: r.y + pad, width: r.width - 2 * pad, height: r.height - 2 * pad };
+            const large = cell.span >= 6 && cell.rows >= 2;
+            switch (cell.kind) {
+              case "heading":
+                this.nodes.push(this.text({ name: "Heading", rect: inner, paragraphs: [(_b = cell.text) != null ? _b : ""], role: "heading", base: large ? this.sz("statement") : this.sz("colHead"), bold: !large, color: ink, lineHeight: 1.1 }).node);
+                break;
+              case "body":
+                this.nodes.push(this.text({ name: "Body", rect: inner, paragraphs: [(_c = cell.text) != null ? _c : ""], role: "body", base: this.sz("point"), color: ink, lineHeight: 1.4 }).node);
+                break;
+              case "list":
+                this.nodes.push(this.text({ name: "Points", rect: inner, paragraphs: (_d = cell.points) != null ? _d : [], role: "body", base: this.sz("point"), color: ink, lineHeight: 1.35, paraGap: 0.5, list: "bullet" }).node);
+                break;
+              case "label":
+                this.nodes.push(this.text({ name: "Label", rect: inner, paragraphs: [(_e = cell.text) != null ? _e : ""], role: "body", base: this.sz("eyebrow"), color: accentInk, exactSize: Math.round(this.sz("eyebrow")), tracking: 0.18, lineHeight: 1.2 }).node);
+                break;
+              case "figure": {
+                const figH = Math.round(cell.text ? inner.height * 0.6 : inner.height);
+                const fig = this.numeral({ x: inner.x, y: inner.y, width: inner.width, height: figH }, (_f = cell.value) != null ? _f : "", cell.unit, accentInk, Math.min(this.sz("numeral"), figH));
+                this.nodes.push(fig.node);
+                if (cell.text)
+                  this.nodes.push(this.text({ name: "Label", rect: { x: inner.x, y: inner.y + figH + u, width: inner.width, height: Math.max(u * 2, inner.height - figH - u) }, paragraphs: [cell.text], role: "heading", base: this.sz("statLabel"), bold: true, color: ink, lineHeight: 1.2 }).node);
+                break;
+              }
+              case "icon": {
+                const glyph = iconGlyphFor(cell.icon);
+                if (!glyph)
+                  break;
+                const size2 = Math.round(Math.min(inner.width, inner.height, this.sz("icon") * 2));
+                const ic = this.icon(glyph, Math.round(inner.x + (inner.width - size2) / 2), Math.round(inner.y + (inner.height - size2) / 2), size2, accent);
+                if (ic)
+                  this.nodes.push(ic);
+                break;
+              }
+              case "picture": {
+                const drawing = this.namedIllustration;
+                const ill = drawing ? this.illustration(drawing, inner) : null;
+                if (ill)
+                  this.nodes.push(ill);
+                else
+                  this.nodes.push(this.imageSlot(r, this.imagePrompt(), Math.round(this.ds.radius * 3)));
+                break;
+              }
+            }
+          });
+          const lineColor = mix(this.ink, this.ground, 0.5);
+          for (const ar of arrows) {
+            const a = rects[ar.from];
+            const b = rects[ar.to];
+            if (ar.dir === "right") {
+              const y = Math.round(Math.max(a.y, b.y) + (Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y)) / 2);
+              const x0 = a.x + a.width + u * 0.5;
+              const x1 = b.x - u * 0.5;
+              if (x1 - x0 > u) {
+                this.nodes.push(this.rect("Sequence", { x: x0, y: y - Math.round(this.ds.rule / 2), width: x1 - x0 - u, height: this.ds.rule }, lineColor));
+                this.nodes.push(this.arrowHead(x1, y, u * 1.2, "right", lineColor));
+              }
+            } else {
+              const x = Math.round(Math.max(a.x, b.x) + (Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x)) / 2);
+              const y0 = a.y + a.height + u * 0.5;
+              const y1 = b.y - u * 0.5;
+              if (y1 - y0 > u) {
+                this.nodes.push(this.rect("Sequence", { x: x - Math.round(this.ds.rule / 2), y: y0, width: this.ds.rule, height: y1 - y0 - u }, lineColor));
+                this.nodes.push(this.arrowHead(x, y1, u * 1.2, "down", lineColor));
+              }
+            }
+          }
+          this.furniture();
+        }
+        /** A small filled triangle at the tip of a connector. Ornament to the
+         *  quality loop, like a decor disc: it sits in a gutter and never counts
+         *  as an overlap. */
+        arrowHead(x, y, size2, dir, color) {
+          const s = Math.round(size2);
+          const pts = dir === "right" ? [{ x: 0, y: 0 }, { x: s, y: s / 2 }, { x: 0, y: s }] : [{ x: 0, y: 0 }, { x: s, y: 0 }, { x: s / 2, y: s }];
+          const r = this.mirror(dir === "right" ? { x: x - s, y: y - s / 2, width: s, height: s } : { x: x - s / 2, y: y - s, width: s, height: s });
+          return (0, schema_1.createNode)("path", {
+            name: "Arrow",
+            transform: { x: r.x, y: r.y, scaleX: 1, scaleY: 1, rotation: 0 },
+            size: { width: s, height: s },
+            segments: pts,
+            closed: true,
+            fills: [{ type: "solid", color: structuredClone(color) }],
+            data: { decor: true }
+          });
+        }
         closing() {
           var _a5, _b;
           const drawing = this.namedIllustration;
@@ -37708,6 +37946,8 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           this.furniture(hasImage ? { x: region.x, width: region.width } : void 0);
         }
       };
+      var WHITE_INK = { srgb: { r: 1, g: 1, b: 1, a: 1 } };
+      var BLACK_INK = { srgb: { r: 0, g: 0, b: 0, a: 1 } };
       function mix(a, b, t) {
         const l = (x, y) => x + (y - x) * t;
         return { srgb: { r: l(a.srgb.r, b.srgb.r), g: l(a.srgb.g, b.srgb.g), b: l(a.srgb.b, b.srgb.b), a: 1 } };
@@ -38270,7 +38510,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         "social-set": "A set of standalone social posts on one theme; each page is self-contained with its own punchy hook. Use 'statement', 'quote', 'bigNumber' and 'imageCaption' for impact; every page gets an image intent.",
         poster: "A single strong poster composition: one page, one bold message. Use the 'cover' archetype with an image intent."
       };
-      exports.archetypeCatalogRule = "Every page names an archetype, its compositional form: 'cover' (title + subhead); 'agenda' (title + 3-6 points naming the sections to come, in order; only for decks of 6 or more pages); 'section' (a divider: short title, optional subhead); 'statement' (ONE idea as the title, at most 14 words, optional subhead; no points); 'bigNumber' (stat.value + stat.label, optional subhead as context; the figure is the slide); 'bullets' (title + 3-5 points, each a complete thought under 90 characters); 'twoColumn' (title + exactly 2 columns, each heading + 2-4 points; for comparisons and before/after); 'threeUp' (title + exactly 3 columns, each heading + 1-3 points; for features, pillars, options); 'process' (title + 3-5 steps, each label + detail; ONLY for a real sequence); 'quote' (quote.text + attribution); 'imageCaption' (title + image.subject + subhead as caption; the picture carries the slide); 'chart' (title + chart with real numbers from the brief or attached material; never invent data); 'kpiGrid' (title + 2-4 stats, each value + label; several figures that belong together); 'timeline' (title + 3-5 steps, each with a short 'when' such as a year or quarter, a label and a detail; for history and roadmaps); 'table' (title + table.columns and table.rows with real values from the brief or attached material; 2-4 columns, up to 6 rows; never invent data); 'team' (title + 1-4 people, each name + role; no pictures are generated for people); 'closing' (title + subhead as the call to action). Every page except the cover names an 'eyebrow': two or three words saying what the page is about (The problem, What we tried, Traction, The ask), set small above the title. Icons: a column, a kpiGrid stat, a timeline step, and a bullets, statement, bigNumber, cover, section or closing page may each name an 'icon', one English keyword for a simple icon (shield, clock, users, chart, leaf, globe, bolt, heart, coin, truck, calendar, rocket, target, star, lock, cloud); name one for every item in a set or for none, and name one for most pages that can carry one.";
+      exports.archetypeCatalogRule = "Every page names an archetype, its compositional form: 'cover' (title + subhead); 'agenda' (title + 3-6 points naming the sections to come, in order; only for decks of 6 or more pages); 'section' (a divider: short title, optional subhead); 'statement' (ONE idea as the title, at most 14 words, optional subhead; no points); 'bigNumber' (stat.value + stat.label, optional subhead as context; the figure is the slide); 'bullets' (title + 3-5 points, each a complete thought under 90 characters); 'twoColumn' (title + exactly 2 columns, each heading + 2-4 points; for comparisons and before/after); 'threeUp' (title + exactly 3 columns, each heading + 1-3 points; for features, pillars, options); 'process' (title + 3-5 steps, each label + detail; ONLY for a real sequence); 'quote' (quote.text + attribution); 'imageCaption' (title + image.subject + subhead as caption; the picture carries the slide); 'chart' (title + chart with real numbers from the brief or attached material; never invent data); 'kpiGrid' (title + 2-4 stats, each value + label; several figures that belong together); 'timeline' (title + 3-5 steps, each with a short 'when' such as a year or quarter, a label and a detail; for history and roadmaps); 'table' (title + table.columns and table.rows with real values from the brief or attached material; 2-4 columns, up to 6 rows; never invent data); 'team' (title + 1-4 people, each name + role; no pictures are generated for people); 'composition' (a bespoke page for what no other form holds: a diagram, a comparison built from shapes, a page that is one typographic gesture; up to 8 cells on a 12-column by 6-row grid, each a heading, body, list, figure, label, icon or picture with an optional tone of tint, accent or deep, cells never overlapping, and optional links drawn as arrows between cells; at most one per deck); 'closing' (title + subhead as the call to action). Every page except the cover names an 'eyebrow': two or three words saying what the page is about (The problem, What we tried, Traction, The ask), set small above the title. Icons: a column, a kpiGrid stat, a timeline step, and a bullets, statement, bigNumber, cover, section or closing page may each name an 'icon', one English keyword for a simple icon (shield, clock, users, chart, leaf, globe, bolt, heart, coin, truck, calendar, rocket, target, star, lock, cloud); name one for every item in a set or for none, and name one for most pages that can carry one.";
       exports.storyArcRule = "Plan a narrative arc before choosing forms: open with the cover, state the thesis as a 'statement' early, build with evidence, and end with a 'closing' that asks for something specific. Vary the forms: no more than 40 percent of pages may be 'bullets'; never place the same archetype on two adjacent pages except 'bullets' at most twice in a row; use 'bigNumber' whenever the brief or attached material contains a meaningful quantity, 'kpiGrid' when two to four figures belong together, 'timeline' for dated history or a roadmap, and 'table' when the material is a small grid of real values; use 'section' dividers only for decks of 10 or more pages; give an 'image' intent to every 'cover', 'imageCaption', 'section' and 'closing' page and to about half of the rest, with a concrete English subject and consistent treatment across the deck; for an internal, product or plan deck, name an 'illustration' keyword on the cover, sections and closing (growth, handshake, rocket, target, security, chart, analysis, team, idea, money, logistics, calendar, map) so a flat drawing stands in for the photo.";
       exports.copyToFormRule = "Write copy to fit the form: a title is a headline (under 60 characters), never a sentence with a full stop; points are parallel in structure and start with the same part of speech; a statement is one idea, not a summary; a stat.label says what the number means in plain words. Never write 'Slide 1', 'Introduction' or other structural labels as content. Never use a dash as a separator anywhere in slide copy (titles, subheads, points, labels); use a colon or a new sentence. A stat.value is the bare figure (42%, 3.2M, 312): no arrows, no words, no plus or minus for direction; the label says whether it rose or fell. Every figure comes from the brief or the attached material, exactly as given; never invent, round or extrapolate a number. Set every title, subhead, label and eyebrow in sentence case (the first word and proper nouns capitalized), never in Title Case. An eyebrow is a label of at most 24 characters and a stat label at most 60; a title under 60. Write to fit: copy over a budget is cut at a word, never rephrased. Data-heavy material is split across several table or chart pages, at most eight rows or twelve categories each, never one dense page; a table cell is at most 60 characters.";
       function outlineSystemPrompt(designType, brandClause, pageCount, verbosity) {
