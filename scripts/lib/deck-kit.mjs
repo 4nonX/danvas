@@ -307,6 +307,12 @@ export function ornamentDeep(K, g, opts = {}) {
         ellipse(1180, -300, 1200, 1200, { angle: 135, stops: [[g.accent, 0], [g.bg2, 1]], radial: true }, { opacity: 0.35, bleed: true }),
         ...crosshairs(g.ink, 0.7),
       ];
+    case "watermark":
+      // One enormous glyph in a tint of the ground, bottom right: the
+      // editorial deck's monogram.
+      return [text(1160, 420, 760, 700, K.watermark ?? "&", { family: K.display, size: 620, weight: 500, color: mixHex(g.bg, g.ink, 0.08), align: "right", lineHeight: 1, bleed: true }), rect(M, 64, CW, 2, g.line)];
+    case "sun":
+      return [ellipse(1620, -120, 300, 300, g.sun, { bleed: true, opacity: 0.95 }), ...sparkles(g.sun, 13, 7, { x: 0, y: 0, w: W, h: 700 })];
     default:
       return [];
   }
@@ -330,6 +336,10 @@ export function ornamentPaper(K, g) {
       return [rect(W - 14, 0, 14, H, g.accent2)];
     case "rules":
       return [rect(M, 76, 56, 3, g.accent)];
+    case "watermark":
+      return [text(1160, 420, 760, 700, K.watermark ?? "&", { family: K.display, size: 620, weight: 500, color: mixHex(g.bg, g.ink, 0.05), align: "right", lineHeight: 1, bleed: true }), rect(M, 64, CW, 2, g.line)];
+    case "sun":
+      return [ellipse(1740, -140, 260, 260, g.sun, { bleed: true, opacity: 0.9 })];
     default:
       return [];
   }
@@ -1027,7 +1037,10 @@ export function columns(K, i, c0) {
   return { page: { name: "Roadmap", bg: g.bg, nodes } };
 }
 
-export const LAYOUTS = { cover, agenda, section, statement, textPicture, twoColumns, threeCards, figures, chart, timeline, process, table, team, quote, pricing, closing, bigStat, columns };
+/** A slide the deck script built itself, with these primitives. */
+export const raw = (K, i, c) => ({ page: c.page, fill: c.fill ?? [] });
+
+export const LAYOUTS = { cover, agenda, section, statement, textPicture, twoColumns, threeCards, figures, chart, timeline, process, table, team, quote, pricing, closing, bigStat, columns, raw };
 
 // --- assembly ------------------------------------------------------------------
 
