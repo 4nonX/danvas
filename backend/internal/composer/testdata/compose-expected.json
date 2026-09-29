@@ -5,6 +5,7 @@
   "title": "Solar for Small Business",
   "unit": "px",
   "dpi": 96,
+  "meta": {},
   "pages": [
     {
       "id": "api-page-1",
@@ -160,7 +161,12 @@
             }
           ],
           "name": "Accent",
-          "cornerRadius": 4,
+          "cornerRadius": {
+            "topLeft": 4,
+            "topRight": 4,
+            "bottomRight": 4,
+            "bottomLeft": 4
+          },
           "animation": {
             "entrance": {
               "preset": "fade",
@@ -556,7 +562,12 @@
             }
           ],
           "name": "Accent",
-          "cornerRadius": 4,
+          "cornerRadius": {
+            "topLeft": 4,
+            "topRight": 4,
+            "bottomRight": 4,
+            "bottomLeft": 4
+          },
           "animation": {
             "entrance": {
               "preset": "fade",
@@ -1003,7 +1014,12 @@
             }
           ],
           "name": "Accent",
-          "cornerRadius": 4,
+          "cornerRadius": {
+            "topLeft": 4,
+            "topRight": 4,
+            "bottomRight": 4,
+            "bottomLeft": 4
+          },
           "animation": {
             "entrance": {
               "preset": "fade",
@@ -1318,7 +1334,12 @@
             }
           ],
           "name": "Panel",
-          "cornerRadius": 30,
+          "cornerRadius": {
+            "topLeft": 30,
+            "topRight": 30,
+            "bottomRight": 30,
+            "bottomLeft": 30
+          },
           "data": {
             "panel": true
           },
@@ -1786,7 +1807,12 @@
             }
           ],
           "name": "Accent",
-          "cornerRadius": 4,
+          "cornerRadius": {
+            "topLeft": 4,
+            "topRight": 4,
+            "bottomRight": 4,
+            "bottomLeft": 4
+          },
           "animation": {
             "entrance": {
               "preset": "fade",
@@ -1997,7 +2023,12 @@
             }
           ],
           "name": "Panel",
-          "cornerRadius": 30,
+          "cornerRadius": {
+            "topLeft": 30,
+            "topRight": 30,
+            "bottomRight": 30,
+            "bottomLeft": 30
+          },
           "data": {
             "panel": true
           },
@@ -2404,7 +2435,12 @@
             }
           ],
           "name": "Accent",
-          "cornerRadius": 4,
+          "cornerRadius": {
+            "topLeft": 4,
+            "topRight": 4,
+            "bottomRight": 4,
+            "bottomLeft": 4
+          },
           "animation": {
             "entrance": {
               "preset": "fade",
@@ -2615,7 +2651,12 @@
             }
           ],
           "name": "Accent",
-          "cornerRadius": 4,
+          "cornerRadius": {
+            "topLeft": 4,
+            "topRight": 4,
+            "bottomRight": 4,
+            "bottomLeft": 4
+          },
           "animation": {
             "entrance": {
               "preset": "fade",
@@ -2969,7 +3010,12 @@
             }
           ],
           "name": "Accent",
-          "cornerRadius": 4,
+          "cornerRadius": {
+            "topLeft": 4,
+            "topRight": 4,
+            "bottomRight": 4,
+            "bottomLeft": 4
+          },
           "animation": {
             "entrance": {
               "preset": "fade",

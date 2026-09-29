@@ -18,7 +18,7 @@
 // centered in its region rather than left clinging to the top edge, which is
 // what a designer does with a short slide and what generated decks never did.
 
-import { createNode, type Color, type Fill, type Node } from "@hc/schema";
+import { createNode, roundedCorners, type Color, type Fill, type Node } from "@hc/schema";
 import type { Archetype, OutlineItem } from "./outline";
 import type { DeckMotion, DesignSystem } from "./designSystem";
 import { ICON_BOX, ICON_GLYPHS, ICON_KEYWORDS } from "./iconset";
@@ -433,7 +433,9 @@ class Composer {
       transform: { x: r.x, y: r.y, scaleX: 1, scaleY: 1, rotation: 0 },
       size: { width: r.width, height: r.height },
       fills: [{ type: "solid", color: structuredClone(fill) }],
-      cornerRadius: radius,
+      // The file format's radius is per corner; the renderers read that form
+      // and draw a bare number as square corners.
+      ...(radius > 0 ? { cornerRadius: roundedCorners(radius) } : {}),
       ...(data ? { data } : {}),
     } as never) as Node;
   }

@@ -11,6 +11,7 @@
 import {
   createNode,
   currentSchemaVersion,
+  roundedCorners,
   themeFromPalette,
   type DesignFile,
   type Fill,
@@ -316,7 +317,7 @@ export function composeDeckFileWithReport(input: ComposeDeckInput): { file: Desi
             transform: { x: bar.x, y: bar.y, scaleX: 1, scaleY: 1, rotation: 0 },
             size: { width: bar.width, height: bar.height },
             fills: [{ type: "solid", color: accentColor }],
-            cornerRadius: Math.round(bar.height / 2),
+            cornerRadius: roundedCorners(Math.round(bar.height / 2)),
             // Same tag the editor uses, so a layout change in the editor
             // carries (or drops) a headless-composed deck's rule too.
             data: { accentRule: true },
@@ -369,6 +370,9 @@ export function composeDeckFileWithReport(input: ComposeDeckInput): { file: Desi
     title: outline.title,
     unit: "px",
     dpi: 96,
+    // Required by the file schema even when empty; the editor tolerates its
+    // absence on load but the .hyc door validates strictly.
+    meta: {},
     pages,
     // The logo is the one asset a composed deck references before any
     // picture lands; the archetype door placed it on every page.

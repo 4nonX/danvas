@@ -47,6 +47,7 @@ import {
   type SlideSection,
   type FontRef,
   moveInReadingOrder,
+  roundedCorners,
 } from "@hc/schema";
 import { contrastRatio, fixToAA, fromHex, nearestPaletteColor, seriesColorAt, toHex } from "@hc/color";
 import {
@@ -2788,7 +2789,7 @@ export const useEditor = create<EditorState>((set, get) => {
             transform: { x: r0.x, y: r0.y, scaleX: 1, scaleY: 1, rotation: 0 },
             size: { width: r0.width, height: r0.height },
             fills: [{ type: "solid", color: { srgb: { r: 0.898, g: 0.906, b: 0.922, a: 1 } } }],
-            cornerRadius: Math.round(Math.min(r0.width, r0.height) * 0.02),
+            cornerRadius: roundedCorners(Math.round(Math.min(r0.width, r0.height) * 0.02)),
             data: { placeholderId: ph.id },
           } as Partial<Node>));
           continue;
@@ -2944,7 +2945,7 @@ export const useEditor = create<EditorState>((set, get) => {
         transform: { x: bar.x, y: bar.y, scaleX: 1, scaleY: 1, rotation: 0 },
         size: { width: bar.width, height: bar.height },
         fills: [{ type: "solid", color }],
-        cornerRadius: Math.round(bar.height / 2),
+        cornerRadius: roundedCorners(Math.round(bar.height / 2)),
         // Tagged so applyLayoutToPage can carry it to the new title slot (or
         // drop it) instead of stranding it on a layout change.
         data: { accentRule: true },

@@ -22558,11 +22558,16 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
       "use strict";
       Object.defineProperty(exports, "__esModule", { value: true });
       exports.newId = newId;
+      exports.roundedCorners = roundedCorners;
       exports.createNode = createNode;
       exports.createBlankDesign = createBlankDesign;
       var schema_1 = require_schema();
       function newId() {
         return globalThis.crypto.randomUUID();
+      }
+      function roundedCorners(radius) {
+        const r = Math.max(0, radius);
+        return { topLeft: r, topRight: r, bottomRight: r, bottomLeft: r };
       }
       var black = { srgb: { r: 0, g: 0, b: 0, a: 1 } };
       var WHITE = { srgb: { r: 1, g: 1, b: 1, a: 1 } };
@@ -36426,14 +36431,13 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         }
         rect(name, r0, fill, radius = 0, data) {
           const r = this.mirror(r0);
-          return (0, schema_1.createNode)("shape", __spreadValues({
+          return (0, schema_1.createNode)("shape", __spreadValues(__spreadValues({
             name,
             shape: "rect",
             transform: { x: r.x, y: r.y, scaleX: 1, scaleY: 1, rotation: 0 },
             size: { width: r.width, height: r.height },
-            fills: [{ type: "solid", color: structuredClone(fill) }],
-            cornerRadius: radius
-          }, data ? { data } : {}));
+            fills: [{ type: "solid", color: structuredClone(fill) }]
+          }, radius > 0 ? { cornerRadius: (0, schema_1.roundedCorners)(radius) } : {}), data ? { data } : {}));
         }
         /** The accent rule: the deck's one repeated mark. Short, above a heading. */
         accentRule(x, y) {
@@ -37864,7 +37868,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
                   transform: { x: bar.x, y: bar.y, scaleX: 1, scaleY: 1, rotation: 0 },
                   size: { width: bar.width, height: bar.height },
                   fills: [{ type: "solid", color: accentColor }],
-                  cornerRadius: Math.round(bar.height / 2),
+                  cornerRadius: (0, schema_1.roundedCorners)(Math.round(bar.height / 2)),
                   // Same tag the editor uses, so a layout change in the editor
                   // carries (or drops) a headless-composed deck's rule too.
                   data: { accentRule: true }
@@ -37912,6 +37916,9 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           title: outline.title,
           unit: "px",
           dpi: 96,
+          // Required by the file schema even when empty; the editor tolerates its
+          // absence on load but the .hyc door validates strictly.
+          meta: {},
           pages,
           // The logo is the one asset a composed deck references before any
           // picture lands; the archetype door placed it on every page.
