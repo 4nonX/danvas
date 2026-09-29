@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   bareFigure,
+  clipToBudget,
   splitFigure,
   undashTitle,
   archetypes,
@@ -302,6 +303,10 @@ describe("figures and headlines as a designer would set them", () => {
     expect(splitFigure("Top 10", undefined)).toEqual({ value: "Top 10", unit: "" });
     expect(splitFigure("3.2M", "riders")).toEqual({ value: "3.2M", unit: "riders" });
     expect(splitFigure("↓67%", undefined)).toEqual({ value: "67%", unit: "" });
+    // A clipped phrase never ends on a connective.
+    expect(clipToBudget("What is working vs. what is not", 24)).toBe("What is working");
+    expect(clipToBudget("Growth in the north and the south of the region", 24)).toBe("Growth in the north");
+    expect(clipToBudget("A short label", 24)).toBe("A short label");
     // A no-break space splits like a space, as it does in the Go mirror.
     expect(splitFigure("48\u00A0hrs", undefined)).toEqual({ value: "48", unit: "hrs" });
     const page = normalizeOutline({ title: "T", pages: [{ title: "x", archetype: "bigNumber", stat: { value: "48 hrs", unit: "hours", label: "turnaround" } }] }).pages[0];

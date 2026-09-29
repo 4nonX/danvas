@@ -22,7 +22,7 @@ import {
   type Theme,
 } from "@hc/schema";
 import { fromHex } from "@hc/color";
-import { normalizeOutline } from "./outline";
+import { normalizeOutline, type DesignType } from "./outline";
 import { deckThemes } from "./theme";
 import { layoutDeck } from "./deck";
 import { layoutDesign, readableTextColor } from "./layout";
@@ -70,6 +70,9 @@ export interface ComposeDeckInput {
   /** The brand kit's primary logo, placed on every archetype page and listed
    *  in the file's assets. */
   logo?: DeckLogo | null;
+  /** What the pages are: "deck" (default), "doc", "poster" or "social" /
+   *  "social-set". A post or poster composes without deck furniture. */
+  designType?: string;
 }
 
 /** A T19 theme record as a generation DeckTheme (the template path's
@@ -357,7 +360,9 @@ export function composeDeckFileWithReport(input: ComposeDeckInput): { file: Desi
       Math.round(Math.min(width, height) * 0.012) * 6,
     );
   } else {
-    const deck = layoutDeck(outline, theme, { width, height }, { dir: input.dir, catalog, brandPalette: input.brandPalette, seed, motion: input.motion, logo: input.logo });
+    const dt = (input.designType ?? "").toLowerCase();
+    const designType: DesignType = dt === "social" || dt === "social-set" ? "social-set" : dt === "poster" ? "poster" : dt === "doc" ? "doc" : "deck";
+    const deck = layoutDeck(outline, theme, { width, height }, { dir: input.dir, catalog, brandPalette: input.brandPalette, seed, motion: input.motion, logo: input.logo, designType });
     system = deck.system;
     report = deck.report;
     pages = deck.pages.map((p, i) => ({

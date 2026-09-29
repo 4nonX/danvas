@@ -28,6 +28,7 @@ import { buildClipFromPathData } from "./pathclip";
 import { layerContext, makeLayerCanvas, needsIsolation } from "./layer";
 import { maskedCanvas } from "./maskedImage";
 import { autoFitNode, layoutText, isTabRun, tabRunWidth, type MeasureFn } from "@hc/text";
+import { cellLineHeight, wrapCellLines } from "./tablewrap";
 import { colorToCss } from "./color";
 import { applyTextCase, canvasFontString, fontFamilyStack } from "./fonts";
 import { effectsFilter, outlineSpecs, duotoneEffect } from "./effects";
@@ -1544,7 +1545,16 @@ function drawTable(ctx: CanvasLike, node: TableNode, w: number, h: number): void
       const align = cell.align ?? "left";
       ctx.textAlign = align;
       const tx = align === "center" ? cx + cw / 2 : align === "right" ? cx + cw - 6 : cx + 6;
-      ctx.fillText(run.text, tx, cy + size + 6);
+      // Wrapped like a paragraph, six in from each edge; a line the row cannot
+      // hold is not drawn rather than drawn over the row beneath.
+      const lh = cellLineHeight(size);
+      // A context without measureText (a bare recorder) estimates by count.
+      const widthOf = (s: string) => (typeof ctx.measureText === "function" ? ctx.measureText(s).width : s.length * size * 0.55);
+      wrapCellLines(run.text, Math.max(1, cw - 12), widthOf).forEach((line, i) => {
+        const baseline = cy + size + 6 + i * lh;
+        if (i > 0 && baseline > cy + ch - 2) return;
+        ctx.fillText(line, tx, baseline);
+      });
     }
   }
 

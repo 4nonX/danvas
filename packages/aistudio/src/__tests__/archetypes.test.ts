@@ -774,3 +774,61 @@ describe("the repair pass", () => {
     expect(qualityCheck(input).issues).toEqual([]);
   });
 });
+
+describe("a post is a standalone composition", () => {
+  const outlineFor = (archetypes: Archetype[]) => ({ title: "Northwind summer service", pages: archetypes.map((a) => pageFor(a)) });
+
+  it("carries no footer or page number on a social set, and keeps them on a deck", () => {
+    const post = composeDeckFileWithReport({ outline: outlineFor(["statement", "bigNumber", "imageCaption"]), width: 1080, height: 1080, designType: "social" });
+    for (const p of post.file.pages) {
+      const names = p.children.map((n) => n.name);
+      expect(names).not.toContain("Footer");
+      expect(names).not.toContain("Page number");
+    }
+    const deck = composeDeckFileWithReport({ outline: outlineFor(["bullets", "bigNumber"]), width: 1920, height: 1080 });
+    expect(deck.file.pages[0].children.map((n) => n.name)).toContain("Page number");
+    expect(post.report.pages.flatMap((p) => p.issues)).toEqual([]);
+  });
+
+  it("stacks the picture above the words on a portrait cover and a square caption page", () => {
+    const item = { ...pageFor("cover"), image: { subject: "a bicycle", treatment: "illustration", illustration: "growth" } };
+    const tall = composeDeckFileWithReport({ outline: { title: "T", pages: [item] }, width: 1080, height: 1920, designType: "poster" });
+    const nodes = tall.file.pages[0].children;
+    const ill = nodes.find((n) => n.name === "Illustration")!;
+    const title = nodes.find((n) => n.name === "Title")!;
+    expect(ill.transform.y + ill.size.height).toBeLessThanOrEqual(title.transform.y);
+    expect(ill.size.width).toBeGreaterThan(1080 * 0.7);
+    const square = composeDeckFileWithReport({ outline: { title: "T", pages: [{ ...pageFor("imageCaption"), image: { subject: "a bicycle", treatment: "illustration", illustration: "growth" } }] }, width: 1080, height: 1080, designType: "social" });
+    const sq = square.file.pages[0].children;
+    const sqIll = sq.find((n) => n.name === "Illustration")!;
+    const sqTitle = sq.find((n) => n.name === "Title")!;
+    expect(sqIll.transform.y + sqIll.size.height).toBeLessThanOrEqual(sqTitle.transform.y);
+    expect(sqTitle.size.width).toBeGreaterThan(1080 * 0.7);
+    expect(square.report.pages.flatMap((p) => p.issues)).toEqual([]);
+    expect(tall.report.pages.flatMap((p) => p.issues)).toEqual([]);
+  });
+});
+
+describe("a table with long values", () => {
+  it("wraps its cells into taller rows and still fits above the footer", () => {
+    const ds = deriveDesignSystem(theme, size, { seed: 1, catalog: catalogEntryForSeed(1) });
+    const table = {
+      columns: ["Workflow area", "Before", "With Harbor"],
+      rows: [
+        ["Time to dispatch a job", "Twelve minutes on average with manual entry by a dispatcher", "Under two minutes with automated assignment"],
+        ["Driver visibility", "Phone calls only", "Live GPS map, updated every thirty seconds"],
+        ["Proof of delivery", "Paper runsheet, filed later", "Photo capture in the app with instant upload"],
+      ],
+    };
+    const item = normalizeOutline({ title: "T", pages: [{ ...pageFor("table"), table }] }).pages[0];
+    const page = composeArchetypePage(item, ds, { index: 1, total: 3 });
+    const t = page.nodes.find((n) => n.type === "table") as unknown as { rowHeights: number[]; size: { height: number }; transform: { y: number }; cells: { content: { fontSize: number }[] }[] };
+    const sizePx = t.cells[0].content[0].fontSize;
+    // The long rows are taller than the header row, by whole line pitches.
+    expect(Math.max(...t.rowHeights)).toBeGreaterThan(t.rowHeights[0]);
+    expect(t.rowHeights.reduce((a, b) => a + b, 0)).toBe(t.size.height);
+    expect(t.transform.y + t.size.height).toBeLessThanOrEqual(1080 - ds.unit * 6 + 1);
+    expect(sizePx).toBeGreaterThanOrEqual(12);
+    expect(qualityCheck({ background: page.background, nodes: page.nodes, size }).issues).toEqual([]);
+  });
+});

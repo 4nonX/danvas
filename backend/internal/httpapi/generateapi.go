@@ -276,7 +276,7 @@ func startGenerationJob(svc *aistudio.Service, aiSvc *ai.Service, up *uploads.Se
 		compose := func() ([]byte, composer.Report, error) {
 			return composer.ComposeWithReport(ctx, composer.Input{
 				Outline: outline, Width: plan.Size.w, Height: plan.Size.h, BrandPalette: palette,
-				ThemeID: plan.ThemeID, LayoutSet: plan.LayoutSet, ThemeRecord: plan.ThemeRecord, Motion: plan.Motion,
+				ThemeID: plan.ThemeID, LayoutSet: plan.LayoutSet, ThemeRecord: plan.ThemeRecord, Motion: plan.Motion, DesignType: plan.Dt,
 				BrandFonts: grounding.Fonts, Logo: grounding.Logo,
 			})
 		}

@@ -19,7 +19,7 @@
 // what a designer does with a short slide and what generated decks never did.
 
 import { createNode, roundedCorners, type Color, type Fill, type Node } from "@hc/schema";
-import type { Archetype, OutlineItem } from "./outline";
+import type { Archetype, DesignType, OutlineItem } from "./outline";
 import type { DeckMotion, DesignSystem } from "./designSystem";
 import { ICON_BOX, ICON_GLYPHS, ICON_KEYWORDS } from "./iconset";
 import { ILLUSTRATIONS, ILLUSTRATION_KEYWORDS, type IllustrationDrawing } from "./illustrationset";
@@ -48,6 +48,9 @@ export interface ComposeContext {
   variant?: PageVariant;
   /** For a section divider: its one-based number among the deck's sections. */
   section?: number;
+  /** What the pages are: a deck carries furniture (footer, page number) a
+   *  standalone post or poster never does. */
+  designType?: DesignType;
 }
 
 interface Rect {
@@ -566,9 +569,17 @@ class Composer {
     this.slotSeq += 1;
     const id = `img-${this.ctx.index + 1}-${this.slotSeq}`;
     this.prompts[id] = prompt;
-    // On the deep ground a slightly lifted panel; on paper the system's tint.
-    const fill = this.lifted;
-    return this.rect("Image", r, fill, radius, { placeholderId: id, aiImagePrompt: prompt });
+    // A designed block until the picture lands, and for good if it never
+    // does: a self-hosted instance with no image provider and no stock key
+    // keeps every stand-in, and a flat tint read as an empty box on the post.
+    // A soft run from the ground's lift toward the primary hue reads as a
+    // colour panel instead; the picture replaces the fill when it arrives.
+    const c = this.ds.colors;
+    const from = this.lifted;
+    const to = this.onDeep ? mix(c.primary, c.deep, 0.45) : mix(c.primary, c.paper, 0.72);
+    const node = this.rect("Image", r, from, radius, { placeholderId: id, aiImagePrompt: prompt });
+    (node as unknown as { fills: unknown[] }).fills = [{ type: "gradient", gradient: "linear", angle: 135, stops: [{ position: 0, color: structuredClone(from) }, { position: 1, color: structuredClone(to) }] }];
+    return node;
   }
 
   /** A drawing from the illustration set, fitted into a rect and recolored
@@ -649,7 +660,7 @@ class Composer {
 
   /** Reading-page furniture: the deck title small at the top, the page number
    *  small at the bottom. Impact pages stay quiet. */
-  private furniture(region?: { x: number; width: number }): void {
+  private furniture(region?: { x: number; width: number }, opts?: { band?: boolean }): void {
     const u = this.ds.unit;
     // A page whose picture bleeds to an edge keeps its furniture in the text
     // column, so nothing sits on the picture; every other page runs the
@@ -686,7 +697,7 @@ class Composer {
     // The eyebrow band on a reading page: the short rule, then two or three
     // words on what the page is about, in the accent, above the title. A
     // page the outline gave no eyebrow shows the deck's name there instead.
-    if (!this.impact) {
+    if (!this.impact && opts?.band !== false) {
       const label = this.item.eyebrow?.trim() || this.ds.kicker;
       this.nodes.push(this.accentRule(x0, this.m + u * 0.5));
       if (label) this.nodes.push(this.eyebrowNode(label, { x: x0, y: this.m + u * 2.2, width: w0, height: u * 2.8 }));
@@ -697,13 +708,13 @@ class Composer {
     // The deck's name on one line; a narrow text column (a picture page)
     // drops it rather than wrap it, and keeps the page number.
     const footerW = fw0 - logoW - u * 14;
-    if (this.item.archetype !== "cover" && this.ds.kicker && footerW >= u * 24) {
+    if (this.item.archetype !== "cover" && !this.isPost && this.ds.kicker && footerW >= u * 24) {
       this.nodes.push(this.text({
         name: "Footer", rect: { x: fx0 + logoW, y: footerY, width: footerW, height: u * 2.6 },
         paragraphs: [this.ds.kicker], role: "body", base: this.sz("footer"), color: this.muted, exactSize: Math.round(this.sz("footer")), tracking: 0.04,
       }).node);
     }
-    if (this.item.archetype !== "cover") {
+    if (this.item.archetype !== "cover" && !this.isPost) {
       const n = this.text({
         name: "Page number", rect: { x: fx0 + fw0 - u * 12, y: footerY, width: u * 12, height: u * 2.6 },
         paragraphs: [`${String(this.ctx.index + 1).padStart(2, "0")} / ${String(this.ctx.total).padStart(2, "0")}`], role: "body", base: this.sz("footer"), color: this.muted,
@@ -845,6 +856,16 @@ class Composer {
   private cover(): void {
     const drawing = this.namedIllustration;
     const hasImage = !!this.item.image && !drawing;
+    if (this.portrait && (drawing || hasImage)) {
+      this.cluster(this.stackedPicture(drawing, hasImage), [
+        ...this.eyebrowBlock(),
+        { kind: "rule" },
+        this.titleBlock(this.sz("coverTitle")),
+        ...this.subheadBlock(this.sz("coverSub"), this.item.subhead ?? this.item.points[0]),
+      ], 3, false);
+      this.furniture();
+      return;
+    }
     const textCols = hasImage || drawing ? 6 : 8;
     const region = this.span(0, textCols);
     if (drawing) {
@@ -874,6 +895,18 @@ class Composer {
   private section(): void {
     const drawing = this.namedIllustration;
     const hasImage = !!this.item.image && !drawing;
+    if (this.portrait && (drawing || hasImage)) {
+      const n = this.ctx.section;
+      this.cluster(this.stackedPicture(drawing, hasImage), [
+        ...this.eyebrowBlock(),
+        ...(n ? [{ kind: "text" as const, maxFrac: 0.25, make: (r: Rect) => this.text({ name: "Section number", rect: r, paragraphs: [String(n).padStart(2, "0")], role: "heading", base: this.sz("sectionNumber"), bold: true, color: this.accentInk, exactSize: Math.round(this.sz("sectionNumber")), lineHeight: 1 }) }] : []),
+        { kind: "rule" },
+        this.titleBlock(this.sz("sectionTitle")),
+        ...this.subheadBlock(this.sz("statementSub"), this.item.subhead),
+      ], 3, false);
+      this.furniture();
+      return;
+    }
     if (drawing) {
       const s = this.span(7, 5);
       const u = this.ds.unit;
@@ -1167,6 +1200,30 @@ class Composer {
   }
 
   private imageCaption(): void {
+    if (this.compact) {
+      // A square or portrait page: the picture across the top, bleeding to
+      // three edges, and the words beneath it at full width. The four-column
+      // text slot of the side-by-side form held a title in six lines here.
+      const drawing = this.namedIllustration;
+      const u = this.ds.unit;
+      const picH = Math.round(this.H * 0.48);
+      if (drawing) {
+        const ill = this.illustration(drawing, { x: this.m, y: this.m, width: this.W - 2 * this.m, height: picH - this.m - u });
+        if (ill) this.nodes.push(ill);
+      } else {
+        this.nodes.push(this.imageSlot({ x: 0, y: 0, width: this.W, height: picH }, this.imagePrompt()));
+      }
+      const top = picH + u * 3;
+      this.cluster({ x: this.m, y: top, width: this.W - 2 * this.m, height: this.bodyBottom - top }, [
+        ...this.eyebrowBlock(),
+        { kind: "rule" },
+        this.titleBlock(this.sz("title") * 0.95),
+        ...this.subheadBlock(this.sz("caption"), this.item.subhead ?? this.item.points[0]),
+      ], 2.5, false);
+      // The band would sit on the picture; the eyebrow is in the cluster.
+      this.furniture(undefined, { band: false });
+      return;
+    }
     // The picture carries the slide: it bleeds to three edges on the leading
     // side and the words take the trailing column on paper.
     const imageLeading = this.ctx.index % 2 === 0;
@@ -1237,6 +1294,39 @@ class Composer {
   /** Where the body of a reading page must end: above the footer band. */
   private get bodyBottom(): number {
     return this.H - this.ds.unit * 6;
+  }
+
+  /** A standalone page (a social post, a poster): no footer, no page number,
+   *  since there is no deck for them to place the page in. */
+  private get isPost(): boolean {
+    return this.ctx.designType === "social-set" || this.ctx.designType === "poster";
+  }
+
+  /** A portrait page: the side-by-side forms stack, picture above the words,
+   *  since a column a third of a portrait page's width holds three words. */
+  private get portrait(): boolean {
+    return this.W < this.H;
+  }
+
+  /** Square or portrait: a caption page's four-column text slot is too narrow
+   *  to carry a title, so the picture goes above the words. */
+  private get compact(): boolean {
+    return this.W / this.H < 1.3;
+  }
+
+  /** The picture or drawing across the top of a stacked impact page, and the
+   *  region the words take beneath it. */
+  private stackedPicture(drawing: string | null, hasImage: boolean): Rect {
+    const u = this.ds.unit;
+    const picH = Math.round(this.H * 0.46);
+    if (drawing) {
+      const ill = this.illustration(drawing, { x: this.m, y: this.m + u * 2, width: this.W - 2 * this.m, height: picH - this.m - u * 2 });
+      if (ill) this.nodes.push(ill);
+    } else if (hasImage) {
+      this.nodes.push(this.imageSlot({ x: 0, y: 0, width: this.W, height: picH }, this.imagePrompt()));
+    }
+    const top = picH + u * 3;
+    return { x: this.m, y: top, width: this.W - 2 * this.m, height: this.bodyBottom - top };
   }
 
   /** The title at the top of a reading page; returns where the body starts
@@ -1387,24 +1477,31 @@ class Composer {
     const { bodyTop, bodyH } = this.headed();
     const rows = tb.rows.length + 1;
     const cols = tb.columns.length;
-    const rowFor = (size: number) => Math.round(size * 2.6);
     const width = this.W - 2 * this.m;
-    // A cell does not wrap in any renderer, so every value has to fit its
-    // column on one line at the chosen size. The renderers inset cell text
-    // by six on each side and set it in the system face, which the estimate
-    // does not know, hence the extra allowance.
+    // A cell wraps like a paragraph in every renderer, six in from each
+    // edge and set in the system face, which the estimate does not know,
+    // hence the allowance. Each row is as tall as its longest cell needs:
+    // one line sits in 2.6 em, every further line adds 1.25 em.
     const colW = Math.round(width / cols);
     const avail = colW - 12 - colW * 0.06;
-    const oneLine = (text: string, size: number, role: "heading" | "body") => this.measure([text], avail, size, 1.2, role, 0) <= Math.ceil(size * 1.2);
-    const fitsWidth = (size: number) => tb.columns.every((c) => oneLine(c, size, "heading")) && tb.rows.every((row) => row.every((c) => oneLine(c ?? "", size, "body")));
+    const cellLines = (text: string, size: number, role: "heading" | "body") => this.lines(text, size, avail, role);
+    const rowHeightsAt = (size: number) => {
+      const head = Math.max(1, ...tb.columns.map((c) => cellLines(c, size, "heading")));
+      const body = tb.rows.map((row) => Math.max(1, ...row.map((c) => cellLines(c ?? "", size, "body"))));
+      return [head, ...body].map((n) => Math.round(size * 2.6 + (n - 1) * size * 1.25));
+    };
+    const total = (size: number) => rowHeightsAt(size).reduce((a, b) => a + b, 0);
+    // A word no line can hold runs past the cell; the type steps down first.
+    const longest = this.longestChunk([...tb.columns, ...tb.rows.flat()]);
+    const wordFits = (size: number) => longest * ADVANCE.body * size <= avail;
     let size = Math.round(this.sz("tableCell"));
-    // The type grows, never the row on its own: a cell sets its text from the
-    // top, so a tall row on small type reads as a gap under every line.
+    // The type steps up until a short table fills most of the body, capped,
+    // and down until a long one fits above the footer.
     const cap = Math.round(this.sz("tableCell") * 1.35);
-    while (size < cap && rowFor(size + 1) * rows <= bodyH * 0.9 && fitsWidth(size + 1)) size += 1;
-    while (size > 12 && (rowFor(size) * rows > bodyH || !fitsWidth(size))) size -= 1;
-    const rowH = rowFor(size);
-    const height = rowH * rows;
+    while (size < cap && total(size + 1) <= bodyH * 0.9 && wordFits(size + 1)) size += 1;
+    while (size > 12 && (total(size) > bodyH || !wordFits(size))) size -= 1;
+    const rowHeights = rowHeightsAt(size);
+    const height = rowHeights.reduce((a, b) => a + b, 0);
     const r = this.mirror({ x: this.m, y: bodyTop + Math.min(u * 8, Math.max(0, Math.round((bodyH - height) / 2))), width, height });
     // A column is set flush right when every one of its values is a number
     // (a unit or currency mark allowed), and the header follows its column;
@@ -1427,7 +1524,7 @@ class Composer {
       size: { width: r.width, height: r.height },
       rows, cols,
       colWidths: Array.from({ length: cols }, () => colW),
-      rowHeights: Array.from({ length: rows }, () => rowH),
+      rowHeights,
       cells,
       headerStyle: { enabled: true, fill: { type: "solid", color: structuredClone(this.ds.colors.tint) }, textColor: structuredClone(this.ink), bold: true },
       borderStyle: { show: true, color: structuredClone(mix(this.ds.colors.ink, this.ds.colors.paper, 0.8)), width: Math.max(1, Math.round(u * 0.12)) },
@@ -1486,6 +1583,16 @@ class Composer {
   private closing(): void {
     const drawing = this.namedIllustration;
     const hasImage = !!this.item.image && !drawing;
+    if (this.portrait && (drawing || hasImage)) {
+      this.cluster(this.stackedPicture(drawing, hasImage), [
+        ...this.eyebrowBlock(),
+        { kind: "rule" },
+        this.titleBlock(this.sz("sectionTitle")),
+        ...this.subheadBlock(this.sz("coverSub"), this.item.subhead ?? this.item.points[0], this.ink),
+      ], 3, false);
+      this.furniture();
+      return;
+    }
     if (drawing) {
       const s = this.span(7, 5);
       const u = this.ds.unit;

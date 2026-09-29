@@ -173,12 +173,12 @@ const (
 	maxColHeadChars   = 40
 	maxColPoints      = 4
 	maxImageSubject   = 140
-	maxChartCats      = 8
-	maxChartSeries    = 3
+	maxChartCats      = 12
+	maxChartSeries    = 4
 	maxStats          = 4
-	maxTableCols      = 4
-	maxTableRows      = 6
-	maxTableCell      = 40
+	maxTableCols      = 5
+	maxTableRows      = 8
+	maxTableCell      = 60
 	maxPeople         = 4
 	maxPersonName     = 40
 	maxPersonRole     = 40
@@ -254,7 +254,28 @@ func clipRunes(s string, n int) string {
 	if i := strings.LastIndex(cut, " "); i > n*6/10 {
 		cut = cut[:i]
 	}
-	return strings.TrimRight(cut, " ,;:-")
+	cut = strings.TrimRight(cut, " ,;:-")
+	// Drop a trailing connective, and the punctuation it leaves behind, until
+	// the phrase ends on a word that can end a phrase. Mirrors clipToBudget.
+	for {
+		at := strings.LastIndex(cut, " ")
+		if at < 0 {
+			break
+		}
+		if !danglingWords[strings.ToLower(cut[at+1:])] {
+			break
+		}
+		cut = strings.TrimRight(cut[:at], " ,;:-")
+	}
+	return cut
+}
+
+// danglingWords are the words a clipped phrase must not end on. Mirrors
+// danglingWords in outline.ts.
+var danglingWords = map[string]bool{
+	"and": true, "or": true, "of": true, "to": true, "with": true, "for": true, "the": true, "a": true, "an": true,
+	"in": true, "on": true, "at": true, "by": true, "from": true, "than": true, "vs": true, "vs.": true, "&": true,
+	"but": true, "as": true, "into": true, "over": true, "per": true, "via": true,
 }
 
 // normalizeArchetypeFields clips every typed field to its budget and drops a

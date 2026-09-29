@@ -519,6 +519,19 @@ func TestAssistantTurnMustSayOrDoSomething(t *testing.T) {
 	}
 }
 
+func TestClipRunesNeverEndsOnAConnective(t *testing.T) {
+	cases := []struct{ in, want string }{
+		{"What is working vs. what is not", "What is working"},
+		{"Growth in the north and the south of the region", "Growth in the north"},
+		{"A short label", "A short label"},
+	}
+	for _, c := range cases {
+		if got := clipRunes(c.in, 24); got != c.want {
+			t.Errorf("clipRunes(%q, 24) = %q; want %q", c.in, got, c.want)
+		}
+	}
+}
+
 func TestSplitFigureKeepsOneToken(t *testing.T) {
 	cases := []struct{ v, u, wantV, wantU string }{
 		{"48 hrs", "hours", "48", "hours"},

@@ -10,7 +10,7 @@ import type { Fill, Node } from "@hc/schema";
 import type { Size } from "./layout";
 import { qualityCheck, type QualityReport } from "./quality";
 import { repairContrast } from "./repair";
-import type { Archetype, DeckTheme, DesignOutline } from "./outline";
+import type { Archetype, DeckTheme, DesignOutline, DesignType } from "./outline";
 import { deriveDesignSystem, type DesignSystem, type DeriveOptions } from "./designSystem";
 import { composeArchetypePage, type ComposedPage } from "./archetypes";
 import { measureDeck, planVariants, toMeasurable, type DeckReport, type PageVariant } from "./measure";
@@ -38,7 +38,10 @@ export interface DeckResult {
   report: DeckReport;
 }
 
-export type LayoutDeckOptions = DeriveOptions;
+export type LayoutDeckOptions = DeriveOptions & {
+  /** What the pages are; a post or poster carries no deck furniture. */
+  designType?: DesignType;
+};
 
 /** Lay out every outline page into a DeckPage. */
 export function layoutDeck(
@@ -58,7 +61,7 @@ export function layoutDeck(
   let sections = 0;
   const sectionNumbers = outline.pages.map((item) => (item.archetype === "section" ? ++sections : undefined));
   const composeAll = (variants: Record<number, PageVariant>) =>
-    outline.pages.map((item, i) => composeArchetypePage(item, system, { index: i, total, variant: variants[i], section: sectionNumbers[i] }));
+    outline.pages.map((item, i) => composeArchetypePage(item, system, { index: i, total, variant: variants[i], section: sectionNumbers[i], designType: opts?.designType }));
   // Look, and fix what a look can fix: a text the checker would flag for
   // contrast is re-inked before it is measured, so the report says what
   // shipped and not what almost did.

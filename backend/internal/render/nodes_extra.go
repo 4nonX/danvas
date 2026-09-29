@@ -15,6 +15,7 @@ import (
 	"image/color"
 	"math"
 	"strconv"
+	"strings"
 
 	xdraw "golang.org/x/image/draw"
 	"golang.org/x/image/font"
@@ -368,6 +369,28 @@ func (rc *rctx) stampThumb(m mat, cx, cy, r float64, flip bool) {
 
 // --- table ------------------------------------------------------------------
 
+// wrapCellLines breaks a cell's text into lines no wider than maxW, greedily
+// by words; a word wider than the cell stands alone and runs past it, as a
+// paragraph's would. Mirrors wrapCellLines in @hc/engine (tablewrap.ts).
+func wrapCellLines(text string, maxW float64, width func(string) float64) []string {
+	words := strings.Fields(text)
+	if len(words) == 0 {
+		return nil
+	}
+	var lines []string
+	cur := words[0]
+	for _, w := range words[1:] {
+		next := cur + " " + w
+		if width(next) <= maxW {
+			cur = next
+		} else {
+			lines = append(lines, cur)
+			cur = w
+		}
+	}
+	return append(lines, cur)
+}
+
 // rasterTable lays out cells from the explicit colWidths/rowHeights arrays,
 // paints header/cell fills and single-run cell text, and strokes the gridlines
 // (mirrors render2d drawTable). Conditional formatting rules are not yet applied.
@@ -479,17 +502,27 @@ func (rc *rctx) rasterTable(m mat, node map[string]any) {
 				txtCol = rc.colorFrom(tc, pdfColor{ok: true})
 			}
 		}
-		tw := measureFace(face, text) / scale
-		tx := cx + 6
-		switch asStr(cell["align"]) {
-		case "center":
-			tx = cx + (cw-tw)/2
-		case "right":
-			tx = cx + cw - tw - 6
+		// Wrapped like a paragraph, six in from each edge (mirrors drawTable);
+		// a line the row cannot hold is not drawn rather than drawn over the
+		// row beneath.
+		lines := wrapCellLines(text, math.Max(1, cw-12), func(s string) float64 { return measureFace(face, s) / scale })
+		lh := size * 1.25
+		for i, line := range lines {
+			ty := cy + size + 6 + float64(i)*lh
+			if i > 0 && ty > cy+ch-2 {
+				break
+			}
+			tw := measureFace(face, line) / scale
+			tx := cx + 6
+			switch asStr(cell["align"]) {
+			case "center":
+				tx = cx + (cw-tw)/2
+			case "right":
+				tx = cx + cw - tw - 6
+			}
+			dx, dy := m.apply(tx, ty)
+			rc.drawStringDevice(face, txtCol, dx, dy, line)
 		}
-		ty := cy + size + 6
-		dx, dy := m.apply(tx, ty)
-		rc.drawStringDevice(face, txtCol, dx, dy, text)
 		face.Close()
 	}
 

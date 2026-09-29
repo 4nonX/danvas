@@ -34055,12 +34055,12 @@ ${err.toString()}`);
         columnHeading: 40,
         columnPoints: 4,
         imageSubject: 140,
-        chartCategories: 8,
-        chartSeries: 3,
+        chartCategories: 12,
+        chartSeries: 4,
         stats: 4,
-        tableColumns: 4,
-        tableRows: 6,
-        tableCell: 40,
+        tableColumns: 5,
+        tableRows: 8,
+        tableCell: 60,
         people: 4,
         personName: 40,
         personRole: 40,
@@ -34091,6 +34091,7 @@ ${err.toString()}`);
         const sentenceEnd = Math.max(cut.lastIndexOf(". "), cut.lastIndexOf("! "), cut.lastIndexOf("? "));
         return sentenceEnd >= 0 && Array.from(cut.slice(0, sentenceEnd)).length > exports.maxNoteChars / 2 ? cut.slice(0, sentenceEnd + 1) : cut;
       }
+      var danglingWords = /* @__PURE__ */ new Set(["and", "or", "of", "to", "with", "for", "the", "a", "an", "in", "on", "at", "by", "from", "than", "vs", "vs.", "&", "but", "as", "into", "over", "per", "via"]);
       function clipToBudget(v, max2) {
         const t = str(v);
         const chars = Array.from(t);
@@ -34100,7 +34101,15 @@ ${err.toString()}`);
         const space = cut.lastIndexOf(" ");
         if (space > max2 * 0.6)
           cut = cut.slice(0, space);
-        return cut.replace(/[\s,;:-]+$/u, "");
+        cut = cut.replace(/[\s,;:-]+$/u, "");
+        for (; ; ) {
+          const at = cut.lastIndexOf(" ");
+          const last2 = (at >= 0 ? cut.slice(at + 1) : cut).toLowerCase();
+          if (at < 0 || !danglingWords.has(last2))
+            break;
+          cut = cut.slice(0, at).replace(/[\s,;:-]+$/u, "");
+        }
+        return cut;
       }
       function strList(v, maxItems, maxChars) {
         return (Array.isArray(v) ? v : []).map((x) => clipToBudget(x, maxChars)).filter(Boolean).slice(0, maxItems);
@@ -36695,8 +36704,12 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           this.slotSeq += 1;
           const id2 = `img-${this.ctx.index + 1}-${this.slotSeq}`;
           this.prompts[id2] = prompt;
-          const fill = this.lifted;
-          return this.rect("Image", r, fill, radius, { placeholderId: id2, aiImagePrompt: prompt });
+          const c = this.ds.colors;
+          const from2 = this.lifted;
+          const to = this.onDeep ? mix(c.primary, c.deep, 0.45) : mix(c.primary, c.paper, 0.72);
+          const node2 = this.rect("Image", r, from2, radius, { placeholderId: id2, aiImagePrompt: prompt });
+          node2.fills = [{ type: "gradient", gradient: "linear", angle: 135, stops: [{ position: 0, color: structuredClone(from2) }, { position: 1, color: structuredClone(to) }] }];
+          return node2;
         }
         /** A drawing from the illustration set, fitted into a rect and recolored
          *  to the deck: the pack's line becomes the page's ink, its accent the
@@ -36776,7 +36789,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         }
         /** Reading-page furniture: the deck title small at the top, the page number
          *  small at the bottom. Impact pages stay quiet. */
-        furniture(region) {
+        furniture(region, opts) {
           var _a5, _b, _c, _d;
           const u = this.ds.unit;
           const x0 = (_a5 = region == null ? void 0 : region.x) != null ? _a5 : this.m;
@@ -36800,7 +36813,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             if (!this.impact)
               logoW = placedW + u * 2;
           }
-          if (!this.impact) {
+          if (!this.impact && (opts == null ? void 0 : opts.band) !== false) {
             const label = ((_d = this.item.eyebrow) == null ? void 0 : _d.trim()) || this.ds.kicker;
             this.nodes.push(this.accentRule(x0, this.m + u * 0.5));
             if (label)
@@ -36808,7 +36821,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           }
           const footerY = this.H - u * 4.2;
           const footerW = fw0 - logoW - u * 14;
-          if (this.item.archetype !== "cover" && this.ds.kicker && footerW >= u * 24) {
+          if (this.item.archetype !== "cover" && !this.isPost && this.ds.kicker && footerW >= u * 24) {
             this.nodes.push(this.text({
               name: "Footer",
               rect: { x: fx0 + logoW, y: footerY, width: footerW, height: u * 2.6 },
@@ -36820,7 +36833,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
               tracking: 0.04
             }).node);
           }
-          if (this.item.archetype !== "cover") {
+          if (this.item.archetype !== "cover" && !this.isPost) {
             const n = this.text({
               name: "Page number",
               rect: { x: fx0 + fw0 - u * 12, y: footerY, width: u * 12, height: u * 2.6 },
@@ -36993,9 +37006,19 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           return text2 ? [{ kind: "text", maxFrac: 0.3, make: (r) => this.text({ name: "Subhead", rect: r, paragraphs: [text2], role: "body", base, color: color != null ? color : this.muted, lineHeight: 1.35 }) }] : [];
         }
         cover() {
-          var _a5;
+          var _a5, _b;
           const drawing = this.namedIllustration;
           const hasImage = !!this.item.image && !drawing;
+          if (this.portrait && (drawing || hasImage)) {
+            this.cluster(this.stackedPicture(drawing, hasImage), [
+              ...this.eyebrowBlock(),
+              { kind: "rule" },
+              this.titleBlock(this.sz("coverTitle")),
+              ...this.subheadBlock(this.sz("coverSub"), (_a5 = this.item.subhead) != null ? _a5 : this.item.points[0])
+            ], 3, false);
+            this.furniture();
+            return;
+          }
           const textCols = hasImage || drawing ? 6 : 8;
           const region = this.span(0, textCols);
           if (drawing) {
@@ -37014,13 +37037,25 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             ...this.eyebrowBlock(),
             { kind: "rule" },
             this.titleBlock(this.sz("coverTitle")),
-            ...this.subheadBlock(this.sz("coverSub"), (_a5 = this.item.subhead) != null ? _a5 : this.item.points[0])
+            ...this.subheadBlock(this.sz("coverSub"), (_b = this.item.subhead) != null ? _b : this.item.points[0])
           ], 3);
           this.furniture();
         }
         section() {
           const drawing = this.namedIllustration;
           const hasImage = !!this.item.image && !drawing;
+          if (this.portrait && (drawing || hasImage)) {
+            const n2 = this.ctx.section;
+            this.cluster(this.stackedPicture(drawing, hasImage), [
+              ...this.eyebrowBlock(),
+              ...n2 ? [{ kind: "text", maxFrac: 0.25, make: (r) => this.text({ name: "Section number", rect: r, paragraphs: [String(n2).padStart(2, "0")], role: "heading", base: this.sz("sectionNumber"), bold: true, color: this.accentInk, exactSize: Math.round(this.sz("sectionNumber")), lineHeight: 1 }) }] : [],
+              { kind: "rule" },
+              this.titleBlock(this.sz("sectionTitle")),
+              ...this.subheadBlock(this.sz("statementSub"), this.item.subhead)
+            ], 3, false);
+            this.furniture();
+            return;
+          }
           if (drawing) {
             const s = this.span(7, 5);
             const u = this.ds.unit;
@@ -37279,7 +37314,28 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           this.furniture();
         }
         imageCaption() {
-          var _a5;
+          var _a5, _b;
+          if (this.compact) {
+            const drawing2 = this.namedIllustration;
+            const u2 = this.ds.unit;
+            const picH = Math.round(this.H * 0.48);
+            if (drawing2) {
+              const ill2 = this.illustration(drawing2, { x: this.m, y: this.m, width: this.W - 2 * this.m, height: picH - this.m - u2 });
+              if (ill2)
+                this.nodes.push(ill2);
+            } else {
+              this.nodes.push(this.imageSlot({ x: 0, y: 0, width: this.W, height: picH }, this.imagePrompt()));
+            }
+            const top = picH + u2 * 3;
+            this.cluster({ x: this.m, y: top, width: this.W - 2 * this.m, height: this.bodyBottom - top }, [
+              ...this.eyebrowBlock(),
+              { kind: "rule" },
+              this.titleBlock(this.sz("title") * 0.95),
+              ...this.subheadBlock(this.sz("caption"), (_a5 = this.item.subhead) != null ? _a5 : this.item.points[0])
+            ], 2.5, false);
+            this.furniture(void 0, { band: false });
+            return;
+          }
           const imageLeading = this.ctx.index % 2 === 0;
           const imgCols = 7;
           const s = imageLeading ? this.span(0, imgCols) : this.span(12 - imgCols, imgCols);
@@ -37295,7 +37351,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           this.cluster(__spreadProps(__spreadValues({}, textSpan), { y: this.top, height: this.bodyBottom - this.top }), [
             { kind: "rule" },
             this.titleBlock(this.sz("title") * 0.95),
-            ...this.subheadBlock(this.sz("caption"), (_a5 = this.item.subhead) != null ? _a5 : this.item.points[0])
+            ...this.subheadBlock(this.sz("caption"), (_b = this.item.subhead) != null ? _b : this.item.points[0])
           ], 2.5);
           this.furniture({ x: textSpan.x, width: textSpan.width });
         }
@@ -37344,6 +37400,36 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         /** Where the body of a reading page must end: above the footer band. */
         get bodyBottom() {
           return this.H - this.ds.unit * 6;
+        }
+        /** A standalone page (a social post, a poster): no footer, no page number,
+         *  since there is no deck for them to place the page in. */
+        get isPost() {
+          return this.ctx.designType === "social-set" || this.ctx.designType === "poster";
+        }
+        /** A portrait page: the side-by-side forms stack, picture above the words,
+         *  since a column a third of a portrait page's width holds three words. */
+        get portrait() {
+          return this.W < this.H;
+        }
+        /** Square or portrait: a caption page's four-column text slot is too narrow
+         *  to carry a title, so the picture goes above the words. */
+        get compact() {
+          return this.W / this.H < 1.3;
+        }
+        /** The picture or drawing across the top of a stacked impact page, and the
+         *  region the words take beneath it. */
+        stackedPicture(drawing, hasImage) {
+          const u = this.ds.unit;
+          const picH = Math.round(this.H * 0.46);
+          if (drawing) {
+            const ill = this.illustration(drawing, { x: this.m, y: this.m + u * 2, width: this.W - 2 * this.m, height: picH - this.m - u * 2 });
+            if (ill)
+              this.nodes.push(ill);
+          } else if (hasImage) {
+            this.nodes.push(this.imageSlot({ x: 0, y: 0, width: this.W, height: picH }, this.imagePrompt()));
+          }
+          const top = picH + u * 3;
+          return { x: this.m, y: top, width: this.W - 2 * this.m, height: this.bodyBottom - top };
         }
         /** The title at the top of a reading page; returns where the body starts
          *  and how much height is left for it above the footer. */
@@ -37484,20 +37570,26 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           const { bodyTop, bodyH } = this.headed();
           const rows = tb.rows.length + 1;
           const cols = tb.columns.length;
-          const rowFor = (size3) => Math.round(size3 * 2.6);
           const width = this.W - 2 * this.m;
           const colW = Math.round(width / cols);
           const avail = colW - 12 - colW * 0.06;
-          const oneLine = (text2, size3, role) => this.measure([text2], avail, size3, 1.2, role, 0) <= Math.ceil(size3 * 1.2);
-          const fitsWidth = (size3) => tb.columns.every((c) => oneLine(c, size3, "heading")) && tb.rows.every((row) => row.every((c) => oneLine(c != null ? c : "", size3, "body")));
+          const cellLines = (text2, size3, role) => this.lines(text2, size3, avail, role);
+          const rowHeightsAt = (size3) => {
+            const head = Math.max(1, ...tb.columns.map((c) => cellLines(c, size3, "heading")));
+            const body = tb.rows.map((row) => Math.max(1, ...row.map((c) => cellLines(c != null ? c : "", size3, "body"))));
+            return [head, ...body].map((n) => Math.round(size3 * 2.6 + (n - 1) * size3 * 1.25));
+          };
+          const total = (size3) => rowHeightsAt(size3).reduce((a, b) => a + b, 0);
+          const longest = this.longestChunk([...tb.columns, ...tb.rows.flat()]);
+          const wordFits = (size3) => longest * ADVANCE.body * size3 <= avail;
           let size2 = Math.round(this.sz("tableCell"));
           const cap = Math.round(this.sz("tableCell") * 1.35);
-          while (size2 < cap && rowFor(size2 + 1) * rows <= bodyH * 0.9 && fitsWidth(size2 + 1))
+          while (size2 < cap && total(size2 + 1) <= bodyH * 0.9 && wordFits(size2 + 1))
             size2 += 1;
-          while (size2 > 12 && (rowFor(size2) * rows > bodyH || !fitsWidth(size2)))
+          while (size2 > 12 && (total(size2) > bodyH || !wordFits(size2)))
             size2 -= 1;
-          const rowH = rowFor(size2);
-          const height = rowH * rows;
+          const rowHeights = rowHeightsAt(size2);
+          const height = rowHeights.reduce((a, b) => a + b, 0);
           const r = this.mirror({ x: this.m, y: bodyTop + Math.min(u * 8, Math.max(0, Math.round((bodyH - height) / 2))), width, height });
           const numeric = /^[\s\d.,%+\-$€£]+(?:\s?[a-zA-Z%]{1,3})?$/;
           const rightAligned = tb.columns.map((_, ci) => ci > 0 && tb.rows.every((row) => {
@@ -37524,7 +37616,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             rows,
             cols,
             colWidths: Array.from({ length: cols }, () => colW),
-            rowHeights: Array.from({ length: rows }, () => rowH),
+            rowHeights,
             cells,
             headerStyle: { enabled: true, fill: { type: "solid", color: structuredClone(this.ds.colors.tint) }, textColor: structuredClone(this.ink), bold: true },
             borderStyle: { show: true, color: structuredClone(mix(this.ds.colors.ink, this.ds.colors.paper, 0.8)), width: Math.max(1, Math.round(u * 0.12)) }
@@ -37581,9 +37673,19 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           this.furniture();
         }
         closing() {
-          var _a5;
+          var _a5, _b;
           const drawing = this.namedIllustration;
           const hasImage = !!this.item.image && !drawing;
+          if (this.portrait && (drawing || hasImage)) {
+            this.cluster(this.stackedPicture(drawing, hasImage), [
+              ...this.eyebrowBlock(),
+              { kind: "rule" },
+              this.titleBlock(this.sz("sectionTitle")),
+              ...this.subheadBlock(this.sz("coverSub"), (_a5 = this.item.subhead) != null ? _a5 : this.item.points[0], this.ink)
+            ], 3, false);
+            this.furniture();
+            return;
+          }
           if (drawing) {
             const s = this.span(7, 5);
             const u = this.ds.unit;
@@ -37601,7 +37703,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             ...this.eyebrowBlock(),
             { kind: "rule" },
             this.titleBlock(this.sz("sectionTitle")),
-            ...this.subheadBlock(this.sz("coverSub"), (_a5 = this.item.subhead) != null ? _a5 : this.item.points[0], this.ink)
+            ...this.subheadBlock(this.sz("coverSub"), (_b = this.item.subhead) != null ? _b : this.item.points[0], this.ink)
           ], 3);
           this.furniture(hasImage ? { x: region.x, width: region.width } : void 0);
         }
@@ -37741,7 +37843,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         const total = outline.pages.length;
         let sections = 0;
         const sectionNumbers = outline.pages.map((item) => item.archetype === "section" ? ++sections : void 0);
-        const composeAll = (variants2) => outline.pages.map((item, i) => (0, archetypes_1.composeArchetypePage)(item, system, { index: i, total, variant: variants2[i], section: sectionNumbers[i] }));
+        const composeAll = (variants2) => outline.pages.map((item, i) => (0, archetypes_1.composeArchetypePage)(item, system, { index: i, total, variant: variants2[i], section: sectionNumbers[i], designType: opts == null ? void 0 : opts.designType }));
         const measure = (composed2) => (0, measure_1.measureDeck)(composed2.map((c) => {
           const page = { background: c.background, nodes: c.nodes, size: system.size };
           const repairs = (0, repair_1.repairContrast)(page);
@@ -37962,7 +38064,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         return composeDeckFileWithReport2(input2).file;
       }
       function composeDeckFileWithReport2(input2) {
-        var _a5, _b, _c, _d, _e, _f, _g, _h;
+        var _a5, _b, _c, _d, _e, _f, _g, _h, _i;
         const outline = (0, outline_1.normalizeOutline)(input2.outline);
         const width = Math.max(1, Math.round(input2.width));
         const height = Math.max(1, Math.round(input2.height));
@@ -38000,7 +38102,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           const themedBg = (0, layout_1.layoutDesign)({ layout: "centered", background: theme.background, blocks: [], dir: (_h = input2.dir) != null ? _h : "ltr" }, { width, height }).background;
           const overfullByPage = [];
           pages = outline.pages.map((item, i) => {
-            var _a6, _b2, _c2, _d2, _e2, _f2, _g2, _h2, _i;
+            var _a6, _b2, _c2, _d2, _e2, _f2, _g2, _h2, _i2;
             const overfull = [];
             overfullByPage.push(overfull);
             const layout = (_a6 = byId.get(selection[i])) != null ? _a6 : layouts[0];
@@ -38086,7 +38188,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
                 }));
               }
             }
-            (0, archetypes_1.applyMotion)(children, (_i = input2.motion) != null ? _i : "subtle");
+            (0, archetypes_1.applyMotion)(children, (_i2 = input2.motion) != null ? _i2 : "subtle");
             return __spreadValues({
               id: `api-page-${i + 1}`,
               name: item.title || `Page ${i + 1}`,
@@ -38111,7 +38213,9 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             };
           }), { width, height }, Math.round(Math.min(width, height) * 0.012) * 6);
         } else {
-          const deck = (0, deck_1.layoutDeck)(outline, theme, { width, height }, { dir: input2.dir, catalog, brandPalette: input2.brandPalette, seed, motion: input2.motion, logo: input2.logo });
+          const dt = ((_i = input2.designType) != null ? _i : "").toLowerCase();
+          const designType = dt === "social" || dt === "social-set" ? "social-set" : dt === "poster" ? "poster" : dt === "doc" ? "doc" : "deck";
+          const deck = (0, deck_1.layoutDeck)(outline, theme, { width, height }, { dir: input2.dir, catalog, brandPalette: input2.brandPalette, seed, motion: input2.motion, logo: input2.logo, designType });
           system = deck.system;
           report = deck.report;
           pages = deck.pages.map((p, i) => __spreadValues({
@@ -38168,7 +38272,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
       };
       exports.archetypeCatalogRule = "Every page names an archetype, its compositional form: 'cover' (title + subhead); 'agenda' (title + 3-6 points naming the sections to come, in order; only for decks of 6 or more pages); 'section' (a divider: short title, optional subhead); 'statement' (ONE idea as the title, at most 14 words, optional subhead; no points); 'bigNumber' (stat.value + stat.label, optional subhead as context; the figure is the slide); 'bullets' (title + 3-5 points, each a complete thought under 90 characters); 'twoColumn' (title + exactly 2 columns, each heading + 2-4 points; for comparisons and before/after); 'threeUp' (title + exactly 3 columns, each heading + 1-3 points; for features, pillars, options); 'process' (title + 3-5 steps, each label + detail; ONLY for a real sequence); 'quote' (quote.text + attribution); 'imageCaption' (title + image.subject + subhead as caption; the picture carries the slide); 'chart' (title + chart with real numbers from the brief or attached material; never invent data); 'kpiGrid' (title + 2-4 stats, each value + label; several figures that belong together); 'timeline' (title + 3-5 steps, each with a short 'when' such as a year or quarter, a label and a detail; for history and roadmaps); 'table' (title + table.columns and table.rows with real values from the brief or attached material; 2-4 columns, up to 6 rows; never invent data); 'team' (title + 1-4 people, each name + role; no pictures are generated for people); 'closing' (title + subhead as the call to action). Every page except the cover names an 'eyebrow': two or three words saying what the page is about (The problem, What we tried, Traction, The ask), set small above the title. Icons: a column, a kpiGrid stat, a timeline step, and a bullets, statement, bigNumber, cover, section or closing page may each name an 'icon', one English keyword for a simple icon (shield, clock, users, chart, leaf, globe, bolt, heart, coin, truck, calendar, rocket, target, star, lock, cloud); name one for every item in a set or for none, and name one for most pages that can carry one.";
       exports.storyArcRule = "Plan a narrative arc before choosing forms: open with the cover, state the thesis as a 'statement' early, build with evidence, and end with a 'closing' that asks for something specific. Vary the forms: no more than 40 percent of pages may be 'bullets'; never place the same archetype on two adjacent pages except 'bullets' at most twice in a row; use 'bigNumber' whenever the brief or attached material contains a meaningful quantity, 'kpiGrid' when two to four figures belong together, 'timeline' for dated history or a roadmap, and 'table' when the material is a small grid of real values; use 'section' dividers only for decks of 10 or more pages; give an 'image' intent to every 'cover', 'imageCaption', 'section' and 'closing' page and to about half of the rest, with a concrete English subject and consistent treatment across the deck; for an internal, product or plan deck, name an 'illustration' keyword on the cover, sections and closing (growth, handshake, rocket, target, security, chart, analysis, team, idea, money, logistics, calendar, map) so a flat drawing stands in for the photo.";
-      exports.copyToFormRule = "Write copy to fit the form: a title is a headline (under 60 characters), never a sentence with a full stop; points are parallel in structure and start with the same part of speech; a statement is one idea, not a summary; a stat.label says what the number means in plain words. Never write 'Slide 1', 'Introduction' or other structural labels as content. Never use a dash as a separator anywhere in slide copy (titles, subheads, points, labels); use a colon or a new sentence. A stat.value is the bare figure (42%, 3.2M, 312): no arrows, no words, no plus or minus for direction; the label says whether it rose or fell. Every figure comes from the brief or the attached material, exactly as given; never invent, round or extrapolate a number. Set every title, subhead, label and eyebrow in sentence case (the first word and proper nouns capitalized), never in Title Case.";
+      exports.copyToFormRule = "Write copy to fit the form: a title is a headline (under 60 characters), never a sentence with a full stop; points are parallel in structure and start with the same part of speech; a statement is one idea, not a summary; a stat.label says what the number means in plain words. Never write 'Slide 1', 'Introduction' or other structural labels as content. Never use a dash as a separator anywhere in slide copy (titles, subheads, points, labels); use a colon or a new sentence. A stat.value is the bare figure (42%, 3.2M, 312): no arrows, no words, no plus or minus for direction; the label says whether it rose or fell. Every figure comes from the brief or the attached material, exactly as given; never invent, round or extrapolate a number. Set every title, subhead, label and eyebrow in sentence case (the first word and proper nouns capitalized), never in Title Case. An eyebrow is a label of at most 24 characters and a stat label at most 60; a title under 60. Write to fit: copy over a budget is cut at a word, never rephrased. Data-heavy material is split across several table or chart pages, at most eight rows or twelve categories each, never one dense page; a table cell is at most 60 characters.";
       function outlineSystemPrompt(designType, brandClause, pageCount, verbosity) {
         const count = pageCount && pageCount > 0 ? `Aim for about ${pageCount} pages. ` : "";
         return [

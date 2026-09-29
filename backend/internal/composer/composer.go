@@ -61,6 +61,9 @@ type Input struct {
 	// Motion is the entrance motion on the composed pages: "subtle" (the
 	// bundle's default when empty) or "none".
 	Motion string `json:"motion,omitempty"`
+	// DesignType is what the pages are ("deck", "doc", "poster", "social"):
+	// a post or poster composes without deck furniture.
+	DesignType string `json:"designType,omitempty"`
 	// BrandFonts are the workspace brand kit's faces by role; the generated
 	// theme sets headings and body in them. A catalog theme or a template
 	// keeps its own.

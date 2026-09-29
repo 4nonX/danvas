@@ -95,8 +95,8 @@ export const archetypeBudgets = {
   title: 60, subhead: 120, statement: 90, point: 90, points: 5,
   statValue: 12, statUnit: 8, statLabel: 60, quote: 200, attribution: 60,
   steps: 5, stepLabel: 30, stepDetail: 90, columns: 3, columnHeading: 40, columnPoints: 4,
-  imageSubject: 140, chartCategories: 8, chartSeries: 3,
-  stats: 4, tableColumns: 4, tableRows: 6, tableCell: 40, people: 4, personName: 40, personRole: 40, stepWhen: 20, columnIcon: 30,
+  imageSubject: 140, chartCategories: 12, chartSeries: 4,
+  stats: 4, tableColumns: 5, tableRows: 8, tableCell: 60, people: 4, personName: 40, personRole: 40, stepWhen: 20, columnIcon: 30,
   eyebrow: 24,
 } as const;
 
@@ -205,6 +205,11 @@ export function normalizeNote(v: unknown): string {
 /** Clip to a budget on a word boundary where one falls in the back 40%, so a
  *  long field becomes a phrase rather than a syllable. Counts code points, as
  *  the Go mirror does. */
+/** Words a clipped phrase must not end on: a cut that leaves "What is
+ *  working vs." reads as a mistake where "What is working" reads as a label.
+ *  Mirrored in specs.go. */
+const danglingWords = new Set(["and", "or", "of", "to", "with", "for", "the", "a", "an", "in", "on", "at", "by", "from", "than", "vs", "vs.", "&", "but", "as", "into", "over", "per", "via"]);
+
 export function clipToBudget(v: unknown, max: number): string {
   const t = str(v);
   const chars = Array.from(t);
@@ -212,7 +217,16 @@ export function clipToBudget(v: unknown, max: number): string {
   let cut = chars.slice(0, max).join("");
   const space = cut.lastIndexOf(" ");
   if (space > max * 0.6) cut = cut.slice(0, space);
-  return cut.replace(/[\s,;:-]+$/u, "");
+  cut = cut.replace(/[\s,;:-]+$/u, "");
+  // Drop a trailing connective, and the punctuation it leaves behind, until
+  // the phrase ends on a word that can end a phrase.
+  for (;;) {
+    const at = cut.lastIndexOf(" ");
+    const last = (at >= 0 ? cut.slice(at + 1) : cut).toLowerCase();
+    if (at < 0 || !danglingWords.has(last)) break;
+    cut = cut.slice(0, at).replace(/[\s,;:-]+$/u, "");
+  }
+  return cut;
 }
 
 function strList(v: unknown, maxItems: number, maxChars: number): string[] {
