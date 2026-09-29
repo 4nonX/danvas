@@ -238,7 +238,9 @@ export function bareFigure(v: unknown): string {
  *  token carries a digit is split, so "Top 10" stays whole. Mirrored in
  *  specs.go. */
 export function splitFigure(value: unknown, unit: unknown): { value: string; unit: string } {
-  const v = bareFigure(value);
+  // Every run of whitespace becomes one plain space first, so the Go mirror
+  // (whose \s is ASCII only) and this one split the same values.
+  const v = bareFigure(value).split(/\s+/u).join(" ");
   let u = clipToBudget(unit, archetypeBudgets.statUnit);
   const m = /^(\S*\d\S*)\s+(\S[^\d]*)$/u.exec(v);
   if (!m) return { value: v, unit: u };

@@ -3528,6 +3528,9 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
   // moved to another design.
   const designIdRef = useRef(designId);
   useEffect(() => { designIdRef.current = designId; }, [designId]);
+  // Nulled on unmount, as the comments store was, so a run that finishes
+  // after the user left this design applies nothing to the next one.
+  useEffect(() => () => { designIdRef.current = null; }, []);
   // Gates the Magic Switch row (C30): a form switch is offered on multi-page documents.
   const switchPageCount = useEditor((s) => s.doc.pages.length);
   const [input, setInput] = useState("");

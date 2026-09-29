@@ -528,6 +528,7 @@ func TestSplitFigureKeepsOneToken(t *testing.T) {
 		{"Top 10", "", "Top 10", ""},
 		{"3.2M", "riders", "3.2M", "riders"},
 		{"\u219367%", "", "67%", ""},
+		{"48\u00a0hrs", "", "48", "hrs"},
 	}
 	for _, c := range cases {
 		v, u := splitFigure(c.v, c.u)

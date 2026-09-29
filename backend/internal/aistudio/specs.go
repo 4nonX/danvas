@@ -277,7 +277,10 @@ func bareFigure(v string) string {
 // whose first token carries a digit is split. Mirrors splitFigure in
 // outline.ts.
 func splitFigure(value, unit string) (string, string) {
-	v := bareFigure(value)
+	// Every run of whitespace becomes one plain space first, so this mirror
+	// and outline.ts (whose \s also matches a no-break space) split the same
+	// values.
+	v := strings.Join(strings.Fields(bareFigure(value)), " ")
 	u := clipRunes(strings.TrimSpace(unit), maxStatUnitChars)
 	m := figureSplitRe.FindStringSubmatch(v)
 	if m == nil {

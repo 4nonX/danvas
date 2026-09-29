@@ -302,6 +302,8 @@ describe("figures and headlines as a designer would set them", () => {
     expect(splitFigure("Top 10", undefined)).toEqual({ value: "Top 10", unit: "" });
     expect(splitFigure("3.2M", "riders")).toEqual({ value: "3.2M", unit: "riders" });
     expect(splitFigure("↓67%", undefined)).toEqual({ value: "67%", unit: "" });
+    // A no-break space splits like a space, as it does in the Go mirror.
+    expect(splitFigure("48\u00A0hrs", undefined)).toEqual({ value: "48", unit: "hrs" });
     const page = normalizeOutline({ title: "T", pages: [{ title: "x", archetype: "bigNumber", stat: { value: "48 hrs", unit: "hours", label: "turnaround" } }] }).pages[0];
     expect(page.stat).toMatchObject({ value: "48", unit: "hours" });
   });

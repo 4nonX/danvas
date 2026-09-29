@@ -34068,7 +34068,7 @@ ${err.toString()}`);
         return clipToBudget(v, exports.archetypeBudgets.statValue).replace(/^[\s\u2190-\u21FF\u25B2-\u25BF\u2B05-\u2B0D]+|[\s\u2190-\u21FF\u25B2-\u25BF\u2B05-\u2B0D]+$/g, "").trim();
       }
       function splitFigure(value, unit) {
-        const v = bareFigure(value);
+        const v = bareFigure(value).split(/\s+/u).join(" ");
         let u = clipToBudget(unit, exports.archetypeBudgets.statUnit);
         const m = /^(\S*\d\S*)\s+(\S[^\d]*)$/u.exec(v);
         if (!m)
