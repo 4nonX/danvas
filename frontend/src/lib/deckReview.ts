@@ -58,22 +58,25 @@ export function renderPagePng(file: DesignFile, pageIndex: number, maxDim = 768)
 export async function reviewPages(workspaceId: string, file: DesignFile, first: number, count: number, signal?: AbortSignal): Promise<PageReview[] | null> {
   const out: PageReview[] = [];
   const last = Math.min(file.pages.length, first + Math.min(count, maxReviewedPages));
+  let looked = false;
   for (let i = first; i < last; i++) {
     if (signal?.aborted) break;
     const png = renderPagePng(file, i);
     if (!png) continue;
     try {
       const { findings } = await oc.aiReviewPage({ workspaceId, imageBase64: png, title: file.pages[i]?.name });
+      looked = true;
       if (findings?.length) out.push({ pageIndex: i, findings });
     } catch (e) {
-      // A provider that cannot read images says so on the first page; there
-      // is nothing to look with, so the pass ends quietly.
-      const code = (e as { code?: string })?.code ?? "";
-      if (i === first && /unsupported/.test(code)) return null;
-      // Any other failure skips this page and keeps looking.
+      // A provider that cannot read images answers the first page with a
+      // 400: there is nothing to look with, so the pass ends quietly. Any
+      // other failure skips this page and keeps looking.
+      if (i === first && (e as { status?: number })?.status === 400) return null;
     }
   }
-  return out;
+  // A pass that could not look at a single page is no pass: it must not
+  // report a clean deck it never saw.
+  return looked ? out : null;
 }
 
 /** The turn that reports a review: one line per finding, page-numbered. */

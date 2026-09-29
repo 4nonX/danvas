@@ -40,7 +40,7 @@ const (
 	maxFindingDetail = 200
 )
 
-const reviewInstruction = "You are reviewing one slide of a generated presentation, rendered as an image. Report only visible layout defects: text overlapping other text or a picture, text cut off at a box or page edge, an element running past the page, text too small or too faint to read, or a page that is mostly empty. Ignore style, tone and wording. Reply with ONLY a JSON object, no prose, no code fence: {\"issues\":[{\"kind\":\"overlap|clipped|overflow|unreadable|empty|other\",\"detail\":\"one plain sentence naming the element and where\"}]}. An empty list means the slide is clean. At most 6 issues."
+const reviewInstruction = "You are reviewing one slide of a generated presentation, rendered as an image. Report only visible layout defects: text overlapping other text or a picture, text cut off at a box or page edge, an element running past the page, text too small or too faint to read, or a page that is mostly empty. Ignore style, tone and wording. Reply with ONLY a JSON object, no prose, no code fence: {\"issues\":[{\"kind\":\"overlap|clipped|overflow|unreadable|empty|other\",\"detail\":\"one plain sentence naming the element and where\"}]}. A soft, flat colour block with nothing in it is a picture placeholder, not a defect. An empty list means the slide is clean. At most 6 issues."
 
 // ReviewPage asks the provider to look at one rendered page (a PNG, base64,
 // optionally a data URL) and returns the defects it named. The reply is

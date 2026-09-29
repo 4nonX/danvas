@@ -3894,6 +3894,10 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
   async function execute(plan: PlanStep[], reply: string, reviewedOutline?: DesignOutline, dials?: GenerationDials, citations?: SourceCitation[], styleThemeId?: string, styleTemplateId?: string, opts?: { fromProposal?: boolean }) {
     if (!workspaceId) return;
     setBusy(true);
+    // Per-run state from a run that failed after composing must not reach
+    // this one: the check note and the page span are this run's or nobody's.
+    takeDeckCheck();
+    takeDeckSpan();
     const aborter = new AbortController();
     runAbort.current = aborter;
     setStage(tr("editor.stage_preparing"));
