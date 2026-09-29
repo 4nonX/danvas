@@ -130,7 +130,7 @@
      "x": 96,
      "y": 721,
      "w": 900,
-     "h": 84,
+     "h": 80,
      "text": "Growth, customers and the team, and the moments that tested us along the way.",
      "family": "Libre Franklin",
      "size": 28,
@@ -2474,7 +2474,7 @@
      "kind": "ellipse",
      "name": "Photo",
      "x": 193,
-     "y": 264,
+     "y": 372,
      "w": 220,
      "h": 220,
      "fill": "#c0c8b7"
@@ -2482,7 +2482,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 516,
+     "y": 624,
      "w": 414,
      "h": 40,
      "text": "Elena Sato",
@@ -2496,7 +2496,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 562,
+     "y": 670,
      "w": 414,
      "h": 28,
      "text": "Chief Executive",
@@ -2512,7 +2512,7 @@
     {
      "kind": "text",
      "x": 120,
-     "y": 608,
+     "y": 716,
      "w": 366,
      "h": 96,
      "text": "Set the plan and kept every promise in it.",
@@ -2527,7 +2527,7 @@
      "kind": "ellipse",
      "name": "Photo",
      "x": 631,
-     "y": 264,
+     "y": 372,
      "w": 220,
      "h": 220,
      "fill": "#d6c9ad"
@@ -2535,7 +2535,7 @@
     {
      "kind": "text",
      "x": 534,
-     "y": 516,
+     "y": 624,
      "w": 414,
      "h": 40,
      "text": "Marcus Obi",
@@ -2549,7 +2549,7 @@
     {
      "kind": "text",
      "x": 534,
-     "y": 562,
+     "y": 670,
      "w": 414,
      "h": 28,
      "text": "Chief Operating Officer",
@@ -2565,7 +2565,7 @@
     {
      "kind": "text",
      "x": 558,
-     "y": 608,
+     "y": 716,
      "w": 366,
      "h": 96,
      "text": "Opened Lisbon and built the partner programme.",
@@ -2580,7 +2580,7 @@
      "kind": "ellipse",
      "name": "Photo",
      "x": 1069,
-     "y": 264,
+     "y": 372,
      "w": 220,
      "h": 220,
      "fill": "#c0c8b7"
@@ -2588,7 +2588,7 @@
     {
      "kind": "text",
      "x": 972,
-     "y": 516,
+     "y": 624,
      "w": 414,
      "h": 40,
      "text": "Priya Raman",
@@ -2602,7 +2602,7 @@
     {
      "kind": "text",
      "x": 972,
-     "y": 562,
+     "y": 670,
      "w": 414,
      "h": 28,
      "text": "Head of Product",
@@ -2618,7 +2618,7 @@
     {
      "kind": "text",
      "x": 996,
-     "y": 608,
+     "y": 716,
      "w": 366,
      "h": 96,
      "text": "Led the relaunch and the platform team.",
@@ -2633,7 +2633,7 @@
      "kind": "ellipse",
      "name": "Photo",
      "x": 1507,
-     "y": 264,
+     "y": 372,
      "w": 220,
      "h": 220,
      "fill": "#d6c9ad"
@@ -2641,7 +2641,7 @@
     {
      "kind": "text",
      "x": 1410,
-     "y": 516,
+     "y": 624,
      "w": 414,
      "h": 40,
      "text": "Dana Whitfield",
@@ -2655,7 +2655,7 @@
     {
      "kind": "text",
      "x": 1410,
-     "y": 562,
+     "y": 670,
      "w": 414,
      "h": 28,
      "text": "Head of Customers",
@@ -2671,7 +2671,7 @@
     {
      "kind": "text",
      "x": 1434,
-     "y": 608,
+     "y": 716,
      "w": 366,
      "h": 96,
      "text": "Rebuilt support and won back the trust.",
@@ -2701,28 +2701,28 @@
     {
      "asset": "op-peep-96",
      "x": 223,
-     "y": 286,
+     "y": 394,
      "w": 160,
      "h": 176
     },
     {
      "asset": "op-peep-95",
      "x": 661,
-     "y": 286,
+     "y": 394,
      "w": 160,
      "h": 176
     },
     {
      "asset": "op-peep-16",
      "x": 1099,
-     "y": 286,
+     "y": 394,
      "w": 160,
      "h": 176
     },
     {
      "asset": "op-peep-57",
      "x": 1537,
-     "y": 286,
+     "y": 394,
      "w": 160,
      "h": 176
     }

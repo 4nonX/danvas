@@ -203,3 +203,40 @@ func TestRasterCompoundPathHole(t *testing.T) {
 		t.Fatalf("expected white hole at (50,50), got r=%d g=%d b=%d", hr>>8, hg>>8, hb>>8)
 	}
 }
+
+func TestRasterPathStrokeWithoutFill(t *testing.T) {
+	// A stroke-only path (an arrow, a connector, a drawing's line layer) must
+	// draw its outline, as the browser engine does after the fill; it used to
+	// return before stroking when the path had no fill.
+	col := map[string]any{"srgb": map[string]any{"r": 1.0, "g": 0.0, "b": 0.0, "a": 1.0}}
+	design := Design{"pages": []any{map[string]any{
+		"width": 100.0, "height": 100.0,
+		"children": []any{map[string]any{
+			"type":      "path",
+			"transform": map[string]any{"x": 0.0, "y": 0.0, "scaleX": 1.0, "scaleY": 1.0, "rotation": 0.0},
+			"size":      map[string]any{"width": 100.0, "height": 100.0},
+			"segments": []any{
+				map[string]any{"x": 10.0, "y": 50.0},
+				map[string]any{"x": 90.0, "y": 50.0, "cIn": map[string]any{"x": 50.0, "y": 10.0}},
+			},
+			"closed": false,
+			"fills":  []any{},
+			"stroke": map[string]any{"fill": map[string]any{"type": "solid", "color": col}, "width": 6.0, "align": "center", "cap": "round", "join": "round"},
+		}},
+	}}}
+	img, err := ToRaster(design, 0, 1)
+	if err != nil {
+		t.Fatalf("ToRaster: %v", err)
+	}
+	// The curve leaves (10,50) heading up toward the control point: a pixel
+	// just right of the start on the stroke is red; the page centre, which the
+	// arc passes above, stays white.
+	r, g, _, _ := img.At(12, 49).RGBA()
+	if r>>8 < 180 || g>>8 > 100 {
+		t.Fatalf("expected the stroke at the start of the curve, got r=%d g=%d", r>>8, g>>8)
+	}
+	cr, cg, cb, _ := img.At(50, 70).RGBA()
+	if cr>>8 < 240 || cg>>8 < 240 || cb>>8 < 240 {
+		t.Fatalf("expected white below the arc, got r=%d g=%d b=%d", cr>>8, cg>>8, cb>>8)
+	}
+}

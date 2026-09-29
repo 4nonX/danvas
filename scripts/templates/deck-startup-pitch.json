@@ -177,7 +177,7 @@
      "x": 96,
      "y": 734,
      "w": 900,
-     "h": 84,
+     "h": 120,
      "text": "We make month-end payroll for mid-sized companies a one-click job, ten times faster than the tools built for a different era.",
      "family": "Instrument Sans",
      "size": 28,
@@ -2010,7 +2010,7 @@
      "kind": "ellipse",
      "name": "Photo",
      "x": 193,
-     "y": 264,
+     "y": 372,
      "w": 220,
      "h": 220,
      "fill": "#bfcbf4"
@@ -2018,7 +2018,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 516,
+     "y": 624,
      "w": 414,
      "h": 40,
      "text": "Sam Whitfield",
@@ -2032,7 +2032,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 562,
+     "y": 670,
      "w": 414,
      "h": 28,
      "text": "Chief Executive",
@@ -2048,7 +2048,7 @@
     {
      "kind": "text",
      "x": 120,
-     "y": 608,
+     "y": 716,
      "w": 366,
      "h": 96,
      "text": "Ran payroll for a 900-person company for six years. Built Loop to never do it again.",
@@ -2063,7 +2063,7 @@
      "kind": "ellipse",
      "name": "Photo",
      "x": 631,
-     "y": 264,
+     "y": 372,
      "w": 220,
      "h": 220,
      "fill": "#f5d2d1"
@@ -2071,7 +2071,7 @@
     {
      "kind": "text",
      "x": 534,
-     "y": 516,
+     "y": 624,
      "w": 414,
      "h": 40,
      "text": "Priya Raman",
@@ -2085,7 +2085,7 @@
     {
      "kind": "text",
      "x": 534,
-     "y": 562,
+     "y": 670,
      "w": 414,
      "h": 28,
      "text": "Chief Technology Officer",
@@ -2101,7 +2101,7 @@
     {
      "kind": "text",
      "x": 558,
-     "y": 608,
+     "y": 716,
      "w": 366,
      "h": 96,
      "text": "Led the payments platform at a category leader; scaled it past a million runs a month.",
@@ -2116,7 +2116,7 @@
      "kind": "ellipse",
      "name": "Photo",
      "x": 1069,
-     "y": 264,
+     "y": 372,
      "w": 220,
      "h": 220,
      "fill": "#bfcbf4"
@@ -2124,7 +2124,7 @@
     {
      "kind": "text",
      "x": 972,
-     "y": 516,
+     "y": 624,
      "w": 414,
      "h": 40,
      "text": "Marcus Obi",
@@ -2138,7 +2138,7 @@
     {
      "kind": "text",
      "x": 972,
-     "y": 562,
+     "y": 670,
      "w": 414,
      "h": 28,
      "text": "Head of Sales",
@@ -2154,7 +2154,7 @@
     {
      "kind": "text",
      "x": 996,
-     "y": 608,
+     "y": 716,
      "w": 366,
      "h": 96,
      "text": "First sales hire at two mid-market SaaS companies, both to $20M.",
@@ -2169,7 +2169,7 @@
      "kind": "ellipse",
      "name": "Photo",
      "x": 1507,
-     "y": 264,
+     "y": 372,
      "w": 220,
      "h": 220,
      "fill": "#f5d2d1"
@@ -2177,7 +2177,7 @@
     {
      "kind": "text",
      "x": 1410,
-     "y": 516,
+     "y": 624,
      "w": 414,
      "h": 40,
      "text": "Elena Sato",
@@ -2191,7 +2191,7 @@
     {
      "kind": "text",
      "x": 1410,
-     "y": 562,
+     "y": 670,
      "w": 414,
      "h": 28,
      "text": "Head of Customers",
@@ -2207,7 +2207,7 @@
     {
      "kind": "text",
      "x": 1434,
-     "y": 608,
+     "y": 716,
      "w": 366,
      "h": 96,
      "text": "Onboarded four hundred finance teams. Knows every month-end horror story.",
@@ -2237,28 +2237,28 @@
     {
      "asset": "op-peep-10",
      "x": 223,
-     "y": 286,
+     "y": 394,
      "w": 160,
      "h": 176
     },
     {
      "asset": "op-peep-28",
      "x": 661,
-     "y": 286,
+     "y": 394,
      "w": 160,
      "h": 176
     },
     {
      "asset": "op-peep-43",
      "x": 1099,
-     "y": 286,
+     "y": 394,
      "w": 160,
      "h": 176
     },
     {
      "asset": "op-peep-54",
      "x": 1537,
-     "y": 286,
+     "y": 394,
      "w": 160,
      "h": 176
     }

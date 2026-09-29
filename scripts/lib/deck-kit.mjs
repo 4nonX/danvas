@@ -350,7 +350,7 @@ export function ornamentDeep(K, g, opts = {}) {
       // Floating discs in the two accents, the bold look's weather.
       return [
         ellipse(1500, 120, 260, 260, g.accent, { opacity: 0.9 }), ellipse(1700, 420, 140, 140, g.accent2, { opacity: 0.9 }),
-        ellipse(1380, 760, 90, 90, g.accent2, { opacity: 0.7 }), ellipse(200, 860, 180, 180, g.accent, { opacity: 0.35, bleed: true }),
+        ellipse(1380, 760, 90, 90, g.accent2, { opacity: 0.7 }), ellipse(1040, 40, 110, 110, g.accent, { opacity: 0.35 }),
         ...sparkles(g.ink, 19, 6),
       ];
     case "corner":
@@ -624,9 +624,11 @@ export function cover(K, i, c0) {
   nodes.push(text(M, 372, textW, 60, K.kicker, t.kicker()));
   nodes.push(text(M, 446, textW, titleH, c.title, t.display(coverSize, { lineHeight: 1.02 })));
   fill.push({ node: nodes.length - 1, label: "Title", hint: "Two short lines" });
-  nodes.push(text(M, 446 + titleH + 30, 900, 84, c.subtitle, t.body(28)));
+  const subLines = Math.max(2, linesFor(c.subtitle, 28, 900, K.charWidth ?? 0.56));
+  nodes.push(text(M, 446 + titleH + 30, 900, subLines * 40, c.subtitle, t.body(28)));
   fill.push({ node: nodes.length - 1, label: "Subtitle", hint: "One sentence on what the deck covers" });
-  nodes.push(text(M, 940, 900, 28, c.presenter, t.meta()));
+  const presenterLine = c0?.presenter ?? (c0?.presenterName ? [c0.presenterName, c0.when].filter(Boolean).join("  ·  ") : c.presenter);
+  nodes.push(text(M, 940, 900, 28, presenterLine, t.meta()));
   fill.push({ node: nodes.length - 1, label: "Presenter and date", hint: "Who presents, and when" });
   if (K.total > 1) nodes.push(text(W - M - 240, 940, 240, 28, pageNo(i, K.total), t.meta({ align: "right" })));
   // The hero: a full-colour drawing in a halo, per look. Chips of figures
@@ -729,7 +731,7 @@ export function section(K, i, c0) {
     nodes.push(text(M, top + 28, 1100, 220, c.title, t.display(96, { lineHeight: 1.04 })));
     nodes.push(text(M, top + 28 + 232, 900, 90, c.blurb, t.body(28)));
     nodes.push(...halo(1520, 560, 560, g.accent));
-    illustrations.push(art(drawing, 1300, 340, 440, 440));
+    illustrations.push(c.wide ? art(drawing, 1200, 380, 640, 400) : art(drawing, 1300, 340, 440, 440));
     nodes.push(text(M, 180, 1000, 50, c.kicker ?? K.kicker, t.kicker()));
   }
   nodes.push(...footer(K, g, i));
@@ -949,6 +951,7 @@ export function table(K, i, c0) {
       const cx = x0 + firstW + col * colW;
       if (v === "yes") nodes.push(icon("circle-check", cx + colW / 2 - 16, y + 32, 32, g.accent));
       else if (v === "no") nodes.push(icon("circle", cx + colW / 2 - 16, y + 32, 32, g.line));
+      else if (linesFor(v, 24, colW - 24, K.charWidth ?? 0.56) > 1) nodes.push(text(cx + 12, y + 18, colW - 24, 60, v, t.strong(19, { align: "center", color: g.muted, lineHeight: 1.25 })));
       else nodes.push(text(cx, y + 30, colW, 36, v, t.strong(24, { align: "center", color: g.muted })));
     });
     nodes.push(rect(x0, y + rowH - 1, CW, 1, g.line));
@@ -964,7 +967,9 @@ export function team(K, i, c0) {
   const { nodes, bodyTop } = chrome(K, g, i, c.eyebrow, c.title);
   const n = c.people.length;
   const cw = (CW - (n - 1) * 24) / n;
-  const y = bodyTop + 20;
+  // The block (portrait, name, role, bio) is about 440 tall; centre it in
+  // the body so the lower half of the page is not left empty.
+  const y = bodyTop + Math.max(20, Math.round((940 - bodyTop - 440) / 2));
   const illustrations = [];
   c.people.forEach(([name, r, b], k) => {
     const x = M + k * (cw + 24);

@@ -5567,7 +5567,7 @@
      "kind": "ellipse",
      "name": "Photo",
      "x": 193,
-     "y": 277,
+     "y": 379,
      "w": 220,
      "h": 220,
      "fill": "#eac2af"
@@ -5575,7 +5575,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 529,
+     "y": 631,
      "w": 414,
      "h": 40,
      "text": "Dana Whitfield",
@@ -5589,7 +5589,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 575,
+     "y": 677,
      "w": 414,
      "h": 28,
      "text": "Managing Partner",
@@ -5605,7 +5605,7 @@
     {
      "kind": "text",
      "x": 120,
-     "y": 621,
+     "y": 723,
      "w": 366,
      "h": 96,
      "text": "Twenty years across three funds; leads the portfolio.",
@@ -5620,7 +5620,7 @@
      "kind": "ellipse",
      "name": "Photo",
      "x": 631,
-     "y": 277,
+     "y": 379,
      "w": 220,
      "h": 220,
      "fill": "#c3c9b9"
@@ -5628,7 +5628,7 @@
     {
      "kind": "text",
      "x": 534,
-     "y": 529,
+     "y": 631,
      "w": 414,
      "h": 40,
      "text": "Marcus Obi",
@@ -5642,7 +5642,7 @@
     {
      "kind": "text",
      "x": 534,
-     "y": 575,
+     "y": 677,
      "w": 414,
      "h": 28,
      "text": "Chief Operating Officer",
@@ -5658,7 +5658,7 @@
     {
      "kind": "text",
      "x": 558,
-     "y": 621,
+     "y": 723,
      "w": 366,
      "h": 96,
      "text": "Built the operating model every team now runs on.",
@@ -5673,7 +5673,7 @@
      "kind": "ellipse",
      "name": "Photo",
      "x": 1069,
-     "y": 277,
+     "y": 379,
      "w": 220,
      "h": 220,
      "fill": "#eac2af"
@@ -5681,7 +5681,7 @@
     {
      "kind": "text",
      "x": 972,
-     "y": 529,
+     "y": 631,
      "w": 414,
      "h": 40,
      "text": "Priya Raman",
@@ -5695,7 +5695,7 @@
     {
      "kind": "text",
      "x": 972,
-     "y": 575,
+     "y": 677,
      "w": 414,
      "h": 28,
      "text": "Head of Product",
@@ -5711,7 +5711,7 @@
     {
      "kind": "text",
      "x": 996,
-     "y": 621,
+     "y": 723,
      "w": 366,
      "h": 96,
      "text": "Owns the roadmap and the free tier that feeds it.",
@@ -5726,7 +5726,7 @@
      "kind": "ellipse",
      "name": "Photo",
      "x": 1507,
-     "y": 277,
+     "y": 379,
      "w": 220,
      "h": 220,
      "fill": "#c3c9b9"
@@ -5734,7 +5734,7 @@
     {
      "kind": "text",
      "x": 1410,
-     "y": 529,
+     "y": 631,
      "w": 414,
      "h": 40,
      "text": "Elena Sato",
@@ -5748,7 +5748,7 @@
     {
      "kind": "text",
      "x": 1410,
-     "y": 575,
+     "y": 677,
      "w": 414,
      "h": 28,
      "text": "Head of Customers",
@@ -5764,7 +5764,7 @@
     {
      "kind": "text",
      "x": 1434,
-     "y": 621,
+     "y": 723,
      "w": 366,
      "h": 96,
      "text": "Retention, expansion and the partners who bring both.",
@@ -5780,28 +5780,28 @@
     {
      "asset": "op-peep-58",
      "x": 223,
-     "y": 299,
+     "y": 401,
      "w": 160,
      "h": 176
     },
     {
      "asset": "op-peep-47",
      "x": 661,
-     "y": 299,
+     "y": 401,
      "w": 160,
      "h": 176
     },
     {
      "asset": "op-peep-73",
      "x": 1099,
-     "y": 299,
+     "y": 401,
      "w": 160,
      "h": 176
     },
     {
      "asset": "op-peep-84",
      "x": 1537,
-     "y": 299,
+     "y": 401,
      "w": 160,
      "h": 176
     }

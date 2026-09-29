@@ -608,37 +608,107 @@ func (rc *rctx) rasterPath(m mat, node map[string]any) {
 			src = image.NewUniform(col)
 		}
 	}
-	if src == nil {
-		return
-	}
-	if len(contours) == 1 {
-		r := vector.NewRasterizer(rc.w, rc.h)
-		tracePathContour(r, m, segs, closed)
-		r.Draw(rc.dst, rc.dst.Bounds(), src, image.Point{})
-		return
-	}
-	// The vector rasterizer accumulates non-zero winding, which cannot cut a
-	// hole whose contour winds the same direction as its parent. Rasterize each
-	// contour's coverage separately and fold it in as |acc - mask| (a soft XOR),
-	// which realizes the even-odd rule on antialiased coverage.
-	acc := image.NewAlpha(rc.dst.Bounds())
-	tmp := image.NewAlpha(rc.dst.Bounds())
-	for _, c := range contours {
-		for i := range tmp.Pix {
-			tmp.Pix[i] = 0
-		}
-		r := vector.NewRasterizer(rc.w, rc.h)
-		tracePathContour(r, m, c.segs, c.closed)
-		r.Draw(tmp, tmp.Bounds(), image.Opaque, image.Point{})
-		for i := range acc.Pix {
-			d := int(acc.Pix[i]) - int(tmp.Pix[i])
-			if d < 0 {
-				d = -d
+	if src != nil {
+		if len(contours) == 1 {
+			r := vector.NewRasterizer(rc.w, rc.h)
+			tracePathContour(r, m, segs, closed)
+			r.Draw(rc.dst, rc.dst.Bounds(), src, image.Point{})
+		} else {
+			// The vector rasterizer accumulates non-zero winding, which cannot cut a
+			// hole whose contour winds the same direction as its parent. Rasterize each
+			// contour's coverage separately and fold it in as |acc - mask| (a soft XOR),
+			// which realizes the even-odd rule on antialiased coverage.
+			acc := image.NewAlpha(rc.dst.Bounds())
+			tmp := image.NewAlpha(rc.dst.Bounds())
+			for _, c := range contours {
+				for i := range tmp.Pix {
+					tmp.Pix[i] = 0
+				}
+				r := vector.NewRasterizer(rc.w, rc.h)
+				tracePathContour(r, m, c.segs, c.closed)
+				r.Draw(tmp, tmp.Bounds(), image.Opaque, image.Point{})
+				for i := range acc.Pix {
+					d := int(acc.Pix[i]) - int(tmp.Pix[i])
+					if d < 0 {
+						d = -d
+					}
+					acc.Pix[i] = uint8(d)
+				}
 			}
-			acc.Pix[i] = uint8(d)
+			draw.DrawMask(rc.dst, rc.dst.Bounds(), src, image.Point{}, acc, image.Point{}, draw.Over)
 		}
 	}
-	draw.DrawMask(rc.dst, rc.dst.Bounds(), src, image.Point{}, acc, image.Point{}, draw.Over)
+	// The outline, the way the browser engine strokes a path after its fill:
+	// every contour flattened to device points and stroked at the node's
+	// width. A stroke-only path (an arrow, a connector, a drawing's line
+	// layer) is drawn here and nowhere else.
+	if stroke := asObj(node["stroke"]); stroke != nil {
+		col := rasterColor(pdfPaint(asObj(stroke["fill"])), rc.alpha)
+		width := asNum(stroke["width"])
+		if width <= 0 {
+			width = 1
+		}
+		for _, c := range contours {
+			rc.strokePolyline(flattenPathContour(m, c.segs, c.closed), width*avgScale(m), col, c.closed)
+		}
+	}
+}
+
+// flattenPathContour walks a path contour in device space, sampling each
+// cubic segment finely enough for a stroke to read as a curve.
+func flattenPathContour(m mat, segs []any, closed bool) [][2]float64 {
+	if len(segs) == 0 {
+		return nil
+	}
+	first := asObj(segs[0])
+	sx, sy := m.apply(asNum(first["x"]), asNum(first["y"]))
+	pts := [][2]float64{{sx, sy}}
+	count := len(segs) - 1
+	if closed {
+		count = len(segs)
+	}
+	for i := 0; i < count; i++ {
+		from := asObj(segs[i])
+		to := asObj(segs[(i+1)%len(segs)])
+		cOut := asObj(from["cOut"])
+		cIn := asObj(to["cIn"])
+		tx, ty := m.apply(asNum(to["x"]), asNum(to["y"]))
+		if cOut == nil && cIn == nil {
+			pts = append(pts, [2]float64{tx, ty})
+			continue
+		}
+		p0x, p0y := pts[len(pts)-1][0], pts[len(pts)-1][1]
+		c1x, c1y := asNum(from["x"]), asNum(from["y"])
+		if cOut != nil {
+			c1x, c1y = asNum(cOut["x"]), asNum(cOut["y"])
+		}
+		c2x, c2y := asNum(to["x"]), asNum(to["y"])
+		if cIn != nil {
+			c2x, c2y = asNum(cIn["x"]), asNum(cIn["y"])
+		}
+		a1, b1 := m.apply(c1x, c1y)
+		a2, b2 := m.apply(c2x, c2y)
+		// Steps from the control polygon's device length, at most one per 4 px.
+		steps := int(math.Ceil((math.Hypot(a1-p0x, b1-p0y) + math.Hypot(a2-a1, b2-b1) + math.Hypot(tx-a2, ty-b2)) / 4))
+		if steps < 4 {
+			steps = 4
+		}
+		if steps > 64 {
+			steps = 64
+		}
+		for k := 1; k <= steps; k++ {
+			t := float64(k) / float64(steps)
+			u := 1 - t
+			x := u*u*u*p0x + 3*u*u*t*a1 + 3*u*t*t*a2 + t*t*t*tx
+			y := u*u*u*p0y + 3*u*u*t*b1 + 3*u*t*t*b2 + t*t*t*ty
+			pts = append(pts, [2]float64{x, y})
+		}
+	}
+	if closed && len(pts) > 1 {
+		// The walk already returned to the start; strokePolyline closes the loop.
+		pts = pts[:len(pts)-1]
+	}
+	return pts
 }
 
 // rasterLine draws each polyline segment as a thick filled quad (stroke approx).

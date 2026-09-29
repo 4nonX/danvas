@@ -181,7 +181,7 @@
      "x": 96,
      "y": 683,
      "w": 900,
-     "h": 84,
+     "h": 80,
      "text": "Locale turns any neighborhood shop into a full online storefront in one afternoon. No code, no commission.",
      "family": "Inter",
      "size": 28,
@@ -2012,7 +2012,7 @@
      "kind": "ellipse",
      "name": "Photo",
      "x": 193,
-     "y": 264,
+     "y": 372,
      "w": 220,
      "h": 220,
      "fill": "#f1c1b7"
@@ -2020,7 +2020,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 516,
+     "y": 624,
      "w": 414,
      "h": 40,
      "text": "Sam Whitfield",
@@ -2034,7 +2034,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 562,
+     "y": 670,
      "w": 414,
      "h": 28,
      "text": "Chief Executive",
@@ -2050,7 +2050,7 @@
     {
      "kind": "text",
      "x": 120,
-     "y": 608,
+     "y": 716,
      "w": 366,
      "h": 96,
      "text": "Ran a three-store bakery for nine years. Built the first Locale for it.",
@@ -2065,7 +2065,7 @@
      "kind": "ellipse",
      "name": "Photo",
      "x": 631,
-     "y": 264,
+     "y": 372,
      "w": 220,
      "h": 220,
      "fill": "#d9cbe3"
@@ -2073,7 +2073,7 @@
     {
      "kind": "text",
      "x": 534,
-     "y": 516,
+     "y": 624,
      "w": 414,
      "h": 40,
      "text": "Priya Raman",
@@ -2087,7 +2087,7 @@
     {
      "kind": "text",
      "x": 534,
-     "y": 562,
+     "y": 670,
      "w": 414,
      "h": 28,
      "text": "Chief Technology Officer",
@@ -2103,7 +2103,7 @@
     {
      "kind": "text",
      "x": 558,
-     "y": 608,
+     "y": 716,
      "w": 366,
      "h": 96,
      "text": "Led checkout at a payments company; shipped to a million merchants.",
@@ -2118,7 +2118,7 @@
      "kind": "ellipse",
      "name": "Photo",
      "x": 1069,
-     "y": 264,
+     "y": 372,
      "w": 220,
      "h": 220,
      "fill": "#f1c1b7"
@@ -2126,7 +2126,7 @@
     {
      "kind": "text",
      "x": 972,
-     "y": 516,
+     "y": 624,
      "w": 414,
      "h": 40,
      "text": "Marcus Obi",
@@ -2140,7 +2140,7 @@
     {
      "kind": "text",
      "x": 972,
-     "y": 562,
+     "y": 670,
      "w": 414,
      "h": 28,
      "text": "Growth",
@@ -2156,7 +2156,7 @@
     {
      "kind": "text",
      "x": 996,
-     "y": 608,
+     "y": 716,
      "w": 366,
      "h": 96,
      "text": "Opened the first twelve cities on foot, shop by shop.",
@@ -2171,7 +2171,7 @@
      "kind": "ellipse",
      "name": "Photo",
      "x": 1507,
-     "y": 264,
+     "y": 372,
      "w": 220,
      "h": 220,
      "fill": "#d9cbe3"
@@ -2179,7 +2179,7 @@
     {
      "kind": "text",
      "x": 1410,
-     "y": 516,
+     "y": 624,
      "w": 414,
      "h": 40,
      "text": "Elena Sato",
@@ -2193,7 +2193,7 @@
     {
      "kind": "text",
      "x": 1410,
-     "y": 562,
+     "y": 670,
      "w": 414,
      "h": 28,
      "text": "Merchant success",
@@ -2209,7 +2209,7 @@
     {
      "kind": "text",
      "x": 1434,
-     "y": 608,
+     "y": 716,
      "w": 366,
      "h": 96,
      "text": "Every shop's first call. Retention is her number.",
@@ -2225,28 +2225,28 @@
     {
      "asset": "op-peep-105",
      "x": 223,
-     "y": 286,
+     "y": 394,
      "w": 160,
      "h": 176
     },
     {
      "asset": "op-peep-53",
      "x": 661,
-     "y": 286,
+     "y": 394,
      "w": 160,
      "h": 176
     },
     {
      "asset": "op-peep-23",
      "x": 1099,
-     "y": 286,
+     "y": 394,
      "w": 160,
      "h": 176
     },
     {
      "asset": "op-peep-72",
      "x": 1537,
-     "y": 286,
+     "y": 394,
      "w": 160,
      "h": 176
     }

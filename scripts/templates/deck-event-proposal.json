@@ -107,7 +107,7 @@
      "x": 96,
      "y": 640,
      "w": 900,
-     "h": 84,
+     "h": 120,
      "text": "What it is and who it is for, why now, the arc of the day, the budget and the break-even line, who runs what, and what we need approved today.",
      "family": "Manrope",
      "size": 28,
@@ -1094,7 +1094,7 @@
      "kind": "ellipse",
      "name": "Photo",
      "x": 193,
-     "y": 271,
+     "y": 376,
      "w": 220,
      "h": 220,
      "fill": "#f6cecc"
@@ -1102,7 +1102,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 523,
+     "y": 628,
      "w": 414,
      "h": 40,
      "text": "Mei Lin",
@@ -1116,7 +1116,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 569,
+     "y": 674,
      "w": 414,
      "h": 28,
      "text": "Event lead",
@@ -1132,7 +1132,7 @@
     {
      "kind": "text",
      "x": 120,
-     "y": 615,
+     "y": 720,
      "w": 366,
      "h": 96,
      "text": "Programme, stage, and the run of show.",
@@ -1147,7 +1147,7 @@
      "kind": "ellipse",
      "name": "Photo",
      "x": 631,
-     "y": 271,
+     "y": 376,
      "w": 220,
      "h": 220,
      "fill": "#c7c7fa"
@@ -1155,7 +1155,7 @@
     {
      "kind": "text",
      "x": 534,
-     "y": 523,
+     "y": 628,
      "w": 414,
      "h": 40,
      "text": "Jonah Park",
@@ -1169,7 +1169,7 @@
     {
      "kind": "text",
      "x": 534,
-     "y": 569,
+     "y": 674,
      "w": 414,
      "h": 28,
      "text": "Sponsors and sales",
@@ -1185,7 +1185,7 @@
     {
      "kind": "text",
      "x": 558,
-     "y": 615,
+     "y": 720,
      "w": 366,
      "h": 96,
      "text": "Partners on the floor and every prospect's rep in the room.",
@@ -1200,7 +1200,7 @@
      "kind": "ellipse",
      "name": "Photo",
      "x": 1069,
-     "y": 271,
+     "y": 376,
      "w": 220,
      "h": 220,
      "fill": "#f6cecc"
@@ -1208,7 +1208,7 @@
     {
      "kind": "text",
      "x": 972,
-     "y": 523,
+     "y": 628,
      "w": 414,
      "h": 40,
      "text": "Aisha Bello",
@@ -1222,7 +1222,7 @@
     {
      "kind": "text",
      "x": 972,
-     "y": 569,
+     "y": 674,
      "w": 414,
      "h": 28,
      "text": "Experience",
@@ -1238,7 +1238,7 @@
     {
      "kind": "text",
      "x": 996,
-     "y": 615,
+     "y": 720,
      "w": 366,
      "h": 96,
      "text": "Registration, the product wall, workshops and the terrace.",
@@ -1253,7 +1253,7 @@
      "kind": "ellipse",
      "name": "Photo",
      "x": 1507,
-     "y": 271,
+     "y": 376,
      "w": 220,
      "h": 220,
      "fill": "#c7c7fa"
@@ -1261,7 +1261,7 @@
     {
      "kind": "text",
      "x": 1410,
-     "y": 523,
+     "y": 628,
      "w": 414,
      "h": 40,
      "text": "Priya Raman",
@@ -1275,7 +1275,7 @@
     {
      "kind": "text",
      "x": 1410,
-     "y": 569,
+     "y": 674,
      "w": 414,
      "h": 28,
      "text": "The keynote",
@@ -1291,7 +1291,7 @@
     {
      "kind": "text",
      "x": 1434,
-     "y": 615,
+     "y": 720,
      "w": 366,
      "h": 96,
      "text": "The plan, the launch, and the two customers on stage.",
@@ -1307,28 +1307,28 @@
     {
      "asset": "op-peep-105",
      "x": 223,
-     "y": 293,
+     "y": 398,
      "w": 160,
      "h": 176
     },
     {
      "asset": "op-peep-53",
      "x": 661,
-     "y": 293,
+     "y": 398,
      "w": 160,
      "h": 176
     },
     {
      "asset": "op-peep-23",
      "x": 1099,
-     "y": 293,
+     "y": 398,
      "w": 160,
      "h": 176
     },
     {
      "asset": "op-peep-72",
      "x": 1537,
-     "y": 293,
+     "y": 398,
      "w": 160,
      "h": 176
     }

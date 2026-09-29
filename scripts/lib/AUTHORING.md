@@ -87,15 +87,15 @@ Ornament vocabulary (`ornament`), each with a deep-page and a reading-page form:
 
 `sun` and `lime` on a palette are used by the ornaments that name them (hairlines, blobs, sun use `sun`; blocks uses `lime` for confetti) and by your raw slides; other ornaments ignore them.
 
-Drawings on a deep ground: the `od-*` line figures are drawn in black and vanish on a dark ground; use them only on paper slides (the picture, checklist and facts slots) or pick an `il-*` or `la-*` drawing for the cover, section and closing. Some `il-*` scenes draw their outlines in dark ink too (a city road, a van); check a deep render before keeping one there. `art()` applies `cleanCard` to every `il-*` drawing, which strips the pack's card and any scene element toned like it; pass `art(id, x, y, w, h, { cleanCard: false })` when a scene loses its mountains or sun.
+Drawings on a deep ground: the `od-*` line figures are drawn in black and vanish on a dark ground; use them only on paper slides (the picture, checklist and facts slots) or pick an `il-*` or `la-*` drawing for the cover, section and closing. Some `il-*` scenes draw their outlines in dark ink too (a city road, a van), and some carry their pack title as dark lettering inside the scene (app development, programming); check a deep render before keeping one there. `art()` applies `cleanCard` to every `il-*` drawing, which strips the pack's card and any scene element toned like it; pass `art(id, x, y, w, h, { cleanCard: false })` when a scene loses its mountains or sun.
 
 ## Layouts and their content
 
 Every layout takes `note` (a hand note in the accent face: bottom right on a reading page, under the picture on a deep page). Deep layouts take `art` (a drawing id) where noted. `[a, b, c]` means an array of those.
 
-- `cover` `{ title (two lines with \n), subtitle, presenter, art, chips [[figure, label]] (three chips under the subtitle: on by default for the glow ornament, on for any ornament when you pass them), year (blocks only), presenterName, when, where (hairlines only), note }`
+- `cover` `{ title (two lines with \n), subtitle (grows to three lines), presenter (or presenterName and when, joined for you), art, chips [[figure, label]] (three chips under the subtitle: on by default for the glow ornament, on for any ornament when you pass them), year (blocks only), presenterName, when, where (hairlines only), note }`
 - `agenda` `{ eyebrow, title, items [[heading, sub, duration]] (five), card { eyebrow, big, meta [[label, value]] (four) }, note }`
-- `section` `{ n (the big numeral; pass "" to omit it when the deck has one section), title, blurb, kicker, art, note }`
+- `section` `{ n (the big numeral; pass "" to omit it when the deck has one section), title, blurb, kicker, art, wide (true for a landscape drawing in a 640 by 400 slot), note }`
 - `statement` `{ text (one sentence, up to three lines), source, note }`
 - `textPicture` `{ eyebrow, title, points [[heading, sub]] (three), art, note }`
 - `twoColumns` `{ eyebrow, title, left { eyebrow, head, lines [3], icon }, right { ... } }` (right sits on the deep ground)
@@ -109,7 +109,7 @@ Every layout takes `note` (a hand note in the accent face: bottom right on a rea
 - `checklist` `{ eyebrow, title, items [[label, must]] (eight), legend [must, nice], art, note }`
 - `facts` `{ eyebrow, title, intro, items [[icon, heading, sub]] (four), art, note }`
 - `split` `{ left { eyebrow, head (three lines), lines [3] }, right { eyebrow, head (two lines), body, checks [[icon, line]] (three) }, art }`
-- `table` `{ eyebrow, title, cols ["", a, b, c], rows [[label, a, b, c]] (five); a cell "yes" or "no" draws a check or a circle, note }`
+- `table` `{ eyebrow, title, cols ["", a, b, c], rows [[label, a, b, c]] (five); a cell "yes" or "no" draws a check or a circle; a cell longer than its column wraps to two smaller lines, note }`
 - `team` `{ eyebrow, title, people [[name, role, bio]] (four), peeps [ids], note }`
 - `quote` `{ text, name, role, note }` (the page is named "Quote"; pass `pageName` on any slide to rename its page)
 - `pricing` `{ eyebrow, title, tiers [[name, price, per, [features x4], hot]] (three), hotLabel, hotCta, ctaPrefix, note }`
@@ -124,7 +124,7 @@ Icons: any key of `ICON_GLYPHS` in `packages/aistudio/dist/iconset.js` (Tabler n
 
 A raw slide is a page object built with the library's primitives, for the one or two slides only this deck has. Import from the library: `text, rect, ellipse, button, icon, art, path, halo, sparkles, note, footer, mark, chrome, card, type, deepGround, mixHex, inkOn, W, H, M, CW`. The builder receives `K` (the look with meta merged and `K.total` set), the page index `i`, and its content object.
 
-`path(points, { stroke, strokeWidth, fill, closed, cap, join })` draws a line or a region from points in page space: `[[x, y], ...]` for straight segments, or `{ x, y, cIn: {x, y}, cOut: {x, y} }` for curves (cubic handles). Use it for a curve, an arrow, a connector or a chart line instead of a trail of ellipses; a rotated thin `rect` is still fine for a straight rule.
+`path(points, { stroke, strokeWidth, fill, closed, cap, join, dash })` draws a line or a region from points in page space (`dash: [8, 6]` for a dotted or dashed line): `[[x, y], ...]` for straight segments, or `{ x, y, cIn: {x, y}, cOut: {x, y} }` for curves (cubic handles). Use it for a curve, an arrow, a connector or a chart line instead of a trail of ellipses; a rotated thin `rect` is still fine for a straight rule.
 
 The deep-page note sits at (1140, 872) by default; a raw slide that fills the bottom right passes its own spot: `note(K, g, str, true, { x, y, w, align })`.
 

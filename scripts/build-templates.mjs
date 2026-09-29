@@ -276,7 +276,7 @@ function pathNodeFromPoints(id, n) {
     segments,
     closed: !!n.closed,
     fills: n.fill === undefined ? [] : [fillOf(n.fill)],
-    ...(n.stroke ? { stroke: { fill: fillOf(n.stroke), width: n.strokeWidth ?? 2, align: "center", cap: n.cap ?? "round", join: n.join ?? "round" } } : {}),
+    ...(n.stroke ? { stroke: { fill: fillOf(n.stroke), width: n.strokeWidth ?? 2, align: "center", cap: n.cap ?? "round", join: n.join ?? "round", ...(Array.isArray(n.dash) ? { dash: n.dash } : {}) } } : {}),
   };
 }
 
@@ -347,6 +347,9 @@ function illustrationGroup(specId, k, il, pageW, pageH, errors) {
     }
   }
   const s = Math.min(il.w / bw, il.h / bh);
+  // A heavy drawing costs every load of the template; say so, once per use.
+  const kb = Math.round(JSON.stringify(nodes).length / 1024);
+  if (kb > 300) console.warn(`warning: ${specId} il${k}: ${il.asset} compiles to ${kb} KB, over the 300 KB ceiling`);
   return roundDeep(createNode("group", {
     id: `${specId}-il${k}`,
     name: asset.title,
