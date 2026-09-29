@@ -137,7 +137,7 @@
      "y": 940,
      "w": 240,
      "h": 28,
-     "text": "01 / 16",
+     "text": "01 / 21",
      "family": "Manrope",
      "size": 18,
      "weight": 500,
@@ -335,7 +335,7 @@
      "y": 992,
      "w": 240,
      "h": 26,
-     "text": "02 / 16",
+     "text": "02 / 21",
      "family": "Manrope",
      "size": 18,
      "weight": 500,
@@ -996,7 +996,7 @@
      "y": 992,
      "w": 240,
      "h": 26,
-     "text": "03 / 16",
+     "text": "03 / 21",
      "family": "Manrope",
      "size": 18,
      "weight": 500,
@@ -1055,7 +1055,7 @@
      "y": 992,
      "w": 240,
      "h": 26,
-     "text": "04 / 16",
+     "text": "04 / 21",
      "family": "Manrope",
      "size": 18,
      "weight": 500,
@@ -1179,7 +1179,7 @@
      "y": 992,
      "w": 240,
      "h": 26,
-     "text": "05 / 16",
+     "text": "05 / 21",
      "family": "Manrope",
      "size": 18,
      "weight": 500,
@@ -1452,7 +1452,7 @@
      "y": 992,
      "w": 240,
      "h": 26,
-     "text": "06 / 16",
+     "text": "06 / 21",
      "family": "Manrope",
      "size": 18,
      "weight": 500,
@@ -1761,7 +1761,7 @@
      "y": 992,
      "w": 240,
      "h": 26,
-     "text": "07 / 16",
+     "text": "07 / 21",
      "family": "Manrope",
      "size": 18,
      "weight": 500,
@@ -2024,6 +2024,299 @@
    ]
   },
   {
+   "name": "Four cards",
+   "bg": "#FFFFFF",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 1906,
+     "y": 0,
+     "w": 14,
+     "h": 1080,
+     "fill": "#2B2BFF"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 88,
+     "w": 1200,
+     "h": 28,
+     "text": "How we do this",
+     "family": "Manrope",
+     "size": 20,
+     "weight": 600,
+     "color": "#FF4D2E",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 124,
+     "w": 1240,
+     "h": 83,
+     "text": "Four agreements for the week",
+     "family": "Sora",
+     "size": 68,
+     "weight": 800,
+     "color": "#0B0B14",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#E4E4EE"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Loop  ·  Seed round 2026",
+     "family": "Manrope",
+     "size": 18,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "08 / 21",
+     "family": "Manrope",
+     "size": 18,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 251,
+     "w": 852,
+     "h": 264,
+     "fill": "#F3F3F9",
+     "radius": 24,
+     "stroke": "#E4E4EE",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "ellipse",
+     "x": 136,
+     "y": 291,
+     "w": 72,
+     "h": 72,
+     "fill": "#f5d2d0"
+    },
+    {
+     "kind": "icon",
+     "icon": "clock",
+     "x": 154,
+     "y": 309,
+     "w": 36,
+     "h": 36,
+     "color": "#FF4D2E"
+    },
+    {
+     "kind": "text",
+     "x": 236,
+     "y": 295,
+     "w": 672,
+     "h": 40,
+     "text": "Be on time",
+     "family": "Sora",
+     "size": 30,
+     "weight": 800,
+     "color": "#0B0B14",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 236,
+     "y": 347,
+     "w": 672,
+     "h": 120,
+     "text": "Sessions start when they say; nobody waits well.",
+     "family": "Manrope",
+     "size": 22,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 972,
+     "y": 251,
+     "w": 852,
+     "h": 264,
+     "fill": "#F3F3F9",
+     "radius": 24,
+     "stroke": "#E4E4EE",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "ellipse",
+     "x": 1012,
+     "y": 291,
+     "w": 72,
+     "h": 72,
+     "fill": "#cbcbfa"
+    },
+    {
+     "kind": "icon",
+     "icon": "microphone",
+     "x": 1030,
+     "y": 309,
+     "w": 36,
+     "h": 36,
+     "color": "#2B2BFF"
+    },
+    {
+     "kind": "text",
+     "x": 1112,
+     "y": 295,
+     "w": 672,
+     "h": 40,
+     "text": "Everyone speaks",
+     "family": "Sora",
+     "size": 30,
+     "weight": 800,
+     "color": "#0B0B14",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 1112,
+     "y": 347,
+     "w": 672,
+     "h": 120,
+     "text": "Each session ends with a round.",
+     "family": "Manrope",
+     "size": 22,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 551,
+     "w": 852,
+     "h": 264,
+     "fill": "#F3F3F9",
+     "radius": 24,
+     "stroke": "#E4E4EE",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "ellipse",
+     "x": 136,
+     "y": 591,
+     "w": 72,
+     "h": 72,
+     "fill": "#f5d2d0"
+    },
+    {
+     "kind": "icon",
+     "icon": "device-mobile",
+     "x": 154,
+     "y": 609,
+     "w": 36,
+     "h": 36,
+     "color": "#FF4D2E"
+    },
+    {
+     "kind": "text",
+     "x": 236,
+     "y": 595,
+     "w": 672,
+     "h": 40,
+     "text": "Phones down in sessions",
+     "family": "Sora",
+     "size": 30,
+     "weight": 800,
+     "color": "#0B0B14",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 236,
+     "y": 647,
+     "w": 672,
+     "h": 120,
+     "text": "Notes on paper; photos of the board at the end.",
+     "family": "Manrope",
+     "size": 22,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 972,
+     "y": 551,
+     "w": 852,
+     "h": 264,
+     "fill": "#F3F3F9",
+     "radius": 24,
+     "stroke": "#E4E4EE",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "ellipse",
+     "x": 1012,
+     "y": 591,
+     "w": 72,
+     "h": 72,
+     "fill": "#cbcbfa"
+    },
+    {
+     "kind": "icon",
+     "icon": "heart",
+     "x": 1030,
+     "y": 609,
+     "w": 36,
+     "h": 36,
+     "color": "#2B2BFF"
+    },
+    {
+     "kind": "text",
+     "x": 1112,
+     "y": 595,
+     "w": 672,
+     "h": 40,
+     "text": "Kind by default",
+     "family": "Sora",
+     "size": 30,
+     "weight": 800,
+     "color": "#0B0B14",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 1112,
+     "y": 647,
+     "w": 672,
+     "h": 120,
+     "text": "Demos are brave. Questions are curious.",
+     "family": "Manrope",
+     "size": 22,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.4
+    }
+   ]
+  },
+  {
    "name": "Figures",
    "bg": "#FFFFFF",
    "nodes": [
@@ -2090,7 +2383,7 @@
      "y": 992,
      "w": 240,
      "h": 26,
-     "text": "08 / 16",
+     "text": "09 / 21",
      "family": "Manrope",
      "size": 18,
      "weight": 500,
@@ -2455,7 +2748,7 @@
      "y": 992,
      "w": 240,
      "h": 26,
-     "text": "09 / 16",
+     "text": "10 / 21",
      "family": "Manrope",
      "size": 18,
      "weight": 500,
@@ -2676,7 +2969,7 @@
      "y": 992,
      "w": 240,
      "h": 26,
-     "text": "10 / 16",
+     "text": "11 / 21",
      "family": "Manrope",
      "size": 18,
      "weight": 500,
@@ -2969,7 +3262,7 @@
      "y": 992,
      "w": 240,
      "h": 26,
-     "text": "11 / 16",
+     "text": "12 / 21",
      "family": "Manrope",
      "size": 18,
      "weight": 500,
@@ -3200,6 +3493,1553 @@
    ]
   },
   {
+   "name": "Schedule",
+   "bg": "#FFFFFF",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 1906,
+     "y": 0,
+     "w": 14,
+     "h": 1080,
+     "fill": "#2B2BFF"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 88,
+     "w": 1200,
+     "h": 28,
+     "text": "Day one  ·  Wednesday",
+     "family": "Manrope",
+     "size": 20,
+     "weight": 600,
+     "color": "#FF4D2E",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 124,
+     "w": 940,
+     "h": 83,
+     "text": "Maps out, laptops shut.",
+     "family": "Sora",
+     "size": 68,
+     "weight": 800,
+     "color": "#0B0B14",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#E4E4EE"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Loop  ·  Seed round 2026",
+     "family": "Manrope",
+     "size": 18,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "13 / 21",
+     "family": "Manrope",
+     "size": 18,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "rect",
+     "x": 106,
+     "y": 332,
+     "w": 4,
+     "h": 520,
+     "fill": "#E4E4EE",
+     "radius": 2
+    },
+    {
+     "kind": "ellipse",
+     "x": 98,
+     "y": 322,
+     "w": 20,
+     "h": 20,
+     "fill": "#FF4D2E"
+    },
+    {
+     "kind": "text",
+     "x": 152,
+     "y": 320,
+     "w": 150,
+     "h": 28,
+     "text": "08:30",
+     "family": "Manrope",
+     "size": 22,
+     "weight": 600,
+     "color": "#FF4D2E",
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 316,
+     "y": 316,
+     "w": 620,
+     "h": 32,
+     "text": "Check-in",
+     "family": "Sora",
+     "size": 27,
+     "weight": 800,
+     "color": "#0B0B14",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 316,
+     "y": 354,
+     "w": 620,
+     "h": 56,
+     "text": "Badges, maps and the good espresso.",
+     "family": "Manrope",
+     "size": 20,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 98,
+     "y": 426,
+     "w": 20,
+     "h": 20,
+     "fill": "#FF4D2E"
+    },
+    {
+     "kind": "text",
+     "x": 152,
+     "y": 424,
+     "w": 150,
+     "h": 28,
+     "text": "10:00",
+     "family": "Manrope",
+     "size": 22,
+     "weight": 600,
+     "color": "#FF4D2E",
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 316,
+     "y": 420,
+     "w": 620,
+     "h": 32,
+     "text": "The plan",
+     "family": "Sora",
+     "size": 27,
+     "weight": 800,
+     "color": "#0B0B14",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 316,
+     "y": 458,
+     "w": 620,
+     "h": 56,
+     "text": "Ten slides, zero spreadsheets.",
+     "family": "Manrope",
+     "size": 20,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 98,
+     "y": 530,
+     "w": 20,
+     "h": 20,
+     "fill": "#2B2BFF"
+    },
+    {
+     "kind": "text",
+     "x": 152,
+     "y": 528,
+     "w": 150,
+     "h": 28,
+     "text": "12:30",
+     "family": "Manrope",
+     "size": 22,
+     "weight": 600,
+     "color": "#FF4D2E",
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 316,
+     "y": 524,
+     "w": 620,
+     "h": 32,
+     "text": "Lunch",
+     "family": "Sora",
+     "size": 27,
+     "weight": 800,
+     "color": "#0B0B14",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 316,
+     "y": 562,
+     "w": 620,
+     "h": 56,
+     "text": "One table, everyone.",
+     "family": "Manrope",
+     "size": 20,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 98,
+     "y": 634,
+     "w": 20,
+     "h": 20,
+     "fill": "#FF4D2E"
+    },
+    {
+     "kind": "text",
+     "x": 152,
+     "y": 632,
+     "w": 150,
+     "h": 28,
+     "text": "14:00",
+     "family": "Manrope",
+     "size": 22,
+     "weight": 600,
+     "color": "#FF4D2E",
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 316,
+     "y": 628,
+     "w": 620,
+     "h": 32,
+     "text": "Workshops",
+     "family": "Sora",
+     "size": 27,
+     "weight": 800,
+     "color": "#0B0B14",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 316,
+     "y": 666,
+     "w": 620,
+     "h": 56,
+     "text": "Pick one of three tracks.",
+     "family": "Manrope",
+     "size": 20,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 98,
+     "y": 738,
+     "w": 20,
+     "h": 20,
+     "fill": "#FF4D2E"
+    },
+    {
+     "kind": "text",
+     "x": 152,
+     "y": 736,
+     "w": 150,
+     "h": 28,
+     "text": "16:30",
+     "family": "Manrope",
+     "size": 22,
+     "weight": 600,
+     "color": "#FF4D2E",
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 316,
+     "y": 732,
+     "w": 620,
+     "h": 32,
+     "text": "The walk",
+     "family": "Sora",
+     "size": 27,
+     "weight": 800,
+     "color": "#0B0B14",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 316,
+     "y": 770,
+     "w": 620,
+     "h": 56,
+     "text": "Gentle loop or the summit.",
+     "family": "Manrope",
+     "size": 20,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 98,
+     "y": 842,
+     "w": 20,
+     "h": 20,
+     "fill": "#2B2BFF"
+    },
+    {
+     "kind": "text",
+     "x": 152,
+     "y": 840,
+     "w": 150,
+     "h": 28,
+     "text": "19:00",
+     "family": "Manrope",
+     "size": 22,
+     "weight": 600,
+     "color": "#FF4D2E",
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 316,
+     "y": 836,
+     "w": 620,
+     "h": 32,
+     "text": "Dinner",
+     "family": "Sora",
+     "size": 27,
+     "weight": 800,
+     "color": "#0B0B14",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 316,
+     "y": 874,
+     "w": 620,
+     "h": 56,
+     "text": "Off the grill, by the fire.",
+     "family": "Manrope",
+     "size": 20,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 1120,
+     "y": 268,
+     "w": 660,
+     "h": 650,
+     "fill": {
+      "angle": 160,
+      "stops": [
+       [
+        "#2B2BFF",
+        0
+       ],
+       [
+        "#6A2BFF",
+        1
+       ]
+      ]
+     },
+     "radius": 24
+    },
+    {
+     "kind": "ellipse",
+     "x": 1142,
+     "y": 470,
+     "w": 6,
+     "h": 6,
+     "fill": "#FF4D2E",
+     "opacity": 0.38999999999999996
+    },
+    {
+     "kind": "ellipse",
+     "x": 1328,
+     "y": 416,
+     "w": 4,
+     "h": 4,
+     "fill": "#FF4D2E",
+     "opacity": 0.6499999999999999
+    },
+    {
+     "kind": "ellipse",
+     "x": 1674,
+     "y": 337,
+     "w": 9,
+     "h": 9,
+     "fill": "#FF4D2E",
+     "opacity": 0.35
+    },
+    {
+     "kind": "ellipse",
+     "x": 1749,
+     "y": 536,
+     "w": 8,
+     "h": 8,
+     "fill": "#FF4D2E",
+     "opacity": 0.69
+    },
+    {
+     "kind": "ellipse",
+     "x": 1700,
+     "y": 294,
+     "w": 7,
+     "h": 7,
+     "fill": "#FF4D2E",
+     "opacity": 0.49
+    },
+    {
+     "kind": "ellipse",
+     "x": 1179,
+     "y": 473,
+     "w": 7,
+     "h": 7,
+     "fill": "#FF4D2E",
+     "opacity": 0.52
+    },
+    {
+     "kind": "text",
+     "x": 1180,
+     "y": 324,
+     "w": 540,
+     "h": 24,
+     "text": "After hours",
+     "family": "Manrope",
+     "size": 19,
+     "weight": 600,
+     "color": "#B9F542",
+     "letterSpacing": 3,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 1180,
+     "y": 360,
+     "w": 540,
+     "h": 84,
+     "text": "Night one ends\naround the fire.",
+     "family": "Sora",
+     "size": 34,
+     "weight": 800,
+     "color": "#FFFFFF",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "ellipse",
+     "x": 1270,
+     "y": 528,
+     "w": 360,
+     "h": 360,
+     "fill": "#FF4D2E",
+     "opacity": 0.12
+    },
+    {
+     "kind": "ellipse",
+     "x": 1306,
+     "y": 564,
+     "w": 288,
+     "h": 288,
+     "fill": "#FF4D2E",
+     "opacity": 0.16
+    },
+    {
+     "kind": "text",
+     "x": 1180,
+     "y": 828,
+     "w": 540,
+     "h": 44,
+     "text": "bring a hoodie, trust us",
+     "family": "Bricolage Grotesque",
+     "size": 29,
+     "weight": 800,
+     "color": "#B9F542",
+     "lineHeight": 1.2,
+     "align": "center"
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "il-day20-rocket",
+     "x": 1270,
+     "y": 548,
+     "w": 360,
+     "h": 300,
+     "cleanCard": true
+    }
+   ]
+  },
+  {
+   "name": "Checklist",
+   "bg": "#FFFFFF",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 1906,
+     "y": 0,
+     "w": 14,
+     "h": 1080,
+     "fill": "#2B2BFF"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 88,
+     "w": 1200,
+     "h": 28,
+     "text": "Before you leave",
+     "family": "Manrope",
+     "size": 20,
+     "weight": 600,
+     "color": "#FF4D2E",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 124,
+     "w": 900,
+     "h": 83,
+     "text": "The pack list",
+     "family": "Sora",
+     "size": 68,
+     "weight": 800,
+     "color": "#0B0B14",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#E4E4EE"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Loop  ·  Seed round 2026",
+     "family": "Manrope",
+     "size": 18,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "14 / 21",
+     "family": "Manrope",
+     "size": 18,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "icon",
+     "icon": "circle-check",
+     "x": 96,
+     "y": 273,
+     "w": 34,
+     "h": 34,
+     "color": "#FF4D2E"
+    },
+    {
+     "kind": "text",
+     "x": 150,
+     "y": 271,
+     "w": 480,
+     "h": 40,
+     "text": "Layers for the weather",
+     "family": "Manrope",
+     "size": 24,
+     "weight": 600,
+     "color": "#0B0B14",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "circle-check",
+     "x": 656,
+     "y": 273,
+     "w": 34,
+     "h": 34,
+     "color": "#FF4D2E"
+    },
+    {
+     "kind": "text",
+     "x": 710,
+     "y": 271,
+     "w": 480,
+     "h": 40,
+     "text": "Shoes that can get muddy",
+     "family": "Manrope",
+     "size": 24,
+     "weight": 600,
+     "color": "#0B0B14",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "circle-check",
+     "x": 96,
+     "y": 365,
+     "w": 34,
+     "h": 34,
+     "color": "#FF4D2E"
+    },
+    {
+     "kind": "text",
+     "x": 150,
+     "y": 363,
+     "w": 480,
+     "h": 40,
+     "text": "A water bottle",
+     "family": "Manrope",
+     "size": 24,
+     "weight": 600,
+     "color": "#0B0B14",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "circle",
+     "x": 656,
+     "y": 365,
+     "w": 34,
+     "h": 34,
+     "color": "#E4E4EE"
+    },
+    {
+     "kind": "text",
+     "x": 710,
+     "y": 363,
+     "w": 480,
+     "h": 40,
+     "text": "Swimsuit, for the brave",
+     "family": "Manrope",
+     "size": 24,
+     "weight": 600,
+     "color": "#0B0B14",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "circle-check",
+     "x": 96,
+     "y": 457,
+     "w": 34,
+     "h": 34,
+     "color": "#FF4D2E"
+    },
+    {
+     "kind": "text",
+     "x": 150,
+     "y": 455,
+     "w": 480,
+     "h": 40,
+     "text": "A hoodie for the evening",
+     "family": "Manrope",
+     "size": 24,
+     "weight": 600,
+     "color": "#0B0B14",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "circle",
+     "x": 656,
+     "y": 457,
+     "w": 34,
+     "h": 34,
+     "color": "#E4E4EE"
+    },
+    {
+     "kind": "text",
+     "x": 710,
+     "y": 455,
+     "w": 480,
+     "h": 40,
+     "text": "A torch",
+     "family": "Manrope",
+     "size": 24,
+     "weight": 600,
+     "color": "#0B0B14",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "circle-check",
+     "x": 96,
+     "y": 549,
+     "w": 34,
+     "h": 34,
+     "color": "#FF4D2E"
+    },
+    {
+     "kind": "text",
+     "x": 150,
+     "y": 547,
+     "w": 480,
+     "h": 40,
+     "text": "Chargers",
+     "family": "Manrope",
+     "size": 24,
+     "weight": 600,
+     "color": "#0B0B14",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "circle",
+     "x": 656,
+     "y": 549,
+     "w": 34,
+     "h": 34,
+     "color": "#E4E4EE"
+    },
+    {
+     "kind": "text",
+     "x": 710,
+     "y": 547,
+     "w": 480,
+     "h": 40,
+     "text": "A book or a deck of cards",
+     "family": "Manrope",
+     "size": 24,
+     "weight": 600,
+     "color": "#0B0B14",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 659,
+     "w": 1080,
+     "h": 1,
+     "fill": "#E4E4EE"
+    },
+    {
+     "kind": "icon",
+     "icon": "circle-check",
+     "x": 96,
+     "y": 685,
+     "w": 22,
+     "h": 22,
+     "color": "#FF4D2E"
+    },
+    {
+     "kind": "text",
+     "x": 130,
+     "y": 681,
+     "w": 300,
+     "h": 28,
+     "text": "must bring",
+     "family": "Manrope",
+     "size": 18,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "icon",
+     "icon": "circle",
+     "x": 356,
+     "y": 685,
+     "w": 22,
+     "h": 22,
+     "color": "#E4E4EE"
+    },
+    {
+     "kind": "text",
+     "x": 390,
+     "y": 681,
+     "w": 300,
+     "h": 28,
+     "text": "nice to have",
+     "family": "Manrope",
+     "size": 18,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "name": "Photo",
+     "x": 1300,
+     "y": 268,
+     "w": 480,
+     "h": 600,
+     "fill": {
+      "angle": 160,
+      "stops": [
+       [
+        "#c7c7fa",
+        0
+       ],
+       [
+        "#F3F3F9",
+        1
+       ]
+      ]
+     },
+     "radius": 24
+    },
+    {
+     "kind": "ellipse",
+     "x": 1340,
+     "y": 340,
+     "w": 400,
+     "h": 400,
+     "fill": "#FF4D2E",
+     "opacity": 0.12
+    },
+    {
+     "kind": "ellipse",
+     "x": 1380,
+     "y": 380,
+     "w": 320,
+     "h": 320,
+     "fill": "#FF4D2E",
+     "opacity": 0.16
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "la-hero-image-2",
+     "x": 1360,
+     "y": 320,
+     "w": 360,
+     "h": 420
+    }
+   ]
+  },
+  {
+   "name": "Facts",
+   "bg": "#FFFFFF",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 1906,
+     "y": 0,
+     "w": 14,
+     "h": 1080,
+     "fill": "#2B2BFF"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 88,
+     "w": 1200,
+     "h": 28,
+     "text": "Where we're staying",
+     "family": "Manrope",
+     "size": 20,
+     "weight": 600,
+     "color": "#FF4D2E",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 124,
+     "w": 900,
+     "h": 83,
+     "text": "The lodge",
+     "family": "Sora",
+     "size": 68,
+     "weight": 800,
+     "color": "#0B0B14",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#E4E4EE"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Loop  ·  Seed round 2026",
+     "family": "Manrope",
+     "size": 18,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "15 / 21",
+     "family": "Manrope",
+     "size": 18,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 231,
+     "w": 820,
+     "h": 90,
+     "text": "A timber lodge at altitude with a lake, a library, a long porch and no reason to check messages.",
+     "family": "Manrope",
+     "size": 26,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 96,
+     "y": 351,
+     "w": 56,
+     "h": 56,
+     "fill": "#f5d5d4"
+    },
+    {
+     "kind": "icon",
+     "icon": "map-pin",
+     "x": 110,
+     "y": 365,
+     "w": 28,
+     "h": 28,
+     "color": "#FF4D2E"
+    },
+    {
+     "kind": "text",
+     "x": 176,
+     "y": 349,
+     "w": 740,
+     "h": 34,
+     "text": "Two hours from the office",
+     "family": "Sora",
+     "size": 26,
+     "weight": 800,
+     "color": "#0B0B14",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 176,
+     "y": 385,
+     "w": 740,
+     "h": 30,
+     "text": "By shuttle, door to door",
+     "family": "Manrope",
+     "size": 20,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 96,
+     "y": 469,
+     "w": 56,
+     "h": 56,
+     "fill": "#f5d5d4"
+    },
+    {
+     "kind": "icon",
+     "icon": "bed",
+     "x": 110,
+     "y": 483,
+     "w": 28,
+     "h": 28,
+     "color": "#FF4D2E"
+    },
+    {
+     "kind": "text",
+     "x": 176,
+     "y": 467,
+     "w": 740,
+     "h": 34,
+     "text": "Sixteen cabins",
+     "family": "Sora",
+     "size": 26,
+     "weight": 800,
+     "color": "#0B0B14",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 176,
+     "y": 503,
+     "w": 740,
+     "h": 30,
+     "text": "Assignments land the Friday before",
+     "family": "Manrope",
+     "size": 20,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 96,
+     "y": 587,
+     "w": 56,
+     "h": 56,
+     "fill": "#f5d5d4"
+    },
+    {
+     "kind": "icon",
+     "icon": "home",
+     "x": 110,
+     "y": 601,
+     "w": 28,
+     "h": 28,
+     "color": "#FF4D2E"
+    },
+    {
+     "kind": "text",
+     "x": 176,
+     "y": 585,
+     "w": 740,
+     "h": 34,
+     "text": "A hall that seats sixty",
+     "family": "Sora",
+     "size": 26,
+     "weight": 800,
+     "color": "#0B0B14",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 176,
+     "y": 621,
+     "w": 740,
+     "h": 30,
+     "text": "Sessions, meals and demos",
+     "family": "Manrope",
+     "size": 20,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 96,
+     "y": 705,
+     "w": 56,
+     "h": 56,
+     "fill": "#f5d5d4"
+    },
+    {
+     "kind": "icon",
+     "icon": "sun",
+     "x": 110,
+     "y": 719,
+     "w": 28,
+     "h": 28,
+     "color": "#FF4D2E"
+    },
+    {
+     "kind": "text",
+     "x": 176,
+     "y": 703,
+     "w": 740,
+     "h": 34,
+     "text": "Highs of 18, lows of 4",
+     "family": "Sora",
+     "size": 26,
+     "weight": 800,
+     "color": "#0B0B14",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 176,
+     "y": 739,
+     "w": 740,
+     "h": 30,
+     "text": "Layers. Really.",
+     "family": "Manrope",
+     "size": 20,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "name": "Photo",
+     "x": 1080,
+     "y": 268,
+     "w": 700,
+     "h": 650,
+     "fill": {
+      "angle": 160,
+      "stops": [
+       [
+        "#c7c7fa",
+        0
+       ],
+       [
+        "#F3F3F9",
+        1
+       ]
+      ]
+     },
+     "radius": 24
+    },
+    {
+     "kind": "ellipse",
+     "x": 1170,
+     "y": 300,
+     "w": 520,
+     "h": 520,
+     "fill": "#FF4D2E",
+     "opacity": 0.12
+    },
+    {
+     "kind": "ellipse",
+     "x": 1222,
+     "y": 352,
+     "w": 416,
+     "h": 416,
+     "fill": "#FF4D2E",
+     "opacity": 0.16
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "la-hero-image-2",
+     "x": 1180,
+     "y": 320,
+     "w": 500,
+     "h": 440
+    }
+   ]
+  },
+  {
+   "name": "Split",
+   "bg": "#FFFFFF",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 900,
+     "h": 1080,
+     "fill": {
+      "angle": 160,
+      "stops": [
+       [
+        "#2B2BFF",
+        0
+       ],
+       [
+        "#6A2BFF",
+        1
+       ]
+      ]
+     },
+     "bleed": true
+    },
+    {
+     "kind": "ellipse",
+     "x": 191,
+     "y": 228,
+     "w": 8,
+     "h": 8,
+     "fill": "#FF4D2E",
+     "opacity": 0.75
+    },
+    {
+     "kind": "ellipse",
+     "x": 383,
+     "y": 387,
+     "w": 6,
+     "h": 6,
+     "fill": "#FF4D2E",
+     "opacity": 0.75
+    },
+    {
+     "kind": "ellipse",
+     "x": 209,
+     "y": 130,
+     "w": 8,
+     "h": 8,
+     "fill": "#FF4D2E",
+     "opacity": 0.48
+    },
+    {
+     "kind": "ellipse",
+     "x": 687,
+     "y": 66,
+     "w": 5,
+     "h": 5,
+     "fill": "#FF4D2E",
+     "opacity": 0.59
+    },
+    {
+     "kind": "ellipse",
+     "x": 535,
+     "y": 175,
+     "w": 9,
+     "h": 9,
+     "fill": "#FF4D2E",
+     "opacity": 0.45999999999999996
+    },
+    {
+     "kind": "ellipse",
+     "x": 172,
+     "y": 425,
+     "w": 6,
+     "h": 6,
+     "fill": "#FF4D2E",
+     "opacity": 0.6599999999999999
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 130,
+     "w": 700,
+     "h": 28,
+     "text": "The problem",
+     "family": "Manrope",
+     "size": 20,
+     "weight": 600,
+     "color": "#B9F542",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 184,
+     "w": 720,
+     "h": 240,
+     "text": "Selling online is\nstill built for\nbig brands.",
+     "family": "Sora",
+     "size": 58,
+     "weight": 800,
+     "color": "#FFFFFF",
+     "lineHeight": 1.08
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 470,
+     "w": 12,
+     "h": 12,
+     "fill": "#FF4D2E",
+     "radius": 3
+    },
+    {
+     "kind": "text",
+     "x": 128,
+     "y": 460,
+     "w": 660,
+     "h": 70,
+     "text": "Most small shops still cannot take an order online.",
+     "family": "Manrope",
+     "size": 24,
+     "weight": 500,
+     "color": "#CFCFFF",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 570,
+     "w": 12,
+     "h": 12,
+     "fill": "#FF4D2E",
+     "radius": 3
+    },
+    {
+     "kind": "text",
+     "x": 128,
+     "y": 560,
+     "w": 660,
+     "h": 70,
+     "text": "Store builders demand weeks of setup and fees.",
+     "family": "Manrope",
+     "size": 24,
+     "weight": 500,
+     "color": "#CFCFFF",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 670,
+     "w": 12,
+     "h": 12,
+     "fill": "#FF4D2E",
+     "radius": 3
+    },
+    {
+     "kind": "text",
+     "x": 128,
+     "y": 660,
+     "w": 660,
+     "h": 70,
+     "text": "Marketplaces skim a third and keep the customer.",
+     "family": "Manrope",
+     "size": 24,
+     "weight": 500,
+     "color": "#CFCFFF",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 900,
+     "y": 0,
+     "w": 6,
+     "h": 1080,
+     "fill": "#FF4D2E",
+     "bleed": true
+    },
+    {
+     "kind": "text",
+     "x": 980,
+     "y": 130,
+     "w": 800,
+     "h": 28,
+     "text": "Our solution",
+     "family": "Manrope",
+     "size": 20,
+     "weight": 600,
+     "color": "#FF4D2E",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 980,
+     "y": 184,
+     "w": 820,
+     "h": 160,
+     "text": "Storefronts that\nbuild themselves.",
+     "family": "Sora",
+     "size": 58,
+     "weight": 800,
+     "color": "#0B0B14",
+     "lineHeight": 1.08
+    },
+    {
+     "kind": "text",
+     "x": 980,
+     "y": 370,
+     "w": 800,
+     "h": 110,
+     "text": "We read a shop's socials and point of sale, then assemble a ready-to-sell storefront with payments and delivery included.",
+     "family": "Manrope",
+     "size": 24,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 980,
+     "y": 520,
+     "w": 44,
+     "h": 44,
+     "fill": "#f5d2d0"
+    },
+    {
+     "kind": "icon",
+     "icon": "bolt",
+     "x": 990,
+     "y": 530,
+     "w": 24,
+     "h": 24,
+     "color": "#FF4D2E"
+    },
+    {
+     "kind": "text",
+     "x": 1044,
+     "y": 526,
+     "w": 700,
+     "h": 34,
+     "text": "Live in one afternoon",
+     "family": "Manrope",
+     "size": 24,
+     "weight": 600,
+     "color": "#0B0B14",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 980,
+     "y": 596,
+     "w": 44,
+     "h": 44,
+     "fill": "#f5d2d0"
+    },
+    {
+     "kind": "icon",
+     "icon": "coin",
+     "x": 990,
+     "y": 606,
+     "w": 24,
+     "h": 24,
+     "color": "#FF4D2E"
+    },
+    {
+     "kind": "text",
+     "x": 1044,
+     "y": 602,
+     "w": 700,
+     "h": 34,
+     "text": "No commission, one flat fee",
+     "family": "Manrope",
+     "size": 24,
+     "weight": 600,
+     "color": "#0B0B14",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 980,
+     "y": 672,
+     "w": 44,
+     "h": 44,
+     "fill": "#f5d2d0"
+    },
+    {
+     "kind": "icon",
+     "icon": "user",
+     "x": 990,
+     "y": 682,
+     "w": 24,
+     "h": 24,
+     "color": "#FF4D2E"
+    },
+    {
+     "kind": "text",
+     "x": 1044,
+     "y": 678,
+     "w": 700,
+     "h": 34,
+     "text": "You own every customer",
+     "family": "Manrope",
+     "size": 24,
+     "weight": 600,
+     "color": "#0B0B14",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 1410,
+     "y": 650,
+     "w": 300,
+     "h": 300,
+     "fill": "#FF4D2E",
+     "opacity": 0.12
+    },
+    {
+     "kind": "ellipse",
+     "x": 1440,
+     "y": 680,
+     "w": 240,
+     "h": 240,
+     "fill": "#FF4D2E",
+     "opacity": 0.16
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Loop  ·  Seed round 2026",
+     "family": "Manrope",
+     "size": 18,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "16 / 21",
+     "family": "Manrope",
+     "size": 18,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.3,
+     "align": "right"
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "la-hero-image-2",
+     "x": 1440,
+     "y": 690,
+     "w": 240,
+     "h": 220
+    }
+   ]
+  },
+  {
    "name": "Comparison table",
    "bg": "#FFFFFF",
    "nodes": [
@@ -3266,7 +5106,7 @@
      "y": 992,
      "w": 240,
      "h": 26,
-     "text": "12 / 16",
+     "text": "17 / 21",
      "family": "Manrope",
      "size": 18,
      "weight": 500,
@@ -3692,7 +5532,7 @@
      "y": 992,
      "w": 240,
      "h": 26,
-     "text": "13 / 16",
+     "text": "18 / 21",
      "family": "Manrope",
      "size": 18,
      "weight": 500,
@@ -3987,7 +5827,7 @@
      "y": 992,
      "w": 240,
      "h": 26,
-     "text": "14 / 16",
+     "text": "19 / 21",
      "family": "Manrope",
      "size": 18,
      "weight": 500,
@@ -4134,7 +5974,7 @@
      "y": 992,
      "w": 240,
      "h": 26,
-     "text": "15 / 16",
+     "text": "20 / 21",
      "family": "Manrope",
      "size": 18,
      "weight": 500,
@@ -4916,7 +6756,7 @@
      "y": 940,
      "w": 240,
      "h": 28,
-     "text": "16 / 16",
+     "text": "21 / 21",
      "family": "Manrope",
      "size": 18,
      "weight": 500,
@@ -4962,19 +6802,19 @@
    "hint": "Who presents, and when"
   },
   {
-   "node": "p15-n16",
+   "node": "p20-n16",
    "kind": "text",
    "label": "Email",
    "hint": "Contact detail"
   },
   {
-   "node": "p15-n18",
+   "node": "p20-n18",
    "kind": "text",
    "label": "Website",
    "hint": "Contact detail"
   },
   {
-   "node": "p15-n20",
+   "node": "p20-n20",
    "kind": "text",
    "label": "Phone",
    "hint": "Contact detail"

@@ -340,6 +340,19 @@
      "opacity": 0.16
     },
     {
+     "kind": "text",
+     "x": 96,
+     "y": 180,
+     "w": 1000,
+     "h": 50,
+     "text": "// section two",
+     "family": "IBM Plex Mono",
+     "size": 30,
+     "weight": 500,
+     "color": "#C8F542",
+     "lineHeight": 1.2
+    },
+    {
      "kind": "rect",
      "x": 96,
      "y": 968,
@@ -374,7 +387,7 @@
   }
  ],
  "fillable": [],
- "version": 2,
+ "version": 3,
  "created": "2026-07-04T00:00:00.000Z",
  "updated": "2026-09-30T00:00:00.000Z",
  "rank": 100

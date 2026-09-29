@@ -782,6 +782,19 @@
      "opacity": 0.16
     },
     {
+     "kind": "text",
+     "x": 96,
+     "y": 180,
+     "w": 1000,
+     "h": 50,
+     "text": "Twelve months, one story",
+     "family": "Cormorant Garamond",
+     "size": 40,
+     "weight": 600,
+     "color": "#E8B94A",
+     "lineHeight": 1.2
+    },
+    {
      "kind": "rect",
      "x": 96,
      "y": 968,
@@ -2277,7 +2290,7 @@
    "hint": "Contact detail"
   }
  ],
- "version": 2,
+ "version": 3,
  "created": "2026-08-28T00:00:00.000Z",
  "updated": "2026-09-30T00:00:00.000Z",
  "rank": 64

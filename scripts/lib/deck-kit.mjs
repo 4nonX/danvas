@@ -313,6 +313,37 @@ export function ornamentDeep(K, g, opts = {}) {
       return [text(1160, 420, 760, 700, K.watermark ?? "&", { family: K.display, size: 620, weight: 500, color: mixHex(g.bg, g.ink, 0.08), align: "right", lineHeight: 1, bleed: true }), rect(M, 64, CW, 2, g.line)];
     case "sun":
       return [ellipse(1620, -120, 300, 300, g.sun, { bleed: true, opacity: 0.95 }), ...sparkles(g.sun, 13, 7, { x: 0, y: 0, w: W, h: 700 })];
+    case "ridges":
+      // Soft ridgelines along the bottom, a moon and two layers of stars.
+      return [
+        ellipse(-300, 860, 1100, 700, mixHex(g.bg, g.bg2, 0.6), { bleed: true }),
+        ellipse(500, 900, 1300, 700, mixHex(g.bg, g.ink, 0.06), { bleed: true }),
+        ellipse(1400, 880, 1100, 700, mixHex(g.bg, g.bg2, 0.6), { bleed: true }),
+        ellipse(1500, 80, 120, 120, g.accent, { opacity: 0.9 }), ellipse(1470, 60, 120, 120, g.bg, { opacity: 0.85 }),
+        ...sparkles(g.accent, 7, 10, { x: 0, y: 0, w: W, h: 620 }), ...sparkles(g.ink, 11, 8, { x: 0, y: 0, w: W, h: 620 }),
+      ];
+    case "arcs":
+      // Concentric rings off the top right corner.
+      return [1400, 1100, 800, 500].map((d, k) => ellipse(1920 - d / 2 - 120, -d / 2 + 80, d, d, undefined, { stroke: g.accent, strokeWidth: 2, opacity: 0.22 + k * 0.08, bleed: true }));
+    case "dots": {
+      // A dot grid over the right third, fading nothing: texture, not pattern.
+      const out = [];
+      for (let r = 0; r < 9; r++) for (let c = 0; c < 7; c++) out.push(ellipse(1320 + c * 88, 96 + r * 88, 6, 6, g.ink, { opacity: 0.16 }));
+      return [...out, ...sparkles(g.accent, 17, 5)];
+    }
+    case "stripes":
+      // Three diagonal bands in tints of the accent, behind everything.
+      return [0, 1, 2].map((k) => rect(1180 + k * 190, -300, 90, 1700, g.accent, { rotation: 24, opacity: 0.1 + k * 0.05, bleed: true }));
+    case "orbs":
+      // Floating discs in the two accents, the bold look's weather.
+      return [
+        ellipse(1500, 120, 260, 260, g.accent, { opacity: 0.9 }), ellipse(1700, 420, 140, 140, g.accent2, { opacity: 0.9 }),
+        ellipse(1380, 760, 90, 90, g.accent2, { opacity: 0.7 }), ellipse(200, 860, 180, 180, g.accent, { opacity: 0.35, bleed: true }),
+        ...sparkles(g.ink, 19, 6),
+      ];
+    case "corner":
+      // One big triangle of the accent in the top right corner, made of a rotated square.
+      return [rect(1560, -420, 760, 760, g.accent, { rotation: 45, opacity: 0.92, bleed: true }), ...sparkles(g.ink, 23, 6, { x: 0, y: 0, w: 1400, h: 700 })];
     default:
       return [];
   }
@@ -340,6 +371,21 @@ export function ornamentPaper(K, g) {
       return [text(1160, 420, 760, 700, K.watermark ?? "&", { family: K.display, size: 620, weight: 500, color: mixHex(g.bg, g.ink, 0.05), align: "right", lineHeight: 1, bleed: true }), rect(M, 64, CW, 2, g.line)];
     case "sun":
       return [ellipse(1740, -140, 260, 260, g.sun, { bleed: true, opacity: 0.9 })];
+    case "ridges":
+      return [ellipse(1720, -160, 340, 340, mixHex(g.bg, g.accent, 0.18), { bleed: true })];
+    case "arcs":
+      return [1100, 800].map((d, k) => ellipse(1920 - d / 2 - 120, -d / 2 + 60, d, d, undefined, { stroke: g.accent, strokeWidth: 2, opacity: 0.18 + k * 0.08, bleed: true }));
+    case "dots": {
+      const out = [];
+      for (let r = 0; r < 3; r++) for (let c = 0; c < 6; c++) out.push(ellipse(1360 + c * 80, 40 + r * 80, 5, 5, g.ink, { opacity: 0.14 }));
+      return out;
+    }
+    case "stripes":
+      return [rect(1700, -300, 60, 1700, g.accent, { rotation: 24, opacity: 0.08, bleed: true })];
+    case "orbs":
+      return [ellipse(1760, -80, 200, 200, g.accent, { opacity: 0.85, bleed: true }), ellipse(1660, 140, 60, 60, g.accent2, { opacity: 0.8 })];
+    case "corner":
+      return [rect(1760, -300, 420, 420, g.accent, { rotation: 45, opacity: 0.9, bleed: true })];
     default:
       return [];
   }
@@ -377,6 +423,16 @@ export function footer(K, g, i) {
     text(M, y, 900, 26, `${K.company}  ·  ${K.deck}`, t.meta()),
     ...(K.total > 1 ? [text(W - M - 240, y, 240, 26, pageNo(i, K.total), t.meta({ align: "right" }))] : []),
   ];
+}
+
+/** A slide's hand note in the accent face: bottom right on a reading page
+ *  (above the footer rule), under the picture on a deep page. */
+export function note(K, g, str, deep = false) {
+  if (!str) return [];
+  const t = type(K, g);
+  return deep
+    ? [text(1140, 872, 720, 52, str, t.kicker({ align: "center", size: Math.round(K.accentSize * 0.85) }))]
+    : [text(W - M - 760, 908, 760, 48, str, t.kicker({ align: "right", size: Math.round(K.accentSize * 0.8) }))];
 }
 
 /** A card: the look's panel with a hairline stroke, in the look's radius. */
@@ -594,6 +650,7 @@ export function cover(K, i, c0) {
       illustrations.push(art(K.art.cover, 1210, 230, 580, 580));
       break;
   }
+  nodes.push(...note(K, g, c.note, true));
   return { page: { name: "Cover", bg: deepGround(g), nodes, illustrations }, fill };
 }
 
@@ -626,6 +683,7 @@ export function agenda(K, i, c0) {
     nodes.push(text(cx + 40, my + 28, cw - 80, 30, v, td.strong(22)));
     if (k < c.card.meta.length - 1) nodes.push(rect(cx + 40, my + 64, cw - 80, 1, d.line));
   });
+  nodes.push(...note(K, g, c.note));
   return { page: { name: "Agenda", bg: g.bg, nodes } };
 }
 
@@ -651,8 +709,10 @@ export function section(K, i, c0) {
     nodes.push(text(M, 236 + K.scale.section + 48 + 232, 900, 90, c.blurb, t.body(28)));
     nodes.push(...halo(1520, 560, 560, g.accent));
     illustrations.push(art(drawing, 1300, 340, 440, 440));
+    nodes.push(text(M, 180, 1000, 50, c.kicker ?? K.kicker, t.kicker()));
   }
   nodes.push(...footer(K, g, i));
+  nodes.push(...note(K, g, c.note, true));
   return { page: { name: "Section", bg: deepGround(g), nodes, illustrations } };
 }
 
@@ -669,6 +729,7 @@ export function statement(K, i, c0) {
   while (size > K.scale.statement * 0.6 && linesFor(c.text, size, 1560) > 3) size -= 4;
   nodes.push(text(M, y, 1560, Math.round(size * 1.12 * 3) + 10, c.text, t.display(size, { lineHeight: 1.1 })));
   nodes.push(text(M, y + Math.round(size * 1.12 * 3) + 50, 1000, 32, c.source, t.meta()));
+  nodes.push(...note(K, g, c.note));
   return { page: { name: "Statement", bg: g.bg, nodes } };
 }
 
@@ -688,6 +749,7 @@ export function textPicture(K, i, c0) {
   nodes.push(photo(1080, 196, 744, 740, { angle: 160, stops: [[mixHex(g.panel, g.accent2, 0.22), 0], [g.panel, 1]] }, { radius: K.radius * 1.5 }));
   nodes.push(...halo(1452, 566, 520, g.accent));
   const illustrations = [art(c.art ?? K.art.picture, 1150, 280, 604, 570)];
+  nodes.push(...note(K, g, c.note));
   return { page: { name: "Text and picture", bg: g.bg, nodes, illustrations } };
 }
 
@@ -717,6 +779,7 @@ export function twoColumns(K, i, c0) {
       nodes.push(text(col.x + 48, ly + 24, colW - 96, 40, l, col.ty.strong(24)));
     });
   });
+  nodes.push(...note(K, g, c.note));
   return { page: { name: "Two columns", bg: g.bg, nodes } };
 }
 
@@ -740,6 +803,7 @@ export function threeCards(K, i, c0) {
     nodes.push(rect(x + 40, y + h - 84, cw - 80, 1, g.line));
     nodes.push(text(x + 40, y + h - 60, 120, 28, String(k + 1).padStart(2, "0"), t.meta()));
   });
+  nodes.push(...note(K, g, c.note));
   return { page: { name: "Three cards", bg: g.bg, nodes } };
 }
 
@@ -761,6 +825,7 @@ export function figures(K, i, c0) {
     nodes.push(button(x + 36, y + 250, 190, 40, d, { fill: mixHex(g.panel, tone, 0.18), color: tone, family: K.body, size: 17, weight: 700 }));
     nodes.push(text(x + 36, y + 320, cw - 72, 140, note, t.body(20)));
   });
+  nodes.push(...note(K, g, c.note));
   return { page: { name: "Figures", bg: g.bg, nodes } };
 }
 
@@ -789,6 +854,7 @@ export function chart(K, i, c0) {
     nodes.push(text(rx, y + 88, rw, 60, l, t.body(22)));
     if (k < c.calls.length - 1) nodes.push(rect(rx, y + 152, rw, 1, g.line));
   });
+  nodes.push(...note(K, g, c.note));
   return { page: { name: "Chart", bg: g.bg, nodes } };
 }
 
@@ -811,6 +877,7 @@ export function timeline(K, i, c0) {
     nodes.push(text(x, y + 64, cw - 48, two ? 80 : 44, h, t.display(32, { lineHeight: 1.1 })));
     nodes.push(text(x, y + (two ? 152 : 116), cw - 48, 120, s, t.body(21)));
   });
+  nodes.push(...note(K, g, c.note));
   return { page: { name: "Timeline", bg: g.bg, nodes } };
 }
 
@@ -832,6 +899,7 @@ export function process(K, i, c0) {
     nodes.push(text(x, y + 132, cw, 44, h, t.display(32)));
     nodes.push(text(x, y + 186, cw - 24, 150, s, t.body(21)));
   });
+  nodes.push(...note(K, g, c.note));
   return { page: { name: "Process", bg: g.bg, nodes } };
 }
 
@@ -863,6 +931,7 @@ export function table(K, i, c0) {
     });
     nodes.push(rect(x0, y + rowH - 1, CW, 1, g.line));
   });
+  nodes.push(...note(K, g, c.note));
   return { page: { name: "Comparison table", bg: g.bg, nodes } };
 }
 
@@ -881,11 +950,13 @@ export function team(K, i, c0) {
     const px = x + (cw - 220) / 2;
     // A portrait slot: a tinted circle (drop a photo on it) with a drawn peep.
     nodes.push(photo(px, y, 220, 220, mixHex(g.panel, tone, 0.22), { shape: "ellipse" }));
-    illustrations.push(art(K.peeps[k % K.peeps.length], px + 30, y + 22, 160, 176));
+    const peeps = c.peeps ?? K.peeps;
+    illustrations.push(art(peeps[k % peeps.length], px + 30, y + 22, 160, 176));
     nodes.push(text(x, y + 252, cw, 40, name, t.display(30, { align: "center" })));
     nodes.push(text(x, y + 298, cw, 28, r, t.eyebrow({ align: "center", size: 17, color: tone })));
     nodes.push(text(x + 24, y + 344, cw - 48, 96, b, t.body(21, { align: "center" })));
   });
+  nodes.push(...note(K, g, c.note));
   return { page: { name: "Team", bg: g.bg, nodes, illustrations } };
 }
 
@@ -902,6 +973,7 @@ export function quote(K, i, c0) {
   const illustrations = [art(K.peeps[4 % K.peeps.length], M + 32, ay + 8, 60, 68)];
   nodes.push(text(M + 128, ay + 8, 800, 32, c.name, t.strong(24)));
   nodes.push(text(M + 128, ay + 44, 800, 28, c.role, t.body(20)));
+  nodes.push(...note(K, g, c.note, true));
   return { page: { name: "Quote", bg: deepGround(g), nodes, illustrations } };
 }
 
@@ -935,6 +1007,7 @@ export function pricing(K, i, c0) {
     const btnFill = hot ? gg.accent : d.bg;
     nodes.push(button(x + 40, y + h - 100, cw - 80, 60, hot ? c.hotCta : c.ctaPrefix + name, { fill: btnFill, color: inkOn(K, btnFill), family: K.body, size: 20, weight: 700, radius: K.radius ? Math.min(K.radius, 30) : 0 }));
   });
+  nodes.push(...note(K, g, c.note));
   return { page: { name: "Pricing", bg: g.bg, nodes } };
 }
 
@@ -969,6 +1042,7 @@ export function closing(K, i, c0) {
   });
   nodes.push(button(M, 910, 340, 64, c.cta, { fill: g.accent, color: inkOn(K, g.accent), family: K.body, size: 22, weight: 700, radius: K.radius ? Math.min(K.radius, 32) : 0 }));
   if (K.total > 1) nodes.push(text(W - M - 240, 940, 240, 28, pageNo(i, K.total), t.meta({ align: "right" })));
+  nodes.push(...note(K, g, c.note, true));
   return { page: { name: "Closing", bg: deepGround(g), nodes, illustrations }, fill };
 }
 
@@ -1034,20 +1108,171 @@ export function columns(K, i, c0) {
       nodes.push(text(x + 64, iy + 40, cw - 100, 80, line, tt.body(19)));
     });
   });
+  nodes.push(...note(K, g, c.note));
   return { page: { name: "Roadmap", bg: g.bg, nodes } };
 }
 
-/** A slide the deck script built itself, with these primitives. */
-export const raw = (K, i, c) => ({ page: c.page, fill: c.fill ?? [] });
+/** A day's schedule: a timeline of slots down the left, an after-hours
+ *  card on the deep ground at right with a drawing in a halo. From the
+ *  offsite deck. */
+export function schedule(K, i, c0) {
+  const c = {
+    eyebrow: "Day one  ·  Wednesday", title: "Maps out, laptops shut.",
+    slots: [["08:30", "Check-in", "Badges, maps and the good espresso."], ["10:00", "The plan", "Ten slides, zero spreadsheets."], ["12:30", "Lunch", "One table, everyone."], ["14:00", "Workshops", "Pick one of three tracks."], ["16:30", "The walk", "Gentle loop or the summit."], ["19:00", "Dinner", "Off the grill, by the fire."]],
+    after: { eyebrow: "After hours", head: "Night one ends\naround the fire.", note: "bring a hoodie, trust us" },
+    ...(c0 ?? {}),
+  };
+  const g = K.paper;
+  const d = K.deep;
+  const t = type(K, g);
+  const td = type(K, d);
+  const { nodes } = chrome(K, g, i, c.eyebrow, c.title, { titleWidth: 940 });
+  nodes.push(rect(M + 10, 332, 4, 520, g.line, { radius: 2 }));
+  c.slots.forEach(([tm, h, sub], k) => {
+    const y = 322 + k * 104;
+    nodes.push(ellipse(M + 2, y, 20, 20, k % 3 === 2 ? g.accent2 : g.accent));
+    nodes.push(text(M + 56, y - 2, 150, 28, tm, { family: K.mono ?? K.body, size: 22, weight: 600, color: g.accent, lineHeight: 1.2 }));
+    nodes.push(text(M + 220, y - 6, 620, 32, h, t.display(27)));
+    nodes.push(text(M + 220, y + 32, 620, 56, sub, t.body(20)));
+  });
+  const cx = 1120, cy = 268, cw = 660, ch = 650;
+  nodes.push(rect(cx, cy, cw, ch, deepGround(d), { radius: K.radius }));
+  nodes.push(...sparkles(d.accent, 20 + i, 6, { x: cx + 20, y: cy + 20, w: cw - 40, h: 300 }));
+  nodes.push(text(cx + 60, cy + 56, 540, 24, c.after.eyebrow, td.eyebrow({ size: 19, letterSpacing: 3 })));
+  nodes.push(text(cx + 60, cy + 92, 540, 84, c.after.head, td.display(34)));
+  nodes.push(...halo(cx + cw / 2, cy + 440, 360, d.accent));
+  const illustrations = [art(c.art ?? K.art.section, cx + 150, cy + 280, 360, 300)];
+  if (c.after.note) nodes.push(text(cx + 60, cy + 560, 540, 44, c.after.note, td.kicker({ align: "center", size: Math.round(K.accentSize * 0.8) })));
+  return { page: { name: "Schedule", bg: g.bg, nodes, illustrations } };
+}
 
-export const LAYOUTS = { cover, agenda, section, statement, textPicture, twoColumns, threeCards, figures, chart, timeline, process, table, team, quote, pricing, closing, bigStat, columns, raw };
+/** A checklist in two columns with a legend, and a picture slot with a
+ *  drawing at right. From the offsite deck. */
+export function checklist(K, i, c0) {
+  const c = {
+    eyebrow: "Before you leave", title: "The pack list",
+    items: [["Layers for the weather", true], ["Shoes that can get muddy", true], ["A water bottle", true], ["Swimsuit, for the brave", false], ["A hoodie for the evening", true], ["A torch", false], ["Chargers", true], ["A book or a deck of cards", false]],
+    legend: ["must bring", "nice to have"],
+    ...(c0 ?? {}),
+  };
+  const g = K.paper;
+  const t = type(K, g);
+  const { nodes, bodyTop } = chrome(K, g, i, c.eyebrow, c.title, { titleWidth: 900 });
+  c.items.forEach(([label, must], k) => {
+    const col = k % 2, row = Math.floor(k / 2);
+    const x = M + col * 560, y = bodyTop + 20 + row * 92;
+    nodes.push(icon(must ? "circle-check" : "circle", x, y + 2, 34, must ? g.accent : g.line));
+    nodes.push(text(x + 54, y, 480, 40, label, t.strong(24)));
+  });
+  const ly = bodyTop + 20 + Math.ceil(c.items.length / 2) * 92 + 20;
+  nodes.push(rect(M, ly, 1080, 1, g.line));
+  nodes.push(icon("circle-check", M, ly + 26, 22, g.accent));
+  nodes.push(text(M + 34, ly + 22, 300, 28, c.legend[0], t.body(18)));
+  nodes.push(icon("circle", M + 260, ly + 26, 22, g.line));
+  nodes.push(text(M + 294, ly + 22, 300, 28, c.legend[1], t.body(18)));
+  nodes.push(photo(1300, 268, 480, 600, { angle: 160, stops: [[mixHex(g.panel, g.accent2, 0.22), 0], [g.panel, 1]] }, { radius: K.radius }));
+  nodes.push(...halo(1540, 540, 400, g.accent));
+  const illustrations = [art(c.art ?? K.art.picture, 1360, 320, 360, 420)];
+  nodes.push(...note(K, g, c.note));
+  return { page: { name: "Checklist", bg: g.bg, nodes, illustrations } };
+}
+
+/** Facts with icons down the left, a large picture slot with a drawing at
+ *  right, and an intro line. From the offsite deck's lodge slide. */
+export function facts(K, i, c0) {
+  const c = {
+    eyebrow: "Where we're staying", title: "The lodge",
+    intro: "A timber lodge at altitude with a lake, a library, a long porch and no reason to check messages.",
+    items: [["map-pin", "Two hours from the office", "By shuttle, door to door"], ["bed", "Sixteen cabins", "Assignments land the Friday before"], ["home", "A hall that seats sixty", "Sessions, meals and demos"], ["sun", "Highs of 18, lows of 4", "Layers. Really."]],
+    ...(c0 ?? {}),
+  };
+  const g = K.paper;
+  const t = type(K, g);
+  const { nodes, bodyTop } = chrome(K, g, i, c.eyebrow, c.title, { titleWidth: 900 });
+  nodes.push(text(M, bodyTop - 20, 820, 90, c.intro, t.body(26)));
+  c.items.forEach(([ic, h, sub], k) => {
+    const y = bodyTop + 100 + k * 118;
+    nodes.push(ellipse(M, y, 56, 56, mixHex(g.panel, g.accent, 0.18)));
+    nodes.push(icon(ic, M + 14, y + 14, 28, g.accent));
+    nodes.push(text(M + 80, y - 2, 740, 34, h, t.display(26)));
+    nodes.push(text(M + 80, y + 34, 740, 30, sub, t.body(20)));
+  });
+  nodes.push(photo(1080, 268, 700, 650, { angle: 160, stops: [[mixHex(g.panel, g.accent2, 0.22), 0], [g.panel, 1]] }, { radius: K.radius }));
+  nodes.push(...halo(1430, 560, 520, g.accent));
+  const illustrations = [art(c.art ?? K.art.picture, 1180, 320, 500, 440)];
+  nodes.push(...note(K, g, c.note));
+  return { page: { name: "Facts", bg: g.bg, nodes, illustrations } };
+}
+
+/** A split slide: the problem on a deep panel at left, the answer on paper
+ *  at right with checks, a drawing in a halo. From the main-street pitch. */
+export function split(K, i, c0) {
+  const c = {
+    left: { eyebrow: "The problem", head: "Selling online is\nstill built for\nbig brands.", lines: ["Most small shops still cannot take an order online.", "Store builders demand weeks of setup and fees.", "Marketplaces skim a third and keep the customer."] },
+    right: { eyebrow: "Our solution", head: "Storefronts that\nbuild themselves.", body: "We read a shop's socials and point of sale, then assemble a ready-to-sell storefront with payments and delivery included.", checks: [["bolt", "Live in one afternoon"], ["coin", "No commission, one flat fee"], ["user", "You own every customer"]] },
+    ...(c0 ?? {}),
+  };
+  const g = K.paper;
+  const d = K.deep;
+  const t = type(K, g);
+  const td = type(K, d);
+  const nodes = [
+    rect(0, 0, 900, H, deepGround(d), { bleed: true }),
+    ...sparkles(d.accent, 21 + i, 6, { x: 40, y: 40, w: 820, h: 400 }),
+    text(M, 130, 700, 28, c.left.eyebrow, td.eyebrow()),
+    text(M, 184, 720, 240, c.left.head, td.display(58, { lineHeight: 1.08 })),
+    ...c.left.lines.flatMap((line, k) => [rect(M, 470 + k * 100, 12, 12, d.accent, { radius: 3 }), text(M + 32, 460 + k * 100, 660, 70, line, td.body(24))]),
+    rect(900, 0, 6, H, g.accent, { bleed: true }),
+    text(980, 130, 800, 28, c.right.eyebrow, t.eyebrow()),
+    text(980, 184, 820, 160, c.right.head, t.display(58, { lineHeight: 1.08 })),
+    text(980, 370, 800, 110, c.right.body, t.body(24)),
+    ...c.right.checks.flatMap(([ic, line], k) => [ellipse(980, 520 + k * 76, 44, 44, mixHex(g.panel, g.accent, 0.2)), icon(ic, 990, 530 + k * 76, 24, g.accent), text(1044, 526 + k * 76, 700, 34, line, t.strong(24))]),
+    ...halo(1560, 800, 300, g.accent),
+    ...footer(K, g, i).slice(1),
+  ];
+  const illustrations = [art(c.art ?? K.art.picture, 1440, 690, 240, 220)];
+  return { page: { name: "Split", bg: g.bg, nodes, illustrations } };
+}
+
+/** Four cards in a two by two grid, each with an icon, a heading and a line.
+ *  From the offsite deck's agreements. */
+export function fourCards(K, i, c0) {
+  const c = {
+    eyebrow: "How we do this", title: "Four agreements for the week",
+    cards: [["clock", "Be on time", "Sessions start when they say; nobody waits well."], ["microphone", "Everyone speaks", "Each session ends with a round."], ["device-mobile", "Phones down in sessions", "Notes on paper; photos of the board at the end."], ["heart", "Kind by default", "Demos are brave. Questions are curious."]],
+    ...(c0 ?? {}),
+  };
+  const g = K.paper;
+  const t = type(K, g);
+  const { nodes, bodyTop } = chrome(K, g, i, c.eyebrow, c.title);
+  c.cards.forEach(([ic, h, sub], k) => {
+    const x = M + (k % 2) * 876, y = bodyTop + Math.floor(k / 2) * 300;
+    const tone = k % 2 ? g.accent2 : g.accent;
+    nodes.push(card(K, g, x, y, 852, 264));
+    nodes.push(ellipse(x + 40, y + 40, 72, 72, mixHex(g.panel, tone, 0.2)));
+    nodes.push(icon(ic, x + 58, y + 58, 36, tone));
+    nodes.push(text(x + 140, y + 44, 672, 40, h, t.display(30)));
+    nodes.push(text(x + 140, y + 96, 672, 120, sub, t.body(22)));
+  });
+  nodes.push(...note(K, g, c.note));
+  return { page: { name: "Four cards", bg: g.bg, nodes } };
+}
+
+/** A slide the deck script built itself, with these primitives. */
+export const raw = (K, i, c) => (typeof c.build === "function" ? c.build(K, i) : { page: c.page, fill: c.fill ?? [] });
+
+export const LAYOUTS = { cover, agenda, section, statement, textPicture, twoColumns, threeCards, figures, chart, timeline, process, table, team, quote, pricing, closing, bigStat, columns, schedule, checklist, facts, split, fourCards, raw };
 
 // --- assembly ------------------------------------------------------------------
 
 /** A template spec from a look and a slide plan. `plan.slides` is a list of
  *  `[layoutName, content]`; deck meta (company, deck, kicker, farewell, art,
  *  peeps) on the plan overrides the look's. */
-export function buildSpec(look, plan) {
+export function buildSpec(look0, plan) {
+  // A plan may override any part of its look: palettes, faces, the
+  // ornament, drawings, portraits, scale.
+  const o = plan.look ?? {};
+  const look = { ...look0, ...o, paper: { ...look0.paper, ...(o.paper ?? {}) }, deep: { ...look0.deep, ...(o.deep ?? {}) }, art: { ...look0.art, ...(o.art ?? {}) }, scale: { ...look0.scale, ...(o.scale ?? {}) } };
   const K = { ...look, ...(plan.meta ?? {}), art: { ...look.art, ...(plan.meta?.art ?? {}) }, total: plan.slides.length };
   const pages = [];
   const fillable = [];

@@ -1427,6 +1427,19 @@
      "opacity": 0.16
     },
     {
+     "kind": "text",
+     "x": 96,
+     "y": 180,
+     "w": 1000,
+     "h": 50,
+     "text": "// q3 2026, product and engineering",
+     "family": "JetBrains Mono",
+     "size": 28,
+     "weight": 500,
+     "color": "#22D3EE",
+     "lineHeight": 1.2
+    },
+    {
      "kind": "rect",
      "x": 96,
      "y": 968,

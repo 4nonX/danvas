@@ -1,5 +1,5 @@
-// Generate the presentation kits: six complete slide systems, sixteen layouts
-// each, written as template specs (scripts/templates/kit-*.json) for
+// Generate the presentation kits: six complete slide systems, twenty-one
+// layouts each, written as template specs (scripts/templates/kit-*.json) for
 // scripts/build-templates.mjs to compile into the embedded seed.
 //
 //   node scripts/gen-deck-kits.mjs            # write the six kit specs
@@ -30,7 +30,7 @@ const OUT = join(ROOT, "scripts", "templates");
 const SLIDES = [
   ["cover"], ["agenda"],
   ["section", { n: "01", title: "Where we stand", blurb: "The year in numbers, and what sits behind each of them." }],
-  ["statement"], ["textPicture"], ["twoColumns"], ["threeCards"], ["figures"], ["chart"], ["timeline"], ["process"], ["table"], ["team"], ["quote"], ["pricing"], ["closing"],
+  ["statement"], ["textPicture"], ["twoColumns"], ["threeCards"], ["fourCards"], ["figures"], ["chart"], ["timeline"], ["process"], ["schedule"], ["checklist"], ["facts"], ["split"], ["table"], ["team"], ["quote"], ["pricing"], ["closing"],
 ];
 
 for (const K of KITS) {

@@ -1,48 +1,53 @@
-// Generate the topic decks: thirty-one presentation templates, each a look
-// from scripts/lib/deck-kit.mjs over a chosen sequence of its layouts, with
-// the topic's own copy from scripts/topics/*.mjs.
+// Generate the topic decks: one presentation template per file in
+// scripts/topics/, each a look from scripts/lib/deck-kit.mjs (a base look
+// plus the deck's own overrides) over a chosen sequence of layouts with the
+// topic's own copy, and any raw slides the deck builds itself.
 //
-//   node scripts/gen-topic-decks.mjs          # write the topic specs
-//   node scripts/build-templates.mjs          # then compile the seed
+//   node scripts/gen-topic-decks.mjs                 # write every topic spec
+//   node scripts/gen-topic-decks.mjs --only <id>     # write one deck's spec
+//   node scripts/build-templates.mjs                 # then compile the seed
 //
 // A topic deck is what a user picks when they know what they are presenting
 // (a sales review, a kickoff, a case study) and want a deck that already
-// says the right kind of things in the right order. The look gives it the
-// finish of the kits; the plan gives it a narrative arc that follows the
-// reader's questions; the copy is specific, so the layout never reads as
-// empty. Replace the words, keep the shape.
+// says the right kind of things in the right order, in a look chosen for
+// that subject. Replace the words, keep the shape.
 
-import { writeFileSync } from "node:fs";
+import { readdirSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { LOOKS, buildSpec, specNodes } from "./lib/deck-kit.mjs";
-import business from "./topics/business.mjs";
-import product from "./topics/product.mjs";
-import people from "./topics/people.mjs";
-import stories from "./topics/stories.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const TOPICS = join(ROOT, "scripts", "topics");
 const OUT = join(ROOT, "scripts", "templates");
 
-const TOPICS = [...business, ...product, ...people, ...stories];
+const onlyAt = process.argv.indexOf("--only");
+const only = onlyAt >= 0 ? process.argv[onlyAt + 1] : null;
 
-for (const t of TOPICS) {
-  const look = LOOKS[t.look];
-  if (!look) throw new Error(`${t.id}: unknown look ${t.look}`);
-  const spec = buildSpec(look, {
-    id: t.id,
-    title: t.title,
-    categories: t.categories ?? ["presentations", "business"],
-    tags: t.tags,
-    styleTags: t.styleTags ?? look.styleTags,
-    meta: t.meta,
-    slides: t.slides,
-    version: 2,
+const files = readdirSync(TOPICS).filter((f) => f.endsWith(".mjs")).sort();
+let n = 0;
+for (const f of files) {
+  const plan = (await import(pathToFileURL(join(TOPICS, f)).href)).default;
+  if (only && plan.id !== only) continue;
+  const base = LOOKS[plan.base];
+  if (!base) throw new Error(`${plan.id}: unknown base look ${plan.base}`);
+  const spec = buildSpec(base, {
+    id: plan.id,
+    title: plan.title,
+    categories: plan.categories ?? ["presentations", "business"],
+    tags: plan.tags,
+    styleTags: plan.styleTags ?? base.styleTags,
+    meta: plan.meta,
+    look: plan.look,
+    slides: plan.slides,
+    version: plan.version ?? 3,
     created: "2026-08-28T00:00:00.000Z",
-    updated: "2026-09-30T00:00:00.000Z",
-    rank: t.rank,
+    updated: plan.updated ?? "2026-09-30T00:00:00.000Z",
+    rank: plan.rank,
   });
-  writeFileSync(join(OUT, `${t.id}.json`), JSON.stringify(spec, null, 1) + "\n");
-  console.log(`${t.id}: ${spec.pages.length} slides, ${specNodes(spec)} nodes`);
+  writeFileSync(join(OUT, `${plan.id}.json`), JSON.stringify(spec, null, 1) + "\n");
+  console.log(`${plan.id}: ${spec.pages.length} slides, ${specNodes(spec)} nodes`);
+  n++;
 }
-console.log(`${TOPICS.length} topic decks`);
+if (only && n === 0) throw new Error(`no topic deck with id ${only}`);
+console.log(`${n} topic deck${n === 1 ? "" : "s"}`);

@@ -277,7 +277,7 @@
      "y": 1030,
      "w": 240,
      "h": 28,
-     "text": "01 / 16",
+     "text": "01 / 21",
      "family": "Inter",
      "size": 18,
      "weight": 500,
@@ -364,7 +364,7 @@
      "y": 1030,
      "w": 240,
      "h": 26,
-     "text": "02 / 16",
+     "text": "02 / 21",
      "family": "Inter",
      "size": 18,
      "weight": 500,
@@ -978,6 +978,19 @@
     {
      "kind": "text",
      "x": 96,
+     "y": 180,
+     "w": 1000,
+     "h": 50,
+     "text": "Notes from the studio",
+     "family": "Caveat",
+     "size": 44,
+     "weight": 600,
+     "color": "#F26A48",
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
      "y": 1030,
      "w": 900,
      "h": 26,
@@ -994,7 +1007,7 @@
      "y": 1030,
      "w": 240,
      "h": 26,
-     "text": "03 / 16",
+     "text": "03 / 21",
      "family": "Inter",
      "size": 18,
      "weight": 500,
@@ -1054,7 +1067,7 @@
      "y": 1030,
      "w": 240,
      "h": 26,
-     "text": "04 / 16",
+     "text": "04 / 21",
      "family": "Inter",
      "size": 18,
      "weight": 500,
@@ -1179,7 +1192,7 @@
      "y": 1030,
      "w": 240,
      "h": 26,
-     "text": "05 / 16",
+     "text": "05 / 21",
      "family": "Inter",
      "size": 18,
      "weight": 500,
@@ -1452,7 +1465,7 @@
      "y": 1030,
      "w": 240,
      "h": 26,
-     "text": "06 / 16",
+     "text": "06 / 21",
      "family": "Inter",
      "size": 18,
      "weight": 500,
@@ -1762,7 +1775,7 @@
      "y": 1030,
      "w": 240,
      "h": 26,
-     "text": "07 / 16",
+     "text": "07 / 21",
      "family": "Inter",
      "size": 18,
      "weight": 500,
@@ -2025,6 +2038,300 @@
    ]
   },
   {
+   "name": "Four cards",
+   "bg": "#F5EFE4",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 64,
+     "w": 1728,
+     "h": 2,
+     "fill": "#1C1A17"
+    },
+    {
+     "kind": "ellipse",
+     "x": 1770,
+     "y": -110,
+     "w": 220,
+     "h": 220,
+     "fill": "#F4C15D",
+     "bleed": true
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 96,
+     "w": 1200,
+     "h": 28,
+     "text": "How we do this",
+     "family": "Inter",
+     "size": 20,
+     "weight": 600,
+     "color": "#E0492B",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 132,
+     "w": 1240,
+     "h": 81,
+     "text": "Four agreements for the week",
+     "family": "Fraunces",
+     "size": 66,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 1030,
+     "w": 900,
+     "h": 26,
+     "text": "Meridian Studio  ·  Brand strategy 2027",
+     "family": "Inter",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B655C",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 1030,
+     "w": 240,
+     "h": 26,
+     "text": "08 / 21",
+     "family": "Inter",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B655C",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 257,
+     "w": 852,
+     "h": 264,
+     "fill": "#EDE4D4",
+     "radius": 0,
+     "stroke": "#DACFBE",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "ellipse",
+     "x": 136,
+     "y": 297,
+     "w": 72,
+     "h": 72,
+     "fill": "#eac5b2"
+    },
+    {
+     "kind": "icon",
+     "icon": "clock",
+     "x": 154,
+     "y": 315,
+     "w": 36,
+     "h": 36,
+     "color": "#E0492B"
+    },
+    {
+     "kind": "text",
+     "x": 236,
+     "y": 301,
+     "w": 672,
+     "h": 40,
+     "text": "Be on time",
+     "family": "Fraunces",
+     "size": 30,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 236,
+     "y": 353,
+     "w": 672,
+     "h": 120,
+     "text": "Sessions start when they say; nobody waits well.",
+     "family": "Inter",
+     "size": 22,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 972,
+     "y": 257,
+     "w": 852,
+     "h": 264,
+     "fill": "#EDE4D4",
+     "radius": 0,
+     "stroke": "#DACFBE",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "ellipse",
+     "x": 1012,
+     "y": 297,
+     "w": 72,
+     "h": 72,
+     "fill": "#c6ccbb"
+    },
+    {
+     "kind": "icon",
+     "icon": "microphone",
+     "x": 1030,
+     "y": 315,
+     "w": 36,
+     "h": 36,
+     "color": "#2C6B58"
+    },
+    {
+     "kind": "text",
+     "x": 1112,
+     "y": 301,
+     "w": 672,
+     "h": 40,
+     "text": "Everyone speaks",
+     "family": "Fraunces",
+     "size": 30,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 1112,
+     "y": 353,
+     "w": 672,
+     "h": 120,
+     "text": "Each session ends with a round.",
+     "family": "Inter",
+     "size": 22,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 557,
+     "w": 852,
+     "h": 264,
+     "fill": "#EDE4D4",
+     "radius": 0,
+     "stroke": "#DACFBE",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "ellipse",
+     "x": 136,
+     "y": 597,
+     "w": 72,
+     "h": 72,
+     "fill": "#eac5b2"
+    },
+    {
+     "kind": "icon",
+     "icon": "device-mobile",
+     "x": 154,
+     "y": 615,
+     "w": 36,
+     "h": 36,
+     "color": "#E0492B"
+    },
+    {
+     "kind": "text",
+     "x": 236,
+     "y": 601,
+     "w": 672,
+     "h": 40,
+     "text": "Phones down in sessions",
+     "family": "Fraunces",
+     "size": 30,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 236,
+     "y": 653,
+     "w": 672,
+     "h": 120,
+     "text": "Notes on paper; photos of the board at the end.",
+     "family": "Inter",
+     "size": 22,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 972,
+     "y": 557,
+     "w": 852,
+     "h": 264,
+     "fill": "#EDE4D4",
+     "radius": 0,
+     "stroke": "#DACFBE",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "ellipse",
+     "x": 1012,
+     "y": 597,
+     "w": 72,
+     "h": 72,
+     "fill": "#c6ccbb"
+    },
+    {
+     "kind": "icon",
+     "icon": "heart",
+     "x": 1030,
+     "y": 615,
+     "w": 36,
+     "h": 36,
+     "color": "#2C6B58"
+    },
+    {
+     "kind": "text",
+     "x": 1112,
+     "y": 601,
+     "w": 672,
+     "h": 40,
+     "text": "Kind by default",
+     "family": "Fraunces",
+     "size": 30,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 1112,
+     "y": 653,
+     "w": 672,
+     "h": 120,
+     "text": "Demos are brave. Questions are curious.",
+     "family": "Inter",
+     "size": 22,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    }
+   ]
+  },
+  {
    "name": "Figures",
    "bg": "#F5EFE4",
    "nodes": [
@@ -2092,7 +2399,7 @@
      "y": 1030,
      "w": 240,
      "h": 26,
-     "text": "08 / 16",
+     "text": "09 / 21",
      "family": "Inter",
      "size": 18,
      "weight": 500,
@@ -2458,7 +2765,7 @@
      "y": 1030,
      "w": 240,
      "h": 26,
-     "text": "09 / 16",
+     "text": "10 / 21",
      "family": "Inter",
      "size": 18,
      "weight": 500,
@@ -2680,7 +2987,7 @@
      "y": 1030,
      "w": 240,
      "h": 26,
-     "text": "10 / 16",
+     "text": "11 / 21",
      "family": "Inter",
      "size": 18,
      "weight": 500,
@@ -2974,7 +3281,7 @@
      "y": 1030,
      "w": 240,
      "h": 26,
-     "text": "11 / 16",
+     "text": "12 / 21",
      "family": "Inter",
      "size": 18,
      "weight": 500,
@@ -3205,6 +3512,1541 @@
    ]
   },
   {
+   "name": "Schedule",
+   "bg": "#F5EFE4",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 64,
+     "w": 1728,
+     "h": 2,
+     "fill": "#1C1A17"
+    },
+    {
+     "kind": "ellipse",
+     "x": 1770,
+     "y": -110,
+     "w": 220,
+     "h": 220,
+     "fill": "#F4C15D",
+     "bleed": true
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 96,
+     "w": 1200,
+     "h": 28,
+     "text": "Day one  ·  Wednesday",
+     "family": "Inter",
+     "size": 20,
+     "weight": 600,
+     "color": "#E0492B",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 132,
+     "w": 940,
+     "h": 81,
+     "text": "Maps out, laptops shut.",
+     "family": "Fraunces",
+     "size": 66,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 1030,
+     "w": 900,
+     "h": 26,
+     "text": "Meridian Studio  ·  Brand strategy 2027",
+     "family": "Inter",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B655C",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 1030,
+     "w": 240,
+     "h": 26,
+     "text": "13 / 21",
+     "family": "Inter",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B655C",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "rect",
+     "x": 106,
+     "y": 332,
+     "w": 4,
+     "h": 520,
+     "fill": "#DACFBE",
+     "radius": 2
+    },
+    {
+     "kind": "ellipse",
+     "x": 98,
+     "y": 322,
+     "w": 20,
+     "h": 20,
+     "fill": "#E0492B"
+    },
+    {
+     "kind": "text",
+     "x": 152,
+     "y": 320,
+     "w": 150,
+     "h": 28,
+     "text": "08:30",
+     "family": "Inter",
+     "size": 22,
+     "weight": 600,
+     "color": "#E0492B",
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 316,
+     "y": 316,
+     "w": 620,
+     "h": 32,
+     "text": "Check-in",
+     "family": "Fraunces",
+     "size": 27,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 316,
+     "y": 354,
+     "w": 620,
+     "h": 56,
+     "text": "Badges, maps and the good espresso.",
+     "family": "Inter",
+     "size": 20,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 98,
+     "y": 426,
+     "w": 20,
+     "h": 20,
+     "fill": "#E0492B"
+    },
+    {
+     "kind": "text",
+     "x": 152,
+     "y": 424,
+     "w": 150,
+     "h": 28,
+     "text": "10:00",
+     "family": "Inter",
+     "size": 22,
+     "weight": 600,
+     "color": "#E0492B",
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 316,
+     "y": 420,
+     "w": 620,
+     "h": 32,
+     "text": "The plan",
+     "family": "Fraunces",
+     "size": 27,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 316,
+     "y": 458,
+     "w": 620,
+     "h": 56,
+     "text": "Ten slides, zero spreadsheets.",
+     "family": "Inter",
+     "size": 20,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 98,
+     "y": 530,
+     "w": 20,
+     "h": 20,
+     "fill": "#2C6B58"
+    },
+    {
+     "kind": "text",
+     "x": 152,
+     "y": 528,
+     "w": 150,
+     "h": 28,
+     "text": "12:30",
+     "family": "Inter",
+     "size": 22,
+     "weight": 600,
+     "color": "#E0492B",
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 316,
+     "y": 524,
+     "w": 620,
+     "h": 32,
+     "text": "Lunch",
+     "family": "Fraunces",
+     "size": 27,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 316,
+     "y": 562,
+     "w": 620,
+     "h": 56,
+     "text": "One table, everyone.",
+     "family": "Inter",
+     "size": 20,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 98,
+     "y": 634,
+     "w": 20,
+     "h": 20,
+     "fill": "#E0492B"
+    },
+    {
+     "kind": "text",
+     "x": 152,
+     "y": 632,
+     "w": 150,
+     "h": 28,
+     "text": "14:00",
+     "family": "Inter",
+     "size": 22,
+     "weight": 600,
+     "color": "#E0492B",
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 316,
+     "y": 628,
+     "w": 620,
+     "h": 32,
+     "text": "Workshops",
+     "family": "Fraunces",
+     "size": 27,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 316,
+     "y": 666,
+     "w": 620,
+     "h": 56,
+     "text": "Pick one of three tracks.",
+     "family": "Inter",
+     "size": 20,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 98,
+     "y": 738,
+     "w": 20,
+     "h": 20,
+     "fill": "#E0492B"
+    },
+    {
+     "kind": "text",
+     "x": 152,
+     "y": 736,
+     "w": 150,
+     "h": 28,
+     "text": "16:30",
+     "family": "Inter",
+     "size": 22,
+     "weight": 600,
+     "color": "#E0492B",
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 316,
+     "y": 732,
+     "w": 620,
+     "h": 32,
+     "text": "The walk",
+     "family": "Fraunces",
+     "size": 27,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 316,
+     "y": 770,
+     "w": 620,
+     "h": 56,
+     "text": "Gentle loop or the summit.",
+     "family": "Inter",
+     "size": 20,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 98,
+     "y": 842,
+     "w": 20,
+     "h": 20,
+     "fill": "#2C6B58"
+    },
+    {
+     "kind": "text",
+     "x": 152,
+     "y": 840,
+     "w": 150,
+     "h": 28,
+     "text": "19:00",
+     "family": "Inter",
+     "size": 22,
+     "weight": 600,
+     "color": "#E0492B",
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 316,
+     "y": 836,
+     "w": 620,
+     "h": 32,
+     "text": "Dinner",
+     "family": "Fraunces",
+     "size": 27,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 316,
+     "y": 874,
+     "w": 620,
+     "h": 56,
+     "text": "Off the grill, by the fire.",
+     "family": "Inter",
+     "size": 20,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 1120,
+     "y": 268,
+     "w": 660,
+     "h": 650,
+     "fill": {
+      "angle": 160,
+      "stops": [
+       [
+        "#221E1A",
+        0
+       ],
+       [
+        "#100E0C",
+        1
+       ]
+      ]
+     },
+     "radius": 0
+    },
+    {
+     "kind": "ellipse",
+     "x": 1142,
+     "y": 470,
+     "w": 6,
+     "h": 6,
+     "fill": "#F26A48",
+     "opacity": 0.38999999999999996
+    },
+    {
+     "kind": "ellipse",
+     "x": 1328,
+     "y": 416,
+     "w": 4,
+     "h": 4,
+     "fill": "#F26A48",
+     "opacity": 0.6499999999999999
+    },
+    {
+     "kind": "ellipse",
+     "x": 1674,
+     "y": 337,
+     "w": 9,
+     "h": 9,
+     "fill": "#F26A48",
+     "opacity": 0.35
+    },
+    {
+     "kind": "ellipse",
+     "x": 1749,
+     "y": 536,
+     "w": 8,
+     "h": 8,
+     "fill": "#F26A48",
+     "opacity": 0.69
+    },
+    {
+     "kind": "ellipse",
+     "x": 1700,
+     "y": 294,
+     "w": 7,
+     "h": 7,
+     "fill": "#F26A48",
+     "opacity": 0.49
+    },
+    {
+     "kind": "ellipse",
+     "x": 1179,
+     "y": 473,
+     "w": 7,
+     "h": 7,
+     "fill": "#F26A48",
+     "opacity": 0.52
+    },
+    {
+     "kind": "text",
+     "x": 1180,
+     "y": 324,
+     "w": 540,
+     "h": 24,
+     "text": "After hours",
+     "family": "Inter",
+     "size": 19,
+     "weight": 600,
+     "color": "#F26A48",
+     "letterSpacing": 3,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 1180,
+     "y": 360,
+     "w": 540,
+     "h": 84,
+     "text": "Night one ends\naround the fire.",
+     "family": "Fraunces",
+     "size": 34,
+     "weight": 600,
+     "color": "#F5EFE4",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "ellipse",
+     "x": 1270,
+     "y": 528,
+     "w": 360,
+     "h": 360,
+     "fill": "#F26A48",
+     "opacity": 0.12
+    },
+    {
+     "kind": "ellipse",
+     "x": 1306,
+     "y": 564,
+     "w": 288,
+     "h": 288,
+     "fill": "#F26A48",
+     "opacity": 0.16
+    },
+    {
+     "kind": "text",
+     "x": 1180,
+     "y": 828,
+     "w": 540,
+     "h": 44,
+     "text": "bring a hoodie, trust us",
+     "family": "Caveat",
+     "size": 35,
+     "weight": 600,
+     "color": "#F26A48",
+     "lineHeight": 1.2,
+     "align": "center"
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "il-day73-writing-tool",
+     "x": 1270,
+     "y": 548,
+     "w": 360,
+     "h": 300,
+     "cleanCard": true
+    }
+   ]
+  },
+  {
+   "name": "Checklist",
+   "bg": "#F5EFE4",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 64,
+     "w": 1728,
+     "h": 2,
+     "fill": "#1C1A17"
+    },
+    {
+     "kind": "ellipse",
+     "x": 1770,
+     "y": -110,
+     "w": 220,
+     "h": 220,
+     "fill": "#F4C15D",
+     "bleed": true
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 96,
+     "w": 1200,
+     "h": 28,
+     "text": "Before you leave",
+     "family": "Inter",
+     "size": 20,
+     "weight": 600,
+     "color": "#E0492B",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 132,
+     "w": 900,
+     "h": 81,
+     "text": "The pack list",
+     "family": "Fraunces",
+     "size": 66,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 1030,
+     "w": 900,
+     "h": 26,
+     "text": "Meridian Studio  ·  Brand strategy 2027",
+     "family": "Inter",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B655C",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 1030,
+     "w": 240,
+     "h": 26,
+     "text": "14 / 21",
+     "family": "Inter",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B655C",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "icon",
+     "icon": "circle-check",
+     "x": 96,
+     "y": 279,
+     "w": 34,
+     "h": 34,
+     "color": "#E0492B"
+    },
+    {
+     "kind": "text",
+     "x": 150,
+     "y": 277,
+     "w": 480,
+     "h": 40,
+     "text": "Layers for the weather",
+     "family": "Inter",
+     "size": 24,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "circle-check",
+     "x": 656,
+     "y": 279,
+     "w": 34,
+     "h": 34,
+     "color": "#E0492B"
+    },
+    {
+     "kind": "text",
+     "x": 710,
+     "y": 277,
+     "w": 480,
+     "h": 40,
+     "text": "Shoes that can get muddy",
+     "family": "Inter",
+     "size": 24,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "circle-check",
+     "x": 96,
+     "y": 371,
+     "w": 34,
+     "h": 34,
+     "color": "#E0492B"
+    },
+    {
+     "kind": "text",
+     "x": 150,
+     "y": 369,
+     "w": 480,
+     "h": 40,
+     "text": "A water bottle",
+     "family": "Inter",
+     "size": 24,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "circle",
+     "x": 656,
+     "y": 371,
+     "w": 34,
+     "h": 34,
+     "color": "#DACFBE"
+    },
+    {
+     "kind": "text",
+     "x": 710,
+     "y": 369,
+     "w": 480,
+     "h": 40,
+     "text": "Swimsuit, for the brave",
+     "family": "Inter",
+     "size": 24,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "circle-check",
+     "x": 96,
+     "y": 463,
+     "w": 34,
+     "h": 34,
+     "color": "#E0492B"
+    },
+    {
+     "kind": "text",
+     "x": 150,
+     "y": 461,
+     "w": 480,
+     "h": 40,
+     "text": "A hoodie for the evening",
+     "family": "Inter",
+     "size": 24,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "circle",
+     "x": 656,
+     "y": 463,
+     "w": 34,
+     "h": 34,
+     "color": "#DACFBE"
+    },
+    {
+     "kind": "text",
+     "x": 710,
+     "y": 461,
+     "w": 480,
+     "h": 40,
+     "text": "A torch",
+     "family": "Inter",
+     "size": 24,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "circle-check",
+     "x": 96,
+     "y": 555,
+     "w": 34,
+     "h": 34,
+     "color": "#E0492B"
+    },
+    {
+     "kind": "text",
+     "x": 150,
+     "y": 553,
+     "w": 480,
+     "h": 40,
+     "text": "Chargers",
+     "family": "Inter",
+     "size": 24,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "circle",
+     "x": 656,
+     "y": 555,
+     "w": 34,
+     "h": 34,
+     "color": "#DACFBE"
+    },
+    {
+     "kind": "text",
+     "x": 710,
+     "y": 553,
+     "w": 480,
+     "h": 40,
+     "text": "A book or a deck of cards",
+     "family": "Inter",
+     "size": 24,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 665,
+     "w": 1080,
+     "h": 1,
+     "fill": "#DACFBE"
+    },
+    {
+     "kind": "icon",
+     "icon": "circle-check",
+     "x": 96,
+     "y": 691,
+     "w": 22,
+     "h": 22,
+     "color": "#E0492B"
+    },
+    {
+     "kind": "text",
+     "x": 130,
+     "y": 687,
+     "w": 300,
+     "h": 28,
+     "text": "must bring",
+     "family": "Inter",
+     "size": 18,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "icon",
+     "icon": "circle",
+     "x": 356,
+     "y": 691,
+     "w": 22,
+     "h": 22,
+     "color": "#DACFBE"
+    },
+    {
+     "kind": "text",
+     "x": 390,
+     "y": 687,
+     "w": 300,
+     "h": 28,
+     "text": "nice to have",
+     "family": "Inter",
+     "size": 18,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "name": "Photo",
+     "x": 1300,
+     "y": 268,
+     "w": 480,
+     "h": 600,
+     "fill": {
+      "angle": 160,
+      "stops": [
+       [
+        "#c3c9b9",
+        0
+       ],
+       [
+        "#EDE4D4",
+        1
+       ]
+      ]
+     }
+    },
+    {
+     "kind": "ellipse",
+     "x": 1340,
+     "y": 340,
+     "w": 400,
+     "h": 400,
+     "fill": "#E0492B",
+     "opacity": 0.12
+    },
+    {
+     "kind": "ellipse",
+     "x": 1380,
+     "y": 380,
+     "w": 320,
+     "h": 320,
+     "fill": "#E0492B",
+     "opacity": 0.16
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "la-doodle",
+     "x": 1360,
+     "y": 320,
+     "w": 360,
+     "h": 420
+    }
+   ]
+  },
+  {
+   "name": "Facts",
+   "bg": "#F5EFE4",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 64,
+     "w": 1728,
+     "h": 2,
+     "fill": "#1C1A17"
+    },
+    {
+     "kind": "ellipse",
+     "x": 1770,
+     "y": -110,
+     "w": 220,
+     "h": 220,
+     "fill": "#F4C15D",
+     "bleed": true
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 96,
+     "w": 1200,
+     "h": 28,
+     "text": "Where we're staying",
+     "family": "Inter",
+     "size": 20,
+     "weight": 600,
+     "color": "#E0492B",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 132,
+     "w": 900,
+     "h": 81,
+     "text": "The lodge",
+     "family": "Fraunces",
+     "size": 66,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 1030,
+     "w": 900,
+     "h": 26,
+     "text": "Meridian Studio  ·  Brand strategy 2027",
+     "family": "Inter",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B655C",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 1030,
+     "w": 240,
+     "h": 26,
+     "text": "15 / 21",
+     "family": "Inter",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B655C",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 237,
+     "w": 820,
+     "h": 90,
+     "text": "A timber lodge at altitude with a lake, a library, a long porch and no reason to check messages.",
+     "family": "Inter",
+     "size": 26,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 96,
+     "y": 357,
+     "w": 56,
+     "h": 56,
+     "fill": "#ebc8b6"
+    },
+    {
+     "kind": "icon",
+     "icon": "map-pin",
+     "x": 110,
+     "y": 371,
+     "w": 28,
+     "h": 28,
+     "color": "#E0492B"
+    },
+    {
+     "kind": "text",
+     "x": 176,
+     "y": 355,
+     "w": 740,
+     "h": 34,
+     "text": "Two hours from the office",
+     "family": "Fraunces",
+     "size": 26,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 176,
+     "y": 391,
+     "w": 740,
+     "h": 30,
+     "text": "By shuttle, door to door",
+     "family": "Inter",
+     "size": 20,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 96,
+     "y": 475,
+     "w": 56,
+     "h": 56,
+     "fill": "#ebc8b6"
+    },
+    {
+     "kind": "icon",
+     "icon": "bed",
+     "x": 110,
+     "y": 489,
+     "w": 28,
+     "h": 28,
+     "color": "#E0492B"
+    },
+    {
+     "kind": "text",
+     "x": 176,
+     "y": 473,
+     "w": 740,
+     "h": 34,
+     "text": "Sixteen cabins",
+     "family": "Fraunces",
+     "size": 26,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 176,
+     "y": 509,
+     "w": 740,
+     "h": 30,
+     "text": "Assignments land the Friday before",
+     "family": "Inter",
+     "size": 20,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 96,
+     "y": 593,
+     "w": 56,
+     "h": 56,
+     "fill": "#ebc8b6"
+    },
+    {
+     "kind": "icon",
+     "icon": "home",
+     "x": 110,
+     "y": 607,
+     "w": 28,
+     "h": 28,
+     "color": "#E0492B"
+    },
+    {
+     "kind": "text",
+     "x": 176,
+     "y": 591,
+     "w": 740,
+     "h": 34,
+     "text": "A hall that seats sixty",
+     "family": "Fraunces",
+     "size": 26,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 176,
+     "y": 627,
+     "w": 740,
+     "h": 30,
+     "text": "Sessions, meals and demos",
+     "family": "Inter",
+     "size": 20,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 96,
+     "y": 711,
+     "w": 56,
+     "h": 56,
+     "fill": "#ebc8b6"
+    },
+    {
+     "kind": "icon",
+     "icon": "sun",
+     "x": 110,
+     "y": 725,
+     "w": 28,
+     "h": 28,
+     "color": "#E0492B"
+    },
+    {
+     "kind": "text",
+     "x": 176,
+     "y": 709,
+     "w": 740,
+     "h": 34,
+     "text": "Highs of 18, lows of 4",
+     "family": "Fraunces",
+     "size": 26,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 176,
+     "y": 745,
+     "w": 740,
+     "h": 30,
+     "text": "Layers. Really.",
+     "family": "Inter",
+     "size": 20,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "name": "Photo",
+     "x": 1080,
+     "y": 268,
+     "w": 700,
+     "h": 650,
+     "fill": {
+      "angle": 160,
+      "stops": [
+       [
+        "#c3c9b9",
+        0
+       ],
+       [
+        "#EDE4D4",
+        1
+       ]
+      ]
+     }
+    },
+    {
+     "kind": "ellipse",
+     "x": 1170,
+     "y": 300,
+     "w": 520,
+     "h": 520,
+     "fill": "#E0492B",
+     "opacity": 0.12
+    },
+    {
+     "kind": "ellipse",
+     "x": 1222,
+     "y": 352,
+     "w": 416,
+     "h": 416,
+     "fill": "#E0492B",
+     "opacity": 0.16
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "la-doodle",
+     "x": 1180,
+     "y": 320,
+     "w": 500,
+     "h": 440
+    }
+   ]
+  },
+  {
+   "name": "Split",
+   "bg": "#F5EFE4",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 900,
+     "h": 1080,
+     "fill": {
+      "angle": 160,
+      "stops": [
+       [
+        "#221E1A",
+        0
+       ],
+       [
+        "#100E0C",
+        1
+       ]
+      ]
+     },
+     "bleed": true
+    },
+    {
+     "kind": "ellipse",
+     "x": 191,
+     "y": 228,
+     "w": 8,
+     "h": 8,
+     "fill": "#F26A48",
+     "opacity": 0.75
+    },
+    {
+     "kind": "ellipse",
+     "x": 383,
+     "y": 387,
+     "w": 6,
+     "h": 6,
+     "fill": "#F26A48",
+     "opacity": 0.75
+    },
+    {
+     "kind": "ellipse",
+     "x": 209,
+     "y": 130,
+     "w": 8,
+     "h": 8,
+     "fill": "#F26A48",
+     "opacity": 0.48
+    },
+    {
+     "kind": "ellipse",
+     "x": 687,
+     "y": 66,
+     "w": 5,
+     "h": 5,
+     "fill": "#F26A48",
+     "opacity": 0.59
+    },
+    {
+     "kind": "ellipse",
+     "x": 535,
+     "y": 175,
+     "w": 9,
+     "h": 9,
+     "fill": "#F26A48",
+     "opacity": 0.45999999999999996
+    },
+    {
+     "kind": "ellipse",
+     "x": 172,
+     "y": 425,
+     "w": 6,
+     "h": 6,
+     "fill": "#F26A48",
+     "opacity": 0.6599999999999999
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 130,
+     "w": 700,
+     "h": 28,
+     "text": "The problem",
+     "family": "Inter",
+     "size": 20,
+     "weight": 600,
+     "color": "#F26A48",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 184,
+     "w": 720,
+     "h": 240,
+     "text": "Selling online is\nstill built for\nbig brands.",
+     "family": "Fraunces",
+     "size": 58,
+     "weight": 600,
+     "color": "#F5EFE4",
+     "lineHeight": 1.08
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 470,
+     "w": 12,
+     "h": 12,
+     "fill": "#F26A48",
+     "radius": 3
+    },
+    {
+     "kind": "text",
+     "x": 128,
+     "y": 460,
+     "w": 660,
+     "h": 70,
+     "text": "Most small shops still cannot take an order online.",
+     "family": "Inter",
+     "size": 24,
+     "weight": 400,
+     "color": "#B0A798",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 570,
+     "w": 12,
+     "h": 12,
+     "fill": "#F26A48",
+     "radius": 3
+    },
+    {
+     "kind": "text",
+     "x": 128,
+     "y": 560,
+     "w": 660,
+     "h": 70,
+     "text": "Store builders demand weeks of setup and fees.",
+     "family": "Inter",
+     "size": 24,
+     "weight": 400,
+     "color": "#B0A798",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 670,
+     "w": 12,
+     "h": 12,
+     "fill": "#F26A48",
+     "radius": 3
+    },
+    {
+     "kind": "text",
+     "x": 128,
+     "y": 660,
+     "w": 660,
+     "h": 70,
+     "text": "Marketplaces skim a third and keep the customer.",
+     "family": "Inter",
+     "size": 24,
+     "weight": 400,
+     "color": "#B0A798",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 900,
+     "y": 0,
+     "w": 6,
+     "h": 1080,
+     "fill": "#E0492B",
+     "bleed": true
+    },
+    {
+     "kind": "text",
+     "x": 980,
+     "y": 130,
+     "w": 800,
+     "h": 28,
+     "text": "Our solution",
+     "family": "Inter",
+     "size": 20,
+     "weight": 600,
+     "color": "#E0492B",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 980,
+     "y": 184,
+     "w": 820,
+     "h": 160,
+     "text": "Storefronts that\nbuild themselves.",
+     "family": "Fraunces",
+     "size": 58,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.08
+    },
+    {
+     "kind": "text",
+     "x": 980,
+     "y": 370,
+     "w": 800,
+     "h": 110,
+     "text": "We read a shop's socials and point of sale, then assemble a ready-to-sell storefront with payments and delivery included.",
+     "family": "Inter",
+     "size": 24,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 980,
+     "y": 520,
+     "w": 44,
+     "h": 44,
+     "fill": "#eac5b2"
+    },
+    {
+     "kind": "icon",
+     "icon": "bolt",
+     "x": 990,
+     "y": 530,
+     "w": 24,
+     "h": 24,
+     "color": "#E0492B"
+    },
+    {
+     "kind": "text",
+     "x": 1044,
+     "y": 526,
+     "w": 700,
+     "h": 34,
+     "text": "Live in one afternoon",
+     "family": "Inter",
+     "size": 24,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 980,
+     "y": 596,
+     "w": 44,
+     "h": 44,
+     "fill": "#eac5b2"
+    },
+    {
+     "kind": "icon",
+     "icon": "coin",
+     "x": 990,
+     "y": 606,
+     "w": 24,
+     "h": 24,
+     "color": "#E0492B"
+    },
+    {
+     "kind": "text",
+     "x": 1044,
+     "y": 602,
+     "w": 700,
+     "h": 34,
+     "text": "No commission, one flat fee",
+     "family": "Inter",
+     "size": 24,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 980,
+     "y": 672,
+     "w": 44,
+     "h": 44,
+     "fill": "#eac5b2"
+    },
+    {
+     "kind": "icon",
+     "icon": "user",
+     "x": 990,
+     "y": 682,
+     "w": 24,
+     "h": 24,
+     "color": "#E0492B"
+    },
+    {
+     "kind": "text",
+     "x": 1044,
+     "y": 678,
+     "w": 700,
+     "h": 34,
+     "text": "You own every customer",
+     "family": "Inter",
+     "size": 24,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 1410,
+     "y": 650,
+     "w": 300,
+     "h": 300,
+     "fill": "#E0492B",
+     "opacity": 0.12
+    },
+    {
+     "kind": "ellipse",
+     "x": 1440,
+     "y": 680,
+     "w": 240,
+     "h": 240,
+     "fill": "#E0492B",
+     "opacity": 0.16
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 1030,
+     "w": 240,
+     "h": 26,
+     "text": "16 / 21",
+     "family": "Inter",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B655C",
+     "lineHeight": 1.3,
+     "align": "right"
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "la-doodle",
+     "x": 1440,
+     "y": 690,
+     "w": 240,
+     "h": 220
+    }
+   ]
+  },
+  {
    "name": "Comparison table",
    "bg": "#F5EFE4",
    "nodes": [
@@ -3272,7 +5114,7 @@
      "y": 1030,
      "w": 240,
      "h": 26,
-     "text": "12 / 16",
+     "text": "17 / 21",
      "family": "Inter",
      "size": 18,
      "weight": 500,
@@ -3699,7 +5541,7 @@
      "y": 1030,
      "w": 240,
      "h": 26,
-     "text": "13 / 16",
+     "text": "18 / 21",
      "family": "Inter",
      "size": 18,
      "weight": 500,
@@ -4020,7 +5862,7 @@
      "y": 1030,
      "w": 240,
      "h": 26,
-     "text": "14 / 16",
+     "text": "19 / 21",
      "family": "Inter",
      "size": 18,
      "weight": 500,
@@ -4168,7 +6010,7 @@
      "y": 1030,
      "w": 240,
      "h": 26,
-     "text": "15 / 16",
+     "text": "20 / 21",
      "family": "Inter",
      "size": 18,
      "weight": 500,
@@ -4896,7 +6738,7 @@
      "y": 940,
      "w": 240,
      "h": 28,
-     "text": "16 / 16",
+     "text": "21 / 21",
      "family": "Inter",
      "size": 18,
      "weight": 500,
@@ -4942,19 +6784,19 @@
    "hint": "Who presents"
   },
   {
-   "node": "p15-n11",
+   "node": "p20-n11",
    "kind": "text",
    "label": "Email",
    "hint": "Contact detail"
   },
   {
-   "node": "p15-n13",
+   "node": "p20-n13",
    "kind": "text",
    "label": "Website",
    "hint": "Contact detail"
   },
   {
-   "node": "p15-n15",
+   "node": "p20-n15",
    "kind": "text",
    "label": "Phone",
    "hint": "Contact detail"
