@@ -840,7 +840,7 @@ class Composer {
     // accent, above the rule.
     const n = this.ctx.section;
     const number = n
-      ? [{ kind: "text" as const, maxFrac: 0.25, make: (r: Rect) => this.text({ name: "Section number", rect: r, paragraphs: [String(n).padStart(2, "0")], role: "heading", base: this.sz("sectionNumber"), bold: true, color: this.accent, exactSize: Math.round(this.sz("sectionNumber")), lineHeight: 1.05, tracking: 0.02 }) }]
+      ? [{ kind: "text" as const, maxFrac: 0.25, make: (r: Rect) => this.text({ name: "Section number", rect: r, paragraphs: [String(n).padStart(2, "0")], role: "heading", base: this.sz("sectionNumber"), bold: true, color: this.accentInk, exactSize: Math.round(this.sz("sectionNumber")), lineHeight: 1.05, tracking: 0.02 }) }]
       : [];
     this.cluster(region, [
       ...this.eyebrowBlock(),
@@ -882,14 +882,14 @@ class Composer {
     const iconH = glyph ? iconSize + u * 2 : 0;
     // The numeral is fitted first so the rule and the icon sit on the
     // glyphs, not on the top of a box taller than them.
-    const probeFig = this.numeral({ x: left.x, y: 0, width: left.width, height: figureH }, stat.value, stat.unit, this.accent);
+    const probeFig = this.numeral({ x: left.x, y: 0, width: left.width, height: figureH }, stat.value, stat.unit, this.accentInk);
     const figH = probeFig.height;
     const blockH = iconH + u * 3 + figH + u * 2 + labelProbe.height;
     const areaTop = this.top;
     const offset = Math.max(0, Math.round((this.bodyBottom - areaTop - blockH) / 2));
     const top = areaTop + offset + iconH + u * 3;
     const figureRect = { x: left.x, y: top, width: left.width, height: figH };
-    const fig = this.numeral(figureRect, stat.value, stat.unit, this.accent);
+    const fig = this.numeral(figureRect, stat.value, stat.unit, this.accentInk);
     if (glyph) {
       const ic = this.icon(glyph, left.x, areaTop + offset, iconSize, this.accent);
       if (ic) this.nodes.push(ic);
@@ -1009,6 +1009,9 @@ class Composer {
     const glyphs = cols.map((c) => iconGlyphFor(c.icon));
     const withIcons = glyphs.length > 0 && glyphs.every((g) => !!g);
     const iconSize = Math.round(this.sz("icon"));
+    // Headings share one height so the point lists start on the same row
+    // across the set even when one heading wraps.
+    const headH = Math.max(0, ...cols.map((c, i) => this.text({ name: "Heading", rect: { x: inners[i].x, y: 0, width: inners[i].width, height: u * 10 }, paragraphs: [c.heading], role: "heading", base: this.sz("colHead"), bold: true, lineHeight: 1.15 }).height));
     const build = (c: { heading: string; points: string[] }, inner: { x: number; width: number }, y0: number, glyph: string | null) => {
       const out: Node[] = [];
       let y = y0;
@@ -1020,7 +1023,7 @@ class Composer {
       out.push(this.accentRule(inner.x, y));
       const head = this.text({ name: "Heading", rect: { x: inner.x, y: y + u * 2.5, width: inner.width, height: u * 10 }, paragraphs: [c.heading], role: "heading", base: this.sz("colHead"), bold: true, lineHeight: 1.15 });
       out.push(head.node);
-      let bottom = y + u * 2.5 + head.height;
+      let bottom = y + u * 2.5 + Math.max(head.height, headH);
       const pts = c.points;
       if (pts.length) {
         const py = bottom + u * 2;
@@ -1060,6 +1063,8 @@ class Composer {
         const out: Node[] = [];
         let bottom = y0;
         const lineY = y0 + Math.round(numBox / 2) - Math.round(this.ds.rule / 2);
+        // Labels share one height so every detail starts on the same row.
+        const labelH = Math.max(0, ...steps.map((st, i) => { const sp = this.span(i * perCols, perCols); return this.text({ name: "Label", rect: { x: sp.x, y: 0, width: sp.width - this.ds.gutter, height: u * 8 }, paragraphs: [st.label], role: "heading", base: this.sz("stepLabel"), bold: true, lineHeight: 1.15 }).height; }));
         steps.forEach((st, i) => {
           const s = this.span(i * perCols, perCols);
           const inner = { x: s.x, width: s.width - this.ds.gutter };
@@ -1073,7 +1078,7 @@ class Composer {
           const ly = y0 + numBox + u * 2;
           const label = this.text({ name: "Label", rect: { x: inner.x, y: ly, width: inner.width, height: u * 8 }, paragraphs: [st.label], role: "heading", base: this.sz("stepLabel"), bold: true, lineHeight: 1.15 });
           out.push(label.node);
-          let b = ly + label.height;
+          let b = ly + Math.max(label.height, labelH);
           if (st.detail) {
             const dy = b + u;
             const det = this.text({ name: "Detail", rect: { x: inner.x, y: dy, width: inner.width, height: Math.max(u * 4, this.bodyBottom - dy) }, paragraphs: [st.detail], role: "body", base: this.sz("detail"), color: this.muted, lineHeight: 1.4 });
@@ -1226,7 +1231,7 @@ class Composer {
         // the tallest, so the rule, the figure and the label stack on what the
         // glyphs measure and not on the box they were offered.
         const cw = cellsR[0].width - 2 * pad;
-        const figH = Math.max(...rowStats.map((st) => this.numeral({ x: 0, y: 0, width: cw, height: figureH }, st.value, st.unit, this.accent, figureH).height));
+        const figH = Math.max(...rowStats.map((st) => this.numeral({ x: 0, y: 0, width: cw, height: figureH }, st.value, st.unit, this.accentInk, figureH).height));
         const contentH = iconH + u * 2 + figH + u * 1.5 + labelH;
         rowStats.forEach((st, i) => {
           const c = cellsR[i];
@@ -1240,7 +1245,7 @@ class Composer {
           }
           const ruleY = cy + iconH;
           out.push(this.accentRule(cx, ruleY));
-          const fig = this.numeral({ x: cx, y: ruleY + u * 2, width: cw, height: figH }, st.value, st.unit, this.accent, figureH);
+          const fig = this.numeral({ x: cx, y: ruleY + u * 2, width: cw, height: figH }, st.value, st.unit, this.accentInk, figureH);
           out.push(fig.node);
           out.push(this.text({ name: "Label", rect: { x: cx, y: ruleY + u * 2 + figH + u * 1.5, width: cw, height: labelH }, paragraphs: [st.label], role: "heading", base: this.sz("statLabel") * (rows > 1 ? 0.85 : 1), bold: true, lineHeight: 1.2 }).node);
         });
@@ -1281,6 +1286,9 @@ class Composer {
         if (st.when) whenH = Math.max(whenH, this.text({ name: "When", rect: { x: cellsR[i].x, y: 0, width: cellsR[i].width, height: u * 6 }, paragraphs: [st.when], role: "heading", base: this.sz("timelineWhen"), bold: true, color: this.muted, align: "center", lineHeight: 1.2 }).height);
       });
       const lineY = y0 + (whenH ? whenH + u * 2 : 0);
+      // Labels share one height too, so every detail starts on the same row
+      // even when one label wraps.
+      const labelH = Math.max(0, ...steps.map((st, i) => this.text({ name: "Label", rect: { x: cellsR[i].x, y: 0, width: cellsR[i].width, height: u * 8 }, paragraphs: [st.label], role: "heading", base: this.sz("stepLabel"), bold: true, align: "center", lineHeight: 1.15 }).height));
       let bottom = lineY + dot;
       steps.forEach((st, i) => {
         const c = cellsR[i];
@@ -1301,7 +1309,7 @@ class Composer {
         const ly = lineY + dot + u * 2;
         const label = this.text({ name: "Label", rect: { x: c.x, y: ly, width: c.width, height: u * 8 }, paragraphs: [st.label], role: "heading", base: this.sz("stepLabel"), bold: true, align: "center", lineHeight: 1.15 });
         out.push(label.node);
-        let b = ly + label.height;
+        let b = ly + Math.max(label.height, labelH);
         if (st.detail) {
           const dy = b + u;
           const det = this.text({ name: "Detail", rect: { x: c.x, y: dy, width: c.width, height: Math.max(u * 4, this.bodyBottom - dy) }, paragraphs: [st.detail], role: "body", base: this.sz("detail"), color: this.muted, align: "center", lineHeight: 1.4 });
@@ -1318,7 +1326,8 @@ class Composer {
   }
 
   /** A small table of real values: a tinted header row, rules between rows,
-   *  numbers set flush right. Type steps down until the rows fit. */
+   *  numbers set flush right. Type steps up until a short table fills most of
+   *  the body and down until a long one fits. */
   private table(): void {
     const tb = this.item.table!;
     const u = this.ds.unit;
@@ -1326,10 +1335,22 @@ class Composer {
     const rows = tb.rows.length + 1;
     const cols = tb.columns.length;
     const rowFor = (size: number) => Math.round(size * 2.6);
-    let size = Math.round(this.sz("tableCell"));
-    while (size > 12 && rowFor(size) * rows > bodyH) size -= 1;
-    const rowH = rowFor(size);
     const width = this.W - 2 * this.m;
+    // A cell does not wrap in any renderer, so every value has to fit its
+    // column on one line at the chosen size. The renderers inset cell text
+    // by six on each side and set it in the system face, which the estimate
+    // does not know, hence the extra allowance.
+    const colW = Math.round(width / cols);
+    const avail = colW - 12 - colW * 0.06;
+    const oneLine = (text: string, size: number, role: "heading" | "body") => this.measure([text], avail, size, 1.2, role, 0) <= Math.ceil(size * 1.2);
+    const fitsWidth = (size: number) => tb.columns.every((c) => oneLine(c, size, "heading")) && tb.rows.every((row) => row.every((c) => oneLine(c ?? "", size, "body")));
+    let size = Math.round(this.sz("tableCell"));
+    // The type grows, never the row on its own: a cell sets its text from the
+    // top, so a tall row on small type reads as a gap under every line.
+    const cap = Math.round(this.sz("tableCell") * 1.35);
+    while (size < cap && rowFor(size + 1) * rows <= bodyH * 0.9 && fitsWidth(size + 1)) size += 1;
+    while (size > 12 && (rowFor(size) * rows > bodyH || !fitsWidth(size))) size -= 1;
+    const rowH = rowFor(size);
     const height = rowH * rows;
     const r = this.mirror({ x: this.m, y: bodyTop + Math.min(u * 8, Math.max(0, Math.round((bodyH - height) / 2))), width, height });
     // A column is set flush right when every one of its values is a number
@@ -1352,7 +1373,7 @@ class Composer {
       transform: { x: r.x, y: r.y, scaleX: 1, scaleY: 1, rotation: 0 },
       size: { width: r.width, height: r.height },
       rows, cols,
-      colWidths: Array.from({ length: cols }, () => Math.round(width / cols)),
+      colWidths: Array.from({ length: cols }, () => colW),
       rowHeights: Array.from({ length: rows }, () => rowH),
       cells,
       headerStyle: { enabled: true, fill: { type: "solid", color: structuredClone(this.ds.colors.tint) }, textColor: structuredClone(this.ink), bold: true },
@@ -1376,6 +1397,8 @@ class Composer {
       let bottom = y0;
       const pad = u * 3;
       const cards: Node[][] = [];
+      // Names share one height so every role starts on the same row.
+      const nameH = Math.max(0, ...people.map((per, i) => this.text({ name: "Name", rect: { x: cellsR[i].x + pad, y: 0, width: cellsR[i].width - 2 * pad, height: u * 8 }, paragraphs: [per.name], role: "heading", base: this.sz("personName"), bold: true, lineHeight: 1.15 }).height));
       people.forEach((per, i) => {
         const c = cellsR[i];
         const card: Node[] = [];
@@ -1383,11 +1406,11 @@ class Composer {
         const cw = c.width - 2 * pad;
         const cy = y0 + pad;
         card.push(this.accentRule(cx, cy));
-        card.push(this.text({ name: "Monogram", rect: { x: cx, y: cy + u * 2, width: cw, height: monoH }, paragraphs: [initials(per.name)], role: "heading", base: this.sz("monogram"), bold: true, color: this.accent, exactSize: Math.round(this.sz("monogram")), lineHeight: 1.15, tracking: 0.04 }).node);
+        card.push(this.text({ name: "Monogram", rect: { x: cx, y: cy + u * 2, width: cw, height: monoH }, paragraphs: [initials(per.name)], role: "heading", base: this.sz("monogram"), bold: true, color: this.accentInk, exactSize: Math.round(this.sz("monogram")), lineHeight: 1.15, tracking: 0.04 }).node);
         const ny = cy + u * 2 + monoH + u * 1.5;
         const name = this.text({ name: "Name", rect: { x: cx, y: ny, width: cw, height: u * 8 }, paragraphs: [per.name], role: "heading", base: this.sz("personName"), bold: true, lineHeight: 1.15 });
         card.push(name.node);
-        let b = ny + name.height;
+        let b = ny + Math.max(name.height, nameH);
         if (per.role) {
           const ry = b + u * 0.5;
           const role = this.text({ name: "Role", rect: { x: cx, y: ry, width: cw, height: u * 8 }, paragraphs: [per.role], role: "body", base: this.sz("personRole"), color: this.muted, lineHeight: 1.35 });

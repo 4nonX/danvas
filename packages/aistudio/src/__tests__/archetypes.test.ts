@@ -640,7 +640,7 @@ describe("illustrations", () => {
   it("resolves keywords and phrases, and nothing for an invented word; every keyword points at a baked drawing", () => {
     expect(illustrationFor("growth")).toBe("Growth");
     expect(illustrationFor("Partnership")).toBe("Handshake");
-    expect(illustrationFor("a rocket launch")).toBe("RocketLaunch");
+    expect(illustrationFor("a rocket launch")).toBe("CampaignLaunch");
     expect(illustrationFor("flibbertigibbet")).toBeNull();
     for (const d of Object.values(ILLUSTRATION_KEYWORDS)) expect(ILLUSTRATIONS[d]?.layers.length).toBeGreaterThan(0);
     // Every baked drawing decodes to closed geometry with the pack's box.
@@ -656,7 +656,7 @@ describe("illustrations", () => {
     const page = composeArchetypePage(item, ds, { index: 0, total: 4 });
     const ill = (page.nodes as N[]).find((n) => n.name === "Illustration")!;
     expect(ill.type).toBe("group");
-    expect(ill.data?.illustration).toBe("RocketLaunch");
+    expect(ill.data?.illustration).toBe("CampaignLaunch");
     expect(ill.children!.length).toBeGreaterThan(2);
     expect(ill.children!.every((c) => c.type === "path")).toBe(true);
     // The pack's accent became the deck's accent on the deep ground.
