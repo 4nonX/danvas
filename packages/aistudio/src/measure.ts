@@ -107,7 +107,9 @@ export function measureDeck(pages: MeasurablePage[], size: { width: number; heig
       index: i,
       archetype: p.archetype,
       impact: p.impact,
-      overfull: [...p.overfull],
+      // A form measures some text twice (once to size the block, once to
+      // place it), so a name can repeat; the report lists each once.
+      overfull: [...new Set(p.overfull)],
       whitespace: Math.round(whitespaceShare(boxes, area) * 1000) / 1000,
       issues: p.issues,
     };

@@ -22734,6 +22734,29 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
     }
   });
 
+  // packages/schema/dist/repair.js
+  var require_repair = __commonJS({
+    "packages/schema/dist/repair.js"(exports) {
+      "use strict";
+      Object.defineProperty(exports, "__esModule", { value: true });
+      exports.repairCornerRadius = repairCornerRadius;
+      var factory_1 = require_factory();
+      var visitor_1 = require_visitor();
+      function repairCornerRadius(file2) {
+        var _a5, _b;
+        for (const page of (_a5 = file2.pages) != null ? _a5 : []) {
+          (0, visitor_1.walkNodes)((_b = page.children) != null ? _b : [], (node2) => {
+            const n = node2;
+            if (typeof n.cornerRadius === "number" && Number.isFinite(n.cornerRadius)) {
+              n.cornerRadius = (0, factory_1.roundedCorners)(n.cornerRadius);
+            }
+          });
+        }
+        return file2;
+      }
+    }
+  });
+
   // packages/schema/dist/json-schema.js
   var require_json_schema = __commonJS({
     "packages/schema/dist/json-schema.js"(exports) {
@@ -33079,6 +33102,7 @@ ${err.toString()}`);
       __exportStar(require_factory(), exports);
       __exportStar(require_visitor(), exports);
       __exportStar(require_unknown_nodes(), exports);
+      __exportStar(require_repair(), exports);
       __exportStar(require_json_schema(), exports);
       __exportStar(require_yjs(), exports);
       __exportStar(require_theme(), exports);
@@ -37482,7 +37506,9 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             index: i,
             archetype: p.archetype,
             impact: p.impact,
-            overfull: [...p.overfull],
+            // A form measures some text twice (once to size the block, once to
+            // place it), so a name can repeat; the report lists each once.
+            overfull: [...new Set(p.overfull)],
             whitespace: Math.round(whitespaceShare(boxes, area) * 1e3) / 1e3,
             issues: p.issues
           };
