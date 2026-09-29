@@ -271,6 +271,26 @@ func bareFigure(v string) string {
 	}))
 }
 
+// splitFigure keeps a figure to one token so it never wraps inside the
+// numeral: a word left in the value ("48 hrs", "$1.8 million") moves to the
+// unit, and a unit the model also gave wins over that word. Only a value
+// whose first token carries a digit is split. Mirrors splitFigure in
+// outline.ts.
+func splitFigure(value, unit string) (string, string) {
+	v := bareFigure(value)
+	u := clipRunes(strings.TrimSpace(unit), maxStatUnitChars)
+	m := figureSplitRe.FindStringSubmatch(v)
+	if m == nil {
+		return v, u
+	}
+	if u == "" {
+		u = clipRunes(strings.TrimSpace(m[2]), maxStatUnitChars)
+	}
+	return m[1], u
+}
+
+var figureSplitRe = regexp.MustCompile(`^(\S*\d\S*)\s+(\S[^\d]*)$`)
+
 // undashTitle replaces a dash used as a separator in a headline with a colon.
 // Mirrors undashTitle in outline.ts.
 func undashTitle(title string) string {
@@ -293,8 +313,7 @@ func normalizeArchetypeFields(p *OutlineItem) {
 		p.Title = clipRunes(p.Title, maxStatementChars)
 	}
 	if p.Stat != nil {
-		p.Stat.Value = bareFigure(p.Stat.Value)
-		p.Stat.Unit = clipRunes(strings.TrimSpace(p.Stat.Unit), maxStatUnitChars)
+		p.Stat.Value, p.Stat.Unit = splitFigure(p.Stat.Value, p.Stat.Unit)
 		p.Stat.Label = clipRunes(strings.TrimSpace(p.Stat.Label), maxStatLabelChars)
 		p.Stat.Icon = iconKeyword(p.Stat.Icon)
 		if p.Stat.Value == "" {
@@ -384,8 +403,7 @@ func normalizeArchetypeFields(p *OutlineItem) {
 	}
 	stats := p.Stats[:0]
 	for _, st := range p.Stats {
-		st.Value = bareFigure(st.Value)
-		st.Unit = clipRunes(strings.TrimSpace(st.Unit), maxStatUnitChars)
+		st.Value, st.Unit = splitFigure(st.Value, st.Unit)
 		st.Label = clipRunes(strings.TrimSpace(st.Label), maxStatLabelChars)
 		st.Icon = iconKeyword(st.Icon)
 		if st.Value != "" {

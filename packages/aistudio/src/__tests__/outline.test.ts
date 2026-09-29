@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   bareFigure,
+  splitFigure,
   undashTitle,
   archetypes,
   archetypeBudgets,
@@ -291,6 +292,18 @@ describe("figures and headlines as a designer would set them", () => {
     expect(bareFigure("-11%")).toBe("-11%");
     const page = normalizeOutline({ title: "T", pages: [{ title: "x", archetype: "kpiGrid", stats: [{ value: "↓67%", label: "a" }, { value: "→ 4", label: "b" }] }] }).pages[0];
     expect(page.stats?.map((s) => s.value)).toEqual(["67%", "4"]);
+  });
+
+  it("keeps a figure to one token: a word left in the value moves to the unit, and a unit the model gave wins over it", () => {
+    expect(splitFigure("48 hrs", "hours")).toEqual({ value: "48", unit: "hours" });
+    expect(splitFigure("48 hrs", "")).toEqual({ value: "48", unit: "hrs" });
+    expect(splitFigure("$1.8 million", undefined)).toEqual({ value: "$1.8", unit: "million" });
+    expect(splitFigure("310k /mo", undefined)).toEqual({ value: "310k", unit: "/mo" });
+    expect(splitFigure("Top 10", undefined)).toEqual({ value: "Top 10", unit: "" });
+    expect(splitFigure("3.2M", "riders")).toEqual({ value: "3.2M", unit: "riders" });
+    expect(splitFigure("↓67%", undefined)).toEqual({ value: "67%", unit: "" });
+    const page = normalizeOutline({ title: "T", pages: [{ title: "x", archetype: "bigNumber", stat: { value: "48 hrs", unit: "hours", label: "turnaround" } }] }).pages[0];
+    expect(page.stat).toMatchObject({ value: "48", unit: "hours" });
   });
 
   it("turns a dash separator in a title into a colon", () => {

@@ -231,6 +231,21 @@ export function bareFigure(v: unknown): string {
   return clipToBudget(v, archetypeBudgets.statValue).replace(/^[\s\u2190-\u21FF\u25B2-\u25BF\u2B05-\u2B0D]+|[\s\u2190-\u21FF\u25B2-\u25BF\u2B05-\u2B0D]+$/g, "").trim();
 }
 
+/** A figure is one token, so it can never wrap inside the numeral. A word
+ *  the model left in the value ("48 hrs", "$1.8 million", "310k /mo") moves
+ *  to the unit, and a unit the model also gave wins over that word ("48 hrs"
+ *  plus "hours" is "48 hours", not "48 hrs hours"). Only a value whose first
+ *  token carries a digit is split, so "Top 10" stays whole. Mirrored in
+ *  specs.go. */
+export function splitFigure(value: unknown, unit: unknown): { value: string; unit: string } {
+  const v = bareFigure(value);
+  let u = clipToBudget(unit, archetypeBudgets.statUnit);
+  const m = /^(\S*\d\S*)\s+(\S[^\d]*)$/u.exec(v);
+  if (!m) return { value: v, unit: u };
+  if (!u) u = clipToBudget(m[2], archetypeBudgets.statUnit);
+  return { value: m[1], unit: u };
+}
+
 /** A headline never carries a dash as a separator; the house style has none,
  *  and a colon says the same thing. Mirrored in specs.go. */
 export function undashTitle(title: string): string {
@@ -254,9 +269,8 @@ function normalizeArchetypeFields(p: Record<string, unknown>, archetype: Archety
 
   const st = p.stat as Record<string, unknown> | undefined;
   if (st && typeof st === "object") {
-    const value = bareFigure(st.value);
+    const { value, unit } = splitFigure(st.value, st.unit);
     if (value) {
-      const unit = clipToBudget(st.unit, b.statUnit);
       const icon = iconKeyword(st.icon);
       out.stat = { value, label: clipToBudget(st.label, b.statLabel), ...(unit ? { unit } : {}), ...(icon ? { icon } : {}) };
     }
@@ -320,9 +334,8 @@ function normalizeArchetypeFields(p: Record<string, unknown>, archetype: Archety
   const stats = (Array.isArray(p.stats) ? p.stats : [])
     .map((x) => {
       const r = (x ?? {}) as Record<string, unknown>;
-      const value = bareFigure(r.value);
+      const { value, unit } = splitFigure(r.value, r.unit);
       if (!value) return null;
-      const unit = clipToBudget(r.unit, b.statUnit);
       const icon = iconKeyword(r.icon);
       return { value, label: clipToBudget(r.label, b.statLabel), ...(unit ? { unit } : {}), ...(icon ? { icon } : {}) } as Stat;
     })

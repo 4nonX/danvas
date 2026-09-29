@@ -33943,6 +33943,7 @@ ${err.toString()}`);
       exports.normalizeNote = normalizeNote;
       exports.clipToBudget = clipToBudget;
       exports.bareFigure = bareFigure;
+      exports.splitFigure = splitFigure;
       exports.undashTitle = undashTitle;
       exports.normalizeOutline = normalizeOutline;
       exports.outlineItemToSpec = outlineItemToSpec;
@@ -34066,6 +34067,16 @@ ${err.toString()}`);
       function bareFigure(v) {
         return clipToBudget(v, exports.archetypeBudgets.statValue).replace(/^[\s\u2190-\u21FF\u25B2-\u25BF\u2B05-\u2B0D]+|[\s\u2190-\u21FF\u25B2-\u25BF\u2B05-\u2B0D]+$/g, "").trim();
       }
+      function splitFigure(value, unit) {
+        const v = bareFigure(value);
+        let u = clipToBudget(unit, exports.archetypeBudgets.statUnit);
+        const m = /^(\S*\d\S*)\s+(\S[^\d]*)$/u.exec(v);
+        if (!m)
+          return { value: v, unit: u };
+        if (!u)
+          u = clipToBudget(m[2], exports.archetypeBudgets.statUnit);
+        return { value: m[1], unit: u };
+      }
       function undashTitle(title) {
         return title.replace(/\s+[\u2013\u2014]\s+|\s+-\s+/g, ": ");
       }
@@ -34087,9 +34098,8 @@ ${err.toString()}`);
           out.eyebrow = eyebrow;
         const st = p.stat;
         if (st && typeof st === "object") {
-          const value = bareFigure(st.value);
+          const { value, unit } = splitFigure(st.value, st.unit);
           if (value) {
-            const unit = clipToBudget(st.unit, b.statUnit);
             const icon = iconKeyword(st.icon);
             out.stat = __spreadValues(__spreadValues({ value, label: clipToBudget(st.label, b.statLabel) }, unit ? { unit } : {}), icon ? { icon } : {});
           }
@@ -34145,10 +34155,9 @@ ${err.toString()}`);
         }
         const stats = (Array.isArray(p.stats) ? p.stats : []).map((x) => {
           const r = x != null ? x : {};
-          const value = bareFigure(r.value);
+          const { value, unit } = splitFigure(r.value, r.unit);
           if (!value)
             return null;
-          const unit = clipToBudget(r.unit, b.statUnit);
           const icon = iconKeyword(r.icon);
           return __spreadValues(__spreadValues({ value, label: clipToBudget(r.label, b.statLabel) }, unit ? { unit } : {}), icon ? { icon } : {});
         }).filter((x) => !!x).slice(0, b.stats);
@@ -36172,6 +36181,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
       var LARGE_KEYS = /* @__PURE__ */ new Set(["point", "agendaItem", "colHead", "stepNumber", "stepLabel", "detail", "timelineWhen", "icon", "monogram", "personName", "personRole"]);
       var LARGE_SCALE = 1.3;
       var ADVANCE = { heading: 0.55, body: 0.5 };
+      var NUMERAL_ADVANCE = 0.62;
       var LIST_GUTTER_EM = 1.6;
       function keepLastWordCompany(text2) {
         if (text2.trim().split(/\s+/).length < 3)
@@ -36431,7 +36441,9 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
          *  unit beside it at a third of that, sharing a baseline. */
         numeral(rect, value, unit, color, baseSize) {
           const base = baseSize != null ? baseSize : this.sz("numeral");
-          const size2 = this.fit([value + (unit ? " " + unit : "")], rect.width, rect.height, base, 1, "heading", 0);
+          const unitScale = T.unit / T.numeral;
+          const ems = Array.from(value).length * NUMERAL_ADVANCE + (unit ? (1 + Array.from(unit).length) * NUMERAL_ADVANCE * unitScale : 0);
+          const size2 = Math.max((0, deckStyle_1.sizeFloor)(this.ds.size), Math.min(Math.round(base), Math.floor(rect.width / Math.max(ems, NUMERAL_ADVANCE)), Math.round(rect.height)));
           const r = this.mirror(rect);
           const runStyle = (fontSize) => ({
             fontFamily: this.ds.fonts.heading,
@@ -36451,7 +36463,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             box: { mode: "fixed", width: r.width, height: r.height, autoFit: { enabled: false, min: 8, max: 512 }, verticalAlign: "bottom" },
             content: [{ runs, style: { align: this.align, direction: "auto" } }]
           });
-          return { node: node2, height: Math.ceil(size2 * 1) };
+          return { node: node2, height: size2, size: size2 };
         }
         rect(name, r0, fill, radius = 0, data) {
           const r = this.mirror(r0);
@@ -37223,7 +37235,8 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
               const rowTop = bottom + (r > 0 ? u * 3 : 0);
               const pad = u * 3;
               const cw = cellsR[0].width - 2 * pad;
-              const figH = Math.max(...rowStats.map((st) => this.numeral({ x: 0, y: 0, width: cw, height: figureH }, st.value, st.unit, this.accentInk, figureH).height));
+              const rowSize = Math.min(...rowStats.map((st) => this.numeral({ x: 0, y: 0, width: cw, height: figureH }, st.value, st.unit, this.accentInk, figureH).size));
+              const figH = rowSize;
               const contentH = iconH + u * 2 + figH + u * 1.5 + labelH;
               rowStats.forEach((st, i) => {
                 const c = cellsR[i];
@@ -37237,7 +37250,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
                 }
                 const ruleY = cy + iconH;
                 out.push(this.accentRule(cx, ruleY));
-                const fig = this.numeral({ x: cx, y: ruleY + u * 2, width: cw, height: figH }, st.value, st.unit, this.accentInk, figureH);
+                const fig = this.numeral({ x: cx, y: ruleY + u * 2, width: cw, height: figH }, st.value, st.unit, this.accentInk, rowSize);
                 out.push(fig.node);
                 out.push(this.text({ name: "Label", rect: { x: cx, y: ruleY + u * 2 + figH + u * 1.5, width: cw, height: labelH }, paragraphs: [st.label], role: "heading", base: this.sz("statLabel") * (rows > 1 ? 0.85 : 1), bold: true, lineHeight: 1.2 }).node);
               });

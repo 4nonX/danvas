@@ -685,3 +685,29 @@ describe("illustrations", () => {
     }
   });
 });
+
+describe("a figure holds one line", () => {
+  it("sizes the numeral to its column with the unit at its own size, so a long figure in a narrow column never wraps", () => {
+    const square = deriveDesignSystem(theme, { width: 1080, height: 1080 }, { seed: 1 });
+    const item = normalizeOutline({ title: "T", pages: [{ ...pageFor("bigNumber"), stat: { value: "48 hrs", unit: "hours", label: "Average turnaround, drop-off to ready" }, image: { subject: "shapes", treatment: "abstract" } }] }).pages[0];
+    const page = composeArchetypePage(item, square, { index: 1, total: 3 });
+    const fig = page.nodes.find((n) => n.name === "Figure") as unknown as { size: { width: number }; content: { runs: { text: string; style: { fontSize: number } }[] }[] };
+    const [value, unit] = fig.content[0].runs;
+    expect(value.text).toBe("48");
+    expect(unit.text).toBe(" hours");
+    // The whole line, at its two sizes and the bold display advance, stays inside the box.
+    const advance = value.text.length * 0.62 * value.style.fontSize + unit.text.length * 0.62 * unit.style.fontSize;
+    expect(advance).toBeLessThanOrEqual(fig.size.width);
+    // And it is still a display figure, not the ladder's floor.
+    expect(value.style.fontSize).toBeGreaterThan(100);
+  });
+
+  it("gives a stat row one shared figure size", () => {
+    const wide = deriveDesignSystem(theme, size, { seed: 1 });
+    const item = normalizeOutline({ title: "T", pages: [{ ...pageFor("kpiGrid"), stats: [{ value: "4,120", label: "a" }, { value: "$1,240,000", unit: "total", label: "b" }] }] }).pages[0];
+    const page = composeArchetypePage(item, wide, { index: 1, total: 3 });
+    const sizes = page.nodes.filter((n) => n.name === "Figure").map((n) => (n as unknown as { content: { runs: { style: { fontSize: number } }[] }[] }).content[0].runs[0].style.fontSize);
+    expect(sizes.length).toBe(2);
+    expect(new Set(sizes).size).toBe(1);
+  });
+});

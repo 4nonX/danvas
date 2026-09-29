@@ -24,7 +24,7 @@ import type { DeckMotion, DesignSystem } from "./designSystem";
 import { ICON_BOX, ICON_GLYPHS, ICON_KEYWORDS } from "./iconset";
 import { ILLUSTRATIONS, ILLUSTRATION_KEYWORDS, type IllustrationDrawing } from "./illustrationset";
 import type { PageVariant } from "./measure";
-import { ladderFrom } from "./deckStyle";
+import { ladderFrom, sizeFloor } from "./deckStyle";
 
 export interface ComposedPage {
   background: Fill;
@@ -110,6 +110,9 @@ const LARGE_SCALE = 1.3;
 // Average glyph advance as a fraction of the em, per role. Headings are set
 // in a display face and wider; body in a text face.
 const ADVANCE = { heading: 0.55, body: 0.5 } as const;
+/** Bold display digits and their marks ($ % , . k M) average wider than
+ *  running text; a figure is sized by this so it holds one line. */
+const NUMERAL_ADVANCE = 0.62;
 
 /** The list marker gutter the text engine reserves, in ems (layoutText). */
 const LIST_GUTTER_EM = 1.6;
@@ -399,9 +402,17 @@ class Composer {
 
   /** A stat as one paragraph of two runs: the figure at display scale and the
    *  unit beside it at a third of that, sharing a baseline. */
-  private numeral(rect: Rect, value: string, unit: string | undefined, color: Color, baseSize?: number): { node: Node; height: number } {
+  private numeral(rect: Rect, value: string, unit: string | undefined, color: Color, baseSize?: number): { node: Node; height: number; size: number } {
     const base = baseSize ?? this.sz("numeral");
-    const size = this.fit([value + (unit ? " " + unit : "")], rect.width, rect.height, base, 1.0, "heading", 0);
+    // A figure never wraps: it is sized to hold one line of its width, the
+    // unit counted at its own smaller size and the digits at a bold display
+    // advance. The general ladder cannot do this: its floor is half the base,
+    // a long figure in a narrow column needs less than that, and when nothing
+    // fit the ladder shipped its floor and the browser wrapped the figure
+    // over the label beneath it.
+    const unitScale = T.unit / T.numeral;
+    const ems = Array.from(value).length * NUMERAL_ADVANCE + (unit ? (1 + Array.from(unit).length) * NUMERAL_ADVANCE * unitScale : 0);
+    const size = Math.max(sizeFloor(this.ds.size), Math.min(Math.round(base), Math.floor(rect.width / Math.max(ems, NUMERAL_ADVANCE)), Math.round(rect.height)));
     const r = this.mirror(rect);
     // Line height one: the baseline sits on the box's bottom edge, so a tall
     // glyph never rises past the box's top into the rule above it.
@@ -422,7 +433,7 @@ class Composer {
       box: { mode: "fixed", width: r.width, height: r.height, autoFit: { enabled: false, min: 8, max: 512 }, verticalAlign: "bottom" },
       content: [{ runs, style: { align: this.align, direction: "auto" } }],
     } as never) as Node;
-    return { node, height: Math.ceil(size * 1.0) };
+    return { node, height: size, size };
   }
 
   private rect(name: string, r0: Rect, fill: Color, radius = 0, data?: Record<string, unknown>): Node {
@@ -1231,7 +1242,10 @@ class Composer {
         // the tallest, so the rule, the figure and the label stack on what the
         // glyphs measure and not on the box they were offered.
         const cw = cellsR[0].width - 2 * pad;
-        const figH = Math.max(...rowStats.map((st) => this.numeral({ x: 0, y: 0, width: cw, height: figureH }, st.value, st.unit, this.accentInk, figureH).height));
+        // A row's numerals share one size, the largest at which every figure
+        // in the row holds its line, so "4,120" and "$310k" sit at one scale.
+        const rowSize = Math.min(...rowStats.map((st) => this.numeral({ x: 0, y: 0, width: cw, height: figureH }, st.value, st.unit, this.accentInk, figureH).size));
+        const figH = rowSize;
         const contentH = iconH + u * 2 + figH + u * 1.5 + labelH;
         rowStats.forEach((st, i) => {
           const c = cellsR[i];
@@ -1245,7 +1259,7 @@ class Composer {
           }
           const ruleY = cy + iconH;
           out.push(this.accentRule(cx, ruleY));
-          const fig = this.numeral({ x: cx, y: ruleY + u * 2, width: cw, height: figH }, st.value, st.unit, this.accentInk, figureH);
+          const fig = this.numeral({ x: cx, y: ruleY + u * 2, width: cw, height: figH }, st.value, st.unit, this.accentInk, rowSize);
           out.push(fig.node);
           out.push(this.text({ name: "Label", rect: { x: cx, y: ruleY + u * 2 + figH + u * 1.5, width: cw, height: labelH }, paragraphs: [st.label], role: "heading", base: this.sz("statLabel") * (rows > 1 ? 0.85 : 1), bold: true, lineHeight: 1.2 }).node);
         });

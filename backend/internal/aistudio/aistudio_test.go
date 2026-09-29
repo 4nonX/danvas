@@ -518,3 +518,26 @@ func TestAssistantTurnMustSayOrDoSomething(t *testing.T) {
 		t.Fatalf("clarify should become the reply, got %+v err=%v", r, err)
 	}
 }
+
+func TestSplitFigureKeepsOneToken(t *testing.T) {
+	cases := []struct{ v, u, wantV, wantU string }{
+		{"48 hrs", "hours", "48", "hours"},
+		{"48 hrs", "", "48", "hrs"},
+		{"$1.8 million", "", "$1.8", "million"},
+		{"310k /mo", "", "310k", "/mo"},
+		{"Top 10", "", "Top 10", ""},
+		{"3.2M", "riders", "3.2M", "riders"},
+		{"\u219367%", "", "67%", ""},
+	}
+	for _, c := range cases {
+		v, u := splitFigure(c.v, c.u)
+		if v != c.wantV || u != c.wantU {
+			t.Errorf("splitFigure(%q, %q) = %q, %q; want %q, %q", c.v, c.u, v, u, c.wantV, c.wantU)
+		}
+	}
+	p := OutlineItem{Title: "t", Archetype: "bigNumber", Stat: &Stat{Value: "48 hrs", Unit: "hours", Label: "x"}}
+	normalizeArchetypeFields(&p)
+	if p.Stat == nil || p.Stat.Value != "48" || p.Stat.Unit != "hours" {
+		t.Fatalf("normalized stat = %+v", p.Stat)
+	}
+}
