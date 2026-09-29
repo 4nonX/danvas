@@ -21,7 +21,13 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const SPEC_DIR = process.env.TEMPLATE_SPECS || join(ROOT, "scripts", "templates");
 const SEED = process.env.TEMPLATE_SEED || join(ROOT, "backend", "internal", "templates", "seed.json");
 const { validate, createNode } = await import(join(ROOT, "packages", "schema", "dist", "index.js"));
-const { composeDeckFile } = await import(join(ROOT, "packages", "aistudio", "dist", "index.js"));
+const { composeDeckFile, decodeDrawingPath } = await import(join(ROOT, "packages", "aistudio", "dist", "index.js"));
+// The composer's baked icon and drawing sets (Tabler Icons, ManyPixels; both
+// MIT) are not part of the package's public surface, so they are read from
+// their own modules: a template may place the same icons and drawings the
+// generated decks use, recolored to its own palette.
+const { ICON_GLYPHS, ICON_BOX } = await import(join(ROOT, "packages", "aistudio", "dist", "iconset.js"));
+const { ILLUSTRATIONS } = await import(join(ROOT, "packages", "aistudio", "dist", "illustrationset.js"));
 const { svgToNodes } = await import(join(ROOT, "packages", "stock", "dist", "index.js"));
 
 // Bundled illustration packs (for "illustrations" page entries): asset id ->
@@ -71,6 +77,7 @@ const radius = (r) => ({ topLeft: r, topRight: r, bottomRight: r, bottomLeft: r 
 function baseNode(id, n) {
   return {
     id,
+    ...(n.name ? { name: n.name } : {}),
     transform: { x: n.x, y: n.y, scaleX: 1, scaleY: 1, rotation: n.rotation ?? 0 },
     size: { width: n.w, height: n.h },
     opacity: n.opacity ?? 1,
@@ -121,6 +128,132 @@ function textNode(id, n) {
       verticalAlign: n.vAlign ?? "top",
     },
     content: paragraphs,
+  };
+}
+
+/** Two hexes mixed in sRGB, t of the way from a to b. */
+function mixHex(a, b, t) {
+  const pa = hex6(a).slice(1), pb = hex6(b).slice(1);
+  const ch = (i) => Math.round(parseInt(pa.slice(i, i + 2), 16) * (1 - t) + parseInt(pb.slice(i, i + 2), 16) * t);
+  return "#" + [0, 2, 4].map((i) => ch(i).toString(16).padStart(2, "0")).join("");
+}
+
+/** An icon from the composer's set, baked into a path node at its final
+ *  size: the glyph's contours scaled from the pack's 24-unit box into the
+ *  square, filled in one color under the even-odd rule. `w` is the square. */
+function iconNode(id, n, errors, where) {
+  const contours = ICON_GLYPHS[n.icon];
+  if (!contours?.length) { errors.push(`${where}: unknown icon ${n.icon}`); return null; }
+  const size = n.w;
+  const k = size / ICON_BOX;
+  const pt = (p) => ({ x: Math.round(p.x * k * 100) / 100, y: Math.round(p.y * k * 100) / 100 });
+  const scaled = contours.map((c) => ({
+    closed: c.closed,
+    segments: c.segments.map((sg) => ({ ...pt(sg), ...(sg.cIn ? { cIn: pt(sg.cIn) } : {}), ...(sg.cOut ? { cOut: pt(sg.cOut) } : {}) })),
+  }));
+  const [first, ...rest] = scaled;
+  return {
+    ...baseNode(id, { ...n, h: size }),
+    type: "path",
+    name: n.name ?? "Icon",
+    segments: first.segments,
+    closed: first.closed,
+    ...(rest.length ? { contours: rest } : {}),
+    fills: [fillOf(n.color ?? "#111111")],
+    data: { icon: n.icon },
+  };
+}
+
+/** A drawing from the composer's baked set, decoded into one path node per
+ *  fill role and recolored to the template: the pack's line becomes `ink`,
+ *  its accent `accent`, its greys tints between `ground` and `ink`. Fitted
+ *  inside the box, centered. */
+function drawingGroup(id, n, errors, where) {
+  const d = ILLUSTRATIONS[n.drawing];
+  if (!d) { errors.push(`${where}: unknown drawing ${n.drawing}`); return null; }
+  const ink = n.ink ?? "#111111", accent = n.accent ?? "#2563eb", ground = n.ground ?? "#ffffff";
+  const k = Math.min(n.w / d.w, n.h / d.h);
+  const w = Math.round(d.w * k), h = Math.round(d.h * k);
+  const x = n.x + Math.round((n.w - w) / 2), y = n.y + Math.round((n.h - h) / 2);
+  const roleColor = (role) => {
+    switch (role) {
+      case "line": case "stroke": return ink;
+      case "accent": return accent;
+      case "white": return mixHex(ground, ink, 0.04);
+      case "grey": return mixHex(ground, ink, 0.18);
+      case "grey2": return mixHex(ground, ink, 0.1);
+      case "grey3": return mixHex(ground, ink, 0.4);
+      default: return role.startsWith("#") ? role : ink;
+    }
+  };
+  const children = [];
+  d.layers.forEach(([role, path], li) => {
+    const contours = decodeDrawingPath(path, k, 0, 0);
+    if (!contours.length) return;
+    const [first, ...rest] = contours;
+    const color = roleColor(role);
+    children.push({
+      id: `${id}-l${li}`,
+      name: role,
+      type: "path",
+      transform: { x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0 },
+      size: { width: w, height: h },
+      opacity: 1,
+      blendMode: "normal",
+      segments: first.segments,
+      closed: first.closed,
+      ...(rest.length ? { contours: rest } : {}),
+      ...(role === "stroke"
+        ? { stroke: { fill: fillOf(color), width: Math.max(1, Math.round(k)), align: "center", cap: "round", join: "round" } }
+        : { fills: [fillOf(color)] }),
+    });
+  });
+  if (!children.length) { errors.push(`${where}: drawing ${n.drawing} decoded to nothing`); return null; }
+  return {
+    ...baseNode(id, { ...n, x, y, w, h }),
+    type: "group",
+    name: n.name ?? n.drawing,
+    children,
+    data: { illustration: n.drawing },
+  };
+}
+
+/** A picture placeholder: an empty image frame (the node the editor's
+ *  "use as image frame" makes) with a quiet fill, so dropping a photo on it
+ *  fills the frame clipped to the shape. `shape` is "rect" or "ellipse". */
+function photoFrame(id, n) {
+  const out = {
+    ...baseNode(id, n),
+    type: "frame",
+    name: n.name ?? "Photo",
+    clip: true,
+    children: [],
+    maskShape: n.shape === "ellipse" ? "ellipse" : "rect",
+    fills: [fillOf(n.fill ?? "#e2e5ea")],
+  };
+  if (n.radius && n.shape !== "ellipse") out.cornerRadius = radius(n.radius);
+  return out;
+}
+
+/** A live chart node, the same shape the generation pipeline emits: bars and
+ *  lines carry their values, a legend shows for more than one series. */
+function chartNode(id, n) {
+  const series = n.series.map((s) => ({ name: s.name, values: s.values, ...(s.color ? { color: srgb(s.color) } : {}) }));
+  const kind = n.chartType ?? "bar";
+  return {
+    ...baseNode(id, n),
+    type: "chart",
+    name: n.name ?? "Chart",
+    chartType: kind,
+    categories: n.categories,
+    series,
+    options: {},
+    style: {
+      fontSize: n.fontSize ?? 18,
+      valueLabels: n.valueLabels ?? (kind === "bar" || kind === "barGrouped" || kind === "line"),
+      legend: { show: n.legend ?? series.length > 1, position: "bottom" },
+      axes: { showX: true, showY: kind !== "pie" && kind !== "donut" },
+    },
   };
 }
 
@@ -215,7 +348,10 @@ function compile(spec) {
       else if (n.kind === "ellipse") children.push(shapeNode(id, n, "ellipse"));
       else if (n.kind === "text") children.push(textNode(id, n));
       else if (n.kind === "button") children.push(...buttonNodes(id, n));
-      else if (n.kind === "frame") children.push({ ...baseNode(id, n), type: "frame", ...(n.fill ? { fills: [fillOf(n.fill)] } : {}) });
+      else if (n.kind === "frame" || n.kind === "photo") children.push(photoFrame(id, n));
+      else if (n.kind === "icon") { const g = iconNode(id, n, errors, `${spec.id} p${pi} n${ni}`); if (g) children.push(g); }
+      else if (n.kind === "drawing") { const g = drawingGroup(id, n, errors, `${spec.id} p${pi} n${ni}`); if (g) children.push(g); }
+      else if (n.kind === "chart") children.push(chartNode(id, n));
       else errors.push(`${spec.id} p${pi} n${ni}: unknown kind ${n.kind}`);
       // Alpha-hex lint: 8-digit colors silently lose their alpha; authors must
       // use node opacity for translucency.
@@ -228,7 +364,8 @@ function compile(spec) {
       // Geometry lint: everything stays on the page unless it declares bleed.
       if (!n.bleed) {
         const pad = 1;
-        if (n.x < -pad || n.y < -pad || n.x + n.w > spec.size[0] + pad || n.y + n.h > spec.size[1] + pad) {
+        const nh = n.kind === "icon" ? n.w : n.h;
+        if (n.x < -pad || n.y < -pad || n.x + n.w > spec.size[0] + pad || n.y + nh > spec.size[1] + pad) {
           errors.push(`${spec.id} p${pi} n${ni} (${n.kind}) out of bounds: ${n.x},${n.y} ${n.w}x${n.h}`);
         }
       }

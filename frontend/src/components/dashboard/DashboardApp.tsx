@@ -1121,8 +1121,11 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                     title={tr("dashboard.use_this_template")}
                     className="group overflow-hidden rounded-2xl border border-neutral-200 bg-surface text-start shadow-sm transition hover:shadow-md disabled:opacity-60"
                   >
-                    <div className="aspect-[4/3] bg-neutral-100">
+                    <div className="relative aspect-[4/3] bg-neutral-100">
                       <DesignThumb templateId={t.id} />
+                      {(t.pageCount ?? 0) > 1 && (
+                        <span className="absolute bottom-2 start-2 rounded-md bg-black/55 px-1.5 py-0.5 text-[11px] font-medium text-white/90">{tr("dashboard.n_slides", { count: t.pageCount })}</span>
+                      )}
                     </div>
                     <div className="truncate px-3 py-2.5 text-sm font-semibold text-neutral-800">{t.title}</div>
                   </button>
@@ -1216,7 +1219,12 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                         title={tr("dashboard.use_this_template")}
                         className="block w-full text-start disabled:opacity-60"
                       >
-                        <div className="aspect-[4/3] overflow-hidden rounded-t-2xl bg-neutral-100"><DesignThumb templateId={t.id} /></div>
+                        <div className="relative aspect-[4/3] overflow-hidden rounded-t-2xl bg-neutral-100">
+                          <DesignThumb templateId={t.id} />
+                          {(t.pageCount ?? 0) > 1 && (
+                            <span className="absolute bottom-2 start-2 rounded-md bg-black/55 px-1.5 py-0.5 text-[11px] font-medium text-white/90">{tr("dashboard.n_slides", { count: t.pageCount })}</span>
+                          )}
+                        </div>
                         <div className="truncate px-3 py-2.5 text-sm font-semibold text-neutral-800">{t.title}</div>
                       </button>
                       <button

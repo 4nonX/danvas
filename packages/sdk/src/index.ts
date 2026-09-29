@@ -288,6 +288,8 @@ export interface TemplateSummary {
   categories: string[];
   previewUrls: string[];
   format: { width: number; height: number; unit: string };
+  /** Pages in the template; a presentation kit has one per layout. */
+  pageCount?: number;
 }
 
 export type TemplateVisibility = "private" | "workspace" | "public";

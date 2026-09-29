@@ -3,7 +3,7 @@
 // are undoable. Uploads/stock images are placed via the image asset provider.
 
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type FormEvent } from "react";
-import { Square, SquareRoundCorner, Circle, Triangle, Pentagon, Hexagon, Star, Diamond, Octagon, Frame, QrCode, Type, Upload, Search, Table as TableIcon, BarChart3, LineChart, AreaChart, PieChart, Donut, ScatterChart, Radar, Wand2, ImagePlus, Settings2, Trash2, Folder, FolderPlus, Pencil, X, Tag, ChevronLeft, Link as LinkIcon, Mic, Video, MonitorUp, CircleStop, Spline, Clock, LayoutGrid, Shapes, Sparkles, Stethoscope, AlignStartVertical, Play, ChevronDown, Send, Plus, RotateCcw, FileDown, FileText, Paperclip } from "lucide-react";
+import { Square, SquareRoundCorner, Circle, Triangle, Pentagon, Hexagon, Star, Diamond, Octagon, Frame, QrCode, Type, Upload, Search, Table as TableIcon, BarChart3, LineChart, AreaChart, PieChart, Donut, ScatterChart, Radar, Wand2, ImagePlus, Settings2, Trash2, Folder, FolderPlus, Pencil, X, Tag, ChevronLeft, Link as LinkIcon, Mic, Video, MonitorUp, CircleStop, Spline, Clock, LayoutGrid, Shapes, Sparkles, Stethoscope, AlignStartVertical, Play, ChevronDown, Send, Plus, RotateCcw, FileDown, FileText, Paperclip, Layers } from "lucide-react";
 import { migrate, type ChartType, type Node, type Fill, type Color, type Theme } from "@hc/schema";
 import { searchFonts, type FontCatalogEntry } from "@hc/text";
 import { toHex, fromHex, relativeLuminance } from "@hc/color";
@@ -56,6 +56,7 @@ import { mermaidToDiagram, normalizeDiagramSpec, type DiagramSpec } from "@hc/wh
 import type { BrandVoice, BrandLintViolation } from "@hc/sdk";
 import { useEditor, type BrandFixTarget, type DeckTextEntry } from "@/store/editor";
 import { useBrand } from "@/store/brand";
+import { TemplateSlidesDialog } from "@/components/editor/TemplateSlidesDialog";
 import { useToast } from "@/components/ui/Toast";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
@@ -129,6 +130,9 @@ export function TemplatesPanel() {
   // fit this page. Searching expands it (hiding search hits would read as "no
   // results"), and so does having no matches at all (never an empty panel).
   const [showOther, setShowOther] = useState(false);
+  // A multi-page template (a presentation kit) also offers its slides one by
+  // one; this is the template whose picker is open.
+  const [pickFrom, setPickFrom] = useState<TemplateSummary | null>(null);
   // The active page's size drives the suggestions; re-read on page switches
   // and doc edits (a stage resize changes what "matching" means).
   const activePage = useEditor((s) => s.activePage);
@@ -237,12 +241,28 @@ export function TemplatesPanel() {
           <span className="absolute bottom-1 end-1 rounded bg-black/55 px-1 py-0.5 font-mono text-[9px] tabular-nums text-white/90">
             {Math.round(t.format?.width ?? 0)}x{Math.round(t.format?.height ?? 0)}
           </span>
+          {(t.pageCount ?? 0) > 1 && (
+            <span className="absolute bottom-1 start-1 rounded bg-black/55 px-1 py-0.5 text-[9px] font-medium text-white/90">
+              {tr("editor.n_slides", { count: t.pageCount })}
+            </span>
+          )}
           {busyId === t.id && (
             <span className="absolute inset-0 grid place-items-center bg-white/60"><Spinner /></span>
           )}
         </div>
         <div className="truncate px-2 py-1.5 text-xs font-medium text-neutral-700">{t.title}</div>
       </button>
+      {(t.pageCount ?? 0) > 1 && (
+        <button
+          type="button"
+          onClick={() => setPickFrom(t)}
+          title={tr("editor.pick_slides")}
+          aria-label={tr("editor.pick_slides_from", { title: t.title })}
+          className="absolute end-8 top-1 rounded-md border border-neutral-200 bg-surface p-1 text-neutral-600 opacity-0 shadow-sm transition hover:text-brand-ink focus-visible:opacity-100 group-hover:opacity-100"
+        >
+          <Layers size={12} />
+        </button>
+      )}
       <button
         type="button"
         onClick={() => void downloadHyc(t)}
@@ -258,6 +278,7 @@ export function TemplatesPanel() {
   const sectionCls = "mb-1.5 mt-3 text-xs font-semibold uppercase tracking-wide text-neutral-400";
   return (
     <PanelShell title={tr("editor.templates")}>
+      {pickFrom && <TemplateSlidesDialog template={pickFrom} onClose={() => setPickFrom(null)} />}
       {restrictedWorkspace && (
         <p className="mb-2 rounded-lg border border-brand-200 bg-brand-50 px-2.5 py-1.5 text-[11px] leading-snug text-brand-ink">{tr("editor.brand_templates_only")}</p>
       )}

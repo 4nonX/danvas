@@ -296,7 +296,7 @@ All configuration is read from the root `.env` (copy `.env.example`). The most i
 
 The starter template catalog lives in `backend/internal/templates/seed.json` and is compiled into the binary (`//go:embed`). There is no seed command or database step: the templates are served directly from the embedded JSON, merged with any templates saved to the database.
 
-To add or edit a built-in template, edit `seed.json`, then rebuild/restart the backend so it re-embeds the file:
+The seed is compiled, never hand-edited: each template is a compact spec in `scripts/templates/*.json` (hex colours, text blocks, buttons, icons, drawings, picture slots, live charts, and bundled illustrations), and `node scripts/build-templates.mjs` validates every spec against the schema and writes the seed. The six presentation kits (`kit-*.json`) are themselves generated from one layout catalog by `node scripts/gen-deck-kits.mjs`, so a grid change lands on every slide of every kit at once. To add or edit a built-in template, edit or add a spec, run the build, then rebuild/restart the backend so it re-embeds the file:
 
 - Development: restart `npm run dev` (it runs the backend via `go run`, which recompiles each start).
 - Production (native): `npm run build:dist` then `npm run start:dist:only` (or `npm run deploy`).

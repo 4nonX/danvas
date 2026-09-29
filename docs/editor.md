@@ -12,6 +12,8 @@ Each entry opens a panel next to the rail; clicking the active entry collapses i
 
 The template gallery, in the editor. Templates matching the current page size are suggested first (exact size, then the same aspect ratio), with search across the whole gallery and a size badge on every card. Clicking a template adds it as a new page of the design and jumps there; it never replaces existing pages, and one undo removes it. Hovering a card offers a `.hyc` download of the template file. Design documents only.
 
+A presentation kit is a multi-page template that carries every layout a deck needs (cover, agenda, section divider, statement, text with a picture, two columns, three cards, a figure row, a live chart, a timeline, a process, a comparison table, a team, a quote, pricing, and a closing) in one visual system. Its card shows the slide count, and hovering it offers **Pick slides**: tick the layouts you want and only those are added, sized to the design. Six kits ship built in (Atlas, Vanta, Folio, Pulse, Terra, and Slate), each with its own faces, palette, corner radius and ornament, so slides picked from one kit always sit together. Picture slots are empty image frames: drop a photo on one and it fills the frame.
+
 ### Elements
 
 Shapes (rectangle, rounded, ellipse, triangle, pentagon, hexagon, star, diamond, octagon, burst, pill), lines and arrows, image frames (rectangular, circle, rounded), layout grids, tables, a full chart set (bar, grouped bar, stacked bar, line, area, pie, donut, scatter, radar), and QR codes. Click to place or drag onto the canvas; a Recent row remembers what you use.
