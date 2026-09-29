@@ -1,5 +1,4 @@
 {
- "kind": "deck-outline",
  "id": "deck-event-proposal",
  "title": "Event Proposal",
  "categories": [
@@ -13,61 +12,1655 @@
   "budget"
  ],
  "styleTags": [
-  "editorial"
+  "bold",
+  "modern",
+  "playful"
  ],
- "themeId": "theme-blush",
  "size": [
   1920,
   1080
  ],
- "rank": 72,
+ "typography": [
+  {
+   "role": "heading",
+   "family": "Sora",
+   "weight": 800
+  },
+  {
+   "role": "body",
+   "family": "Manrope",
+   "weight": 500
+  },
+  {
+   "role": "accent",
+   "family": "Bricolage Grotesque",
+   "weight": 800
+  }
+ ],
+ "pages": [
+  {
+   "name": "Cover",
+   "bg": {
+    "angle": 160,
+    "stops": [
+     [
+      "#2B2BFF",
+      0
+     ],
+     [
+      "#6A2BFF",
+      1
+     ]
+    ]
+   },
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 96,
+     "w": 22,
+     "h": 22,
+     "fill": "#FF4D2E",
+     "radius": 6
+    },
+    {
+     "kind": "text",
+     "x": 132,
+     "y": 93,
+     "w": 700,
+     "h": 30,
+     "text": "Loop",
+     "family": "Manrope",
+     "size": 22,
+     "weight": 600,
+     "color": "#FFFFFF",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 372,
+     "w": 1000,
+     "h": 60,
+     "text": "Event proposal",
+     "family": "Bricolage Grotesque",
+     "size": 36,
+     "weight": 800,
+     "color": "#B9F542",
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 446,
+     "w": 1000,
+     "h": 164,
+     "text": "Loop Live:\none day, four hundred people",
+     "family": "Sora",
+     "size": 73.2,
+     "weight": 800,
+     "color": "#FFFFFF",
+     "lineHeight": 1.02
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 640,
+     "w": 900,
+     "h": 84,
+     "text": "What it is and who it is for, why now, the arc of the day, the budget and the break-even line, who runs what, and what we need approved today.",
+     "family": "Manrope",
+     "size": 28,
+     "weight": 500,
+     "color": "#CFCFFF",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 940,
+     "w": 900,
+     "h": 28,
+     "text": "Mei Lin, Marketing  ·  November 2026",
+     "family": "Manrope",
+     "size": 18,
+     "weight": 500,
+     "color": "#CFCFFF",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 940,
+     "w": 240,
+     "h": 28,
+     "text": "01 / 6",
+     "family": "Manrope",
+     "size": 18,
+     "weight": 500,
+     "color": "#CFCFFF",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "rect",
+     "x": 1272,
+     "y": 0,
+     "w": 648,
+     "h": 1080,
+     "fill": "#FF4D2E",
+     "bleed": true
+    },
+    {
+     "kind": "ellipse",
+     "x": 1316,
+     "y": 260,
+     "w": 560,
+     "h": 560,
+     "fill": "#FFFFFF",
+     "opacity": 0.18
+    },
+    {
+     "kind": "rect",
+     "x": 1675,
+     "y": 266,
+     "w": 42,
+     "h": 14,
+     "fill": "#B9F542",
+     "rotation": 35,
+     "radius": 3
+    },
+    {
+     "kind": "rect",
+     "x": 1654,
+     "y": 628,
+     "w": 27,
+     "h": 13,
+     "fill": "#FFFFFF",
+     "rotation": -18,
+     "radius": 3
+    },
+    {
+     "kind": "rect",
+     "x": 1702,
+     "y": 836,
+     "w": 34,
+     "h": 10,
+     "fill": "#2B2BFF",
+     "rotation": 11,
+     "radius": 3
+    },
+    {
+     "kind": "rect",
+     "x": 1349,
+     "y": 551,
+     "w": 39,
+     "h": 9,
+     "fill": "#B9F542",
+     "rotation": 33,
+     "radius": 3
+    },
+    {
+     "kind": "rect",
+     "x": 1558,
+     "y": 113,
+     "w": 25,
+     "h": 12,
+     "fill": "#FFFFFF",
+     "rotation": 11,
+     "radius": 3
+    },
+    {
+     "kind": "rect",
+     "x": 1722,
+     "y": 638,
+     "w": 28,
+     "h": 10,
+     "fill": "#2B2BFF",
+     "rotation": -8,
+     "radius": 3
+    },
+    {
+     "kind": "rect",
+     "x": 1675,
+     "y": 175,
+     "w": 33,
+     "h": 8,
+     "fill": "#B9F542",
+     "rotation": 39,
+     "radius": 3
+    },
+    {
+     "kind": "rect",
+     "x": 1743,
+     "y": 478,
+     "w": 36,
+     "h": 9,
+     "fill": "#FFFFFF",
+     "rotation": -30,
+     "radius": 3
+    },
+    {
+     "kind": "text",
+     "x": 1330,
+     "y": 96,
+     "w": 500,
+     "h": 48,
+     "text": "2027",
+     "family": "Sora",
+     "size": 40,
+     "weight": 800,
+     "color": "#FFFFFF",
+     "lineHeight": 1.06,
+     "align": "right"
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "la-notification-woman",
+     "x": 1336,
+     "y": 300,
+     "w": 520,
+     "h": 480
+    }
+   ]
+  },
+  {
+   "name": "Statement",
+   "bg": "#FFFFFF",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 1906,
+     "y": 0,
+     "w": 14,
+     "h": 1080,
+     "fill": "#2B2BFF"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#E4E4EE"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Loop  ·  Proposal: Loop Live 2027",
+     "family": "Manrope",
+     "size": 18,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "02 / 6",
+     "family": "Manrope",
+     "size": 18,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 236,
+     "w": 1000,
+     "h": 56,
+     "text": "Event proposal",
+     "family": "Bricolage Grotesque",
+     "size": 36,
+     "weight": 800,
+     "color": "#FF4D2E",
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 306,
+     "w": 120,
+     "h": 6,
+     "fill": "#FF4D2E"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 336,
+     "w": 1560,
+     "h": 232,
+     "text": "Our customers have never been in one room. Four hundred finance leaders, one day, and the 2027 plan announced from the stage.",
+     "family": "Sora",
+     "size": 66,
+     "weight": 800,
+     "color": "#0B0B14",
+     "lineHeight": 1.1
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 608,
+     "w": 1000,
+     "h": 32,
+     "text": "Why now: the moment this event captures",
+     "family": "Manrope",
+     "size": 18,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.3
+    }
+   ]
+  },
+  {
+   "name": "Timeline",
+   "bg": "#FFFFFF",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 1906,
+     "y": 0,
+     "w": 14,
+     "h": 1080,
+     "fill": "#2B2BFF"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 88,
+     "w": 1200,
+     "h": 28,
+     "text": "The experience",
+     "family": "Manrope",
+     "size": 20,
+     "weight": 600,
+     "color": "#FF4D2E",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 124,
+     "w": 1240,
+     "h": 77,
+     "text": "The arc of the day, doors to encore",
+     "family": "Sora",
+     "size": 63,
+     "weight": 800,
+     "color": "#0B0B14",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#E4E4EE"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Loop  ·  Proposal: Loop Live 2027",
+     "family": "Manrope",
+     "size": 18,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "03 / 6",
+     "family": "Manrope",
+     "size": 18,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 428,
+     "w": 1728,
+     "h": 3,
+     "fill": "#E4E4EE"
+    },
+    {
+     "kind": "ellipse",
+     "x": 96,
+     "y": 415,
+     "w": 30,
+     "h": 30,
+     "fill": "#FFFFFF",
+     "stroke": "#FF4D2E",
+     "strokeWidth": 3
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 355,
+     "w": 300,
+     "h": 28,
+     "text": "09:00",
+     "family": "Manrope",
+     "size": 20,
+     "weight": 600,
+     "color": "#FF4D2E",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 479,
+     "w": 384,
+     "h": 44,
+     "text": "Doors and coffee",
+     "family": "Sora",
+     "size": 32,
+     "weight": 800,
+     "color": "#0B0B14",
+     "lineHeight": 1.1
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 531,
+     "w": 384,
+     "h": 120,
+     "text": "Registration, the product wall, and the first customer conversations of the day.",
+     "family": "Manrope",
+     "size": 21,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 528,
+     "y": 415,
+     "w": 30,
+     "h": 30,
+     "fill": "#FFFFFF",
+     "stroke": "#FF4D2E",
+     "strokeWidth": 3
+    },
+    {
+     "kind": "text",
+     "x": 528,
+     "y": 355,
+     "w": 300,
+     "h": 28,
+     "text": "10:00",
+     "family": "Manrope",
+     "size": 20,
+     "weight": 600,
+     "color": "#FF4D2E",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 528,
+     "y": 479,
+     "w": 384,
+     "h": 44,
+     "text": "The keynote",
+     "family": "Sora",
+     "size": 32,
+     "weight": 800,
+     "color": "#0B0B14",
+     "lineHeight": 1.1
+    },
+    {
+     "kind": "text",
+     "x": 528,
+     "y": 531,
+     "w": 384,
+     "h": 120,
+     "text": "The 2027 plan, two customer stories on stage, and one launch nobody expects.",
+     "family": "Manrope",
+     "size": 21,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 960,
+     "y": 415,
+     "w": 30,
+     "h": 30,
+     "fill": "#FFFFFF",
+     "stroke": "#FF4D2E",
+     "strokeWidth": 3
+    },
+    {
+     "kind": "text",
+     "x": 960,
+     "y": 355,
+     "w": 300,
+     "h": 28,
+     "text": "13:30",
+     "family": "Manrope",
+     "size": 20,
+     "weight": 600,
+     "color": "#FF4D2E",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 960,
+     "y": 479,
+     "w": 384,
+     "h": 44,
+     "text": "Workshops",
+     "family": "Sora",
+     "size": 32,
+     "weight": 800,
+     "color": "#0B0B14",
+     "lineHeight": 1.1
+    },
+    {
+     "kind": "text",
+     "x": 960,
+     "y": 531,
+     "w": 384,
+     "h": 120,
+     "text": "Three tracks, forty people each, hands on with their own data.",
+     "family": "Manrope",
+     "size": 21,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 1392,
+     "y": 415,
+     "w": 30,
+     "h": 30,
+     "fill": "#FFFFFF",
+     "stroke": "#FF4D2E",
+     "strokeWidth": 3
+    },
+    {
+     "kind": "text",
+     "x": 1392,
+     "y": 355,
+     "w": 300,
+     "h": 28,
+     "text": "17:00",
+     "family": "Manrope",
+     "size": 20,
+     "weight": 600,
+     "color": "#FF4D2E",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 1392,
+     "y": 479,
+     "w": 384,
+     "h": 44,
+     "text": "The encore",
+     "family": "Sora",
+     "size": 32,
+     "weight": 800,
+     "color": "#0B0B14",
+     "lineHeight": 1.1
+    },
+    {
+     "kind": "text",
+     "x": 1392,
+     "y": 531,
+     "w": 384,
+     "h": 120,
+     "text": "Drinks on the terrace, the band, and the photo everyone posts.",
+     "family": "Manrope",
+     "size": 21,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.4
+    }
+   ]
+  },
+  {
+   "name": "Figures",
+   "bg": "#FFFFFF",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 1906,
+     "y": 0,
+     "w": 14,
+     "h": 1080,
+     "fill": "#2B2BFF"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 88,
+     "w": 1200,
+     "h": 28,
+     "text": "Budget",
+     "family": "Manrope",
+     "size": 20,
+     "weight": 600,
+     "color": "#FF4D2E",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 124,
+     "w": 1240,
+     "h": 131,
+     "text": "Costs, sponsorships, and the break-even line",
+     "family": "Sora",
+     "size": 56,
+     "weight": 800,
+     "color": "#0B0B14",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#E4E4EE"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Loop  ·  Proposal: Loop Live 2027",
+     "family": "Manrope",
+     "size": 18,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "04 / 6",
+     "family": "Manrope",
+     "size": 18,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 299,
+     "w": 414,
+     "h": 560,
+     "fill": "#F3F3F9",
+     "radius": 24,
+     "stroke": "#E4E4EE",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 299,
+     "w": 414,
+     "h": 6,
+     "fill": "#FF4D2E",
+     "radius": 0
+    },
+    {
+     "kind": "text",
+     "x": 132,
+     "y": 355,
+     "w": 342,
+     "h": 128,
+     "text": "$380K",
+     "family": "Sora",
+     "size": 112,
+     "weight": 800,
+     "color": "#FF4D2E",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 132,
+     "y": 495,
+     "w": 342,
+     "h": 34,
+     "text": "Total cost",
+     "family": "Manrope",
+     "size": 24,
+     "weight": 600,
+     "color": "#0B0B14",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "button",
+     "x": 132,
+     "y": 549,
+     "w": 190,
+     "h": 40,
+     "label": "Venue, production, travel",
+     "fill": "#f5d5d4",
+     "color": "#FF4D2E",
+     "family": "Manrope",
+     "size": 17,
+     "weight": 700
+    },
+    {
+     "kind": "text",
+     "x": 132,
+     "y": 619,
+     "w": 342,
+     "h": 140,
+     "text": "Fixed once the venue signs; every other line has a cap.",
+     "family": "Manrope",
+     "size": 20,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 534,
+     "y": 299,
+     "w": 414,
+     "h": 560,
+     "fill": "#F3F3F9",
+     "radius": 24,
+     "stroke": "#E4E4EE",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 534,
+     "y": 299,
+     "w": 414,
+     "h": 6,
+     "fill": "#2B2BFF",
+     "radius": 0
+    },
+    {
+     "kind": "text",
+     "x": 570,
+     "y": 355,
+     "w": 342,
+     "h": 128,
+     "text": "$160K",
+     "family": "Sora",
+     "size": 112,
+     "weight": 800,
+     "color": "#2B2BFF",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 570,
+     "y": 495,
+     "w": 342,
+     "h": 34,
+     "text": "Sponsorships",
+     "family": "Manrope",
+     "size": 24,
+     "weight": 600,
+     "color": "#0B0B14",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "button",
+     "x": 570,
+     "y": 549,
+     "w": 190,
+     "h": 40,
+     "label": "Four partners",
+     "fill": "#cfcffa",
+     "color": "#2B2BFF",
+     "family": "Manrope",
+     "size": 17,
+     "weight": 700
+    },
+    {
+     "kind": "text",
+     "x": 570,
+     "y": 619,
+     "w": 342,
+     "h": 140,
+     "text": "Two confirmed in principle, two in conversation.",
+     "family": "Manrope",
+     "size": 20,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 972,
+     "y": 299,
+     "w": 414,
+     "h": 560,
+     "fill": "#F3F3F9",
+     "radius": 24,
+     "stroke": "#E4E4EE",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 972,
+     "y": 299,
+     "w": 414,
+     "h": 6,
+     "fill": "#FF4D2E",
+     "radius": 0
+    },
+    {
+     "kind": "text",
+     "x": 1008,
+     "y": 355,
+     "w": 342,
+     "h": 128,
+     "text": "$120K",
+     "family": "Sora",
+     "size": 112,
+     "weight": 800,
+     "color": "#FF4D2E",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 1008,
+     "y": 495,
+     "w": 342,
+     "h": 34,
+     "text": "Ticket revenue",
+     "family": "Manrope",
+     "size": 24,
+     "weight": 600,
+     "color": "#0B0B14",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "button",
+     "x": 1008,
+     "y": 549,
+     "w": 190,
+     "h": 40,
+     "label": "400 at $300",
+     "fill": "#f5d5d4",
+     "color": "#FF4D2E",
+     "family": "Manrope",
+     "size": 17,
+     "weight": 700
+    },
+    {
+     "kind": "text",
+     "x": 1008,
+     "y": 619,
+     "w": 342,
+     "h": 140,
+     "text": "Customers pay; prospects come as guests of their rep.",
+     "family": "Manrope",
+     "size": 20,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 1410,
+     "y": 299,
+     "w": 414,
+     "h": 560,
+     "fill": "#F3F3F9",
+     "radius": 24,
+     "stroke": "#E4E4EE",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 1410,
+     "y": 299,
+     "w": 414,
+     "h": 6,
+     "fill": "#2B2BFF",
+     "radius": 0
+    },
+    {
+     "kind": "text",
+     "x": 1446,
+     "y": 355,
+     "w": 342,
+     "h": 128,
+     "text": "$100K",
+     "family": "Sora",
+     "size": 112,
+     "weight": 800,
+     "color": "#2B2BFF",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 1446,
+     "y": 495,
+     "w": 342,
+     "h": 34,
+     "text": "Net cost",
+     "family": "Manrope",
+     "size": 24,
+     "weight": 600,
+     "color": "#0B0B14",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "button",
+     "x": 1446,
+     "y": 549,
+     "w": 190,
+     "h": 40,
+     "label": "Break-even at 12 deals",
+     "fill": "#cfcffa",
+     "color": "#2B2BFF",
+     "family": "Manrope",
+     "size": 17,
+     "weight": 700
+    },
+    {
+     "kind": "text",
+     "x": 1446,
+     "y": 619,
+     "w": 342,
+     "h": 140,
+     "text": "Twelve enterprise deals sourced at the event pays for it.",
+     "family": "Manrope",
+     "size": 20,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.4
+    }
+   ]
+  },
+  {
+   "name": "Team",
+   "bg": "#FFFFFF",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 1906,
+     "y": 0,
+     "w": 14,
+     "h": 1080,
+     "fill": "#2B2BFF"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 88,
+     "w": 1200,
+     "h": 28,
+     "text": "The team",
+     "family": "Manrope",
+     "size": 20,
+     "weight": 600,
+     "color": "#FF4D2E",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 124,
+     "w": 1240,
+     "h": 83,
+     "text": "Who runs what",
+     "family": "Sora",
+     "size": 68,
+     "weight": 800,
+     "color": "#0B0B14",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#E4E4EE"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Loop  ·  Proposal: Loop Live 2027",
+     "family": "Manrope",
+     "size": 18,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "05 / 6",
+     "family": "Manrope",
+     "size": 18,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "ellipse",
+     "name": "Photo",
+     "x": 193,
+     "y": 271,
+     "w": 220,
+     "h": 220,
+     "fill": "#f6cecc"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 523,
+     "w": 414,
+     "h": 40,
+     "text": "Mei Lin",
+     "family": "Sora",
+     "size": 30,
+     "weight": 800,
+     "color": "#0B0B14",
+     "lineHeight": 1.06,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 569,
+     "w": 414,
+     "h": 28,
+     "text": "Event lead",
+     "family": "Manrope",
+     "size": 17,
+     "weight": 600,
+     "color": "#FF4D2E",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 120,
+     "y": 615,
+     "w": 366,
+     "h": 96,
+     "text": "Programme, stage, and the run of show.",
+     "family": "Manrope",
+     "size": 21,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.4,
+     "align": "center"
+    },
+    {
+     "kind": "ellipse",
+     "name": "Photo",
+     "x": 631,
+     "y": 271,
+     "w": 220,
+     "h": 220,
+     "fill": "#c7c7fa"
+    },
+    {
+     "kind": "text",
+     "x": 534,
+     "y": 523,
+     "w": 414,
+     "h": 40,
+     "text": "Jonah Park",
+     "family": "Sora",
+     "size": 30,
+     "weight": 800,
+     "color": "#0B0B14",
+     "lineHeight": 1.06,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 534,
+     "y": 569,
+     "w": 414,
+     "h": 28,
+     "text": "Sponsors and sales",
+     "family": "Manrope",
+     "size": 17,
+     "weight": 600,
+     "color": "#2B2BFF",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 558,
+     "y": 615,
+     "w": 366,
+     "h": 96,
+     "text": "Partners on the floor and every prospect's rep in the room.",
+     "family": "Manrope",
+     "size": 21,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.4,
+     "align": "center"
+    },
+    {
+     "kind": "ellipse",
+     "name": "Photo",
+     "x": 1069,
+     "y": 271,
+     "w": 220,
+     "h": 220,
+     "fill": "#f6cecc"
+    },
+    {
+     "kind": "text",
+     "x": 972,
+     "y": 523,
+     "w": 414,
+     "h": 40,
+     "text": "Aisha Bello",
+     "family": "Sora",
+     "size": 30,
+     "weight": 800,
+     "color": "#0B0B14",
+     "lineHeight": 1.06,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 972,
+     "y": 569,
+     "w": 414,
+     "h": 28,
+     "text": "Experience",
+     "family": "Manrope",
+     "size": 17,
+     "weight": 600,
+     "color": "#FF4D2E",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 996,
+     "y": 615,
+     "w": 366,
+     "h": 96,
+     "text": "Registration, the product wall, workshops and the terrace.",
+     "family": "Manrope",
+     "size": 21,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.4,
+     "align": "center"
+    },
+    {
+     "kind": "ellipse",
+     "name": "Photo",
+     "x": 1507,
+     "y": 271,
+     "w": 220,
+     "h": 220,
+     "fill": "#c7c7fa"
+    },
+    {
+     "kind": "text",
+     "x": 1410,
+     "y": 523,
+     "w": 414,
+     "h": 40,
+     "text": "Priya Raman",
+     "family": "Sora",
+     "size": 30,
+     "weight": 800,
+     "color": "#0B0B14",
+     "lineHeight": 1.06,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 1410,
+     "y": 569,
+     "w": 414,
+     "h": 28,
+     "text": "The keynote",
+     "family": "Manrope",
+     "size": 17,
+     "weight": 600,
+     "color": "#2B2BFF",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 1434,
+     "y": 615,
+     "w": 366,
+     "h": 96,
+     "text": "The plan, the launch, and the two customers on stage.",
+     "family": "Manrope",
+     "size": 21,
+     "weight": 500,
+     "color": "#5B5B70",
+     "lineHeight": 1.4,
+     "align": "center"
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "op-peep-105",
+     "x": 223,
+     "y": 293,
+     "w": 160,
+     "h": 176
+    },
+    {
+     "asset": "op-peep-53",
+     "x": 661,
+     "y": 293,
+     "w": 160,
+     "h": 176
+    },
+    {
+     "asset": "op-peep-23",
+     "x": 1099,
+     "y": 293,
+     "w": 160,
+     "h": 176
+    },
+    {
+     "asset": "op-peep-72",
+     "x": 1537,
+     "y": 293,
+     "w": 160,
+     "h": 176
+    }
+   ]
+  },
+  {
+   "name": "Closing",
+   "bg": {
+    "angle": 160,
+    "stops": [
+     [
+      "#2B2BFF",
+      0
+     ],
+     [
+      "#6A2BFF",
+      1
+     ]
+    ]
+   },
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 1272,
+     "y": 0,
+     "w": 648,
+     "h": 1080,
+     "fill": "#FF4D2E",
+     "bleed": true
+    },
+    {
+     "kind": "ellipse",
+     "x": 1316,
+     "y": 240,
+     "w": 560,
+     "h": 560,
+     "fill": "#FFFFFF",
+     "opacity": 0.18
+    },
+    {
+     "kind": "rect",
+     "x": 1306,
+     "y": 498,
+     "w": 38,
+     "h": 11,
+     "fill": "#B9F542",
+     "rotation": 17,
+     "radius": 3
+    },
+    {
+     "kind": "rect",
+     "x": 1394,
+     "y": 792,
+     "w": 45,
+     "h": 11,
+     "fill": "#FFFFFF",
+     "rotation": 36,
+     "radius": 3
+    },
+    {
+     "kind": "rect",
+     "x": 1541,
+     "y": 650,
+     "w": 31,
+     "h": 9,
+     "fill": "#2B2BFF",
+     "rotation": 2,
+     "radius": 3
+    },
+    {
+     "kind": "rect",
+     "x": 1400,
+     "y": 978,
+     "w": 30,
+     "h": 11,
+     "fill": "#B9F542",
+     "rotation": -27,
+     "radius": 3
+    },
+    {
+     "kind": "rect",
+     "x": 1445,
+     "y": 236,
+     "w": 38,
+     "h": 13,
+     "fill": "#FFFFFF",
+     "rotation": -6,
+     "radius": 3
+    },
+    {
+     "kind": "rect",
+     "x": 1296,
+     "y": 277,
+     "w": 26,
+     "h": 10,
+     "fill": "#2B2BFF",
+     "rotation": -2,
+     "radius": 3
+    },
+    {
+     "kind": "rect",
+     "x": 1316,
+     "y": 92,
+     "w": 24,
+     "h": 13,
+     "fill": "#B9F542",
+     "rotation": 8,
+     "radius": 3
+    },
+    {
+     "kind": "rect",
+     "x": 1719,
+     "y": 158,
+     "w": 33,
+     "h": 10,
+     "fill": "#FFFFFF",
+     "rotation": -22,
+     "radius": 3
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 96,
+     "w": 22,
+     "h": 22,
+     "fill": "#FF4D2E",
+     "radius": 6
+    },
+    {
+     "kind": "text",
+     "x": 132,
+     "y": 93,
+     "w": 700,
+     "h": 30,
+     "text": "Loop",
+     "family": "Manrope",
+     "size": 22,
+     "weight": 600,
+     "color": "#FFFFFF",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 236,
+     "w": 1000,
+     "h": 60,
+     "text": "The decision",
+     "family": "Bricolage Grotesque",
+     "size": 36,
+     "weight": 800,
+     "color": "#B9F542",
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 300,
+     "w": 1100,
+     "h": 144,
+     "text": "The decision",
+     "family": "Sora",
+     "size": 122,
+     "weight": 800,
+     "color": "#FFFFFF",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 468,
+     "w": 940,
+     "h": 120,
+     "text": "Approve the venue deposit and the $380K budget today; the venue holds the date until Friday.",
+     "family": "Manrope",
+     "size": 28,
+     "weight": 500,
+     "color": "#CFCFFF",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "icon",
+     "icon": "mail",
+     "x": 96,
+     "y": 702,
+     "w": 28,
+     "h": 28,
+     "color": "#FF4D2E"
+    },
+    {
+     "kind": "text",
+     "x": 144,
+     "y": 700,
+     "w": 800,
+     "h": 34,
+     "text": "mei@loop.example",
+     "family": "Manrope",
+     "size": 24,
+     "weight": 500,
+     "color": "#FFFFFF",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "file-text",
+     "x": 96,
+     "y": 764,
+     "w": 28,
+     "h": 28,
+     "color": "#FF4D2E"
+    },
+    {
+     "kind": "text",
+     "x": 144,
+     "y": 762,
+     "w": 800,
+     "h": 34,
+     "text": "Full budget and venue proposal attached",
+     "family": "Manrope",
+     "size": 24,
+     "weight": 500,
+     "color": "#FFFFFF",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "calendar",
+     "x": 96,
+     "y": 826,
+     "w": 28,
+     "h": 28,
+     "color": "#FF4D2E"
+    },
+    {
+     "kind": "text",
+     "x": 144,
+     "y": 824,
+     "w": 800,
+     "h": 34,
+     "text": "Venue hold expires: Friday",
+     "family": "Manrope",
+     "size": 24,
+     "weight": 500,
+     "color": "#FFFFFF",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "button",
+     "x": 96,
+     "y": 910,
+     "w": 340,
+     "h": 64,
+     "label": "Approve the budget",
+     "fill": "#FF4D2E",
+     "color": "#0B0B14",
+     "family": "Manrope",
+     "size": 22,
+     "weight": 700,
+     "radius": 24
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 940,
+     "w": 240,
+     "h": 28,
+     "text": "06 / 6",
+     "family": "Manrope",
+     "size": 18,
+     "weight": 500,
+     "color": "#CFCFFF",
+     "lineHeight": 1.3,
+     "align": "right"
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "la-scooter",
+     "x": 1336,
+     "y": 280,
+     "w": 520,
+     "h": 480
+    }
+   ]
+  }
+ ],
+ "fillable": [
+  {
+   "node": "p0-n1",
+   "kind": "text",
+   "label": "Company",
+   "hint": "Your company or team name"
+  },
+  {
+   "node": "p0-n3",
+   "kind": "text",
+   "label": "Title",
+   "hint": "Two short lines"
+  },
+  {
+   "node": "p0-n4",
+   "kind": "text",
+   "label": "Subtitle",
+   "hint": "One sentence on what the deck covers"
+  },
+  {
+   "node": "p0-n5",
+   "kind": "text",
+   "label": "Presenter and date",
+   "hint": "Who presents, and when"
+  },
+  {
+   "node": "p5-n16",
+   "kind": "text",
+   "label": "Email",
+   "hint": "Contact detail"
+  },
+  {
+   "node": "p5-n18",
+   "kind": "text",
+   "label": "Website",
+   "hint": "Contact detail"
+  },
+  {
+   "node": "p5-n20",
+   "kind": "text",
+   "label": "Phone",
+   "hint": "Contact detail"
+  }
+ ],
+ "version": 2,
  "created": "2026-08-28T00:00:00.000Z",
- "outline": {
-  "title": "Event Proposal",
-  "theme": "persuasive, concrete",
-  "pages": [
-   {
-    "title": "The event",
-    "points": [
-     "What it is and who it is for"
-    ],
-    "visualRole": "cover"
-   },
-   {
-    "title": "Why now",
-    "points": [
-     "The moment this event captures"
-    ],
-    "visualRole": "content"
-   },
-   {
-    "title": "The experience",
-    "points": [
-     "The arc of the day, from doors to encore"
-    ],
-    "visualRole": "content"
-   },
-   {
-    "title": "Budget",
-    "points": [
-     "Costs, sponsorships, and the break-even line"
-    ],
-    "visualRole": "data"
-   },
-   {
-    "title": "The team",
-    "points": [
-     "Who runs what"
-    ],
-    "visualRole": "content"
-   },
-   {
-    "title": "The decision",
-    "points": [
-     "What we need approved today"
-    ],
-    "visualRole": "closing"
-   }
-  ]
- }
+ "updated": "2026-09-30T00:00:00.000Z",
+ "rank": 72
 }

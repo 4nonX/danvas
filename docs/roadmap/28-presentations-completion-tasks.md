@@ -60,6 +60,7 @@ The rules from `28-presentations-leverage-tasks.md` apply unchanged. In brief:
 | C39 | 8 Templates | Presentation kits: six sixteen-slide systems in the seed, and a slide picker for multi-page templates | done 2026-09-29 |
 | C40 | 8 Templates | Kits brought to the design templates' finish: gradient grounds, halos, pack drawings, sparkle, accent faces, stroked cards | done 2026-09-30 |
 | C41 | 8 Templates | Aspen Creek Team Offsite rebuilt at the kit finish: twelve slides (three days, lodge, tracks, hosts, logistics, pack list, agreements) | done 2026-09-30 |
+| C42 | 8 Templates | Kit library (`scripts/lib/deck-kit.mjs`): the 31 topic decks and 7 single slides rebuilt on the six looks with their own copy; type sizes to fit | done 2026-09-30 |
 
 Dependencies: C02 before C03/C04 (one schema bump, then UI); C17 before C18 and C20 (captions feed both); C06 before C07/C08/C09/C10; C12 before C11 (channel plumbing first); C36 before C37 (links carry the embed surface).
 

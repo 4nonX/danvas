@@ -3263,7 +3263,7 @@
      "kind": "rect",
      "x": 96,
      "y": 425,
-     "w": 864,
+     "w": 648,
      "h": 3,
      "fill": "#2F6BFF"
     },
@@ -3301,7 +3301,7 @@
      "size": 32,
      "weight": 700,
      "color": "#111111",
-     "lineHeight": 1.06
+     "lineHeight": 1.1
     },
     {
      "kind": "text",
@@ -3350,7 +3350,7 @@
      "size": 32,
      "weight": 700,
      "color": "#111111",
-     "lineHeight": 1.06
+     "lineHeight": 1.1
     },
     {
      "kind": "text",
@@ -3401,7 +3401,7 @@
      "size": 32,
      "weight": 700,
      "color": "#111111",
-     "lineHeight": 1.06
+     "lineHeight": 1.1
     },
     {
      "kind": "text",
@@ -3452,7 +3452,7 @@
      "size": 32,
      "weight": 700,
      "color": "#111111",
-     "lineHeight": 1.06
+     "lineHeight": 1.1
     },
     {
      "kind": "text",
@@ -5755,7 +5755,7 @@
      "x": 96,
      "y": 464,
      "w": 940,
-     "h": 84,
+     "h": 120,
      "text": "Questions now, or any time this week. The deck and the model are in the shared folder.",
      "family": "Archivo",
      "size": 28,

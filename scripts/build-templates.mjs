@@ -545,7 +545,9 @@ if (allErrors.length) {
   process.exit(1);
 }
 if (!process.argv.includes("--check")) {
-  writeFileSync(SEED, JSON.stringify(entries.map((e) => e.entry), null, 1) + "\n");
+  // One template per line: compact (the seed is embedded in the binary and
+  // never hand-edited), but a diff still shows which templates changed.
+  writeFileSync(SEED, "[\n" + entries.map((e) => JSON.stringify(e.entry)).join(",\n") + "\n]\n");
   console.log(`wrote ${entries.length} templates -> ${SEED}`);
 } else {
   console.log(`ok: ${entries.length} templates compile and validate`);

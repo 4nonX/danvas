@@ -1,5 +1,4 @@
 {
- "kind": "deck-outline",
  "id": "deck-competitive-analysis",
  "title": "Competitive Analysis",
  "categories": [
@@ -13,62 +12,2383 @@
   "market"
  ],
  "styleTags": [
-  "dark",
-  "professional"
+  "minimal",
+  "modern",
+  "clean"
  ],
- "themeId": "theme-noir",
  "size": [
   1920,
   1080
  ],
- "rank": 56,
+ "typography": [
+  {
+   "role": "heading",
+   "family": "Archivo",
+   "weight": 700
+  },
+  {
+   "role": "body",
+   "family": "Archivo",
+   "weight": 400
+  },
+  {
+   "role": "accent",
+   "family": "Space Mono",
+   "weight": 400
+  }
+ ],
+ "pages": [
+  {
+   "name": "Cover",
+   "bg": {
+    "angle": 160,
+    "stops": [
+     [
+      "#181818",
+      0
+     ],
+     [
+      "#070707",
+      1
+     ]
+    ]
+   },
+   "nodes": [
+    {
+     "kind": "ellipse",
+     "x": 1180,
+     "y": -300,
+     "w": 1200,
+     "h": 1200,
+     "fill": {
+      "angle": 135,
+      "stops": [
+       [
+        "#4D82FF",
+        0
+       ],
+       [
+        "#070707",
+        1
+       ]
+      ],
+      "radial": true
+     },
+     "opacity": 0.35,
+     "bleed": true
+    },
+    {
+     "kind": "rect",
+     "x": 36,
+     "y": 47,
+     "w": 24,
+     "h": 2,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "rect",
+     "x": 47,
+     "y": 36,
+     "w": 2,
+     "h": 24,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "rect",
+     "x": 1860,
+     "y": 47,
+     "w": 24,
+     "h": 2,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "rect",
+     "x": 1871,
+     "y": 36,
+     "w": 2,
+     "h": 24,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "rect",
+     "x": 36,
+     "y": 1031,
+     "w": 24,
+     "h": 2,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "rect",
+     "x": 47,
+     "y": 1020,
+     "w": 2,
+     "h": 24,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "rect",
+     "x": 1860,
+     "y": 1031,
+     "w": 24,
+     "h": 2,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "rect",
+     "x": 1871,
+     "y": 1020,
+     "w": 2,
+     "h": 24,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 96,
+     "w": 22,
+     "h": 22,
+     "fill": "#4D82FF",
+     "radius": 0
+    },
+    {
+     "kind": "text",
+     "x": 132,
+     "y": 93,
+     "w": 700,
+     "h": 30,
+     "text": "Form & Function",
+     "family": "Archivo",
+     "size": 22,
+     "weight": 600,
+     "color": "#FFFFFF",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 372,
+     "w": 1000,
+     "h": 60,
+     "text": "the landscape, unsentimentally",
+     "family": "Space Mono",
+     "size": 26,
+     "weight": 400,
+     "color": "#4D82FF",
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 446,
+     "w": 1000,
+     "h": 207,
+     "text": "Who plays, and\nwhere the lines are",
+     "family": "Archivo",
+     "size": 94,
+     "weight": 700,
+     "color": "#FFFFFF",
+     "lineHeight": 1.02
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 683,
+     "w": 900,
+     "h": 84,
+     "text": "The primary rival head to head, their momentum, our edge when buyers compare, the threat that would hurt most, and our response.",
+     "family": "Archivo",
+     "size": 28,
+     "weight": 400,
+     "color": "#A0A0A0",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 940,
+     "w": 900,
+     "h": 28,
+     "text": "Marcus Obi, Strategy  ·  20 October 2026",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#A0A0A0",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 940,
+     "w": 240,
+     "h": 28,
+     "text": "01 / 7",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#A0A0A0",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "rect",
+     "x": 1176,
+     "y": 0,
+     "w": 744,
+     "h": 1080,
+     "fill": "#1F1F1F",
+     "bleed": true
+    },
+    {
+     "kind": "rect",
+     "x": 1176,
+     "y": 0,
+     "w": 4,
+     "h": 1080,
+     "fill": "#4D82FF"
+    },
+    {
+     "kind": "ellipse",
+     "x": 1238,
+     "y": 230,
+     "w": 620,
+     "h": 620,
+     "fill": "#4D82FF",
+     "opacity": 0.12
+    },
+    {
+     "kind": "ellipse",
+     "x": 1300,
+     "y": 292,
+     "w": 496,
+     "h": 496,
+     "fill": "#4D82FF",
+     "opacity": 0.16
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "la-desk-illustration-2",
+     "x": 1260,
+     "y": 260,
+     "w": 580,
+     "h": 560
+    }
+   ]
+  },
+  {
+   "name": "Comparison table",
+   "bg": "#FFFFFF",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 36,
+     "y": 47,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 47,
+     "y": 36,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1860,
+     "y": 47,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1871,
+     "y": 36,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 36,
+     "y": 1031,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 47,
+     "y": 1020,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1860,
+     "y": 1031,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1871,
+     "y": 1020,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 88,
+     "w": 1200,
+     "h": 28,
+     "text": "Head to head",
+     "family": "Archivo",
+     "size": 20,
+     "weight": 600,
+     "color": "#2F6BFF",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 124,
+     "w": 1240,
+     "h": 74,
+     "text": "Us against the primary rival",
+     "family": "Archivo",
+     "size": 60,
+     "weight": 700,
+     "color": "#111111",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Form & Function  ·  Competitive landscape, 2026",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "02 / 7",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 242,
+     "w": 1728,
+     "h": 76,
+     "fill": {
+      "angle": 160,
+      "stops": [
+       [
+        "#181818",
+        0
+       ],
+       [
+        "#070707",
+        1
+       ]
+      ]
+     },
+     "radius": 0
+    },
+    {
+     "kind": "text",
+     "x": 696,
+     "y": 264,
+     "w": 376,
+     "h": 32,
+     "text": "Us",
+     "family": "Archivo",
+     "size": 22,
+     "weight": 600,
+     "color": "#FFFFFF",
+     "lineHeight": 1.3,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 1072,
+     "y": 264,
+     "w": 376,
+     "h": 32,
+     "text": "Rival",
+     "family": "Archivo",
+     "size": 22,
+     "weight": 600,
+     "color": "#FFFFFF",
+     "lineHeight": 1.3,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 1448,
+     "y": 264,
+     "w": 376,
+     "h": 32,
+     "text": "Buyer weight",
+     "family": "Archivo",
+     "size": 22,
+     "weight": 600,
+     "color": "#FFFFFF",
+     "lineHeight": 1.3,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 128,
+     "y": 348,
+     "w": 536,
+     "h": 36,
+     "text": "Time to first value",
+     "family": "Archivo",
+     "size": 24,
+     "weight": 600,
+     "color": "#111111",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 696,
+     "y": 348,
+     "w": 376,
+     "h": 36,
+     "text": "3 days",
+     "family": "Archivo",
+     "size": 24,
+     "weight": 600,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 1072,
+     "y": 348,
+     "w": 376,
+     "h": 36,
+     "text": "3 weeks",
+     "family": "Archivo",
+     "size": 24,
+     "weight": 600,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 1448,
+     "y": 348,
+     "w": 376,
+     "h": 36,
+     "text": "High",
+     "family": "Archivo",
+     "size": 24,
+     "weight": 600,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3,
+     "align": "center"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 413,
+     "w": 1728,
+     "h": 1,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 414,
+     "w": 1728,
+     "h": 96,
+     "fill": "#F3F3F3"
+    },
+    {
+     "kind": "text",
+     "x": 128,
+     "y": 444,
+     "w": 536,
+     "h": 36,
+     "text": "Enterprise security",
+     "family": "Archivo",
+     "size": 24,
+     "weight": 600,
+     "color": "#111111",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "circle-check",
+     "x": 868,
+     "y": 446,
+     "w": 32,
+     "h": 32,
+     "color": "#2F6BFF"
+    },
+    {
+     "kind": "icon",
+     "icon": "circle-check",
+     "x": 1244,
+     "y": 446,
+     "w": 32,
+     "h": 32,
+     "color": "#2F6BFF"
+    },
+    {
+     "kind": "text",
+     "x": 1448,
+     "y": 444,
+     "w": 376,
+     "h": 36,
+     "text": "High",
+     "family": "Archivo",
+     "size": 24,
+     "weight": 600,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3,
+     "align": "center"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 509,
+     "w": 1728,
+     "h": 1,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "text",
+     "x": 128,
+     "y": 540,
+     "w": 536,
+     "h": 36,
+     "text": "Open file format",
+     "family": "Archivo",
+     "size": 24,
+     "weight": 600,
+     "color": "#111111",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "circle-check",
+     "x": 868,
+     "y": 542,
+     "w": 32,
+     "h": 32,
+     "color": "#2F6BFF"
+    },
+    {
+     "kind": "icon",
+     "icon": "circle",
+     "x": 1244,
+     "y": 542,
+     "w": 32,
+     "h": 32,
+     "color": "#E2E2E2"
+    },
+    {
+     "kind": "text",
+     "x": 1448,
+     "y": 540,
+     "w": 376,
+     "h": 36,
+     "text": "Medium",
+     "family": "Archivo",
+     "size": 24,
+     "weight": 600,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3,
+     "align": "center"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 605,
+     "w": 1728,
+     "h": 1,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 606,
+     "w": 1728,
+     "h": 96,
+     "fill": "#F3F3F3"
+    },
+    {
+     "kind": "text",
+     "x": 128,
+     "y": 636,
+     "w": 536,
+     "h": 36,
+     "text": "Self-hosting",
+     "family": "Archivo",
+     "size": 24,
+     "weight": 600,
+     "color": "#111111",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "circle-check",
+     "x": 868,
+     "y": 638,
+     "w": 32,
+     "h": 32,
+     "color": "#2F6BFF"
+    },
+    {
+     "kind": "icon",
+     "icon": "circle",
+     "x": 1244,
+     "y": 638,
+     "w": 32,
+     "h": 32,
+     "color": "#E2E2E2"
+    },
+    {
+     "kind": "text",
+     "x": 1448,
+     "y": 636,
+     "w": 376,
+     "h": 36,
+     "text": "Medium",
+     "family": "Archivo",
+     "size": 24,
+     "weight": 600,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3,
+     "align": "center"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 701,
+     "w": 1728,
+     "h": 1,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "text",
+     "x": 128,
+     "y": 732,
+     "w": 536,
+     "h": 36,
+     "text": "Marketplace breadth",
+     "family": "Archivo",
+     "size": 24,
+     "weight": 600,
+     "color": "#111111",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "circle",
+     "x": 868,
+     "y": 734,
+     "w": 32,
+     "h": 32,
+     "color": "#E2E2E2"
+    },
+    {
+     "kind": "icon",
+     "icon": "circle-check",
+     "x": 1244,
+     "y": 734,
+     "w": 32,
+     "h": 32,
+     "color": "#2F6BFF"
+    },
+    {
+     "kind": "text",
+     "x": 1448,
+     "y": 732,
+     "w": 376,
+     "h": 36,
+     "text": "Medium",
+     "family": "Archivo",
+     "size": 24,
+     "weight": 600,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3,
+     "align": "center"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 797,
+     "w": 1728,
+     "h": 1,
+     "fill": "#E2E2E2"
+    }
+   ]
+  },
+  {
+   "name": "Timeline",
+   "bg": "#FFFFFF",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 36,
+     "y": 47,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 47,
+     "y": 36,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1860,
+     "y": 47,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1871,
+     "y": 36,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 36,
+     "y": 1031,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 47,
+     "y": 1020,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1860,
+     "y": 1031,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1871,
+     "y": 1020,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 88,
+     "w": 1200,
+     "h": 28,
+     "text": "Their momentum",
+     "family": "Archivo",
+     "size": 20,
+     "weight": 600,
+     "color": "#2F6BFF",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 124,
+     "w": 1240,
+     "h": 74,
+     "text": "What they shipped this year",
+     "family": "Archivo",
+     "size": 60,
+     "weight": 700,
+     "color": "#111111",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Form & Function  ·  Competitive landscape, 2026",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "03 / 7",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 425,
+     "w": 1728,
+     "h": 3,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 425,
+     "w": 1080,
+     "h": 3,
+     "fill": "#2F6BFF"
+    },
+    {
+     "kind": "ellipse",
+     "x": 96,
+     "y": 412,
+     "w": 30,
+     "h": 30,
+     "fill": "#2F6BFF"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 352,
+     "w": 300,
+     "h": 28,
+     "text": "Q1",
+     "family": "Archivo",
+     "size": 20,
+     "weight": 600,
+     "color": "#2F6BFF",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 476,
+     "w": 384,
+     "h": 44,
+     "text": "The marketplace",
+     "family": "Archivo",
+     "size": 32,
+     "weight": 700,
+     "color": "#111111",
+     "lineHeight": 1.1
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 528,
+     "w": 384,
+     "h": 120,
+     "text": "Two hundred integrations in a quarter, most of them thin. Buyers count them anyway.",
+     "family": "Archivo",
+     "size": 21,
+     "weight": 400,
+     "color": "#6B6B6B",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 528,
+     "y": 412,
+     "w": 30,
+     "h": 30,
+     "fill": "#2F6BFF"
+    },
+    {
+     "kind": "text",
+     "x": 528,
+     "y": 352,
+     "w": 300,
+     "h": 28,
+     "text": "Q2",
+     "family": "Archivo",
+     "size": 20,
+     "weight": 600,
+     "color": "#2F6BFF",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 528,
+     "y": 476,
+     "w": 384,
+     "h": 44,
+     "text": "Usage-based pricing",
+     "family": "Archivo",
+     "size": 32,
+     "weight": 700,
+     "color": "#111111",
+     "lineHeight": 1.1
+    },
+    {
+     "kind": "text",
+     "x": 528,
+     "y": 528,
+     "w": 384,
+     "h": 120,
+     "text": "Cheaper to start, expensive at scale. Wins the pilot, loses the renewal.",
+     "family": "Archivo",
+     "size": 21,
+     "weight": 400,
+     "color": "#6B6B6B",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 960,
+     "y": 412,
+     "w": 30,
+     "h": 30,
+     "fill": "#2F6BFF"
+    },
+    {
+     "kind": "text",
+     "x": 960,
+     "y": 352,
+     "w": 300,
+     "h": 28,
+     "text": "Q3",
+     "family": "Archivo",
+     "size": 20,
+     "weight": 600,
+     "color": "#2F6BFF",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 960,
+     "y": 476,
+     "w": 384,
+     "h": 44,
+     "text": "The AI assistant",
+     "family": "Archivo",
+     "size": 32,
+     "weight": 700,
+     "color": "#111111",
+     "lineHeight": 1.1
+    },
+    {
+     "kind": "text",
+     "x": 960,
+     "y": 528,
+     "w": 384,
+     "h": 120,
+     "text": "Fast, shallow, and demoed everywhere. Sets the expectation we now have to meet.",
+     "family": "Archivo",
+     "size": 21,
+     "weight": 400,
+     "color": "#6B6B6B",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 1392,
+     "y": 412,
+     "w": 30,
+     "h": 30,
+     "fill": "#FFFFFF",
+     "stroke": "#2F6BFF",
+     "strokeWidth": 3
+    },
+    {
+     "kind": "text",
+     "x": 1392,
+     "y": 352,
+     "w": 300,
+     "h": 28,
+     "text": "Q4",
+     "family": "Archivo",
+     "size": 20,
+     "weight": 600,
+     "color": "#2F6BFF",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 1392,
+     "y": 476,
+     "w": 384,
+     "h": 80,
+     "text": "Expected: enterprise bundle",
+     "family": "Archivo",
+     "size": 32,
+     "weight": 700,
+     "color": "#111111",
+     "lineHeight": 1.1
+    },
+    {
+     "kind": "text",
+     "x": 1392,
+     "y": 564,
+     "w": 384,
+     "h": 120,
+     "text": "Their partner channel says SSO and audit logs ship by December.",
+     "family": "Archivo",
+     "size": 21,
+     "weight": 400,
+     "color": "#6B6B6B",
+     "lineHeight": 1.4
+    }
+   ]
+  },
+  {
+   "name": "Three cards",
+   "bg": "#FFFFFF",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 36,
+     "y": 47,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 47,
+     "y": 36,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1860,
+     "y": 47,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1871,
+     "y": 36,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 36,
+     "y": 1031,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 47,
+     "y": 1020,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1860,
+     "y": 1031,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1871,
+     "y": 1020,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 88,
+     "w": 1200,
+     "h": 28,
+     "text": "Our edge",
+     "family": "Archivo",
+     "size": 20,
+     "weight": 600,
+     "color": "#2F6BFF",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 124,
+     "w": 1240,
+     "h": 74,
+     "text": "Where we win when buyers compare",
+     "family": "Archivo",
+     "size": 60,
+     "weight": 700,
+     "color": "#111111",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Form & Function  ·  Competitive landscape, 2026",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "04 / 7",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 242,
+     "w": 560,
+     "h": 580,
+     "fill": "#F3F3F3",
+     "radius": 0,
+     "stroke": "#E2E2E2",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 242,
+     "w": 560,
+     "h": 6,
+     "fill": "#2F6BFF",
+     "radius": 0
+    },
+    {
+     "kind": "ellipse",
+     "x": 136,
+     "y": 290,
+     "w": 80,
+     "h": 80,
+     "fill": "#ccd8f5"
+    },
+    {
+     "kind": "icon",
+     "icon": "bolt",
+     "x": 156,
+     "y": 310,
+     "w": 40,
+     "h": 40,
+     "color": "#2F6BFF"
+    },
+    {
+     "kind": "text",
+     "x": 136,
+     "y": 406,
+     "w": 480,
+     "h": 100,
+     "text": "Three days to value, not three weeks",
+     "family": "Archivo",
+     "size": 34,
+     "weight": 700,
+     "color": "#111111",
+     "lineHeight": 1.1
+    },
+    {
+     "kind": "text",
+     "x": 136,
+     "y": 518,
+     "w": 480,
+     "h": 160,
+     "text": "Every won deal this year cited it. Lead with the pilot, measure it, put the number on the proposal.",
+     "family": "Archivo",
+     "size": 22,
+     "weight": 400,
+     "color": "#6B6B6B",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 136,
+     "y": 738,
+     "w": 480,
+     "h": 1,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "text",
+     "x": 136,
+     "y": 762,
+     "w": 120,
+     "h": 28,
+     "text": "01",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 680,
+     "y": 242,
+     "w": 560,
+     "h": 580,
+     "fill": "#F3F3F3",
+     "radius": 0,
+     "stroke": "#E2E2E2",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 680,
+     "y": 242,
+     "w": 560,
+     "h": 6,
+     "fill": "#111111",
+     "radius": 0
+    },
+    {
+     "kind": "ellipse",
+     "x": 720,
+     "y": 290,
+     "w": 80,
+     "h": 80,
+     "fill": "#c6c6c6"
+    },
+    {
+     "kind": "icon",
+     "icon": "lock",
+     "x": 740,
+     "y": 310,
+     "w": 40,
+     "h": 40,
+     "color": "#111111"
+    },
+    {
+     "kind": "text",
+     "x": 720,
+     "y": 406,
+     "w": 480,
+     "h": 100,
+     "text": "The customer owns the data",
+     "family": "Archivo",
+     "size": 34,
+     "weight": 700,
+     "color": "#111111",
+     "lineHeight": 1.1
+    },
+    {
+     "kind": "text",
+     "x": 720,
+     "y": 518,
+     "w": 480,
+     "h": 160,
+     "text": "Open format and self-hosting close regulated buyers before price is discussed.",
+     "family": "Archivo",
+     "size": 22,
+     "weight": 400,
+     "color": "#6B6B6B",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 720,
+     "y": 738,
+     "w": 480,
+     "h": 1,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "text",
+     "x": 720,
+     "y": 762,
+     "w": 120,
+     "h": 28,
+     "text": "02",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 1264,
+     "y": 242,
+     "w": 560,
+     "h": 580,
+     "fill": "#F3F3F3",
+     "radius": 0,
+     "stroke": "#E2E2E2",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 1264,
+     "y": 242,
+     "w": 560,
+     "h": 6,
+     "fill": "#2F6BFF",
+     "radius": 0
+    },
+    {
+     "kind": "ellipse",
+     "x": 1304,
+     "y": 290,
+     "w": 80,
+     "h": 80,
+     "fill": "#ccd8f5"
+    },
+    {
+     "kind": "icon",
+     "icon": "user",
+     "x": 1324,
+     "y": 310,
+     "w": 40,
+     "h": 40,
+     "color": "#2F6BFF"
+    },
+    {
+     "kind": "text",
+     "x": 1304,
+     "y": 406,
+     "w": 480,
+     "h": 100,
+     "text": "One named engineer per account",
+     "family": "Archivo",
+     "size": 34,
+     "weight": 700,
+     "color": "#111111",
+     "lineHeight": 1.1
+    },
+    {
+     "kind": "text",
+     "x": 1304,
+     "y": 518,
+     "w": 480,
+     "h": 160,
+     "text": "Their support is a queue. Ours has a face. Renewals mention it unprompted.",
+     "family": "Archivo",
+     "size": 22,
+     "weight": 400,
+     "color": "#6B6B6B",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 1304,
+     "y": 738,
+     "w": 480,
+     "h": 1,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "text",
+     "x": 1304,
+     "y": 762,
+     "w": 120,
+     "h": 28,
+     "text": "03",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3
+    }
+   ]
+  },
+  {
+   "name": "Statement",
+   "bg": "#FFFFFF",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 36,
+     "y": 47,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 47,
+     "y": 36,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1860,
+     "y": 47,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1871,
+     "y": 36,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 36,
+     "y": 1031,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 47,
+     "y": 1020,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1860,
+     "y": 1031,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1871,
+     "y": 1020,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Form & Function  ·  Competitive landscape, 2026",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "05 / 7",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 236,
+     "w": 1000,
+     "h": 56,
+     "text": "the landscape, unsentimentally",
+     "family": "Space Mono",
+     "size": 26,
+     "weight": 400,
+     "color": "#2F6BFF",
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 306,
+     "w": 120,
+     "h": 6,
+     "fill": "#2F6BFF"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 336,
+     "w": 1560,
+     "h": 272,
+     "text": "The move that hurts us most is not their next feature. It is a price cut we answer too late.",
+     "family": "Archivo",
+     "size": 78,
+     "weight": 700,
+     "color": "#111111",
+     "lineHeight": 1.1
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 648,
+     "w": 1000,
+     "h": 32,
+     "text": "Strategy review, October 2026",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3
+    }
+   ]
+  },
+  {
+   "name": "Process",
+   "bg": "#FFFFFF",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 36,
+     "y": 47,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 47,
+     "y": 36,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1860,
+     "y": 47,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1871,
+     "y": 36,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 36,
+     "y": 1031,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 47,
+     "y": 1020,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1860,
+     "y": 1031,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1871,
+     "y": 1020,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 88,
+     "w": 1200,
+     "h": 28,
+     "text": "Response plan",
+     "family": "Archivo",
+     "size": 20,
+     "weight": 600,
+     "color": "#2F6BFF",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 124,
+     "w": 1240,
+     "h": 74,
+     "text": "Three moves, sequenced",
+     "family": "Archivo",
+     "size": 60,
+     "weight": 700,
+     "color": "#111111",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Form & Function  ·  Competitive landscape, 2026",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "06 / 7",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "ellipse",
+     "x": 96,
+     "y": 272,
+     "w": 88,
+     "h": 88,
+     "fill": "#2F6BFF"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 272,
+     "w": 88,
+     "h": 88,
+     "text": "1",
+     "family": "Archivo",
+     "size": 34,
+     "weight": 700,
+     "color": "#111111",
+     "align": "center",
+     "vAlign": "middle",
+     "lineHeight": 1
+    },
+    {
+     "kind": "rect",
+     "x": 200,
+     "y": 315,
+     "w": 322,
+     "h": 2,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 404,
+     "w": 402,
+     "h": 44,
+     "text": "Now",
+     "family": "Archivo",
+     "size": 32,
+     "weight": 700,
+     "color": "#111111",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 458,
+     "w": 378,
+     "h": 150,
+     "text": "Publish the pilot outcomes page. Every proposal links to it by November.",
+     "family": "Archivo",
+     "size": 21,
+     "weight": 400,
+     "color": "#6B6B6B",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 538,
+     "y": 272,
+     "w": 88,
+     "h": 88,
+     "fill": "#181818"
+    },
+    {
+     "kind": "text",
+     "x": 538,
+     "y": 272,
+     "w": 88,
+     "h": 88,
+     "text": "2",
+     "family": "Archivo",
+     "size": 34,
+     "weight": 700,
+     "color": "#FFFFFF",
+     "align": "center",
+     "vAlign": "middle",
+     "lineHeight": 1
+    },
+    {
+     "kind": "rect",
+     "x": 642,
+     "y": 315,
+     "w": 322,
+     "h": 2,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "text",
+     "x": 538,
+     "y": 404,
+     "w": 402,
+     "h": 44,
+     "text": "Q4",
+     "family": "Archivo",
+     "size": 32,
+     "weight": 700,
+     "color": "#111111",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 538,
+     "y": 458,
+     "w": 378,
+     "h": 150,
+     "text": "Ship a real assistant, not a demo. Grounded in the customer's own files, measured on adoption.",
+     "family": "Archivo",
+     "size": 21,
+     "weight": 400,
+     "color": "#6B6B6B",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 980,
+     "y": 272,
+     "w": 88,
+     "h": 88,
+     "fill": "#181818"
+    },
+    {
+     "kind": "text",
+     "x": 980,
+     "y": 272,
+     "w": 88,
+     "h": 88,
+     "text": "3",
+     "family": "Archivo",
+     "size": 34,
+     "weight": 700,
+     "color": "#FFFFFF",
+     "align": "center",
+     "vAlign": "middle",
+     "lineHeight": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1084,
+     "y": 315,
+     "w": 322,
+     "h": 2,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "text",
+     "x": 980,
+     "y": 404,
+     "w": 402,
+     "h": 44,
+     "text": "Q1",
+     "family": "Archivo",
+     "size": 32,
+     "weight": 700,
+     "color": "#111111",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 980,
+     "y": 458,
+     "w": 378,
+     "h": 150,
+     "text": "Announce the enterprise bundle before theirs lands. Same features, our security story.",
+     "family": "Archivo",
+     "size": 21,
+     "weight": 400,
+     "color": "#6B6B6B",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 1422,
+     "y": 272,
+     "w": 88,
+     "h": 88,
+     "fill": "#181818"
+    },
+    {
+     "kind": "text",
+     "x": 1422,
+     "y": 272,
+     "w": 88,
+     "h": 88,
+     "text": "4",
+     "family": "Archivo",
+     "size": 34,
+     "weight": 700,
+     "color": "#FFFFFF",
+     "align": "center",
+     "vAlign": "middle",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 1422,
+     "y": 404,
+     "w": 402,
+     "h": 44,
+     "text": "Ongoing",
+     "family": "Archivo",
+     "size": 32,
+     "weight": 700,
+     "color": "#111111",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 1422,
+     "y": 458,
+     "w": 378,
+     "h": 150,
+     "text": "Watch pricing weekly. A cut below $30 per seat triggers the prepared response within a week.",
+     "family": "Archivo",
+     "size": 21,
+     "weight": 400,
+     "color": "#6B6B6B",
+     "lineHeight": 1.4
+    }
+   ]
+  },
+  {
+   "name": "Closing",
+   "bg": {
+    "angle": 160,
+    "stops": [
+     [
+      "#181818",
+      0
+     ],
+     [
+      "#070707",
+      1
+     ]
+    ]
+   },
+   "nodes": [
+    {
+     "kind": "ellipse",
+     "x": 1180,
+     "y": -300,
+     "w": 1200,
+     "h": 1200,
+     "fill": {
+      "angle": 135,
+      "stops": [
+       [
+        "#4D82FF",
+        0
+       ],
+       [
+        "#070707",
+        1
+       ]
+      ],
+      "radial": true
+     },
+     "opacity": 0.35,
+     "bleed": true
+    },
+    {
+     "kind": "rect",
+     "x": 36,
+     "y": 47,
+     "w": 24,
+     "h": 2,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "rect",
+     "x": 47,
+     "y": 36,
+     "w": 2,
+     "h": 24,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "rect",
+     "x": 1860,
+     "y": 47,
+     "w": 24,
+     "h": 2,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "rect",
+     "x": 1871,
+     "y": 36,
+     "w": 2,
+     "h": 24,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "rect",
+     "x": 36,
+     "y": 1031,
+     "w": 24,
+     "h": 2,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "rect",
+     "x": 47,
+     "y": 1020,
+     "w": 2,
+     "h": 24,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "rect",
+     "x": 1860,
+     "y": 1031,
+     "w": 24,
+     "h": 2,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "rect",
+     "x": 1871,
+     "y": 1020,
+     "w": 2,
+     "h": 24,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "ellipse",
+     "x": 1200,
+     "y": 200,
+     "w": 640,
+     "h": 640,
+     "fill": "#4D82FF",
+     "opacity": 0.12
+    },
+    {
+     "kind": "ellipse",
+     "x": 1264,
+     "y": 264,
+     "w": 512,
+     "h": 512,
+     "fill": "#4D82FF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 96,
+     "w": 22,
+     "h": 22,
+     "fill": "#4D82FF",
+     "radius": 0
+    },
+    {
+     "kind": "text",
+     "x": 132,
+     "y": 93,
+     "w": 700,
+     "h": 30,
+     "text": "Form & Function",
+     "family": "Archivo",
+     "size": 22,
+     "weight": 600,
+     "color": "#FFFFFF",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 236,
+     "w": 1000,
+     "h": 60,
+     "text": "Decide, then move",
+     "family": "Space Mono",
+     "size": 26,
+     "weight": 400,
+     "color": "#4D82FF",
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 300,
+     "w": 1100,
+     "h": 138,
+     "text": "Decide, then move",
+     "family": "Archivo",
+     "size": 116,
+     "weight": 700,
+     "color": "#FFFFFF",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 462,
+     "w": 940,
+     "h": 120,
+     "text": "The full comparison, win-loss notes and the pricing response are in the strategy folder.",
+     "family": "Archivo",
+     "size": 28,
+     "weight": 400,
+     "color": "#A0A0A0",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "icon",
+     "icon": "mail",
+     "x": 96,
+     "y": 702,
+     "w": 28,
+     "h": 28,
+     "color": "#4D82FF"
+    },
+    {
+     "kind": "text",
+     "x": 144,
+     "y": 700,
+     "w": 800,
+     "h": 34,
+     "text": "marcus@formfunction.example",
+     "family": "Archivo",
+     "size": 24,
+     "weight": 500,
+     "color": "#FFFFFF",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "world",
+     "x": 96,
+     "y": 764,
+     "w": 28,
+     "h": 28,
+     "color": "#4D82FF"
+    },
+    {
+     "kind": "text",
+     "x": 144,
+     "y": 762,
+     "w": 800,
+     "h": 34,
+     "text": "formfunction.example/strategy",
+     "family": "Archivo",
+     "size": 24,
+     "weight": 500,
+     "color": "#FFFFFF",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "calendar",
+     "x": 96,
+     "y": 826,
+     "w": 28,
+     "h": 28,
+     "color": "#4D82FF"
+    },
+    {
+     "kind": "text",
+     "x": 144,
+     "y": 824,
+     "w": 800,
+     "h": 34,
+     "text": "Next review: January",
+     "family": "Archivo",
+     "size": 24,
+     "weight": 500,
+     "color": "#FFFFFF",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "button",
+     "x": 96,
+     "y": 910,
+     "w": 340,
+     "h": 64,
+     "label": "Open the win-loss notes",
+     "fill": "#4D82FF",
+     "color": "#111111",
+     "family": "Archivo",
+     "size": 22,
+     "weight": 700,
+     "radius": 0
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 940,
+     "w": 240,
+     "h": 28,
+     "text": "07 / 7",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#A0A0A0",
+     "lineHeight": 1.3,
+     "align": "right"
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "la-flat-character-illustrations",
+     "x": 1250,
+     "y": 250,
+     "w": 540,
+     "h": 540
+    }
+   ]
+  }
+ ],
+ "fillable": [
+  {
+   "node": "p0-n10",
+   "kind": "text",
+   "label": "Company",
+   "hint": "Your company or team name"
+  },
+  {
+   "node": "p0-n12",
+   "kind": "text",
+   "label": "Title",
+   "hint": "Two short lines"
+  },
+  {
+   "node": "p0-n13",
+   "kind": "text",
+   "label": "Subtitle",
+   "hint": "One sentence on what the deck covers"
+  },
+  {
+   "node": "p0-n14",
+   "kind": "text",
+   "label": "Presenter and date",
+   "hint": "Who presents, and when"
+  },
+  {
+   "node": "p6-n17",
+   "kind": "text",
+   "label": "Email",
+   "hint": "Contact detail"
+  },
+  {
+   "node": "p6-n19",
+   "kind": "text",
+   "label": "Website",
+   "hint": "Contact detail"
+  },
+  {
+   "node": "p6-n21",
+   "kind": "text",
+   "label": "Phone",
+   "hint": "Contact detail"
+  }
+ ],
+ "version": 2,
  "created": "2026-08-28T00:00:00.000Z",
- "outline": {
-  "title": "Competitive Landscape",
-  "theme": "sharp, unsentimental",
-  "pages": [
-   {
-    "title": "The landscape",
-    "points": [
-     "Who plays and where the lines are"
-    ],
-    "visualRole": "cover"
-   },
-   {
-    "title": "Head to head",
-    "points": [
-     "Us versus the primary rival"
-    ],
-    "visualRole": "comparison"
-   },
-   {
-    "title": "Their momentum",
-    "points": [
-     "What they shipped and what it signals"
-    ],
-    "visualRole": "content"
-   },
-   {
-    "title": "Our edge",
-    "points": [
-     "Where we win when buyers compare"
-    ],
-    "visualRole": "content"
-   },
-   {
-    "title": "Threats",
-    "points": [
-     "The move that would hurt us most"
-    ],
-    "visualRole": "content"
-   },
-   {
-    "title": "Response plan",
-    "points": [
-     "Three moves, sequenced"
-    ],
-    "visualRole": "closing"
-   }
-  ]
- }
+ "updated": "2026-09-30T00:00:00.000Z",
+ "rank": 56
 }

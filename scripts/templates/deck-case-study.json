@@ -1,5 +1,4 @@
 {
- "kind": "deck-outline",
  "id": "deck-case-study",
  "title": "Customer Case Study",
  "categories": [
@@ -13,62 +12,2109 @@
   "sales"
  ],
  "styleTags": [
-  "professional"
+  "professional",
+  "classic",
+  "elegant"
  ],
- "themeId": "theme-forest",
  "size": [
   1920,
   1080
  ],
- "rank": 42,
+ "typography": [
+  {
+   "role": "heading",
+   "family": "Playfair Display",
+   "weight": 700
+  },
+  {
+   "role": "body",
+   "family": "Source Sans 3",
+   "weight": 400
+  },
+  {
+   "role": "accent",
+   "family": "Cormorant Garamond",
+   "weight": 600
+  }
+ ],
+ "pages": [
+  {
+   "name": "Cover",
+   "bg": {
+    "angle": 160,
+    "stops": [
+     [
+      "#182752",
+      0
+     ],
+     [
+      "#0C1330",
+      1
+     ]
+    ]
+   },
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 40,
+     "y": 40,
+     "w": 1840,
+     "h": 1000,
+     "stroke": "#E8B94A",
+     "strokeWidth": 1.5,
+     "opacity": 0.7
+    },
+    {
+     "kind": "ellipse",
+     "x": 1787,
+     "y": 413,
+     "w": 5,
+     "h": 5,
+     "fill": "#E8B94A",
+     "opacity": 0.6499999999999999
+    },
+    {
+     "kind": "ellipse",
+     "x": 1843,
+     "y": 463,
+     "w": 5,
+     "h": 5,
+     "fill": "#E8B94A",
+     "opacity": 0.52
+    },
+    {
+     "kind": "ellipse",
+     "x": 1818,
+     "y": 773,
+     "w": 6,
+     "h": 6,
+     "fill": "#E8B94A",
+     "opacity": 0.51
+    },
+    {
+     "kind": "ellipse",
+     "x": 1337,
+     "y": 18,
+     "w": 7,
+     "h": 7,
+     "fill": "#E8B94A",
+     "opacity": 0.75
+    },
+    {
+     "kind": "ellipse",
+     "x": 1652,
+     "y": 174,
+     "w": 8,
+     "h": 8,
+     "fill": "#E8B94A",
+     "opacity": 0.45999999999999996
+    },
+    {
+     "kind": "ellipse",
+     "x": 1606,
+     "y": 670,
+     "w": 6,
+     "h": 6,
+     "fill": "#E8B94A",
+     "opacity": 0.71
+    },
+    {
+     "kind": "ellipse",
+     "x": 606,
+     "y": 778,
+     "w": 6,
+     "h": 6,
+     "fill": "#E8B94A",
+     "opacity": 0.39999999999999997
+    },
+    {
+     "kind": "ellipse",
+     "x": 968,
+     "y": 561,
+     "w": 8,
+     "h": 8,
+     "fill": "#E8B94A",
+     "opacity": 0.48
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 96,
+     "w": 22,
+     "h": 22,
+     "fill": "#E8B94A",
+     "radius": 6
+    },
+    {
+     "kind": "text",
+     "x": 132,
+     "y": 93,
+     "w": 700,
+     "h": 30,
+     "text": "Northwind Systems",
+     "family": "Source Sans 3",
+     "size": 22,
+     "weight": 600,
+     "color": "#F8F5EE",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 372,
+     "w": 1000,
+     "h": 60,
+     "text": "A customer story",
+     "family": "Cormorant Garamond",
+     "size": 40,
+     "weight": 600,
+     "color": "#E8B94A",
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 446,
+     "w": 1000,
+     "h": 189,
+     "text": "Brightline Logistics:\nfrom four days to one",
+     "family": "Playfair Display",
+     "size": 85,
+     "weight": 700,
+     "color": "#F8F5EE",
+     "lineHeight": 1.02
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 665,
+     "w": 900,
+     "h": 84,
+     "text": "Who they are, the situation before and what it cost, what we deployed and how fast, the numbers after, and the pattern that repeats across customers.",
+     "family": "Source Sans 3",
+     "size": 28,
+     "weight": 400,
+     "color": "#B4BCD0",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 940,
+     "w": 900,
+     "h": 28,
+     "text": "Elena Sato, Customer Success  ·  October 2026",
+     "family": "Source Sans 3",
+     "size": 18,
+     "weight": 500,
+     "color": "#B4BCD0",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 940,
+     "w": 240,
+     "h": 28,
+     "text": "01 / 7",
+     "family": "Source Sans 3",
+     "size": 18,
+     "weight": 500,
+     "color": "#B4BCD0",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "ellipse",
+     "x": 1150,
+     "y": 170,
+     "w": 700,
+     "h": 700,
+     "fill": "#E8B94A",
+     "opacity": 0.12
+    },
+    {
+     "kind": "ellipse",
+     "x": 1220,
+     "y": 240,
+     "w": 560,
+     "h": 560,
+     "fill": "#E8B94A",
+     "opacity": 0.16
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "la-building",
+     "x": 1210,
+     "y": 230,
+     "w": 580,
+     "h": 580
+    }
+   ]
+  },
+  {
+   "name": "Figures",
+   "bg": "#F8F5EE",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 76,
+     "w": 56,
+     "h": 3,
+     "fill": "#C9992A"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 88,
+     "w": 1200,
+     "h": 28,
+     "text": "The customer",
+     "family": "Source Sans 3",
+     "size": 20,
+     "weight": 600,
+     "color": "#C9992A",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 124,
+     "w": 1240,
+     "h": 76,
+     "text": "Who they are, and what they do",
+     "family": "Playfair Display",
+     "size": 62,
+     "weight": 700,
+     "color": "#14213D",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#DCD6C8"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Northwind Systems  ·  Case study: Brightline Logistics",
+     "family": "Source Sans 3",
+     "size": 18,
+     "weight": 500,
+     "color": "#5A627A",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "02 / 7",
+     "family": "Source Sans 3",
+     "size": 18,
+     "weight": 500,
+     "color": "#5A627A",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 244,
+     "w": 414,
+     "h": 560,
+     "fill": "#EFEBE1",
+     "radius": 8,
+     "stroke": "#DCD6C8",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 244,
+     "w": 414,
+     "h": 6,
+     "fill": "#C9992A",
+     "radius": 0
+    },
+    {
+     "kind": "text",
+     "x": 132,
+     "y": 300,
+     "w": 342,
+     "h": 120,
+     "text": "4,200",
+     "family": "Playfair Display",
+     "size": 104,
+     "weight": 700,
+     "color": "#C9992A",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 132,
+     "y": 440,
+     "w": 342,
+     "h": 34,
+     "text": "Vehicles",
+     "family": "Source Sans 3",
+     "size": 24,
+     "weight": 600,
+     "color": "#14213D",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "button",
+     "x": 132,
+     "y": 494,
+     "w": 190,
+     "h": 40,
+     "label": "Twelve countries",
+     "fill": "#e8dcc0",
+     "color": "#C9992A",
+     "family": "Source Sans 3",
+     "size": 17,
+     "weight": 700
+    },
+    {
+     "kind": "text",
+     "x": 132,
+     "y": 564,
+     "w": 342,
+     "h": 140,
+     "text": "Regional freight across Europe, with a growing last-mile fleet.",
+     "family": "Source Sans 3",
+     "size": 20,
+     "weight": 400,
+     "color": "#5A627A",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 534,
+     "y": 244,
+     "w": 414,
+     "h": 560,
+     "fill": "#EFEBE1",
+     "radius": 8,
+     "stroke": "#DCD6C8",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 534,
+     "y": 244,
+     "w": 414,
+     "h": 6,
+     "fill": "#3E6FCC",
+     "radius": 0
+    },
+    {
+     "kind": "text",
+     "x": 570,
+     "y": 300,
+     "w": 342,
+     "h": 120,
+     "text": "3,800",
+     "family": "Playfair Display",
+     "size": 104,
+     "weight": 700,
+     "color": "#3E6FCC",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 570,
+     "y": 440,
+     "w": 342,
+     "h": 34,
+     "text": "Drivers",
+     "family": "Source Sans 3",
+     "size": 24,
+     "weight": 600,
+     "color": "#14213D",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "button",
+     "x": 570,
+     "y": 494,
+     "w": 190,
+     "h": 40,
+     "label": "Payroll every two weeks",
+     "fill": "#cfd5dd",
+     "color": "#3E6FCC",
+     "family": "Source Sans 3",
+     "size": 17,
+     "weight": 700
+    },
+    {
+     "kind": "text",
+     "x": 570,
+     "y": 564,
+     "w": 342,
+     "h": 140,
+     "text": "Hourly, salaried and contractor, in nine currencies.",
+     "family": "Source Sans 3",
+     "size": 20,
+     "weight": 400,
+     "color": "#5A627A",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 972,
+     "y": 244,
+     "w": 414,
+     "h": 560,
+     "fill": "#EFEBE1",
+     "radius": 8,
+     "stroke": "#DCD6C8",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 972,
+     "y": 244,
+     "w": 414,
+     "h": 6,
+     "fill": "#C9992A",
+     "radius": 0
+    },
+    {
+     "kind": "text",
+     "x": 1008,
+     "y": 300,
+     "w": 342,
+     "h": 120,
+     "text": "$1.2B",
+     "family": "Playfair Display",
+     "size": 104,
+     "weight": 700,
+     "color": "#C9992A",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 1008,
+     "y": 440,
+     "w": 342,
+     "h": 34,
+     "text": "Annual revenue",
+     "family": "Source Sans 3",
+     "size": 24,
+     "weight": 600,
+     "color": "#14213D",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "button",
+     "x": 1008,
+     "y": 494,
+     "w": 190,
+     "h": 40,
+     "label": "Family owned",
+     "fill": "#e8dcc0",
+     "color": "#C9992A",
+     "family": "Source Sans 3",
+     "size": 17,
+     "weight": 700
+    },
+    {
+     "kind": "text",
+     "x": 1008,
+     "y": 564,
+     "w": 342,
+     "h": 140,
+     "text": "Third generation, run from Rotterdam.",
+     "family": "Source Sans 3",
+     "size": 20,
+     "weight": 400,
+     "color": "#5A627A",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 1410,
+     "y": 244,
+     "w": 414,
+     "h": 560,
+     "fill": "#EFEBE1",
+     "radius": 8,
+     "stroke": "#DCD6C8",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 1410,
+     "y": 244,
+     "w": 414,
+     "h": 6,
+     "fill": "#3E6FCC",
+     "radius": 0
+    },
+    {
+     "kind": "text",
+     "x": 1446,
+     "y": 300,
+     "w": 342,
+     "h": 120,
+     "text": "6",
+     "family": "Playfair Display",
+     "size": 104,
+     "weight": 700,
+     "color": "#3E6FCC",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 1446,
+     "y": 440,
+     "w": 342,
+     "h": 34,
+     "text": "Finance team",
+     "family": "Source Sans 3",
+     "size": 24,
+     "weight": 600,
+     "color": "#14213D",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "button",
+     "x": 1446,
+     "y": 494,
+     "w": 190,
+     "h": 40,
+     "label": "Payroll across all of it",
+     "fill": "#cfd5dd",
+     "color": "#3E6FCC",
+     "family": "Source Sans 3",
+     "size": 17,
+     "weight": 700
+    },
+    {
+     "kind": "text",
+     "x": 1446,
+     "y": 564,
+     "w": 342,
+     "h": 140,
+     "text": "Four days a fortnight lost to the run, before.",
+     "family": "Source Sans 3",
+     "size": 20,
+     "weight": 400,
+     "color": "#5A627A",
+     "lineHeight": 1.4
+    }
+   ]
+  },
+  {
+   "name": "Two columns",
+   "bg": "#F8F5EE",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 76,
+     "w": 56,
+     "h": 3,
+     "fill": "#C9992A"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 88,
+     "w": 1200,
+     "h": 28,
+     "text": "The challenge",
+     "family": "Source Sans 3",
+     "size": 20,
+     "weight": 600,
+     "color": "#C9992A",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 124,
+     "w": 1240,
+     "h": 72,
+     "text": "The situation before, and what it cost",
+     "family": "Playfair Display",
+     "size": 58,
+     "weight": 700,
+     "color": "#14213D",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#DCD6C8"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Northwind Systems  ·  Case study: Brightline Logistics",
+     "family": "Source Sans 3",
+     "size": 18,
+     "weight": 500,
+     "color": "#5A627A",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "03 / 7",
+     "family": "Source Sans 3",
+     "size": 18,
+     "weight": 500,
+     "color": "#5A627A",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 240,
+     "w": 848,
+     "h": 600,
+     "fill": "#EFEBE1",
+     "radius": 8,
+     "stroke": "#DCD6C8",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "icon",
+     "icon": "alert-triangle",
+     "x": 856,
+     "y": 284,
+     "w": 40,
+     "h": 40,
+     "color": "#C9992A"
+    },
+    {
+     "kind": "text",
+     "x": 144,
+     "y": 288,
+     "w": 688,
+     "h": 28,
+     "text": "Before",
+     "family": "Source Sans 3",
+     "size": 20,
+     "weight": 600,
+     "color": "#C9992A",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 144,
+     "y": 332,
+     "w": 752,
+     "h": 112,
+     "text": "Five systems and a spreadsheet",
+     "family": "Playfair Display",
+     "size": 40,
+     "weight": 700,
+     "color": "#14213D",
+     "lineHeight": 1.1
+    },
+    {
+     "kind": "rect",
+     "x": 144,
+     "y": 500,
+     "w": 752,
+     "h": 1,
+     "fill": "#DCD6C8"
+    },
+    {
+     "kind": "text",
+     "x": 144,
+     "y": 524,
+     "w": 752,
+     "h": 40,
+     "text": "Timesheets from three telematics vendors",
+     "family": "Source Sans 3",
+     "size": 24,
+     "weight": 600,
+     "color": "#14213D",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 144,
+     "y": 600,
+     "w": 752,
+     "h": 1,
+     "fill": "#DCD6C8"
+    },
+    {
+     "kind": "text",
+     "x": 144,
+     "y": 624,
+     "w": 752,
+     "h": 40,
+     "text": "Every country a separate export",
+     "family": "Source Sans 3",
+     "size": 24,
+     "weight": 600,
+     "color": "#14213D",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 144,
+     "y": 700,
+     "w": 752,
+     "h": 1,
+     "fill": "#DCD6C8"
+    },
+    {
+     "kind": "text",
+     "x": 144,
+     "y": 724,
+     "w": 752,
+     "h": 40,
+     "text": "Errors found by drivers, after payday",
+     "family": "Source Sans 3",
+     "size": 24,
+     "weight": 600,
+     "color": "#14213D",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 976,
+     "y": 240,
+     "w": 848,
+     "h": 600,
+     "fill": {
+      "angle": 160,
+      "stops": [
+       [
+        "#182752",
+        0
+       ],
+       [
+        "#0C1330",
+        1
+       ]
+      ]
+     },
+     "radius": 8
+    },
+    {
+     "kind": "icon",
+     "icon": "coin",
+     "x": 1736,
+     "y": 284,
+     "w": 40,
+     "h": 40,
+     "color": "#E8B94A"
+    },
+    {
+     "kind": "text",
+     "x": 1024,
+     "y": 288,
+     "w": 688,
+     "h": 28,
+     "text": "The cost",
+     "family": "Source Sans 3",
+     "size": 20,
+     "weight": 600,
+     "color": "#E8B94A",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 1024,
+     "y": 332,
+     "w": 752,
+     "h": 112,
+     "text": "Four days a fortnight, and trust",
+     "family": "Playfair Display",
+     "size": 40,
+     "weight": 700,
+     "color": "#F8F5EE",
+     "lineHeight": 1.1
+    },
+    {
+     "kind": "rect",
+     "x": 1024,
+     "y": 500,
+     "w": 752,
+     "h": 1,
+     "fill": "#2E3E6A"
+    },
+    {
+     "kind": "text",
+     "x": 1024,
+     "y": 524,
+     "w": 752,
+     "h": 40,
+     "text": "$380K a year in finance time",
+     "family": "Source Sans 3",
+     "size": 24,
+     "weight": 600,
+     "color": "#F8F5EE",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 1024,
+     "y": 600,
+     "w": 752,
+     "h": 1,
+     "fill": "#2E3E6A"
+    },
+    {
+     "kind": "text",
+     "x": 1024,
+     "y": 624,
+     "w": 752,
+     "h": 40,
+     "text": "Two payroll disputes a week",
+     "family": "Source Sans 3",
+     "size": 24,
+     "weight": 600,
+     "color": "#F8F5EE",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 1024,
+     "y": 700,
+     "w": 752,
+     "h": 1,
+     "fill": "#2E3E6A"
+    },
+    {
+     "kind": "text",
+     "x": 1024,
+     "y": 724,
+     "w": 752,
+     "h": 40,
+     "text": "A union complaint in March",
+     "family": "Source Sans 3",
+     "size": 24,
+     "weight": 600,
+     "color": "#F8F5EE",
+     "lineHeight": 1.3
+    }
+   ]
+  },
+  {
+   "name": "Timeline",
+   "bg": "#F8F5EE",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 76,
+     "w": 56,
+     "h": 3,
+     "fill": "#C9992A"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 88,
+     "w": 1200,
+     "h": 28,
+     "text": "The solution",
+     "family": "Source Sans 3",
+     "size": 20,
+     "weight": 600,
+     "color": "#C9992A",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 124,
+     "w": 1240,
+     "h": 76,
+     "text": "What we deployed, and how fast",
+     "family": "Playfair Display",
+     "size": 62,
+     "weight": 700,
+     "color": "#14213D",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#DCD6C8"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Northwind Systems  ·  Case study: Brightline Logistics",
+     "family": "Source Sans 3",
+     "size": 18,
+     "weight": 500,
+     "color": "#5A627A",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "04 / 7",
+     "family": "Source Sans 3",
+     "size": 18,
+     "weight": 500,
+     "color": "#5A627A",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 427,
+     "w": 1728,
+     "h": 3,
+     "fill": "#DCD6C8"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 427,
+     "w": 1512,
+     "h": 3,
+     "fill": "#C9992A"
+    },
+    {
+     "kind": "ellipse",
+     "x": 96,
+     "y": 414,
+     "w": 30,
+     "h": 30,
+     "fill": "#C9992A"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 354,
+     "w": 300,
+     "h": 28,
+     "text": "Week 1",
+     "family": "Source Sans 3",
+     "size": 20,
+     "weight": 600,
+     "color": "#C9992A",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 478,
+     "w": 384,
+     "h": 44,
+     "text": "Connected",
+     "family": "Playfair Display",
+     "size": 32,
+     "weight": 700,
+     "color": "#14213D",
+     "lineHeight": 1.1
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 530,
+     "w": 384,
+     "h": 120,
+     "text": "Three telematics feeds and the HR system, read-only, mirrored against the old process.",
+     "family": "Source Sans 3",
+     "size": 21,
+     "weight": 400,
+     "color": "#5A627A",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 528,
+     "y": 414,
+     "w": 30,
+     "h": 30,
+     "fill": "#C9992A"
+    },
+    {
+     "kind": "text",
+     "x": 528,
+     "y": 354,
+     "w": 300,
+     "h": 28,
+     "text": "Weeks 2 to 3",
+     "family": "Source Sans 3",
+     "size": 20,
+     "weight": 600,
+     "color": "#C9992A",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 528,
+     "y": 478,
+     "w": 384,
+     "h": 44,
+     "text": "Shadow runs",
+     "family": "Playfair Display",
+     "size": 32,
+     "weight": 700,
+     "color": "#14213D",
+     "lineHeight": 1.1
+    },
+    {
+     "kind": "text",
+     "x": 528,
+     "y": 530,
+     "w": 384,
+     "h": 120,
+     "text": "Two full payroll cycles run in parallel. Every difference explained before go-live.",
+     "family": "Source Sans 3",
+     "size": 21,
+     "weight": 400,
+     "color": "#5A627A",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 960,
+     "y": 414,
+     "w": 30,
+     "h": 30,
+     "fill": "#C9992A"
+    },
+    {
+     "kind": "text",
+     "x": 960,
+     "y": 354,
+     "w": 300,
+     "h": 28,
+     "text": "Week 4",
+     "family": "Source Sans 3",
+     "size": 20,
+     "weight": 600,
+     "color": "#C9992A",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 960,
+     "y": 478,
+     "w": 384,
+     "h": 44,
+     "text": "Live in two countries",
+     "family": "Playfair Display",
+     "size": 32,
+     "weight": 700,
+     "color": "#14213D",
+     "lineHeight": 1.1
+    },
+    {
+     "kind": "text",
+     "x": 960,
+     "y": 530,
+     "w": 384,
+     "h": 120,
+     "text": "The Netherlands and Germany, with the finance team watching every line.",
+     "family": "Source Sans 3",
+     "size": 21,
+     "weight": 400,
+     "color": "#5A627A",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 1392,
+     "y": 414,
+     "w": 30,
+     "h": 30,
+     "fill": "#C9992A"
+    },
+    {
+     "kind": "text",
+     "x": 1392,
+     "y": 354,
+     "w": 300,
+     "h": 28,
+     "text": "Week 8",
+     "family": "Source Sans 3",
+     "size": 20,
+     "weight": 600,
+     "color": "#C9992A",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 1392,
+     "y": 478,
+     "w": 384,
+     "h": 44,
+     "text": "Live everywhere",
+     "family": "Playfair Display",
+     "size": 32,
+     "weight": 700,
+     "color": "#14213D",
+     "lineHeight": 1.1
+    },
+    {
+     "kind": "text",
+     "x": 1392,
+     "y": 530,
+     "w": 384,
+     "h": 120,
+     "text": "All twelve countries, nine currencies, one run.",
+     "family": "Source Sans 3",
+     "size": 21,
+     "weight": 400,
+     "color": "#5A627A",
+     "lineHeight": 1.4
+    }
+   ]
+  },
+  {
+   "name": "Figures",
+   "bg": "#F8F5EE",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 76,
+     "w": 56,
+     "h": 3,
+     "fill": "#C9992A"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 88,
+     "w": 1200,
+     "h": 28,
+     "text": "The results",
+     "family": "Source Sans 3",
+     "size": 20,
+     "weight": 600,
+     "color": "#C9992A",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 124,
+     "w": 1240,
+     "h": 76,
+     "text": "Before and after",
+     "family": "Playfair Display",
+     "size": 62,
+     "weight": 700,
+     "color": "#14213D",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#DCD6C8"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Northwind Systems  ·  Case study: Brightline Logistics",
+     "family": "Source Sans 3",
+     "size": 18,
+     "weight": 500,
+     "color": "#5A627A",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "05 / 7",
+     "family": "Source Sans 3",
+     "size": 18,
+     "weight": 500,
+     "color": "#5A627A",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 244,
+     "w": 414,
+     "h": 560,
+     "fill": "#EFEBE1",
+     "radius": 8,
+     "stroke": "#DCD6C8",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 244,
+     "w": 414,
+     "h": 6,
+     "fill": "#C9992A",
+     "radius": 0
+    },
+    {
+     "kind": "text",
+     "x": 132,
+     "y": 300,
+     "w": 342,
+     "h": 120,
+     "text": "1 day",
+     "family": "Playfair Display",
+     "size": 104,
+     "weight": 700,
+     "color": "#C9992A",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 132,
+     "y": 440,
+     "w": 342,
+     "h": 34,
+     "text": "Payroll run",
+     "family": "Source Sans 3",
+     "size": 24,
+     "weight": 600,
+     "color": "#14213D",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "button",
+     "x": 132,
+     "y": 494,
+     "w": 190,
+     "h": 40,
+     "label": "Was 4",
+     "fill": "#e8dcc0",
+     "color": "#C9992A",
+     "family": "Source Sans 3",
+     "size": 17,
+     "weight": 700
+    },
+    {
+     "kind": "text",
+     "x": 132,
+     "y": 564,
+     "w": 342,
+     "h": 140,
+     "text": "The finance team closes payroll on a Tuesday afternoon.",
+     "family": "Source Sans 3",
+     "size": 20,
+     "weight": 400,
+     "color": "#5A627A",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 534,
+     "y": 244,
+     "w": 414,
+     "h": 560,
+     "fill": "#EFEBE1",
+     "radius": 8,
+     "stroke": "#DCD6C8",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 534,
+     "y": 244,
+     "w": 414,
+     "h": 6,
+     "fill": "#3E6FCC",
+     "radius": 0
+    },
+    {
+     "kind": "text",
+     "x": 570,
+     "y": 300,
+     "w": 342,
+     "h": 120,
+     "text": "0.2%",
+     "family": "Playfair Display",
+     "size": 104,
+     "weight": 700,
+     "color": "#3E6FCC",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 570,
+     "y": 440,
+     "w": 342,
+     "h": 34,
+     "text": "Error rate",
+     "family": "Source Sans 3",
+     "size": 24,
+     "weight": 600,
+     "color": "#14213D",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "button",
+     "x": 570,
+     "y": 494,
+     "w": 190,
+     "h": 40,
+     "label": "Was 3.1%",
+     "fill": "#cfd5dd",
+     "color": "#3E6FCC",
+     "family": "Source Sans 3",
+     "size": 17,
+     "weight": 700
+    },
+    {
+     "kind": "text",
+     "x": 570,
+     "y": 564,
+     "w": 342,
+     "h": 140,
+     "text": "Errors caught before the run, not after payday.",
+     "family": "Source Sans 3",
+     "size": 20,
+     "weight": 400,
+     "color": "#5A627A",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 972,
+     "y": 244,
+     "w": 414,
+     "h": 560,
+     "fill": "#EFEBE1",
+     "radius": 8,
+     "stroke": "#DCD6C8",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 972,
+     "y": 244,
+     "w": 414,
+     "h": 6,
+     "fill": "#C9992A",
+     "radius": 0
+    },
+    {
+     "kind": "text",
+     "x": 1008,
+     "y": 300,
+     "w": 342,
+     "h": 120,
+     "text": "0",
+     "family": "Playfair Display",
+     "size": 104,
+     "weight": 700,
+     "color": "#C9992A",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 1008,
+     "y": 440,
+     "w": 342,
+     "h": 34,
+     "text": "Disputes per week",
+     "family": "Source Sans 3",
+     "size": 24,
+     "weight": 600,
+     "color": "#14213D",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "button",
+     "x": 1008,
+     "y": 494,
+     "w": 190,
+     "h": 40,
+     "label": "Was 2",
+     "fill": "#e8dcc0",
+     "color": "#C9992A",
+     "family": "Source Sans 3",
+     "size": 17,
+     "weight": 700
+    },
+    {
+     "kind": "text",
+     "x": 1008,
+     "y": 564,
+     "w": 342,
+     "h": 140,
+     "text": "Drivers see their hours before they are paid.",
+     "family": "Source Sans 3",
+     "size": 20,
+     "weight": 400,
+     "color": "#5A627A",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 1410,
+     "y": 244,
+     "w": 414,
+     "h": 560,
+     "fill": "#EFEBE1",
+     "radius": 8,
+     "stroke": "#DCD6C8",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 1410,
+     "y": 244,
+     "w": 414,
+     "h": 6,
+     "fill": "#3E6FCC",
+     "radius": 0
+    },
+    {
+     "kind": "text",
+     "x": 1446,
+     "y": 300,
+     "w": 342,
+     "h": 120,
+     "text": "$310K",
+     "family": "Playfair Display",
+     "size": 104,
+     "weight": 700,
+     "color": "#3E6FCC",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 1446,
+     "y": 440,
+     "w": 342,
+     "h": 34,
+     "text": "Saved in year one",
+     "family": "Source Sans 3",
+     "size": 24,
+     "weight": 600,
+     "color": "#14213D",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "button",
+     "x": 1446,
+     "y": 494,
+     "w": 190,
+     "h": 40,
+     "label": "Finance time alone",
+     "fill": "#cfd5dd",
+     "color": "#3E6FCC",
+     "family": "Source Sans 3",
+     "size": 17,
+     "weight": 700
+    },
+    {
+     "kind": "text",
+     "x": 1446,
+     "y": 564,
+     "w": 342,
+     "h": 140,
+     "text": "Before counting the disputes that no longer happen.",
+     "family": "Source Sans 3",
+     "size": 20,
+     "weight": 400,
+     "color": "#5A627A",
+     "lineHeight": 1.4
+    }
+   ]
+  },
+  {
+   "name": "Rowan Achebe",
+   "bg": {
+    "angle": 160,
+    "stops": [
+     [
+      "#182752",
+      0
+     ],
+     [
+      "#0C1330",
+      1
+     ]
+    ]
+   },
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 40,
+     "y": 40,
+     "w": 1840,
+     "h": 1000,
+     "stroke": "#E8B94A",
+     "strokeWidth": 1.5,
+     "opacity": 0.7
+    },
+    {
+     "kind": "ellipse",
+     "x": 1787,
+     "y": 413,
+     "w": 5,
+     "h": 5,
+     "fill": "#E8B94A",
+     "opacity": 0.6499999999999999
+    },
+    {
+     "kind": "ellipse",
+     "x": 1843,
+     "y": 463,
+     "w": 5,
+     "h": 5,
+     "fill": "#E8B94A",
+     "opacity": 0.52
+    },
+    {
+     "kind": "ellipse",
+     "x": 1818,
+     "y": 773,
+     "w": 6,
+     "h": 6,
+     "fill": "#E8B94A",
+     "opacity": 0.51
+    },
+    {
+     "kind": "ellipse",
+     "x": 1337,
+     "y": 18,
+     "w": 7,
+     "h": 7,
+     "fill": "#E8B94A",
+     "opacity": 0.75
+    },
+    {
+     "kind": "ellipse",
+     "x": 1652,
+     "y": 174,
+     "w": 8,
+     "h": 8,
+     "fill": "#E8B94A",
+     "opacity": 0.45999999999999996
+    },
+    {
+     "kind": "ellipse",
+     "x": 1606,
+     "y": 670,
+     "w": 6,
+     "h": 6,
+     "fill": "#E8B94A",
+     "opacity": 0.71
+    },
+    {
+     "kind": "ellipse",
+     "x": 606,
+     "y": 778,
+     "w": 6,
+     "h": 6,
+     "fill": "#E8B94A",
+     "opacity": 0.39999999999999997
+    },
+    {
+     "kind": "ellipse",
+     "x": 968,
+     "y": 561,
+     "w": 8,
+     "h": 8,
+     "fill": "#E8B94A",
+     "opacity": 0.48
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#2E3E6A"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Northwind Systems  ·  Case study: Brightline Logistics",
+     "family": "Source Sans 3",
+     "size": 18,
+     "weight": 500,
+     "color": "#B4BCD0",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "06 / 7",
+     "family": "Source Sans 3",
+     "size": 18,
+     "weight": 500,
+     "color": "#B4BCD0",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 180,
+     "w": 260,
+     "h": 260,
+     "text": "“",
+     "family": "Playfair Display",
+     "size": 280,
+     "weight": 700,
+     "color": "#E8B94A",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 116,
+     "y": 400,
+     "w": 1400,
+     "h": 221,
+     "text": "We did not buy software. We bought back four days a fortnight, and the drivers' trust that their pay would be right.",
+     "family": "Playfair Display",
+     "size": 54,
+     "weight": 700,
+     "color": "#F8F5EE",
+     "lineHeight": 1.26
+    },
+    {
+     "kind": "ellipse",
+     "name": "Photo",
+     "x": 116,
+     "y": 681,
+     "w": 84,
+     "h": 84,
+     "fill": "#2A3F73"
+    },
+    {
+     "kind": "text",
+     "x": 224,
+     "y": 689,
+     "w": 800,
+     "h": 32,
+     "text": "Rowan Achebe",
+     "family": "Source Sans 3",
+     "size": 24,
+     "weight": 600,
+     "color": "#F8F5EE",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 224,
+     "y": 725,
+     "w": 800,
+     "h": 28,
+     "text": "Chief Financial Officer, Brightline Logistics",
+     "family": "Source Sans 3",
+     "size": 20,
+     "weight": 400,
+     "color": "#B4BCD0",
+     "lineHeight": 1.4
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "op-peep-23",
+     "x": 128,
+     "y": 689,
+     "w": 60,
+     "h": 68
+    }
+   ]
+  },
+  {
+   "name": "Closing",
+   "bg": {
+    "angle": 160,
+    "stops": [
+     [
+      "#182752",
+      0
+     ],
+     [
+      "#0C1330",
+      1
+     ]
+    ]
+   },
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 40,
+     "y": 40,
+     "w": 1840,
+     "h": 1000,
+     "stroke": "#E8B94A",
+     "strokeWidth": 1.5,
+     "opacity": 0.7
+    },
+    {
+     "kind": "ellipse",
+     "x": 1787,
+     "y": 413,
+     "w": 5,
+     "h": 5,
+     "fill": "#E8B94A",
+     "opacity": 0.6499999999999999
+    },
+    {
+     "kind": "ellipse",
+     "x": 1843,
+     "y": 463,
+     "w": 5,
+     "h": 5,
+     "fill": "#E8B94A",
+     "opacity": 0.52
+    },
+    {
+     "kind": "ellipse",
+     "x": 1818,
+     "y": 773,
+     "w": 6,
+     "h": 6,
+     "fill": "#E8B94A",
+     "opacity": 0.51
+    },
+    {
+     "kind": "ellipse",
+     "x": 1337,
+     "y": 18,
+     "w": 7,
+     "h": 7,
+     "fill": "#E8B94A",
+     "opacity": 0.75
+    },
+    {
+     "kind": "ellipse",
+     "x": 1652,
+     "y": 174,
+     "w": 8,
+     "h": 8,
+     "fill": "#E8B94A",
+     "opacity": 0.45999999999999996
+    },
+    {
+     "kind": "ellipse",
+     "x": 1606,
+     "y": 670,
+     "w": 6,
+     "h": 6,
+     "fill": "#E8B94A",
+     "opacity": 0.71
+    },
+    {
+     "kind": "ellipse",
+     "x": 606,
+     "y": 778,
+     "w": 6,
+     "h": 6,
+     "fill": "#E8B94A",
+     "opacity": 0.39999999999999997
+    },
+    {
+     "kind": "ellipse",
+     "x": 968,
+     "y": 561,
+     "w": 8,
+     "h": 8,
+     "fill": "#E8B94A",
+     "opacity": 0.48
+    },
+    {
+     "kind": "ellipse",
+     "x": 1200,
+     "y": 200,
+     "w": 640,
+     "h": 640,
+     "fill": "#E8B94A",
+     "opacity": 0.12
+    },
+    {
+     "kind": "ellipse",
+     "x": 1264,
+     "y": 264,
+     "w": 512,
+     "h": 512,
+     "fill": "#E8B94A",
+     "opacity": 0.16
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 96,
+     "w": 22,
+     "h": 22,
+     "fill": "#E8B94A",
+     "radius": 6
+    },
+    {
+     "kind": "text",
+     "x": 132,
+     "y": 93,
+     "w": 700,
+     "h": 30,
+     "text": "Northwind Systems",
+     "family": "Source Sans 3",
+     "size": 22,
+     "weight": 600,
+     "color": "#F8F5EE",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 236,
+     "w": 1000,
+     "h": 60,
+     "text": "The pattern repeats",
+     "family": "Cormorant Garamond",
+     "size": 40,
+     "weight": 600,
+     "color": "#E8B94A",
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 300,
+     "w": 1100,
+     "h": 104,
+     "text": "What this means for you",
+     "family": "Playfair Display",
+     "size": 85,
+     "weight": 700,
+     "color": "#F8F5EE",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 428,
+     "w": 940,
+     "h": 120,
+     "text": "Every fleet operator we have deployed follows the same pattern: connect, shadow, go live, one run. Eight weeks, start to finish.",
+     "family": "Source Sans 3",
+     "size": 28,
+     "weight": 400,
+     "color": "#B4BCD0",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "icon",
+     "icon": "mail",
+     "x": 96,
+     "y": 702,
+     "w": 28,
+     "h": 28,
+     "color": "#E8B94A"
+    },
+    {
+     "kind": "text",
+     "x": 144,
+     "y": 700,
+     "w": 800,
+     "h": 34,
+     "text": "elena@northwind.example",
+     "family": "Source Sans 3",
+     "size": 24,
+     "weight": 500,
+     "color": "#F8F5EE",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "world",
+     "x": 96,
+     "y": 764,
+     "w": 28,
+     "h": 28,
+     "color": "#E8B94A"
+    },
+    {
+     "kind": "text",
+     "x": 144,
+     "y": 762,
+     "w": 800,
+     "h": 34,
+     "text": "northwind.example/brightline",
+     "family": "Source Sans 3",
+     "size": 24,
+     "weight": 500,
+     "color": "#F8F5EE",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "calendar",
+     "x": 96,
+     "y": 826,
+     "w": 28,
+     "h": 28,
+     "color": "#E8B94A"
+    },
+    {
+     "kind": "text",
+     "x": 144,
+     "y": 824,
+     "w": 800,
+     "h": 34,
+     "text": "Book a thirty-minute walkthrough",
+     "family": "Source Sans 3",
+     "size": 24,
+     "weight": 500,
+     "color": "#F8F5EE",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "button",
+     "x": 96,
+     "y": 910,
+     "w": 340,
+     "h": 64,
+     "label": "Talk to us",
+     "fill": "#E8B94A",
+     "color": "#14213D",
+     "family": "Source Sans 3",
+     "size": 22,
+     "weight": 700,
+     "radius": 8
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 940,
+     "w": 240,
+     "h": 28,
+     "text": "07 / 7",
+     "family": "Source Sans 3",
+     "size": 18,
+     "weight": 500,
+     "color": "#B4BCD0",
+     "lineHeight": 1.3,
+     "align": "right"
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "la-success-illustration",
+     "x": 1250,
+     "y": 250,
+     "w": 540,
+     "h": 540
+    }
+   ]
+  }
+ ],
+ "fillable": [
+  {
+   "node": "p0-n10",
+   "kind": "text",
+   "label": "Company",
+   "hint": "Your company or team name"
+  },
+  {
+   "node": "p0-n12",
+   "kind": "text",
+   "label": "Title",
+   "hint": "Two short lines"
+  },
+  {
+   "node": "p0-n13",
+   "kind": "text",
+   "label": "Subtitle",
+   "hint": "One sentence on what the deck covers"
+  },
+  {
+   "node": "p0-n14",
+   "kind": "text",
+   "label": "Presenter and date",
+   "hint": "Who presents, and when"
+  },
+  {
+   "node": "p6-n17",
+   "kind": "text",
+   "label": "Email",
+   "hint": "Contact detail"
+  },
+  {
+   "node": "p6-n19",
+   "kind": "text",
+   "label": "Website",
+   "hint": "Contact detail"
+  },
+  {
+   "node": "p6-n21",
+   "kind": "text",
+   "label": "Phone",
+   "hint": "Contact detail"
+  }
+ ],
+ "version": 2,
  "created": "2026-08-28T00:00:00.000Z",
- "outline": {
-  "title": "Customer Case Study",
-  "theme": "credible, specific",
-  "pages": [
-   {
-    "title": "The customer",
-    "points": [
-     "Who they are and what they do"
-    ],
-    "visualRole": "cover"
-   },
-   {
-    "title": "The challenge",
-    "points": [
-     "The situation before",
-     "What it cost them"
-    ],
-    "visualRole": "content"
-   },
-   {
-    "title": "The solution",
-    "points": [
-     "What we deployed and how fast"
-    ],
-    "visualRole": "content"
-   },
-   {
-    "title": "The results",
-    "points": [
-     "The before-and-after numbers"
-    ],
-    "visualRole": "data"
-   },
-   {
-    "title": "In their words",
-    "points": [
-     "The quote that says it all"
-    ],
-    "visualRole": "quote"
-   },
-   {
-    "title": "What this means for you",
-    "points": [
-     "The pattern that repeats across customers"
-    ],
-    "visualRole": "closing"
-   }
-  ]
- }
+ "updated": "2026-09-30T00:00:00.000Z",
+ "rank": 42
 }

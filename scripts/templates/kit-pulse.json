@@ -1144,10 +1144,10 @@
      "x": 96,
      "y": 124,
      "w": 960,
-     "h": 83,
+     "h": 75,
      "text": "Three things the year proved",
      "family": "Sora",
-     "size": 68,
+     "size": 61,
      "weight": 800,
      "color": "#0B0B14",
      "lineHeight": 1.06
@@ -1190,7 +1190,7 @@
     {
      "kind": "ellipse",
      "x": 96,
-     "y": 279,
+     "y": 271,
      "w": 34,
      "h": 34,
      "fill": "#f5d5d4"
@@ -1198,7 +1198,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 279,
+     "y": 271,
      "w": 34,
      "h": 34,
      "text": "1",
@@ -1213,7 +1213,7 @@
     {
      "kind": "text",
      "x": 152,
-     "y": 275,
+     "y": 267,
      "w": 840,
      "h": 44,
      "text": "Retention leads growth",
@@ -1226,7 +1226,7 @@
     {
      "kind": "text",
      "x": 152,
-     "y": 327,
+     "y": 319,
      "w": 840,
      "h": 70,
      "text": "Net revenue retention held above 118% in every quarter, before any new logo.",
@@ -1239,7 +1239,7 @@
     {
      "kind": "ellipse",
      "x": 96,
-     "y": 457,
+     "y": 449,
      "w": 34,
      "h": 34,
      "fill": "#f5d5d4"
@@ -1247,7 +1247,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 457,
+     "y": 449,
      "w": 34,
      "h": 34,
      "text": "2",
@@ -1262,7 +1262,7 @@
     {
      "kind": "text",
      "x": 152,
-     "y": 453,
+     "y": 445,
      "w": 840,
      "h": 44,
      "text": "The mid-market is ours",
@@ -1275,7 +1275,7 @@
     {
      "kind": "text",
      "x": 152,
-     "y": 505,
+     "y": 497,
      "w": 840,
      "h": 70,
      "text": "Deals between 200 and 2,000 seats closed twice as fast as a year ago.",
@@ -1288,7 +1288,7 @@
     {
      "kind": "ellipse",
      "x": 96,
-     "y": 635,
+     "y": 627,
      "w": 34,
      "h": 34,
      "fill": "#f5d5d4"
@@ -1296,7 +1296,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 635,
+     "y": 627,
      "w": 34,
      "h": 34,
      "text": "3",
@@ -1311,7 +1311,7 @@
     {
      "kind": "text",
      "x": 152,
-     "y": 631,
+     "y": 623,
      "w": 840,
      "h": 44,
      "text": "Partners now bring a third of pipeline",
@@ -1324,7 +1324,7 @@
     {
      "kind": "text",
      "x": 152,
-     "y": 683,
+     "y": 675,
      "w": 840,
      "h": 70,
      "text": "Referred deals close at higher values and churn less.",
@@ -2696,7 +2696,7 @@
      "kind": "rect",
      "x": 96,
      "y": 434,
-     "w": 864,
+     "w": 648,
      "h": 3,
      "fill": "#FF4D2E"
     },
@@ -2734,7 +2734,7 @@
      "size": 32,
      "weight": 800,
      "color": "#0B0B14",
-     "lineHeight": 1.06
+     "lineHeight": 1.1
     },
     {
      "kind": "text",
@@ -2783,7 +2783,7 @@
      "size": 32,
      "weight": 800,
      "color": "#0B0B14",
-     "lineHeight": 1.06
+     "lineHeight": 1.1
     },
     {
      "kind": "text",
@@ -2834,7 +2834,7 @@
      "size": 32,
      "weight": 800,
      "color": "#0B0B14",
-     "lineHeight": 1.06
+     "lineHeight": 1.1
     },
     {
      "kind": "text",
@@ -2885,7 +2885,7 @@
      "size": 32,
      "weight": 800,
      "color": "#0B0B14",
-     "lineHeight": 1.06
+     "lineHeight": 1.1
     },
     {
      "kind": "text",
@@ -4822,7 +4822,7 @@
      "x": 96,
      "y": 468,
      "w": 940,
-     "h": 84,
+     "h": 120,
      "text": "Questions now, or any time this week. The deck and the model are in the shared folder.",
      "family": "Manrope",
      "size": 28,

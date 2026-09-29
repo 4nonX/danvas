@@ -1,5 +1,4 @@
 {
- "kind": "deck-outline",
  "id": "deck-team-offsite",
  "title": "Team Offsite",
  "categories": [
@@ -14,61 +13,1935 @@
  ],
  "styleTags": [
   "warm",
-  "friendly"
+  "friendly",
+  "organic"
  ],
- "themeId": "theme-sunset",
  "size": [
   1920,
   1080
  ],
- "rank": 66,
+ "typography": [
+  {
+   "role": "heading",
+   "family": "Outfit",
+   "weight": 700
+  },
+  {
+   "role": "body",
+   "family": "Nunito Sans",
+   "weight": 400
+  },
+  {
+   "role": "accent",
+   "family": "Caveat",
+   "weight": 600
+  }
+ ],
+ "pages": [
+  {
+   "name": "Cover",
+   "bg": {
+    "angle": 160,
+    "stops": [
+     [
+      "#2F4A36",
+      0
+     ],
+     [
+      "#1D3124",
+      1
+     ]
+    ]
+   },
+   "nodes": [
+    {
+     "kind": "ellipse",
+     "x": 1480,
+     "y": -260,
+     "w": 760,
+     "h": 760,
+     "fill": "#A9D2A0",
+     "opacity": 0.4,
+     "bleed": true
+    },
+    {
+     "kind": "ellipse",
+     "x": -200,
+     "y": 720,
+     "w": 560,
+     "h": 560,
+     "fill": "#F2905E",
+     "opacity": 0.35,
+     "bleed": true
+    },
+    {
+     "kind": "ellipse",
+     "x": 1720,
+     "y": 720,
+     "w": 300,
+     "h": 300,
+     "fill": "#F2C063",
+     "opacity": 0.6,
+     "bleed": true
+    },
+    {
+     "kind": "ellipse",
+     "x": 1353,
+     "y": 725,
+     "w": 5,
+     "h": 5,
+     "fill": "#F8F0E3",
+     "opacity": 0.5
+    },
+    {
+     "kind": "ellipse",
+     "x": 261,
+     "y": 647,
+     "w": 7,
+     "h": 7,
+     "fill": "#F8F0E3",
+     "opacity": 0.43999999999999995
+    },
+    {
+     "kind": "ellipse",
+     "x": 864,
+     "y": 872,
+     "w": 6,
+     "h": 6,
+     "fill": "#F8F0E3",
+     "opacity": 0.71
+    },
+    {
+     "kind": "ellipse",
+     "x": 1720,
+     "y": 907,
+     "w": 5,
+     "h": 5,
+     "fill": "#F8F0E3",
+     "opacity": 0.6
+    },
+    {
+     "kind": "ellipse",
+     "x": 1737,
+     "y": 697,
+     "w": 8,
+     "h": 8,
+     "fill": "#F8F0E3",
+     "opacity": 0.42
+    },
+    {
+     "kind": "ellipse",
+     "x": 1893,
+     "y": 153,
+     "w": 6,
+     "h": 6,
+     "fill": "#F8F0E3",
+     "opacity": 0.7
+    },
+    {
+     "kind": "ellipse",
+     "x": 526,
+     "y": 452,
+     "w": 9,
+     "h": 9,
+     "fill": "#F8F0E3",
+     "opacity": 0.38
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 96,
+     "w": 22,
+     "h": 22,
+     "fill": "#F2905E",
+     "radius": 6
+    },
+    {
+     "kind": "text",
+     "x": 132,
+     "y": 93,
+     "w": 700,
+     "h": 30,
+     "text": "Fernwood",
+     "family": "Nunito Sans",
+     "size": 22,
+     "weight": 600,
+     "color": "#F8F0E3",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 372,
+     "w": 1000,
+     "h": 60,
+     "text": "Relaxed, but on purpose",
+     "family": "Caveat",
+     "size": 46,
+     "weight": 600,
+     "color": "#F2905E",
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 446,
+     "w": 1000,
+     "h": 258,
+     "text": "Why we are here\nin person",
+     "family": "Outfit",
+     "size": 118,
+     "weight": 700,
+     "color": "#F8F0E3",
+     "lineHeight": 1.02
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 734,
+     "w": 900,
+     "h": 84,
+     "text": "Two days, four sessions and one dinner: the state of the team, the conversation we keep avoiding, and next quarter drafted together.",
+     "family": "Nunito Sans",
+     "size": 28,
+     "weight": 400,
+     "color": "#BBC9B4",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 940,
+     "w": 900,
+     "h": 28,
+     "text": "Hosted by Dana Whitfield  ·  Lakeside Lodge, 5 and 6 November",
+     "family": "Nunito Sans",
+     "size": 18,
+     "weight": 500,
+     "color": "#BBC9B4",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 940,
+     "w": 240,
+     "h": 28,
+     "text": "01 / 6",
+     "family": "Nunito Sans",
+     "size": 18,
+     "weight": 500,
+     "color": "#BBC9B4",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "ellipse",
+     "x": 1180,
+     "y": 200,
+     "w": 660,
+     "h": 660,
+     "fill": "#466B4C"
+    },
+    {
+     "kind": "ellipse",
+     "x": 1160,
+     "y": 180,
+     "w": 700,
+     "h": 700,
+     "fill": "#F2C063",
+     "opacity": 0.12
+    },
+    {
+     "kind": "ellipse",
+     "x": 1230,
+     "y": 250,
+     "w": 560,
+     "h": 560,
+     "fill": "#F2C063",
+     "opacity": 0.16
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "il-day96-camping",
+     "x": 1230,
+     "y": 240,
+     "w": 560,
+     "h": 580,
+     "cleanCard": true
+    }
+   ]
+  },
+  {
+   "name": "Agenda",
+   "bg": "#F8F0E3",
+   "nodes": [
+    {
+     "kind": "ellipse",
+     "x": 1700,
+     "y": -180,
+     "w": 380,
+     "h": 380,
+     "fill": "#5F8F5A",
+     "opacity": 0.22,
+     "bleed": true
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 88,
+     "w": 1200,
+     "h": 28,
+     "text": "The agenda",
+     "family": "Nunito Sans",
+     "size": 20,
+     "weight": 600,
+     "color": "#E0703F",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 124,
+     "w": 1240,
+     "h": 77,
+     "text": "Two days, four sessions, one dinner",
+     "family": "Outfit",
+     "size": 63,
+     "weight": 700,
+     "color": "#2F2A25",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#DDD0BB"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Fernwood  ·  Team offsite, Q4",
+     "family": "Nunito Sans",
+     "size": 18,
+     "weight": 500,
+     "color": "#786C5F",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "02 / 6",
+     "family": "Nunito Sans",
+     "size": 18,
+     "weight": 500,
+     "color": "#786C5F",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 251,
+     "w": 96,
+     "h": 60,
+     "text": "01",
+     "family": "Outfit",
+     "size": 44,
+     "weight": 700,
+     "color": "#E0703F",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 216,
+     "y": 249,
+     "w": 900,
+     "h": 44,
+     "text": "State of the team",
+     "family": "Outfit",
+     "size": 34,
+     "weight": 700,
+     "color": "#2F2A25",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 216,
+     "y": 295,
+     "w": 900,
+     "h": 30,
+     "text": "What the survey said, and what we make of it",
+     "family": "Nunito Sans",
+     "size": 21,
+     "weight": 400,
+     "color": "#786C5F",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "button",
+     "x": 1136,
+     "y": 253,
+     "w": 160,
+     "h": 34,
+     "label": "60 min",
+     "fill": "#edd1b9",
+     "color": "#E0703F",
+     "family": "Nunito Sans",
+     "size": 15,
+     "weight": 700
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 351,
+     "w": 1204,
+     "h": 1,
+     "fill": "#DDD0BB"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 369,
+     "w": 96,
+     "h": 60,
+     "text": "02",
+     "family": "Outfit",
+     "size": 44,
+     "weight": 700,
+     "color": "#E0703F",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 216,
+     "y": 367,
+     "w": 900,
+     "h": 44,
+     "text": "The big conversation",
+     "family": "Outfit",
+     "size": 34,
+     "weight": 700,
+     "color": "#2F2A25",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 216,
+     "y": 413,
+     "w": 900,
+     "h": 30,
+     "text": "The one topic we keep avoiding",
+     "family": "Nunito Sans",
+     "size": 21,
+     "weight": 400,
+     "color": "#786C5F",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "button",
+     "x": 1136,
+     "y": 371,
+     "w": 160,
+     "h": 34,
+     "label": "90 min",
+     "fill": "#edd1b9",
+     "color": "#E0703F",
+     "family": "Nunito Sans",
+     "size": 15,
+     "weight": 700
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 469,
+     "w": 1204,
+     "h": 1,
+     "fill": "#DDD0BB"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 487,
+     "w": 96,
+     "h": 60,
+     "text": "03",
+     "family": "Outfit",
+     "size": 44,
+     "weight": 700,
+     "color": "#E0703F",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 216,
+     "y": 485,
+     "w": 900,
+     "h": 44,
+     "text": "Dinner",
+     "family": "Outfit",
+     "size": 34,
+     "weight": 700,
+     "color": "#2F2A25",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 216,
+     "y": 531,
+     "w": 900,
+     "h": 30,
+     "text": "No agenda, long table, everyone",
+     "family": "Nunito Sans",
+     "size": 21,
+     "weight": 400,
+     "color": "#786C5F",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "button",
+     "x": 1136,
+     "y": 489,
+     "w": 160,
+     "h": 34,
+     "label": "Evening",
+     "fill": "#edd1b9",
+     "color": "#E0703F",
+     "family": "Nunito Sans",
+     "size": 15,
+     "weight": 700
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 587,
+     "w": 1204,
+     "h": 1,
+     "fill": "#DDD0BB"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 605,
+     "w": 96,
+     "h": 60,
+     "text": "04",
+     "family": "Outfit",
+     "size": 44,
+     "weight": 700,
+     "color": "#E0703F",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 216,
+     "y": 603,
+     "w": 900,
+     "h": 44,
+     "text": "Planning session",
+     "family": "Outfit",
+     "size": 34,
+     "weight": 700,
+     "color": "#2F2A25",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 216,
+     "y": 649,
+     "w": 900,
+     "h": 30,
+     "text": "Next quarter, drafted together",
+     "family": "Nunito Sans",
+     "size": 21,
+     "weight": 400,
+     "color": "#786C5F",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "button",
+     "x": 1136,
+     "y": 607,
+     "w": 160,
+     "h": 34,
+     "label": "3 hours",
+     "fill": "#edd1b9",
+     "color": "#E0703F",
+     "family": "Nunito Sans",
+     "size": 15,
+     "weight": 700
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 705,
+     "w": 1204,
+     "h": 1,
+     "fill": "#DDD0BB"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 723,
+     "w": 96,
+     "h": 60,
+     "text": "05",
+     "family": "Outfit",
+     "size": 44,
+     "weight": 700,
+     "color": "#E0703F",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 216,
+     "y": 721,
+     "w": 900,
+     "h": 44,
+     "text": "Commitments",
+     "family": "Outfit",
+     "size": 34,
+     "weight": 700,
+     "color": "#2F2A25",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 216,
+     "y": 767,
+     "w": 900,
+     "h": 30,
+     "text": "What each of us takes home",
+     "family": "Nunito Sans",
+     "size": 21,
+     "weight": 400,
+     "color": "#786C5F",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "button",
+     "x": 1136,
+     "y": 725,
+     "w": 160,
+     "h": 34,
+     "label": "45 min",
+     "fill": "#edd1b9",
+     "color": "#E0703F",
+     "family": "Nunito Sans",
+     "size": 15,
+     "weight": 700
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 823,
+     "w": 1204,
+     "h": 1,
+     "fill": "#DDD0BB"
+    },
+    {
+     "kind": "rect",
+     "x": 1396,
+     "y": 245,
+     "w": 428,
+     "h": 560,
+     "fill": {
+      "angle": 160,
+      "stops": [
+       [
+        "#2F4A36",
+        0
+       ],
+       [
+        "#1D3124",
+        1
+       ]
+      ]
+     },
+     "radius": 28
+    },
+    {
+     "kind": "rect",
+     "x": 1396,
+     "y": 245,
+     "w": 428,
+     "h": 6,
+     "fill": "#F2905E",
+     "radius": 0
+    },
+    {
+     "kind": "text",
+     "x": 1436,
+     "y": 285,
+     "w": 348,
+     "h": 28,
+     "text": "The offsite",
+     "family": "Nunito Sans",
+     "size": 20,
+     "weight": 600,
+     "color": "#F2905E",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 1436,
+     "y": 325,
+     "w": 348,
+     "h": 120,
+     "text": "5 Nov",
+     "family": "Outfit",
+     "size": 76,
+     "weight": 700,
+     "color": "#F8F0E3",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 1436,
+     "y": 481,
+     "w": 120,
+     "h": 26,
+     "text": "Where",
+     "family": "Nunito Sans",
+     "size": 18,
+     "weight": 500,
+     "color": "#BBC9B4",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1436,
+     "y": 509,
+     "w": 348,
+     "h": 30,
+     "text": "Lakeside Lodge, main hall",
+     "family": "Nunito Sans",
+     "size": 22,
+     "weight": 600,
+     "color": "#F8F0E3",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 1436,
+     "y": 545,
+     "w": 348,
+     "h": 1,
+     "fill": "#456249"
+    },
+    {
+     "kind": "text",
+     "x": 1436,
+     "y": 555,
+     "w": 120,
+     "h": 26,
+     "text": "Start",
+     "family": "Nunito Sans",
+     "size": 18,
+     "weight": 500,
+     "color": "#BBC9B4",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1436,
+     "y": 583,
+     "w": 348,
+     "h": 30,
+     "text": "10:00, coffee from 09:30",
+     "family": "Nunito Sans",
+     "size": 22,
+     "weight": 600,
+     "color": "#F8F0E3",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 1436,
+     "y": 619,
+     "w": 348,
+     "h": 1,
+     "fill": "#456249"
+    },
+    {
+     "kind": "text",
+     "x": 1436,
+     "y": 629,
+     "w": 120,
+     "h": 26,
+     "text": "Host",
+     "family": "Nunito Sans",
+     "size": 18,
+     "weight": 500,
+     "color": "#BBC9B4",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1436,
+     "y": 657,
+     "w": 348,
+     "h": 30,
+     "text": "Dana Whitfield",
+     "family": "Nunito Sans",
+     "size": 22,
+     "weight": 600,
+     "color": "#F8F0E3",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 1436,
+     "y": 693,
+     "w": 348,
+     "h": 1,
+     "fill": "#456249"
+    },
+    {
+     "kind": "text",
+     "x": 1436,
+     "y": 703,
+     "w": 120,
+     "h": 26,
+     "text": "Bring",
+     "family": "Nunito Sans",
+     "size": 18,
+     "weight": 500,
+     "color": "#BBC9B4",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1436,
+     "y": 731,
+     "w": 348,
+     "h": 30,
+     "text": "A hoodie and an opinion",
+     "family": "Nunito Sans",
+     "size": 22,
+     "weight": 600,
+     "color": "#F8F0E3",
+     "lineHeight": 1.3
+    }
+   ]
+  },
+  {
+   "name": "Figures",
+   "bg": "#F8F0E3",
+   "nodes": [
+    {
+     "kind": "ellipse",
+     "x": 1700,
+     "y": -180,
+     "w": 380,
+     "h": 380,
+     "fill": "#5F8F5A",
+     "opacity": 0.22,
+     "bleed": true
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 88,
+     "w": 1200,
+     "h": 28,
+     "text": "State of the team",
+     "family": "Nunito Sans",
+     "size": 20,
+     "weight": 600,
+     "color": "#E0703F",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 124,
+     "w": 1240,
+     "h": 78,
+     "text": "What the team said in the survey",
+     "family": "Outfit",
+     "size": 64,
+     "weight": 700,
+     "color": "#2F2A25",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#DDD0BB"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Fernwood  ·  Team offsite, Q4",
+     "family": "Nunito Sans",
+     "size": 18,
+     "weight": 500,
+     "color": "#786C5F",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "03 / 6",
+     "family": "Nunito Sans",
+     "size": 18,
+     "weight": 500,
+     "color": "#786C5F",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 246,
+     "w": 414,
+     "h": 560,
+     "fill": "#EFE4D0",
+     "radius": 28,
+     "stroke": "#DDD0BB",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 246,
+     "w": 414,
+     "h": 6,
+     "fill": "#E0703F",
+     "radius": 0
+    },
+    {
+     "kind": "text",
+     "x": 132,
+     "y": 302,
+     "w": 342,
+     "h": 124,
+     "text": "8.1",
+     "family": "Outfit",
+     "size": 108,
+     "weight": 700,
+     "color": "#E0703F",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 132,
+     "y": 442,
+     "w": 342,
+     "h": 34,
+     "text": "Would recommend the team",
+     "family": "Nunito Sans",
+     "size": 24,
+     "weight": 600,
+     "color": "#2F2A25",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "button",
+     "x": 132,
+     "y": 496,
+     "w": 190,
+     "h": 40,
+     "label": "+0.6 on spring",
+     "fill": "#eccfb6",
+     "color": "#E0703F",
+     "family": "Nunito Sans",
+     "size": 17,
+     "weight": 700
+    },
+    {
+     "kind": "text",
+     "x": 132,
+     "y": 566,
+     "w": 342,
+     "h": 140,
+     "text": "Highest since the survey started.",
+     "family": "Nunito Sans",
+     "size": 20,
+     "weight": 400,
+     "color": "#786C5F",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 534,
+     "y": 246,
+     "w": 414,
+     "h": 560,
+     "fill": "#EFE4D0",
+     "radius": 28,
+     "stroke": "#DDD0BB",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 534,
+     "y": 246,
+     "w": 414,
+     "h": 6,
+     "fill": "#5F8F5A",
+     "radius": 0
+    },
+    {
+     "kind": "text",
+     "x": 570,
+     "y": 302,
+     "w": 342,
+     "h": 124,
+     "text": "6.2",
+     "family": "Outfit",
+     "size": 108,
+     "weight": 700,
+     "color": "#5F8F5A",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 570,
+     "y": 442,
+     "w": 342,
+     "h": 34,
+     "text": "Clarity on priorities",
+     "family": "Nunito Sans",
+     "size": 24,
+     "weight": 600,
+     "color": "#2F2A25",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "button",
+     "x": 570,
+     "y": 496,
+     "w": 190,
+     "h": 40,
+     "label": "−0.9",
+     "fill": "#d5d5bb",
+     "color": "#5F8F5A",
+     "family": "Nunito Sans",
+     "size": 17,
+     "weight": 700
+    },
+    {
+     "kind": "text",
+     "x": 570,
+     "y": 566,
+     "w": 342,
+     "h": 140,
+     "text": "The one score that fell. This is the big conversation.",
+     "family": "Nunito Sans",
+     "size": 20,
+     "weight": 400,
+     "color": "#786C5F",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 972,
+     "y": 246,
+     "w": 414,
+     "h": 560,
+     "fill": "#EFE4D0",
+     "radius": 28,
+     "stroke": "#DDD0BB",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 972,
+     "y": 246,
+     "w": 414,
+     "h": 6,
+     "fill": "#E0703F",
+     "radius": 0
+    },
+    {
+     "kind": "text",
+     "x": 1008,
+     "y": 302,
+     "w": 342,
+     "h": 124,
+     "text": "7.8",
+     "family": "Outfit",
+     "size": 108,
+     "weight": 700,
+     "color": "#E0703F",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 1008,
+     "y": 442,
+     "w": 342,
+     "h": 34,
+     "text": "Manager support",
+     "family": "Nunito Sans",
+     "size": 24,
+     "weight": 600,
+     "color": "#2F2A25",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "button",
+     "x": 1008,
+     "y": 496,
+     "w": 190,
+     "h": 40,
+     "label": "Flat",
+     "fill": "#eccfb6",
+     "color": "#E0703F",
+     "family": "Nunito Sans",
+     "size": 17,
+     "weight": 700
+    },
+    {
+     "kind": "text",
+     "x": 1008,
+     "y": 566,
+     "w": 342,
+     "h": 140,
+     "text": "Consistent across every sub-team.",
+     "family": "Nunito Sans",
+     "size": 20,
+     "weight": 400,
+     "color": "#786C5F",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 1410,
+     "y": 246,
+     "w": 414,
+     "h": 560,
+     "fill": "#EFE4D0",
+     "radius": 28,
+     "stroke": "#DDD0BB",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 1410,
+     "y": 246,
+     "w": 414,
+     "h": 6,
+     "fill": "#5F8F5A",
+     "radius": 0
+    },
+    {
+     "kind": "text",
+     "x": 1446,
+     "y": 302,
+     "w": 342,
+     "h": 124,
+     "text": "91%",
+     "family": "Outfit",
+     "size": 108,
+     "weight": 700,
+     "color": "#5F8F5A",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 1446,
+     "y": 442,
+     "w": 342,
+     "h": 34,
+     "text": "Response rate",
+     "family": "Nunito Sans",
+     "size": 24,
+     "weight": 600,
+     "color": "#2F2A25",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "button",
+     "x": 1446,
+     "y": 496,
+     "w": 190,
+     "h": 40,
+     "label": "24 of 26",
+     "fill": "#d5d5bb",
+     "color": "#5F8F5A",
+     "family": "Nunito Sans",
+     "size": 17,
+     "weight": 700
+    },
+    {
+     "kind": "text",
+     "x": 1446,
+     "y": 566,
+     "w": 342,
+     "h": 140,
+     "text": "Enough to trust the numbers.",
+     "family": "Nunito Sans",
+     "size": 20,
+     "weight": 400,
+     "color": "#786C5F",
+     "lineHeight": 1.4
+    }
+   ]
+  },
+  {
+   "name": "Statement",
+   "bg": "#F8F0E3",
+   "nodes": [
+    {
+     "kind": "ellipse",
+     "x": 1700,
+     "y": -180,
+     "w": 380,
+     "h": 380,
+     "fill": "#5F8F5A",
+     "opacity": 0.22,
+     "bleed": true
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#DDD0BB"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Fernwood  ·  Team offsite, Q4",
+     "family": "Nunito Sans",
+     "size": 18,
+     "weight": 500,
+     "color": "#786C5F",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "04 / 6",
+     "family": "Nunito Sans",
+     "size": 18,
+     "weight": 500,
+     "color": "#786C5F",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 236,
+     "w": 1000,
+     "h": 56,
+     "text": "Relaxed, but on purpose",
+     "family": "Caveat",
+     "size": 46,
+     "weight": 600,
+     "color": "#E0703F",
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 306,
+     "w": 120,
+     "h": 6,
+     "fill": "#E0703F"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 336,
+     "w": 1560,
+     "h": 279,
+     "text": "The topic we keep avoiding: we say yes to everything, and then we quietly drop half of it.",
+     "family": "Outfit",
+     "size": 80,
+     "weight": 700,
+     "color": "#2F2A25",
+     "lineHeight": 1.1
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 655,
+     "w": 1000,
+     "h": 32,
+     "text": "The big conversation, session two",
+     "family": "Nunito Sans",
+     "size": 18,
+     "weight": 500,
+     "color": "#786C5F",
+     "lineHeight": 1.3
+    }
+   ]
+  },
+  {
+   "name": "Process",
+   "bg": "#F8F0E3",
+   "nodes": [
+    {
+     "kind": "ellipse",
+     "x": 1700,
+     "y": -180,
+     "w": 380,
+     "h": 380,
+     "fill": "#5F8F5A",
+     "opacity": 0.22,
+     "bleed": true
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 88,
+     "w": 1200,
+     "h": 28,
+     "text": "Planning session",
+     "family": "Nunito Sans",
+     "size": 20,
+     "weight": 600,
+     "color": "#E0703F",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 124,
+     "w": 1240,
+     "h": 78,
+     "text": "Next quarter, drafted together",
+     "family": "Outfit",
+     "size": 64,
+     "weight": 700,
+     "color": "#2F2A25",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#DDD0BB"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Fernwood  ·  Team offsite, Q4",
+     "family": "Nunito Sans",
+     "size": 18,
+     "weight": 500,
+     "color": "#786C5F",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "05 / 6",
+     "family": "Nunito Sans",
+     "size": 18,
+     "weight": 500,
+     "color": "#786C5F",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "ellipse",
+     "x": 96,
+     "y": 276,
+     "w": 88,
+     "h": 88,
+     "fill": "#E0703F"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 276,
+     "w": 88,
+     "h": 88,
+     "text": "1",
+     "family": "Outfit",
+     "size": 34,
+     "weight": 700,
+     "color": "#2F2A25",
+     "align": "center",
+     "vAlign": "middle",
+     "lineHeight": 1
+    },
+    {
+     "kind": "rect",
+     "x": 200,
+     "y": 319,
+     "w": 322,
+     "h": 2,
+     "fill": "#DDD0BB"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 408,
+     "w": 402,
+     "h": 44,
+     "text": "Diverge",
+     "family": "Outfit",
+     "size": 32,
+     "weight": 700,
+     "color": "#2F2A25",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 462,
+     "w": 378,
+     "h": 150,
+     "text": "Everyone writes the three things the quarter must deliver. Twenty minutes, alone, on cards.",
+     "family": "Nunito Sans",
+     "size": 21,
+     "weight": 400,
+     "color": "#786C5F",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 538,
+     "y": 276,
+     "w": 88,
+     "h": 88,
+     "fill": "#2F4A36"
+    },
+    {
+     "kind": "text",
+     "x": 538,
+     "y": 276,
+     "w": 88,
+     "h": 88,
+     "text": "2",
+     "family": "Outfit",
+     "size": 34,
+     "weight": 700,
+     "color": "#F8F0E3",
+     "align": "center",
+     "vAlign": "middle",
+     "lineHeight": 1
+    },
+    {
+     "kind": "rect",
+     "x": 642,
+     "y": 319,
+     "w": 322,
+     "h": 2,
+     "fill": "#DDD0BB"
+    },
+    {
+     "kind": "text",
+     "x": 538,
+     "y": 408,
+     "w": 402,
+     "h": 44,
+     "text": "Cluster",
+     "family": "Outfit",
+     "size": 32,
+     "weight": 700,
+     "color": "#2F2A25",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 538,
+     "y": 462,
+     "w": 378,
+     "h": 150,
+     "text": "Cards on the wall, grouped by theme, duplicates merged. No debate yet.",
+     "family": "Nunito Sans",
+     "size": 21,
+     "weight": 400,
+     "color": "#786C5F",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 980,
+     "y": 276,
+     "w": 88,
+     "h": 88,
+     "fill": "#2F4A36"
+    },
+    {
+     "kind": "text",
+     "x": 980,
+     "y": 276,
+     "w": 88,
+     "h": 88,
+     "text": "3",
+     "family": "Outfit",
+     "size": 34,
+     "weight": 700,
+     "color": "#F8F0E3",
+     "align": "center",
+     "vAlign": "middle",
+     "lineHeight": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1084,
+     "y": 319,
+     "w": 322,
+     "h": 2,
+     "fill": "#DDD0BB"
+    },
+    {
+     "kind": "text",
+     "x": 980,
+     "y": 408,
+     "w": 402,
+     "h": 44,
+     "text": "Decide",
+     "family": "Outfit",
+     "size": 32,
+     "weight": 700,
+     "color": "#2F2A25",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 980,
+     "y": 462,
+     "w": 378,
+     "h": 150,
+     "text": "Dot-vote to five themes. Argue for the sixth if you must; it needs a sponsor.",
+     "family": "Nunito Sans",
+     "size": 21,
+     "weight": 400,
+     "color": "#786C5F",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 1422,
+     "y": 276,
+     "w": 88,
+     "h": 88,
+     "fill": "#2F4A36"
+    },
+    {
+     "kind": "text",
+     "x": 1422,
+     "y": 276,
+     "w": 88,
+     "h": 88,
+     "text": "4",
+     "family": "Outfit",
+     "size": 34,
+     "weight": 700,
+     "color": "#F8F0E3",
+     "align": "center",
+     "vAlign": "middle",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 1422,
+     "y": 408,
+     "w": 402,
+     "h": 44,
+     "text": "Own",
+     "family": "Outfit",
+     "size": 32,
+     "weight": 700,
+     "color": "#2F2A25",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 1422,
+     "y": 462,
+     "w": 378,
+     "h": 150,
+     "text": "Each theme gets an owner and a first milestone before we leave the room.",
+     "family": "Nunito Sans",
+     "size": 21,
+     "weight": 400,
+     "color": "#786C5F",
+     "lineHeight": 1.4
+    }
+   ]
+  },
+  {
+   "name": "Closing",
+   "bg": {
+    "angle": 160,
+    "stops": [
+     [
+      "#2F4A36",
+      0
+     ],
+     [
+      "#1D3124",
+      1
+     ]
+    ]
+   },
+   "nodes": [
+    {
+     "kind": "ellipse",
+     "x": 1480,
+     "y": -260,
+     "w": 760,
+     "h": 760,
+     "fill": "#A9D2A0",
+     "opacity": 0.4,
+     "bleed": true
+    },
+    {
+     "kind": "ellipse",
+     "x": -200,
+     "y": 720,
+     "w": 560,
+     "h": 560,
+     "fill": "#F2905E",
+     "opacity": 0.35,
+     "bleed": true
+    },
+    {
+     "kind": "ellipse",
+     "x": 1720,
+     "y": 720,
+     "w": 300,
+     "h": 300,
+     "fill": "#F2C063",
+     "opacity": 0.6,
+     "bleed": true
+    },
+    {
+     "kind": "ellipse",
+     "x": 1353,
+     "y": 725,
+     "w": 5,
+     "h": 5,
+     "fill": "#F8F0E3",
+     "opacity": 0.5
+    },
+    {
+     "kind": "ellipse",
+     "x": 261,
+     "y": 647,
+     "w": 7,
+     "h": 7,
+     "fill": "#F8F0E3",
+     "opacity": 0.43999999999999995
+    },
+    {
+     "kind": "ellipse",
+     "x": 864,
+     "y": 872,
+     "w": 6,
+     "h": 6,
+     "fill": "#F8F0E3",
+     "opacity": 0.71
+    },
+    {
+     "kind": "ellipse",
+     "x": 1720,
+     "y": 907,
+     "w": 5,
+     "h": 5,
+     "fill": "#F8F0E3",
+     "opacity": 0.6
+    },
+    {
+     "kind": "ellipse",
+     "x": 1737,
+     "y": 697,
+     "w": 8,
+     "h": 8,
+     "fill": "#F8F0E3",
+     "opacity": 0.42
+    },
+    {
+     "kind": "ellipse",
+     "x": 1893,
+     "y": 153,
+     "w": 6,
+     "h": 6,
+     "fill": "#F8F0E3",
+     "opacity": 0.7
+    },
+    {
+     "kind": "ellipse",
+     "x": 526,
+     "y": 452,
+     "w": 9,
+     "h": 9,
+     "fill": "#F8F0E3",
+     "opacity": 0.38
+    },
+    {
+     "kind": "ellipse",
+     "x": 1200,
+     "y": 200,
+     "w": 640,
+     "h": 640,
+     "fill": "#F2905E",
+     "opacity": 0.12
+    },
+    {
+     "kind": "ellipse",
+     "x": 1264,
+     "y": 264,
+     "w": 512,
+     "h": 512,
+     "fill": "#F2905E",
+     "opacity": 0.16
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 96,
+     "w": 22,
+     "h": 22,
+     "fill": "#F2905E",
+     "radius": 6
+    },
+    {
+     "kind": "text",
+     "x": 132,
+     "y": 93,
+     "w": 700,
+     "h": 30,
+     "text": "Fernwood",
+     "family": "Nunito Sans",
+     "size": 22,
+     "weight": 600,
+     "color": "#F8F0E3",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 236,
+     "w": 1000,
+     "h": 60,
+     "text": "What we take home",
+     "family": "Caveat",
+     "size": 46,
+     "weight": 600,
+     "color": "#F2905E",
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 300,
+     "w": 1100,
+     "h": 138,
+     "text": "What we take home",
+     "family": "Outfit",
+     "size": 116,
+     "weight": 700,
+     "color": "#F8F0E3",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 462,
+     "w": 940,
+     "h": 120,
+     "text": "One commitment each, written on a card, read aloud, and checked at the December retro.",
+     "family": "Nunito Sans",
+     "size": 28,
+     "weight": 400,
+     "color": "#BBC9B4",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "icon",
+     "icon": "message",
+     "x": 96,
+     "y": 702,
+     "w": 28,
+     "h": 28,
+     "color": "#F2905E"
+    },
+    {
+     "kind": "text",
+     "x": 144,
+     "y": 700,
+     "w": 800,
+     "h": 34,
+     "text": "#team-fernwood on Slack",
+     "family": "Nunito Sans",
+     "size": 24,
+     "weight": 500,
+     "color": "#F8F0E3",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "mail",
+     "x": 96,
+     "y": 764,
+     "w": 28,
+     "h": 28,
+     "color": "#F2905E"
+    },
+    {
+     "kind": "text",
+     "x": 144,
+     "y": 762,
+     "w": 800,
+     "h": 34,
+     "text": "dana@fernwood.example",
+     "family": "Nunito Sans",
+     "size": 24,
+     "weight": 500,
+     "color": "#F8F0E3",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "calendar",
+     "x": 96,
+     "y": 826,
+     "w": 28,
+     "h": 28,
+     "color": "#F2905E"
+    },
+    {
+     "kind": "text",
+     "x": 144,
+     "y": 824,
+     "w": 800,
+     "h": 34,
+     "text": "Check-in: December retro",
+     "family": "Nunito Sans",
+     "size": 24,
+     "weight": 500,
+     "color": "#F8F0E3",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "button",
+     "x": 96,
+     "y": 910,
+     "w": 340,
+     "h": 64,
+     "label": "See the commitments",
+     "fill": "#F2905E",
+     "color": "#2F2A25",
+     "family": "Nunito Sans",
+     "size": 22,
+     "weight": 700,
+     "radius": 28
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 940,
+     "w": 240,
+     "h": 28,
+     "text": "06 / 6",
+     "family": "Nunito Sans",
+     "size": 18,
+     "weight": 500,
+     "color": "#BBC9B4",
+     "lineHeight": 1.3,
+     "align": "right"
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "od-strolling",
+     "x": 1250,
+     "y": 250,
+     "w": 540,
+     "h": 540
+    }
+   ]
+  }
+ ],
+ "fillable": [
+  {
+   "node": "p0-n11",
+   "kind": "text",
+   "label": "Company",
+   "hint": "Your company or team name"
+  },
+  {
+   "node": "p0-n13",
+   "kind": "text",
+   "label": "Title",
+   "hint": "Two short lines"
+  },
+  {
+   "node": "p0-n14",
+   "kind": "text",
+   "label": "Subtitle",
+   "hint": "One sentence on what the deck covers"
+  },
+  {
+   "node": "p0-n15",
+   "kind": "text",
+   "label": "Presenter and date",
+   "hint": "Who presents, and when"
+  },
+  {
+   "node": "p5-n18",
+   "kind": "text",
+   "label": "Email",
+   "hint": "Contact detail"
+  },
+  {
+   "node": "p5-n20",
+   "kind": "text",
+   "label": "Website",
+   "hint": "Contact detail"
+  },
+  {
+   "node": "p5-n22",
+   "kind": "text",
+   "label": "Phone",
+   "hint": "Contact detail"
+  }
+ ],
+ "version": 2,
  "created": "2026-08-28T00:00:00.000Z",
- "outline": {
-  "title": "Team Offsite",
-  "theme": "relaxed but purposeful",
-  "pages": [
-   {
-    "title": "Welcome to the offsite",
-    "points": [
-     "Why we are here in person"
-    ],
-    "visualRole": "cover"
-   },
-   {
-    "title": "The agenda",
-    "points": [
-     "Two days, four sessions, one dinner"
-    ],
-    "visualRole": "agenda"
-   },
-   {
-    "title": "State of the team",
-    "points": [
-     "What the team said in the survey"
-    ],
-    "visualRole": "data"
-   },
-   {
-    "title": "The big conversation",
-    "points": [
-     "The one topic we keep avoiding"
-    ],
-    "visualRole": "content"
-   },
-   {
-    "title": "Planning session",
-    "points": [
-     "Next quarter, drafted together"
-    ],
-    "visualRole": "content"
-   },
-   {
-    "title": "Commitments",
-    "points": [
-     "What each of us takes home"
-    ],
-    "visualRole": "closing"
-   }
-  ]
- }
+ "updated": "2026-09-30T00:00:00.000Z",
+ "rank": 66
 }

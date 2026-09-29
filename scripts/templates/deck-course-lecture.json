@@ -1,10 +1,9 @@
 {
- "kind": "deck-outline",
  "id": "deck-course-lecture",
  "title": "Course Lecture",
  "categories": [
   "presentations",
-  "education"
+  "business"
  ],
  "tags": [
   "education",
@@ -13,62 +12,2025 @@
   "teaching"
  ],
  "styleTags": [
+  "editorial",
+  "elegant",
   "warm"
  ],
- "themeId": "theme-sand",
  "size": [
   1920,
   1080
  ],
- "rank": 44,
+ "typography": [
+  {
+   "role": "heading",
+   "family": "Fraunces",
+   "weight": 600
+  },
+  {
+   "role": "body",
+   "family": "Inter",
+   "weight": 400
+  },
+  {
+   "role": "accent",
+   "family": "Caveat",
+   "weight": 600
+  }
+ ],
+ "pages": [
+  {
+   "name": "Cover",
+   "bg": {
+    "angle": 160,
+    "stops": [
+     [
+      "#221E1A",
+      0
+     ],
+     [
+      "#100E0C",
+      1
+     ]
+    ]
+   },
+   "nodes": [
+    {
+     "kind": "ellipse",
+     "x": 1560,
+     "y": -180,
+     "w": 520,
+     "h": 520,
+     "fill": "#F4C15D",
+     "bleed": true,
+     "opacity": 0.9
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 64,
+     "w": 1728,
+     "h": 2,
+     "fill": "#F5EFE4"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 1014,
+     "w": 1728,
+     "h": 2,
+     "fill": "#F5EFE4"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 96,
+     "w": 22,
+     "h": 22,
+     "fill": "#F26A48",
+     "radius": 0
+    },
+    {
+     "kind": "text",
+     "x": 132,
+     "y": 93,
+     "w": 700,
+     "h": 30,
+     "text": "Meridian Institute",
+     "family": "Inter",
+     "size": 22,
+     "weight": 600,
+     "color": "#F5EFE4",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 760,
+     "y": 130,
+     "w": 400,
+     "h": 400,
+     "fill": "#F26A48",
+     "opacity": 0.12
+    },
+    {
+     "kind": "ellipse",
+     "x": 800,
+     "y": 170,
+     "w": 320,
+     "h": 320,
+     "fill": "#F26A48",
+     "opacity": 0.16
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 500,
+     "w": 1728,
+     "h": 56,
+     "text": "Lecture four",
+     "family": "Caveat",
+     "size": 44,
+     "weight": 600,
+     "color": "#F26A48",
+     "lineHeight": 1.2,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 560,
+     "w": 1728,
+     "h": 254,
+     "text": "Tokens: the smallest\nunit of a design system",
+     "family": "Fraunces",
+     "size": 116,
+     "weight": 600,
+     "color": "#F5EFE4",
+     "lineHeight": 1.02,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 460,
+     "y": 838,
+     "w": 1000,
+     "h": 80,
+     "text": "By the end you will be able to name a token, decide what deserves one, and read a system's tokens to predict how it will age.",
+     "family": "Inter",
+     "size": 26,
+     "weight": 400,
+     "color": "#B0A798",
+     "lineHeight": 1.4,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 300,
+     "y": 900,
+     "w": 440,
+     "h": 24,
+     "text": "Presented by",
+     "family": "Inter",
+     "size": 15,
+     "weight": 600,
+     "color": "#F26A48",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 300,
+     "y": 930,
+     "w": 440,
+     "h": 34,
+     "text": "Dr. Priya Raman",
+     "family": "Inter",
+     "size": 24,
+     "weight": 600,
+     "color": "#F5EFE4",
+     "lineHeight": 1.3,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 740,
+     "y": 900,
+     "w": 440,
+     "h": 24,
+     "text": "When",
+     "family": "Inter",
+     "size": 15,
+     "weight": 600,
+     "color": "#F26A48",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 740,
+     "y": 930,
+     "w": 440,
+     "h": 34,
+     "text": "Thursday, 10:00",
+     "family": "Inter",
+     "size": 24,
+     "weight": 600,
+     "color": "#F5EFE4",
+     "lineHeight": 1.3,
+     "align": "center"
+    },
+    {
+     "kind": "rect",
+     "x": 739,
+     "y": 904,
+     "w": 1,
+     "h": 60,
+     "fill": "#3E3831"
+    },
+    {
+     "kind": "text",
+     "x": 1180,
+     "y": 900,
+     "w": 440,
+     "h": 24,
+     "text": "Where",
+     "family": "Inter",
+     "size": 15,
+     "weight": 600,
+     "color": "#F26A48",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 1180,
+     "y": 930,
+     "w": 440,
+     "h": 34,
+     "text": "Room 204",
+     "family": "Inter",
+     "size": 24,
+     "weight": 600,
+     "color": "#F5EFE4",
+     "lineHeight": 1.3,
+     "align": "center"
+    },
+    {
+     "kind": "rect",
+     "x": 1179,
+     "y": 904,
+     "w": 1,
+     "h": 60,
+     "fill": "#3E3831"
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 1030,
+     "w": 240,
+     "h": 28,
+     "text": "01 / 6",
+     "family": "Inter",
+     "size": 18,
+     "weight": 500,
+     "color": "#B0A798",
+     "lineHeight": 1.3,
+     "align": "right"
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "la-doodle",
+     "x": 790,
+     "y": 190,
+     "w": 340,
+     "h": 280
+    }
+   ]
+  },
+  {
+   "name": "Agenda",
+   "bg": "#F5EFE4",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 64,
+     "w": 1728,
+     "h": 2,
+     "fill": "#1C1A17"
+    },
+    {
+     "kind": "ellipse",
+     "x": 1770,
+     "y": -110,
+     "w": 220,
+     "h": 220,
+     "fill": "#F4C15D",
+     "bleed": true
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 96,
+     "w": 1200,
+     "h": 28,
+     "text": "Where we left off",
+     "family": "Inter",
+     "size": 20,
+     "weight": 600,
+     "color": "#E0492B",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 132,
+     "w": 1240,
+     "h": 81,
+     "text": "The three ideas from last time",
+     "family": "Fraunces",
+     "size": 66,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 1030,
+     "w": 900,
+     "h": 26,
+     "text": "Meridian Institute  ·  Design systems, lecture 4",
+     "family": "Inter",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B655C",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 1030,
+     "w": 240,
+     "h": 26,
+     "text": "02 / 6",
+     "family": "Inter",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B655C",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 263,
+     "w": 96,
+     "h": 60,
+     "text": "01",
+     "family": "Fraunces",
+     "size": 44,
+     "weight": 600,
+     "color": "#E0492B",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 216,
+     "y": 261,
+     "w": 900,
+     "h": 44,
+     "text": "Components are promises",
+     "family": "Fraunces",
+     "size": 34,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 216,
+     "y": 307,
+     "w": 900,
+     "h": 30,
+     "text": "A component is a contract about behaviour, not a picture",
+     "family": "Inter",
+     "size": 21,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "button",
+     "x": 1136,
+     "y": 265,
+     "w": 160,
+     "h": 34,
+     "label": "Recap",
+     "fill": "#ebcbb9",
+     "color": "#E0492B",
+     "family": "Inter",
+     "size": 15,
+     "weight": 700
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 363,
+     "w": 1204,
+     "h": 1,
+     "fill": "#DACFBE"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 381,
+     "w": 96,
+     "h": 60,
+     "text": "02",
+     "family": "Fraunces",
+     "size": 44,
+     "weight": 600,
+     "color": "#E0492B",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 216,
+     "y": 379,
+     "w": 900,
+     "h": 44,
+     "text": "Variants multiply",
+     "family": "Fraunces",
+     "size": 34,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 216,
+     "y": 425,
+     "w": 900,
+     "h": 30,
+     "text": "Every variant doubles the surface you must test",
+     "family": "Inter",
+     "size": 21,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "button",
+     "x": 1136,
+     "y": 383,
+     "w": 160,
+     "h": 34,
+     "label": "Recap",
+     "fill": "#ebcbb9",
+     "color": "#E0492B",
+     "family": "Inter",
+     "size": 15,
+     "weight": 700
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 481,
+     "w": 1204,
+     "h": 1,
+     "fill": "#DACFBE"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 499,
+     "w": 96,
+     "h": 60,
+     "text": "03",
+     "family": "Fraunces",
+     "size": 44,
+     "weight": 600,
+     "color": "#E0492B",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 216,
+     "y": 497,
+     "w": 900,
+     "h": 44,
+     "text": "Systems age",
+     "family": "Fraunces",
+     "size": 34,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 216,
+     "y": 543,
+     "w": 900,
+     "h": 30,
+     "text": "The parts nobody owns are the parts that rot",
+     "family": "Inter",
+     "size": 21,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "button",
+     "x": 1136,
+     "y": 501,
+     "w": 160,
+     "h": 34,
+     "label": "Recap",
+     "fill": "#ebcbb9",
+     "color": "#E0492B",
+     "family": "Inter",
+     "size": 15,
+     "weight": 700
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 599,
+     "w": 1204,
+     "h": 1,
+     "fill": "#DACFBE"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 617,
+     "w": 96,
+     "h": 60,
+     "text": "04",
+     "family": "Fraunces",
+     "size": 44,
+     "weight": 600,
+     "color": "#E0492B",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 216,
+     "y": 615,
+     "w": 900,
+     "h": 44,
+     "text": "Today: tokens",
+     "family": "Fraunces",
+     "size": 34,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 216,
+     "y": 661,
+     "w": 900,
+     "h": 30,
+     "text": "The unit underneath components",
+     "family": "Inter",
+     "size": 21,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "button",
+     "x": 1136,
+     "y": 619,
+     "w": 160,
+     "h": 34,
+     "label": "New",
+     "fill": "#ebcbb9",
+     "color": "#E0492B",
+     "family": "Inter",
+     "size": 15,
+     "weight": 700
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 717,
+     "w": 1204,
+     "h": 1,
+     "fill": "#DACFBE"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 735,
+     "w": 96,
+     "h": 60,
+     "text": "05",
+     "family": "Fraunces",
+     "size": 44,
+     "weight": 600,
+     "color": "#E0492B",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 216,
+     "y": 733,
+     "w": 900,
+     "h": 44,
+     "text": "Next: theming",
+     "family": "Fraunces",
+     "size": 34,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 216,
+     "y": 779,
+     "w": 900,
+     "h": 30,
+     "text": "How tokens make a second brand cheap",
+     "family": "Inter",
+     "size": 21,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "button",
+     "x": 1136,
+     "y": 737,
+     "w": 160,
+     "h": 34,
+     "label": "Preview",
+     "fill": "#ebcbb9",
+     "color": "#E0492B",
+     "family": "Inter",
+     "size": 15,
+     "weight": 700
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 835,
+     "w": 1204,
+     "h": 1,
+     "fill": "#DACFBE"
+    },
+    {
+     "kind": "rect",
+     "x": 1396,
+     "y": 257,
+     "w": 428,
+     "h": 560,
+     "fill": {
+      "angle": 160,
+      "stops": [
+       [
+        "#221E1A",
+        0
+       ],
+       [
+        "#100E0C",
+        1
+       ]
+      ]
+     },
+     "radius": 0
+    },
+    {
+     "kind": "rect",
+     "x": 1396,
+     "y": 257,
+     "w": 428,
+     "h": 6,
+     "fill": "#F26A48",
+     "radius": 0
+    },
+    {
+     "kind": "text",
+     "x": 1436,
+     "y": 297,
+     "w": 348,
+     "h": 28,
+     "text": "Today",
+     "family": "Inter",
+     "size": 20,
+     "weight": 600,
+     "color": "#F26A48",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 1436,
+     "y": 337,
+     "w": 348,
+     "h": 120,
+     "text": "Wk 4",
+     "family": "Fraunces",
+     "size": 76,
+     "weight": 600,
+     "color": "#F5EFE4",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 1436,
+     "y": 493,
+     "w": 120,
+     "h": 26,
+     "text": "Reading",
+     "family": "Inter",
+     "size": 18,
+     "weight": 500,
+     "color": "#B0A798",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1436,
+     "y": 521,
+     "w": 348,
+     "h": 30,
+     "text": "Chapter 5, pages 88 to 112",
+     "family": "Inter",
+     "size": 22,
+     "weight": 600,
+     "color": "#F5EFE4",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 1436,
+     "y": 557,
+     "w": 348,
+     "h": 1,
+     "fill": "#3E3831"
+    },
+    {
+     "kind": "text",
+     "x": 1436,
+     "y": 567,
+     "w": 120,
+     "h": 26,
+     "text": "Exercise",
+     "family": "Inter",
+     "size": 18,
+     "weight": 500,
+     "color": "#B0A798",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1436,
+     "y": 595,
+     "w": 348,
+     "h": 30,
+     "text": "Due Tuesday, in the portal",
+     "family": "Inter",
+     "size": 22,
+     "weight": 600,
+     "color": "#F5EFE4",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 1436,
+     "y": 631,
+     "w": 348,
+     "h": 1,
+     "fill": "#3E3831"
+    },
+    {
+     "kind": "text",
+     "x": 1436,
+     "y": 641,
+     "w": 120,
+     "h": 26,
+     "text": "Office hours",
+     "family": "Inter",
+     "size": 18,
+     "weight": 500,
+     "color": "#B0A798",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1436,
+     "y": 669,
+     "w": 348,
+     "h": 30,
+     "text": "Wednesday, 14:00",
+     "family": "Inter",
+     "size": 22,
+     "weight": 600,
+     "color": "#F5EFE4",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 1436,
+     "y": 705,
+     "w": 348,
+     "h": 1,
+     "fill": "#3E3831"
+    },
+    {
+     "kind": "text",
+     "x": 1436,
+     "y": 715,
+     "w": 120,
+     "h": 26,
+     "text": "Recording",
+     "family": "Inter",
+     "size": 18,
+     "weight": 500,
+     "color": "#B0A798",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1436,
+     "y": 743,
+     "w": 348,
+     "h": 30,
+     "text": "Posted by Friday",
+     "family": "Inter",
+     "size": 22,
+     "weight": 600,
+     "color": "#F5EFE4",
+     "lineHeight": 1.3
+    }
+   ]
+  },
+  {
+   "name": "Text and picture",
+   "bg": "#F5EFE4",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 64,
+     "w": 1728,
+     "h": 2,
+     "fill": "#1C1A17"
+    },
+    {
+     "kind": "ellipse",
+     "x": 1770,
+     "y": -110,
+     "w": 220,
+     "h": 220,
+     "fill": "#F4C15D",
+     "bleed": true
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 96,
+     "w": 1200,
+     "h": 28,
+     "text": "The core concept",
+     "family": "Inter",
+     "size": 20,
+     "weight": 600,
+     "color": "#E0492B",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 132,
+     "w": 960,
+     "h": 77,
+     "text": "A token is a named decision",
+     "family": "Fraunces",
+     "size": 63,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 1030,
+     "w": 900,
+     "h": 26,
+     "text": "Meridian Institute  ·  Design systems, lecture 4",
+     "family": "Inter",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B655C",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 1030,
+     "w": 240,
+     "h": 26,
+     "text": "03 / 6",
+     "family": "Inter",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B655C",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "ellipse",
+     "x": 96,
+     "y": 281,
+     "w": 34,
+     "h": 34,
+     "fill": "#ebc8b6"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 281,
+     "w": 34,
+     "h": 34,
+     "text": "1",
+     "family": "Fraunces",
+     "size": 17,
+     "weight": 600,
+     "color": "#E0492B",
+     "align": "center",
+     "vAlign": "middle",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 152,
+     "y": 277,
+     "w": 840,
+     "h": 44,
+     "text": "The definition, in plain words",
+     "family": "Fraunces",
+     "size": 32,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 152,
+     "y": 329,
+     "w": 840,
+     "h": 70,
+     "text": "A token is a name for a value the system has decided on: the spacing unit, the accent colour, the body size. Components use the name, never the value.",
+     "family": "Inter",
+     "size": 22,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 96,
+     "y": 459,
+     "w": 34,
+     "h": 34,
+     "fill": "#ebc8b6"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 459,
+     "w": 34,
+     "h": 34,
+     "text": "2",
+     "family": "Fraunces",
+     "size": 17,
+     "weight": 600,
+     "color": "#E0492B",
+     "align": "center",
+     "vAlign": "middle",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 152,
+     "y": 455,
+     "w": 840,
+     "h": 44,
+     "text": "The intuition behind it",
+     "family": "Fraunces",
+     "size": 32,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 152,
+     "y": 507,
+     "w": 840,
+     "h": 70,
+     "text": "When the value changes, every use changes with it. When the name is missing, every use is a separate decision waiting to drift.",
+     "family": "Inter",
+     "size": 22,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 96,
+     "y": 637,
+     "w": 34,
+     "h": 34,
+     "fill": "#ebc8b6"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 637,
+     "w": 34,
+     "h": 34,
+     "text": "3",
+     "family": "Fraunces",
+     "size": 17,
+     "weight": 600,
+     "color": "#E0492B",
+     "align": "center",
+     "vAlign": "middle",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 152,
+     "y": 633,
+     "w": 840,
+     "h": 44,
+     "text": "The test",
+     "family": "Fraunces",
+     "size": 32,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 152,
+     "y": 685,
+     "w": 840,
+     "h": 70,
+     "text": "If two designers would pick a different value, it deserves a token. If everyone would pick the same one, it does not.",
+     "family": "Inter",
+     "size": 22,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "name": "Photo",
+     "x": 1080,
+     "y": 196,
+     "w": 744,
+     "h": 740,
+     "fill": {
+      "angle": 160,
+      "stops": [
+       [
+        "#c3c9b9",
+        0
+       ],
+       [
+        "#EDE4D4",
+        1
+       ]
+      ]
+     }
+    },
+    {
+     "kind": "ellipse",
+     "x": 1192,
+     "y": 306,
+     "w": 520,
+     "h": 520,
+     "fill": "#E0492B",
+     "opacity": 0.12
+    },
+    {
+     "kind": "ellipse",
+     "x": 1244,
+     "y": 358,
+     "w": 416,
+     "h": 416,
+     "fill": "#E0492B",
+     "opacity": 0.16
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "la-ui-design",
+     "x": 1150,
+     "y": 280,
+     "w": 604,
+     "h": 570
+    }
+   ]
+  },
+  {
+   "name": "Process",
+   "bg": "#F5EFE4",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 64,
+     "w": 1728,
+     "h": 2,
+     "fill": "#1C1A17"
+    },
+    {
+     "kind": "ellipse",
+     "x": 1770,
+     "y": -110,
+     "w": 220,
+     "h": 220,
+     "fill": "#F4C15D",
+     "bleed": true
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 96,
+     "w": 1200,
+     "h": 28,
+     "text": "Worked example",
+     "family": "Inter",
+     "size": 20,
+     "weight": 600,
+     "color": "#E0492B",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 132,
+     "w": 1240,
+     "h": 81,
+     "text": "One real case, stepped through",
+     "family": "Fraunces",
+     "size": 66,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 1030,
+     "w": 900,
+     "h": 26,
+     "text": "Meridian Institute  ·  Design systems, lecture 4",
+     "family": "Inter",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B655C",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 1030,
+     "w": 240,
+     "h": 26,
+     "text": "04 / 6",
+     "family": "Inter",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B655C",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "ellipse",
+     "x": 96,
+     "y": 287,
+     "w": 88,
+     "h": 88,
+     "fill": "#E0492B"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 287,
+     "w": 88,
+     "h": 88,
+     "text": "1",
+     "family": "Fraunces",
+     "size": 34,
+     "weight": 600,
+     "color": "#1C1A17",
+     "align": "center",
+     "vAlign": "middle",
+     "lineHeight": 1
+    },
+    {
+     "kind": "rect",
+     "x": 200,
+     "y": 330,
+     "w": 322,
+     "h": 2,
+     "fill": "#DACFBE"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 419,
+     "w": 402,
+     "h": 44,
+     "text": "The brief",
+     "family": "Fraunces",
+     "size": 32,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 473,
+     "w": 378,
+     "h": 150,
+     "text": "A product with a light and a dark theme, and one accent that must read on both.",
+     "family": "Inter",
+     "size": 21,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 538,
+     "y": 287,
+     "w": 88,
+     "h": 88,
+     "fill": "#221E1A"
+    },
+    {
+     "kind": "text",
+     "x": 538,
+     "y": 287,
+     "w": 88,
+     "h": 88,
+     "text": "2",
+     "family": "Fraunces",
+     "size": 34,
+     "weight": 600,
+     "color": "#F5EFE4",
+     "align": "center",
+     "vAlign": "middle",
+     "lineHeight": 1
+    },
+    {
+     "kind": "rect",
+     "x": 642,
+     "y": 330,
+     "w": 322,
+     "h": 2,
+     "fill": "#DACFBE"
+    },
+    {
+     "kind": "text",
+     "x": 538,
+     "y": 419,
+     "w": 402,
+     "h": 44,
+     "text": "Name the decisions",
+     "family": "Fraunces",
+     "size": 32,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 538,
+     "y": 473,
+     "w": 378,
+     "h": 150,
+     "text": "Ground, surface, ink, muted ink, accent, line. Six names, twelve values.",
+     "family": "Inter",
+     "size": 21,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 980,
+     "y": 287,
+     "w": 88,
+     "h": 88,
+     "fill": "#221E1A"
+    },
+    {
+     "kind": "text",
+     "x": 980,
+     "y": 287,
+     "w": 88,
+     "h": 88,
+     "text": "3",
+     "family": "Fraunces",
+     "size": 34,
+     "weight": 600,
+     "color": "#F5EFE4",
+     "align": "center",
+     "vAlign": "middle",
+     "lineHeight": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1084,
+     "y": 330,
+     "w": 322,
+     "h": 2,
+     "fill": "#DACFBE"
+    },
+    {
+     "kind": "text",
+     "x": 980,
+     "y": 419,
+     "w": 402,
+     "h": 44,
+     "text": "Bind the components",
+     "family": "Fraunces",
+     "size": 32,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 980,
+     "y": 473,
+     "w": 378,
+     "h": 150,
+     "text": "The button uses accent and ink-on-accent. It never mentions a hex.",
+     "family": "Inter",
+     "size": 21,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 1422,
+     "y": 287,
+     "w": 88,
+     "h": 88,
+     "fill": "#221E1A"
+    },
+    {
+     "kind": "text",
+     "x": 1422,
+     "y": 287,
+     "w": 88,
+     "h": 88,
+     "text": "4",
+     "family": "Fraunces",
+     "size": 34,
+     "weight": 600,
+     "color": "#F5EFE4",
+     "align": "center",
+     "vAlign": "middle",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 1422,
+     "y": 419,
+     "w": 402,
+     "h": 44,
+     "text": "Flip the theme",
+     "family": "Fraunces",
+     "size": 32,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 1422,
+     "y": 473,
+     "w": 378,
+     "h": 150,
+     "text": "Twelve values change, zero components change. That is the whole point.",
+     "family": "Inter",
+     "size": 21,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    }
+   ]
+  },
+  {
+   "name": "Three cards",
+   "bg": "#F5EFE4",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 64,
+     "w": 1728,
+     "h": 2,
+     "fill": "#1C1A17"
+    },
+    {
+     "kind": "ellipse",
+     "x": 1770,
+     "y": -110,
+     "w": 220,
+     "h": 220,
+     "fill": "#F4C15D",
+     "bleed": true
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 96,
+     "w": 1200,
+     "h": 28,
+     "text": "Common mistakes",
+     "family": "Inter",
+     "size": 20,
+     "weight": 600,
+     "color": "#E0492B",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 132,
+     "w": 1240,
+     "h": 81,
+     "text": "Where students usually stumble",
+     "family": "Fraunces",
+     "size": 66,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 1030,
+     "w": 900,
+     "h": 26,
+     "text": "Meridian Institute  ·  Design systems, lecture 4",
+     "family": "Inter",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B655C",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 1030,
+     "w": 240,
+     "h": 26,
+     "text": "05 / 6",
+     "family": "Inter",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B655C",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 257,
+     "w": 560,
+     "h": 580,
+     "fill": "#EDE4D4",
+     "radius": 0,
+     "stroke": "#DACFBE",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 257,
+     "w": 560,
+     "h": 6,
+     "fill": "#E0492B",
+     "radius": 0
+    },
+    {
+     "kind": "ellipse",
+     "x": 136,
+     "y": 305,
+     "w": 80,
+     "h": 80,
+     "fill": "#eac5b2"
+    },
+    {
+     "kind": "icon",
+     "icon": "alert-triangle",
+     "x": 156,
+     "y": 325,
+     "w": 40,
+     "h": 40,
+     "color": "#E0492B"
+    },
+    {
+     "kind": "text",
+     "x": 136,
+     "y": 421,
+     "w": 480,
+     "h": 100,
+     "text": "Naming the value, not the decision",
+     "family": "Fraunces",
+     "size": 34,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.1
+    },
+    {
+     "kind": "text",
+     "x": 136,
+     "y": 533,
+     "w": 480,
+     "h": 160,
+     "text": "'blue-500' is a value with a name. 'accent' is a decision. The first breaks the moment the brand turns green.",
+     "family": "Inter",
+     "size": 22,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 136,
+     "y": 753,
+     "w": 480,
+     "h": 1,
+     "fill": "#DACFBE"
+    },
+    {
+     "kind": "text",
+     "x": 136,
+     "y": 777,
+     "w": 120,
+     "h": 28,
+     "text": "01",
+     "family": "Inter",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B655C",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 680,
+     "y": 257,
+     "w": 560,
+     "h": 580,
+     "fill": "#EDE4D4",
+     "radius": 0,
+     "stroke": "#DACFBE",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 680,
+     "y": 257,
+     "w": 560,
+     "h": 6,
+     "fill": "#2C6B58",
+     "radius": 0
+    },
+    {
+     "kind": "ellipse",
+     "x": 720,
+     "y": 305,
+     "w": 80,
+     "h": 80,
+     "fill": "#c6ccbb"
+    },
+    {
+     "kind": "icon",
+     "icon": "alert-triangle",
+     "x": 740,
+     "y": 325,
+     "w": 40,
+     "h": 40,
+     "color": "#2C6B58"
+    },
+    {
+     "kind": "text",
+     "x": 720,
+     "y": 421,
+     "w": 480,
+     "h": 100,
+     "text": "Tokens for everything",
+     "family": "Fraunces",
+     "size": 34,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.1
+    },
+    {
+     "kind": "text",
+     "x": 720,
+     "y": 533,
+     "w": 480,
+     "h": 160,
+     "text": "Forty spacing tokens is a ruler, not a system. Six is a decision.",
+     "family": "Inter",
+     "size": 22,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 720,
+     "y": 753,
+     "w": 480,
+     "h": 1,
+     "fill": "#DACFBE"
+    },
+    {
+     "kind": "text",
+     "x": 720,
+     "y": 777,
+     "w": 120,
+     "h": 28,
+     "text": "02",
+     "family": "Inter",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B655C",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 1264,
+     "y": 257,
+     "w": 560,
+     "h": 580,
+     "fill": "#EDE4D4",
+     "radius": 0,
+     "stroke": "#DACFBE",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 1264,
+     "y": 257,
+     "w": 560,
+     "h": 6,
+     "fill": "#E0492B",
+     "radius": 0
+    },
+    {
+     "kind": "ellipse",
+     "x": 1304,
+     "y": 305,
+     "w": 80,
+     "h": 80,
+     "fill": "#eac5b2"
+    },
+    {
+     "kind": "icon",
+     "icon": "alert-triangle",
+     "x": 1324,
+     "y": 325,
+     "w": 40,
+     "h": 40,
+     "color": "#E0492B"
+    },
+    {
+     "kind": "text",
+     "x": 1304,
+     "y": 421,
+     "w": 480,
+     "h": 100,
+     "text": "Skipping the on-colours",
+     "family": "Fraunces",
+     "size": 34,
+     "weight": 600,
+     "color": "#1C1A17",
+     "lineHeight": 1.1
+    },
+    {
+     "kind": "text",
+     "x": 1304,
+     "y": 533,
+     "w": 480,
+     "h": 160,
+     "text": "Every ground needs an ink that reads on it. The dark theme is where this is discovered, expensively.",
+     "family": "Inter",
+     "size": 22,
+     "weight": 400,
+     "color": "#6B655C",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 1304,
+     "y": 753,
+     "w": 480,
+     "h": 1,
+     "fill": "#DACFBE"
+    },
+    {
+     "kind": "text",
+     "x": 1304,
+     "y": 777,
+     "w": 120,
+     "h": 28,
+     "text": "03",
+     "family": "Inter",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B655C",
+     "lineHeight": 1.3
+    }
+   ]
+  },
+  {
+   "name": "Closing",
+   "bg": {
+    "angle": 160,
+    "stops": [
+     [
+      "#221E1A",
+      0
+     ],
+     [
+      "#100E0C",
+      1
+     ]
+    ]
+   },
+   "nodes": [
+    {
+     "kind": "ellipse",
+     "x": 1560,
+     "y": -180,
+     "w": 520,
+     "h": 520,
+     "fill": "#F4C15D",
+     "bleed": true,
+     "opacity": 0.9
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 64,
+     "w": 1728,
+     "h": 2,
+     "fill": "#F5EFE4"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 1014,
+     "w": 1728,
+     "h": 2,
+     "fill": "#F5EFE4"
+    },
+    {
+     "kind": "ellipse",
+     "x": 1200,
+     "y": 200,
+     "w": 640,
+     "h": 640,
+     "fill": "#F26A48",
+     "opacity": 0.12
+    },
+    {
+     "kind": "ellipse",
+     "x": 1264,
+     "y": 264,
+     "w": 512,
+     "h": 512,
+     "fill": "#F26A48",
+     "opacity": 0.16
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 96,
+     "w": 22,
+     "h": 22,
+     "fill": "#F26A48",
+     "radius": 0
+    },
+    {
+     "kind": "text",
+     "x": 132,
+     "y": 93,
+     "w": 700,
+     "h": 30,
+     "text": "Meridian Institute",
+     "family": "Inter",
+     "size": 22,
+     "weight": 600,
+     "color": "#F5EFE4",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 236,
+     "w": 1000,
+     "h": 60,
+     "text": "Before next session",
+     "family": "Caveat",
+     "size": 44,
+     "weight": 600,
+     "color": "#F26A48",
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 300,
+     "w": 1100,
+     "h": 123,
+     "text": "Before next session",
+     "family": "Fraunces",
+     "size": 103,
+     "weight": 600,
+     "color": "#F5EFE4",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 447,
+     "w": 940,
+     "h": 120,
+     "text": "Take any product you use daily and write its six tokens from observation alone. Bring the one you could not name.",
+     "family": "Inter",
+     "size": 28,
+     "weight": 400,
+     "color": "#B0A798",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "icon",
+     "icon": "world",
+     "x": 96,
+     "y": 702,
+     "w": 28,
+     "h": 28,
+     "color": "#F26A48"
+    },
+    {
+     "kind": "text",
+     "x": 144,
+     "y": 700,
+     "w": 800,
+     "h": 34,
+     "text": "institute.example/design-systems",
+     "family": "Inter",
+     "size": 24,
+     "weight": 500,
+     "color": "#F5EFE4",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "mail",
+     "x": 96,
+     "y": 764,
+     "w": 28,
+     "h": 28,
+     "color": "#F26A48"
+    },
+    {
+     "kind": "text",
+     "x": 144,
+     "y": 762,
+     "w": 800,
+     "h": 34,
+     "text": "praman@institute.example",
+     "family": "Inter",
+     "size": 24,
+     "weight": 500,
+     "color": "#F5EFE4",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "calendar",
+     "x": 96,
+     "y": 826,
+     "w": 28,
+     "h": 28,
+     "color": "#F26A48"
+    },
+    {
+     "kind": "text",
+     "x": 144,
+     "y": 824,
+     "w": 800,
+     "h": 34,
+     "text": "Office hours: Wednesday, 14:00",
+     "family": "Inter",
+     "size": 24,
+     "weight": 500,
+     "color": "#F5EFE4",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "button",
+     "x": 96,
+     "y": 910,
+     "w": 340,
+     "h": 64,
+     "label": "Open the exercise",
+     "fill": "#F26A48",
+     "color": "#1C1A17",
+     "family": "Inter",
+     "size": 22,
+     "weight": 700,
+     "radius": 0
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 940,
+     "w": 240,
+     "h": 28,
+     "text": "06 / 6",
+     "family": "Inter",
+     "size": 18,
+     "weight": 500,
+     "color": "#B0A798",
+     "lineHeight": 1.3,
+     "align": "right"
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "la-coffee",
+     "x": 1250,
+     "y": 250,
+     "w": 540,
+     "h": 540
+    }
+   ]
+  }
+ ],
+ "fillable": [
+  {
+   "node": "p0-n4",
+   "kind": "text",
+   "label": "Company",
+   "hint": "Your company or team name"
+  },
+  {
+   "node": "p0-n8",
+   "kind": "text",
+   "label": "Title",
+   "hint": "Two short lines"
+  },
+  {
+   "node": "p0-n9",
+   "kind": "text",
+   "label": "Subtitle",
+   "hint": "One sentence on what the deck covers"
+  },
+  {
+   "node": "p0-n14",
+   "kind": "text",
+   "label": "Presenter",
+   "hint": "Who presents"
+  },
+  {
+   "node": "p5-n11",
+   "kind": "text",
+   "label": "Email",
+   "hint": "Contact detail"
+  },
+  {
+   "node": "p5-n13",
+   "kind": "text",
+   "label": "Website",
+   "hint": "Contact detail"
+  },
+  {
+   "node": "p5-n15",
+   "kind": "text",
+   "label": "Phone",
+   "hint": "Contact detail"
+  }
+ ],
+ "version": 2,
  "created": "2026-08-28T00:00:00.000Z",
- "outline": {
-  "title": "Lecture",
-  "theme": "clear, paced for learning",
-  "pages": [
-   {
-    "title": "Today's topic",
-    "points": [
-     "What you will be able to do by the end"
-    ],
-    "visualRole": "cover"
-   },
-   {
-    "title": "Where we left off",
-    "points": [
-     "The three ideas from last time"
-    ],
-    "visualRole": "agenda"
-   },
-   {
-    "title": "The core concept",
-    "points": [
-     "The definition, in plain words",
-     "The intuition behind it"
-    ],
-    "visualRole": "content"
-   },
-   {
-    "title": "Worked example",
-    "points": [
-     "Step through one real case together"
-    ],
-    "visualRole": "content"
-   },
-   {
-    "title": "Common mistakes",
-    "points": [
-     "Where students usually stumble"
-    ],
-    "visualRole": "content"
-   },
-   {
-    "title": "Practice and next steps",
-    "points": [
-     "What to try before next session"
-    ],
-    "visualRole": "closing"
-   }
-  ]
- }
+ "updated": "2026-09-30T00:00:00.000Z",
+ "rank": 44
 }

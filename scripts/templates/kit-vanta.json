@@ -388,7 +388,7 @@
     {
      "kind": "rect",
      "x": 96,
-     "y": 780,
+     "y": 848,
      "w": 276,
      "h": 64,
      "fill": "#121A2E",
@@ -399,7 +399,7 @@
     {
      "kind": "text",
      "x": 116,
-     "y": 792,
+     "y": 860,
      "w": 130,
      "h": 40,
      "text": "99.98%",
@@ -412,7 +412,7 @@
     {
      "kind": "text",
      "x": 246,
-     "y": 800,
+     "y": 868,
      "w": 110,
      "h": 26,
      "text": "uptime",
@@ -425,7 +425,7 @@
     {
      "kind": "rect",
      "x": 396,
-     "y": 780,
+     "y": 848,
      "w": 276,
      "h": 64,
      "fill": "#121A2E",
@@ -436,7 +436,7 @@
     {
      "kind": "text",
      "x": 416,
-     "y": 792,
+     "y": 860,
      "w": 130,
      "h": 40,
      "text": "4.6 / day",
@@ -449,7 +449,7 @@
     {
      "kind": "text",
      "x": 546,
-     "y": 800,
+     "y": 868,
      "w": 110,
      "h": 26,
      "text": "deploys",
@@ -462,7 +462,7 @@
     {
      "kind": "rect",
      "x": 696,
-     "y": 780,
+     "y": 848,
      "w": 276,
      "h": 64,
      "fill": "#121A2E",
@@ -473,7 +473,7 @@
     {
      "kind": "text",
      "x": 716,
-     "y": 792,
+     "y": 860,
      "w": 130,
      "h": 40,
      "text": "−38%",
@@ -486,7 +486,7 @@
     {
      "kind": "text",
      "x": 846,
-     "y": 800,
+     "y": 868,
      "w": 110,
      "h": 26,
      "text": "p95 latency",
@@ -3584,7 +3584,7 @@
      "kind": "rect",
      "x": 96,
      "y": 425,
-     "w": 864,
+     "w": 648,
      "h": 3,
      "fill": "#C8F542"
     },
@@ -3622,7 +3622,7 @@
      "size": 32,
      "weight": 700,
      "color": "#F1F5F9",
-     "lineHeight": 1.06
+     "lineHeight": 1.1
     },
     {
      "kind": "text",
@@ -3671,7 +3671,7 @@
      "size": 32,
      "weight": 700,
      "color": "#F1F5F9",
-     "lineHeight": 1.06
+     "lineHeight": 1.1
     },
     {
      "kind": "text",
@@ -3722,7 +3722,7 @@
      "size": 32,
      "weight": 700,
      "color": "#F1F5F9",
-     "lineHeight": 1.06
+     "lineHeight": 1.1
     },
     {
      "kind": "text",
@@ -3773,7 +3773,7 @@
      "size": 32,
      "weight": 700,
      "color": "#F1F5F9",
-     "lineHeight": 1.06
+     "lineHeight": 1.1
     },
     {
      "kind": "text",
@@ -6304,7 +6304,7 @@
      "x": 96,
      "y": 459,
      "w": 940,
-     "h": 84,
+     "h": 120,
      "text": "Questions now, or any time this week. The deck and the model are in the shared folder.",
      "family": "IBM Plex Sans",
      "size": 28,

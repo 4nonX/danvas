@@ -11,7 +11,7 @@
   "thanks"
  ],
  "styleTags": [
-  "minimal",
+  "bold",
   "modern"
  ],
  "size": [
@@ -21,159 +21,310 @@
  "typography": [
   {
    "role": "heading",
-   "family": "Poppins",
+   "family": "Sora",
    "weight": 800
   },
   {
    "role": "body",
-   "family": "Inter",
-   "weight": 400
+   "family": "Manrope",
+   "weight": 500
+  },
+  {
+   "role": "accent",
+   "family": "Bricolage Grotesque",
+   "weight": 800
   }
  ],
  "pages": [
   {
    "name": "Closing",
    "bg": {
-    "angle": 135,
+    "angle": 160,
     "stops": [
      [
-      "#0F172A",
+      "#2B2BFF",
       0
      ],
      [
-      "#0C4A6E",
+      "#6A2BFF",
       1
      ]
     ]
    },
    "nodes": [
     {
-     "kind": "ellipse",
-     "x": 1440,
-     "y": 440,
-     "w": 840,
-     "h": 840,
-     "fill": "#38BDF8",
-     "opacity": 0.13,
+     "kind": "rect",
+     "x": 1272,
+     "y": 0,
+     "w": 648,
+     "h": 1080,
+     "fill": "#FF4D2E",
      "bleed": true
     },
     {
      "kind": "ellipse",
-     "x": 1260,
-     "y": 700,
-     "w": 320,
-     "h": 320,
-     "fill": "#7DD3FC",
-     "opacity": 0.09
-    },
-    {
-     "kind": "text",
-     "x": 160,
-     "y": 360,
-     "w": 1100,
-     "h": 160,
-     "text": "Thank you",
-     "family": "Poppins",
-     "size": 140,
-     "weight": 800,
-     "color": "#FFFFFF",
-     "lineHeight": 1.05
+     "x": 1316,
+     "y": 240,
+     "w": 560,
+     "h": 560,
+     "fill": "#FFFFFF",
+     "opacity": 0.18
     },
     {
      "kind": "rect",
-     "x": 160,
-     "y": 568,
-     "w": 120,
+     "x": 1306,
+     "y": 498,
+     "w": 38,
+     "h": 11,
+     "fill": "#B9F542",
+     "rotation": 17,
+     "radius": 3
+    },
+    {
+     "kind": "rect",
+     "x": 1394,
+     "y": 792,
+     "w": 45,
+     "h": 11,
+     "fill": "#FFFFFF",
+     "rotation": 36,
+     "radius": 3
+    },
+    {
+     "kind": "rect",
+     "x": 1541,
+     "y": 650,
+     "w": 31,
+     "h": 9,
+     "fill": "#2B2BFF",
+     "rotation": 2,
+     "radius": 3
+    },
+    {
+     "kind": "rect",
+     "x": 1400,
+     "y": 978,
+     "w": 30,
+     "h": 11,
+     "fill": "#B9F542",
+     "rotation": -27,
+     "radius": 3
+    },
+    {
+     "kind": "rect",
+     "x": 1445,
+     "y": 236,
+     "w": 38,
+     "h": 13,
+     "fill": "#FFFFFF",
+     "rotation": -6,
+     "radius": 3
+    },
+    {
+     "kind": "rect",
+     "x": 1296,
+     "y": 277,
+     "w": 26,
      "h": 10,
-     "fill": "#38BDF8",
-     "radius": 5
+     "fill": "#2B2BFF",
+     "rotation": -2,
+     "radius": 3
+    },
+    {
+     "kind": "rect",
+     "x": 1316,
+     "y": 92,
+     "w": 24,
+     "h": 13,
+     "fill": "#B9F542",
+     "rotation": 8,
+     "radius": 3
+    },
+    {
+     "kind": "rect",
+     "x": 1719,
+     "y": 158,
+     "w": 33,
+     "h": 10,
+     "fill": "#FFFFFF",
+     "rotation": -22,
+     "radius": 3
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 96,
+     "w": 22,
+     "h": 22,
+     "fill": "#FF4D2E",
+     "radius": 6
     },
     {
      "kind": "text",
-     "x": 160,
-     "y": 626,
-     "w": 1000,
-     "h": 58,
-     "text": "Let's keep the conversation going.",
-     "family": "Inter",
-     "size": 44,
-     "weight": 500,
-     "color": "#BAE6FD"
-    },
-    {
-     "kind": "text",
-     "x": 160,
-     "y": 780,
-     "w": 1000,
-     "h": 36,
-     "text": "hello@northwindlabs.com  \u00b7  northwindlabs.com",
-     "family": "Inter",
-     "size": 26,
-     "weight": 400,
-     "color": "#7DD3FC",
-     "letterSpacing": 1
-    },
-    {
-     "kind": "text",
-     "x": 160,
-     "y": 990,
+     "x": 132,
+     "y": 93,
      "w": 700,
      "h": 30,
-     "text": "Northwind Labs \u00b7 Q3 business review",
-     "family": "Inter",
+     "text": "Northwind Labs",
+     "family": "Manrope",
      "size": 22,
-     "weight": 500,
-     "color": "#7DD3FC",
+     "weight": 600,
+     "color": "#FFFFFF",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 236,
+     "w": 1000,
+     "h": 60,
+     "text": "Let's keep talking",
+     "family": "Bricolage Grotesque",
+     "size": 36,
+     "weight": 800,
+     "color": "#B9F542",
      "lineHeight": 1.2
     },
     {
      "kind": "text",
-     "x": 1460,
-     "y": 990,
-     "w": 300,
-     "h": 30,
-     "text": "24 / 24",
-     "family": "Inter",
-     "size": 22,
+     "x": 96,
+     "y": 300,
+     "w": 1100,
+     "h": 144,
+     "text": "Thank you",
+     "family": "Sora",
+     "size": 122,
+     "weight": 800,
+     "color": "#FFFFFF",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 468,
+     "w": 940,
+     "h": 120,
+     "text": "Let's keep the conversation going. Questions now, or any time this week.",
+     "family": "Manrope",
+     "size": 28,
      "weight": 500,
-     "color": "#7DD3FC",
-     "align": "right",
-     "lineHeight": 1.2
+     "color": "#CFCFFF",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "icon",
+     "icon": "mail",
+     "x": 96,
+     "y": 702,
+     "w": 28,
+     "h": 28,
+     "color": "#FF4D2E"
+    },
+    {
+     "kind": "text",
+     "x": 144,
+     "y": 700,
+     "w": 800,
+     "h": 34,
+     "text": "hello@northwindlabs.example",
+     "family": "Manrope",
+     "size": 24,
+     "weight": 500,
+     "color": "#FFFFFF",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "world",
+     "x": 96,
+     "y": 764,
+     "w": 28,
+     "h": 28,
+     "color": "#FF4D2E"
+    },
+    {
+     "kind": "text",
+     "x": 144,
+     "y": 762,
+     "w": 800,
+     "h": 34,
+     "text": "northwindlabs.example",
+     "family": "Manrope",
+     "size": 24,
+     "weight": 500,
+     "color": "#FFFFFF",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "phone",
+     "x": 96,
+     "y": 826,
+     "w": 28,
+     "h": 28,
+     "color": "#FF4D2E"
+    },
+    {
+     "kind": "text",
+     "x": 144,
+     "y": 824,
+     "w": 800,
+     "h": 34,
+     "text": "+1 415 555 0142",
+     "family": "Manrope",
+     "size": 24,
+     "weight": 500,
+     "color": "#FFFFFF",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "button",
+     "x": 96,
+     "y": 910,
+     "w": 340,
+     "h": 64,
+     "label": "Book a follow-up",
+     "fill": "#FF4D2E",
+     "color": "#0B0B14",
+     "family": "Manrope",
+     "size": 22,
+     "weight": 700,
+     "radius": 24
     }
    ],
    "illustrations": [
     {
      "asset": "la-conversation-illustration",
-     "x": 1350,
-     "y": 250,
+     "x": 1336,
+     "y": 280,
      "w": 520,
-     "h": 700,
-     "position": "after:deck-closing-p0-n1"
+     "h": 480
     }
    ]
   }
  ],
  "fillable": [
   {
-   "node": "p0-n2",
+   "node": "p0-n16",
    "kind": "text",
-   "label": "Closing line",
-   "hint": "Short thank-you or sign-off, one line"
+   "label": "Email",
+   "hint": "Contact detail"
   },
   {
-   "node": "p0-n4",
+   "node": "p0-n18",
    "kind": "text",
-   "label": "Invitation",
-   "hint": "Follow-up message, e.g. Let's keep the conversation going."
+   "label": "Website",
+   "hint": "Contact detail"
   },
   {
-   "node": "p0-n5",
+   "node": "p0-n20",
    "kind": "text",
-   "label": "Contact details",
-   "hint": "Email and website"
+   "label": "Phone",
+   "hint": "Contact detail"
   }
  ],
  "version": 2,
- "updated": "2026-07-10T00:00:00.000Z",
+ "created": "2026-07-04T00:00:00.000Z",
+ "updated": "2026-09-30T00:00:00.000Z",
  "rank": 20
 }

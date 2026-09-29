@@ -1,5 +1,4 @@
 {
- "kind": "deck-outline",
  "id": "deck-design-review",
  "title": "Design Review",
  "categories": [
@@ -13,55 +12,2139 @@
   "ux"
  ],
  "styleTags": [
-  "editorial"
+  "minimal",
+  "modern",
+  "clean"
  ],
- "themeId": "theme-orchid",
  "size": [
   1920,
   1080
  ],
- "rank": 60,
+ "typography": [
+  {
+   "role": "heading",
+   "family": "Archivo",
+   "weight": 700
+  },
+  {
+   "role": "body",
+   "family": "Archivo",
+   "weight": 400
+  },
+  {
+   "role": "accent",
+   "family": "Space Mono",
+   "weight": 400
+  }
+ ],
+ "pages": [
+  {
+   "name": "Cover",
+   "bg": {
+    "angle": 160,
+    "stops": [
+     [
+      "#181818",
+      0
+     ],
+     [
+      "#070707",
+      1
+     ]
+    ]
+   },
+   "nodes": [
+    {
+     "kind": "ellipse",
+     "x": 1180,
+     "y": -300,
+     "w": 1200,
+     "h": 1200,
+     "fill": {
+      "angle": 135,
+      "stops": [
+       [
+        "#4D82FF",
+        0
+       ],
+       [
+        "#070707",
+        1
+       ]
+      ],
+      "radial": true
+     },
+     "opacity": 0.35,
+     "bleed": true
+    },
+    {
+     "kind": "rect",
+     "x": 36,
+     "y": 47,
+     "w": 24,
+     "h": 2,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "rect",
+     "x": 47,
+     "y": 36,
+     "w": 2,
+     "h": 24,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "rect",
+     "x": 1860,
+     "y": 47,
+     "w": 24,
+     "h": 2,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "rect",
+     "x": 1871,
+     "y": 36,
+     "w": 2,
+     "h": 24,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "rect",
+     "x": 36,
+     "y": 1031,
+     "w": 24,
+     "h": 2,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "rect",
+     "x": 47,
+     "y": 1020,
+     "w": 2,
+     "h": 24,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "rect",
+     "x": 1860,
+     "y": 1031,
+     "w": 24,
+     "h": 2,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "rect",
+     "x": 1871,
+     "y": 1020,
+     "w": 2,
+     "h": 24,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 96,
+     "w": 22,
+     "h": 22,
+     "fill": "#4D82FF",
+     "radius": 0
+    },
+    {
+     "kind": "text",
+     "x": 132,
+     "y": 93,
+     "w": 700,
+     "h": 30,
+     "text": "Form & Function",
+     "family": "Archivo",
+     "size": 22,
+     "weight": 600,
+     "color": "#FFFFFF",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 372,
+     "w": 1000,
+     "h": 60,
+     "text": "design review, onboarding flow",
+     "family": "Space Mono",
+     "size": 26,
+     "weight": 400,
+     "color": "#4D82FF",
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 446,
+     "w": 1000,
+     "h": 207,
+     "text": "The problem\nthis design answers",
+     "family": "Archivo",
+     "size": 94,
+     "weight": 700,
+     "color": "#FFFFFF",
+     "lineHeight": 1.02
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 683,
+     "w": 900,
+     "h": 84,
+     "text": "New accounts take eleven days to reach first value. This flow aims for three. The room's judgment on three open questions.",
+     "family": "Archivo",
+     "size": 28,
+     "weight": 400,
+     "color": "#A0A0A0",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 940,
+     "w": 900,
+     "h": 28,
+     "text": "Aisha Bello, Product Design  ·  22 October 2026",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#A0A0A0",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 940,
+     "w": 240,
+     "h": 28,
+     "text": "01 / 6",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#A0A0A0",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "rect",
+     "x": 1176,
+     "y": 0,
+     "w": 744,
+     "h": 1080,
+     "fill": "#1F1F1F",
+     "bleed": true
+    },
+    {
+     "kind": "rect",
+     "x": 1176,
+     "y": 0,
+     "w": 4,
+     "h": 1080,
+     "fill": "#4D82FF"
+    },
+    {
+     "kind": "ellipse",
+     "x": 1238,
+     "y": 230,
+     "w": 620,
+     "h": 620,
+     "fill": "#4D82FF",
+     "opacity": 0.12
+    },
+    {
+     "kind": "ellipse",
+     "x": 1300,
+     "y": 292,
+     "w": 496,
+     "h": 496,
+     "fill": "#4D82FF",
+     "opacity": 0.16
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "la-desk-illustration-2",
+     "x": 1260,
+     "y": 260,
+     "w": 580,
+     "h": 560
+    }
+   ]
+  },
+  {
+   "name": "Process",
+   "bg": "#FFFFFF",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 36,
+     "y": 47,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 47,
+     "y": 36,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1860,
+     "y": 47,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1871,
+     "y": 36,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 36,
+     "y": 1031,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 47,
+     "y": 1020,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1860,
+     "y": 1031,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1871,
+     "y": 1020,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 88,
+     "w": 1200,
+     "h": 28,
+     "text": "The flow",
+     "family": "Archivo",
+     "size": 20,
+     "weight": 600,
+     "color": "#2F6BFF",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 124,
+     "w": 1240,
+     "h": 74,
+     "text": "The user's path, screen by screen",
+     "family": "Archivo",
+     "size": 60,
+     "weight": 700,
+     "color": "#111111",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Form & Function  ·  Design review: onboarding",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "02 / 6",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "ellipse",
+     "x": 96,
+     "y": 272,
+     "w": 88,
+     "h": 88,
+     "fill": "#2F6BFF"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 272,
+     "w": 88,
+     "h": 88,
+     "text": "1",
+     "family": "Archivo",
+     "size": 34,
+     "weight": 700,
+     "color": "#111111",
+     "align": "center",
+     "vAlign": "middle",
+     "lineHeight": 1
+    },
+    {
+     "kind": "rect",
+     "x": 200,
+     "y": 315,
+     "w": 322,
+     "h": 2,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 404,
+     "w": 402,
+     "h": 44,
+     "text": "Connect",
+     "family": "Archivo",
+     "size": 32,
+     "weight": 700,
+     "color": "#111111",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 458,
+     "w": 378,
+     "h": 150,
+     "text": "One screen, one source. The other integrations wait until the first import has succeeded.",
+     "family": "Archivo",
+     "size": 21,
+     "weight": 400,
+     "color": "#6B6B6B",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 538,
+     "y": 272,
+     "w": 88,
+     "h": 88,
+     "fill": "#181818"
+    },
+    {
+     "kind": "text",
+     "x": 538,
+     "y": 272,
+     "w": 88,
+     "h": 88,
+     "text": "2",
+     "family": "Archivo",
+     "size": 34,
+     "weight": 700,
+     "color": "#FFFFFF",
+     "align": "center",
+     "vAlign": "middle",
+     "lineHeight": 1
+    },
+    {
+     "kind": "rect",
+     "x": 642,
+     "y": 315,
+     "w": 322,
+     "h": 2,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "text",
+     "x": 538,
+     "y": 404,
+     "w": 402,
+     "h": 44,
+     "text": "Import",
+     "family": "Archivo",
+     "size": 32,
+     "weight": 700,
+     "color": "#111111",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 538,
+     "y": 458,
+     "w": 378,
+     "h": 150,
+     "text": "Progress with a real estimate. Large files stream; the user can leave and come back.",
+     "family": "Archivo",
+     "size": 21,
+     "weight": 400,
+     "color": "#6B6B6B",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 980,
+     "y": 272,
+     "w": 88,
+     "h": 88,
+     "fill": "#181818"
+    },
+    {
+     "kind": "text",
+     "x": 980,
+     "y": 272,
+     "w": 88,
+     "h": 88,
+     "text": "3",
+     "family": "Archivo",
+     "size": 34,
+     "weight": 700,
+     "color": "#FFFFFF",
+     "align": "center",
+     "vAlign": "middle",
+     "lineHeight": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1084,
+     "y": 315,
+     "w": 322,
+     "h": 2,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "text",
+     "x": 980,
+     "y": 404,
+     "w": 402,
+     "h": 44,
+     "text": "Preview",
+     "family": "Archivo",
+     "size": 32,
+     "weight": 700,
+     "color": "#111111",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 980,
+     "y": 458,
+     "w": 378,
+     "h": 150,
+     "text": "The first report drawn from their data, before any setup. This is the moment we are designing for.",
+     "family": "Archivo",
+     "size": 21,
+     "weight": 400,
+     "color": "#6B6B6B",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 1422,
+     "y": 272,
+     "w": 88,
+     "h": 88,
+     "fill": "#181818"
+    },
+    {
+     "kind": "text",
+     "x": 1422,
+     "y": 272,
+     "w": 88,
+     "h": 88,
+     "text": "4",
+     "family": "Archivo",
+     "size": 34,
+     "weight": 700,
+     "color": "#FFFFFF",
+     "align": "center",
+     "vAlign": "middle",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 1422,
+     "y": 404,
+     "w": 402,
+     "h": 44,
+     "text": "Invite",
+     "family": "Archivo",
+     "size": 32,
+     "weight": 700,
+     "color": "#111111",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 1422,
+     "y": 458,
+     "w": 378,
+     "h": 150,
+     "text": "One teammate, one click, and a link that opens on the preview, not on a blank workspace.",
+     "family": "Archivo",
+     "size": 21,
+     "weight": 400,
+     "color": "#6B6B6B",
+     "lineHeight": 1.4
+    }
+   ]
+  },
+  {
+   "name": "Three cards",
+   "bg": "#FFFFFF",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 36,
+     "y": 47,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 47,
+     "y": 36,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1860,
+     "y": 47,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1871,
+     "y": 36,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 36,
+     "y": 1031,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 47,
+     "y": 1020,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1860,
+     "y": 1031,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1871,
+     "y": 1020,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 88,
+     "w": 1200,
+     "h": 28,
+     "text": "Key decisions",
+     "family": "Archivo",
+     "size": 20,
+     "weight": 600,
+     "color": "#2F6BFF",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 124,
+     "w": 1240,
+     "h": 74,
+     "text": "The three choices that shaped it",
+     "family": "Archivo",
+     "size": 60,
+     "weight": 700,
+     "color": "#111111",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Form & Function  ·  Design review: onboarding",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "03 / 6",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 242,
+     "w": 560,
+     "h": 580,
+     "fill": "#F3F3F3",
+     "radius": 0,
+     "stroke": "#E2E2E2",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 242,
+     "w": 560,
+     "h": 6,
+     "fill": "#2F6BFF",
+     "radius": 0
+    },
+    {
+     "kind": "ellipse",
+     "x": 136,
+     "y": 290,
+     "w": 80,
+     "h": 80,
+     "fill": "#ccd8f5"
+    },
+    {
+     "kind": "icon",
+     "icon": "bolt",
+     "x": 156,
+     "y": 310,
+     "w": 40,
+     "h": 40,
+     "color": "#2F6BFF"
+    },
+    {
+     "kind": "text",
+     "x": 136,
+     "y": 406,
+     "w": 480,
+     "h": 100,
+     "text": "Preview before setup",
+     "family": "Archivo",
+     "size": 34,
+     "weight": 700,
+     "color": "#111111",
+     "lineHeight": 1.1
+    },
+    {
+     "kind": "text",
+     "x": 136,
+     "y": 518,
+     "w": 480,
+     "h": 160,
+     "text": "The report comes first; configuration comes after the user has seen the value. Rejected: a setup wizard.",
+     "family": "Archivo",
+     "size": 22,
+     "weight": 400,
+     "color": "#6B6B6B",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 136,
+     "y": 738,
+     "w": 480,
+     "h": 1,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "text",
+     "x": 136,
+     "y": 762,
+     "w": 120,
+     "h": 28,
+     "text": "01",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 680,
+     "y": 242,
+     "w": 560,
+     "h": 580,
+     "fill": "#F3F3F3",
+     "radius": 0,
+     "stroke": "#E2E2E2",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 680,
+     "y": 242,
+     "w": 560,
+     "h": 6,
+     "fill": "#111111",
+     "radius": 0
+    },
+    {
+     "kind": "ellipse",
+     "x": 720,
+     "y": 290,
+     "w": 80,
+     "h": 80,
+     "fill": "#c6c6c6"
+    },
+    {
+     "kind": "icon",
+     "icon": "layout-list",
+     "x": 740,
+     "y": 310,
+     "w": 40,
+     "h": 40,
+     "color": "#111111"
+    },
+    {
+     "kind": "text",
+     "x": 720,
+     "y": 406,
+     "w": 480,
+     "h": 100,
+     "text": "One source at a time",
+     "family": "Archivo",
+     "size": 34,
+     "weight": 700,
+     "color": "#111111",
+     "lineHeight": 1.1
+    },
+    {
+     "kind": "text",
+     "x": 720,
+     "y": 518,
+     "w": 480,
+     "h": 160,
+     "text": "Connecting five sources on day one is where users quit. Rejected: the integrations grid.",
+     "family": "Archivo",
+     "size": 22,
+     "weight": 400,
+     "color": "#6B6B6B",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 720,
+     "y": 738,
+     "w": 480,
+     "h": 1,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "text",
+     "x": 720,
+     "y": 762,
+     "w": 120,
+     "h": 28,
+     "text": "02",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 1264,
+     "y": 242,
+     "w": 560,
+     "h": 580,
+     "fill": "#F3F3F3",
+     "radius": 0,
+     "stroke": "#E2E2E2",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 1264,
+     "y": 242,
+     "w": 560,
+     "h": 6,
+     "fill": "#2F6BFF",
+     "radius": 0
+    },
+    {
+     "kind": "ellipse",
+     "x": 1304,
+     "y": 290,
+     "w": 80,
+     "h": 80,
+     "fill": "#ccd8f5"
+    },
+    {
+     "kind": "icon",
+     "icon": "user",
+     "x": 1324,
+     "y": 310,
+     "w": 40,
+     "h": 40,
+     "color": "#2F6BFF"
+    },
+    {
+     "kind": "text",
+     "x": 1304,
+     "y": 406,
+     "w": 480,
+     "h": 100,
+     "text": "Invite from the preview",
+     "family": "Archivo",
+     "size": 34,
+     "weight": 700,
+     "color": "#111111",
+     "lineHeight": 1.1
+    },
+    {
+     "kind": "text",
+     "x": 1304,
+     "y": 518,
+     "w": 480,
+     "h": 160,
+     "text": "The invite link lands on the report. Rejected: an invite step in the wizard.",
+     "family": "Archivo",
+     "size": 22,
+     "weight": 400,
+     "color": "#6B6B6B",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 1304,
+     "y": 738,
+     "w": 480,
+     "h": 1,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "text",
+     "x": 1304,
+     "y": 762,
+     "w": 120,
+     "h": 28,
+     "text": "03",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3
+    }
+   ]
+  },
+  {
+   "name": "Two columns",
+   "bg": "#FFFFFF",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 36,
+     "y": 47,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 47,
+     "y": 36,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1860,
+     "y": 47,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1871,
+     "y": 36,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 36,
+     "y": 1031,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 47,
+     "y": 1020,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1860,
+     "y": 1031,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1871,
+     "y": 1020,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 88,
+     "w": 1200,
+     "h": 28,
+     "text": "Alternatives",
+     "family": "Archivo",
+     "size": 20,
+     "weight": 600,
+     "color": "#2F6BFF",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 124,
+     "w": 1240,
+     "h": 74,
+     "text": "What we rejected, and why",
+     "family": "Archivo",
+     "size": 60,
+     "weight": 700,
+     "color": "#111111",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Form & Function  ·  Design review: onboarding",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "04 / 6",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 242,
+     "w": 848,
+     "h": 600,
+     "fill": "#F3F3F3",
+     "radius": 0,
+     "stroke": "#E2E2E2",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "icon",
+     "icon": "alert-triangle",
+     "x": 856,
+     "y": 286,
+     "w": 40,
+     "h": 40,
+     "color": "#2F6BFF"
+    },
+    {
+     "kind": "text",
+     "x": 144,
+     "y": 290,
+     "w": 688,
+     "h": 28,
+     "text": "Rejected",
+     "family": "Archivo",
+     "size": 20,
+     "weight": 600,
+     "color": "#2F6BFF",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 144,
+     "y": 334,
+     "w": 752,
+     "h": 112,
+     "text": "The setup wizard",
+     "family": "Archivo",
+     "size": 40,
+     "weight": 700,
+     "color": "#111111",
+     "lineHeight": 1.1
+    },
+    {
+     "kind": "rect",
+     "x": 144,
+     "y": 502,
+     "w": 752,
+     "h": 1,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "text",
+     "x": 144,
+     "y": 526,
+     "w": 752,
+     "h": 40,
+     "text": "Six steps before any value",
+     "family": "Archivo",
+     "size": 24,
+     "weight": 600,
+     "color": "#111111",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 144,
+     "y": 602,
+     "w": 752,
+     "h": 1,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "text",
+     "x": 144,
+     "y": 626,
+     "w": 752,
+     "h": 40,
+     "text": "Tested at 41% completion",
+     "family": "Archivo",
+     "size": 24,
+     "weight": 600,
+     "color": "#111111",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 144,
+     "y": 702,
+     "w": 752,
+     "h": 1,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "text",
+     "x": 144,
+     "y": 726,
+     "w": 752,
+     "h": 40,
+     "text": "Users could not tell what step three was for",
+     "family": "Archivo",
+     "size": 24,
+     "weight": 600,
+     "color": "#111111",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 976,
+     "y": 242,
+     "w": 848,
+     "h": 600,
+     "fill": {
+      "angle": 160,
+      "stops": [
+       [
+        "#181818",
+        0
+       ],
+       [
+        "#070707",
+        1
+       ]
+      ]
+     },
+     "radius": 0
+    },
+    {
+     "kind": "icon",
+     "icon": "circle-check",
+     "x": 1736,
+     "y": 286,
+     "w": 40,
+     "h": 40,
+     "color": "#4D82FF"
+    },
+    {
+     "kind": "text",
+     "x": 1024,
+     "y": 290,
+     "w": 688,
+     "h": 28,
+     "text": "Chosen",
+     "family": "Archivo",
+     "size": 20,
+     "weight": 600,
+     "color": "#4D82FF",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 1024,
+     "y": 334,
+     "w": 752,
+     "h": 112,
+     "text": "Preview first",
+     "family": "Archivo",
+     "size": 40,
+     "weight": 700,
+     "color": "#FFFFFF",
+     "lineHeight": 1.1
+    },
+    {
+     "kind": "rect",
+     "x": 1024,
+     "y": 502,
+     "w": 752,
+     "h": 1,
+     "fill": "#2E2E2E"
+    },
+    {
+     "kind": "text",
+     "x": 1024,
+     "y": 526,
+     "w": 752,
+     "h": 40,
+     "text": "Value on screen two",
+     "family": "Archivo",
+     "size": 24,
+     "weight": 600,
+     "color": "#FFFFFF",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 1024,
+     "y": 602,
+     "w": 752,
+     "h": 1,
+     "fill": "#2E2E2E"
+    },
+    {
+     "kind": "text",
+     "x": 1024,
+     "y": 626,
+     "w": 752,
+     "h": 40,
+     "text": "Tested at 78% completion",
+     "family": "Archivo",
+     "size": 24,
+     "weight": 600,
+     "color": "#FFFFFF",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 1024,
+     "y": 702,
+     "w": 752,
+     "h": 1,
+     "fill": "#2E2E2E"
+    },
+    {
+     "kind": "text",
+     "x": 1024,
+     "y": 726,
+     "w": 752,
+     "h": 40,
+     "text": "Every participant understood what the product does",
+     "family": "Archivo",
+     "size": 24,
+     "weight": 600,
+     "color": "#FFFFFF",
+     "lineHeight": 1.3
+    }
+   ]
+  },
+  {
+   "name": "Three cards",
+   "bg": "#FFFFFF",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 36,
+     "y": 47,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 47,
+     "y": 36,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1860,
+     "y": 47,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1871,
+     "y": 36,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 36,
+     "y": 1031,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 47,
+     "y": 1020,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1860,
+     "y": 1031,
+     "w": 24,
+     "h": 2,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "rect",
+     "x": 1871,
+     "y": 1020,
+     "w": 2,
+     "h": 24,
+     "fill": "#E2E2E2",
+     "opacity": 1
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 88,
+     "w": 1200,
+     "h": 28,
+     "text": "Open questions",
+     "family": "Archivo",
+     "size": 20,
+     "weight": 600,
+     "color": "#2F6BFF",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 124,
+     "w": 1240,
+     "h": 74,
+     "text": "Where we want the room's judgment",
+     "family": "Archivo",
+     "size": 60,
+     "weight": 700,
+     "color": "#111111",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Form & Function  ·  Design review: onboarding",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "05 / 6",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 242,
+     "w": 560,
+     "h": 580,
+     "fill": "#F3F3F3",
+     "radius": 0,
+     "stroke": "#E2E2E2",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 242,
+     "w": 560,
+     "h": 6,
+     "fill": "#2F6BFF",
+     "radius": 0
+    },
+    {
+     "kind": "ellipse",
+     "x": 136,
+     "y": 290,
+     "w": 80,
+     "h": 80,
+     "fill": "#ccd8f5"
+    },
+    {
+     "kind": "icon",
+     "icon": "message",
+     "x": 156,
+     "y": 310,
+     "w": 40,
+     "h": 40,
+     "color": "#2F6BFF"
+    },
+    {
+     "kind": "text",
+     "x": 136,
+     "y": 406,
+     "w": 480,
+     "h": 100,
+     "text": "What if the import fails?",
+     "family": "Archivo",
+     "size": 34,
+     "weight": 700,
+     "color": "#111111",
+     "lineHeight": 1.1
+    },
+    {
+     "kind": "text",
+     "x": 136,
+     "y": 518,
+     "w": 480,
+     "h": 160,
+     "text": "The preview needs data. Do we show a sample report, or hold the user on the import screen with help?",
+     "family": "Archivo",
+     "size": 22,
+     "weight": 400,
+     "color": "#6B6B6B",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 136,
+     "y": 738,
+     "w": 480,
+     "h": 1,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "text",
+     "x": 136,
+     "y": 762,
+     "w": 120,
+     "h": 28,
+     "text": "01",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 680,
+     "y": 242,
+     "w": 560,
+     "h": 580,
+     "fill": "#F3F3F3",
+     "radius": 0,
+     "stroke": "#E2E2E2",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 680,
+     "y": 242,
+     "w": 560,
+     "h": 6,
+     "fill": "#111111",
+     "radius": 0
+    },
+    {
+     "kind": "ellipse",
+     "x": 720,
+     "y": 290,
+     "w": 80,
+     "h": 80,
+     "fill": "#c6c6c6"
+    },
+    {
+     "kind": "icon",
+     "icon": "clock",
+     "x": 740,
+     "y": 310,
+     "w": 40,
+     "h": 40,
+     "color": "#111111"
+    },
+    {
+     "kind": "text",
+     "x": 720,
+     "y": 406,
+     "w": 480,
+     "h": 100,
+     "text": "How long is too long?",
+     "family": "Archivo",
+     "size": 34,
+     "weight": 700,
+     "color": "#111111",
+     "lineHeight": 1.1
+    },
+    {
+     "kind": "text",
+     "x": 720,
+     "y": 518,
+     "w": 480,
+     "h": 160,
+     "text": "Streaming imports can take an hour. Do we let the user leave, and what brings them back?",
+     "family": "Archivo",
+     "size": 22,
+     "weight": 400,
+     "color": "#6B6B6B",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 720,
+     "y": 738,
+     "w": 480,
+     "h": 1,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "text",
+     "x": 720,
+     "y": 762,
+     "w": 120,
+     "h": 28,
+     "text": "02",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 1264,
+     "y": 242,
+     "w": 560,
+     "h": 580,
+     "fill": "#F3F3F3",
+     "radius": 0,
+     "stroke": "#E2E2E2",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 1264,
+     "y": 242,
+     "w": 560,
+     "h": 6,
+     "fill": "#2F6BFF",
+     "radius": 0
+    },
+    {
+     "kind": "ellipse",
+     "x": 1304,
+     "y": 290,
+     "w": 80,
+     "h": 80,
+     "fill": "#ccd8f5"
+    },
+    {
+     "kind": "icon",
+     "icon": "user",
+     "x": 1324,
+     "y": 310,
+     "w": 40,
+     "h": 40,
+     "color": "#2F6BFF"
+    },
+    {
+     "kind": "text",
+     "x": 1304,
+     "y": 406,
+     "w": 480,
+     "h": 100,
+     "text": "Invite before value?",
+     "family": "Archivo",
+     "size": 34,
+     "weight": 700,
+     "color": "#111111",
+     "lineHeight": 1.1
+    },
+    {
+     "kind": "text",
+     "x": 1304,
+     "y": 518,
+     "w": 480,
+     "h": 160,
+     "text": "Some teams want to invite first. Do we allow it, and does it dilute the preview moment?",
+     "family": "Archivo",
+     "size": 22,
+     "weight": 400,
+     "color": "#6B6B6B",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 1304,
+     "y": 738,
+     "w": 480,
+     "h": 1,
+     "fill": "#E2E2E2"
+    },
+    {
+     "kind": "text",
+     "x": 1304,
+     "y": 762,
+     "w": 120,
+     "h": 28,
+     "text": "03",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#6B6B6B",
+     "lineHeight": 1.3
+    }
+   ]
+  },
+  {
+   "name": "Closing",
+   "bg": {
+    "angle": 160,
+    "stops": [
+     [
+      "#181818",
+      0
+     ],
+     [
+      "#070707",
+      1
+     ]
+    ]
+   },
+   "nodes": [
+    {
+     "kind": "ellipse",
+     "x": 1180,
+     "y": -300,
+     "w": 1200,
+     "h": 1200,
+     "fill": {
+      "angle": 135,
+      "stops": [
+       [
+        "#4D82FF",
+        0
+       ],
+       [
+        "#070707",
+        1
+       ]
+      ],
+      "radial": true
+     },
+     "opacity": 0.35,
+     "bleed": true
+    },
+    {
+     "kind": "rect",
+     "x": 36,
+     "y": 47,
+     "w": 24,
+     "h": 2,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "rect",
+     "x": 47,
+     "y": 36,
+     "w": 2,
+     "h": 24,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "rect",
+     "x": 1860,
+     "y": 47,
+     "w": 24,
+     "h": 2,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "rect",
+     "x": 1871,
+     "y": 36,
+     "w": 2,
+     "h": 24,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "rect",
+     "x": 36,
+     "y": 1031,
+     "w": 24,
+     "h": 2,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "rect",
+     "x": 47,
+     "y": 1020,
+     "w": 2,
+     "h": 24,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "rect",
+     "x": 1860,
+     "y": 1031,
+     "w": 24,
+     "h": 2,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "rect",
+     "x": 1871,
+     "y": 1020,
+     "w": 2,
+     "h": 24,
+     "fill": "#FFFFFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "ellipse",
+     "x": 1200,
+     "y": 200,
+     "w": 640,
+     "h": 640,
+     "fill": "#4D82FF",
+     "opacity": 0.12
+    },
+    {
+     "kind": "ellipse",
+     "x": 1264,
+     "y": 264,
+     "w": 512,
+     "h": 512,
+     "fill": "#4D82FF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 96,
+     "w": 22,
+     "h": 22,
+     "fill": "#4D82FF",
+     "radius": 0
+    },
+    {
+     "kind": "text",
+     "x": 132,
+     "y": 93,
+     "w": 700,
+     "h": 30,
+     "text": "Form & Function",
+     "family": "Archivo",
+     "size": 22,
+     "weight": 600,
+     "color": "#FFFFFF",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 236,
+     "w": 1000,
+     "h": 60,
+     "text": "Next iteration",
+     "family": "Space Mono",
+     "size": 26,
+     "weight": 400,
+     "color": "#4D82FF",
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 300,
+     "w": 1100,
+     "h": 140,
+     "text": "Next iteration",
+     "family": "Archivo",
+     "size": 118,
+     "weight": 700,
+     "color": "#FFFFFF",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 464,
+     "w": 940,
+     "h": 120,
+     "text": "Decisions from this room by Friday; the flow goes to build on Monday. Prototype and research notes are in the design folder.",
+     "family": "Archivo",
+     "size": 28,
+     "weight": 400,
+     "color": "#A0A0A0",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "icon",
+     "icon": "mail",
+     "x": 96,
+     "y": 702,
+     "w": 28,
+     "h": 28,
+     "color": "#4D82FF"
+    },
+    {
+     "kind": "text",
+     "x": 144,
+     "y": 700,
+     "w": 800,
+     "h": 34,
+     "text": "aisha@formfunction.example",
+     "family": "Archivo",
+     "size": 24,
+     "weight": 500,
+     "color": "#FFFFFF",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "world",
+     "x": 96,
+     "y": 764,
+     "w": 28,
+     "h": 28,
+     "color": "#4D82FF"
+    },
+    {
+     "kind": "text",
+     "x": 144,
+     "y": 762,
+     "w": 800,
+     "h": 34,
+     "text": "design.formfunction.example/onboarding",
+     "family": "Archivo",
+     "size": 24,
+     "weight": 500,
+     "color": "#FFFFFF",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "calendar",
+     "x": 96,
+     "y": 826,
+     "w": 28,
+     "h": 28,
+     "color": "#4D82FF"
+    },
+    {
+     "kind": "text",
+     "x": 144,
+     "y": 824,
+     "w": 800,
+     "h": 34,
+     "text": "Build starts: 27 October",
+     "family": "Archivo",
+     "size": 24,
+     "weight": 500,
+     "color": "#FFFFFF",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "button",
+     "x": 96,
+     "y": 910,
+     "w": 340,
+     "h": 64,
+     "label": "Open the prototype",
+     "fill": "#4D82FF",
+     "color": "#111111",
+     "family": "Archivo",
+     "size": 22,
+     "weight": 700,
+     "radius": 0
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 940,
+     "w": 240,
+     "h": 28,
+     "text": "06 / 6",
+     "family": "Archivo",
+     "size": 18,
+     "weight": 500,
+     "color": "#A0A0A0",
+     "lineHeight": 1.3,
+     "align": "right"
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "la-flat-character-illustrations",
+     "x": 1250,
+     "y": 250,
+     "w": 540,
+     "h": 540
+    }
+   ]
+  }
+ ],
+ "fillable": [
+  {
+   "node": "p0-n10",
+   "kind": "text",
+   "label": "Company",
+   "hint": "Your company or team name"
+  },
+  {
+   "node": "p0-n12",
+   "kind": "text",
+   "label": "Title",
+   "hint": "Two short lines"
+  },
+  {
+   "node": "p0-n13",
+   "kind": "text",
+   "label": "Subtitle",
+   "hint": "One sentence on what the deck covers"
+  },
+  {
+   "node": "p0-n14",
+   "kind": "text",
+   "label": "Presenter and date",
+   "hint": "Who presents, and when"
+  },
+  {
+   "node": "p5-n17",
+   "kind": "text",
+   "label": "Email",
+   "hint": "Contact detail"
+  },
+  {
+   "node": "p5-n19",
+   "kind": "text",
+   "label": "Website",
+   "hint": "Contact detail"
+  },
+  {
+   "node": "p5-n21",
+   "kind": "text",
+   "label": "Phone",
+   "hint": "Contact detail"
+  }
+ ],
+ "version": 2,
  "created": "2026-08-28T00:00:00.000Z",
- "outline": {
-  "title": "Design Review",
-  "theme": "visual, focused critique",
-  "pages": [
-   {
-    "title": "The brief",
-    "points": [
-     "The problem this design answers"
-    ],
-    "visualRole": "cover"
-   },
-   {
-    "title": "The flow",
-    "points": [
-     "The user's path, screen by screen"
-    ],
-    "visualRole": "content"
-   },
-   {
-    "title": "Key decisions",
-    "points": [
-     "The three choices that shaped it",
-     "The alternatives we rejected"
-    ],
-    "visualRole": "content"
-   },
-   {
-    "title": "Open questions",
-    "points": [
-     "Where we want the room's judgment"
-    ],
-    "visualRole": "content"
-   },
-   {
-    "title": "Next iteration",
-    "points": [
-     "What changes before build"
-    ],
-    "visualRole": "closing"
-   }
-  ]
- }
+ "updated": "2026-09-30T00:00:00.000Z",
+ "rank": 60
 }
