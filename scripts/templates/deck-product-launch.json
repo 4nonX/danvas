@@ -151,7 +151,7 @@
      "x": 96,
      "y": 372,
      "w": 1000,
-     "h": 60,
+     "h": 42,
      "text": "T minus 42 days",
      "family": "Permanent Marker",
      "size": 32,
@@ -346,9 +346,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 890,
      "w": 720,
-     "h": 52,
+     "h": 34,
      "text": "every date here has a name next to it",
      "family": "Permanent Marker",
      "size": 27,
@@ -465,7 +465,7 @@
      "family": "Unbounded",
      "size": 17,
      "weight": 800,
-     "color": "#FF4A00",
+     "color": "#9E2B00",
      "align": "center",
      "vAlign": "middle",
      "lineHeight": 1
@@ -514,7 +514,7 @@
      "family": "Unbounded",
      "size": 17,
      "weight": 800,
-     "color": "#FF4A00",
+     "color": "#9E2B00",
      "align": "center",
      "vAlign": "middle",
      "lineHeight": 1
@@ -563,7 +563,7 @@
      "family": "Unbounded",
      "size": 17,
      "weight": 800,
-     "color": "#FF4A00",
+     "color": "#9E2B00",
      "align": "center",
      "vAlign": "middle",
      "lineHeight": 1
@@ -639,9 +639,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 923,
      "w": 760,
-     "h": 48,
+     "h": 33,
      "text": "we sold to the wrong desk for two years",
      "family": "Permanent Marker",
      "size": 26,
@@ -775,7 +775,7 @@
      "y": 299,
      "w": 40,
      "h": 40,
-     "color": "#FF4A00"
+     "color": "#9E2B00"
     },
     {
      "kind": "text",
@@ -943,7 +943,7 @@
      "y": 299,
      "w": 40,
      "h": 40,
-     "color": "#FF4A00"
+     "color": "#9E2B00"
     },
     {
      "kind": "text",
@@ -995,9 +995,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 923,
      "w": 760,
-     "h": 48,
+     "h": 33,
      "text": "say the promise the same way, everywhere",
      "family": "Permanent Marker",
      "size": 26,
@@ -1188,9 +1188,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 890,
      "w": 720,
-     "h": 52,
+     "h": 34,
      "text": "nine of the twelve pilots said this",
      "family": "Permanent Marker",
      "size": 27,
@@ -1503,9 +1503,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 923,
      "w": 760,
-     "h": 48,
+     "h": 33,
      "text": "forty-two days, four dates, zero slipped",
      "family": "Permanent Marker",
      "size": 26,
@@ -1991,9 +1991,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 923,
      "w": 760,
-     "h": 48,
+     "h": 33,
      "text": "if your date slips, say so on the Monday",
      "family": "Permanent Marker",
      "size": 26,
@@ -2779,9 +2779,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 923,
      "w": 760,
-     "h": 48,
+     "h": 33,
      "text": "we call it on day 30, not day 1",
      "family": "Permanent Marker",
      "size": 26,
@@ -2920,7 +2920,7 @@
      "x": 96,
      "y": 236,
      "w": 1000,
-     "h": 60,
+     "h": 42,
      "text": "Launch day is 12 November",
      "family": "Permanent Marker",
      "size": 32,
@@ -3051,9 +3051,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 890,
      "w": 720,
-     "h": 52,
+     "h": 34,
      "text": "the retro is already on the calendar",
      "family": "Permanent Marker",
      "size": 27,

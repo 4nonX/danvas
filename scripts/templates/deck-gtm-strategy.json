@@ -125,7 +125,7 @@
      "x": 96,
      "y": 372,
      "w": 1000,
-     "h": 60,
+     "h": 47,
      "text": "The motion",
      "family": "Gochi Hand",
      "size": 36,
@@ -320,9 +320,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 885,
      "w": 720,
-     "h": 52,
+     "h": 39,
      "text": "read it as a field plan, not a forecast",
      "family": "Gochi Hand",
      "size": 31,
@@ -467,7 +467,7 @@
      "y": 312,
      "w": 40,
      "h": 40,
-     "color": "#A87A22"
+     "color": "#7C5A14"
     },
     {
      "kind": "text",
@@ -635,7 +635,7 @@
      "y": 312,
      "w": 40,
      "h": 40,
-     "color": "#A87A22"
+     "color": "#7C5A14"
     },
     {
      "kind": "text",
@@ -687,9 +687,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 920,
      "w": 760,
-     "h": 48,
+     "h": 36,
      "text": "the blocker gets the first call, not the last",
      "family": "Gochi Hand",
      "size": 29,
@@ -878,9 +878,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 885,
      "w": 720,
-     "h": 52,
+     "h": 39,
      "text": "three buyers, one route",
      "family": "Gochi Hand",
      "size": 31,
@@ -1798,9 +1798,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 920,
      "w": 760,
-     "h": 48,
+     "h": 36,
      "text": "if you keep one page, keep this one",
      "family": "Gochi Hand",
      "size": 29,
@@ -2039,9 +2039,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 920,
      "w": 760,
-     "h": 48,
+     "h": 36,
      "text": "partners first, paid last",
      "family": "Gochi Hand",
      "size": 29,
@@ -2356,9 +2356,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 920,
      "w": 760,
-     "h": 48,
+     "h": 36,
      "text": "we cut on the number, not on a feeling",
      "family": "Gochi Hand",
      "size": 29,
@@ -2528,9 +2528,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 885,
      "w": 720,
-     "h": 52,
+     "h": 39,
      "text": "the proof we carry into every first call",
      "family": "Gochi Hand",
      "size": 31,
@@ -2674,7 +2674,7 @@
      "y": 312,
      "w": 40,
      "h": 40,
-     "color": "#A87A22"
+     "color": "#7C5A14"
     },
     {
      "kind": "text",
@@ -2842,7 +2842,7 @@
      "y": 312,
      "w": 40,
      "h": 40,
-     "color": "#A87A22"
+     "color": "#7C5A14"
     },
     {
      "kind": "text",
@@ -2894,9 +2894,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 920,
      "w": 760,
-     "h": 48,
+     "h": 36,
      "text": "three numbers, checked every Friday",
      "family": "Gochi Hand",
      "size": 29,
@@ -3014,7 +3014,7 @@
      "x": 96,
      "y": 236,
      "w": 1000,
-     "h": 60,
+     "h": 47,
      "text": "What we will watch",
      "family": "Gochi Hand",
      "size": 36,
@@ -3145,9 +3145,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 885,
      "w": 720,
-     "h": 52,
+     "h": 39,
      "text": "bring the objections, we want them early",
      "family": "Gochi Hand",
      "size": 31,

@@ -678,7 +678,7 @@
      "x": 96,
      "y": 236,
      "w": 1000,
-     "h": 56,
+     "h": 57,
      "text": "This month's book",
      "family": "Caveat",
      "size": 44,
@@ -689,7 +689,7 @@
     {
      "kind": "rect",
      "x": 96,
-     "y": 306,
+     "y": 307,
      "w": 120,
      "h": 6,
      "fill": "#E0492B"
@@ -697,7 +697,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 336,
+     "y": 353,
      "w": 1560,
      "h": 198,
      "text": "Chapter six is where the book earns its reputation: the story of the firm that waited eleven months to enter a market, and then owned it in two.",
@@ -710,7 +710,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 574,
+     "y": 591,
      "w": 1000,
      "h": 32,
      "text": "The best chapter",
@@ -1270,7 +1270,7 @@
      "x": 96,
      "y": 236,
      "w": 1000,
-     "h": 60,
+     "h": 57,
      "text": "Argue with us",
      "family": "Caveat",
      "size": 44,

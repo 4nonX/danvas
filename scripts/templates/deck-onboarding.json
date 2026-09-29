@@ -171,7 +171,7 @@
      "x": 96,
      "y": 372,
      "w": 1000,
-     "h": 60,
+     "h": 52,
      "text": "We are glad you are here",
      "family": "Patrick Hand",
      "size": 40,
@@ -255,9 +255,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 881,
      "w": 720,
-     "h": 52,
+     "h": 43,
      "text": "no homework before day one",
      "family": "Patrick Hand",
      "size": 34,
@@ -399,7 +399,7 @@
      "y": 310,
      "w": 40,
      "h": 40,
-     "color": "#F4B41A"
+     "color": "#85580A"
     },
     {
      "kind": "text",
@@ -483,7 +483,7 @@
      "y": 310,
      "w": 40,
      "h": 40,
-     "color": "#1F8A87"
+     "color": "#16706E"
     },
     {
      "kind": "text",
@@ -567,7 +567,7 @@
      "y": 310,
      "w": 40,
      "h": 40,
-     "color": "#F4B41A"
+     "color": "#85580A"
     },
     {
      "kind": "text",
@@ -619,9 +619,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 876,
      "w": 760,
-     "h": 48,
+     "h": 80,
      "text": "the free tier is the point, not the funnel",
      "family": "Patrick Hand",
      "size": 32,
@@ -1191,9 +1191,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 876,
      "w": 760,
-     "h": 48,
+     "h": 80,
      "text": "not written down? ask, then write it down",
      "family": "Patrick Hand",
      "size": 32,
@@ -1415,9 +1415,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 881,
      "w": 720,
-     "h": 52,
+     "h": 43,
      "text": "a guide, not a test",
      "family": "Patrick Hand",
      "size": 34,
@@ -1552,7 +1552,7 @@
      "y": 356,
      "w": 28,
      "h": 28,
-     "color": "#F4B41A"
+     "color": "#85580A"
     },
     {
      "kind": "text",
@@ -1595,7 +1595,7 @@
      "y": 474,
      "w": 28,
      "h": 28,
-     "color": "#F4B41A"
+     "color": "#85580A"
     },
     {
      "kind": "text",
@@ -1638,7 +1638,7 @@
      "y": 592,
      "w": 28,
      "h": 28,
-     "color": "#F4B41A"
+     "color": "#85580A"
     },
     {
      "kind": "text",
@@ -1681,7 +1681,7 @@
      "y": 710,
      "w": 28,
      "h": 28,
-     "color": "#F4B41A"
+     "color": "#85580A"
     },
     {
      "kind": "text",
@@ -1715,7 +1715,7 @@
      "x": 1080,
      "y": 268,
      "w": 700,
-     "h": 650,
+     "h": 610,
      "fill": {
       "angle": 160,
       "stops": [
@@ -1733,20 +1733,20 @@
     },
     {
      "kind": "ellipse",
-     "x": 1170,
-     "y": 300,
-     "w": 520,
-     "h": 520,
+     "x": 1180,
+     "y": 295,
+     "w": 500,
+     "h": 500,
      "fill": "#F4B41A",
      "opacity": 0.12,
      "bleed": true
     },
     {
      "kind": "ellipse",
-     "x": 1222,
-     "y": 352,
-     "w": 416,
-     "h": 416,
+     "x": 1230,
+     "y": 345,
+     "w": 400,
+     "h": 400,
      "fill": "#F4B41A",
      "opacity": 0.16,
      "bleed": true
@@ -1755,10 +1755,10 @@
    "illustrations": [
     {
      "asset": "il-day62-office-bag",
-     "x": 1180,
+     "x": 1190,
      "y": 320,
-     "w": 500,
-     "h": 440,
+     "w": 480,
+     "h": 420,
      "cleanCard": true
     }
    ]
@@ -3721,9 +3721,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 876,
      "w": 760,
-     "h": 48,
+     "h": 80,
      "text": "thirteen stops, no deliverables, lots of questions",
      "family": "Patrick Hand",
      "size": 32,
@@ -4035,9 +4035,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 916,
      "w": 760,
-     "h": 48,
+     "h": 40,
      "text": "week four is a chat, not a review",
      "family": "Patrick Hand",
      "size": 32,
@@ -4349,9 +4349,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 876,
      "w": 760,
-     "h": 48,
+     "h": 80,
      "text": "all four have already said yes to a coffee",
      "family": "Patrick Hand",
      "size": 32,
@@ -4545,7 +4545,7 @@
      "x": 96,
      "y": 236,
      "w": 1000,
-     "h": 60,
+     "h": 52,
      "text": "That is the tour",
      "family": "Patrick Hand",
      "size": 40,
@@ -4676,9 +4676,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 881,
      "w": 720,
-     "h": 52,
+     "h": 43,
      "text": "the kitchen counts as a channel",
      "family": "Patrick Hand",
      "size": 34,

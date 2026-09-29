@@ -1664,8 +1664,31 @@ function tickLabel(v: number): string {
 /** Draw the left Y axis: a vertical line, evenly spaced tick marks, and value
  *  labels from 0 to `maxV`. Stays within the reserved left inset (labels are
  *  right-aligned just left of the axis). For value-based charts only. */
-function drawYAxis(ctx: CanvasLike, x0: number, y0: number, ph: number, maxV: number, k = 1): void {
+/** A raw tick interval rounded up to 1, 2 or 5 times a power of ten, so an
+ *  axis to 1810 reads 0, 500, 1000, 1500, 2000 rather than quarters of the
+ *  series maximum. */
+function niceStep(raw: number): number {
+  if (!(raw > 0)) return 1;
+  const p = Math.pow(10, Math.floor(Math.log10(raw)));
+  const f = raw / p;
+  if (f <= 1) return p;
+  if (f <= 2) return 2 * p;
+  if (f <= 5) return 5 * p;
+  return 10 * p;
+}
+
+/** The top of the value axis (the series maximum rounded up to a nice tick)
+ *  and the tick step. Shared by the axis and every bar and point so they
+ *  agree; mirrored in the Go raster. */
+export function chartAxisMax(maxV: number, ph: number): { top: number; step: number } {
   const ticks = tickCount(ph);
+  const step = niceStep(maxV / ticks);
+  return { top: Math.ceil(maxV / step) * step, step };
+}
+
+function drawYAxis(ctx: CanvasLike, x0: number, y0: number, ph: number, maxV: number, k = 1): void {
+  const { top, step } = chartAxisMax(maxV, ph);
+  const ticks = Math.round(top / step);
   ctx.strokeStyle = "#d4d4d8";
   ctx.lineWidth = 1;
   ctx.beginPath();
@@ -1676,14 +1699,14 @@ function drawYAxis(ctx: CanvasLike, x0: number, y0: number, ph: number, maxV: nu
   ctx.fillStyle = "#52525b";
   ctx.textAlign = "right";
   for (let t = 0; t <= ticks; t++) {
-    const frac = t / ticks;
+    const frac = (t * step) / top;
     const ty = y0 + ph - frac * ph;
     ctx.strokeStyle = "#d4d4d8";
     ctx.beginPath();
     ctx.moveTo(x0 - 3, ty);
     ctx.lineTo(x0, ty);
     ctx.stroke();
-    ctx.fillText(tickLabel(maxV * frac), x0 - 5, ty + 3 * k);
+    ctx.fillText(tickLabel(t * step), x0 - 5, ty + 3 * k);
   }
 }
 
@@ -1801,7 +1824,9 @@ function drawChart(ctx: CanvasLike, node: ChartNode, w: number, h: number): void
   }
 
   const stacked = type === "barStacked";
-  const maxV = (stacked ? stackedMax(series, n) : seriesMax(series)) || 1;
+  const rawMax = (stacked ? stackedMax(series, n) : seriesMax(series)) || 1;
+  // Bars and points scale to the axis top, so a value sits on its tick.
+  const maxV = node.style?.axes?.showY !== false ? chartAxisMax(rawMax, ph).top : rawMax;
 
   // baseline (x axis), drawn unless the x axis is explicitly hidden
   if (node.style?.axes?.showX !== false) {
@@ -1882,7 +1907,8 @@ function drawChart(ctx: CanvasLike, node: ChartNode, w: number, h: number): void
 /** Scatter: each series' values plotted against their category index. */
 function drawScatter(ctx: CanvasLike, node: ChartNode, x0: number, y0: number, pw: number, ph: number, n: number, showValues: boolean): void {
   const series = node.series ?? [];
-  const maxV = seriesMax(series) || 1;
+  const rawMax = seriesMax(series) || 1;
+  const maxV = node.style?.axes?.showY !== false ? chartAxisMax(rawMax, ph).top : rawMax;
   const k = chartTextScale(node);
   if (node.style?.axes?.showX !== false) {
     ctx.strokeStyle = "#d4d4d8";

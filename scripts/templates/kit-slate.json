@@ -179,7 +179,7 @@
      "x": 96,
      "y": 372,
      "w": 1000,
-     "h": 60,
+     "h": 34,
      "text": "Studio proposal, 2026",
      "family": "Space Mono",
      "size": 26,
@@ -1269,7 +1269,7 @@
      "x": 96,
      "y": 236,
      "w": 1000,
-     "h": 56,
+     "h": 34,
      "text": "Studio proposal, 2026",
      "family": "Space Mono",
      "size": 26,
@@ -1280,7 +1280,7 @@
     {
      "kind": "rect",
      "x": 96,
-     "y": 306,
+     "y": 284,
      "w": 120,
      "h": 6,
      "fill": "#2F6BFF"
@@ -1288,7 +1288,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 336,
+     "y": 330,
      "w": 1560,
      "h": 272,
      "text": "Growth that we can explain is the only kind we want to keep.",
@@ -1301,7 +1301,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 648,
+     "y": 642,
      "w": 1000,
      "h": 32,
      "text": "Dana Whitfield, in the FY2026 letter to partners",
@@ -5534,7 +5534,7 @@
      "x": 1080,
      "y": 268,
      "w": 700,
-     "h": 650,
+     "h": 610,
      "fill": {
       "angle": 160,
       "stops": [
@@ -5551,20 +5551,20 @@
     },
     {
      "kind": "ellipse",
-     "x": 1170,
-     "y": 300,
-     "w": 520,
-     "h": 520,
+     "x": 1180,
+     "y": 295,
+     "w": 500,
+     "h": 500,
      "fill": "#2F6BFF",
      "opacity": 0.12,
      "bleed": true
     },
     {
      "kind": "ellipse",
-     "x": 1222,
-     "y": 352,
-     "w": 416,
-     "h": 416,
+     "x": 1230,
+     "y": 345,
+     "w": 400,
+     "h": 400,
      "fill": "#2F6BFF",
      "opacity": 0.16,
      "bleed": true
@@ -5573,10 +5573,10 @@
    "illustrations": [
     {
      "asset": "la-desk-illustration-2",
-     "x": 1180,
+     "x": 1190,
      "y": 320,
-     "w": 500,
-     "h": 440
+     "w": 480,
+     "h": 420
     }
    ]
   },
@@ -7852,7 +7852,7 @@
      "x": 96,
      "y": 236,
      "w": 1000,
-     "h": 60,
+     "h": 34,
      "text": "Let's make something",
      "family": "Space Mono",
      "size": 26,

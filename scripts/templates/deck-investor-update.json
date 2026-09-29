@@ -698,7 +698,7 @@
      "x": 96,
      "y": 372,
      "w": 1000,
-     "h": 60,
+     "h": 42,
      "text": "monthly update, no spin",
      "family": "Kalam",
      "size": 32,
@@ -782,9 +782,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 890,
      "w": 720,
-     "h": 52,
+     "h": 34,
      "text": "read the letter first, the rest is the receipts",
      "family": "Kalam",
      "size": 27,
@@ -1258,9 +1258,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 923,
      "w": 760,
-     "h": 48,
+     "h": 33,
      "text": "if you read one slide, read this one",
      "family": "Kalam",
      "size": 26,
@@ -1791,9 +1791,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 923,
      "w": 760,
-     "h": 48,
+     "h": 33,
      "text": "cash and contracted, nothing forecast",
      "family": "Kalam",
      "size": 26,
@@ -2186,9 +2186,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 923,
      "w": 760,
-     "h": 48,
+     "h": 33,
      "text": "one axis for both lines, so the gap is honest",
      "family": "Kalam",
      "size": 26,
@@ -3188,7 +3188,7 @@
      "y": 284,
      "w": 40,
      "h": 40,
-     "color": "#B4700F"
+     "color": "#8E5A0A"
     },
     {
      "kind": "text",
@@ -3405,9 +3405,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 891,
      "w": 760,
-     "h": 48,
+     "h": 65,
      "text": "the counter-offer was 40% over band; we held the band",
      "family": "Kalam",
      "size": 26,
@@ -3682,7 +3682,7 @@
      "y": 308,
      "w": 40,
      "h": 40,
-     "color": "#B4700F"
+     "color": "#8E5A0A"
     },
     {
      "kind": "text",
@@ -3850,7 +3850,7 @@
      "y": 308,
      "w": 40,
      "h": 40,
-     "color": "#B4700F"
+     "color": "#8E5A0A"
     },
     {
      "kind": "text",
@@ -3902,9 +3902,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 923,
      "w": 760,
-     "h": 48,
+     "h": 33,
      "text": "one reply with one name is enough",
      "family": "Kalam",
      "size": 26,
@@ -4590,7 +4590,7 @@
      "x": 96,
      "y": 236,
      "w": 1000,
-     "h": 60,
+     "h": 42,
      "text": "Thank you for reading",
      "family": "Kalam",
      "size": 32,
@@ -4721,9 +4721,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 890,
      "w": 720,
-     "h": 52,
+     "h": 34,
      "text": "bad news gets a call before it gets a slide",
      "family": "Kalam",
      "size": 27,

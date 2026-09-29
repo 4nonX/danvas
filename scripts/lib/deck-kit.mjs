@@ -129,7 +129,7 @@ export const LOOKS = {
     deep: { bg: "#2F4A36", bg2: "#1D3124", ink: "#F8F0E3", muted: "#BBC9B4", line: "#456249", panel: "#3A5A40", panel2: "#466B4C", accent: "#F2905E", accent2: "#A9D2A0", sun: "#F2C063" },
     radius: 28,
     ornament: "blobs",
-    art: { cover: "od-jumping", section: "il-day96-camping", picture: "la-house-illustrations", closing: "od-strolling" },
+    art: { cover: "il-day96-camping", section: "il-day53-farm", picture: "la-house-illustrations", closing: "la-scooter" },
     peeps: ["op-peep-56", "op-peep-41", "op-peep-55", "op-peep-58", "op-peep-47"],
     scale: { cover: 118, title: 64, section: 240, statement: 80, numeral: 108, quote: 54 },
   },
@@ -201,7 +201,7 @@ export function type(K, g) {
   return {
     display: (size, o = {}) => ({ family: K.display, size, weight: K.dw, color: g.ink, lineHeight: 1.06, ...o }),
     body: (size, o = {}) => ({ family: K.body, size, weight: K.bw, color: g.muted, lineHeight: 1.4, ...o }),
-    strong: (size, o = {}) => ({ family: K.body, size, weight: 600, color: g.ink, lineHeight: 1.3, ...o }),
+    strong: (size, o = {}) => ({ family: K.body, size, weight: K.strongWeight ?? 600, color: g.ink, lineHeight: 1.3, ...o }),
     eyebrow: (o = {}) => ({ family: K.mono ?? K.body, size: 20, weight: 600, color: g.accentInk ?? g.accent, letterSpacing: 4, upper: true, lineHeight: 1.2, ...o }),
     meta: (o = {}) => ({ family: K.mono ?? K.body, size: 18, weight: 500, color: g.muted, lineHeight: 1.3, ...o }),
     numeral: (size, o = {}) => ({ family: K.numeralFace ?? K.display, size, weight: K.numeralWeight ?? K.dw, color: g.accentInk ?? g.accent, lineHeight: 1, ...o }),
@@ -324,7 +324,7 @@ export function ornamentDeep(K, g, opts = {}) {
       // editorial deck's monogram.
       return [text(1160, 420, 760, 700, K.watermark ?? "&", { family: K.display, size: 620, weight: 500, color: mixHex(g.bg, g.ink, 0.08), align: "right", lineHeight: 1, bleed: true }), rect(M, 64, CW, 2, g.line)];
     case "sun":
-      return [ellipse(1620, -120, 300, 300, g.sun, { bleed: true, opacity: 0.95 }), ...sparkles(g.sun, 13, 7, { x: 0, y: 0, w: W, h: 700 })];
+      return [ellipse(1620, -120, 300, 300, g.sun, { bleed: true, opacity: 0.95 }), ...sparkles(g.sun, 13, 7, { x: 1100, y: 0, w: 820, h: 700 })];
     case "ridges":
       // Soft ridgelines along the bottom, a moon and two layers of stars.
       return [
@@ -332,7 +332,7 @@ export function ornamentDeep(K, g, opts = {}) {
         ellipse(500, 900, 1300, 700, mixHex(g.bg, g.ink, 0.06), { bleed: true }),
         ellipse(1400, 880, 1100, 700, mixHex(g.bg, g.bg2, 0.6), { bleed: true }),
         ellipse(1500, 80, 120, 120, g.accent, { opacity: 0.9 }), ellipse(1470, 60, 120, 120, g.bg, { opacity: 0.85 }),
-        ...sparkles(g.accent, 7, 10, { x: 0, y: 0, w: W, h: 620 }), ...sparkles(g.ink, 11, 8, { x: 0, y: 0, w: W, h: 620 }),
+        ...sparkles(g.accent, 7, 10, { x: 1100, y: 0, w: 820, h: 620 }), ...sparkles(g.ink, 11, 8, { x: 1100, y: 0, w: 820, h: 620 }),
       ];
     case "arcs":
       // Concentric rings off the top right corner.
@@ -445,10 +445,15 @@ export function footer(K, g, i) {
 export function note(K, g, str, deep = false, at = null) {
   if (!str) return [];
   const t = type(K, g);
-  if (at) return [text(at.x, at.y, at.w ?? 720, 52, str, t.kicker({ align: at.align ?? "center", size: Math.round(K.accentSize * 0.85) }))];
+  const sz = Math.round(K.accentSize * (deep ? 0.85 : 0.8));
+  const cw = K.charWidth ?? 0.56;
+  if (at) return [text(at.x, at.y, at.w ?? 720, 52, str, t.kicker({ align: at.align ?? "center", size: sz }))];
+  const w = deep ? 720 : 760;
+  const lines = Math.min(2, linesFor(str, sz, w, cw));
+  const h = Math.round(sz * 1.25 * lines);
   return deep
-    ? [text(1140, 872, 720, 52, str, t.kicker({ align: "center", size: Math.round(K.accentSize * 0.85) }))]
-    : [text(W - M - 760, 908, 760, 48, str, t.kicker({ align: "right", size: Math.round(K.accentSize * 0.8) }))];
+    ? [text(1140, 872 + 52 - h, w, h, str, t.kicker({ align: "center", size: sz }))]
+    : [text(W - M - w, 908 + 48 - h, w, h, str, t.kicker({ align: "right", size: sz }))];
 }
 
 /** A card: the look's panel with a hairline stroke, in the look's radius. */
@@ -621,7 +626,7 @@ export function cover(K, i, c0) {
     if (K.total > 1) nodes.push(text(W - M - 240, H - 50, 240, 28, pageNo(i, K.total), t.meta({ align: "right" })));
     return { page: { name: "Cover", bg: deepGround(g), nodes, illustrations }, fill };
   }
-  nodes.push(text(M, 372, textW, 60, K.kicker, t.kicker()));
+  nodes.push(text(M, 372, textW, Math.round(K.accentSize * 1.3), K.kicker, t.kicker()));
   nodes.push(text(M, 446, textW, titleH, c.title, t.display(coverSize, { lineHeight: 1.02 })));
   fill.push({ node: nodes.length - 1, label: "Title", hint: "Two short lines" });
   const subLines = Math.max(2, linesFor(c.subtitle, 28, 900, K.charWidth ?? 0.56));
@@ -687,7 +692,7 @@ export function agenda(K, i, c0) {
     nodes.push(text(M, y + 6, 96, 60, String(k + 1).padStart(2, "0"), t.numeral(44)));
     nodes.push(text(M + 120, y + 4, 900, 44, h, t.display(34)));
     nodes.push(text(M + 120, y + 50, 900, 30, s, t.body(21)));
-    nodes.push(button(M + 1040, y + 8, 160, 34, d, { fill: mixHex(g.panel, g.accent, 0.16), color: g.accent, family: K.body, size: 15, weight: 700 }));
+    nodes.push(button(M + 1040, y + 8, 160, 34, d, { fill: mixHex(g.panel, g.accent, 0.16), color: g.accentInk ?? g.accent, family: K.body, size: 15, weight: 700 }));
     nodes.push(rect(M, y + rowH - 12, 1204, 1, g.line));
   });
   // The session card, on the look's deep ground.
@@ -744,9 +749,10 @@ export function statement(K, i, c0) {
   const g = K.paper;
   const t = type(K, g);
   const nodes = [...ornamentPaper(K, g), ...footer(K, g, i)];
-  nodes.push(text(M, 236, 1000, 56, K.kicker, t.kicker()));
-  nodes.push(rect(M, 250 + 56, 120, 6, g.accent));
-  const y = 296 + 40;
+  const kh = Math.round(K.accentSize * 1.3);
+  nodes.push(text(M, 236, 1000, kh, K.kicker, t.kicker()));
+  nodes.push(rect(M, 236 + kh + 14, 120, 6, g.accent));
+  const y = 236 + kh + 60;
   // Long copy steps the size down until it holds in three lines.
   let size = K.scale.statement;
   while (size > K.scale.statement * 0.6 && linesFor(c.text, size, 1560, K.charWidth ?? 0.56) > 3) size -= 4;
@@ -764,7 +770,7 @@ export function textPicture(K, i, c0) {
   c.points.forEach(([h, s], k) => {
     const y = bodyTop + 24 + k * 178;
     nodes.push(ellipse(M, y + 4, 34, 34, mixHex(g.panel, g.accent, 0.18)));
-    nodes.push(text(M, y + 4, 34, 34, String(k + 1), { family: K.display, size: 17, weight: K.dw, color: g.accent, align: "center", vAlign: "middle", lineHeight: 1 }));
+    nodes.push(text(M, y + 4, 34, 34, String(k + 1), { family: K.display, size: 17, weight: K.dw, color: g.accentInk ?? g.accent, align: "center", vAlign: "middle", lineHeight: 1 }));
     nodes.push(text(M + 56, y, 840, 44, h, t.display(32)));
     nodes.push(text(M + 56, y + 52, 840, 70, s, t.body(22)));
   });
@@ -793,7 +799,7 @@ export function twoColumns(K, i, c0) {
   cols.forEach((col) => {
     if (col.g === g) nodes.push(card(K, g, col.x, y, colW, h));
     else nodes.push(rect(col.x, y, colW, h, deepGround(d), { radius: K.radius }));
-    nodes.push(icon(col.icon, col.x + colW - 88, y + 44, 40, col.g.accent));
+    nodes.push(icon(col.icon, col.x + colW - 88, y + 44, 40, col.g.accentInk ?? col.g.accent));
     nodes.push(text(col.x + 48, y + 48, colW - 160, 28, col.eyebrow, col.ty.eyebrow()));
     nodes.push(text(col.x + 48, y + 92, colW - 96, 112, col.head, col.ty.display(40, { lineHeight: 1.1 })));
     col.lines.forEach((l, k) => {
@@ -820,7 +826,7 @@ export function threeCards(K, i, c0) {
     nodes.push(card(K, g, x, y, cw, h));
     nodes.push(rect(x, y, cw, 6, tones[k], { radius: 0 }));
     nodes.push(ellipse(x + 40, y + 48, 80, 80, mixHex(g.panel, tones[k], 0.2)));
-    nodes.push(icon(ic, x + 60, y + 68, 40, tones[k]));
+    nodes.push(icon(ic, x + 60, y + 68, 40, k % 2 ? (g.accent2Ink ?? g.accent2) : (g.accentInk ?? g.accent)));
     nodes.push(text(x + 40, y + 164, cw - 80, 100, head, t.display(34, { lineHeight: 1.1 })));
     nodes.push(text(x + 40, y + 276, cw - 80, 160, body, t.body(22)));
     nodes.push(rect(x + 40, y + h - 84, cw - 80, 1, g.line));
@@ -1057,7 +1063,7 @@ export function closing(K, i, c0) {
     illustrations.push(art(drawing, 1250, 250, 540, 540));
   }
   nodes.push(...mark(K, g));
-  nodes.push(text(M, 236, 1000, 60, K.farewell, t.kicker()));
+  nodes.push(text(M, 236, 1000, Math.round(K.accentSize * 1.3), K.farewell, t.kicker()));
   const closeSize = fitSize(c.title, K.scale.cover, 1100, 0.6, K.charWidth ?? 0.56);
   nodes.push(text(M, 300, 1100, Math.round(closeSize * 1.1) + 10, c.title, t.display(closeSize)));
   nodes.push(text(M, 300 + Math.round(closeSize * 1.1) + 34, 940, 120, c.subtitle, t.body(28)));
@@ -1159,7 +1165,7 @@ export function schedule(K, i, c0) {
   c.slots.forEach(([tm, h, sub], k) => {
     const y = 322 + k * 104;
     nodes.push(ellipse(M + 2, y, 20, 20, k % 3 === 2 ? g.accent2 : g.accent));
-    nodes.push(text(M + 56, y - 2, 150, 28, tm, { family: K.mono ?? K.body, size: 22, weight: 600, color: g.accent, lineHeight: 1.2 }));
+    nodes.push(text(M + 56, y - 2, 150, 28, tm, { family: K.mono ?? K.body, size: 22, weight: 600, color: g.accentInk ?? g.accent, lineHeight: 1.2 }));
     nodes.push(text(M + 220, y - 6, 620, 32, h, t.display(27)));
     nodes.push(text(M + 220, y + 32, 620, 56, sub, t.body(20)));
   });
@@ -1189,7 +1195,7 @@ export function checklist(K, i, c0) {
   c.items.forEach(([label, must], k) => {
     const col = k % 2, row = Math.floor(k / 2);
     const x = M + col * 560, y = bodyTop + 20 + row * 92;
-    nodes.push(icon(must ? "circle-check" : "circle", x, y + 2, 34, must ? g.accent : g.line));
+    nodes.push(icon(must ? "circle-check" : "circle", x, y + 2, 34, must ? (g.accentInk ?? g.accent) : g.line));
     nodes.push(text(x + 54, y, 480, 40, label, t.strong(24)));
   });
   const ly = bodyTop + 20 + Math.ceil(c.items.length / 2) * 92 + 20;
@@ -1221,13 +1227,13 @@ export function facts(K, i, c0) {
   c.items.forEach(([ic, h, sub], k) => {
     const y = bodyTop + 100 + k * 118;
     nodes.push(ellipse(M, y, 56, 56, mixHex(g.panel, g.accent, 0.18)));
-    nodes.push(icon(ic, M + 14, y + 14, 28, g.accent));
+    nodes.push(icon(ic, M + 14, y + 14, 28, g.accentInk ?? g.accent));
     nodes.push(text(M + 80, y - 2, 740, 34, h, t.display(26)));
     nodes.push(text(M + 80, y + 34, 740, 30, sub, t.body(20)));
   });
-  nodes.push(photo(1080, 268, 700, 650, { angle: 160, stops: [[mixHex(g.panel, g.accent2, 0.22), 0], [g.panel, 1]] }, { radius: K.radius }));
-  nodes.push(...halo(1430, 560, 520, g.accent));
-  const illustrations = [art(c.art ?? K.art.picture, 1180, 320, 500, 440)];
+  nodes.push(photo(1080, 268, 700, 610, { angle: 160, stops: [[mixHex(g.panel, g.accent2, 0.22), 0], [g.panel, 1]] }, { radius: K.radius }));
+  nodes.push(...halo(1430, 545, 500, g.accent));
+  const illustrations = [art(c.art ?? K.art.picture, 1190, 320, 480, 420)];
   nodes.push(...note(K, g, c.note));
   return { page: { name: "Facts", bg: g.bg, nodes, illustrations } };
 }

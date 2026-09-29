@@ -114,7 +114,7 @@
      "x": 96,
      "y": 372,
      "w": 1000,
-     "h": 60,
+     "h": 42,
      "text": "Scored honestly",
      "family": "Chakra Petch",
      "size": 32,
@@ -198,9 +198,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 890,
      "w": 720,
-     "h": 52,
+     "h": 34,
      "text": "nine results, no rounding up",
      "family": "Chakra Petch",
      "size": 27,
@@ -1341,7 +1341,7 @@
      "x": 96,
      "y": 236,
      "w": 1000,
-     "h": 56,
+     "h": 42,
      "text": "Scored honestly",
      "family": "Chakra Petch",
      "size": 32,
@@ -1352,7 +1352,7 @@
     {
      "kind": "rect",
      "x": 96,
-     "y": 306,
+     "y": 292,
      "w": 120,
      "h": 6,
      "fill": "#FF6A1A"
@@ -1360,7 +1360,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 336,
+     "y": 338,
      "w": 1560,
      "h": 265,
      "text": "A 0.7 is a good quarter. A 1.0 every time means the targets were never hard.",
@@ -1373,7 +1373,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 641,
+     "y": 643,
      "w": 1000,
      "h": 32,
      "text": "How we score, from the Nova OKR handbook",
@@ -1386,9 +1386,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 923,
      "w": 760,
-     "h": 48,
+     "h": 33,
      "text": "we grade the target too, not just the team",
      "family": "Chakra Petch",
      "size": 26,
@@ -1768,9 +1768,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 923,
      "w": 760,
-     "h": 48,
+     "h": 33,
      "text": "the pager is the one we still owe",
      "family": "Chakra Petch",
      "size": 26,
@@ -2014,9 +2014,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 923,
      "w": 760,
-     "h": 48,
+     "h": 33,
      "text": "late by two months, not wrong",
      "family": "Chakra Petch",
      "size": 26,
@@ -2322,9 +2322,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 923,
      "w": 760,
-     "h": 48,
+     "h": 33,
      "text": "shipped it; now we have to sell it",
      "family": "Chakra Petch",
      "size": 26,
@@ -2431,7 +2431,7 @@
      "y": 286,
      "w": 40,
      "h": 40,
-     "color": "#FF6A1A"
+     "color": "#B04000"
     },
     {
      "kind": "text",
@@ -2552,7 +2552,7 @@
      "y": 286,
      "w": 40,
      "h": 40,
-     "color": "#FF7A2E"
+     "color": "#FF9450"
     },
     {
      "kind": "text",
@@ -2648,9 +2648,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 923,
      "w": 760,
-     "h": 48,
+     "h": 33,
      "text": "one vacation should not move a quarter",
      "family": "Chakra Petch",
      "size": 26,
@@ -2774,7 +2774,7 @@
      "y": 310,
      "w": 40,
      "h": 40,
-     "color": "#FF6A1A"
+     "color": "#B04000"
     },
     {
      "kind": "text",
@@ -2942,7 +2942,7 @@
      "y": 310,
      "w": 40,
      "h": 40,
-     "color": "#FF6A1A"
+     "color": "#B04000"
     },
     {
      "kind": "text",
@@ -2994,9 +2994,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 923,
      "w": 760,
-     "h": 48,
+     "h": 33,
      "text": "drafts, not decisions, until the 10th",
      "family": "Chakra Petch",
      "size": 26,
@@ -3103,7 +3103,7 @@
      "x": 96,
      "y": 236,
      "w": 1000,
-     "h": 60,
+     "h": 42,
      "text": "Next quarter, same board",
      "family": "Chakra Petch",
      "size": 32,
@@ -3234,9 +3234,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 890,
      "w": 720,
-     "h": 52,
+     "h": 34,
      "text": "push back before Friday, please",
      "family": "Chakra Petch",
      "size": 27,

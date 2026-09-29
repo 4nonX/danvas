@@ -693,7 +693,7 @@
      "x": 96,
      "y": 372,
      "w": 1000,
-     "h": 60,
+     "h": 52,
      "text": "The book of business",
      "family": "Kalam",
      "size": 40,
@@ -777,9 +777,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 881,
      "w": 720,
-     "h": 52,
+     "h": 43,
      "text": "a name next to every red account",
      "family": "Kalam",
      "size": 34,
@@ -1319,9 +1319,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 916,
      "w": 760,
-     "h": 48,
+     "h": 40,
      "text": "same scorecard as June",
      "family": "Kalam",
      "size": 32,
@@ -4972,9 +4972,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 916,
      "w": 760,
-     "h": 48,
+     "h": 40,
      "text": "the five biggest reds are on page six",
      "family": "Kalam",
      "size": 32,
@@ -5249,7 +5249,7 @@
      "y": 312,
      "w": 40,
      "h": 40,
-     "color": "#D9631A"
+     "color": "#AE4B0E"
     },
     {
      "kind": "text",
@@ -5417,7 +5417,7 @@
      "y": 312,
      "w": 40,
      "h": 40,
-     "color": "#D9631A"
+     "color": "#AE4B0E"
     },
     {
      "kind": "text",
@@ -5469,9 +5469,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 916,
      "w": 760,
-     "h": 48,
+     "h": 40,
      "text": "the other nineteen are in the appendix",
      "family": "Kalam",
      "size": 32,
@@ -6209,9 +6209,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 881,
      "w": 720,
-     "h": 52,
+     "h": 43,
      "text": "renewed for three years in September",
      "family": "Kalam",
      "size": 34,
@@ -6857,9 +6857,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 916,
      "w": 760,
-     "h": 48,
+     "h": 40,
      "text": "the sponsor call cannot slip",
      "family": "Kalam",
      "size": 32,
@@ -7322,9 +7322,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 916,
      "w": 760,
-     "h": 48,
+     "h": 40,
      "text": "all thirteen followed a business review",
      "family": "Kalam",
      "size": 32,
@@ -8010,7 +8010,7 @@
      "x": 96,
      "y": 236,
      "w": 1000,
-     "h": 60,
+     "h": 52,
      "text": "Thanks, team",
      "family": "Kalam",
      "size": 40,
@@ -8141,9 +8141,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 881,
      "w": 720,
-     "h": 52,
+     "h": 43,
      "text": "the list is on the wall by room four",
      "family": "Kalam",
      "size": 34,

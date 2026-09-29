@@ -146,7 +146,7 @@
      "x": 96,
      "y": 372,
      "w": 1000,
-     "h": 60,
+     "h": 49,
      "text": "Headcount against the roadmap",
      "family": "Patrick Hand",
      "size": 38,
@@ -230,9 +230,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 884,
      "w": 720,
-     "h": 52,
+     "h": 40,
      "text": "hold us to every date in here",
      "family": "Patrick Hand",
      "size": 32,
@@ -727,9 +727,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 918,
      "w": 760,
-     "h": 48,
+     "h": 38,
      "text": "the Q1 column is the one to argue with",
      "family": "Patrick Hand",
      "size": 30,
@@ -1381,9 +1381,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 918,
      "w": 760,
-     "h": 48,
+     "h": 38,
      "text": "at a 15% screen we would need 1,470 names",
      "family": "Patrick Hand",
      "size": 30,
@@ -1593,9 +1593,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 884,
      "w": 720,
-     "h": 52,
+     "h": 40,
      "text": "a panel in one day, never across a week",
      "family": "Patrick Hand",
      "size": 32,
@@ -1917,9 +1917,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 918,
      "w": 760,
-     "h": 48,
+     "h": 38,
      "text": "the 48-hour decision is the one we break most",
      "family": "Patrick Hand",
      "size": 30,
@@ -2223,9 +2223,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 881,
      "w": 760,
-     "h": 48,
+     "h": 75,
      "text": "if a date slips, one of these four says so first",
      "family": "Patrick Hand",
      "size": 30,
@@ -2379,7 +2379,7 @@
      "y": 305,
      "w": 40,
      "h": 40,
-     "color": "#F2955A"
+     "color": "#B04E14"
     },
     {
      "kind": "text",
@@ -2547,7 +2547,7 @@
      "y": 305,
      "w": 40,
      "h": 40,
-     "color": "#F2955A"
+     "color": "#B04E14"
     },
     {
      "kind": "text",
@@ -2599,9 +2599,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 918,
      "w": 760,
-     "h": 48,
+     "h": 38,
      "text": "the band fix costs less than one lost offer",
      "family": "Patrick Hand",
      "size": 30,
@@ -2740,7 +2740,7 @@
      "x": 96,
      "y": 236,
      "w": 1000,
-     "h": 60,
+     "h": 49,
      "text": "The asks",
      "family": "Patrick Hand",
      "size": 38,
@@ -2871,9 +2871,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 884,
      "w": 720,
-     "h": 52,
+     "h": 40,
      "text": "the first six names are the hard ones",
      "family": "Patrick Hand",
      "size": 32,

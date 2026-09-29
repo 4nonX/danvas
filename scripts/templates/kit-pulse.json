@@ -84,7 +84,7 @@
      "x": 96,
      "y": 372,
      "w": 1000,
-     "h": 60,
+     "h": 47,
      "text": "Seed round",
      "family": "Bricolage Grotesque",
      "size": 36,
@@ -1068,7 +1068,7 @@
      "x": 96,
      "y": 236,
      "w": 1000,
-     "h": 56,
+     "h": 47,
      "text": "Seed round",
      "family": "Bricolage Grotesque",
      "size": 36,
@@ -1079,7 +1079,7 @@
     {
      "kind": "rect",
      "x": 96,
-     "y": 306,
+     "y": 297,
      "w": 120,
      "h": 6,
      "fill": "#FF4D2E"
@@ -1087,7 +1087,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 336,
+     "y": 343,
      "w": 1560,
      "h": 286,
      "text": "Growth that we can explain is the only kind we want to keep.",
@@ -1100,7 +1100,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 662,
+     "y": 669,
      "w": 1000,
      "h": 32,
      "text": "Dana Whitfield, in the FY2026 letter to partners",
@@ -1601,7 +1601,7 @@
      "y": 295,
      "w": 40,
      "h": 40,
-     "color": "#FF4D2E"
+     "color": "#B9F542"
     },
     {
      "kind": "text",
@@ -4631,7 +4631,7 @@
      "x": 1080,
      "y": 268,
      "w": 700,
-     "h": 650,
+     "h": 610,
      "fill": {
       "angle": 160,
       "stops": [
@@ -4649,20 +4649,20 @@
     },
     {
      "kind": "ellipse",
-     "x": 1170,
-     "y": 300,
-     "w": 520,
-     "h": 520,
+     "x": 1180,
+     "y": 295,
+     "w": 500,
+     "h": 500,
      "fill": "#FF4D2E",
      "opacity": 0.12,
      "bleed": true
     },
     {
      "kind": "ellipse",
-     "x": 1222,
-     "y": 352,
-     "w": 416,
-     "h": 416,
+     "x": 1230,
+     "y": 345,
+     "w": 400,
+     "h": 400,
      "fill": "#FF4D2E",
      "opacity": 0.16,
      "bleed": true
@@ -4671,10 +4671,10 @@
    "illustrations": [
     {
      "asset": "la-hero-image-2",
-     "x": 1180,
+     "x": 1190,
      "y": 320,
-     "w": 500,
-     "h": 440
+     "w": 480,
+     "h": 420
     }
    ]
   },
@@ -6646,7 +6646,7 @@
      "x": 96,
      "y": 236,
      "w": 1000,
-     "h": 60,
+     "h": 47,
      "text": "Let's build it",
      "family": "Bricolage Grotesque",
      "size": 36,

@@ -698,7 +698,7 @@
      "x": 96,
      "y": 372,
      "w": 1000,
-     "h": 60,
+     "h": 47,
      "text": "The quarter, on the board",
      "family": "Kalam",
      "size": 36,
@@ -782,9 +782,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 885,
      "w": 720,
-     "h": 52,
+     "h": 39,
      "text": "read the board before the story",
      "family": "Kalam",
      "size": 31,
@@ -1080,7 +1080,7 @@
      "h": 34,
      "label": "10 min",
      "fill": "#e3cfbc",
-     "color": "#B4602F",
+     "color": "#964B22",
      "family": "Libre Franklin",
      "size": 15,
      "weight": 700
@@ -1140,7 +1140,7 @@
      "h": 34,
      "label": "10 min",
      "fill": "#e3cfbc",
-     "color": "#B4602F",
+     "color": "#964B22",
      "family": "Libre Franklin",
      "size": 15,
      "weight": 700
@@ -1200,7 +1200,7 @@
      "h": 34,
      "label": "15 min",
      "fill": "#e3cfbc",
-     "color": "#B4602F",
+     "color": "#964B22",
      "family": "Libre Franklin",
      "size": 15,
      "weight": 700
@@ -1260,7 +1260,7 @@
      "h": 34,
      "label": "10 min",
      "fill": "#e3cfbc",
-     "color": "#B4602F",
+     "color": "#964B22",
      "family": "Libre Franklin",
      "size": 15,
      "weight": 700
@@ -1320,7 +1320,7 @@
      "h": 34,
      "label": "15 min",
      "fill": "#e3cfbc",
-     "color": "#B4602F",
+     "color": "#964B22",
      "family": "Libre Franklin",
      "size": 15,
      "weight": 700
@@ -1522,9 +1522,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 920,
      "w": 760,
-     "h": 48,
+     "h": 36,
      "text": "fifteen minutes on the losses, on purpose",
      "family": "Kalam",
      "size": 29,
@@ -2055,9 +2055,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 920,
      "w": 760,
-     "h": 48,
+     "h": 36,
      "text": "plan was $12.0M, cleared in week twelve",
      "family": "Kalam",
      "size": 29,
@@ -3476,7 +3476,7 @@
      "y": 286,
      "w": 40,
      "h": 40,
-     "color": "#B4602F"
+     "color": "#964B22"
     },
     {
      "kind": "text",
@@ -3693,9 +3693,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 920,
      "w": 760,
-     "h": 48,
+     "h": 36,
      "text": "$2.1M is sitting in security review",
      "family": "Kalam",
      "size": 29,
@@ -4433,9 +4433,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 885,
      "w": 720,
-     "h": 52,
+     "h": 39,
      "text": "three of the seven big deals said this",
      "family": "Kalam",
      "size": 31,
@@ -5021,9 +5021,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 920,
      "w": 760,
-     "h": 48,
+     "h": 36,
      "text": "we lose on price and win on speed",
      "family": "Kalam",
      "size": 29,
@@ -5780,9 +5780,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 885,
      "w": 720,
-     "h": 52,
+     "h": 39,
      "text": "no bet without a name on it",
      "family": "Kalam",
      "size": 31,
@@ -6067,7 +6067,7 @@
      "y": 310,
      "w": 40,
      "h": 40,
-     "color": "#B4602F"
+     "color": "#964B22"
     },
     {
      "kind": "text",
@@ -6235,7 +6235,7 @@
      "y": 310,
      "w": 40,
      "h": 40,
-     "color": "#B4602F"
+     "color": "#964B22"
     },
     {
      "kind": "text",
@@ -6287,9 +6287,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 920,
      "w": 760,
-     "h": 48,
+     "h": 36,
      "text": "same slide in January, numbers filled in",
      "family": "Kalam",
      "size": 29,
@@ -6975,7 +6975,7 @@
      "x": 96,
      "y": 236,
      "w": 1000,
-     "h": 60,
+     "h": 47,
      "text": "On to Q4",
      "family": "Kalam",
      "size": 36,
@@ -7106,9 +7106,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 885,
      "w": 720,
-     "h": 52,
+     "h": 39,
      "text": "bring the stalled six to the follow-up",
      "family": "Kalam",
      "size": 31,

@@ -23,18 +23,18 @@
  "typography": [
   {
    "role": "heading",
-   "family": "Sora",
-   "weight": 800
+   "family": "Archivo Black",
+   "weight": 400
   },
   {
    "role": "body",
-   "family": "Manrope",
-   "weight": 500
+   "family": "Rubik",
+   "weight": 400
   },
   {
    "role": "accent",
-   "family": "Bricolage Grotesque",
-   "weight": 800
+   "family": "Gloria Hallelujah",
+   "weight": 400
   }
  ],
  "pages": [
@@ -44,11 +44,11 @@
     "angle": 160,
     "stops": [
      [
-      "#2B2BFF",
+      "#1B1B1B",
       0
      ],
      [
-      "#6A2BFF",
+      "#050505",
       1
      ]
     ]
@@ -56,11 +56,44 @@
    "nodes": [
     {
      "kind": "rect",
+     "x": 1180,
+     "y": -300,
+     "w": 90,
+     "h": 1700,
+     "fill": "#FFD200",
+     "rotation": 24,
+     "opacity": 0.1,
+     "bleed": true
+    },
+    {
+     "kind": "rect",
+     "x": 1370,
+     "y": -300,
+     "w": 90,
+     "h": 1700,
+     "fill": "#FFD200",
+     "rotation": 24,
+     "opacity": 0.15000000000000002,
+     "bleed": true
+    },
+    {
+     "kind": "rect",
+     "x": 1560,
+     "y": -300,
+     "w": 90,
+     "h": 1700,
+     "fill": "#FFD200",
+     "rotation": 24,
+     "opacity": 0.2,
+     "bleed": true
+    },
+    {
+     "kind": "rect",
      "x": 96,
      "y": 96,
      "w": 22,
      "h": 22,
-     "fill": "#FF4D2E",
+     "fill": "#FFD200",
      "radius": 6
     },
     {
@@ -70,7 +103,7 @@
      "w": 700,
      "h": 30,
      "text": "Loop",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 22,
      "weight": 600,
      "color": "#FFFFFF",
@@ -81,12 +114,12 @@
      "x": 96,
      "y": 372,
      "w": 1000,
-     "h": 60,
+     "h": 47,
      "text": "Hands on",
-     "family": "Bricolage Grotesque",
+     "family": "Gloria Hallelujah",
      "size": 36,
-     "weight": 800,
-     "color": "#B9F542",
+     "weight": 400,
+     "color": "#FFD200",
      "lineHeight": 1.2
     },
     {
@@ -94,25 +127,25 @@
      "x": 96,
      "y": 446,
      "w": 1000,
-     "h": 266,
+     "h": 245,
      "text": "What we will\nmake together",
-     "family": "Sora",
-     "size": 122,
-     "weight": 800,
+     "family": "Archivo Black",
+     "size": 112,
+     "weight": 400,
      "color": "#FFFFFF",
      "lineHeight": 1.02
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 742,
+     "y": 721,
      "w": 900,
-     "h": 80,
+     "h": 120,
      "text": "Three hours, twelve people, one wall of ideas, and a shortlist we all own by the end of the afternoon.",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 28,
-     "weight": 500,
-     "color": "#CFCFFF",
+     "weight": 400,
+     "color": "#BDBAB1",
      "lineHeight": 1.4
     },
     {
@@ -122,10 +155,10 @@
      "w": 900,
      "h": 28,
      "text": "Facilitated by Mei Lin  ·  15 October 2026",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 18,
      "weight": 500,
-     "color": "#CFCFFF",
+     "color": "#BDBAB1",
      "lineHeight": 1.3
     },
     {
@@ -134,148 +167,673 @@
      "y": 940,
      "w": 240,
      "h": 28,
-     "text": "01 / 6",
-     "family": "Manrope",
+     "text": "01 / 9",
+     "family": "Rubik",
      "size": 18,
      "weight": 500,
-     "color": "#CFCFFF",
+     "color": "#BDBAB1",
      "lineHeight": 1.3,
      "align": "right"
     },
     {
      "kind": "rect",
-     "x": 1272,
-     "y": 0,
-     "w": 648,
-     "h": 1080,
-     "fill": "#FF4D2E",
+     "x": 96,
+     "y": 848,
+     "w": 276,
+     "h": 64,
+     "fill": "#262626",
+     "radius": 6,
+     "stroke": "#353535",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "text",
+     "x": 116,
+     "y": 860,
+     "w": 130,
+     "h": 40,
+     "text": "3 hrs",
+     "family": "Archivo Black",
+     "size": 26,
+     "weight": 400,
+     "color": "#FFD200",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 246,
+     "y": 868,
+     "w": 110,
+     "h": 26,
+     "text": "one room",
+     "family": "Rubik",
+     "size": 16,
+     "weight": 500,
+     "color": "#BDBAB1",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 396,
+     "y": 848,
+     "w": 276,
+     "h": 64,
+     "fill": "#262626",
+     "radius": 6,
+     "stroke": "#353535",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "text",
+     "x": 416,
+     "y": 860,
+     "w": 130,
+     "h": 40,
+     "text": "12",
+     "family": "Archivo Black",
+     "size": 26,
+     "weight": 400,
+     "color": "#FFD200",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 546,
+     "y": 868,
+     "w": 110,
+     "h": 26,
+     "text": "people",
+     "family": "Rubik",
+     "size": 16,
+     "weight": 500,
+     "color": "#BDBAB1",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 696,
+     "y": 848,
+     "w": 276,
+     "h": 64,
+     "fill": "#262626",
+     "radius": 6,
+     "stroke": "#353535",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "text",
+     "x": 716,
+     "y": 860,
+     "w": 130,
+     "h": 40,
+     "text": "5",
+     "family": "Archivo Black",
+     "size": 26,
+     "weight": 400,
+     "color": "#FFD200",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 846,
+     "y": 868,
+     "w": 110,
+     "h": 26,
+     "text": "we keep",
+     "family": "Rubik",
+     "size": 16,
+     "weight": 500,
+     "color": "#BDBAB1",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 1150,
+     "y": 170,
+     "w": 700,
+     "h": 700,
+     "fill": "#FFD200",
+     "opacity": 0.12,
      "bleed": true
     },
     {
      "kind": "ellipse",
-     "x": 1316,
-     "y": 260,
+     "x": 1220,
+     "y": 240,
      "w": 560,
      "h": 560,
-     "fill": "#FFFFFF",
-     "opacity": 0.18
-    },
-    {
-     "kind": "rect",
-     "x": 1675,
-     "y": 266,
-     "w": 42,
-     "h": 14,
-     "fill": "#B9F542",
-     "rotation": 35,
-     "radius": 3
-    },
-    {
-     "kind": "rect",
-     "x": 1654,
-     "y": 628,
-     "w": 27,
-     "h": 13,
-     "fill": "#FFFFFF",
-     "rotation": -18,
-     "radius": 3
-    },
-    {
-     "kind": "rect",
-     "x": 1702,
-     "y": 836,
-     "w": 34,
-     "h": 10,
-     "fill": "#2B2BFF",
-     "rotation": 11,
-     "radius": 3
-    },
-    {
-     "kind": "rect",
-     "x": 1349,
-     "y": 551,
-     "w": 39,
-     "h": 9,
-     "fill": "#B9F542",
-     "rotation": 33,
-     "radius": 3
-    },
-    {
-     "kind": "rect",
-     "x": 1558,
-     "y": 113,
-     "w": 25,
-     "h": 12,
-     "fill": "#FFFFFF",
-     "rotation": 11,
-     "radius": 3
-    },
-    {
-     "kind": "rect",
-     "x": 1722,
-     "y": 638,
-     "w": 28,
-     "h": 10,
-     "fill": "#2B2BFF",
-     "rotation": -8,
-     "radius": 3
-    },
-    {
-     "kind": "rect",
-     "x": 1675,
-     "y": 175,
-     "w": 33,
-     "h": 8,
-     "fill": "#B9F542",
-     "rotation": 39,
-     "radius": 3
-    },
-    {
-     "kind": "rect",
-     "x": 1743,
-     "y": 478,
-     "w": 36,
-     "h": 9,
-     "fill": "#FFFFFF",
-     "rotation": -30,
-     "radius": 3
+     "fill": "#FFD200",
+     "opacity": 0.16,
+     "bleed": true
     },
     {
      "kind": "text",
-     "x": 1330,
-     "y": 96,
-     "w": 500,
-     "h": 48,
-     "text": "Oct",
-     "family": "Sora",
-     "size": 40,
-     "weight": 800,
-     "color": "#FFFFFF",
-     "lineHeight": 1.06,
-     "align": "right"
+     "x": 1140,
+     "y": 885,
+     "w": 720,
+     "h": 39,
+     "text": "bring a marker, not a laptop",
+     "family": "Gloria Hallelujah",
+     "size": 31,
+     "weight": 400,
+     "color": "#FFD200",
+     "lineHeight": 1.2,
+     "align": "center"
     }
    ],
    "illustrations": [
     {
-     "asset": "la-notification-woman",
-     "x": 1336,
-     "y": 300,
-     "w": 520,
-     "h": 480
+     "asset": "il-day10-canvas-stand",
+     "x": 1210,
+     "y": 230,
+     "w": 580,
+     "h": 580,
+     "cleanCard": true
+    }
+   ]
+  },
+  {
+   "name": "Comparison table",
+   "bg": "#FFFDF5",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 1700,
+     "y": -300,
+     "w": 60,
+     "h": 1700,
+     "fill": "#F5C400",
+     "rotation": 24,
+     "opacity": 0.08,
+     "bleed": true
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 88,
+     "w": 1200,
+     "h": 28,
+     "text": "Run of show  ·  15 October",
+     "family": "Rubik",
+     "size": 20,
+     "weight": 600,
+     "color": "#745600",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 124,
+     "w": 1240,
+     "h": 74,
+     "text": "Three hours, five blocks",
+     "family": "Archivo Black",
+     "size": 60,
+     "weight": 400,
+     "color": "#111111",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#E3E0D5"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Loop  ·  Workshop: the next bet",
+     "family": "Rubik",
+     "size": 18,
+     "weight": 500,
+     "color": "#57544C",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "02 / 9",
+     "family": "Rubik",
+     "size": 18,
+     "weight": 500,
+     "color": "#57544C",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 242,
+     "w": 1728,
+     "h": 76,
+     "fill": {
+      "angle": 160,
+      "stops": [
+       [
+        "#1B1B1B",
+        0
+       ],
+       [
+        "#050505",
+        1
+       ]
+      ]
+     },
+     "radius": 6
+    },
+    {
+     "kind": "text",
+     "x": 696,
+     "y": 264,
+     "w": 376,
+     "h": 32,
+     "text": "Starts",
+     "family": "Rubik",
+     "size": 22,
+     "weight": 600,
+     "color": "#FFFFFF",
+     "lineHeight": 1.3,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 1072,
+     "y": 264,
+     "w": 376,
+     "h": 32,
+     "text": "Minutes",
+     "family": "Rubik",
+     "size": 22,
+     "weight": 600,
+     "color": "#FFFFFF",
+     "lineHeight": 1.3,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 1448,
+     "y": 264,
+     "w": 376,
+     "h": 32,
+     "text": "Who",
+     "family": "Rubik",
+     "size": 22,
+     "weight": 600,
+     "color": "#FFFFFF",
+     "lineHeight": 1.3,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 128,
+     "y": 348,
+     "w": 536,
+     "h": 36,
+     "text": "Arrive and ground rules",
+     "family": "Rubik",
+     "size": 24,
+     "weight": 600,
+     "color": "#111111",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 696,
+     "y": 348,
+     "w": 376,
+     "h": 36,
+     "text": "13:00",
+     "family": "Rubik",
+     "size": 24,
+     "weight": 600,
+     "color": "#57544C",
+     "lineHeight": 1.3,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 1072,
+     "y": 348,
+     "w": 376,
+     "h": 36,
+     "text": "15",
+     "family": "Rubik",
+     "size": 24,
+     "weight": 600,
+     "color": "#57544C",
+     "lineHeight": 1.3,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 1448,
+     "y": 348,
+     "w": 376,
+     "h": 36,
+     "text": "Everyone",
+     "family": "Rubik",
+     "size": 24,
+     "weight": 600,
+     "color": "#57544C",
+     "lineHeight": 1.3,
+     "align": "center"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 413,
+     "w": 1728,
+     "h": 1,
+     "fill": "#E3E0D5"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 414,
+     "w": 1728,
+     "h": 96,
+     "fill": "#F5F2E8"
+    },
+    {
+     "kind": "text",
+     "x": 128,
+     "y": 444,
+     "w": 536,
+     "h": 36,
+     "text": "Exercise one: twenty ideas",
+     "family": "Rubik",
+     "size": 24,
+     "weight": 600,
+     "color": "#111111",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 696,
+     "y": 444,
+     "w": 376,
+     "h": 36,
+     "text": "13:15",
+     "family": "Rubik",
+     "size": 24,
+     "weight": 600,
+     "color": "#57544C",
+     "lineHeight": 1.3,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 1072,
+     "y": 444,
+     "w": 376,
+     "h": 36,
+     "text": "20 + 5",
+     "family": "Rubik",
+     "size": 24,
+     "weight": 600,
+     "color": "#57544C",
+     "lineHeight": 1.3,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 1448,
+     "y": 444,
+     "w": 376,
+     "h": 36,
+     "text": "Alone",
+     "family": "Rubik",
+     "size": 24,
+     "weight": 600,
+     "color": "#57544C",
+     "lineHeight": 1.3,
+     "align": "center"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 509,
+     "w": 1728,
+     "h": 1,
+     "fill": "#E3E0D5"
+    },
+    {
+     "kind": "text",
+     "x": 128,
+     "y": 540,
+     "w": 536,
+     "h": 36,
+     "text": "Share back",
+     "family": "Rubik",
+     "size": 24,
+     "weight": 600,
+     "color": "#111111",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 696,
+     "y": 540,
+     "w": 376,
+     "h": 36,
+     "text": "13:50",
+     "family": "Rubik",
+     "size": 24,
+     "weight": 600,
+     "color": "#57544C",
+     "lineHeight": 1.3,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 1072,
+     "y": 540,
+     "w": 376,
+     "h": 36,
+     "text": "50",
+     "family": "Rubik",
+     "size": 24,
+     "weight": 600,
+     "color": "#57544C",
+     "lineHeight": 1.3,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 1448,
+     "y": 540,
+     "w": 376,
+     "h": 36,
+     "text": "Groups of four",
+     "family": "Rubik",
+     "size": 24,
+     "weight": 600,
+     "color": "#57544C",
+     "lineHeight": 1.3,
+     "align": "center"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 605,
+     "w": 1728,
+     "h": 1,
+     "fill": "#E3E0D5"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 606,
+     "w": 1728,
+     "h": 96,
+     "fill": "#F5F2E8"
+    },
+    {
+     "kind": "text",
+     "x": 128,
+     "y": 636,
+     "w": 536,
+     "h": 36,
+     "text": "Converge: vote and cluster",
+     "family": "Rubik",
+     "size": 24,
+     "weight": 600,
+     "color": "#111111",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 696,
+     "y": 636,
+     "w": 376,
+     "h": 36,
+     "text": "14:40",
+     "family": "Rubik",
+     "size": 24,
+     "weight": 600,
+     "color": "#57544C",
+     "lineHeight": 1.3,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 1072,
+     "y": 636,
+     "w": 376,
+     "h": 36,
+     "text": "40",
+     "family": "Rubik",
+     "size": 24,
+     "weight": 600,
+     "color": "#57544C",
+     "lineHeight": 1.3,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 1448,
+     "y": 636,
+     "w": 376,
+     "h": 36,
+     "text": "Everyone",
+     "family": "Rubik",
+     "size": 24,
+     "weight": 600,
+     "color": "#57544C",
+     "lineHeight": 1.3,
+     "align": "center"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 701,
+     "w": 1728,
+     "h": 1,
+     "fill": "#E3E0D5"
+    },
+    {
+     "kind": "text",
+     "x": 128,
+     "y": 732,
+     "w": 536,
+     "h": 36,
+     "text": "Commit",
+     "family": "Rubik",
+     "size": 24,
+     "weight": 600,
+     "color": "#111111",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 696,
+     "y": 732,
+     "w": 376,
+     "h": 36,
+     "text": "15:20",
+     "family": "Rubik",
+     "size": 24,
+     "weight": 600,
+     "color": "#57544C",
+     "lineHeight": 1.3,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 1072,
+     "y": 732,
+     "w": 376,
+     "h": 36,
+     "text": "20",
+     "family": "Rubik",
+     "size": 24,
+     "weight": 600,
+     "color": "#57544C",
+     "lineHeight": 1.3,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 1448,
+     "y": 732,
+     "w": 376,
+     "h": 36,
+     "text": "The five owners",
+     "family": "Rubik",
+     "size": 24,
+     "weight": 600,
+     "color": "#57544C",
+     "lineHeight": 1.3,
+     "align": "center"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 797,
+     "w": 1728,
+     "h": 1,
+     "fill": "#E3E0D5"
+    },
+    {
+     "kind": "text",
+     "x": 1064,
+     "y": 920,
+     "w": 760,
+     "h": 36,
+     "text": "two breaks, both short, both real",
+     "family": "Gloria Hallelujah",
+     "size": 29,
+     "weight": 400,
+     "color": "#745600",
+     "lineHeight": 1.2,
+     "align": "right"
     }
    ]
   },
   {
    "name": "Process",
-   "bg": "#FFFFFF",
+   "bg": "#FFFDF5",
    "nodes": [
     {
      "kind": "rect",
-     "x": 1906,
-     "y": 0,
-     "w": 14,
-     "h": 1080,
-     "fill": "#2B2BFF"
+     "x": 1700,
+     "y": -300,
+     "w": 60,
+     "h": 1700,
+     "fill": "#F5C400",
+     "rotation": 24,
+     "opacity": 0.08,
+     "bleed": true
     },
     {
      "kind": "text",
@@ -284,10 +842,10 @@
      "w": 1200,
      "h": 28,
      "text": "How today works",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 20,
      "weight": 600,
-     "color": "#FF4D2E",
+     "color": "#745600",
      "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
@@ -297,12 +855,12 @@
      "x": 96,
      "y": 124,
      "w": 1240,
-     "h": 83,
+     "h": 74,
      "text": "Diverge, discuss, decide",
-     "family": "Sora",
-     "size": 68,
-     "weight": 800,
-     "color": "#0B0B14",
+     "family": "Archivo Black",
+     "size": 60,
+     "weight": 400,
+     "color": "#111111",
      "lineHeight": 1.06
     },
     {
@@ -311,7 +869,7 @@
      "y": 968,
      "w": 1728,
      "h": 1,
-     "fill": "#E4E4EE"
+     "fill": "#E3E0D5"
     },
     {
      "kind": "text",
@@ -320,10 +878,10 @@
      "w": 900,
      "h": 26,
      "text": "Loop  ·  Workshop: the next bet",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 18,
      "weight": 500,
-     "color": "#5B5B70",
+     "color": "#57544C",
      "lineHeight": 1.3
     },
     {
@@ -332,33 +890,33 @@
      "y": 992,
      "w": 240,
      "h": 26,
-     "text": "02 / 6",
-     "family": "Manrope",
+     "text": "03 / 9",
+     "family": "Rubik",
      "size": 18,
      "weight": 500,
-     "color": "#5B5B70",
+     "color": "#57544C",
      "lineHeight": 1.3,
      "align": "right"
     },
     {
      "kind": "ellipse",
      "x": 96,
-     "y": 281,
+     "y": 272,
      "w": 88,
      "h": 88,
-     "fill": "#FF4D2E"
+     "fill": "#F5C400"
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 281,
+     "y": 272,
      "w": 88,
      "h": 88,
      "text": "1",
-     "family": "Sora",
+     "family": "Archivo Black",
      "size": 34,
-     "weight": 800,
-     "color": "#0B0B14",
+     "weight": 400,
+     "color": "#111111",
      "align": "center",
      "vAlign": "middle",
      "lineHeight": 1
@@ -366,55 +924,55 @@
     {
      "kind": "rect",
      "x": 200,
-     "y": 324,
+     "y": 315,
      "w": 322,
      "h": 2,
-     "fill": "#E4E4EE"
+     "fill": "#E3E0D5"
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 413,
+     "y": 404,
      "w": 402,
      "h": 44,
      "text": "Diverge",
-     "family": "Sora",
+     "family": "Archivo Black",
      "size": 32,
-     "weight": 800,
-     "color": "#0B0B14",
+     "weight": 400,
+     "color": "#111111",
      "lineHeight": 1.06
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 467,
+     "y": 458,
      "w": 378,
      "h": 150,
      "text": "Everyone generates alone first. Quantity over quality; judgment comes later.",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 21,
-     "weight": 500,
-     "color": "#5B5B70",
+     "weight": 400,
+     "color": "#57544C",
      "lineHeight": 1.4
     },
     {
      "kind": "ellipse",
      "x": 538,
-     "y": 281,
+     "y": 272,
      "w": 88,
      "h": 88,
-     "fill": "#2B2BFF"
+     "fill": "#1B1B1B"
     },
     {
      "kind": "text",
      "x": 538,
-     "y": 281,
+     "y": 272,
      "w": 88,
      "h": 88,
      "text": "2",
-     "family": "Sora",
+     "family": "Archivo Black",
      "size": 34,
-     "weight": 800,
+     "weight": 400,
      "color": "#FFFFFF",
      "align": "center",
      "vAlign": "middle",
@@ -423,55 +981,55 @@
     {
      "kind": "rect",
      "x": 642,
-     "y": 324,
+     "y": 315,
      "w": 322,
      "h": 2,
-     "fill": "#E4E4EE"
+     "fill": "#E3E0D5"
     },
     {
      "kind": "text",
      "x": 538,
-     "y": 413,
+     "y": 404,
      "w": 402,
      "h": 44,
      "text": "Discuss",
-     "family": "Sora",
+     "family": "Archivo Black",
      "size": 32,
-     "weight": 800,
-     "color": "#0B0B14",
+     "weight": 400,
+     "color": "#111111",
      "lineHeight": 1.06
     },
     {
      "kind": "text",
      "x": 538,
-     "y": 467,
+     "y": 458,
      "w": 378,
      "h": 150,
      "text": "Each group shares back in one minute. Questions only, no rebuttals.",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 21,
-     "weight": 500,
-     "color": "#5B5B70",
+     "weight": 400,
+     "color": "#57544C",
      "lineHeight": 1.4
     },
     {
      "kind": "ellipse",
      "x": 980,
-     "y": 281,
+     "y": 272,
      "w": 88,
      "h": 88,
-     "fill": "#2B2BFF"
+     "fill": "#1B1B1B"
     },
     {
      "kind": "text",
      "x": 980,
-     "y": 281,
+     "y": 272,
      "w": 88,
      "h": 88,
      "text": "3",
-     "family": "Sora",
+     "family": "Archivo Black",
      "size": 34,
-     "weight": 800,
+     "weight": 400,
      "color": "#FFFFFF",
      "align": "center",
      "vAlign": "middle",
@@ -480,55 +1038,55 @@
     {
      "kind": "rect",
      "x": 1084,
-     "y": 324,
+     "y": 315,
      "w": 322,
      "h": 2,
-     "fill": "#E4E4EE"
+     "fill": "#E3E0D5"
     },
     {
      "kind": "text",
      "x": 980,
-     "y": 413,
+     "y": 404,
      "w": 402,
      "h": 44,
      "text": "Decide",
-     "family": "Sora",
+     "family": "Archivo Black",
      "size": 32,
-     "weight": 800,
-     "color": "#0B0B14",
+     "weight": 400,
+     "color": "#111111",
      "lineHeight": 1.06
     },
     {
      "kind": "text",
      "x": 980,
-     "y": 467,
+     "y": 458,
      "w": 378,
      "h": 150,
      "text": "Dot-vote, cluster, and pick. The room decides; nobody vetoes after.",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 21,
-     "weight": 500,
-     "color": "#5B5B70",
+     "weight": 400,
+     "color": "#57544C",
      "lineHeight": 1.4
     },
     {
      "kind": "ellipse",
      "x": 1422,
-     "y": 281,
+     "y": 272,
      "w": 88,
      "h": 88,
-     "fill": "#2B2BFF"
+     "fill": "#1B1B1B"
     },
     {
      "kind": "text",
      "x": 1422,
-     "y": 281,
+     "y": 272,
      "w": 88,
      "h": 88,
      "text": "4",
-     "family": "Sora",
+     "family": "Archivo Black",
      "size": 34,
-     "weight": 800,
+     "weight": 400,
      "color": "#FFFFFF",
      "align": "center",
      "vAlign": "middle",
@@ -537,42 +1095,59 @@
     {
      "kind": "text",
      "x": 1422,
-     "y": 413,
+     "y": 404,
      "w": 402,
      "h": 44,
      "text": "Commit",
-     "family": "Sora",
+     "family": "Archivo Black",
      "size": 32,
-     "weight": 800,
-     "color": "#0B0B14",
+     "weight": 400,
+     "color": "#111111",
      "lineHeight": 1.06
     },
     {
      "kind": "text",
      "x": 1422,
-     "y": 467,
+     "y": 458,
      "w": 378,
      "h": 150,
      "text": "Every chosen idea leaves with an owner and a first step.",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 21,
-     "weight": 500,
-     "color": "#5B5B70",
+     "weight": 400,
+     "color": "#57544C",
      "lineHeight": 1.4
+    },
+    {
+     "kind": "text",
+     "x": 1064,
+     "y": 920,
+     "w": 760,
+     "h": 36,
+     "text": "alone first, together after",
+     "family": "Gloria Hallelujah",
+     "size": 29,
+     "weight": 400,
+     "color": "#745600",
+     "lineHeight": 1.2,
+     "align": "right"
     }
    ]
   },
   {
    "name": "Three cards",
-   "bg": "#FFFFFF",
+   "bg": "#FFFDF5",
    "nodes": [
     {
      "kind": "rect",
-     "x": 1906,
-     "y": 0,
-     "w": 14,
-     "h": 1080,
-     "fill": "#2B2BFF"
+     "x": 1700,
+     "y": -300,
+     "w": 60,
+     "h": 1700,
+     "fill": "#F5C400",
+     "rotation": 24,
+     "opacity": 0.08,
+     "bleed": true
     },
     {
      "kind": "text",
@@ -581,10 +1156,10 @@
      "w": 1200,
      "h": 28,
      "text": "Ground rules",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 20,
      "weight": 600,
-     "color": "#FF4D2E",
+     "color": "#745600",
      "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
@@ -594,12 +1169,12 @@
      "x": 96,
      "y": 124,
      "w": 1240,
-     "h": 83,
+     "h": 74,
      "text": "What keeps it safe and fast",
-     "family": "Sora",
-     "size": 68,
-     "weight": 800,
-     "color": "#0B0B14",
+     "family": "Archivo Black",
+     "size": 60,
+     "weight": 400,
+     "color": "#111111",
      "lineHeight": 1.06
     },
     {
@@ -608,7 +1183,7 @@
      "y": 968,
      "w": 1728,
      "h": 1,
-     "fill": "#E4E4EE"
+     "fill": "#E3E0D5"
     },
     {
      "kind": "text",
@@ -617,10 +1192,10 @@
      "w": 900,
      "h": 26,
      "text": "Loop  ·  Workshop: the next bet",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 18,
      "weight": 500,
-     "color": "#5B5B70",
+     "color": "#57544C",
      "lineHeight": 1.3
     },
     {
@@ -629,279 +1204,296 @@
      "y": 992,
      "w": 240,
      "h": 26,
-     "text": "03 / 6",
-     "family": "Manrope",
+     "text": "04 / 9",
+     "family": "Rubik",
      "size": 18,
      "weight": 500,
-     "color": "#5B5B70",
+     "color": "#57544C",
      "lineHeight": 1.3,
      "align": "right"
     },
     {
      "kind": "rect",
      "x": 96,
-     "y": 251,
+     "y": 242,
      "w": 560,
      "h": 580,
-     "fill": "#F3F3F9",
-     "radius": 24,
-     "stroke": "#E4E4EE",
+     "fill": "#F5F2E8",
+     "radius": 6,
+     "stroke": "#E3E0D5",
      "strokeWidth": 1.5
     },
     {
      "kind": "rect",
      "x": 96,
-     "y": 251,
+     "y": 242,
      "w": 560,
      "h": 6,
-     "fill": "#FF4D2E",
+     "fill": "#F5C400",
      "radius": 0
     },
     {
      "kind": "ellipse",
      "x": 136,
-     "y": 299,
+     "y": 290,
      "w": 80,
      "h": 80,
-     "fill": "#f5d2d0"
+     "fill": "#f5e9ba"
     },
     {
      "kind": "icon",
      "icon": "clock",
      "x": 156,
-     "y": 319,
+     "y": 310,
      "w": 40,
      "h": 40,
-     "color": "#FF4D2E"
+     "color": "#745600"
     },
     {
      "kind": "text",
      "x": 136,
-     "y": 415,
+     "y": 406,
      "w": 480,
      "h": 100,
      "text": "Time boxes are real",
-     "family": "Sora",
+     "family": "Archivo Black",
      "size": 34,
-     "weight": 800,
-     "color": "#0B0B14",
+     "weight": 400,
+     "color": "#111111",
      "lineHeight": 1.1
     },
     {
      "kind": "text",
      "x": 136,
-     "y": 527,
+     "y": 518,
      "w": 480,
      "h": 160,
      "text": "When the timer ends, pens down. Unfinished is fine; late is not.",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 22,
-     "weight": 500,
-     "color": "#5B5B70",
+     "weight": 400,
+     "color": "#57544C",
      "lineHeight": 1.4
     },
     {
      "kind": "rect",
      "x": 136,
-     "y": 747,
+     "y": 738,
      "w": 480,
      "h": 1,
-     "fill": "#E4E4EE"
+     "fill": "#E3E0D5"
     },
     {
      "kind": "text",
      "x": 136,
-     "y": 771,
+     "y": 762,
      "w": 120,
      "h": 28,
      "text": "01",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 18,
      "weight": 500,
-     "color": "#5B5B70",
+     "color": "#57544C",
      "lineHeight": 1.3
     },
     {
      "kind": "rect",
      "x": 680,
-     "y": 251,
+     "y": 242,
      "w": 560,
      "h": 580,
-     "fill": "#F3F3F9",
-     "radius": 24,
-     "stroke": "#E4E4EE",
+     "fill": "#F5F2E8",
+     "radius": 6,
+     "stroke": "#E3E0D5",
      "strokeWidth": 1.5
     },
     {
      "kind": "rect",
      "x": 680,
-     "y": 251,
+     "y": 242,
      "w": 560,
      "h": 6,
-     "fill": "#2B2BFF",
+     "fill": "#111111",
      "radius": 0
     },
     {
      "kind": "ellipse",
      "x": 720,
-     "y": 299,
+     "y": 290,
      "w": 80,
      "h": 80,
-     "fill": "#cbcbfa"
+     "fill": "#c7c5bd"
     },
     {
      "kind": "icon",
      "icon": "message",
      "x": 740,
-     "y": 319,
+     "y": 310,
      "w": 40,
      "h": 40,
-     "color": "#2B2BFF"
+     "color": "#111111"
     },
     {
      "kind": "text",
      "x": 720,
-     "y": 415,
+     "y": 406,
      "w": 480,
      "h": 100,
      "text": "Questions before opinions",
-     "family": "Sora",
+     "family": "Archivo Black",
      "size": 34,
-     "weight": 800,
-     "color": "#0B0B14",
+     "weight": 400,
+     "color": "#111111",
      "lineHeight": 1.1
     },
     {
      "kind": "text",
      "x": 720,
-     "y": 527,
+     "y": 518,
      "w": 480,
      "h": 160,
      "text": "Ask what someone meant before saying what you think. Most disagreement is misunderstanding.",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 22,
-     "weight": 500,
-     "color": "#5B5B70",
+     "weight": 400,
+     "color": "#57544C",
      "lineHeight": 1.4
     },
     {
      "kind": "rect",
      "x": 720,
-     "y": 747,
+     "y": 738,
      "w": 480,
      "h": 1,
-     "fill": "#E4E4EE"
+     "fill": "#E3E0D5"
     },
     {
      "kind": "text",
      "x": 720,
-     "y": 771,
+     "y": 762,
      "w": 120,
      "h": 28,
      "text": "02",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 18,
      "weight": 500,
-     "color": "#5B5B70",
+     "color": "#57544C",
      "lineHeight": 1.3
     },
     {
      "kind": "rect",
      "x": 1264,
-     "y": 251,
+     "y": 242,
      "w": 560,
      "h": 580,
-     "fill": "#F3F3F9",
-     "radius": 24,
-     "stroke": "#E4E4EE",
+     "fill": "#F5F2E8",
+     "radius": 6,
+     "stroke": "#E3E0D5",
      "strokeWidth": 1.5
     },
     {
      "kind": "rect",
      "x": 1264,
-     "y": 251,
+     "y": 242,
      "w": 560,
      "h": 6,
-     "fill": "#FF4D2E",
+     "fill": "#F5C400",
      "radius": 0
     },
     {
      "kind": "ellipse",
      "x": 1304,
-     "y": 299,
+     "y": 290,
      "w": 80,
      "h": 80,
-     "fill": "#f5d2d0"
+     "fill": "#f5e9ba"
     },
     {
      "kind": "icon",
      "icon": "heart",
      "x": 1324,
-     "y": 319,
+     "y": 310,
      "w": 40,
      "h": 40,
-     "color": "#FF4D2E"
+     "color": "#745600"
     },
     {
      "kind": "text",
      "x": 1304,
-     "y": 415,
+     "y": 406,
      "w": 480,
      "h": 100,
      "text": "Every idea gets read aloud",
-     "family": "Sora",
+     "family": "Archivo Black",
      "size": 34,
-     "weight": 800,
-     "color": "#0B0B14",
+     "weight": 400,
+     "color": "#111111",
      "lineHeight": 1.1
     },
     {
      "kind": "text",
      "x": 1304,
-     "y": 527,
+     "y": 518,
      "w": 480,
      "h": 160,
      "text": "Nothing is skipped because it looks odd on the card. The odd ones are usually the ones we keep.",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 22,
-     "weight": 500,
-     "color": "#5B5B70",
+     "weight": 400,
+     "color": "#57544C",
      "lineHeight": 1.4
     },
     {
      "kind": "rect",
      "x": 1304,
-     "y": 747,
+     "y": 738,
      "w": 480,
      "h": 1,
-     "fill": "#E4E4EE"
+     "fill": "#E3E0D5"
     },
     {
      "kind": "text",
      "x": 1304,
-     "y": 771,
+     "y": 762,
      "w": 120,
      "h": 28,
      "text": "03",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 18,
      "weight": 500,
-     "color": "#5B5B70",
+     "color": "#57544C",
      "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1064,
+     "y": 920,
+     "w": 760,
+     "h": 36,
+     "text": "safe is what makes it fast",
+     "family": "Gloria Hallelujah",
+     "size": 29,
+     "weight": 400,
+     "color": "#745600",
+     "lineHeight": 1.2,
+     "align": "right"
     }
    ]
   },
   {
-   "name": "Text and picture",
-   "bg": "#FFFFFF",
+   "name": "Checklist",
+   "bg": "#FFFDF5",
    "nodes": [
     {
      "kind": "rect",
-     "x": 1906,
-     "y": 0,
-     "w": 14,
-     "h": 1080,
-     "fill": "#2B2BFF"
+     "x": 1700,
+     "y": -300,
+     "w": 60,
+     "h": 1700,
+     "fill": "#F5C400",
+     "rotation": 24,
+     "opacity": 0.08,
+     "bleed": true
     },
     {
      "kind": "text",
@@ -909,11 +1501,11 @@
      "y": 88,
      "w": 1200,
      "h": 28,
-     "text": "Exercise one",
-     "family": "Manrope",
+     "text": "Before we start",
+     "family": "Rubik",
      "size": 20,
      "weight": 600,
-     "color": "#FF4D2E",
+     "color": "#745600",
      "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
@@ -922,13 +1514,13 @@
      "kind": "text",
      "x": 96,
      "y": 124,
-     "w": 960,
-     "h": 71,
-     "text": "Twenty ideas in twenty minutes",
-     "family": "Sora",
-     "size": 57,
-     "weight": 800,
-     "color": "#0B0B14",
+     "w": 900,
+     "h": 74,
+     "text": "What is on your table",
+     "family": "Archivo Black",
+     "size": 60,
+     "weight": 400,
+     "color": "#111111",
      "lineHeight": 1.06
     },
     {
@@ -937,7 +1529,7 @@
      "y": 968,
      "w": 1728,
      "h": 1,
-     "fill": "#E4E4EE"
+     "fill": "#E3E0D5"
     },
     {
      "kind": "text",
@@ -946,10 +1538,10 @@
      "w": 900,
      "h": 26,
      "text": "Loop  ·  Workshop: the next bet",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 18,
      "weight": 500,
-     "color": "#5B5B70",
+     "color": "#57544C",
      "lineHeight": 1.3
     },
     {
@@ -958,225 +1550,1440 @@
      "y": 992,
      "w": 240,
      "h": 26,
-     "text": "04 / 6",
-     "family": "Manrope",
+     "text": "05 / 9",
+     "family": "Rubik",
      "size": 18,
      "weight": 500,
-     "color": "#5B5B70",
+     "color": "#57544C",
      "lineHeight": 1.3,
      "align": "right"
     },
     {
-     "kind": "ellipse",
+     "kind": "icon",
+     "icon": "circle-check",
      "x": 96,
-     "y": 267,
+     "y": 264,
      "w": 34,
      "h": 34,
-     "fill": "#f5d5d4"
+     "color": "#745600"
     },
     {
      "kind": "text",
-     "x": 96,
-     "y": 267,
+     "x": 150,
+     "y": 262,
+     "w": 480,
+     "h": 40,
+     "text": "A pad of sticky notes",
+     "family": "Rubik",
+     "size": 24,
+     "weight": 600,
+     "color": "#111111",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "circle-check",
+     "x": 656,
+     "y": 264,
      "w": 34,
      "h": 34,
-     "text": "1",
-     "family": "Sora",
-     "size": 17,
-     "weight": 800,
-     "color": "#FF4D2E",
-     "align": "center",
-     "vAlign": "middle",
-     "lineHeight": 1
+     "color": "#745600"
     },
     {
      "kind": "text",
-     "x": 152,
-     "y": 263,
-     "w": 840,
-     "h": 44,
-     "text": "Instructions",
-     "family": "Sora",
-     "size": 32,
-     "weight": 800,
-     "color": "#0B0B14",
-     "lineHeight": 1.06
+     "x": 710,
+     "y": 262,
+     "w": 480,
+     "h": 40,
+     "text": "A marker, not a pen",
+     "family": "Rubik",
+     "size": 24,
+     "weight": 600,
+     "color": "#111111",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "circle-check",
+     "x": 96,
+     "y": 356,
+     "w": 34,
+     "h": 34,
+     "color": "#745600"
     },
     {
      "kind": "text",
-     "x": 152,
-     "y": 315,
-     "w": 840,
-     "h": 70,
-     "text": "One idea per card, a headline and one sentence. Draw if it helps. Write until the timer says stop.",
-     "family": "Manrope",
-     "size": 22,
-     "weight": 500,
-     "color": "#5B5B70",
+     "x": 150,
+     "y": 354,
+     "w": 480,
+     "h": 40,
+     "text": "Three voting dots",
+     "family": "Rubik",
+     "size": 24,
+     "weight": 600,
+     "color": "#111111",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "circle-check",
+     "x": 656,
+     "y": 356,
+     "w": 34,
+     "h": 34,
+     "color": "#745600"
+    },
+    {
+     "kind": "text",
+     "x": 710,
+     "y": 354,
+     "w": 480,
+     "h": 40,
+     "text": "The one-page brief",
+     "family": "Rubik",
+     "size": 24,
+     "weight": 600,
+     "color": "#111111",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "circle-check",
+     "x": 96,
+     "y": 448,
+     "w": 34,
+     "h": 34,
+     "color": "#745600"
+    },
+    {
+     "kind": "text",
+     "x": 150,
+     "y": 446,
+     "w": 480,
+     "h": 40,
+     "text": "A timer you can see",
+     "family": "Rubik",
+     "size": 24,
+     "weight": 600,
+     "color": "#111111",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "circle-check",
+     "x": 656,
+     "y": 448,
+     "w": 34,
+     "h": 34,
+     "color": "#745600"
+    },
+    {
+     "kind": "text",
+     "x": 710,
+     "y": 446,
+     "w": 480,
+     "h": 40,
+     "text": "Blank index cards",
+     "family": "Rubik",
+     "size": 24,
+     "weight": 600,
+     "color": "#111111",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "circle",
+     "x": 96,
+     "y": 540,
+     "w": 34,
+     "h": 34,
+     "color": "#E3E0D5"
+    },
+    {
+     "kind": "text",
+     "x": 150,
+     "y": 538,
+     "w": 480,
+     "h": 40,
+     "text": "Coffee",
+     "family": "Rubik",
+     "size": 24,
+     "weight": 600,
+     "color": "#111111",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "icon",
+     "icon": "circle",
+     "x": 656,
+     "y": 540,
+     "w": 34,
+     "h": 34,
+     "color": "#E3E0D5"
+    },
+    {
+     "kind": "text",
+     "x": 710,
+     "y": 538,
+     "w": 480,
+     "h": 40,
+     "text": "Your laptop, shut",
+     "family": "Rubik",
+     "size": 24,
+     "weight": 600,
+     "color": "#111111",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 650,
+     "w": 1080,
+     "h": 1,
+     "fill": "#E3E0D5"
+    },
+    {
+     "kind": "icon",
+     "icon": "circle-check",
+     "x": 96,
+     "y": 676,
+     "w": 22,
+     "h": 22,
+     "color": "#F5C400"
+    },
+    {
+     "kind": "text",
+     "x": 130,
+     "y": 672,
+     "w": 300,
+     "h": 28,
+     "text": "on every table",
+     "family": "Rubik",
+     "size": 18,
+     "weight": 400,
+     "color": "#57544C",
      "lineHeight": 1.4
     },
     {
-     "kind": "ellipse",
-     "x": 96,
-     "y": 445,
-     "w": 34,
-     "h": 34,
-     "fill": "#f5d5d4"
+     "kind": "icon",
+     "icon": "circle",
+     "x": 356,
+     "y": 676,
+     "w": 22,
+     "h": 22,
+     "color": "#E3E0D5"
     },
     {
      "kind": "text",
-     "x": 96,
-     "y": 445,
-     "w": 34,
-     "h": 34,
-     "text": "2",
-     "family": "Sora",
-     "size": 17,
-     "weight": 800,
-     "color": "#FF4D2E",
-     "align": "center",
-     "vAlign": "middle",
-     "lineHeight": 1
-    },
-    {
-     "kind": "text",
-     "x": 152,
-     "y": 441,
-     "w": 840,
-     "h": 44,
-     "text": "The time box",
-     "family": "Sora",
-     "size": 32,
-     "weight": 800,
-     "color": "#0B0B14",
-     "lineHeight": 1.06
-    },
-    {
-     "kind": "text",
-     "x": 152,
-     "y": 493,
-     "w": 840,
-     "h": 70,
-     "text": "Twenty minutes alone, then five to pick your best three for the wall.",
-     "family": "Manrope",
-     "size": 22,
-     "weight": 500,
-     "color": "#5B5B70",
-     "lineHeight": 1.4
-    },
-    {
-     "kind": "ellipse",
-     "x": 96,
-     "y": 623,
-     "w": 34,
-     "h": 34,
-     "fill": "#f5d5d4"
-    },
-    {
-     "kind": "text",
-     "x": 96,
-     "y": 623,
-     "w": 34,
-     "h": 34,
-     "text": "3",
-     "family": "Sora",
-     "size": 17,
-     "weight": 800,
-     "color": "#FF4D2E",
-     "align": "center",
-     "vAlign": "middle",
-     "lineHeight": 1
-    },
-    {
-     "kind": "text",
-     "x": 152,
-     "y": 619,
-     "w": 840,
-     "h": 44,
-     "text": "What good looks like",
-     "family": "Sora",
-     "size": 32,
-     "weight": 800,
-     "color": "#0B0B14",
-     "lineHeight": 1.06
-    },
-    {
-     "kind": "text",
-     "x": 152,
-     "y": 671,
-     "w": 840,
-     "h": 70,
-     "text": "Specific enough that a stranger could build the first version. 'Better onboarding' is not an idea; 'preview before setup' is.",
-     "family": "Manrope",
-     "size": 22,
-     "weight": 500,
-     "color": "#5B5B70",
+     "x": 390,
+     "y": 672,
+     "w": 300,
+     "h": 28,
+     "text": "up to you",
+     "family": "Rubik",
+     "size": 18,
+     "weight": 400,
+     "color": "#57544C",
      "lineHeight": 1.4
     },
     {
      "kind": "rect",
      "name": "Photo",
-     "x": 1080,
-     "y": 196,
-     "w": 744,
-     "h": 690,
+     "x": 1300,
+     "y": 268,
+     "w": 480,
+     "h": 600,
      "fill": {
       "angle": 160,
       "stops": [
        [
-        "#c7c7fa",
+        "#c3c1b9",
         0
        ],
        [
-        "#F3F3F9",
+        "#F5F2E8",
         1
        ]
       ]
      },
-     "radius": 36
+     "radius": 6
     },
     {
      "kind": "ellipse",
-     "x": 1202,
-     "y": 291,
-     "w": 500,
-     "h": 500,
-     "fill": "#FF4D2E",
+     "x": 1340,
+     "y": 340,
+     "w": 400,
+     "h": 400,
+     "fill": "#F5C400",
      "opacity": 0.12,
      "bleed": true
     },
     {
      "kind": "ellipse",
-     "x": 1252,
-     "y": 341,
-     "w": 400,
-     "h": 400,
-     "fill": "#FF4D2E",
+     "x": 1380,
+     "y": 380,
+     "w": 320,
+     "h": 320,
+     "fill": "#F5C400",
      "opacity": 0.16,
      "bleed": true
+    },
+    {
+     "kind": "text",
+     "x": 1064,
+     "y": 883,
+     "w": 760,
+     "h": 73,
+     "text": "write big enough to read from across the room",
+     "family": "Gloria Hallelujah",
+     "size": 29,
+     "weight": 400,
+     "color": "#745600",
+     "lineHeight": 1.2,
+     "align": "right"
     }
    ],
    "illustrations": [
     {
-     "asset": "la-conversation-illustration",
-     "x": 1160,
-     "y": 270,
-     "w": 584,
-     "h": 540
+     "asset": "il-day74-stationary-set",
+     "x": 1360,
+     "y": 320,
+     "w": 360,
+     "h": 420,
+     "cleanCard": true
+    }
+   ]
+  },
+  {
+   "name": "Section",
+   "bg": {
+    "angle": 160,
+    "stops": [
+     [
+      "#1B1B1B",
+      0
+     ],
+     [
+      "#050505",
+      1
+     ]
+    ]
+   },
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 1180,
+     "y": -300,
+     "w": 90,
+     "h": 1700,
+     "fill": "#FFD200",
+     "rotation": 24,
+     "opacity": 0.1,
+     "bleed": true
+    },
+    {
+     "kind": "rect",
+     "x": 1370,
+     "y": -300,
+     "w": 90,
+     "h": 1700,
+     "fill": "#FFD200",
+     "rotation": 24,
+     "opacity": 0.15000000000000002,
+     "bleed": true
+    },
+    {
+     "kind": "rect",
+     "x": 1560,
+     "y": -300,
+     "w": 90,
+     "h": 1700,
+     "fill": "#FFD200",
+     "rotation": 24,
+     "opacity": 0.2,
+     "bleed": true
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 236,
+     "w": 800,
+     "h": 256,
+     "text": "01",
+     "family": "Archivo Black",
+     "size": 236,
+     "weight": 400,
+     "color": "#FFD200",
+     "lineHeight": 1
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 492,
+     "w": 120,
+     "h": 4,
+     "fill": "#FFD200"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 520,
+     "w": 1100,
+     "h": 220,
+     "text": "Exercise one",
+     "family": "Archivo Black",
+     "size": 96,
+     "weight": 400,
+     "color": "#FFFFFF",
+     "lineHeight": 1.04
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 752,
+     "w": 900,
+     "h": 90,
+     "text": "Twenty minutes alone with a stack of cards and a marker. Quantity first; judging comes later.",
+     "family": "Rubik",
+     "size": 28,
+     "weight": 400,
+     "color": "#BDBAB1",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 1240,
+     "y": 280,
+     "w": 560,
+     "h": 560,
+     "fill": "#FFD200",
+     "opacity": 0.12,
+     "bleed": true
+    },
+    {
+     "kind": "ellipse",
+     "x": 1296,
+     "y": 336,
+     "w": 448,
+     "h": 448,
+     "fill": "#FFD200",
+     "opacity": 0.16,
+     "bleed": true
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 180,
+     "w": 1000,
+     "h": 50,
+     "text": "Pens up",
+     "family": "Gloria Hallelujah",
+     "size": 36,
+     "weight": 400,
+     "color": "#FFD200",
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#353535"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Loop  ·  Workshop: the next bet",
+     "family": "Rubik",
+     "size": 18,
+     "weight": 500,
+     "color": "#BDBAB1",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "06 / 9",
+     "family": "Rubik",
+     "size": 18,
+     "weight": 500,
+     "color": "#BDBAB1",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "text",
+     "x": 1140,
+     "y": 885,
+     "w": 720,
+     "h": 39,
+     "text": "markers up, phones face down",
+     "family": "Gloria Hallelujah",
+     "size": 31,
+     "weight": 400,
+     "color": "#FFD200",
+     "lineHeight": 1.2,
+     "align": "center"
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "il-day73-writing-tool",
+     "x": 1300,
+     "y": 340,
+     "w": 440,
+     "h": 440,
+     "cleanCard": true
+    }
+   ]
+  },
+  {
+   "name": "The time box",
+   "bg": "#FFFDF5",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 1700,
+     "y": -300,
+     "w": 60,
+     "h": 1700,
+     "fill": "#F5C400",
+     "rotation": 24,
+     "opacity": 0.08,
+     "bleed": true
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 88,
+     "w": 1200,
+     "h": 28,
+     "text": "Exercise one  ·  the time box",
+     "family": "Rubik",
+     "size": 20,
+     "weight": 600,
+     "color": "#745600",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 124,
+     "w": 1240,
+     "h": 74,
+     "text": "Twenty ideas in twenty minutes",
+     "family": "Archivo Black",
+     "size": 60,
+     "weight": 400,
+     "color": "#111111",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#E3E0D5"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Loop  ·  Workshop: the next bet",
+     "family": "Rubik",
+     "size": 18,
+     "weight": 500,
+     "color": "#57544C",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "07 / 9",
+     "family": "Rubik",
+     "size": 18,
+     "weight": 500,
+     "color": "#57544C",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "ellipse",
+     "x": 12,
+     "y": 187,
+     "w": 720,
+     "h": 720,
+     "fill": "#F5C400",
+     "opacity": 0.12,
+     "bleed": true
+    },
+    {
+     "kind": "ellipse",
+     "x": 84,
+     "y": 259,
+     "w": 576,
+     "h": 576,
+     "fill": "#F5C400",
+     "opacity": 0.16,
+     "bleed": true
+    },
+    {
+     "kind": "ellipse",
+     "x": 637,
+     "y": 542,
+     "w": 10,
+     "h": 10,
+     "fill": "#111111",
+     "opacity": 0.85
+    },
+    {
+     "kind": "ellipse",
+     "x": 638,
+     "y": 573,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 634,
+     "y": 601,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 626,
+     "y": 628,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 616,
+     "y": 654,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 601,
+     "y": 677,
+     "w": 10,
+     "h": 10,
+     "fill": "#111111",
+     "opacity": 0.85
+    },
+    {
+     "kind": "ellipse",
+     "x": 588,
+     "y": 703,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 570,
+     "y": 725,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 550,
+     "y": 745,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 528,
+     "y": 763,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 502,
+     "y": 776,
+     "w": 10,
+     "h": 10,
+     "fill": "#111111",
+     "opacity": 0.85
+    },
+    {
+     "kind": "ellipse",
+     "x": 479,
+     "y": 791,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 453,
+     "y": 801,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 426,
+     "y": 809,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 398,
+     "y": 813,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 367,
+     "y": 812,
+     "w": 10,
+     "h": 10,
+     "fill": "#111111",
+     "opacity": 0.85
+    },
+    {
+     "kind": "ellipse",
+     "x": 341,
+     "y": 813,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 313,
+     "y": 809,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 286,
+     "y": 801,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 260,
+     "y": 791,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 232,
+     "y": 776,
+     "w": 10,
+     "h": 10,
+     "fill": "#111111",
+     "opacity": 0.85
+    },
+    {
+     "kind": "ellipse",
+     "x": 211,
+     "y": 763,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 189,
+     "y": 745,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 169,
+     "y": 725,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 151,
+     "y": 703,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 133,
+     "y": 677,
+     "w": 10,
+     "h": 10,
+     "fill": "#111111",
+     "opacity": 0.85
+    },
+    {
+     "kind": "ellipse",
+     "x": 123,
+     "y": 654,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 113,
+     "y": 628,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 105,
+     "y": 601,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 101,
+     "y": 573,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 97,
+     "y": 542,
+     "w": 10,
+     "h": 10,
+     "fill": "#111111",
+     "opacity": 0.85
+    },
+    {
+     "kind": "ellipse",
+     "x": 101,
+     "y": 516,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 105,
+     "y": 488,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 113,
+     "y": 461,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 123,
+     "y": 435,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 133,
+     "y": 407,
+     "w": 10,
+     "h": 10,
+     "fill": "#111111",
+     "opacity": 0.85
+    },
+    {
+     "kind": "ellipse",
+     "x": 151,
+     "y": 386,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 169,
+     "y": 364,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 189,
+     "y": 344,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 211,
+     "y": 326,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 232,
+     "y": 308,
+     "w": 10,
+     "h": 10,
+     "fill": "#111111",
+     "opacity": 0.85
+    },
+    {
+     "kind": "ellipse",
+     "x": 260,
+     "y": 298,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 286,
+     "y": 288,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 313,
+     "y": 280,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 341,
+     "y": 276,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 367,
+     "y": 272,
+     "w": 10,
+     "h": 10,
+     "fill": "#111111",
+     "opacity": 0.85
+    },
+    {
+     "kind": "ellipse",
+     "x": 398,
+     "y": 276,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 426,
+     "y": 280,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 453,
+     "y": 288,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 479,
+     "y": 298,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 502,
+     "y": 308,
+     "w": 10,
+     "h": 10,
+     "fill": "#111111",
+     "opacity": 0.85
+    },
+    {
+     "kind": "ellipse",
+     "x": 528,
+     "y": 326,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 550,
+     "y": 344,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 570,
+     "y": 364,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 588,
+     "y": 386,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 601,
+     "y": 407,
+     "w": 10,
+     "h": 10,
+     "fill": "#111111",
+     "opacity": 0.85
+    },
+    {
+     "kind": "ellipse",
+     "x": 616,
+     "y": 435,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 626,
+     "y": 461,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 634,
+     "y": 488,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 638,
+     "y": 516,
+     "w": 5,
+     "h": 5,
+     "fill": "#111111",
+     "opacity": 0.3
+    },
+    {
+     "kind": "ellipse",
+     "x": 136,
+     "y": 311,
+     "w": 472,
+     "h": 472,
+     "fill": "#FFFDF5",
+     "stroke": "#F5C400",
+     "strokeWidth": 28
+    },
+    {
+     "kind": "text",
+     "x": 172,
+     "y": 423,
+     "w": 400,
+     "h": 190,
+     "text": "20",
+     "family": "Archivo Black",
+     "size": 176,
+     "weight": 400,
+     "color": "#111111",
+     "lineHeight": 1,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 202,
+     "y": 627,
+     "w": 340,
+     "h": 28,
+     "text": "minutes, alone",
+     "family": "Rubik",
+     "size": 20,
+     "weight": 600,
+     "color": "#745600",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2,
+     "align": "center"
+    },
+    {
+     "kind": "rect",
+     "x": 714,
+     "y": 276,
+     "w": 336,
+     "h": 300,
+     "fill": "#111111",
+     "opacity": 0.1,
+     "rotation": -2
+    },
+    {
+     "kind": "rect",
+     "x": 708,
+     "y": 266,
+     "w": 336,
+     "h": 300,
+     "fill": "#FFE14D",
+     "rotation": -2
+    },
+    {
+     "kind": "ellipse",
+     "x": 732,
+     "y": 290,
+     "w": 44,
+     "h": 44,
+     "fill": "#111111",
+     "rotation": -2
+    },
+    {
+     "kind": "text",
+     "x": 732,
+     "y": 290,
+     "w": 44,
+     "h": 44,
+     "text": "1",
+     "family": "Archivo Black",
+     "size": 20,
+     "weight": 400,
+     "color": "#F5C400",
+     "align": "center",
+     "vAlign": "middle",
+     "lineHeight": 1,
+     "rotation": -2
+    },
+    {
+     "kind": "text",
+     "x": 734,
+     "y": 350,
+     "w": 274,
+     "h": 200,
+     "text": "One idea per card: a headline and one sentence. No paragraphs.",
+     "family": "Gloria Hallelujah",
+     "size": 26,
+     "weight": 400,
+     "color": "#111111",
+     "lineHeight": 1.25,
+     "rotation": -2
+    },
+    {
+     "kind": "rect",
+     "x": 1098,
+     "y": 276,
+     "w": 336,
+     "h": 300,
+     "fill": "#111111",
+     "opacity": 0.1,
+     "rotation": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 1092,
+     "y": 266,
+     "w": 336,
+     "h": 300,
+     "fill": "#FFE14D",
+     "rotation": 1.5
+    },
+    {
+     "kind": "ellipse",
+     "x": 1116,
+     "y": 290,
+     "w": 44,
+     "h": 44,
+     "fill": "#111111",
+     "rotation": 1.5
+    },
+    {
+     "kind": "text",
+     "x": 1116,
+     "y": 290,
+     "w": 44,
+     "h": 44,
+     "text": "2",
+     "family": "Archivo Black",
+     "size": 20,
+     "weight": 400,
+     "color": "#F5C400",
+     "align": "center",
+     "vAlign": "middle",
+     "lineHeight": 1,
+     "rotation": 1.5
+    },
+    {
+     "kind": "text",
+     "x": 1118,
+     "y": 350,
+     "w": 274,
+     "h": 200,
+     "text": "Draw if it helps. Nobody is grading the art, only the idea.",
+     "family": "Gloria Hallelujah",
+     "size": 26,
+     "weight": 400,
+     "color": "#111111",
+     "lineHeight": 1.25,
+     "rotation": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 1482,
+     "y": 276,
+     "w": 336,
+     "h": 300,
+     "fill": "#111111",
+     "opacity": 0.1,
+     "rotation": -1.2
+    },
+    {
+     "kind": "rect",
+     "x": 1476,
+     "y": 266,
+     "w": 336,
+     "h": 300,
+     "fill": "#FFE14D",
+     "rotation": -1.2
+    },
+    {
+     "kind": "ellipse",
+     "x": 1500,
+     "y": 290,
+     "w": 44,
+     "h": 44,
+     "fill": "#111111",
+     "rotation": -1.2
+    },
+    {
+     "kind": "text",
+     "x": 1500,
+     "y": 290,
+     "w": 44,
+     "h": 44,
+     "text": "3",
+     "family": "Archivo Black",
+     "size": 20,
+     "weight": 400,
+     "color": "#F5C400",
+     "align": "center",
+     "vAlign": "middle",
+     "lineHeight": 1,
+     "rotation": -1.2
+    },
+    {
+     "kind": "text",
+     "x": 1502,
+     "y": 350,
+     "w": 274,
+     "h": 200,
+     "text": "Write until the timer stops. Then pick your best three for the wall.",
+     "family": "Gloria Hallelujah",
+     "size": 26,
+     "weight": 400,
+     "color": "#111111",
+     "lineHeight": 1.25,
+     "rotation": -1.2
+    },
+    {
+     "kind": "rect",
+     "x": 708,
+     "y": 602,
+     "w": 1104,
+     "h": 181,
+     "fill": {
+      "angle": 160,
+      "stops": [
+       [
+        "#1B1B1B",
+        0
+       ],
+       [
+        "#050505",
+        1
+       ]
+      ]
+     },
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 708,
+     "y": 602,
+     "w": 8,
+     "h": 181,
+     "fill": "#FFD200",
+     "radius": 0
+    },
+    {
+     "kind": "text",
+     "x": 752,
+     "y": 636,
+     "w": 1016,
+     "h": 28,
+     "text": "What good looks like",
+     "family": "Rubik",
+     "size": 20,
+     "weight": 600,
+     "color": "#FFD200",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 752,
+     "y": 678,
+     "w": 1016,
+     "h": 100,
+     "text": "Specific enough that a stranger could build the first version. 'Better onboarding' is not an idea; 'preview before setup' is.",
+     "family": "Rubik",
+     "size": 27,
+     "weight": 600,
+     "color": "#FFFFFF",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1064,
+     "y": 883,
+     "w": 760,
+     "h": 73,
+     "text": "when it rings, finish the word, not the sentence",
+     "family": "Gloria Hallelujah",
+     "size": 29,
+     "weight": 400,
+     "color": "#745600",
+     "lineHeight": 1.2,
+     "align": "right"
     }
    ]
   },
   {
    "name": "Two columns",
-   "bg": "#FFFFFF",
+   "bg": "#FFFDF5",
    "nodes": [
     {
      "kind": "rect",
-     "x": 1906,
-     "y": 0,
-     "w": 14,
-     "h": 1080,
-     "fill": "#2B2BFF"
+     "x": 1700,
+     "y": -300,
+     "w": 60,
+     "h": 1700,
+     "fill": "#F5C400",
+     "rotation": 24,
+     "opacity": 0.08,
+     "bleed": true
     },
     {
      "kind": "text",
@@ -1185,10 +2992,10 @@
      "w": 1200,
      "h": 28,
      "text": "Share back and converge",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 20,
      "weight": 600,
-     "color": "#FF4D2E",
+     "color": "#745600",
      "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
@@ -1198,12 +3005,12 @@
      "x": 96,
      "y": 124,
      "w": 1240,
-     "h": 83,
+     "h": 74,
      "text": "From forty cards to five",
-     "family": "Sora",
-     "size": 68,
-     "weight": 800,
-     "color": "#0B0B14",
+     "family": "Archivo Black",
+     "size": 60,
+     "weight": 400,
+     "color": "#111111",
      "lineHeight": 1.06
     },
     {
@@ -1212,7 +3019,7 @@
      "y": 968,
      "w": 1728,
      "h": 1,
-     "fill": "#E4E4EE"
+     "fill": "#E3E0D5"
     },
     {
      "kind": "text",
@@ -1221,10 +3028,10 @@
      "w": 900,
      "h": 26,
      "text": "Loop  ·  Workshop: the next bet",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 18,
      "weight": 500,
-     "color": "#5B5B70",
+     "color": "#57544C",
      "lineHeight": 1.3
     },
     {
@@ -1233,45 +3040,45 @@
      "y": 992,
      "w": 240,
      "h": 26,
-     "text": "05 / 6",
-     "family": "Manrope",
+     "text": "08 / 9",
+     "family": "Rubik",
      "size": 18,
      "weight": 500,
-     "color": "#5B5B70",
+     "color": "#57544C",
      "lineHeight": 1.3,
      "align": "right"
     },
     {
      "kind": "rect",
      "x": 96,
-     "y": 251,
+     "y": 242,
      "w": 848,
      "h": 600,
-     "fill": "#F3F3F9",
-     "radius": 24,
-     "stroke": "#E4E4EE",
+     "fill": "#F5F2E8",
+     "radius": 6,
+     "stroke": "#E3E0D5",
      "strokeWidth": 1.5
     },
     {
      "kind": "icon",
      "icon": "microphone",
      "x": 856,
-     "y": 295,
+     "y": 286,
      "w": 40,
      "h": 40,
-     "color": "#FF4D2E"
+     "color": "#745600"
     },
     {
      "kind": "text",
      "x": 144,
-     "y": 299,
+     "y": 290,
      "w": 688,
      "h": 28,
      "text": "Share back",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 20,
      "weight": 600,
-     "color": "#FF4D2E",
+     "color": "#745600",
      "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
@@ -1279,120 +3086,120 @@
     {
      "kind": "text",
      "x": 144,
-     "y": 343,
+     "y": 334,
      "w": 752,
      "h": 112,
      "text": "One minute per group",
-     "family": "Sora",
+     "family": "Archivo Black",
      "size": 40,
-     "weight": 800,
-     "color": "#0B0B14",
+     "weight": 400,
+     "color": "#111111",
      "lineHeight": 1.1
     },
     {
      "kind": "rect",
      "x": 144,
-     "y": 511,
+     "y": 502,
      "w": 752,
      "h": 1,
-     "fill": "#E4E4EE"
+     "fill": "#E3E0D5"
     },
     {
      "kind": "text",
      "x": 144,
-     "y": 535,
+     "y": 526,
      "w": 752,
      "h": 40,
      "text": "Headline, sentence, why it matters",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 24,
      "weight": 600,
-     "color": "#0B0B14",
+     "color": "#111111",
      "lineHeight": 1.3
     },
     {
      "kind": "rect",
      "x": 144,
-     "y": 611,
+     "y": 602,
      "w": 752,
      "h": 1,
-     "fill": "#E4E4EE"
+     "fill": "#E3E0D5"
     },
     {
      "kind": "text",
      "x": 144,
-     "y": 635,
+     "y": 626,
      "w": 752,
      "h": 40,
      "text": "Clarifying questions only",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 24,
      "weight": 600,
-     "color": "#0B0B14",
+     "color": "#111111",
      "lineHeight": 1.3
     },
     {
      "kind": "rect",
      "x": 144,
-     "y": 711,
+     "y": 702,
      "w": 752,
      "h": 1,
-     "fill": "#E4E4EE"
+     "fill": "#E3E0D5"
     },
     {
      "kind": "text",
      "x": 144,
-     "y": 735,
+     "y": 726,
      "w": 752,
      "h": 40,
      "text": "The facilitator holds the clock",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 24,
      "weight": 600,
-     "color": "#0B0B14",
+     "color": "#111111",
      "lineHeight": 1.3
     },
     {
      "kind": "rect",
      "x": 976,
-     "y": 251,
+     "y": 242,
      "w": 848,
      "h": 600,
      "fill": {
       "angle": 160,
       "stops": [
        [
-        "#2B2BFF",
+        "#1B1B1B",
         0
        ],
        [
-        "#6A2BFF",
+        "#050505",
         1
        ]
       ]
      },
-     "radius": 24
+     "radius": 6
     },
     {
      "kind": "icon",
      "icon": "circle-check",
      "x": 1736,
-     "y": 295,
+     "y": 286,
      "w": 40,
      "h": 40,
-     "color": "#FF4D2E"
+     "color": "#FFD200"
     },
     {
      "kind": "text",
      "x": 1024,
-     "y": 299,
+     "y": 290,
      "w": 688,
      "h": 28,
      "text": "Converge",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 20,
      "weight": 600,
-     "color": "#B9F542",
+     "color": "#FFD200",
      "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
@@ -1400,32 +3207,32 @@
     {
      "kind": "text",
      "x": 1024,
-     "y": 343,
+     "y": 334,
      "w": 752,
      "h": 112,
      "text": "Dot-vote and cluster",
-     "family": "Sora",
+     "family": "Archivo Black",
      "size": 40,
-     "weight": 800,
+     "weight": 400,
      "color": "#FFFFFF",
      "lineHeight": 1.1
     },
     {
      "kind": "rect",
      "x": 1024,
-     "y": 511,
+     "y": 502,
      "w": 752,
      "h": 1,
-     "fill": "#5050FF"
+     "fill": "#353535"
     },
     {
      "kind": "text",
      "x": 1024,
-     "y": 535,
+     "y": 526,
      "w": 752,
      "h": 40,
      "text": "Three dots each, no more than two on one idea",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 24,
      "weight": 600,
      "color": "#FFFFFF",
@@ -1434,19 +3241,19 @@
     {
      "kind": "rect",
      "x": 1024,
-     "y": 611,
+     "y": 602,
      "w": 752,
      "h": 1,
-     "fill": "#5050FF"
+     "fill": "#353535"
     },
     {
      "kind": "text",
      "x": 1024,
-     "y": 635,
+     "y": 626,
      "w": 752,
      "h": 40,
      "text": "Cluster the winners by theme",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 24,
      "weight": 600,
      "color": "#FFFFFF",
@@ -1455,23 +3262,37 @@
     {
      "kind": "rect",
      "x": 1024,
-     "y": 711,
+     "y": 702,
      "w": 752,
      "h": 1,
-     "fill": "#5050FF"
+     "fill": "#353535"
     },
     {
      "kind": "text",
      "x": 1024,
-     "y": 735,
+     "y": 726,
      "w": 752,
      "h": 40,
      "text": "The top five leave with an owner",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 24,
      "weight": 600,
      "color": "#FFFFFF",
      "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1064,
+     "y": 920,
+     "w": 760,
+     "h": 36,
+     "text": "three dots each, no trading",
+     "family": "Gloria Hallelujah",
+     "size": 29,
+     "weight": 400,
+     "color": "#745600",
+     "lineHeight": 1.2,
+     "align": "right"
     }
    ]
   },
@@ -1481,11 +3302,11 @@
     "angle": 160,
     "stops": [
      [
-      "#2B2BFF",
+      "#1B1B1B",
       0
      ],
      [
-      "#6A2BFF",
+      "#050505",
       1
      ]
     ]
@@ -1493,101 +3314,56 @@
    "nodes": [
     {
      "kind": "rect",
-     "x": 1272,
-     "y": 0,
-     "w": 648,
-     "h": 1080,
-     "fill": "#FF4D2E",
+     "x": 1180,
+     "y": -300,
+     "w": 90,
+     "h": 1700,
+     "fill": "#FFD200",
+     "rotation": 24,
+     "opacity": 0.1,
+     "bleed": true
+    },
+    {
+     "kind": "rect",
+     "x": 1370,
+     "y": -300,
+     "w": 90,
+     "h": 1700,
+     "fill": "#FFD200",
+     "rotation": 24,
+     "opacity": 0.15000000000000002,
+     "bleed": true
+    },
+    {
+     "kind": "rect",
+     "x": 1560,
+     "y": -300,
+     "w": 90,
+     "h": 1700,
+     "fill": "#FFD200",
+     "rotation": 24,
+     "opacity": 0.2,
      "bleed": true
     },
     {
      "kind": "ellipse",
-     "x": 1316,
-     "y": 240,
-     "w": 560,
-     "h": 560,
-     "fill": "#FFFFFF",
-     "opacity": 0.18
+     "x": 1200,
+     "y": 200,
+     "w": 640,
+     "h": 640,
+     "fill": "#FFD200",
+     "opacity": 0.12,
+     "bleed": true
     },
     {
-     "kind": "rect",
-     "x": 1306,
-     "y": 498,
-     "w": 38,
-     "h": 11,
-     "fill": "#B9F542",
-     "rotation": 17,
-     "radius": 3
-    },
-    {
-     "kind": "rect",
-     "x": 1394,
-     "y": 792,
-     "w": 45,
-     "h": 11,
-     "fill": "#FFFFFF",
-     "rotation": 36,
-     "radius": 3
-    },
-    {
-     "kind": "rect",
-     "x": 1541,
-     "y": 650,
-     "w": 31,
-     "h": 9,
-     "fill": "#2B2BFF",
-     "rotation": 2,
-     "radius": 3
-    },
-    {
-     "kind": "rect",
-     "x": 1400,
-     "y": 978,
-     "w": 30,
-     "h": 11,
-     "fill": "#B9F542",
-     "rotation": -27,
-     "radius": 3
-    },
-    {
-     "kind": "rect",
-     "x": 1445,
-     "y": 236,
-     "w": 38,
-     "h": 13,
-     "fill": "#FFFFFF",
-     "rotation": -6,
-     "radius": 3
-    },
-    {
-     "kind": "rect",
-     "x": 1296,
-     "y": 277,
-     "w": 26,
-     "h": 10,
-     "fill": "#2B2BFF",
-     "rotation": -2,
-     "radius": 3
-    },
-    {
-     "kind": "rect",
-     "x": 1316,
-     "y": 92,
-     "w": 24,
-     "h": 13,
-     "fill": "#B9F542",
-     "rotation": 8,
-     "radius": 3
-    },
-    {
-     "kind": "rect",
-     "x": 1719,
-     "y": 158,
-     "w": 33,
-     "h": 10,
-     "fill": "#FFFFFF",
-     "rotation": -22,
-     "radius": 3
+     "kind": "ellipse",
+     "x": 1264,
+     "y": 264,
+     "w": 512,
+     "h": 512,
+     "fill": "#FFD200",
+     "opacity": 0.16,
+     "bleed": true
     },
     {
      "kind": "rect",
@@ -1595,7 +3371,7 @@
      "y": 96,
      "w": 22,
      "h": 22,
-     "fill": "#FF4D2E",
+     "fill": "#FFD200",
      "radius": 6
     },
     {
@@ -1605,7 +3381,7 @@
      "w": 700,
      "h": 30,
      "text": "Loop",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 22,
      "weight": 600,
      "color": "#FFFFFF",
@@ -1616,12 +3392,12 @@
      "x": 96,
      "y": 236,
      "w": 1000,
-     "h": 60,
+     "h": 47,
      "text": "Commitments",
-     "family": "Bricolage Grotesque",
+     "family": "Gloria Hallelujah",
      "size": 36,
-     "weight": 800,
-     "color": "#B9F542",
+     "weight": 400,
+     "color": "#FFD200",
      "lineHeight": 1.2
     },
     {
@@ -1629,25 +3405,25 @@
      "x": 96,
      "y": 300,
      "w": 1100,
-     "h": 144,
+     "h": 133,
      "text": "Commitments",
-     "family": "Sora",
-     "size": 122,
-     "weight": 800,
+     "family": "Archivo Black",
+     "size": 112,
+     "weight": 400,
      "color": "#FFFFFF",
      "lineHeight": 1.06
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 468,
+     "y": 457,
      "w": 940,
      "h": 120,
      "text": "Five ideas, five owners, five first steps by next Friday. The wall gets photographed and posted before anyone leaves.",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 28,
-     "weight": 500,
-     "color": "#CFCFFF",
+     "weight": 400,
+     "color": "#BDBAB1",
      "lineHeight": 1.4
     },
     {
@@ -1657,7 +3433,7 @@
      "y": 702,
      "w": 28,
      "h": 28,
-     "color": "#FF4D2E"
+     "color": "#FFD200"
     },
     {
      "kind": "text",
@@ -1666,7 +3442,7 @@
      "w": 800,
      "h": 34,
      "text": "#workshop-next-bet on Slack",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 24,
      "weight": 500,
      "color": "#FFFFFF",
@@ -1679,7 +3455,7 @@
      "y": 764,
      "w": 28,
      "h": 28,
-     "color": "#FF4D2E"
+     "color": "#FFD200"
     },
     {
      "kind": "text",
@@ -1688,7 +3464,7 @@
      "w": 800,
      "h": 34,
      "text": "mei@loop.example",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 24,
      "weight": 500,
      "color": "#FFFFFF",
@@ -1701,7 +3477,7 @@
      "y": 826,
      "w": 28,
      "h": 28,
-     "color": "#FF4D2E"
+     "color": "#FFD200"
     },
     {
      "kind": "text",
@@ -1710,7 +3486,7 @@
      "w": 800,
      "h": 34,
      "text": "First steps due: 22 October",
-     "family": "Manrope",
+     "family": "Rubik",
      "size": 24,
      "weight": 500,
      "color": "#FFFFFF",
@@ -1723,12 +3499,12 @@
      "w": 340,
      "h": 64,
      "label": "See the shortlist",
-     "fill": "#FF4D2E",
-     "color": "#0B0B14",
-     "family": "Manrope",
+     "fill": "#FFD200",
+     "color": "#111111",
+     "family": "Rubik",
      "size": 22,
      "weight": 700,
-     "radius": 24
+     "radius": 6
     },
     {
      "kind": "text",
@@ -1736,65 +3512,110 @@
      "y": 940,
      "w": 240,
      "h": 28,
-     "text": "06 / 6",
-     "family": "Manrope",
+     "text": "09 / 9",
+     "family": "Rubik",
      "size": 18,
      "weight": 500,
-     "color": "#CFCFFF",
+     "color": "#BDBAB1",
      "lineHeight": 1.3,
      "align": "right"
+    },
+    {
+     "kind": "text",
+     "x": 1140,
+     "y": 885,
+     "w": 720,
+     "h": 39,
+     "text": "first steps, not whole plans",
+     "family": "Gloria Hallelujah",
+     "size": 31,
+     "weight": 400,
+     "color": "#FFD200",
+     "lineHeight": 1.2,
+     "align": "center"
     }
    ],
    "illustrations": [
     {
-     "asset": "la-scooter",
-     "x": 1336,
-     "y": 280,
-     "w": 520,
-     "h": 480
+     "asset": "il-day4-polariod",
+     "x": 1250,
+     "y": 250,
+     "w": 540,
+     "h": 540,
+     "cleanCard": true
     }
    ]
   }
  ],
  "fillable": [
   {
-   "node": "p0-n1",
+   "node": "p0-n4",
    "kind": "text",
    "label": "Company",
    "hint": "Your company or team name"
   },
   {
-   "node": "p0-n3",
+   "node": "p0-n6",
    "kind": "text",
    "label": "Title",
    "hint": "Two short lines"
   },
   {
-   "node": "p0-n4",
+   "node": "p0-n7",
    "kind": "text",
    "label": "Subtitle",
    "hint": "One sentence on what the deck covers"
   },
   {
-   "node": "p0-n5",
+   "node": "p0-n8",
    "kind": "text",
    "label": "Presenter and date",
    "hint": "Who presents, and when"
   },
   {
-   "node": "p5-n16",
+   "node": "p6-n69",
+   "kind": "text",
+   "label": "Minutes",
+   "hint": "The time box, as a number"
+  },
+  {
+   "node": "p6-n75",
+   "kind": "text",
+   "label": "Instruction 1",
+   "hint": "One line, the way you would say it"
+  },
+  {
+   "node": "p6-n80",
+   "kind": "text",
+   "label": "Instruction 2",
+   "hint": "One line, the way you would say it"
+  },
+  {
+   "node": "p6-n85",
+   "kind": "text",
+   "label": "Instruction 3",
+   "hint": "One line, the way you would say it"
+  },
+  {
+   "node": "p6-n89",
+   "kind": "text",
+   "label": "What good looks like",
+   "hint": "One test a card has to pass"
+  },
+  {
+   "node": "p8-n11",
    "kind": "text",
    "label": "Email",
    "hint": "Contact detail"
   },
   {
-   "node": "p5-n18",
+   "node": "p8-n13",
    "kind": "text",
    "label": "Website",
    "hint": "Contact detail"
   },
   {
-   "node": "p5-n20",
+   "node": "p8-n15",
    "kind": "text",
    "label": "Phone",
    "hint": "Contact detail"

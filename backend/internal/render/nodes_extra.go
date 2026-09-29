@@ -873,6 +873,10 @@ func (rc *rctx) rasterChart(m mat, node map[string]any) {
 	if stacked {
 		maxV = math.Max(1, chartStackedMax(series, n))
 	}
+	// Bars and points scale to the axis top, so a value sits on its tick.
+	if chartAxisShown(style, "showY") {
+		maxV, _ = chartAxisMax(maxV, ph)
+	}
 	if chartAxisShown(style, "showX") {
 		rc.chartStroke(m, x0, y0+ph, x0+pw, y0+ph, 1, rc.solid(0xd4, 0xd4, 0xd8))
 	}
@@ -1035,21 +1039,54 @@ func (rc *rctx) drawChartLegend(m mat, node map[string]any, w, h float64, positi
 	}
 }
 
+// niceStep rounds a raw tick interval up to 1, 2 or 5 times a power of ten,
+// so an axis to 1810 reads 0, 500, 1000, 1500, 2000 rather than quarters
+// of the series maximum.
+func niceStep(raw float64) float64 {
+	if raw <= 0 {
+		return 1
+	}
+	p := math.Pow(10, math.Floor(math.Log10(raw)))
+	f := raw / p
+	switch {
+	case f <= 1:
+		return p
+	case f <= 2:
+		return 2 * p
+	case f <= 5:
+		return 5 * p
+	}
+	return 10 * p
+}
+
+// chartAxisMax is the top of the value axis: the series maximum rounded up
+// to a nice tick, and the tick step. Shared by the axis and every bar and
+// point so they agree.
+func chartAxisMax(maxV, ph float64) (float64, float64) {
+	ticks := math.Max(2, math.Min(8, math.Round(ph/48)))
+	step := niceStep(maxV / ticks)
+	return math.Ceil(maxV/step) * step, step
+}
+
 func (rc *rctx) drawYAxis(m mat, x0, y0, ph, maxV, k float64) {
-	ticks := int(math.Max(2, math.Min(8, math.Round(ph/48))))
+	top, step := chartAxisMax(maxV, ph)
+	ticks := int(math.Round(top / step))
 	axisCol := rc.solid(0xd4, 0xd4, 0xd8)
 	rc.chartStroke(m, x0, y0, x0, y0+ph, 1, axisCol)
 	for t := 0; t <= ticks; t++ {
-		frac := float64(t) / float64(ticks)
+		frac := float64(t) * step / top
 		ty := y0 + ph - frac*ph
 		rc.chartStroke(m, x0-3, ty, x0, ty, 1, axisCol)
-		rc.chartText(m, numStr(math.Round(maxV*frac*100)/100), x0-5, ty+3*k, 9*k, 500, "right", rc.solid(0x52, 0x52, 0x5b))
+		rc.chartText(m, numStr(math.Round(float64(t)*step*100)/100), x0-5, ty+3*k, 9*k, 500, "right", rc.solid(0x52, 0x52, 0x5b))
 	}
 }
 
 func (rc *rctx) drawScatter(m mat, node map[string]any, x0, y0, pw, ph float64, n int, showValues bool) {
 	series := asArr(node["series"])
 	maxV := math.Max(1, chartSeriesMax(series))
+	if chartAxisShown(asObj(node["style"]), "showY") {
+		maxV, _ = chartAxisMax(maxV, ph)
+	}
 	k := chartTextScale(node)
 	style := asObj(node["style"])
 	if chartAxisShown(style, "showX") {

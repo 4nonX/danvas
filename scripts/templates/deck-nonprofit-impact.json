@@ -23,18 +23,18 @@
  "typography": [
   {
    "role": "heading",
-   "family": "Outfit",
+   "family": "Alegreya",
    "weight": 700
   },
   {
    "role": "body",
-   "family": "Nunito Sans",
+   "family": "Fira Sans",
    "weight": 400
   },
   {
    "role": "accent",
-   "family": "Caveat",
-   "weight": 600
+   "family": "Neucha",
+   "weight": 400
   }
  ],
  "pages": [
@@ -44,108 +44,97 @@
     "angle": 160,
     "stops": [
      [
-      "#2F4A36",
+      "#7A3226",
       0
      ],
      [
-      "#1D3124",
+      "#471912",
       1
      ]
     ]
    },
    "nodes": [
     {
-     "kind": "ellipse",
-     "x": 1480,
-     "y": -260,
-     "w": 760,
-     "h": 760,
-     "fill": "#A9D2A0",
-     "opacity": 0.4,
-     "bleed": true
-    },
-    {
-     "kind": "ellipse",
-     "x": -200,
-     "y": 720,
-     "w": 560,
-     "h": 560,
-     "fill": "#F2905E",
-     "opacity": 0.35,
-     "bleed": true
-    },
-    {
-     "kind": "ellipse",
-     "x": 1720,
-     "y": 720,
-     "w": 300,
-     "h": 300,
-     "fill": "#F2C063",
-     "opacity": 0.6,
-     "bleed": true
-    },
-    {
-     "kind": "ellipse",
-     "x": 1699,
-     "y": 644,
-     "w": 5,
-     "h": 5,
-     "fill": "#F8F0E3",
-     "opacity": 0.5
-    },
-    {
-     "kind": "ellipse",
-     "x": 1280,
-     "y": 575,
-     "w": 7,
-     "h": 7,
-     "fill": "#F8F0E3",
-     "opacity": 0.43999999999999995
-    },
-    {
-     "kind": "ellipse",
-     "x": 1511,
-     "y": 775,
-     "w": 6,
-     "h": 6,
-     "fill": "#F8F0E3",
-     "opacity": 0.71
-    },
-    {
-     "kind": "ellipse",
-     "x": 1840,
-     "y": 806,
-     "w": 5,
-     "h": 5,
-     "fill": "#F8F0E3",
-     "opacity": 0.6
-    },
-    {
-     "kind": "ellipse",
-     "x": 1845,
-     "y": 619,
-     "w": 8,
-     "h": 8,
-     "fill": "#F8F0E3",
-     "opacity": 0.42
-    },
-    {
-     "kind": "ellipse",
-     "x": 1906,
-     "y": 136,
-     "w": 6,
-     "h": 6,
-     "fill": "#F8F0E3",
+     "kind": "rect",
+     "x": 40,
+     "y": 40,
+     "w": 1840,
+     "h": 1000,
+     "stroke": "#9FCCEC",
+     "strokeWidth": 1.5,
      "opacity": 0.7
     },
     {
      "kind": "ellipse",
-     "x": 1381,
-     "y": 401,
-     "w": 9,
-     "h": 9,
-     "fill": "#F8F0E3",
-     "opacity": 0.38
+     "x": 1805,
+     "y": 388,
+     "w": 5,
+     "h": 5,
+     "fill": "#9FCCEC",
+     "opacity": 0.6499999999999999
+    },
+    {
+     "kind": "ellipse",
+     "x": 1827,
+     "y": 428,
+     "w": 5,
+     "h": 5,
+     "fill": "#9FCCEC",
+     "opacity": 0.52
+    },
+    {
+     "kind": "ellipse",
+     "x": 1816,
+     "y": 674,
+     "w": 6,
+     "h": 6,
+     "fill": "#9FCCEC",
+     "opacity": 0.51
+    },
+    {
+     "kind": "ellipse",
+     "x": 1626,
+     "y": 74,
+     "w": 7,
+     "h": 7,
+     "fill": "#9FCCEC",
+     "opacity": 0.75
+    },
+    {
+     "kind": "ellipse",
+     "x": 1750,
+     "y": 198,
+     "w": 8,
+     "h": 8,
+     "fill": "#9FCCEC",
+     "opacity": 0.45999999999999996
+    },
+    {
+     "kind": "ellipse",
+     "x": 1733,
+     "y": 593,
+     "w": 6,
+     "h": 6,
+     "fill": "#9FCCEC",
+     "opacity": 0.71
+    },
+    {
+     "kind": "ellipse",
+     "x": 1339,
+     "y": 678,
+     "w": 6,
+     "h": 6,
+     "fill": "#9FCCEC",
+     "opacity": 0.39999999999999997
+    },
+    {
+     "kind": "ellipse",
+     "x": 1481,
+     "y": 506,
+     "w": 8,
+     "h": 8,
+     "fill": "#9FCCEC",
+     "opacity": 0.48
     },
     {
      "kind": "rect",
@@ -153,7 +142,7 @@
      "y": 96,
      "w": 22,
      "h": 22,
-     "fill": "#F2905E",
+     "fill": "#9FCCEC",
      "radius": 6
     },
     {
@@ -163,10 +152,10 @@
      "w": 700,
      "h": 30,
      "text": "Fernwood Collective",
-     "family": "Nunito Sans",
+     "family": "Fira Sans",
      "size": 22,
      "weight": 600,
-     "color": "#F8F0E3",
+     "color": "#F6EEDF",
      "lineHeight": 1.3
     },
     {
@@ -174,12 +163,12 @@
      "x": 96,
      "y": 372,
      "w": 1000,
-     "h": 60,
+     "h": 52,
      "text": "Our year together",
-     "family": "Caveat",
-     "size": 46,
-     "weight": 600,
-     "color": "#F2905E",
+     "family": "Neucha",
+     "size": 40,
+     "weight": 400,
+     "color": "#9FCCEC",
      "lineHeight": 1.2
     },
     {
@@ -187,25 +176,25 @@
      "x": 96,
      "y": 446,
      "w": 1000,
-     "h": 258,
+     "h": 254,
      "text": "Why this\nwork matters",
-     "family": "Outfit",
-     "size": 118,
+     "family": "Alegreya",
+     "size": 116,
      "weight": 700,
-     "color": "#F8F0E3",
+     "color": "#F6EEDF",
      "lineHeight": 1.02
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 734,
+     "y": 730,
      "w": 900,
      "h": 120,
      "text": "The people we reached this year, one story the numbers cannot hold, where every donated dollar went, and the gap we close next.",
-     "family": "Nunito Sans",
+     "family": "Fira Sans",
      "size": 28,
      "weight": 400,
-     "color": "#BBC9B4",
+     "color": "#E3C9BC",
      "lineHeight": 1.4
     },
     {
@@ -215,10 +204,10 @@
      "w": 900,
      "h": 28,
      "text": "Fernwood Collective  ·  Annual report 2026",
-     "family": "Nunito Sans",
+     "family": "Fira Sans",
      "size": 18,
      "weight": 500,
-     "color": "#BBC9B4",
+     "color": "#E3C9BC",
      "lineHeight": 1.3
     },
     {
@@ -227,66 +216,71 @@
      "y": 940,
      "w": 240,
      "h": 28,
-     "text": "01 / 6",
-     "family": "Nunito Sans",
+     "text": "01 / 9",
+     "family": "Fira Sans",
      "size": 18,
      "weight": 500,
-     "color": "#BBC9B4",
+     "color": "#E3C9BC",
      "lineHeight": 1.3,
      "align": "right"
     },
     {
      "kind": "ellipse",
-     "x": 1180,
-     "y": 200,
-     "w": 660,
-     "h": 660,
-     "fill": "#466B4C"
-    },
-    {
-     "kind": "ellipse",
-     "x": 1160,
-     "y": 180,
+     "x": 1150,
+     "y": 170,
      "w": 700,
      "h": 700,
-     "fill": "#F2C063",
+     "fill": "#9FCCEC",
      "opacity": 0.12,
      "bleed": true
     },
     {
      "kind": "ellipse",
-     "x": 1230,
-     "y": 250,
+     "x": 1220,
+     "y": 240,
      "w": 560,
      "h": 560,
-     "fill": "#F2C063",
+     "fill": "#9FCCEC",
      "opacity": 0.16,
      "bleed": true
+    },
+    {
+     "kind": "text",
+     "x": 1140,
+     "y": 881,
+     "w": 720,
+     "h": 43,
+     "text": "ten minutes, cover to cover",
+     "family": "Neucha",
+     "size": 34,
+     "weight": 400,
+     "color": "#9FCCEC",
+     "lineHeight": 1.2,
+     "align": "center"
     }
    ],
    "illustrations": [
     {
-     "asset": "od-loving",
-     "x": 1230,
-     "y": 240,
-     "w": 560,
-     "h": 580
+     "asset": "il-day31-sweet-home",
+     "x": 1210,
+     "y": 230,
+     "w": 580,
+     "h": 580,
+     "cleanCard": true
     }
    ]
   },
   {
    "name": "Figures",
-   "bg": "#F8F0E3",
+   "bg": "#F2EADB",
    "nodes": [
     {
-     "kind": "ellipse",
-     "x": 1700,
-     "y": -180,
-     "w": 380,
-     "h": 380,
-     "fill": "#5F8F5A",
-     "opacity": 0.22,
-     "bleed": true
+     "kind": "rect",
+     "x": 96,
+     "y": 76,
+     "w": 56,
+     "h": 3,
+     "fill": "#B8432A"
     },
     {
      "kind": "text",
@@ -295,10 +289,10 @@
      "w": 1200,
      "h": 28,
      "text": "The year's impact",
-     "family": "Nunito Sans",
+     "family": "Fira Sans",
      "size": 20,
      "weight": 600,
-     "color": "#E0703F",
+     "color": "#8E2F19",
      "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
@@ -308,12 +302,12 @@
      "x": 96,
      "y": 124,
      "w": 1240,
-     "h": 78,
+     "h": 76,
      "text": "People reached, outcomes achieved",
-     "family": "Outfit",
-     "size": 64,
+     "family": "Alegreya",
+     "size": 62,
      "weight": 700,
-     "color": "#2F2A25",
+     "color": "#2A211B",
      "lineHeight": 1.06
     },
     {
@@ -322,7 +316,7 @@
      "y": 968,
      "w": 1728,
      "h": 1,
-     "fill": "#DDD0BB"
+     "fill": "#D8CBB4"
     },
     {
      "kind": "text",
@@ -331,10 +325,10 @@
      "w": 900,
      "h": 26,
      "text": "Fernwood Collective  ·  Impact report 2026",
-     "family": "Nunito Sans",
+     "family": "Fira Sans",
      "size": 18,
      "weight": 500,
-     "color": "#786C5F",
+     "color": "#655648",
      "lineHeight": 1.3
     },
     {
@@ -343,301 +337,315 @@
      "y": 992,
      "w": 240,
      "h": 26,
-     "text": "02 / 6",
-     "family": "Nunito Sans",
+     "text": "02 / 9",
+     "family": "Fira Sans",
      "size": 18,
      "weight": 500,
-     "color": "#786C5F",
+     "color": "#655648",
      "lineHeight": 1.3,
      "align": "right"
     },
     {
      "kind": "rect",
      "x": 96,
-     "y": 246,
+     "y": 244,
      "w": 414,
      "h": 560,
-     "fill": "#EFE4D0",
-     "radius": 28,
-     "stroke": "#DDD0BB",
+     "fill": "#E9DFCB",
+     "radius": 6,
+     "stroke": "#D8CBB4",
      "strokeWidth": 1.5
     },
     {
      "kind": "rect",
      "x": 96,
-     "y": 246,
+     "y": 244,
      "w": 414,
      "h": 6,
-     "fill": "#E0703F",
+     "fill": "#B8432A",
      "radius": 0
     },
     {
      "kind": "text",
      "x": 132,
-     "y": 302,
+     "y": 300,
      "w": 342,
-     "h": 124,
+     "h": 120,
      "text": "12,400",
-     "family": "Outfit",
-     "size": 86.4,
+     "family": "Alegreya",
+     "size": 83.2,
      "weight": 700,
-     "color": "#E0703F",
+     "color": "#8E2F19",
      "lineHeight": 1
     },
     {
      "kind": "text",
      "x": 132,
-     "y": 442,
+     "y": 440,
      "w": 342,
      "h": 34,
      "text": "People served",
-     "family": "Nunito Sans",
+     "family": "Fira Sans",
      "size": 24,
      "weight": 600,
-     "color": "#2F2A25",
+     "color": "#2A211B",
      "lineHeight": 1.3
     },
     {
      "kind": "button",
      "x": 132,
-     "y": 496,
+     "y": 494,
      "w": 190,
      "h": 40,
      "label": "+22%",
-     "fill": "#eccfb6",
-     "color": "#E0703F",
-     "family": "Nunito Sans",
+     "fill": "#e0c3ae",
+     "color": "#8E2F19",
+     "family": "Fira Sans",
      "size": 17,
      "weight": 700
     },
     {
      "kind": "text",
      "x": 132,
-     "y": 566,
+     "y": 564,
      "w": 342,
      "h": 140,
      "text": "Across food, housing support and the after-school programme.",
-     "family": "Nunito Sans",
+     "family": "Fira Sans",
      "size": 20,
      "weight": 400,
-     "color": "#786C5F",
+     "color": "#655648",
      "lineHeight": 1.4
     },
     {
      "kind": "rect",
      "x": 534,
-     "y": 246,
+     "y": 244,
      "w": 414,
      "h": 560,
-     "fill": "#EFE4D0",
-     "radius": 28,
-     "stroke": "#DDD0BB",
+     "fill": "#E9DFCB",
+     "radius": 6,
+     "stroke": "#D8CBB4",
      "strokeWidth": 1.5
     },
     {
      "kind": "rect",
      "x": 534,
-     "y": 246,
+     "y": 244,
      "w": 414,
      "h": 6,
-     "fill": "#5F8F5A",
+     "fill": "#3F86BE",
      "radius": 0
     },
     {
      "kind": "text",
      "x": 570,
-     "y": 302,
+     "y": 300,
      "w": 342,
-     "h": 124,
+     "h": 120,
      "text": "2,150",
-     "family": "Outfit",
-     "size": 108,
+     "family": "Alegreya",
+     "size": 104,
      "weight": 700,
-     "color": "#5F8F5A",
+     "color": "#245B86",
      "lineHeight": 1
     },
     {
      "kind": "text",
      "x": 570,
-     "y": 442,
+     "y": 440,
      "w": 342,
      "h": 34,
      "text": "Families housed",
-     "family": "Nunito Sans",
+     "family": "Fira Sans",
      "size": 24,
      "weight": 600,
-     "color": "#2F2A25",
+     "color": "#2A211B",
      "lineHeight": 1.3
     },
     {
      "kind": "button",
      "x": 570,
-     "y": 496,
+     "y": 494,
      "w": 190,
      "h": 40,
      "label": "+18%",
-     "fill": "#d5d5bb",
-     "color": "#5F8F5A",
-     "family": "Nunito Sans",
+     "fill": "#cacfc9",
+     "color": "#245B86",
+     "family": "Fira Sans",
      "size": 17,
      "weight": 700
     },
     {
      "kind": "text",
      "x": 570,
-     "y": 566,
+     "y": 564,
      "w": 342,
      "h": 140,
      "text": "Through the rental support fund, all still housed at year end.",
-     "family": "Nunito Sans",
+     "family": "Fira Sans",
      "size": 20,
      "weight": 400,
-     "color": "#786C5F",
+     "color": "#655648",
      "lineHeight": 1.4
     },
     {
      "kind": "rect",
      "x": 972,
-     "y": 246,
+     "y": 244,
      "w": 414,
      "h": 560,
-     "fill": "#EFE4D0",
-     "radius": 28,
-     "stroke": "#DDD0BB",
+     "fill": "#E9DFCB",
+     "radius": 6,
+     "stroke": "#D8CBB4",
      "strokeWidth": 1.5
     },
     {
      "kind": "rect",
      "x": 972,
-     "y": 246,
+     "y": 244,
      "w": 414,
      "h": 6,
-     "fill": "#E0703F",
+     "fill": "#B8432A",
      "radius": 0
     },
     {
      "kind": "text",
      "x": 1008,
-     "y": 302,
+     "y": 300,
      "w": 342,
-     "h": 124,
+     "h": 120,
      "text": "840",
-     "family": "Outfit",
-     "size": 108,
+     "family": "Alegreya",
+     "size": 104,
      "weight": 700,
-     "color": "#E0703F",
+     "color": "#8E2F19",
      "lineHeight": 1
     },
     {
      "kind": "text",
      "x": 1008,
-     "y": 442,
+     "y": 440,
      "w": 342,
      "h": 34,
      "text": "Young people in the programme",
-     "family": "Nunito Sans",
+     "family": "Fira Sans",
      "size": 24,
      "weight": 600,
-     "color": "#2F2A25",
+     "color": "#2A211B",
      "lineHeight": 1.3
     },
     {
      "kind": "button",
      "x": 1008,
-     "y": 496,
+     "y": 494,
      "w": 190,
      "h": 40,
      "label": "Every weekday",
-     "fill": "#eccfb6",
-     "color": "#E0703F",
-     "family": "Nunito Sans",
+     "fill": "#e0c3ae",
+     "color": "#8E2F19",
+     "family": "Fira Sans",
      "size": 17,
      "weight": 700
     },
     {
      "kind": "text",
      "x": 1008,
-     "y": 566,
+     "y": 564,
      "w": 342,
      "h": 140,
      "text": "Four sites, two of them new this year.",
-     "family": "Nunito Sans",
+     "family": "Fira Sans",
      "size": 20,
      "weight": 400,
-     "color": "#786C5F",
+     "color": "#655648",
      "lineHeight": 1.4
     },
     {
      "kind": "rect",
      "x": 1410,
-     "y": 246,
+     "y": 244,
      "w": 414,
      "h": 560,
-     "fill": "#EFE4D0",
-     "radius": 28,
-     "stroke": "#DDD0BB",
+     "fill": "#E9DFCB",
+     "radius": 6,
+     "stroke": "#D8CBB4",
      "strokeWidth": 1.5
     },
     {
      "kind": "rect",
      "x": 1410,
-     "y": 246,
+     "y": 244,
      "w": 414,
      "h": 6,
-     "fill": "#5F8F5A",
+     "fill": "#3F86BE",
      "radius": 0
     },
     {
      "kind": "text",
      "x": 1446,
-     "y": 302,
+     "y": 300,
      "w": 342,
-     "h": 124,
+     "h": 120,
      "text": "96%",
-     "family": "Outfit",
-     "size": 108,
+     "family": "Alegreya",
+     "size": 104,
      "weight": 700,
-     "color": "#5F8F5A",
+     "color": "#245B86",
      "lineHeight": 1
     },
     {
      "kind": "text",
      "x": 1446,
-     "y": 442,
+     "y": 440,
      "w": 342,
      "h": 34,
      "text": "Programme completion",
-     "family": "Nunito Sans",
+     "family": "Fira Sans",
      "size": 24,
      "weight": 600,
-     "color": "#2F2A25",
+     "color": "#2A211B",
      "lineHeight": 1.3
     },
     {
      "kind": "button",
      "x": 1446,
-     "y": 496,
+     "y": 494,
      "w": 190,
      "h": 40,
      "label": "+3 pts",
-     "fill": "#d5d5bb",
-     "color": "#5F8F5A",
-     "family": "Nunito Sans",
+     "fill": "#cacfc9",
+     "color": "#245B86",
+     "family": "Fira Sans",
      "size": 17,
      "weight": 700
     },
     {
      "kind": "text",
      "x": 1446,
-     "y": 566,
+     "y": 564,
      "w": 342,
      "h": 140,
      "text": "Of young people who joined in September and stayed to June.",
-     "family": "Nunito Sans",
+     "family": "Fira Sans",
      "size": 20,
      "weight": 400,
-     "color": "#786C5F",
+     "color": "#655648",
      "lineHeight": 1.4
+    },
+    {
+     "kind": "text",
+     "x": 1064,
+     "y": 916,
+     "w": 760,
+     "h": 40,
+     "text": "every figure is in the accounts, page 12 on",
+     "family": "Neucha",
+     "size": 32,
+     "weight": 400,
+     "color": "#8E2F19",
+     "lineHeight": 1.2,
+     "align": "right"
     }
    ]
   },
@@ -647,108 +655,97 @@
     "angle": 160,
     "stops": [
      [
-      "#2F4A36",
+      "#7A3226",
       0
      ],
      [
-      "#1D3124",
+      "#471912",
       1
      ]
     ]
    },
    "nodes": [
     {
-     "kind": "ellipse",
-     "x": 1480,
-     "y": -260,
-     "w": 760,
-     "h": 760,
-     "fill": "#A9D2A0",
-     "opacity": 0.4,
-     "bleed": true
-    },
-    {
-     "kind": "ellipse",
-     "x": -200,
-     "y": 720,
-     "w": 560,
-     "h": 560,
-     "fill": "#F2905E",
-     "opacity": 0.35,
-     "bleed": true
-    },
-    {
-     "kind": "ellipse",
-     "x": 1720,
-     "y": 720,
-     "w": 300,
-     "h": 300,
-     "fill": "#F2C063",
-     "opacity": 0.6,
-     "bleed": true
-    },
-    {
-     "kind": "ellipse",
-     "x": 1699,
-     "y": 644,
-     "w": 5,
-     "h": 5,
-     "fill": "#F8F0E3",
-     "opacity": 0.5
-    },
-    {
-     "kind": "ellipse",
-     "x": 1280,
-     "y": 575,
-     "w": 7,
-     "h": 7,
-     "fill": "#F8F0E3",
-     "opacity": 0.43999999999999995
-    },
-    {
-     "kind": "ellipse",
-     "x": 1511,
-     "y": 775,
-     "w": 6,
-     "h": 6,
-     "fill": "#F8F0E3",
-     "opacity": 0.71
-    },
-    {
-     "kind": "ellipse",
-     "x": 1840,
-     "y": 806,
-     "w": 5,
-     "h": 5,
-     "fill": "#F8F0E3",
-     "opacity": 0.6
-    },
-    {
-     "kind": "ellipse",
-     "x": 1845,
-     "y": 619,
-     "w": 8,
-     "h": 8,
-     "fill": "#F8F0E3",
-     "opacity": 0.42
-    },
-    {
-     "kind": "ellipse",
-     "x": 1906,
-     "y": 136,
-     "w": 6,
-     "h": 6,
-     "fill": "#F8F0E3",
+     "kind": "rect",
+     "x": 40,
+     "y": 40,
+     "w": 1840,
+     "h": 1000,
+     "stroke": "#9FCCEC",
+     "strokeWidth": 1.5,
      "opacity": 0.7
     },
     {
      "kind": "ellipse",
-     "x": 1381,
-     "y": 401,
-     "w": 9,
-     "h": 9,
-     "fill": "#F8F0E3",
-     "opacity": 0.38
+     "x": 1805,
+     "y": 388,
+     "w": 5,
+     "h": 5,
+     "fill": "#9FCCEC",
+     "opacity": 0.6499999999999999
+    },
+    {
+     "kind": "ellipse",
+     "x": 1827,
+     "y": 428,
+     "w": 5,
+     "h": 5,
+     "fill": "#9FCCEC",
+     "opacity": 0.52
+    },
+    {
+     "kind": "ellipse",
+     "x": 1816,
+     "y": 674,
+     "w": 6,
+     "h": 6,
+     "fill": "#9FCCEC",
+     "opacity": 0.51
+    },
+    {
+     "kind": "ellipse",
+     "x": 1626,
+     "y": 74,
+     "w": 7,
+     "h": 7,
+     "fill": "#9FCCEC",
+     "opacity": 0.75
+    },
+    {
+     "kind": "ellipse",
+     "x": 1750,
+     "y": 198,
+     "w": 8,
+     "h": 8,
+     "fill": "#9FCCEC",
+     "opacity": 0.45999999999999996
+    },
+    {
+     "kind": "ellipse",
+     "x": 1733,
+     "y": 593,
+     "w": 6,
+     "h": 6,
+     "fill": "#9FCCEC",
+     "opacity": 0.71
+    },
+    {
+     "kind": "ellipse",
+     "x": 1339,
+     "y": 678,
+     "w": 6,
+     "h": 6,
+     "fill": "#9FCCEC",
+     "opacity": 0.39999999999999997
+    },
+    {
+     "kind": "ellipse",
+     "x": 1481,
+     "y": 506,
+     "w": 8,
+     "h": 8,
+     "fill": "#9FCCEC",
+     "opacity": 0.48
     },
     {
      "kind": "rect",
@@ -756,7 +753,7 @@
      "y": 968,
      "w": 1728,
      "h": 1,
-     "fill": "#456249"
+     "fill": "#95503F"
     },
     {
      "kind": "text",
@@ -765,10 +762,10 @@
      "w": 900,
      "h": 26,
      "text": "Fernwood Collective  ·  Impact report 2026",
-     "family": "Nunito Sans",
+     "family": "Fira Sans",
      "size": 18,
      "weight": 500,
-     "color": "#BBC9B4",
+     "color": "#E3C9BC",
      "lineHeight": 1.3
     },
     {
@@ -777,11 +774,11 @@
      "y": 992,
      "w": 240,
      "h": 26,
-     "text": "03 / 6",
-     "family": "Nunito Sans",
+     "text": "03 / 9",
+     "family": "Fira Sans",
      "size": 18,
      "weight": 500,
-     "color": "#BBC9B4",
+     "color": "#E3C9BC",
      "lineHeight": 1.3,
      "align": "right"
     },
@@ -792,10 +789,10 @@
      "w": 260,
      "h": 260,
      "text": "“",
-     "family": "Outfit",
+     "family": "Alegreya",
      "size": 280,
      "weight": 700,
-     "color": "#F2905E",
+     "color": "#9FCCEC",
      "lineHeight": 1
     },
     {
@@ -805,10 +802,10 @@
      "w": 1400,
      "h": 221,
      "text": "They did not give us a leaflet. They gave us a week to breathe, and then a plan we could actually follow.",
-     "family": "Outfit",
+     "family": "Alegreya",
      "size": 54,
      "weight": 700,
-     "color": "#F8F0E3",
+     "color": "#F6EEDF",
      "lineHeight": 1.26
     },
     {
@@ -818,7 +815,7 @@
      "y": 681,
      "w": 84,
      "h": 84,
-     "fill": "#466B4C"
+     "fill": "#8E4638"
     },
     {
      "kind": "text",
@@ -827,10 +824,10 @@
      "w": 800,
      "h": 32,
      "text": "Amara, a parent in the housing programme",
-     "family": "Nunito Sans",
+     "family": "Fira Sans",
      "size": 24,
      "weight": 600,
-     "color": "#F8F0E3",
+     "color": "#F6EEDF",
      "lineHeight": 1.3
     },
     {
@@ -840,16 +837,30 @@
      "w": 800,
      "h": 28,
      "text": "Housed since March 2026, still housed",
-     "family": "Nunito Sans",
+     "family": "Fira Sans",
      "size": 20,
      "weight": 400,
-     "color": "#BBC9B4",
+     "color": "#E3C9BC",
      "lineHeight": 1.4
+    },
+    {
+     "kind": "text",
+     "x": 1140,
+     "y": 839,
+     "w": 720,
+     "h": 85,
+     "text": "Amara asked us to use her first name only",
+     "family": "Neucha",
+     "size": 34,
+     "weight": 400,
+     "color": "#9FCCEC",
+     "lineHeight": 1.2,
+     "align": "center"
     }
    ],
    "illustrations": [
     {
-     "asset": "op-peep-47",
+     "asset": "op-peep-78",
      "x": 128,
      "y": 689,
      "w": 60,
@@ -858,18 +869,16 @@
    ]
   },
   {
-   "name": "Chart",
-   "bg": "#F8F0E3",
+   "name": "Text and picture",
+   "bg": "#F2EADB",
    "nodes": [
     {
-     "kind": "ellipse",
-     "x": 1700,
-     "y": -180,
-     "w": 380,
-     "h": 380,
-     "fill": "#5F8F5A",
-     "opacity": 0.22,
-     "bleed": true
+     "kind": "rect",
+     "x": 96,
+     "y": 76,
+     "w": 56,
+     "h": 3,
+     "fill": "#B8432A"
     },
     {
      "kind": "text",
@@ -877,11 +886,11 @@
      "y": 88,
      "w": 1200,
      "h": 28,
-     "text": "Where the money went",
-     "family": "Nunito Sans",
+     "text": "The housing programme",
+     "family": "Fira Sans",
      "size": 20,
      "weight": 600,
-     "color": "#E0703F",
+     "color": "#8E2F19",
      "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
@@ -890,13 +899,13 @@
      "kind": "text",
      "x": 96,
      "y": 124,
-     "w": 1100,
-     "h": 122,
-     "text": "Programmes, operations and fundraising",
-     "family": "Outfit",
-     "size": 52,
+     "w": 960,
+     "h": 76,
+     "text": "What a plan looks like",
+     "family": "Alegreya",
+     "size": 62,
      "weight": 700,
-     "color": "#2F2A25",
+     "color": "#2A211B",
      "lineHeight": 1.06
     },
     {
@@ -905,7 +914,7 @@
      "y": 968,
      "w": 1728,
      "h": 1,
-     "fill": "#DDD0BB"
+     "fill": "#D8CBB4"
     },
     {
      "kind": "text",
@@ -914,10 +923,10 @@
      "w": 900,
      "h": 26,
      "text": "Fernwood Collective  ·  Impact report 2026",
-     "family": "Nunito Sans",
+     "family": "Fira Sans",
      "size": 18,
      "weight": 500,
-     "color": "#786C5F",
+     "color": "#655648",
      "lineHeight": 1.3
     },
     {
@@ -926,165 +935,466 @@
      "y": 992,
      "w": 240,
      "h": 26,
-     "text": "04 / 6",
-     "family": "Nunito Sans",
+     "text": "04 / 9",
+     "family": "Fira Sans",
      "size": 18,
      "weight": 500,
-     "color": "#786C5F",
+     "color": "#655648",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "ellipse",
+     "x": 96,
+     "y": 272,
+     "w": 34,
+     "h": 34,
+     "fill": "#e0c3ae"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 272,
+     "w": 34,
+     "h": 34,
+     "text": "1",
+     "family": "Alegreya",
+     "size": 17,
+     "weight": 700,
+     "color": "#8E2F19",
+     "align": "center",
+     "vAlign": "middle",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 152,
+     "y": 268,
+     "w": 840,
+     "h": 44,
+     "text": "A week of rent, paid the same day",
+     "family": "Alegreya",
+     "size": 32,
+     "weight": 700,
+     "color": "#2A211B",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 152,
+     "y": 320,
+     "w": 840,
+     "h": 70,
+     "text": "The first call ends with the arrears covered, so nobody decides anything while afraid.",
+     "family": "Fira Sans",
+     "size": 22,
+     "weight": 400,
+     "color": "#655648",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 96,
+     "y": 450,
+     "w": 34,
+     "h": 34,
+     "fill": "#e0c3ae"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 450,
+     "w": 34,
+     "h": 34,
+     "text": "2",
+     "family": "Alegreya",
+     "size": 17,
+     "weight": 700,
+     "color": "#8E2F19",
+     "align": "center",
+     "vAlign": "middle",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 152,
+     "y": 446,
+     "w": 840,
+     "h": 44,
+     "text": "One caseworker, one phone number",
+     "family": "Alegreya",
+     "size": 32,
+     "weight": 700,
+     "color": "#2A211B",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 152,
+     "y": 498,
+     "w": 840,
+     "h": 70,
+     "text": "The same person every time, for as long as it takes. Forty families each, not sixty.",
+     "family": "Fira Sans",
+     "size": 22,
+     "weight": 400,
+     "color": "#655648",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 96,
+     "y": 628,
+     "w": 34,
+     "h": 34,
+     "fill": "#e0c3ae"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 628,
+     "w": 34,
+     "h": 34,
+     "text": "3",
+     "family": "Alegreya",
+     "size": 17,
+     "weight": 700,
+     "color": "#8E2F19",
+     "align": "center",
+     "vAlign": "middle",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 152,
+     "y": 624,
+     "w": 840,
+     "h": 44,
+     "text": "A budget written at the kitchen table",
+     "family": "Alegreya",
+     "size": 32,
+     "weight": 700,
+     "color": "#2A211B",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 152,
+     "y": 676,
+     "w": 840,
+     "h": 70,
+     "text": "Together, on paper, with the landlord's number on it. Most families are off the fund in five months.",
+     "family": "Fira Sans",
+     "size": 22,
+     "weight": 400,
+     "color": "#655648",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "name": "Photo",
+     "x": 1080,
+     "y": 196,
+     "w": 744,
+     "h": 690,
+     "fill": {
+      "angle": 160,
+      "stops": [
+       [
+        "#c4cbc8",
+        0
+       ],
+       [
+        "#E9DFCB",
+        1
+       ]
+      ]
+     },
+     "radius": 9
+    },
+    {
+     "kind": "ellipse",
+     "x": 1202,
+     "y": 291,
+     "w": 500,
+     "h": 500,
+     "fill": "#B8432A",
+     "opacity": 0.12,
+     "bleed": true
+    },
+    {
+     "kind": "ellipse",
+     "x": 1252,
+     "y": 341,
+     "w": 400,
+     "h": 400,
+     "fill": "#B8432A",
+     "opacity": 0.16,
+     "bleed": true
+    },
+    {
+     "kind": "text",
+     "x": 1064,
+     "y": 916,
+     "w": 760,
+     "h": 40,
+     "text": "five months on the fund, then off it",
+     "family": "Neucha",
+     "size": 32,
+     "weight": 400,
+     "color": "#8E2F19",
+     "lineHeight": 1.2,
+     "align": "right"
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "il-day59-kitchen",
+     "x": 1160,
+     "y": 270,
+     "w": 584,
+     "h": 540,
+     "cleanCard": true
+    }
+   ]
+  },
+  {
+   "name": "Section",
+   "bg": {
+    "angle": 160,
+    "stops": [
+     [
+      "#7A3226",
+      0
+     ],
+     [
+      "#471912",
+      1
+     ]
+    ]
+   },
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 40,
+     "y": 40,
+     "w": 1840,
+     "h": 1000,
+     "stroke": "#9FCCEC",
+     "strokeWidth": 1.5,
+     "opacity": 0.7
+    },
+    {
+     "kind": "ellipse",
+     "x": 1805,
+     "y": 388,
+     "w": 5,
+     "h": 5,
+     "fill": "#9FCCEC",
+     "opacity": 0.6499999999999999
+    },
+    {
+     "kind": "ellipse",
+     "x": 1827,
+     "y": 428,
+     "w": 5,
+     "h": 5,
+     "fill": "#9FCCEC",
+     "opacity": 0.52
+    },
+    {
+     "kind": "ellipse",
+     "x": 1816,
+     "y": 674,
+     "w": 6,
+     "h": 6,
+     "fill": "#9FCCEC",
+     "opacity": 0.51
+    },
+    {
+     "kind": "ellipse",
+     "x": 1626,
+     "y": 74,
+     "w": 7,
+     "h": 7,
+     "fill": "#9FCCEC",
+     "opacity": 0.75
+    },
+    {
+     "kind": "ellipse",
+     "x": 1750,
+     "y": 198,
+     "w": 8,
+     "h": 8,
+     "fill": "#9FCCEC",
+     "opacity": 0.45999999999999996
+    },
+    {
+     "kind": "ellipse",
+     "x": 1733,
+     "y": 593,
+     "w": 6,
+     "h": 6,
+     "fill": "#9FCCEC",
+     "opacity": 0.71
+    },
+    {
+     "kind": "ellipse",
+     "x": 1339,
+     "y": 678,
+     "w": 6,
+     "h": 6,
+     "fill": "#9FCCEC",
+     "opacity": 0.39999999999999997
+    },
+    {
+     "kind": "ellipse",
+     "x": 1481,
+     "y": 506,
+     "w": 8,
+     "h": 8,
+     "fill": "#9FCCEC",
+     "opacity": 0.48
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 330,
+     "w": 120,
+     "h": 4,
+     "fill": "#9FCCEC"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 358,
+     "w": 1100,
+     "h": 220,
+     "text": "Where the money went",
+     "family": "Alegreya",
+     "size": 96,
+     "weight": 700,
+     "color": "#F6EEDF",
+     "lineHeight": 1.04
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 590,
+     "w": 900,
+     "h": 90,
+     "text": "Every dollar, in the order it was spent: what reached a programme, what kept the doors open, and what raised the next one.",
+     "family": "Fira Sans",
+     "size": 28,
+     "weight": 400,
+     "color": "#E3C9BC",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "ellipse",
+     "x": 1240,
+     "y": 280,
+     "w": 560,
+     "h": 560,
+     "fill": "#9FCCEC",
+     "opacity": 0.12,
+     "bleed": true
+    },
+    {
+     "kind": "ellipse",
+     "x": 1296,
+     "y": 336,
+     "w": 448,
+     "h": 448,
+     "fill": "#9FCCEC",
+     "opacity": 0.16,
+     "bleed": true
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 180,
+     "w": 1000,
+     "h": 50,
+     "text": "Every dollar, accounted for",
+     "family": "Neucha",
+     "size": 40,
+     "weight": 400,
+     "color": "#9FCCEC",
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#95503F"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Fernwood Collective  ·  Impact report 2026",
+     "family": "Fira Sans",
+     "size": 18,
+     "weight": 500,
+     "color": "#E3C9BC",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "05 / 9",
+     "family": "Fira Sans",
+     "size": 18,
+     "weight": 500,
+     "color": "#E3C9BC",
      "lineHeight": 1.3,
      "align": "right"
     },
     {
      "kind": "text",
-     "x": 96,
-     "y": 266,
-     "w": 1100,
-     "h": 70,
-     "text": "Eighty-four cents of every dollar reached a programme. Operations stayed under ten.",
-     "family": "Nunito Sans",
-     "size": 24,
+     "x": 1140,
+     "y": 881,
+     "w": 720,
+     "h": 43,
+     "text": "the auditors signed on 14 August",
+     "family": "Neucha",
+     "size": 34,
      "weight": 400,
-     "color": "#786C5F",
-     "lineHeight": 1.4
-    },
+     "color": "#9FCCEC",
+     "lineHeight": 1.2,
+     "align": "center"
+    }
+   ],
+   "illustrations": [
     {
-     "kind": "chart",
-     "x": 96,
-     "y": 354,
-     "w": 1140,
-     "h": 560,
-     "chartType": "barGrouped",
-     "fontSize": 18,
-     "categories": [
-      "Food",
-      "Housing",
-      "Youth",
-      "Operations",
-      "Fundraising"
-     ],
-     "series": [
-      {
-       "name": "Spend ($K)",
-       "values": [
-        1240,
-        1810,
-        960,
-        430,
-        290
-       ],
-       "color": "#5F8F5A"
-      }
-     ]
-    },
-    {
-     "kind": "text",
-     "x": 1320,
-     "y": 310,
-     "w": 504,
-     "h": 80,
-     "text": "84%",
-     "family": "Outfit",
-     "size": 64,
-     "weight": 700,
-     "color": "#E0703F",
-     "lineHeight": 1
-    },
-    {
-     "kind": "text",
-     "x": 1320,
-     "y": 398,
-     "w": 504,
-     "h": 60,
-     "text": "Of every dollar to programmes",
-     "family": "Nunito Sans",
-     "size": 22,
-     "weight": 400,
-     "color": "#786C5F",
-     "lineHeight": 1.4
-    },
-    {
-     "kind": "rect",
-     "x": 1320,
-     "y": 462,
-     "w": 504,
-     "h": 1,
-     "fill": "#DDD0BB"
-    },
-    {
-     "kind": "text",
-     "x": 1320,
-     "y": 490,
-     "w": 504,
-     "h": 80,
-     "text": "$4.7M",
-     "family": "Outfit",
-     "size": 64,
-     "weight": 700,
-     "color": "#E0703F",
-     "lineHeight": 1
-    },
-    {
-     "kind": "text",
-     "x": 1320,
-     "y": 578,
-     "w": 504,
-     "h": 60,
-     "text": "Total spent this year",
-     "family": "Nunito Sans",
-     "size": 22,
-     "weight": 400,
-     "color": "#786C5F",
-     "lineHeight": 1.4
-    },
-    {
-     "kind": "rect",
-     "x": 1320,
-     "y": 642,
-     "w": 504,
-     "h": 1,
-     "fill": "#DDD0BB"
-    },
-    {
-     "kind": "text",
-     "x": 1320,
-     "y": 670,
-     "w": 504,
-     "h": 80,
-     "text": "9%",
-     "family": "Outfit",
-     "size": 64,
-     "weight": 700,
-     "color": "#E0703F",
-     "lineHeight": 1
-    },
-    {
-     "kind": "text",
-     "x": 1320,
-     "y": 758,
-     "w": 504,
-     "h": 60,
-     "text": "Operations, under the target of ten",
-     "family": "Nunito Sans",
-     "size": 22,
-     "weight": 400,
-     "color": "#786C5F",
-     "lineHeight": 1.4
+     "asset": "il-day36-abacus",
+     "x": 1300,
+     "y": 340,
+     "w": 440,
+     "h": 440,
+     "cleanCard": true
     }
    ]
   },
   {
-   "name": "Three cards",
-   "bg": "#F8F0E3",
+   "name": "The dollar",
+   "bg": "#F2EADB",
    "nodes": [
     {
-     "kind": "ellipse",
-     "x": 1700,
-     "y": -180,
-     "w": 380,
-     "h": 380,
-     "fill": "#5F8F5A",
-     "opacity": 0.22,
-     "bleed": true
+     "kind": "rect",
+     "x": 96,
+     "y": 76,
+     "w": 56,
+     "h": 3,
+     "fill": "#B8432A"
     },
     {
      "kind": "text",
@@ -1092,11 +1402,11 @@
      "y": 88,
      "w": 1200,
      "h": 28,
-     "text": "What is next",
-     "family": "Nunito Sans",
+     "text": "Where the money went",
+     "family": "Fira Sans",
      "size": 20,
      "weight": 600,
-     "color": "#E0703F",
+     "color": "#8E2F19",
      "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
@@ -1106,12 +1416,12 @@
      "x": 96,
      "y": 124,
      "w": 1240,
-     "h": 78,
-     "text": "The gap we close next year",
-     "family": "Outfit",
-     "size": 64,
+     "h": 76,
+     "text": "What one dollar did",
+     "family": "Alegreya",
+     "size": 62,
      "weight": 700,
-     "color": "#2F2A25",
+     "color": "#2A211B",
      "lineHeight": 1.06
     },
     {
@@ -1120,7 +1430,7 @@
      "y": 968,
      "w": 1728,
      "h": 1,
-     "fill": "#DDD0BB"
+     "fill": "#D8CBB4"
     },
     {
      "kind": "text",
@@ -1129,10 +1439,10 @@
      "w": 900,
      "h": 26,
      "text": "Fernwood Collective  ·  Impact report 2026",
-     "family": "Nunito Sans",
+     "family": "Fira Sans",
      "size": 18,
      "weight": 500,
-     "color": "#786C5F",
+     "color": "#655648",
      "lineHeight": 1.3
     },
     {
@@ -1141,265 +1451,905 @@
      "y": 992,
      "w": 240,
      "h": 26,
-     "text": "05 / 6",
-     "family": "Nunito Sans",
+     "text": "06 / 9",
+     "family": "Fira Sans",
      "size": 18,
      "weight": 500,
-     "color": "#786C5F",
+     "color": "#655648",
      "lineHeight": 1.3,
      "align": "right"
     },
     {
      "kind": "rect",
      "x": 96,
-     "y": 246,
+     "y": 264,
+     "w": 1728,
+     "h": 340,
+     "fill": "#E9DFCB",
+     "radius": 10,
+     "stroke": "#8E2F19",
+     "strokeWidth": 2
+    },
+    {
+     "kind": "rect",
+     "x": 108,
+     "y": 276,
+     "w": 1704,
+     "h": 316,
+     "radius": 6,
+     "stroke": "#8E2F19",
+     "strokeWidth": 1,
+     "opacity": 0.5
+    },
+    {
+     "kind": "text",
+     "x": 128,
+     "y": 284,
+     "w": 80,
+     "h": 44,
+     "text": "1",
+     "family": "Alegreya",
+     "size": 36,
+     "weight": 700,
+     "color": "#8E2F19",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "text",
+     "x": 1712,
+     "y": 540,
+     "w": 80,
+     "h": 44,
+     "text": "1",
+     "family": "Alegreya",
+     "size": 36,
+     "weight": 700,
+     "color": "#8E2F19",
+     "lineHeight": 1.06,
+     "align": "right"
+    },
+    {
+     "kind": "text",
+     "x": 236,
+     "y": 294,
+     "w": 1448,
+     "h": 22,
+     "text": "One dollar  ·  Fernwood Collective  ·  year to 30 June 2026",
+     "family": "Fira Sans",
+     "size": 14,
+     "weight": 600,
+     "color": "#8E2F19",
+     "letterSpacing": 5,
+     "upper": true,
+     "lineHeight": 1.2,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 236,
+     "y": 552,
+     "w": 1448,
+     "h": 22,
+     "text": "Every cent, in the order it was spent",
+     "family": "Fira Sans",
+     "size": 14,
+     "weight": 600,
+     "color": "#8E2F19",
+     "letterSpacing": 5,
+     "upper": true,
+     "lineHeight": 1.2,
+     "align": "center"
+    },
+    {
+     "kind": "rect",
+     "x": 144,
+     "y": 332,
+     "w": 1361,
+     "h": 204,
+     "fill": "#8E2F19",
+     "radius": 4
+    },
+    {
+     "kind": "text",
+     "x": 188,
+     "y": 374,
+     "w": 320,
+     "h": 120,
+     "text": "84¢",
+     "family": "Alegreya",
+     "size": 112,
+     "weight": 700,
+     "color": "#F6EEDF",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 524,
+     "y": 396,
+     "w": 520,
+     "h": 76,
+     "text": "of every dollar\nreached a programme",
+     "family": "Fira Sans",
+     "size": 26,
+     "weight": 600,
+     "color": "#F6EEDF",
+     "lineHeight": 1.35
+    },
+    {
+     "kind": "ellipse",
+     "name": "Photo",
+     "x": 1279,
+     "y": 359,
+     "w": 150,
+     "h": 150,
+     "fill": "#F2EADB"
+    },
+    {
+     "kind": "ellipse",
+     "x": 1287,
+     "y": 367,
+     "w": 134,
+     "h": 134,
+     "stroke": "#8E2F19",
+     "strokeWidth": 1.5,
+     "opacity": 0.6
+    },
+    {
+     "kind": "rect",
+     "x": 1511,
+     "y": 332,
+     "w": 146,
+     "h": 204,
+     "fill": "#245B86",
+     "radius": 4
+    },
+    {
+     "kind": "text",
+     "x": 1511,
+     "y": 401,
+     "w": 146,
+     "h": 66,
+     "text": "9¢",
+     "family": "Alegreya",
+     "size": 58,
+     "weight": 700,
+     "color": "#F6EEDF",
+     "lineHeight": 1,
+     "align": "center"
+    },
+    {
+     "kind": "rect",
+     "x": 1663,
+     "y": 332,
+     "w": 113,
+     "h": 204,
+     "fill": "#73695e",
+     "radius": 4
+    },
+    {
+     "kind": "text",
+     "x": 1663,
+     "y": 401,
+     "w": 113,
+     "h": 66,
+     "text": "7¢",
+     "family": "Alegreya",
+     "size": 58,
+     "weight": 700,
+     "color": "#2A211B",
+     "lineHeight": 1,
+     "align": "center"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 636,
+     "w": 1728,
+     "h": 84,
+     "text": "Eighty-four cents of every dollar reached a programme. Nine cents ran the organisation, the rent and the finance and the audit. Seven cents raised the next dollar.",
+     "family": "Alegreya",
+     "size": 32,
+     "weight": 700,
+     "color": "#2A211B",
+     "lineHeight": 1.25
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 759,
+     "w": 16,
+     "h": 16,
+     "fill": "#8E2F19",
+     "radius": 3
+    },
+    {
+     "kind": "text",
+     "x": 126,
+     "y": 752,
+     "w": 720,
+     "h": 30,
+     "text": "Programmes  ·  84¢  ·  $3.97M",
+     "family": "Fira Sans",
+     "size": 22,
+     "weight": 600,
+     "color": "#2A211B",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 126,
+     "y": 788,
+     "w": 710,
+     "h": 56,
+     "text": "Food, rental support and four after-school sites.",
+     "family": "Fira Sans",
+     "size": 19,
+     "weight": 400,
+     "color": "#655648",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 856,
+     "y": 759,
+     "w": 16,
+     "h": 16,
+     "fill": "#245B86",
+     "radius": 3
+    },
+    {
+     "kind": "text",
+     "x": 886,
+     "y": 752,
+     "w": 444,
+     "h": 30,
+     "text": "Operations  ·  9¢  ·  $430K",
+     "family": "Fira Sans",
+     "size": 22,
+     "weight": 600,
+     "color": "#2A211B",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 886,
+     "y": 788,
+     "w": 434,
+     "h": 56,
+     "text": "Rent, finance, the audit and the systems that keep the records.",
+     "family": "Fira Sans",
+     "size": 19,
+     "weight": 400,
+     "color": "#655648",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 1340,
+     "y": 759,
+     "w": 16,
+     "h": 16,
+     "fill": "#73695e",
+     "radius": 3
+    },
+    {
+     "kind": "text",
+     "x": 1370,
+     "y": 752,
+     "w": 444,
+     "h": 30,
+     "text": "Fundraising  ·  7¢  ·  $330K",
+     "family": "Fira Sans",
+     "size": 22,
+     "weight": 600,
+     "color": "#2A211B",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1370,
+     "y": 788,
+     "w": 434,
+     "h": 56,
+     "text": "Two events, the spring appeal and this report.",
+     "family": "Fira Sans",
+     "size": 19,
+     "weight": 400,
+     "color": "#655648",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "text",
+     "x": 1064,
+     "y": 876,
+     "w": 760,
+     "h": 80,
+     "text": "the audit is on our site, the full ledger on request",
+     "family": "Neucha",
+     "size": 32,
+     "weight": 400,
+     "color": "#8E2F19",
+     "lineHeight": 1.2,
+     "align": "right"
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "op-peep-20",
+     "x": 1301,
+     "y": 373,
+     "w": 108,
+     "h": 120
+    }
+   ]
+  },
+  {
+   "name": "Chart",
+   "bg": "#F2EADB",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 76,
+     "w": 56,
+     "h": 3,
+     "fill": "#B8432A"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 88,
+     "w": 1200,
+     "h": 28,
+     "text": "Where the money went",
+     "family": "Fira Sans",
+     "size": 20,
+     "weight": 600,
+     "color": "#8E2F19",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 124,
+     "w": 1100,
+     "h": 76,
+     "text": "What each programme cost",
+     "family": "Alegreya",
+     "size": 62,
+     "weight": 700,
+     "color": "#2A211B",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#D8CBB4"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Fernwood Collective  ·  Impact report 2026",
+     "family": "Fira Sans",
+     "size": 18,
+     "weight": 500,
+     "color": "#655648",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "07 / 9",
+     "family": "Fira Sans",
+     "size": 18,
+     "weight": 500,
+     "color": "#655648",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 220,
+     "w": 1100,
+     "h": 70,
+     "text": "Housing is the largest line and the one that grew most this year; every figure here matches the accounts.",
+     "family": "Fira Sans",
+     "size": 24,
+     "weight": 400,
+     "color": "#655648",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "chart",
+     "x": 96,
+     "y": 308,
+     "w": 1140,
+     "h": 560,
+     "chartType": "bar",
+     "fontSize": 18,
+     "categories": [
+      "Food",
+      "Housing",
+      "Youth sites",
+      "Operations",
+      "Fundraising"
+     ],
+     "series": [
+      {
+       "name": "Spent ($K)",
+       "values": [
+        1220,
+        1810,
+        940,
+        430,
+        330
+       ],
+       "color": "#3F86BE"
+      }
+     ]
+    },
+    {
+     "kind": "text",
+     "x": 1320,
+     "y": 264,
+     "w": 504,
+     "h": 80,
+     "text": "$1.81M",
+     "family": "Alegreya",
+     "size": 64,
+     "weight": 700,
+     "color": "#8E2F19",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 1320,
+     "y": 352,
+     "w": 504,
+     "h": 60,
+     "text": "Rental support, the largest line and up 24%",
+     "family": "Fira Sans",
+     "size": 22,
+     "weight": 400,
+     "color": "#655648",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 1320,
+     "y": 416,
+     "w": 504,
+     "h": 1,
+     "fill": "#D8CBB4"
+    },
+    {
+     "kind": "text",
+     "x": 1320,
+     "y": 444,
+     "w": 504,
+     "h": 80,
+     "text": "$381",
+     "family": "Alegreya",
+     "size": 64,
+     "weight": 700,
+     "color": "#8E2F19",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 1320,
+     "y": 532,
+     "w": 504,
+     "h": 60,
+     "text": "Spent per person served, across every programme",
+     "family": "Fira Sans",
+     "size": 22,
+     "weight": 400,
+     "color": "#655648",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 1320,
+     "y": 596,
+     "w": 504,
+     "h": 1,
+     "fill": "#D8CBB4"
+    },
+    {
+     "kind": "text",
+     "x": 1320,
+     "y": 624,
+     "w": 504,
+     "h": 80,
+     "text": "$4.73M",
+     "family": "Alegreya",
+     "size": 64,
+     "weight": 700,
+     "color": "#8E2F19",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 1320,
+     "y": 712,
+     "w": 504,
+     "h": 60,
+     "text": "Spent in total, against $4.9M raised",
+     "family": "Fira Sans",
+     "size": 22,
+     "weight": 400,
+     "color": "#655648",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "text",
+     "x": 1064,
+     "y": 876,
+     "w": 760,
+     "h": 80,
+     "text": "the $170K left over is January's float, not a surplus",
+     "family": "Neucha",
+     "size": 32,
+     "weight": 400,
+     "color": "#8E2F19",
+     "lineHeight": 1.2,
+     "align": "right"
+    }
+   ]
+  },
+  {
+   "name": "Three cards",
+   "bg": "#F2EADB",
+   "nodes": [
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 76,
+     "w": 56,
+     "h": 3,
+     "fill": "#B8432A"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 88,
+     "w": 1200,
+     "h": 28,
+     "text": "What is next",
+     "family": "Fira Sans",
+     "size": 20,
+     "weight": 600,
+     "color": "#8E2F19",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 124,
+     "w": 1240,
+     "h": 76,
+     "text": "The gap we close next year",
+     "family": "Alegreya",
+     "size": 62,
+     "weight": 700,
+     "color": "#2A211B",
+     "lineHeight": 1.06
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#D8CBB4"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Fernwood Collective  ·  Impact report 2026",
+     "family": "Fira Sans",
+     "size": 18,
+     "weight": 500,
+     "color": "#655648",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "08 / 9",
+     "family": "Fira Sans",
+     "size": 18,
+     "weight": 500,
+     "color": "#655648",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 244,
      "w": 560,
      "h": 580,
-     "fill": "#EFE4D0",
-     "radius": 28,
-     "stroke": "#DDD0BB",
+     "fill": "#E9DFCB",
+     "radius": 6,
+     "stroke": "#D8CBB4",
      "strokeWidth": 1.5
     },
     {
      "kind": "rect",
      "x": 96,
-     "y": 246,
+     "y": 244,
      "w": 560,
      "h": 6,
-     "fill": "#E0703F",
+     "fill": "#B8432A",
      "radius": 0
     },
     {
      "kind": "ellipse",
      "x": 136,
-     "y": 294,
+     "y": 292,
      "w": 80,
      "h": 80,
-     "fill": "#eccdb3"
+     "fill": "#dfc0ab"
     },
     {
      "kind": "icon",
      "icon": "home",
      "x": 156,
-     "y": 314,
+     "y": 312,
      "w": 40,
      "h": 40,
-     "color": "#E0703F"
+     "color": "#8E2F19"
     },
     {
      "kind": "text",
      "x": 136,
-     "y": 410,
+     "y": 408,
      "w": 480,
      "h": 100,
      "text": "A fifth youth site",
-     "family": "Outfit",
+     "family": "Alegreya",
      "size": 34,
      "weight": 700,
-     "color": "#2F2A25",
+     "color": "#2A211B",
      "lineHeight": 1.1
     },
     {
      "kind": "text",
      "x": 136,
-     "y": 522,
+     "y": 520,
      "w": 480,
      "h": 160,
      "text": "Two hundred more young people on the east side, where the waiting list is longest.",
-     "family": "Nunito Sans",
+     "family": "Fira Sans",
      "size": 22,
      "weight": 400,
-     "color": "#786C5F",
+     "color": "#655648",
      "lineHeight": 1.4
     },
     {
      "kind": "rect",
      "x": 136,
-     "y": 742,
+     "y": 740,
      "w": 480,
      "h": 1,
-     "fill": "#DDD0BB"
+     "fill": "#D8CBB4"
     },
     {
      "kind": "text",
      "x": 136,
-     "y": 766,
+     "y": 764,
      "w": 120,
      "h": 28,
      "text": "01",
-     "family": "Nunito Sans",
+     "family": "Fira Sans",
      "size": 18,
      "weight": 500,
-     "color": "#786C5F",
+     "color": "#655648",
      "lineHeight": 1.3
     },
     {
      "kind": "rect",
      "x": 680,
-     "y": 246,
+     "y": 244,
      "w": 560,
      "h": 580,
-     "fill": "#EFE4D0",
-     "radius": 28,
-     "stroke": "#DDD0BB",
+     "fill": "#E9DFCB",
+     "radius": 6,
+     "stroke": "#D8CBB4",
      "strokeWidth": 1.5
     },
     {
      "kind": "rect",
      "x": 680,
-     "y": 246,
+     "y": 244,
      "w": 560,
      "h": 6,
-     "fill": "#5F8F5A",
+     "fill": "#3F86BE",
      "radius": 0
     },
     {
      "kind": "ellipse",
      "x": 720,
-     "y": 294,
+     "y": 292,
      "w": 80,
      "h": 80,
-     "fill": "#d2d3b8"
+     "fill": "#c7cdc8"
     },
     {
      "kind": "icon",
      "icon": "heart",
      "x": 740,
-     "y": 314,
+     "y": 312,
      "w": 40,
      "h": 40,
-     "color": "#5F8F5A"
+     "color": "#245B86"
     },
     {
      "kind": "text",
      "x": 720,
-     "y": 410,
+     "y": 408,
      "w": 480,
      "h": 100,
      "text": "Housing support for 400 more families",
-     "family": "Outfit",
+     "family": "Alegreya",
      "size": 34,
      "weight": 700,
-     "color": "#2F2A25",
+     "color": "#2A211B",
      "lineHeight": 1.1
     },
     {
      "kind": "text",
      "x": 720,
-     "y": 522,
+     "y": 520,
      "w": 480,
      "h": 160,
      "text": "The fund runs out in October every year. Next year it runs to December.",
-     "family": "Nunito Sans",
+     "family": "Fira Sans",
      "size": 22,
      "weight": 400,
-     "color": "#786C5F",
+     "color": "#655648",
      "lineHeight": 1.4
     },
     {
      "kind": "rect",
      "x": 720,
-     "y": 742,
+     "y": 740,
      "w": 480,
      "h": 1,
-     "fill": "#DDD0BB"
+     "fill": "#D8CBB4"
     },
     {
      "kind": "text",
      "x": 720,
-     "y": 766,
+     "y": 764,
      "w": 120,
      "h": 28,
      "text": "02",
-     "family": "Nunito Sans",
+     "family": "Fira Sans",
      "size": 18,
      "weight": 500,
-     "color": "#786C5F",
+     "color": "#655648",
      "lineHeight": 1.3
     },
     {
      "kind": "rect",
      "x": 1264,
-     "y": 246,
+     "y": 244,
      "w": 560,
      "h": 580,
-     "fill": "#EFE4D0",
-     "radius": 28,
-     "stroke": "#DDD0BB",
+     "fill": "#E9DFCB",
+     "radius": 6,
+     "stroke": "#D8CBB4",
      "strokeWidth": 1.5
     },
     {
      "kind": "rect",
      "x": 1264,
-     "y": 246,
+     "y": 244,
      "w": 560,
      "h": 6,
-     "fill": "#E0703F",
+     "fill": "#B8432A",
      "radius": 0
     },
     {
      "kind": "ellipse",
      "x": 1304,
-     "y": 294,
+     "y": 292,
      "w": 80,
      "h": 80,
-     "fill": "#eccdb3"
+     "fill": "#dfc0ab"
     },
     {
      "kind": "icon",
      "icon": "user",
      "x": 1324,
-     "y": 314,
+     "y": 312,
      "w": 40,
      "h": 40,
-     "color": "#E0703F"
+     "color": "#8E2F19"
     },
     {
      "kind": "text",
      "x": 1304,
-     "y": 410,
+     "y": 408,
      "w": 480,
      "h": 100,
      "text": "A second caseworker per site",
-     "family": "Outfit",
+     "family": "Alegreya",
      "size": 34,
      "weight": 700,
-     "color": "#2F2A25",
+     "color": "#2A211B",
      "lineHeight": 1.1
     },
     {
      "kind": "text",
      "x": 1304,
-     "y": 522,
+     "y": 520,
      "w": 480,
      "h": 160,
      "text": "Caseloads of sixty are too many. Forty is the number every study points to.",
-     "family": "Nunito Sans",
+     "family": "Fira Sans",
      "size": 22,
      "weight": 400,
-     "color": "#786C5F",
+     "color": "#655648",
      "lineHeight": 1.4
     },
     {
      "kind": "rect",
      "x": 1304,
-     "y": 742,
+     "y": 740,
      "w": 480,
      "h": 1,
-     "fill": "#DDD0BB"
+     "fill": "#D8CBB4"
     },
     {
      "kind": "text",
      "x": 1304,
-     "y": 766,
+     "y": 764,
      "w": 120,
      "h": 28,
      "text": "03",
-     "family": "Nunito Sans",
+     "family": "Fira Sans",
      "size": 18,
      "weight": 500,
-     "color": "#786C5F",
+     "color": "#655648",
      "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1064,
+     "y": 876,
+     "w": 760,
+     "h": 80,
+     "text": "the fifth site has a building; what it needs is a lease",
+     "family": "Neucha",
+     "size": 32,
+     "weight": 400,
+     "color": "#8E2F19",
+     "lineHeight": 1.2,
+     "align": "right"
     }
    ]
   },
@@ -1409,108 +2359,97 @@
     "angle": 160,
     "stops": [
      [
-      "#2F4A36",
+      "#7A3226",
       0
      ],
      [
-      "#1D3124",
+      "#471912",
       1
      ]
     ]
    },
    "nodes": [
     {
-     "kind": "ellipse",
-     "x": 1480,
-     "y": -260,
-     "w": 760,
-     "h": 760,
-     "fill": "#A9D2A0",
-     "opacity": 0.4,
-     "bleed": true
-    },
-    {
-     "kind": "ellipse",
-     "x": -200,
-     "y": 720,
-     "w": 560,
-     "h": 560,
-     "fill": "#F2905E",
-     "opacity": 0.35,
-     "bleed": true
-    },
-    {
-     "kind": "ellipse",
-     "x": 1720,
-     "y": 720,
-     "w": 300,
-     "h": 300,
-     "fill": "#F2C063",
-     "opacity": 0.6,
-     "bleed": true
-    },
-    {
-     "kind": "ellipse",
-     "x": 1699,
-     "y": 644,
-     "w": 5,
-     "h": 5,
-     "fill": "#F8F0E3",
-     "opacity": 0.5
-    },
-    {
-     "kind": "ellipse",
-     "x": 1280,
-     "y": 575,
-     "w": 7,
-     "h": 7,
-     "fill": "#F8F0E3",
-     "opacity": 0.43999999999999995
-    },
-    {
-     "kind": "ellipse",
-     "x": 1511,
-     "y": 775,
-     "w": 6,
-     "h": 6,
-     "fill": "#F8F0E3",
-     "opacity": 0.71
-    },
-    {
-     "kind": "ellipse",
-     "x": 1840,
-     "y": 806,
-     "w": 5,
-     "h": 5,
-     "fill": "#F8F0E3",
-     "opacity": 0.6
-    },
-    {
-     "kind": "ellipse",
-     "x": 1845,
-     "y": 619,
-     "w": 8,
-     "h": 8,
-     "fill": "#F8F0E3",
-     "opacity": 0.42
-    },
-    {
-     "kind": "ellipse",
-     "x": 1906,
-     "y": 136,
-     "w": 6,
-     "h": 6,
-     "fill": "#F8F0E3",
+     "kind": "rect",
+     "x": 40,
+     "y": 40,
+     "w": 1840,
+     "h": 1000,
+     "stroke": "#9FCCEC",
+     "strokeWidth": 1.5,
      "opacity": 0.7
     },
     {
      "kind": "ellipse",
-     "x": 1381,
-     "y": 401,
-     "w": 9,
-     "h": 9,
-     "fill": "#F8F0E3",
-     "opacity": 0.38
+     "x": 1805,
+     "y": 388,
+     "w": 5,
+     "h": 5,
+     "fill": "#9FCCEC",
+     "opacity": 0.6499999999999999
+    },
+    {
+     "kind": "ellipse",
+     "x": 1827,
+     "y": 428,
+     "w": 5,
+     "h": 5,
+     "fill": "#9FCCEC",
+     "opacity": 0.52
+    },
+    {
+     "kind": "ellipse",
+     "x": 1816,
+     "y": 674,
+     "w": 6,
+     "h": 6,
+     "fill": "#9FCCEC",
+     "opacity": 0.51
+    },
+    {
+     "kind": "ellipse",
+     "x": 1626,
+     "y": 74,
+     "w": 7,
+     "h": 7,
+     "fill": "#9FCCEC",
+     "opacity": 0.75
+    },
+    {
+     "kind": "ellipse",
+     "x": 1750,
+     "y": 198,
+     "w": 8,
+     "h": 8,
+     "fill": "#9FCCEC",
+     "opacity": 0.45999999999999996
+    },
+    {
+     "kind": "ellipse",
+     "x": 1733,
+     "y": 593,
+     "w": 6,
+     "h": 6,
+     "fill": "#9FCCEC",
+     "opacity": 0.71
+    },
+    {
+     "kind": "ellipse",
+     "x": 1339,
+     "y": 678,
+     "w": 6,
+     "h": 6,
+     "fill": "#9FCCEC",
+     "opacity": 0.39999999999999997
+    },
+    {
+     "kind": "ellipse",
+     "x": 1481,
+     "y": 506,
+     "w": 8,
+     "h": 8,
+     "fill": "#9FCCEC",
+     "opacity": 0.48
     },
     {
      "kind": "ellipse",
@@ -1518,7 +2457,7 @@
      "y": 200,
      "w": 640,
      "h": 640,
-     "fill": "#F2905E",
+     "fill": "#9FCCEC",
      "opacity": 0.12,
      "bleed": true
     },
@@ -1528,7 +2467,7 @@
      "y": 264,
      "w": 512,
      "h": 512,
-     "fill": "#F2905E",
+     "fill": "#9FCCEC",
      "opacity": 0.16,
      "bleed": true
     },
@@ -1538,7 +2477,7 @@
      "y": 96,
      "w": 22,
      "h": 22,
-     "fill": "#F2905E",
+     "fill": "#9FCCEC",
      "radius": 6
     },
     {
@@ -1548,10 +2487,10 @@
      "w": 700,
      "h": 30,
      "text": "Fernwood Collective",
-     "family": "Nunito Sans",
+     "family": "Fira Sans",
      "size": 22,
      "weight": 600,
-     "color": "#F8F0E3",
+     "color": "#F6EEDF",
      "lineHeight": 1.3
     },
     {
@@ -1559,12 +2498,12 @@
      "x": 96,
      "y": 236,
      "w": 1000,
-     "h": 60,
-     "text": "Join us",
-     "family": "Caveat",
-     "size": 46,
-     "weight": 600,
-     "color": "#F2905E",
+     "h": 52,
+     "text": "Thank you, and one ask",
+     "family": "Neucha",
+     "size": 40,
+     "weight": 400,
+     "color": "#9FCCEC",
      "lineHeight": 1.2
     },
     {
@@ -1572,25 +2511,25 @@
      "x": 96,
      "y": 300,
      "w": 1100,
-     "h": 140,
+     "h": 138,
      "text": "Join us",
-     "family": "Outfit",
-     "size": 118,
+     "family": "Alegreya",
+     "size": 116,
      "weight": 700,
-     "color": "#F8F0E3",
+     "color": "#F6EEDF",
      "lineHeight": 1.06
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 464,
+     "y": 462,
      "w": 940,
      "h": 120,
      "text": "A monthly gift, a volunteer shift, or an introduction to someone who should know about this work. Every one of them counts.",
-     "family": "Nunito Sans",
+     "family": "Fira Sans",
      "size": 28,
      "weight": 400,
-     "color": "#BBC9B4",
+     "color": "#E3C9BC",
      "lineHeight": 1.4
     },
     {
@@ -1600,7 +2539,7 @@
      "y": 702,
      "w": 28,
      "h": 28,
-     "color": "#F2905E"
+     "color": "#9FCCEC"
     },
     {
      "kind": "text",
@@ -1609,10 +2548,10 @@
      "w": 800,
      "h": 34,
      "text": "fernwood.example/give",
-     "family": "Nunito Sans",
+     "family": "Fira Sans",
      "size": 24,
      "weight": 500,
-     "color": "#F8F0E3",
+     "color": "#F6EEDF",
      "lineHeight": 1.3
     },
     {
@@ -1622,7 +2561,7 @@
      "y": 764,
      "w": 28,
      "h": 28,
-     "color": "#F2905E"
+     "color": "#9FCCEC"
     },
     {
      "kind": "text",
@@ -1631,10 +2570,10 @@
      "w": 800,
      "h": 34,
      "text": "hello@fernwood.example",
-     "family": "Nunito Sans",
+     "family": "Fira Sans",
      "size": 24,
      "weight": 500,
-     "color": "#F8F0E3",
+     "color": "#F6EEDF",
      "lineHeight": 1.3
     },
     {
@@ -1644,7 +2583,7 @@
      "y": 826,
      "w": 28,
      "h": 28,
-     "color": "#F2905E"
+     "color": "#9FCCEC"
     },
     {
      "kind": "text",
@@ -1653,10 +2592,10 @@
      "w": 800,
      "h": 34,
      "text": "+1 415 555 0198",
-     "family": "Nunito Sans",
+     "family": "Fira Sans",
      "size": 24,
      "weight": 500,
-     "color": "#F8F0E3",
+     "color": "#F6EEDF",
      "lineHeight": 1.3
     },
     {
@@ -1666,12 +2605,12 @@
      "w": 340,
      "h": 64,
      "label": "Give monthly",
-     "fill": "#F2905E",
-     "color": "#2F2A25",
-     "family": "Nunito Sans",
+     "fill": "#9FCCEC",
+     "color": "#2A211B",
+     "family": "Fira Sans",
      "size": 22,
      "weight": 700,
-     "radius": 28
+     "radius": 6
     },
     {
      "kind": "text",
@@ -1679,18 +2618,32 @@
      "y": 940,
      "w": 240,
      "h": 28,
-     "text": "06 / 6",
-     "family": "Nunito Sans",
+     "text": "09 / 9",
+     "family": "Fira Sans",
      "size": 18,
      "weight": 500,
-     "color": "#BBC9B4",
+     "color": "#E3C9BC",
      "lineHeight": 1.3,
      "align": "right"
+    },
+    {
+     "kind": "text",
+     "x": 1140,
+     "y": 881,
+     "w": 720,
+     "h": 43,
+     "text": "thirty dollars a month is a week of rent",
+     "family": "Neucha",
+     "size": 34,
+     "weight": 400,
+     "color": "#9FCCEC",
+     "lineHeight": 1.2,
+     "align": "center"
     }
    ],
    "illustrations": [
     {
-     "asset": "od-strolling",
+     "asset": "la-small-character-illustrations",
      "x": 1250,
      "y": 250,
      "w": 540,
@@ -1701,43 +2654,85 @@
  ],
  "fillable": [
   {
-   "node": "p0-n11",
+   "node": "p0-n10",
    "kind": "text",
    "label": "Company",
    "hint": "Your company or team name"
   },
   {
-   "node": "p0-n13",
+   "node": "p0-n12",
    "kind": "text",
    "label": "Title",
    "hint": "Two short lines"
   },
   {
-   "node": "p0-n14",
+   "node": "p0-n13",
    "kind": "text",
    "label": "Subtitle",
    "hint": "One sentence on what the deck covers"
   },
   {
-   "node": "p0-n15",
+   "node": "p0-n14",
    "kind": "text",
    "label": "Presenter and date",
    "hint": "Who presents, and when"
   },
   {
+   "node": "p5-n13",
+   "kind": "text",
+   "label": "Programme cents",
+   "hint": "Cents of each dollar that reached a programme"
+  },
+  {
    "node": "p5-n18",
+   "kind": "text",
+   "label": "Operations cents",
+   "hint": "Cents of each dollar"
+  },
+  {
+   "node": "p5-n20",
+   "kind": "text",
+   "label": "Fundraising cents",
+   "hint": "Cents of each dollar"
+  },
+  {
+   "node": "p5-n21",
+   "kind": "text",
+   "label": "The sentence",
+   "hint": "What the split means, in plain words"
+  },
+  {
+   "node": "p5-n23",
+   "kind": "text",
+   "label": "Programmes",
+   "hint": "The part, its cents and its amount"
+  },
+  {
+   "node": "p5-n26",
+   "kind": "text",
+   "label": "Operations",
+   "hint": "The part, its cents and its amount"
+  },
+  {
+   "node": "p5-n29",
+   "kind": "text",
+   "label": "Fundraising",
+   "hint": "The part, its cents and its amount"
+  },
+  {
+   "node": "p8-n17",
    "kind": "text",
    "label": "Email",
    "hint": "Contact detail"
   },
   {
-   "node": "p5-n20",
+   "node": "p8-n19",
    "kind": "text",
    "label": "Website",
    "hint": "Contact detail"
   },
   {
-   "node": "p5-n22",
+   "node": "p8-n21",
    "kind": "text",
    "label": "Phone",
    "hint": "Contact detail"

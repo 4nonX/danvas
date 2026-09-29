@@ -103,6 +103,8 @@ function textNode(id, n) {
   };
   if (n.letterSpacing) style.letterSpacing = n.letterSpacing;
   if (n.upper) style.case = "upper";
+  if (n.strike) style.decoration = ["strikethrough"];
+  if (n.underline) style.decoration = [...(style.decoration ?? []), "underline"];
   if (n.lineHeight) style.lineHeight = { mode: "multiple", value: n.lineHeight };
   // "spans" mixes styles within one line (e.g. an accent-colored word);
   // otherwise "text" splits on newlines into single-style paragraphs.

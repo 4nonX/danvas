@@ -130,7 +130,7 @@
      "x": 96,
      "y": 372,
      "w": 1000,
-     "h": 60,
+     "h": 39,
      "text": "the landscape, unsentimentally",
      "family": "Permanent Marker",
      "size": 30,
@@ -325,9 +325,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 891,
      "w": 720,
-     "h": 52,
+     "h": 33,
      "text": "read it like a scout, not a fan",
      "family": "Permanent Marker",
      "size": 26,
@@ -1354,9 +1354,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 926,
      "w": 760,
-     "h": 48,
+     "h": 30,
      "text": "weights come from the last twenty win-loss calls",
      "family": "Permanent Marker",
      "size": 24,
@@ -1673,9 +1673,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 926,
      "w": 760,
-     "h": 48,
+     "h": 30,
      "text": "four quarters, four moves, none of them slow",
      "family": "Permanent Marker",
      "size": 24,
@@ -1810,7 +1810,7 @@
      "y": 314,
      "w": 40,
      "h": 40,
-     "color": "#E11D2B"
+     "color": "#C4121F"
     },
     {
      "kind": "text",
@@ -1978,7 +1978,7 @@
      "y": 314,
      "w": 40,
      "h": 40,
-     "color": "#E11D2B"
+     "color": "#C4121F"
     },
     {
      "kind": "text",
@@ -2030,9 +2030,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 926,
      "w": 760,
-     "h": 48,
+     "h": 30,
      "text": "won deals say these three, unprompted",
      "family": "Permanent Marker",
      "size": 24,
@@ -2109,7 +2109,7 @@
      "x": 96,
      "y": 236,
      "w": 1000,
-     "h": 56,
+     "h": 39,
      "text": "the landscape, unsentimentally",
      "family": "Permanent Marker",
      "size": 30,
@@ -2120,7 +2120,7 @@
     {
      "kind": "rect",
      "x": 96,
-     "y": 306,
+     "y": 289,
      "w": 120,
      "h": 6,
      "fill": "#E11D2B"
@@ -2128,7 +2128,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 336,
+     "y": 335,
      "w": 1560,
      "h": 292,
      "text": "The move that hurts us most is not their next feature. It is a price cut we answer too late.",
@@ -2141,7 +2141,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 668,
+     "y": 667,
      "w": 1000,
      "h": 32,
      "text": "Strategy review, October 2026",
@@ -2154,9 +2154,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 926,
      "w": 760,
-     "h": 48,
+     "h": 30,
      "text": "the response is drafted; the trigger is not agreed",
      "family": "Permanent Marker",
      "size": 24,
@@ -2345,9 +2345,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 891,
      "w": 720,
-     "h": 52,
+     "h": 33,
      "text": "dates, owners, a number each",
      "family": "Permanent Marker",
      "size": 26,
@@ -2680,9 +2680,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 926,
      "w": 760,
-     "h": 48,
+     "h": 30,
      "text": "a name on each move by Friday",
      "family": "Permanent Marker",
      "size": 24,
@@ -2800,7 +2800,7 @@
      "x": 96,
      "y": 236,
      "w": 1000,
-     "h": 60,
+     "h": 39,
      "text": "Decide, then move",
      "family": "Permanent Marker",
      "size": 30,
@@ -2931,9 +2931,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 891,
      "w": 720,
-     "h": 52,
+     "h": 33,
      "text": "one decision today: the trigger price",
      "family": "Permanent Marker",
      "size": 26,

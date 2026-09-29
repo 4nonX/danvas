@@ -50,6 +50,7 @@ A look is one object; `look` in the plan overrides any part of the base (palette
   accentFace: "Cormorant Garamond", accentWeight: 600, accentSize: 40,   // the kicker and hand notes
   numeralFace: "JetBrains Mono", numeralWeight: 700,                      // optional: every figure (figures, chart calls, big stat, agenda numbers) in this face
   charWidth: 0.48,                                                        // optional: average em per character of the display face, for fitting titles (0.56 default; a condensed face is near 0.45, a wide one near 0.62)
+  strongWeight: 700,                                                      // optional: the weight of strong body text (600 default; set it for a body face without a 600)
   paper: { bg, ink, muted, line, panel, panel2, accent, accent2, accentInk?, accent2Ink?, sun?, lime? },
   deep:  { bg, bg2, ink, muted, line, panel, panel2, accent, accent2, accentInk?, accent2Ink?, sun?, lime? },
   radius: 8,                                // corner radius of cards and buttons (0 for editorial)
@@ -91,7 +92,7 @@ Drawings on a deep ground: the `od-*` line figures are drawn in black and vanish
 
 ## Layouts and their content
 
-Every layout takes `note` (a hand note in the accent face: bottom right on a reading page, under the picture on a deep page). Deep layouts take `art` (a drawing id) where noted. `[a, b, c]` means an array of those.
+Every layout takes `note` (a hand note in the accent face: bottom right on a reading page, under the picture on a deep page; a note over about forty characters wraps to two lines, longer than that is cut off, so keep notes short). Deep layouts take `art` (a drawing id) where noted. `[a, b, c]` means an array of those.
 
 - `cover` `{ title (two lines with \n), subtitle (grows to three lines), presenter (or presenterName and when, joined for you), art, chips [[figure, label]] (three chips under the subtitle: on by default for the glow ornament, on for any ornament when you pass them), year (blocks only), presenterName, when, where (hairlines only), note }`
 - `agenda` `{ eyebrow, title, items [[heading, sub, duration]] (five), card { eyebrow, big, meta [[label, value]] (four) }, note }`
@@ -133,7 +134,8 @@ Rules for a raw slide:
 - On a reading page, start from `chrome(K, K.paper, i, eyebrow, title)` (it returns `{ nodes, bodyTop }` with the ornament, eyebrow, title and footer in place) and add below `bodyTop`.
 - On a deep page, start with `...ornamentDeep(K, K.deep)` and end with `...footer(K, K.deep, i)`; use `deepGround(K.deep)` as `bg`.
 - Type roles come from `type(K, g)`: `display(size)`, `body(size)`, `strong(size)`, `eyebrow()`, `meta()`, `numeral(size)`, `kicker()`.
-- Text boxes must be tall enough for their lines: height about `size * 1.1 * lines`. Estimate width as `chars * size * charWidth` (0.56 unless the look sets `charWidth`).
+- Text boxes must be tall enough for their lines: height about `size * 1.1 * lines`. Estimate width as `chars * size * charWidth` (0.56 unless the look sets `charWidth`); the body face has its own width, near 0.52 for most sans faces, so estimate body lines with that rather than a condensed display's.
+- A text may be struck through (`strike: true`) or underlined (`underline: true`); use a struck figure for a "before" value rather than a rect drawn over it.
 - Picture slots are shapes (`photo(...)` or a `rect`/`ellipse` named "Photo"), never frames; put the drawing on top with `illustrations: [art(id, x, y, w, h)]`.
 - Fillable fields are `{ node: <index into nodes>, label, hint }`; a button's label is `<index>-label`.
 
@@ -152,7 +154,7 @@ TEMPLATE_SPECS=$SCR/specs TEMPLATE_SEED=$SCR/seed.json node scripts/build-templa
 (cd backend && go run ./cmd/render-templates -seed $SCR/seed.json -out $SCR/png -edge 640)
 ```
 
-Then assemble the PNGs into one contact sheet (Python with PIL is available) and look at it with the Read tool. Fix what it shows: text running into text, a title wrapping into a subtitle, a drawing over text, a colour that does not read, an empty slot. Render again. Stop when a sheet shows nothing wrong; two or three rounds is normal. The renderer uses a fallback font, so judge layout and colour, not typography.
+Then assemble the PNGs into one contact sheet (Python with PIL is available) and look at it with the Read tool. The renderer draws every face as one wide fallback sans, so a condensed display face (Anton, Barlow Condensed, Oswald) shows its titles wrapping on the sheet when they would fit in the real face; when the look sets `charWidth` below 0.5, judge such a wrap by the estimate, not the sheet, and confirm nothing else overlaps. Fix what it shows: text running into text, a title wrapping into a subtitle, a drawing over text, a colour that does not read, an empty slot. Render again. Stop when a sheet shows nothing wrong; two or three rounds is normal. The renderer uses a fallback font, so judge layout and colour, not typography.
 
 Keep the compiled file under 1.2 MB (`wc -c scripts/templates/<id>.json`).
 

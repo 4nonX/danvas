@@ -269,11 +269,12 @@
    ],
    "illustrations": [
     {
-     "asset": "od-jumping",
+     "asset": "il-day96-camping",
      "x": 1230,
      "y": 240,
      "w": 560,
-     "h": 580
+     "h": 580,
+     "cleanCard": true
     }
    ]
   },
@@ -1069,7 +1070,7 @@
    ],
    "illustrations": [
     {
-     "asset": "il-day96-camping",
+     "asset": "il-day53-farm",
      "x": 1300,
      "y": 340,
      "w": 440,
@@ -1132,7 +1133,7 @@
      "x": 96,
      "y": 236,
      "w": 1000,
-     "h": 56,
+     "h": 60,
      "text": "Our year together",
      "family": "Caveat",
      "size": 46,
@@ -1143,7 +1144,7 @@
     {
      "kind": "rect",
      "x": 96,
-     "y": 306,
+     "y": 310,
      "w": 120,
      "h": 6,
      "fill": "#E0703F"
@@ -1151,7 +1152,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 336,
+     "y": 356,
      "w": 1560,
      "h": 279,
      "text": "Growth that we can explain is the only kind we want to keep.",
@@ -1164,7 +1165,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 655,
+     "y": 675,
      "w": 1000,
      "h": 32,
      "text": "Dana Whitfield, in the FY2026 letter to partners",
@@ -4082,7 +4083,7 @@
    ],
    "illustrations": [
     {
-     "asset": "il-day96-camping",
+     "asset": "il-day53-farm",
      "x": 1270,
      "y": 548,
      "w": 360,
@@ -4717,7 +4718,7 @@
      "x": 1080,
      "y": 268,
      "w": 700,
-     "h": 650,
+     "h": 610,
      "fill": {
       "angle": 160,
       "stops": [
@@ -4735,20 +4736,20 @@
     },
     {
      "kind": "ellipse",
-     "x": 1170,
-     "y": 300,
-     "w": 520,
-     "h": 520,
+     "x": 1180,
+     "y": 295,
+     "w": 500,
+     "h": 500,
      "fill": "#E0703F",
      "opacity": 0.12,
      "bleed": true
     },
     {
      "kind": "ellipse",
-     "x": 1222,
-     "y": 352,
-     "w": 416,
-     "h": 416,
+     "x": 1230,
+     "y": 345,
+     "w": 400,
+     "h": 400,
      "fill": "#E0703F",
      "opacity": 0.16,
      "bleed": true
@@ -4757,10 +4758,10 @@
    "illustrations": [
     {
      "asset": "la-house-illustrations",
-     "x": 1180,
+     "x": 1190,
      "y": 320,
-     "w": 500,
-     "h": 440
+     "w": 480,
+     "h": 420
     }
    ]
   },
@@ -6977,7 +6978,7 @@
    ],
    "illustrations": [
     {
-     "asset": "od-strolling",
+     "asset": "la-scooter",
      "x": 1250,
      "y": 250,
      "w": 540,

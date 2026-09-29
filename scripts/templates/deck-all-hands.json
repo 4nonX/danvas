@@ -66,7 +66,7 @@
     },
     {
      "kind": "ellipse",
-     "x": 1700,
+     "x": 1822,
      "y": 370,
      "w": 7,
      "h": 7,
@@ -75,7 +75,7 @@
     },
     {
      "kind": "ellipse",
-     "x": 484,
+     "x": 1305,
      "y": 36,
      "w": 8,
      "h": 8,
@@ -84,7 +84,7 @@
     },
     {
      "kind": "ellipse",
-     "x": 1504,
+     "x": 1740,
      "y": 606,
      "w": 6,
      "h": 6,
@@ -93,7 +93,7 @@
     },
     {
      "kind": "ellipse",
-     "x": 1334,
+     "x": 1666,
      "y": 43,
      "w": 8,
      "h": 8,
@@ -102,7 +102,7 @@
     },
     {
      "kind": "ellipse",
-     "x": 1159,
+     "x": 1593,
      "y": 678,
      "w": 5,
      "h": 5,
@@ -111,7 +111,7 @@
     },
     {
      "kind": "ellipse",
-     "x": 170,
+     "x": 1172,
      "y": 339,
      "w": 5,
      "h": 5,
@@ -120,7 +120,7 @@
     },
     {
      "kind": "ellipse",
-     "x": 1751,
+     "x": 1846,
      "y": 617,
      "w": 4,
      "h": 4,
@@ -154,7 +154,7 @@
      "x": 96,
      "y": 372,
      "w": 1000,
-     "h": 60,
+     "h": 52,
      "text": "October all-hands",
      "family": "Kalam",
      "size": 40,
@@ -238,9 +238,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 881,
      "w": 720,
-     "h": 52,
+     "h": 43,
      "text": "forty minutes, then your questions",
      "family": "Kalam",
      "size": 34,
@@ -372,7 +372,7 @@
      "y": 314,
      "w": 40,
      "h": 40,
-     "color": "#E04A28"
+     "color": "#BE3C26"
     },
     {
      "kind": "text",
@@ -540,7 +540,7 @@
      "y": 314,
      "w": 40,
      "h": 40,
-     "color": "#E04A28"
+     "color": "#BE3C26"
     },
     {
      "kind": "text",
@@ -592,9 +592,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 916,
      "w": 760,
-     "h": 48,
+     "h": 40,
      "text": "zero tickets on Monday, we checked twice",
      "family": "Kalam",
      "size": 32,
@@ -633,7 +633,7 @@
     },
     {
      "kind": "ellipse",
-     "x": 1700,
+     "x": 1822,
      "y": 370,
      "w": 7,
      "h": 7,
@@ -642,7 +642,7 @@
     },
     {
      "kind": "ellipse",
-     "x": 484,
+     "x": 1305,
      "y": 36,
      "w": 8,
      "h": 8,
@@ -651,7 +651,7 @@
     },
     {
      "kind": "ellipse",
-     "x": 1504,
+     "x": 1740,
      "y": 606,
      "w": 6,
      "h": 6,
@@ -660,7 +660,7 @@
     },
     {
      "kind": "ellipse",
-     "x": 1334,
+     "x": 1666,
      "y": 43,
      "w": 8,
      "h": 8,
@@ -669,7 +669,7 @@
     },
     {
      "kind": "ellipse",
-     "x": 1159,
+     "x": 1593,
      "y": 678,
      "w": 5,
      "h": 5,
@@ -678,7 +678,7 @@
     },
     {
      "kind": "ellipse",
-     "x": 170,
+     "x": 1172,
      "y": 339,
      "w": 5,
      "h": 5,
@@ -687,7 +687,7 @@
     },
     {
      "kind": "ellipse",
-     "x": 1751,
+     "x": 1846,
      "y": 617,
      "w": 4,
      "h": 4,
@@ -793,9 +793,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 881,
      "w": 720,
-     "h": 52,
+     "h": 43,
      "text": "Rowan said this on the Tuesday call",
      "family": "Kalam",
      "size": 34,
@@ -1183,9 +1183,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 916,
      "w": 760,
-     "h": 48,
+     "h": 40,
      "text": "flat new business is the one to watch",
      "family": "Kalam",
      "size": 32,
@@ -1291,7 +1291,7 @@
      "y": 290,
      "w": 40,
      "h": 40,
-     "color": "#E04A28"
+     "color": "#BE3C26"
     },
     {
      "kind": "text",
@@ -1412,7 +1412,7 @@
      "y": 290,
      "w": 40,
      "h": 40,
-     "color": "#FF8F73"
+     "color": "#FFC4B3"
     },
     {
      "kind": "text",
@@ -1508,9 +1508,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 916,
      "w": 760,
-     "h": 48,
+     "h": 40,
      "text": "eleven days is the number we are chasing",
      "family": "Kalam",
      "size": 32,
@@ -1819,9 +1819,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 916,
      "w": 760,
-     "h": 48,
+     "h": 40,
      "text": "week four is yours: comment on anything",
      "family": "Kalam",
      "size": 32,
@@ -2476,9 +2476,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 916,
      "w": 760,
-     "h": 48,
+     "h": 40,
      "text": "add yours in #wins, we pin them Friday",
      "family": "Kalam",
      "size": 32,
@@ -2561,7 +2561,7 @@
     },
     {
      "kind": "ellipse",
-     "x": 1700,
+     "x": 1822,
      "y": 370,
      "w": 7,
      "h": 7,
@@ -2570,7 +2570,7 @@
     },
     {
      "kind": "ellipse",
-     "x": 484,
+     "x": 1305,
      "y": 36,
      "w": 8,
      "h": 8,
@@ -2579,7 +2579,7 @@
     },
     {
      "kind": "ellipse",
-     "x": 1504,
+     "x": 1740,
      "y": 606,
      "w": 6,
      "h": 6,
@@ -2588,7 +2588,7 @@
     },
     {
      "kind": "ellipse",
-     "x": 1334,
+     "x": 1666,
      "y": 43,
      "w": 8,
      "h": 8,
@@ -2597,7 +2597,7 @@
     },
     {
      "kind": "ellipse",
-     "x": 1159,
+     "x": 1593,
      "y": 678,
      "w": 5,
      "h": 5,
@@ -2606,7 +2606,7 @@
     },
     {
      "kind": "ellipse",
-     "x": 170,
+     "x": 1172,
      "y": 339,
      "w": 5,
      "h": 5,
@@ -2615,7 +2615,7 @@
     },
     {
      "kind": "ellipse",
-     "x": 1751,
+     "x": 1846,
      "y": 617,
      "w": 4,
      "h": 4,
@@ -2669,7 +2669,7 @@
      "x": 96,
      "y": 236,
      "w": 1000,
-     "h": 60,
+     "h": 52,
      "text": "See you next month",
      "family": "Kalam",
      "size": 40,
@@ -2800,9 +2800,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 881,
      "w": 720,
-     "h": 52,
+     "h": 43,
      "text": "recording in the folder by five",
      "family": "Kalam",
      "size": 34,

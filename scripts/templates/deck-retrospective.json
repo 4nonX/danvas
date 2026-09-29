@@ -171,7 +171,7 @@
      "x": 96,
      "y": 372,
      "w": 1000,
-     "h": 60,
+     "h": 52,
      "text": "Candid, blameless",
      "family": "Patrick Hand",
      "size": 40,
@@ -255,9 +255,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 881,
      "w": 720,
-     "h": 52,
+     "h": 43,
      "text": "sixty minutes, phones in the basket",
      "family": "Patrick Hand",
      "size": 34,
@@ -583,9 +583,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 916,
      "w": 760,
-     "h": 48,
+     "h": 40,
      "text": "the timer sits on the table, not on a screen",
      "family": "Patrick Hand",
      "size": 32,
@@ -1740,9 +1740,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 916,
      "w": 760,
-     "h": 48,
+     "h": 40,
      "text": "no names on the notes, on purpose",
      "family": "Patrick Hand",
      "size": 32,
@@ -1874,7 +1874,7 @@
      "y": 312,
      "w": 40,
      "h": 40,
-     "color": "#7A4A78"
+     "color": "#6A3C68"
     },
     {
      "kind": "text",
@@ -1958,7 +1958,7 @@
      "y": 312,
      "w": 40,
      "h": 40,
-     "color": "#6F8C64"
+     "color": "#46623E"
     },
     {
      "kind": "text",
@@ -2042,7 +2042,7 @@
      "y": 312,
      "w": 40,
      "h": 40,
-     "color": "#7A4A78"
+     "color": "#6A3C68"
     },
     {
      "kind": "text",
@@ -2094,9 +2094,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 916,
      "w": 760,
-     "h": 48,
+     "h": 40,
      "text": "the weekend one got the loudest cheer",
      "family": "Patrick Hand",
      "size": 32,
@@ -2312,9 +2312,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 839,
      "w": 720,
-     "h": 52,
+     "h": 85,
      "text": "said out loud in the room, which is the point",
      "family": "Patrick Hand",
      "size": 34,
@@ -2438,7 +2438,7 @@
      "y": 288,
      "w": 40,
      "h": 40,
-     "color": "#7A4A78"
+     "color": "#6A3C68"
     },
     {
      "kind": "text",
@@ -2559,7 +2559,7 @@
      "y": 288,
      "w": 40,
      "h": 40,
-     "color": "#E8A98A"
+     "color": "#F0BFA6"
     },
     {
      "kind": "text",
@@ -2655,9 +2655,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 916,
      "w": 760,
-     "h": 48,
+     "h": 40,
      "text": "two frictions, one root: nobody owned the no",
      "family": "Patrick Hand",
      "size": 32,
@@ -3045,9 +3045,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 876,
      "w": 760,
-     "h": 48,
+     "h": 80,
      "text": "review wait is the only one that moved the wrong way",
      "family": "Patrick Hand",
      "size": 32,
@@ -3269,9 +3269,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 881,
      "w": 720,
-     "h": 52,
+     "h": 43,
      "text": "after the weather, the rainbow",
      "family": "Patrick Hand",
      "size": 34,
@@ -3396,7 +3396,7 @@
      "y": 288,
      "w": 40,
      "h": 40,
-     "color": "#7A4A78"
+     "color": "#6A3C68"
     },
     {
      "kind": "text",
@@ -3517,7 +3517,7 @@
      "y": 288,
      "w": 40,
      "h": 40,
-     "color": "#E8A98A"
+     "color": "#F0BFA6"
     },
     {
      "kind": "text",
@@ -3613,9 +3613,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 916,
      "w": 760,
-     "h": 48,
+     "h": 40,
      "text": "two numbers, checked on 1 November",
      "family": "Patrick Hand",
      "size": 32,
@@ -3779,7 +3779,7 @@
      "x": 96,
      "y": 236,
      "w": 1000,
-     "h": 60,
+     "h": 52,
      "text": "Two changes, two owners",
      "family": "Patrick Hand",
      "size": 40,
@@ -3910,9 +3910,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 881,
      "w": 720,
-     "h": 52,
+     "h": 43,
      "text": "the kettle is on, stay if you like",
      "family": "Patrick Hand",
      "size": 34,

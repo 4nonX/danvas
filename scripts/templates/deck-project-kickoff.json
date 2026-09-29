@@ -168,7 +168,7 @@
      "x": 96,
      "y": 372,
      "w": 1000,
-     "h": 60,
+     "h": 47,
      "text": "kickoff, billing rebuild",
      "family": "Covered By Your Grace",
      "size": 36,
@@ -363,9 +363,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 885,
      "w": 720,
-     "h": 52,
+     "h": 39,
      "text": "read the non-goals twice",
      "family": "Covered By Your Grace",
      "size": 31,
@@ -479,7 +479,7 @@
      "family": "Chivo",
      "size": 17,
      "weight": 800,
-     "color": "#F26A1B",
+     "color": "#A33C05",
      "align": "center",
      "vAlign": "middle",
      "lineHeight": 1
@@ -528,7 +528,7 @@
      "family": "Chivo",
      "size": 17,
      "weight": 800,
-     "color": "#F26A1B",
+     "color": "#A33C05",
      "align": "center",
      "vAlign": "middle",
      "lineHeight": 1
@@ -577,7 +577,7 @@
      "family": "Chivo",
      "size": 17,
      "weight": 800,
-     "color": "#F26A1B",
+     "color": "#A33C05",
      "align": "center",
      "vAlign": "middle",
      "lineHeight": 1
@@ -653,9 +653,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 920,
      "w": 760,
-     "h": 48,
+     "h": 36,
      "text": "three deals are waiting on this",
      "family": "Covered By Your Grace",
      "size": 29,
@@ -769,7 +769,7 @@
      "y": 288,
      "w": 40,
      "h": 40,
-     "color": "#F26A1B"
+     "color": "#A33C05"
     },
     {
      "kind": "text",
@@ -890,7 +890,7 @@
      "y": 288,
      "w": 40,
      "h": 40,
-     "color": "#FF7A2E"
+     "color": "#FFA062"
     },
     {
      "kind": "text",
@@ -986,9 +986,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 920,
      "w": 760,
-     "h": 48,
+     "h": 36,
      "text": "the non-goals are the contract",
      "family": "Covered By Your Grace",
      "size": 29,
@@ -1202,9 +1202,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 846,
      "w": 720,
-     "h": 52,
+     "h": 78,
      "text": "every phase ends in staging, not on a slide",
      "family": "Covered By Your Grace",
      "size": 31,
@@ -1515,9 +1515,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 920,
      "w": 760,
-     "h": 48,
+     "h": 36,
      "text": "phase two is where finance first sees it",
      "family": "Covered By Your Grace",
      "size": 29,
@@ -2257,9 +2257,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 920,
      "w": 760,
-     "h": 48,
+     "h": 36,
      "text": "one filled disc per row, never two",
      "family": "Covered By Your Grace",
      "size": 29,
@@ -2410,7 +2410,7 @@
      "y": 312,
      "w": 40,
      "h": 40,
-     "color": "#F26A1B"
+     "color": "#A33C05"
     },
     {
      "kind": "text",
@@ -2578,7 +2578,7 @@
      "y": 312,
      "w": 40,
      "h": 40,
-     "color": "#F26A1B"
+     "color": "#A33C05"
     },
     {
      "kind": "text",
@@ -2630,9 +2630,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 920,
      "w": 760,
-     "h": 48,
+     "h": 36,
      "text": "shadow billing starts in week three",
      "family": "Covered By Your Grace",
      "size": 29,
@@ -2937,9 +2937,9 @@
     {
      "kind": "text",
      "x": 1064,
-     "y": 908,
+     "y": 883,
      "w": 760,
-     "h": 48,
+     "h": 73,
      "text": "if it is not in the channel, it did not happen",
      "family": "Covered By Your Grace",
      "size": 29,
@@ -3095,7 +3095,7 @@
      "x": 96,
      "y": 236,
      "w": 1000,
-     "h": 60,
+     "h": 47,
      "text": "hard hats on",
      "family": "Covered By Your Grace",
      "size": 36,
@@ -3226,9 +3226,9 @@
     {
      "kind": "text",
      "x": 1140,
-     "y": 872,
+     "y": 885,
      "w": 720,
-     "h": 52,
+     "h": 39,
      "text": "first demo is 20 November, bring finance",
      "family": "Covered By Your Grace",
      "size": 31,
