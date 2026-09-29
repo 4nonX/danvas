@@ -35,6 +35,11 @@
    "weight": 400
   },
   {
+   "role": "accent",
+   "family": "IBM Plex Mono",
+   "weight": 500
+  },
+  {
    "role": "label",
    "family": "IBM Plex Mono",
    "weight": 500
@@ -43,7 +48,19 @@
  "pages": [
   {
    "name": "Cover",
-   "bg": "#070A12",
+   "bg": {
+    "angle": 160,
+    "stops": [
+     [
+      "#0A0F1F",
+      0
+     ],
+     [
+      "#04060E",
+      1
+     ]
+    ]
+   },
    "nodes": [
     {
      "kind": "ellipse",
@@ -55,17 +72,17 @@
       "angle": 135,
       "stops": [
        [
-        "#8B7CFF",
+        "#8F7BFF",
         0
        ],
        [
-        "#070A12",
+        "#04060E",
         1
        ]
       ],
       "radial": true
      },
-     "opacity": 0.55,
+     "opacity": 0.6,
      "bleed": true
     },
     {
@@ -78,17 +95,17 @@
       "angle": 135,
       "stops": [
        [
-        "#C6F135",
+        "#C8F542",
         0
        ],
        [
-        "#070A12",
+        "#04060E",
         1
        ]
       ],
       "radial": true
      },
-     "opacity": 0.22,
+     "opacity": 0.26,
      "bleed": true
     },
     {
@@ -164,12 +181,111 @@
      "opacity": 0.06
     },
     {
+     "kind": "ellipse",
+     "x": 1003,
+     "y": 873,
+     "w": 8,
+     "h": 8,
+     "fill": "#C8F542",
+     "opacity": 0.6
+    },
+    {
+     "kind": "ellipse",
+     "x": 39,
+     "y": 166,
+     "w": 6,
+     "h": 6,
+     "fill": "#C8F542",
+     "opacity": 0.79
+    },
+    {
+     "kind": "ellipse",
+     "x": 224,
+     "y": 806,
+     "w": 6,
+     "h": 6,
+     "fill": "#C8F542",
+     "opacity": 0.58
+    },
+    {
+     "kind": "ellipse",
+     "x": 189,
+     "y": 671,
+     "w": 8,
+     "h": 8,
+     "fill": "#C8F542",
+     "opacity": 0.7
+    },
+    {
+     "kind": "ellipse",
+     "x": 406,
+     "y": 349,
+     "w": 6,
+     "h": 6,
+     "fill": "#C8F542",
+     "opacity": 0.43999999999999995
+    },
+    {
+     "kind": "ellipse",
+     "x": 1701,
+     "y": 855,
+     "w": 7,
+     "h": 7,
+     "fill": "#C8F542",
+     "opacity": 0.5599999999999999
+    },
+    {
+     "kind": "ellipse",
+     "x": 612,
+     "y": 31,
+     "w": 8,
+     "h": 8,
+     "fill": "#8F7BFF",
+     "opacity": 0.57
+    },
+    {
+     "kind": "ellipse",
+     "x": 1052,
+     "y": 18,
+     "w": 6,
+     "h": 6,
+     "fill": "#8F7BFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "ellipse",
+     "x": 1341,
+     "y": 822,
+     "w": 6,
+     "h": 6,
+     "fill": "#8F7BFF",
+     "opacity": 0.38999999999999996
+    },
+    {
+     "kind": "ellipse",
+     "x": 1526,
+     "y": 997,
+     "w": 9,
+     "h": 9,
+     "fill": "#8F7BFF",
+     "opacity": 0.44999999999999996
+    },
+    {
+     "kind": "ellipse",
+     "x": 739,
+     "y": 973,
+     "w": 6,
+     "h": 6,
+     "fill": "#8F7BFF",
+     "opacity": 0.6599999999999999
+    },
+    {
      "kind": "rect",
      "x": 96,
      "y": 96,
      "w": 22,
      "h": 22,
-     "fill": "#C6F135",
+     "fill": "#C8F542",
      "radius": 6
     },
     {
@@ -188,27 +304,25 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 404,
-     "w": 1020,
-     "h": 28,
-     "text": "Platform review Q3  ·  Confidential",
+     "y": 372,
+     "w": 1000,
+     "h": 60,
+     "text": "// platform review, q3",
      "family": "IBM Plex Mono",
-     "size": 20,
-     "weight": 600,
-     "color": "#C6F135",
-     "letterSpacing": 3,
-     "upper": true,
+     "size": 30,
+     "weight": 500,
+     "color": "#C8F542",
      "lineHeight": 1.2
     },
     {
      "kind": "text",
      "x": 96,
      "y": 446,
-     "w": 1020,
-     "h": 254,
+     "w": 1000,
+     "h": 249,
      "text": "Built for the\nlong run",
      "family": "Space Grotesk",
-     "size": 116,
+     "size": 114,
      "weight": 700,
      "color": "#F1F5F9",
      "lineHeight": 1.02
@@ -216,14 +330,14 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 726,
+     "y": 725,
      "w": 900,
      "h": 84,
      "text": "A year of steady growth, and the plan that carries it into the next decade.",
      "family": "IBM Plex Sans",
      "size": 28,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     },
     {
@@ -236,7 +350,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3
     },
     {
@@ -249,138 +363,153 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3,
      "align": "right"
     },
     {
-     "kind": "rect",
-     "x": 1240,
-     "y": 300,
-     "w": 584,
-     "h": 500,
-     "fill": "#10172A",
-     "radius": 14
+     "kind": "ellipse",
+     "x": 1180,
+     "y": 150,
+     "w": 640,
+     "h": 640,
+     "fill": "#C8F542",
+     "opacity": 0.12
+    },
+    {
+     "kind": "ellipse",
+     "x": 1244,
+     "y": 214,
+     "w": 512,
+     "h": 512,
+     "fill": "#C8F542",
+     "opacity": 0.16
     },
     {
      "kind": "rect",
-     "x": 1240,
-     "y": 300,
-     "w": 584,
-     "h": 4,
-     "fill": {
-      "angle": 90,
-      "stops": [
-       [
-        "#C6F135",
-        0
-       ],
-       [
-        "#8B7CFF",
-        1
-       ]
-      ]
-     }
+     "x": 96,
+     "y": 780,
+     "w": 276,
+     "h": 64,
+     "fill": "#121A2E",
+     "radius": 14,
+     "stroke": "#1E2840",
+     "strokeWidth": 1.5
     },
     {
      "kind": "text",
-     "x": 1280,
-     "y": 344,
-     "w": 504,
-     "h": 70,
+     "x": 116,
+     "y": 792,
+     "w": 130,
+     "h": 40,
      "text": "99.98%",
      "family": "IBM Plex Mono",
-     "size": 60,
+     "size": 26,
      "weight": 700,
-     "color": "#C6F135",
+     "color": "#C8F542",
      "lineHeight": 1
     },
     {
      "kind": "text",
-     "x": 1280,
-     "y": 422,
-     "w": 504,
-     "h": 30,
-     "text": "Platform uptime, trailing 90 days",
-     "family": "IBM Plex Sans",
-     "size": 20,
-     "weight": 400,
-     "color": "#8B95AB",
-     "lineHeight": 1.4
+     "x": 246,
+     "y": 800,
+     "w": 110,
+     "h": 26,
+     "text": "uptime",
+     "family": "IBM Plex Mono",
+     "size": 16,
+     "weight": 500,
+     "color": "#93A0B8",
+     "lineHeight": 1.3
     },
     {
      "kind": "rect",
-     "x": 1280,
-     "y": 468,
-     "w": 504,
-     "h": 1,
-     "fill": "#1A2338"
+     "x": 396,
+     "y": 780,
+     "w": 276,
+     "h": 64,
+     "fill": "#121A2E",
+     "radius": 14,
+     "stroke": "#1E2840",
+     "strokeWidth": 1.5
     },
     {
      "kind": "text",
-     "x": 1280,
-     "y": 494,
-     "w": 504,
-     "h": 70,
+     "x": 416,
+     "y": 792,
+     "w": 130,
+     "h": 40,
      "text": "4.6 / day",
      "family": "IBM Plex Mono",
-     "size": 60,
+     "size": 26,
      "weight": 700,
-     "color": "#C6F135",
+     "color": "#C8F542",
      "lineHeight": 1
     },
     {
      "kind": "text",
-     "x": 1280,
-     "y": 572,
-     "w": 504,
-     "h": 30,
-     "text": "Production deploys",
-     "family": "IBM Plex Sans",
-     "size": 20,
-     "weight": 400,
-     "color": "#8B95AB",
-     "lineHeight": 1.4
+     "x": 546,
+     "y": 800,
+     "w": 110,
+     "h": 26,
+     "text": "deploys",
+     "family": "IBM Plex Mono",
+     "size": 16,
+     "weight": 500,
+     "color": "#93A0B8",
+     "lineHeight": 1.3
     },
     {
      "kind": "rect",
-     "x": 1280,
-     "y": 618,
-     "w": 504,
-     "h": 1,
-     "fill": "#1A2338"
+     "x": 696,
+     "y": 780,
+     "w": 276,
+     "h": 64,
+     "fill": "#121A2E",
+     "radius": 14,
+     "stroke": "#1E2840",
+     "strokeWidth": 1.5
     },
     {
      "kind": "text",
-     "x": 1280,
-     "y": 644,
-     "w": 504,
-     "h": 70,
+     "x": 716,
+     "y": 792,
+     "w": 130,
+     "h": 40,
      "text": "−38%",
      "family": "IBM Plex Mono",
-     "size": 60,
+     "size": 26,
      "weight": 700,
-     "color": "#C6F135",
+     "color": "#C8F542",
      "lineHeight": 1
     },
     {
      "kind": "text",
-     "x": 1280,
-     "y": 722,
-     "w": 504,
-     "h": 30,
-     "text": "P95 latency, quarter over quarter",
-     "family": "IBM Plex Sans",
-     "size": 20,
-     "weight": 400,
-     "color": "#8B95AB",
-     "lineHeight": 1.4
+     "x": 846,
+     "y": 800,
+     "w": 110,
+     "h": 26,
+     "text": "p95 latency",
+     "family": "IBM Plex Mono",
+     "size": 16,
+     "weight": 500,
+     "color": "#93A0B8",
+     "lineHeight": 1.3
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "la-ai-robot-3",
+     "x": 1230,
+     "y": 200,
+     "w": 540,
+     "h": 540
     }
    ]
   },
   {
    "name": "Agenda",
-   "bg": "#0D1220",
+   "bg": "#0F1526",
    "nodes": [
     {
      "kind": "ellipse",
@@ -392,17 +521,17 @@
       "angle": 135,
       "stops": [
        [
-        "#8B7CFF",
+        "#8F7BFF",
         0
        ],
        [
-        "#0D1220",
+        "#0A0E1B",
         1
        ]
       ],
       "radial": true
      },
-     "opacity": 0.28,
+     "opacity": 0.3,
      "bleed": true
     },
     {
@@ -460,8 +589,8 @@
      "family": "IBM Plex Mono",
      "size": 20,
      "weight": 600,
-     "color": "#C6F135",
-     "letterSpacing": 3,
+     "color": "#C8F542",
+     "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
     },
@@ -484,7 +613,7 @@
      "y": 968,
      "w": 1728,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "text",
@@ -496,7 +625,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3
     },
     {
@@ -509,7 +638,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3,
      "align": "right"
     },
@@ -523,7 +652,7 @@
      "family": "Space Grotesk",
      "size": 44,
      "weight": 700,
-     "color": "#C6F135",
+     "color": "#C8F542",
      "lineHeight": 1
     },
     {
@@ -549,22 +678,21 @@
      "family": "IBM Plex Sans",
      "size": 21,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     },
     {
-     "kind": "text",
-     "x": 1156,
-     "y": 252,
-     "w": 140,
-     "h": 30,
-     "text": "10 min",
-     "family": "IBM Plex Mono",
-     "size": 18,
-     "weight": 500,
-     "color": "#8B95AB",
-     "lineHeight": 1.3,
-     "align": "right"
+     "kind": "button",
+     "x": 1136,
+     "y": 250,
+     "w": 160,
+     "h": 34,
+     "label": "10 min",
+     "fill": "#324035",
+     "color": "#C8F542",
+     "family": "IBM Plex Sans",
+     "size": 15,
+     "weight": 700
     },
     {
      "kind": "rect",
@@ -572,7 +700,7 @@
      "y": 348,
      "w": 1204,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "text",
@@ -584,7 +712,7 @@
      "family": "Space Grotesk",
      "size": 44,
      "weight": 700,
-     "color": "#C6F135",
+     "color": "#C8F542",
      "lineHeight": 1
     },
     {
@@ -610,22 +738,21 @@
      "family": "IBM Plex Sans",
      "size": 21,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     },
     {
-     "kind": "text",
-     "x": 1156,
-     "y": 370,
-     "w": 140,
-     "h": 30,
-     "text": "15 min",
-     "family": "IBM Plex Mono",
-     "size": 18,
-     "weight": 500,
-     "color": "#8B95AB",
-     "lineHeight": 1.3,
-     "align": "right"
+     "kind": "button",
+     "x": 1136,
+     "y": 368,
+     "w": 160,
+     "h": 34,
+     "label": "15 min",
+     "fill": "#324035",
+     "color": "#C8F542",
+     "family": "IBM Plex Sans",
+     "size": 15,
+     "weight": 700
     },
     {
      "kind": "rect",
@@ -633,7 +760,7 @@
      "y": 466,
      "w": 1204,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "text",
@@ -645,7 +772,7 @@
      "family": "Space Grotesk",
      "size": 44,
      "weight": 700,
-     "color": "#C6F135",
+     "color": "#C8F542",
      "lineHeight": 1
     },
     {
@@ -671,22 +798,21 @@
      "family": "IBM Plex Sans",
      "size": 21,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     },
     {
-     "kind": "text",
-     "x": 1156,
-     "y": 488,
-     "w": 140,
-     "h": 30,
-     "text": "20 min",
-     "family": "IBM Plex Mono",
-     "size": 18,
-     "weight": 500,
-     "color": "#8B95AB",
-     "lineHeight": 1.3,
-     "align": "right"
+     "kind": "button",
+     "x": 1136,
+     "y": 486,
+     "w": 160,
+     "h": 34,
+     "label": "20 min",
+     "fill": "#324035",
+     "color": "#C8F542",
+     "family": "IBM Plex Sans",
+     "size": 15,
+     "weight": 700
     },
     {
      "kind": "rect",
@@ -694,7 +820,7 @@
      "y": 584,
      "w": 1204,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "text",
@@ -706,7 +832,7 @@
      "family": "Space Grotesk",
      "size": 44,
      "weight": 700,
-     "color": "#C6F135",
+     "color": "#C8F542",
      "lineHeight": 1
     },
     {
@@ -732,22 +858,21 @@
      "family": "IBM Plex Sans",
      "size": 21,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     },
     {
-     "kind": "text",
-     "x": 1156,
-     "y": 606,
-     "w": 140,
-     "h": 30,
-     "text": "10 min",
-     "family": "IBM Plex Mono",
-     "size": 18,
-     "weight": 500,
-     "color": "#8B95AB",
-     "lineHeight": 1.3,
-     "align": "right"
+     "kind": "button",
+     "x": 1136,
+     "y": 604,
+     "w": 160,
+     "h": 34,
+     "label": "10 min",
+     "fill": "#324035",
+     "color": "#C8F542",
+     "family": "IBM Plex Sans",
+     "size": 15,
+     "weight": 700
     },
     {
      "kind": "rect",
@@ -755,7 +880,7 @@
      "y": 702,
      "w": 1204,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "text",
@@ -767,7 +892,7 @@
      "family": "Space Grotesk",
      "size": 44,
      "weight": 700,
-     "color": "#C6F135",
+     "color": "#C8F542",
      "lineHeight": 1
     },
     {
@@ -793,22 +918,21 @@
      "family": "IBM Plex Sans",
      "size": 21,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     },
     {
-     "kind": "text",
-     "x": 1156,
-     "y": 724,
-     "w": 140,
-     "h": 30,
-     "text": "5 min",
-     "family": "IBM Plex Mono",
-     "size": 18,
-     "weight": 500,
-     "color": "#8B95AB",
-     "lineHeight": 1.3,
-     "align": "right"
+     "kind": "button",
+     "x": 1136,
+     "y": 722,
+     "w": 160,
+     "h": 34,
+     "label": "5 min",
+     "fill": "#324035",
+     "color": "#C8F542",
+     "family": "IBM Plex Sans",
+     "size": 15,
+     "weight": 700
     },
     {
      "kind": "rect",
@@ -816,7 +940,7 @@
      "y": 820,
      "w": 1204,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "rect",
@@ -824,8 +948,29 @@
      "y": 242,
      "w": 428,
      "h": 560,
-     "fill": "#141B2D",
+     "fill": {
+      "angle": 160,
+      "stops": [
+       [
+        "#0A0F1F",
+        0
+       ],
+       [
+        "#04060E",
+        1
+       ]
+      ]
+     },
      "radius": 14
+    },
+    {
+     "kind": "rect",
+     "x": 1396,
+     "y": 242,
+     "w": 428,
+     "h": 6,
+     "fill": "#C8F542",
+     "radius": 0
     },
     {
      "kind": "text",
@@ -837,8 +982,8 @@
      "family": "IBM Plex Mono",
      "size": 20,
      "weight": 600,
-     "color": "#C6F135",
-     "letterSpacing": 3,
+     "color": "#C8F542",
+     "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
     },
@@ -865,7 +1010,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3
     },
     {
@@ -887,7 +1032,7 @@
      "y": 542,
      "w": 348,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#1E2840"
     },
     {
      "kind": "text",
@@ -899,7 +1044,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3
     },
     {
@@ -921,7 +1066,7 @@
      "y": 616,
      "w": 348,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#1E2840"
     },
     {
      "kind": "text",
@@ -933,7 +1078,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3
     },
     {
@@ -955,7 +1100,7 @@
      "y": 690,
      "w": 348,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#1E2840"
     },
     {
      "kind": "text",
@@ -967,7 +1112,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3
     },
     {
@@ -987,7 +1132,19 @@
   },
   {
    "name": "Section",
-   "bg": "#070A12",
+   "bg": {
+    "angle": 160,
+    "stops": [
+     [
+      "#0A0F1F",
+      0
+     ],
+     [
+      "#04060E",
+      1
+     ]
+    ]
+   },
    "nodes": [
     {
      "kind": "ellipse",
@@ -999,17 +1156,17 @@
       "angle": 135,
       "stops": [
        [
-        "#8B7CFF",
+        "#8F7BFF",
         0
        ],
        [
-        "#070A12",
+        "#04060E",
         1
        ]
       ],
       "radial": true
      },
-     "opacity": 0.55,
+     "opacity": 0.6,
      "bleed": true
     },
     {
@@ -1022,17 +1179,17 @@
       "angle": 135,
       "stops": [
        [
-        "#C6F135",
+        "#C8F542",
         0
        ],
        [
-        "#070A12",
+        "#04060E",
         1
        ]
       ],
       "radial": true
      },
-     "opacity": 0.22,
+     "opacity": 0.26,
      "bleed": true
     },
     {
@@ -1108,6 +1265,105 @@
      "opacity": 0.06
     },
     {
+     "kind": "ellipse",
+     "x": 1003,
+     "y": 873,
+     "w": 8,
+     "h": 8,
+     "fill": "#C8F542",
+     "opacity": 0.6
+    },
+    {
+     "kind": "ellipse",
+     "x": 39,
+     "y": 166,
+     "w": 6,
+     "h": 6,
+     "fill": "#C8F542",
+     "opacity": 0.79
+    },
+    {
+     "kind": "ellipse",
+     "x": 224,
+     "y": 806,
+     "w": 6,
+     "h": 6,
+     "fill": "#C8F542",
+     "opacity": 0.58
+    },
+    {
+     "kind": "ellipse",
+     "x": 189,
+     "y": 671,
+     "w": 8,
+     "h": 8,
+     "fill": "#C8F542",
+     "opacity": 0.7
+    },
+    {
+     "kind": "ellipse",
+     "x": 406,
+     "y": 349,
+     "w": 6,
+     "h": 6,
+     "fill": "#C8F542",
+     "opacity": 0.43999999999999995
+    },
+    {
+     "kind": "ellipse",
+     "x": 1701,
+     "y": 855,
+     "w": 7,
+     "h": 7,
+     "fill": "#C8F542",
+     "opacity": 0.5599999999999999
+    },
+    {
+     "kind": "ellipse",
+     "x": 612,
+     "y": 31,
+     "w": 8,
+     "h": 8,
+     "fill": "#8F7BFF",
+     "opacity": 0.57
+    },
+    {
+     "kind": "ellipse",
+     "x": 1052,
+     "y": 18,
+     "w": 6,
+     "h": 6,
+     "fill": "#8F7BFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "ellipse",
+     "x": 1341,
+     "y": 822,
+     "w": 6,
+     "h": 6,
+     "fill": "#8F7BFF",
+     "opacity": 0.38999999999999996
+    },
+    {
+     "kind": "ellipse",
+     "x": 1526,
+     "y": 997,
+     "w": 9,
+     "h": 9,
+     "fill": "#8F7BFF",
+     "opacity": 0.44999999999999996
+    },
+    {
+     "kind": "ellipse",
+     "x": 739,
+     "y": 973,
+     "w": 6,
+     "h": 6,
+     "fill": "#8F7BFF",
+     "opacity": 0.6599999999999999
+    },
+    {
      "kind": "text",
      "x": 96,
      "y": 236,
@@ -1117,14 +1373,22 @@
      "family": "Space Grotesk",
      "size": 220,
      "weight": 700,
-     "color": "#C6F135",
+     "color": "#C8F542",
      "lineHeight": 1
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 476,
+     "w": 120,
+     "h": 4,
+     "fill": "#C8F542"
     },
     {
      "kind": "text",
      "x": 96,
      "y": 504,
-     "w": 1400,
+     "w": 1100,
      "h": 220,
      "text": "Where we stand",
      "family": "Space Grotesk",
@@ -1137,22 +1401,32 @@
      "kind": "text",
      "x": 96,
      "y": 736,
-     "w": 980,
+     "w": 900,
      "h": 90,
      "text": "The year in numbers, and what sits behind each of them.",
      "family": "IBM Plex Sans",
      "size": 28,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     },
     {
-     "kind": "rect",
-     "x": 96,
-     "y": 476,
-     "w": 120,
-     "h": 4,
-     "fill": "#C6F135"
+     "kind": "ellipse",
+     "x": 1240,
+     "y": 280,
+     "w": 560,
+     "h": 560,
+     "fill": "#C8F542",
+     "opacity": 0.12
+    },
+    {
+     "kind": "ellipse",
+     "x": 1296,
+     "y": 336,
+     "w": 448,
+     "h": 448,
+     "fill": "#C8F542",
+     "opacity": 0.16
     },
     {
      "kind": "rect",
@@ -1160,7 +1434,7 @@
      "y": 968,
      "w": 1728,
      "h": 1,
-     "fill": "#1A2338"
+     "fill": "#1E2840"
     },
     {
      "kind": "text",
@@ -1172,7 +1446,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3
     },
     {
@@ -1185,15 +1459,25 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3,
      "align": "right"
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "il-111-coding",
+     "x": 1300,
+     "y": 340,
+     "w": 440,
+     "h": 440,
+     "cleanCard": true
     }
    ]
   },
   {
    "name": "Statement",
-   "bg": "#0D1220",
+   "bg": "#0F1526",
    "nodes": [
     {
      "kind": "ellipse",
@@ -1205,17 +1489,17 @@
       "angle": 135,
       "stops": [
        [
-        "#8B7CFF",
+        "#8F7BFF",
         0
        ],
        [
-        "#0D1220",
+        "#0A0E1B",
         1
        ]
       ],
       "radial": true
      },
-     "opacity": 0.28,
+     "opacity": 0.3,
      "bleed": true
     },
     {
@@ -1269,7 +1553,7 @@
      "y": 968,
      "w": 1728,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "text",
@@ -1281,7 +1565,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3
     },
     {
@@ -1294,22 +1578,35 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3,
      "align": "right"
     },
     {
+     "kind": "text",
+     "x": 96,
+     "y": 236,
+     "w": 1000,
+     "h": 56,
+     "text": "// platform review, q3",
+     "family": "IBM Plex Mono",
+     "size": 30,
+     "weight": 500,
+     "color": "#C8F542",
+     "lineHeight": 1.2
+    },
+    {
      "kind": "rect",
      "x": 96,
-     "y": 250,
+     "y": 306,
      "w": 120,
      "h": 6,
-     "fill": "#C6F135"
+     "fill": "#C8F542"
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 296,
+     "y": 336,
      "w": 1560,
      "h": 265,
      "text": "Growth that we can explain is the only kind we want to keep.",
@@ -1322,21 +1619,21 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 601,
+     "y": 641,
      "w": 1000,
      "h": 32,
      "text": "Dana Whitfield, in the FY2026 letter to partners",
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3
     }
    ]
   },
   {
    "name": "Text and picture",
-   "bg": "#0D1220",
+   "bg": "#0F1526",
    "nodes": [
     {
      "kind": "ellipse",
@@ -1348,17 +1645,17 @@
       "angle": 135,
       "stops": [
        [
-        "#8B7CFF",
+        "#8F7BFF",
         0
        ],
        [
-        "#0D1220",
+        "#0A0E1B",
         1
        ]
       ],
       "radial": true
      },
-     "opacity": 0.28,
+     "opacity": 0.3,
      "bleed": true
     },
     {
@@ -1416,8 +1713,8 @@
      "family": "IBM Plex Mono",
      "size": 20,
      "weight": 600,
-     "color": "#C6F135",
-     "letterSpacing": 3,
+     "color": "#C8F542",
+     "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
     },
@@ -1440,7 +1737,7 @@
      "y": 968,
      "w": 1728,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "text",
@@ -1452,7 +1749,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3
     },
     {
@@ -1465,21 +1762,36 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3,
      "align": "right"
     },
     {
      "kind": "ellipse",
      "x": 96,
-     "y": 278,
-     "w": 18,
-     "h": 18,
-     "fill": "#C6F135"
+     "y": 270,
+     "w": 34,
+     "h": 34,
+     "fill": "#364536"
     },
     {
      "kind": "text",
-     "x": 144,
+     "x": 96,
+     "y": 270,
+     "w": 34,
+     "h": 34,
+     "text": "1",
+     "family": "Space Grotesk",
+     "size": 17,
+     "weight": 700,
+     "color": "#C8F542",
+     "align": "center",
+     "vAlign": "middle",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 152,
      "y": 266,
      "w": 840,
      "h": 44,
@@ -1492,7 +1804,7 @@
     },
     {
      "kind": "text",
-     "x": 144,
+     "x": 152,
      "y": 318,
      "w": 840,
      "h": 70,
@@ -1500,20 +1812,35 @@
      "family": "IBM Plex Sans",
      "size": 22,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     },
     {
      "kind": "ellipse",
      "x": 96,
-     "y": 456,
-     "w": 18,
-     "h": 18,
-     "fill": "#C6F135"
+     "y": 448,
+     "w": 34,
+     "h": 34,
+     "fill": "#364536"
     },
     {
      "kind": "text",
-     "x": 144,
+     "x": 96,
+     "y": 448,
+     "w": 34,
+     "h": 34,
+     "text": "2",
+     "family": "Space Grotesk",
+     "size": 17,
+     "weight": 700,
+     "color": "#C8F542",
+     "align": "center",
+     "vAlign": "middle",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 152,
      "y": 444,
      "w": 840,
      "h": 44,
@@ -1526,7 +1853,7 @@
     },
     {
      "kind": "text",
-     "x": 144,
+     "x": 152,
      "y": 496,
      "w": 840,
      "h": 70,
@@ -1534,20 +1861,35 @@
      "family": "IBM Plex Sans",
      "size": 22,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     },
     {
      "kind": "ellipse",
      "x": 96,
-     "y": 634,
-     "w": 18,
-     "h": 18,
-     "fill": "#C6F135"
+     "y": 626,
+     "w": 34,
+     "h": 34,
+     "fill": "#364536"
     },
     {
      "kind": "text",
-     "x": 144,
+     "x": 96,
+     "y": 626,
+     "w": 34,
+     "h": 34,
+     "text": "3",
+     "family": "Space Grotesk",
+     "size": 17,
+     "weight": 700,
+     "color": "#C8F542",
+     "align": "center",
+     "vAlign": "middle",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 152,
      "y": 622,
      "w": 840,
      "h": 44,
@@ -1560,7 +1902,7 @@
     },
     {
      "kind": "text",
-     "x": 144,
+     "x": 152,
      "y": 674,
      "w": 840,
      "h": 70,
@@ -1568,11 +1910,11 @@
      "family": "IBM Plex Sans",
      "size": 22,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     },
     {
-     "kind": "photo",
+     "kind": "rect",
      "name": "Photo",
      "x": 1080,
      "y": 196,
@@ -1582,22 +1924,49 @@
       "angle": 160,
       "stops": [
        [
-        "#1B2438",
+        "#313260",
         0
        ],
        [
-        "#141B2D",
+        "#161E33",
         1
        ]
       ]
      },
      "radius": 21
+    },
+    {
+     "kind": "ellipse",
+     "x": 1192,
+     "y": 306,
+     "w": 520,
+     "h": 520,
+     "fill": "#C8F542",
+     "opacity": 0.12
+    },
+    {
+     "kind": "ellipse",
+     "x": 1244,
+     "y": 358,
+     "w": 416,
+     "h": 416,
+     "fill": "#C8F542",
+     "opacity": 0.16
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "la-woman-working-2",
+     "x": 1150,
+     "y": 280,
+     "w": 604,
+     "h": 570
     }
    ]
   },
   {
    "name": "Two columns",
-   "bg": "#0D1220",
+   "bg": "#0F1526",
    "nodes": [
     {
      "kind": "ellipse",
@@ -1609,17 +1978,17 @@
       "angle": 135,
       "stops": [
        [
-        "#8B7CFF",
+        "#8F7BFF",
         0
        ],
        [
-        "#0D1220",
+        "#0A0E1B",
         1
        ]
       ],
       "radial": true
      },
-     "opacity": 0.28,
+     "opacity": 0.3,
      "bleed": true
     },
     {
@@ -1677,8 +2046,8 @@
      "family": "IBM Plex Mono",
      "size": 20,
      "weight": 600,
-     "color": "#C6F135",
-     "letterSpacing": 3,
+     "color": "#C8F542",
+     "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
     },
@@ -1701,7 +2070,7 @@
      "y": 968,
      "w": 1728,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "text",
@@ -1713,7 +2082,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3
     },
     {
@@ -1726,7 +2095,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3,
      "align": "right"
     },
@@ -1736,21 +2105,32 @@
      "y": 242,
      "w": 848,
      "h": 600,
-     "fill": "#141B2D",
-     "radius": 14
+     "fill": "#161E33",
+     "radius": 14,
+     "stroke": "#243049",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "icon",
+     "icon": "alert-triangle",
+     "x": 856,
+     "y": 286,
+     "w": 40,
+     "h": 40,
+     "color": "#C8F542"
     },
     {
      "kind": "text",
      "x": 144,
      "y": 290,
-     "w": 752,
+     "w": 688,
      "h": 28,
      "text": "Before",
      "family": "IBM Plex Mono",
      "size": 20,
      "weight": 600,
-     "color": "#C6F135",
-     "letterSpacing": 3,
+     "color": "#C8F542",
+     "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
     },
@@ -1773,7 +2153,7 @@
      "y": 502,
      "w": 752,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "text",
@@ -1794,7 +2174,7 @@
      "y": 602,
      "w": 752,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "text",
@@ -1815,7 +2195,7 @@
      "y": 702,
      "w": 752,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "text",
@@ -1836,21 +2216,42 @@
      "y": 242,
      "w": 848,
      "h": 600,
-     "fill": "#070A12",
+     "fill": {
+      "angle": 160,
+      "stops": [
+       [
+        "#0A0F1F",
+        0
+       ],
+       [
+        "#04060E",
+        1
+       ]
+      ]
+     },
      "radius": 14
+    },
+    {
+     "kind": "icon",
+     "icon": "circle-check",
+     "x": 1736,
+     "y": 286,
+     "w": 40,
+     "h": 40,
+     "color": "#C8F542"
     },
     {
      "kind": "text",
      "x": 1024,
      "y": 290,
-     "w": 752,
+     "w": 688,
      "h": 28,
      "text": "After",
      "family": "IBM Plex Mono",
      "size": 20,
      "weight": 600,
-     "color": "#C6F135",
-     "letterSpacing": 3,
+     "color": "#C8F542",
+     "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
     },
@@ -1873,7 +2274,7 @@
      "y": 502,
      "w": 752,
      "h": 1,
-     "fill": "#1A2338"
+     "fill": "#1E2840"
     },
     {
      "kind": "text",
@@ -1894,7 +2295,7 @@
      "y": 602,
      "w": 752,
      "h": 1,
-     "fill": "#1A2338"
+     "fill": "#1E2840"
     },
     {
      "kind": "text",
@@ -1915,7 +2316,7 @@
      "y": 702,
      "w": 752,
      "h": 1,
-     "fill": "#1A2338"
+     "fill": "#1E2840"
     },
     {
      "kind": "text",
@@ -1934,7 +2335,7 @@
   },
   {
    "name": "Three cards",
-   "bg": "#0D1220",
+   "bg": "#0F1526",
    "nodes": [
     {
      "kind": "ellipse",
@@ -1946,17 +2347,17 @@
       "angle": 135,
       "stops": [
        [
-        "#8B7CFF",
+        "#8F7BFF",
         0
        ],
        [
-        "#0D1220",
+        "#0A0E1B",
         1
        ]
       ],
       "radial": true
      },
-     "opacity": 0.28,
+     "opacity": 0.3,
      "bleed": true
     },
     {
@@ -2014,8 +2415,8 @@
      "family": "IBM Plex Mono",
      "size": 20,
      "weight": 600,
-     "color": "#C6F135",
-     "letterSpacing": 3,
+     "color": "#C8F542",
+     "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
     },
@@ -2038,7 +2439,7 @@
      "y": 968,
      "w": 1728,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "text",
@@ -2050,7 +2451,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3
     },
     {
@@ -2063,7 +2464,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3,
      "align": "right"
     },
@@ -2073,30 +2474,41 @@
      "y": 242,
      "w": 560,
      "h": 580,
-     "fill": "#141B2D",
-     "radius": 14
+     "fill": "#161E33",
+     "radius": 14,
+     "stroke": "#243049",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 242,
+     "w": 560,
+     "h": 6,
+     "fill": "#C8F542",
+     "radius": 0
     },
     {
      "kind": "ellipse",
      "x": 136,
-     "y": 282,
+     "y": 290,
      "w": 80,
      "h": 80,
-     "fill": "#34422e"
+     "fill": "#3a4936"
     },
     {
      "kind": "icon",
      "icon": "flag",
      "x": 156,
-     "y": 302,
+     "y": 310,
      "w": 40,
      "h": 40,
-     "color": "#C6F135"
+     "color": "#C8F542"
     },
     {
      "kind": "text",
      "x": 136,
-     "y": 398,
+     "y": 406,
      "w": 480,
      "h": 100,
      "text": "Win the mid-market",
@@ -2109,14 +2521,14 @@
     {
      "kind": "text",
      "x": 136,
-     "y": 510,
+     "y": 518,
      "w": 480,
      "h": 160,
      "text": "Double the segment team and ship the two integrations every deal asks for.",
      "family": "IBM Plex Sans",
      "size": 22,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     },
     {
@@ -2125,7 +2537,7 @@
      "y": 738,
      "w": 480,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "text",
@@ -2137,7 +2549,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3
     },
     {
@@ -2146,30 +2558,41 @@
      "y": 242,
      "w": 560,
      "h": 580,
-     "fill": "#141B2D",
-     "radius": 14
+     "fill": "#161E33",
+     "radius": 14,
+     "stroke": "#243049",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 680,
+     "y": 242,
+     "w": 560,
+     "h": 6,
+     "fill": "#8F7BFF",
+     "radius": 0
     },
     {
      "kind": "ellipse",
      "x": 720,
-     "y": 282,
+     "y": 290,
      "w": 80,
      "h": 80,
-     "fill": "#34422e"
+     "fill": "#2e315c"
     },
     {
      "kind": "icon",
      "icon": "shield",
      "x": 740,
-     "y": 302,
+     "y": 310,
      "w": 40,
      "h": 40,
-     "color": "#C6F135"
+     "color": "#8F7BFF"
     },
     {
      "kind": "text",
      "x": 720,
-     "y": 398,
+     "y": 406,
      "w": 480,
      "h": 100,
      "text": "Earn the enterprise",
@@ -2182,14 +2605,14 @@
     {
      "kind": "text",
      "x": 720,
-     "y": 510,
+     "y": 518,
      "w": 480,
      "h": 160,
      "text": "Certifications, regional residency and a support tier that answers in an hour.",
      "family": "IBM Plex Sans",
      "size": 22,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     },
     {
@@ -2198,7 +2621,7 @@
      "y": 738,
      "w": 480,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "text",
@@ -2210,7 +2633,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3
     },
     {
@@ -2219,30 +2642,41 @@
      "y": 242,
      "w": 560,
      "h": 580,
-     "fill": "#141B2D",
-     "radius": 14
+     "fill": "#161E33",
+     "radius": 14,
+     "stroke": "#243049",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 1264,
+     "y": 242,
+     "w": 560,
+     "h": 6,
+     "fill": "#C8F542",
+     "radius": 0
     },
     {
      "kind": "ellipse",
      "x": 1304,
-     "y": 282,
+     "y": 290,
      "w": 80,
      "h": 80,
-     "fill": "#34422e"
+     "fill": "#3a4936"
     },
     {
      "kind": "icon",
      "icon": "sparkles",
      "x": 1324,
-     "y": 302,
+     "y": 310,
      "w": 40,
      "h": 40,
-     "color": "#C6F135"
+     "color": "#C8F542"
     },
     {
      "kind": "text",
      "x": 1304,
-     "y": 398,
+     "y": 406,
      "w": 480,
      "h": 100,
      "text": "Make the product sell itself",
@@ -2255,14 +2689,14 @@
     {
      "kind": "text",
      "x": 1304,
-     "y": 510,
+     "y": 518,
      "w": 480,
      "h": 160,
      "text": "A free tier that grows into paid on its own, measured weekly.",
      "family": "IBM Plex Sans",
      "size": 22,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     },
     {
@@ -2271,7 +2705,7 @@
      "y": 738,
      "w": 480,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "text",
@@ -2283,14 +2717,14 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3
     }
    ]
   },
   {
    "name": "Figures",
-   "bg": "#0D1220",
+   "bg": "#0F1526",
    "nodes": [
     {
      "kind": "ellipse",
@@ -2302,17 +2736,17 @@
       "angle": 135,
       "stops": [
        [
-        "#8B7CFF",
+        "#8F7BFF",
         0
        ],
        [
-        "#0D1220",
+        "#0A0E1B",
         1
        ]
       ],
       "radial": true
      },
-     "opacity": 0.28,
+     "opacity": 0.3,
      "bleed": true
     },
     {
@@ -2370,8 +2804,8 @@
      "family": "IBM Plex Mono",
      "size": 20,
      "weight": 600,
-     "color": "#C6F135",
-     "letterSpacing": 3,
+     "color": "#C8F542",
+     "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
     },
@@ -2394,7 +2828,7 @@
      "y": 968,
      "w": 1728,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "text",
@@ -2406,7 +2840,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3
     },
     {
@@ -2419,7 +2853,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3,
      "align": "right"
     },
@@ -2429,8 +2863,19 @@
      "y": 242,
      "w": 414,
      "h": 560,
-     "fill": "#141B2D",
-     "radius": 14
+     "fill": "#161E33",
+     "radius": 14,
+     "stroke": "#243049",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 242,
+     "w": 414,
+     "h": 6,
+     "fill": "#C8F542",
+     "radius": 0
     },
     {
      "kind": "text",
@@ -2442,7 +2887,7 @@
      "family": "Space Grotesk",
      "size": 80,
      "weight": 700,
-     "color": "#C6F135",
+     "color": "#C8F542",
      "lineHeight": 1
     },
     {
@@ -2465,8 +2910,8 @@
      "w": 190,
      "h": 40,
      "label": "+31% year over year",
-     "fill": "#303d2e",
-     "color": "#C6F135",
+     "fill": "#364536",
+     "color": "#C8F542",
      "family": "IBM Plex Sans",
      "size": 17,
      "weight": 700
@@ -2481,7 +2926,7 @@
      "family": "IBM Plex Sans",
      "size": 20,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     },
     {
@@ -2490,8 +2935,19 @@
      "y": 242,
      "w": 414,
      "h": 560,
-     "fill": "#141B2D",
-     "radius": 14
+     "fill": "#161E33",
+     "radius": 14,
+     "stroke": "#243049",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 534,
+     "y": 242,
+     "w": 414,
+     "h": 6,
+     "fill": "#8F7BFF",
+     "radius": 0
     },
     {
      "kind": "text",
@@ -2503,7 +2959,7 @@
      "family": "Space Grotesk",
      "size": 100,
      "weight": 700,
-     "color": "#C6F135",
+     "color": "#8F7BFF",
      "lineHeight": 1
     },
     {
@@ -2526,8 +2982,8 @@
      "w": 190,
      "h": 40,
      "label": "+6 pts",
-     "fill": "#303d2e",
-     "color": "#C6F135",
+     "fill": "#2c2f58",
+     "color": "#8F7BFF",
      "family": "IBM Plex Sans",
      "size": 17,
      "weight": 700
@@ -2542,7 +2998,7 @@
      "family": "IBM Plex Sans",
      "size": 20,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     },
     {
@@ -2551,8 +3007,19 @@
      "y": 242,
      "w": 414,
      "h": 560,
-     "fill": "#141B2D",
-     "radius": 14
+     "fill": "#161E33",
+     "radius": 14,
+     "stroke": "#243049",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 972,
+     "y": 242,
+     "w": 414,
+     "h": 6,
+     "fill": "#C8F542",
+     "radius": 0
     },
     {
      "kind": "text",
@@ -2564,7 +3031,7 @@
      "family": "Space Grotesk",
      "size": 100,
      "weight": 700,
-     "color": "#C6F135",
+     "color": "#C8F542",
      "lineHeight": 1
     },
     {
@@ -2587,8 +3054,8 @@
      "w": 190,
      "h": 40,
      "label": "+280 net new",
-     "fill": "#303d2e",
-     "color": "#C6F135",
+     "fill": "#364536",
+     "color": "#C8F542",
      "family": "IBM Plex Sans",
      "size": 17,
      "weight": 700
@@ -2603,7 +3070,7 @@
      "family": "IBM Plex Sans",
      "size": 20,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     },
     {
@@ -2612,8 +3079,19 @@
      "y": 242,
      "w": 414,
      "h": 560,
-     "fill": "#141B2D",
-     "radius": 14
+     "fill": "#161E33",
+     "radius": 14,
+     "stroke": "#243049",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "rect",
+     "x": 1410,
+     "y": 242,
+     "w": 414,
+     "h": 6,
+     "fill": "#8F7BFF",
+     "radius": 0
     },
     {
      "kind": "text",
@@ -2625,7 +3103,7 @@
      "family": "Space Grotesk",
      "size": 100,
      "weight": 700,
-     "color": "#C6F135",
+     "color": "#8F7BFF",
      "lineHeight": 1
     },
     {
@@ -2648,8 +3126,8 @@
      "w": 190,
      "h": 40,
      "label": "Plan holds",
-     "fill": "#303d2e",
-     "color": "#C6F135",
+     "fill": "#2c2f58",
+     "color": "#8F7BFF",
      "family": "IBM Plex Sans",
      "size": 17,
      "weight": 700
@@ -2664,14 +3142,14 @@
      "family": "IBM Plex Sans",
      "size": 20,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     }
    ]
   },
   {
    "name": "Chart",
-   "bg": "#0D1220",
+   "bg": "#0F1526",
    "nodes": [
     {
      "kind": "ellipse",
@@ -2683,17 +3161,17 @@
       "angle": 135,
       "stops": [
        [
-        "#8B7CFF",
+        "#8F7BFF",
         0
        ],
        [
-        "#0D1220",
+        "#0A0E1B",
         1
        ]
       ],
       "radial": true
      },
-     "opacity": 0.28,
+     "opacity": 0.3,
      "bleed": true
     },
     {
@@ -2751,8 +3229,8 @@
      "family": "IBM Plex Mono",
      "size": 20,
      "weight": 600,
-     "color": "#C6F135",
-     "letterSpacing": 3,
+     "color": "#C8F542",
+     "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
     },
@@ -2775,7 +3253,7 @@
      "y": 968,
      "w": 1728,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "text",
@@ -2787,7 +3265,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3
     },
     {
@@ -2800,7 +3278,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3,
      "align": "right"
     },
@@ -2814,7 +3292,7 @@
      "family": "IBM Plex Sans",
      "size": 24,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     },
     {
@@ -2859,7 +3337,7 @@
         3.4,
         4.2
        ],
-       "color": "#C6F135"
+       "color": "#8F7BFF"
       }
      ]
     },
@@ -2873,7 +3351,7 @@
      "family": "Space Grotesk",
      "size": 64,
      "weight": 700,
-     "color": "#C6F135",
+     "color": "#C8F542",
      "lineHeight": 1
     },
     {
@@ -2886,7 +3364,7 @@
      "family": "IBM Plex Sans",
      "size": 22,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     },
     {
@@ -2895,7 +3373,7 @@
      "y": 414,
      "w": 504,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "text",
@@ -2907,7 +3385,7 @@
      "family": "Space Grotesk",
      "size": 64,
      "weight": 700,
-     "color": "#C6F135",
+     "color": "#C8F542",
      "lineHeight": 1
     },
     {
@@ -2920,7 +3398,7 @@
      "family": "IBM Plex Sans",
      "size": 22,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     },
     {
@@ -2929,7 +3407,7 @@
      "y": 594,
      "w": 504,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "text",
@@ -2941,7 +3419,7 @@
      "family": "Space Grotesk",
      "size": 64,
      "weight": 700,
-     "color": "#C6F135",
+     "color": "#C8F542",
      "lineHeight": 1
     },
     {
@@ -2954,14 +3432,14 @@
      "family": "IBM Plex Sans",
      "size": 22,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     }
    ]
   },
   {
    "name": "Timeline",
-   "bg": "#0D1220",
+   "bg": "#0F1526",
    "nodes": [
     {
      "kind": "ellipse",
@@ -2973,17 +3451,17 @@
       "angle": 135,
       "stops": [
        [
-        "#8B7CFF",
+        "#8F7BFF",
         0
        ],
        [
-        "#0D1220",
+        "#0A0E1B",
         1
        ]
       ],
       "radial": true
      },
-     "opacity": 0.28,
+     "opacity": 0.3,
      "bleed": true
     },
     {
@@ -3041,8 +3519,8 @@
      "family": "IBM Plex Mono",
      "size": 20,
      "weight": 600,
-     "color": "#C6F135",
-     "letterSpacing": 3,
+     "color": "#C8F542",
+     "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
     },
@@ -3065,7 +3543,7 @@
      "y": 968,
      "w": 1728,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "text",
@@ -3077,7 +3555,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3
     },
     {
@@ -3090,7 +3568,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3,
      "align": "right"
     },
@@ -3100,7 +3578,15 @@
      "y": 425,
      "w": 1728,
      "h": 3,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 425,
+     "w": 864,
+     "h": 3,
+     "fill": "#C8F542"
     },
     {
      "kind": "ellipse",
@@ -3108,7 +3594,7 @@
      "y": 412,
      "w": 30,
      "h": 30,
-     "fill": "#C6F135"
+     "fill": "#C8F542"
     },
     {
      "kind": "text",
@@ -3120,8 +3606,8 @@
      "family": "IBM Plex Mono",
      "size": 20,
      "weight": 600,
-     "color": "#C6F135",
-     "letterSpacing": 3,
+     "color": "#C8F542",
+     "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
     },
@@ -3148,7 +3634,7 @@
      "family": "IBM Plex Sans",
      "size": 21,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     },
     {
@@ -3157,7 +3643,7 @@
      "y": 412,
      "w": 30,
      "h": 30,
-     "fill": "#C6F135"
+     "fill": "#C8F542"
     },
     {
      "kind": "text",
@@ -3169,8 +3655,8 @@
      "family": "IBM Plex Mono",
      "size": 20,
      "weight": 600,
-     "color": "#C6F135",
-     "letterSpacing": 3,
+     "color": "#C8F542",
+     "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
     },
@@ -3197,7 +3683,7 @@
      "family": "IBM Plex Sans",
      "size": 21,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     },
     {
@@ -3206,8 +3692,8 @@
      "y": 412,
      "w": 30,
      "h": 30,
-     "fill": "#0D1220",
-     "stroke": "#C6F135",
+     "fill": "#0F1526",
+     "stroke": "#C8F542",
      "strokeWidth": 3
     },
     {
@@ -3220,8 +3706,8 @@
      "family": "IBM Plex Mono",
      "size": 20,
      "weight": 600,
-     "color": "#C6F135",
-     "letterSpacing": 3,
+     "color": "#C8F542",
+     "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
     },
@@ -3248,7 +3734,7 @@
      "family": "IBM Plex Sans",
      "size": 21,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     },
     {
@@ -3257,8 +3743,8 @@
      "y": 412,
      "w": 30,
      "h": 30,
-     "fill": "#0D1220",
-     "stroke": "#C6F135",
+     "fill": "#0F1526",
+     "stroke": "#C8F542",
      "strokeWidth": 3
     },
     {
@@ -3271,8 +3757,8 @@
      "family": "IBM Plex Mono",
      "size": 20,
      "weight": 600,
-     "color": "#C6F135",
-     "letterSpacing": 3,
+     "color": "#C8F542",
+     "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
     },
@@ -3299,14 +3785,14 @@
      "family": "IBM Plex Sans",
      "size": 21,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     }
    ]
   },
   {
    "name": "Process",
-   "bg": "#0D1220",
+   "bg": "#0F1526",
    "nodes": [
     {
      "kind": "ellipse",
@@ -3318,17 +3804,17 @@
       "angle": 135,
       "stops": [
        [
-        "#8B7CFF",
+        "#8F7BFF",
         0
        ],
        [
-        "#0D1220",
+        "#0A0E1B",
         1
        ]
       ],
       "radial": true
      },
-     "opacity": 0.28,
+     "opacity": 0.3,
      "bleed": true
     },
     {
@@ -3386,8 +3872,8 @@
      "family": "IBM Plex Mono",
      "size": 20,
      "weight": 600,
-     "color": "#C6F135",
-     "letterSpacing": 3,
+     "color": "#C8F542",
+     "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
     },
@@ -3410,7 +3896,7 @@
      "y": 968,
      "w": 1728,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "text",
@@ -3422,7 +3908,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3
     },
     {
@@ -3435,7 +3921,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3,
      "align": "right"
     },
@@ -3445,7 +3931,7 @@
      "y": 272,
      "w": 88,
      "h": 88,
-     "fill": "#C6F135"
+     "fill": "#C8F542"
     },
     {
      "kind": "text",
@@ -3457,7 +3943,7 @@
      "family": "Space Grotesk",
      "size": 34,
      "weight": 700,
-     "color": "#F1F5F9",
+     "color": "#04060E",
      "align": "center",
      "vAlign": "middle",
      "lineHeight": 1
@@ -3468,7 +3954,7 @@
      "y": 315,
      "w": 322,
      "h": 2,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "text",
@@ -3493,7 +3979,7 @@
      "family": "IBM Plex Sans",
      "size": 21,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     },
     {
@@ -3502,7 +3988,7 @@
      "y": 272,
      "w": 88,
      "h": 88,
-     "fill": "#070A12"
+     "fill": "#0A0F1F"
     },
     {
      "kind": "text",
@@ -3525,7 +4011,7 @@
      "y": 315,
      "w": 322,
      "h": 2,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "text",
@@ -3550,7 +4036,7 @@
      "family": "IBM Plex Sans",
      "size": 21,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     },
     {
@@ -3559,7 +4045,7 @@
      "y": 272,
      "w": 88,
      "h": 88,
-     "fill": "#070A12"
+     "fill": "#0A0F1F"
     },
     {
      "kind": "text",
@@ -3582,7 +4068,7 @@
      "y": 315,
      "w": 322,
      "h": 2,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "text",
@@ -3607,7 +4093,7 @@
      "family": "IBM Plex Sans",
      "size": 21,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     },
     {
@@ -3616,7 +4102,7 @@
      "y": 272,
      "w": 88,
      "h": 88,
-     "fill": "#070A12"
+     "fill": "#0A0F1F"
     },
     {
      "kind": "text",
@@ -3656,14 +4142,14 @@
      "family": "IBM Plex Sans",
      "size": 21,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     }
    ]
   },
   {
    "name": "Comparison table",
-   "bg": "#0D1220",
+   "bg": "#0F1526",
    "nodes": [
     {
      "kind": "ellipse",
@@ -3675,17 +4161,17 @@
       "angle": 135,
       "stops": [
        [
-        "#8B7CFF",
+        "#8F7BFF",
         0
        ],
        [
-        "#0D1220",
+        "#0A0E1B",
         1
        ]
       ],
       "radial": true
      },
-     "opacity": 0.28,
+     "opacity": 0.3,
      "bleed": true
     },
     {
@@ -3743,8 +4229,8 @@
      "family": "IBM Plex Mono",
      "size": 20,
      "weight": 600,
-     "color": "#C6F135",
-     "letterSpacing": 3,
+     "color": "#C8F542",
+     "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
     },
@@ -3767,7 +4253,7 @@
      "y": 968,
      "w": 1728,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "text",
@@ -3779,7 +4265,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3
     },
     {
@@ -3792,7 +4278,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3,
      "align": "right"
     },
@@ -3802,7 +4288,19 @@
      "y": 242,
      "w": 1728,
      "h": 76,
-     "fill": "#070A12",
+     "fill": {
+      "angle": 160,
+      "stops": [
+       [
+        "#0A0F1F",
+        0
+       ],
+       [
+        "#04060E",
+        1
+       ]
+      ]
+     },
      "radius": 12
     },
     {
@@ -3870,7 +4368,7 @@
      "family": "IBM Plex Sans",
      "size": 24,
      "weight": 600,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3,
      "align": "center"
     },
@@ -3884,7 +4382,7 @@
      "family": "IBM Plex Sans",
      "size": 24,
      "weight": 600,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3,
      "align": "center"
     },
@@ -3898,7 +4396,7 @@
      "family": "IBM Plex Sans",
      "size": 24,
      "weight": 600,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3,
      "align": "center"
     },
@@ -3908,7 +4406,7 @@
      "y": 413,
      "w": 1728,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "rect",
@@ -3916,7 +4414,7 @@
      "y": 414,
      "w": 1728,
      "h": 96,
-     "fill": "#141B2D"
+     "fill": "#161E33"
     },
     {
      "kind": "text",
@@ -3938,7 +4436,7 @@
      "y": 446,
      "w": 32,
      "h": 32,
-     "color": "#C6F135"
+     "color": "#C8F542"
     },
     {
      "kind": "icon",
@@ -3947,7 +4445,7 @@
      "y": 446,
      "w": 32,
      "h": 32,
-     "color": "#C6F135"
+     "color": "#C8F542"
     },
     {
      "kind": "icon",
@@ -3956,7 +4454,7 @@
      "y": 446,
      "w": 32,
      "h": 32,
-     "color": "#C6F135"
+     "color": "#C8F542"
     },
     {
      "kind": "rect",
@@ -3964,7 +4462,7 @@
      "y": 509,
      "w": 1728,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "text",
@@ -3986,7 +4484,7 @@
      "y": 542,
      "w": 32,
      "h": 32,
-     "color": "#1F2A3F"
+     "color": "#243049"
     },
     {
      "kind": "icon",
@@ -3995,7 +4493,7 @@
      "y": 542,
      "w": 32,
      "h": 32,
-     "color": "#C6F135"
+     "color": "#C8F542"
     },
     {
      "kind": "icon",
@@ -4004,7 +4502,7 @@
      "y": 542,
      "w": 32,
      "h": 32,
-     "color": "#C6F135"
+     "color": "#C8F542"
     },
     {
      "kind": "rect",
@@ -4012,7 +4510,7 @@
      "y": 605,
      "w": 1728,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "rect",
@@ -4020,7 +4518,7 @@
      "y": 606,
      "w": 1728,
      "h": 96,
-     "fill": "#141B2D"
+     "fill": "#161E33"
     },
     {
      "kind": "text",
@@ -4042,7 +4540,7 @@
      "y": 638,
      "w": 32,
      "h": 32,
-     "color": "#1F2A3F"
+     "color": "#243049"
     },
     {
      "kind": "icon",
@@ -4051,7 +4549,7 @@
      "y": 638,
      "w": 32,
      "h": 32,
-     "color": "#1F2A3F"
+     "color": "#243049"
     },
     {
      "kind": "icon",
@@ -4060,7 +4558,7 @@
      "y": 638,
      "w": 32,
      "h": 32,
-     "color": "#C6F135"
+     "color": "#C8F542"
     },
     {
      "kind": "rect",
@@ -4068,7 +4566,7 @@
      "y": 701,
      "w": 1728,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "text",
@@ -4093,7 +4591,7 @@
      "family": "IBM Plex Sans",
      "size": 24,
      "weight": 600,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3,
      "align": "center"
     },
@@ -4107,7 +4605,7 @@
      "family": "IBM Plex Sans",
      "size": 24,
      "weight": 600,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3,
      "align": "center"
     },
@@ -4121,7 +4619,7 @@
      "family": "IBM Plex Sans",
      "size": 24,
      "weight": 600,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3,
      "align": "center"
     },
@@ -4131,13 +4629,13 @@
      "y": 797,
      "w": 1728,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     }
    ]
   },
   {
    "name": "Team",
-   "bg": "#0D1220",
+   "bg": "#0F1526",
    "nodes": [
     {
      "kind": "ellipse",
@@ -4149,17 +4647,17 @@
       "angle": 135,
       "stops": [
        [
-        "#8B7CFF",
+        "#8F7BFF",
         0
        ],
        [
-        "#0D1220",
+        "#0A0E1B",
         1
        ]
       ],
       "radial": true
      },
-     "opacity": 0.28,
+     "opacity": 0.3,
      "bleed": true
     },
     {
@@ -4217,8 +4715,8 @@
      "family": "IBM Plex Mono",
      "size": 20,
      "weight": 600,
-     "color": "#C6F135",
-     "letterSpacing": 3,
+     "color": "#C8F542",
+     "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
     },
@@ -4241,7 +4739,7 @@
      "y": 968,
      "w": 1728,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "text",
@@ -4253,7 +4751,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3
     },
     {
@@ -4266,7 +4764,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3,
      "align": "right"
     },
@@ -4277,19 +4775,7 @@
      "y": 262,
      "w": 220,
      "h": 220,
-     "fill": {
-      "angle": 160,
-      "stops": [
-       [
-        "#1B2438",
-        0
-       ],
-       [
-        "#141B2D",
-        1
-       ]
-      ]
-     }
+     "fill": "#3d4d36"
     },
     {
      "kind": "text",
@@ -4315,8 +4801,8 @@
      "family": "IBM Plex Mono",
      "size": 17,
      "weight": 600,
-     "color": "#C6F135",
-     "letterSpacing": 3,
+     "color": "#C8F542",
+     "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2,
      "align": "center"
@@ -4331,7 +4817,7 @@
      "family": "IBM Plex Sans",
      "size": 21,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4,
      "align": "center"
     },
@@ -4342,19 +4828,7 @@
      "y": 262,
      "w": 220,
      "h": 220,
-     "fill": {
-      "angle": 160,
-      "stops": [
-       [
-        "#1B2438",
-        0
-       ],
-       [
-        "#141B2D",
-        1
-       ]
-      ]
-     }
+     "fill": "#313260"
     },
     {
      "kind": "text",
@@ -4380,8 +4854,8 @@
      "family": "IBM Plex Mono",
      "size": 17,
      "weight": 600,
-     "color": "#C6F135",
-     "letterSpacing": 3,
+     "color": "#8F7BFF",
+     "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2,
      "align": "center"
@@ -4396,7 +4870,7 @@
      "family": "IBM Plex Sans",
      "size": 21,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4,
      "align": "center"
     },
@@ -4407,19 +4881,7 @@
      "y": 262,
      "w": 220,
      "h": 220,
-     "fill": {
-      "angle": 160,
-      "stops": [
-       [
-        "#1B2438",
-        0
-       ],
-       [
-        "#141B2D",
-        1
-       ]
-      ]
-     }
+     "fill": "#3d4d36"
     },
     {
      "kind": "text",
@@ -4445,8 +4907,8 @@
      "family": "IBM Plex Mono",
      "size": 17,
      "weight": 600,
-     "color": "#C6F135",
-     "letterSpacing": 3,
+     "color": "#C8F542",
+     "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2,
      "align": "center"
@@ -4461,7 +4923,7 @@
      "family": "IBM Plex Sans",
      "size": 21,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4,
      "align": "center"
     },
@@ -4472,19 +4934,7 @@
      "y": 262,
      "w": 220,
      "h": 220,
-     "fill": {
-      "angle": 160,
-      "stops": [
-       [
-        "#1B2438",
-        0
-       ],
-       [
-        "#141B2D",
-        1
-       ]
-      ]
-     }
+     "fill": "#313260"
     },
     {
      "kind": "text",
@@ -4510,8 +4960,8 @@
      "family": "IBM Plex Mono",
      "size": 17,
      "weight": 600,
-     "color": "#C6F135",
-     "letterSpacing": 3,
+     "color": "#8F7BFF",
+     "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2,
      "align": "center"
@@ -4526,15 +4976,57 @@
      "family": "IBM Plex Sans",
      "size": 21,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4,
      "align": "center"
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "op-peep-72",
+     "x": 223,
+     "y": 284,
+     "w": 160,
+     "h": 176
+    },
+    {
+     "asset": "op-peep-9",
+     "x": 661,
+     "y": 284,
+     "w": 160,
+     "h": 176
+    },
+    {
+     "asset": "op-peep-56",
+     "x": 1099,
+     "y": 284,
+     "w": 160,
+     "h": 176
+    },
+    {
+     "asset": "op-peep-41",
+     "x": 1537,
+     "y": 284,
+     "w": 160,
+     "h": 176
     }
    ]
   },
   {
    "name": "Quote",
-   "bg": "#070A12",
+   "bg": {
+    "angle": 160,
+    "stops": [
+     [
+      "#0A0F1F",
+      0
+     ],
+     [
+      "#04060E",
+      1
+     ]
+    ]
+   },
    "nodes": [
     {
      "kind": "ellipse",
@@ -4546,17 +5038,17 @@
       "angle": 135,
       "stops": [
        [
-        "#8B7CFF",
+        "#8F7BFF",
         0
        ],
        [
-        "#070A12",
+        "#04060E",
         1
        ]
       ],
       "radial": true
      },
-     "opacity": 0.55,
+     "opacity": 0.6,
      "bleed": true
     },
     {
@@ -4569,17 +5061,17 @@
       "angle": 135,
       "stops": [
        [
-        "#C6F135",
+        "#C8F542",
         0
        ],
        [
-        "#070A12",
+        "#04060E",
         1
        ]
       ],
       "radial": true
      },
-     "opacity": 0.22,
+     "opacity": 0.26,
      "bleed": true
     },
     {
@@ -4655,12 +5147,111 @@
      "opacity": 0.06
     },
     {
+     "kind": "ellipse",
+     "x": 1003,
+     "y": 873,
+     "w": 8,
+     "h": 8,
+     "fill": "#C8F542",
+     "opacity": 0.6
+    },
+    {
+     "kind": "ellipse",
+     "x": 39,
+     "y": 166,
+     "w": 6,
+     "h": 6,
+     "fill": "#C8F542",
+     "opacity": 0.79
+    },
+    {
+     "kind": "ellipse",
+     "x": 224,
+     "y": 806,
+     "w": 6,
+     "h": 6,
+     "fill": "#C8F542",
+     "opacity": 0.58
+    },
+    {
+     "kind": "ellipse",
+     "x": 189,
+     "y": 671,
+     "w": 8,
+     "h": 8,
+     "fill": "#C8F542",
+     "opacity": 0.7
+    },
+    {
+     "kind": "ellipse",
+     "x": 406,
+     "y": 349,
+     "w": 6,
+     "h": 6,
+     "fill": "#C8F542",
+     "opacity": 0.43999999999999995
+    },
+    {
+     "kind": "ellipse",
+     "x": 1701,
+     "y": 855,
+     "w": 7,
+     "h": 7,
+     "fill": "#C8F542",
+     "opacity": 0.5599999999999999
+    },
+    {
+     "kind": "ellipse",
+     "x": 612,
+     "y": 31,
+     "w": 8,
+     "h": 8,
+     "fill": "#8F7BFF",
+     "opacity": 0.57
+    },
+    {
+     "kind": "ellipse",
+     "x": 1052,
+     "y": 18,
+     "w": 6,
+     "h": 6,
+     "fill": "#8F7BFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "ellipse",
+     "x": 1341,
+     "y": 822,
+     "w": 6,
+     "h": 6,
+     "fill": "#8F7BFF",
+     "opacity": 0.38999999999999996
+    },
+    {
+     "kind": "ellipse",
+     "x": 1526,
+     "y": 997,
+     "w": 9,
+     "h": 9,
+     "fill": "#8F7BFF",
+     "opacity": 0.44999999999999996
+    },
+    {
+     "kind": "ellipse",
+     "x": 739,
+     "y": 973,
+     "w": 6,
+     "h": 6,
+     "fill": "#8F7BFF",
+     "opacity": 0.6599999999999999
+    },
+    {
      "kind": "rect",
      "x": 96,
      "y": 968,
      "w": 1728,
      "h": 1,
-     "fill": "#1A2338"
+     "fill": "#1E2840"
     },
     {
      "kind": "text",
@@ -4672,7 +5263,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3
     },
     {
@@ -4685,7 +5276,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3,
      "align": "right"
     },
@@ -4699,14 +5290,14 @@
      "family": "Space Grotesk",
      "size": 280,
      "weight": 700,
-     "color": "#C6F135",
+     "color": "#C8F542",
      "lineHeight": 1
     },
     {
      "kind": "text",
      "x": 116,
      "y": 400,
-     "w": 1560,
+     "w": 1400,
      "h": 205,
      "text": "They did not sell us software. They showed us the number we were losing every week, and then made it stop.",
      "family": "Space Grotesk",
@@ -4719,15 +5310,15 @@
      "kind": "ellipse",
      "name": "Photo",
      "x": 116,
-     "y": 655,
-     "w": 80,
-     "h": 80,
-     "fill": "#182034"
+     "y": 665,
+     "w": 84,
+     "h": 84,
+     "fill": "#1A2440"
     },
     {
      "kind": "text",
-     "x": 220,
-     "y": 663,
+     "x": 224,
+     "y": 673,
      "w": 800,
      "h": 32,
      "text": "Rowan Achebe",
@@ -4739,22 +5330,31 @@
     },
     {
      "kind": "text",
-     "x": 220,
-     "y": 699,
+     "x": 224,
+     "y": 709,
      "w": 800,
      "h": 28,
      "text": "Chief Financial Officer, Brightline Logistics",
      "family": "IBM Plex Sans",
      "size": 20,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "op-peep-55",
+     "x": 128,
+     "y": 673,
+     "w": 60,
+     "h": 68
     }
    ]
   },
   {
    "name": "Pricing",
-   "bg": "#0D1220",
+   "bg": "#0F1526",
    "nodes": [
     {
      "kind": "ellipse",
@@ -4766,17 +5366,17 @@
       "angle": 135,
       "stops": [
        [
-        "#8B7CFF",
+        "#8F7BFF",
         0
        ],
        [
-        "#0D1220",
+        "#0A0E1B",
         1
        ]
       ],
       "radial": true
      },
-     "opacity": 0.28,
+     "opacity": 0.3,
      "bleed": true
     },
     {
@@ -4834,8 +5434,8 @@
      "family": "IBM Plex Mono",
      "size": 20,
      "weight": 600,
-     "color": "#C6F135",
-     "letterSpacing": 3,
+     "color": "#C8F542",
+     "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
     },
@@ -4858,7 +5458,7 @@
      "y": 968,
      "w": 1728,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "text",
@@ -4870,7 +5470,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3
     },
     {
@@ -4883,7 +5483,7 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3,
      "align": "right"
     },
@@ -4893,10 +5493,10 @@
      "y": 242,
      "w": 554.6666666666666,
      "h": 620,
-     "fill": "#0D1220",
+     "fill": "#0F1526",
      "radius": 14,
-     "stroke": "#1F2A3F",
-     "strokeWidth": 2
+     "stroke": "#243049",
+     "strokeWidth": 1.5
     },
     {
      "kind": "text",
@@ -4908,8 +5508,8 @@
      "family": "IBM Plex Mono",
      "size": 20,
      "weight": 600,
-     "color": "#C6F135",
-     "letterSpacing": 3,
+     "color": "#C8F542",
+     "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
     },
@@ -4936,7 +5536,7 @@
      "family": "IBM Plex Sans",
      "size": 20,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     },
     {
@@ -4945,7 +5545,7 @@
      "y": 474,
      "w": 474.66666666666663,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "icon",
@@ -4954,7 +5554,7 @@
      "y": 506,
      "w": 26,
      "h": 26,
-     "color": "#C6F135"
+     "color": "#C8F542"
     },
     {
      "kind": "text",
@@ -4976,7 +5576,7 @@
      "y": 562,
      "w": 26,
      "h": 26,
-     "color": "#C6F135"
+     "color": "#C8F542"
     },
     {
      "kind": "text",
@@ -4998,7 +5598,7 @@
      "y": 618,
      "w": 26,
      "h": 26,
-     "color": "#C6F135"
+     "color": "#C8F542"
     },
     {
      "kind": "text",
@@ -5020,7 +5620,7 @@
      "y": 674,
      "w": 26,
      "h": 26,
-     "color": "#C6F135"
+     "color": "#C8F542"
     },
     {
      "kind": "text",
@@ -5042,7 +5642,7 @@
      "w": 474.66666666666663,
      "h": 60,
      "label": "Choose Starter",
-     "fill": "#070A12",
+     "fill": "#0A0F1F",
      "color": "#F1F5F9",
      "family": "IBM Plex Sans",
      "size": 20,
@@ -5052,21 +5652,33 @@
     {
      "kind": "rect",
      "x": 682.6666666666666,
-     "y": 242,
+     "y": 226,
      "w": 554.6666666666666,
-     "h": 620,
-     "fill": "#070A12",
+     "h": 652,
+     "fill": {
+      "angle": 160,
+      "stops": [
+       [
+        "#0A0F1F",
+        0
+       ],
+       [
+        "#04060E",
+        1
+       ]
+      ]
+     },
      "radius": 14
     },
     {
      "kind": "button",
      "x": 1037.3333333333333,
-     "y": 274,
+     "y": 254,
      "w": 160,
      "h": 36,
      "label": "Most chosen",
-     "fill": "#C6F135",
-     "color": "#070A12",
+     "fill": "#C8F542",
+     "color": "#04060E",
      "family": "IBM Plex Sans",
      "size": 15,
      "weight": 700,
@@ -5076,22 +5688,22 @@
     {
      "kind": "text",
      "x": 722.6666666666666,
-     "y": 282,
+     "y": 266,
      "w": 474.66666666666663,
      "h": 28,
      "text": "Team",
      "family": "IBM Plex Mono",
      "size": 20,
      "weight": 600,
-     "color": "#C6F135",
-     "letterSpacing": 3,
+     "color": "#C8F542",
+     "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
     },
     {
      "kind": "text",
      "x": 722.6666666666666,
-     "y": 326,
+     "y": 310,
      "w": 474.66666666666663,
      "h": 90,
      "text": "$59",
@@ -5104,37 +5716,37 @@
     {
      "kind": "text",
      "x": 722.6666666666666,
-     "y": 422,
+     "y": 406,
      "w": 474.66666666666663,
      "h": 28,
      "text": "per seat, per month",
      "family": "IBM Plex Sans",
      "size": 20,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     },
     {
      "kind": "rect",
      "x": 722.6666666666666,
-     "y": 474,
+     "y": 458,
      "w": 474.66666666666663,
      "h": 1,
-     "fill": "#1A2338"
+     "fill": "#1E2840"
     },
     {
      "kind": "icon",
      "icon": "circle-check",
      "x": 722.6666666666666,
-     "y": 506,
+     "y": 490,
      "w": 26,
      "h": 26,
-     "color": "#C6F135"
+     "color": "#C8F542"
     },
     {
      "kind": "text",
      "x": 766.6666666666666,
-     "y": 504,
+     "y": 488,
      "w": 430.66666666666663,
      "h": 32,
      "text": "25 seats",
@@ -5148,15 +5760,15 @@
      "kind": "icon",
      "icon": "circle-check",
      "x": 722.6666666666666,
-     "y": 562,
+     "y": 546,
      "w": 26,
      "h": 26,
-     "color": "#C6F135"
+     "color": "#C8F542"
     },
     {
      "kind": "text",
      "x": 766.6666666666666,
-     "y": 560,
+     "y": 544,
      "w": 430.66666666666663,
      "h": 32,
      "text": "Brand kits and templates",
@@ -5170,15 +5782,15 @@
      "kind": "icon",
      "icon": "circle-check",
      "x": 722.6666666666666,
-     "y": 618,
+     "y": 602,
      "w": 26,
      "h": 26,
-     "color": "#C6F135"
+     "color": "#C8F542"
     },
     {
      "kind": "text",
      "x": 766.6666666666666,
-     "y": 616,
+     "y": 600,
      "w": 430.66666666666663,
      "h": 32,
      "text": "Priority support",
@@ -5192,15 +5804,15 @@
      "kind": "icon",
      "icon": "circle-check",
      "x": 722.6666666666666,
-     "y": 674,
+     "y": 658,
      "w": 26,
      "h": 26,
-     "color": "#C6F135"
+     "color": "#C8F542"
     },
     {
      "kind": "text",
      "x": 766.6666666666666,
-     "y": 672,
+     "y": 656,
      "w": 430.66666666666663,
      "h": 32,
      "text": "Version history",
@@ -5217,8 +5829,8 @@
      "w": 474.66666666666663,
      "h": 60,
      "label": "Start with Team",
-     "fill": "#C6F135",
-     "color": "#070A12",
+     "fill": "#C8F542",
+     "color": "#04060E",
      "family": "IBM Plex Sans",
      "size": 20,
      "weight": 700,
@@ -5230,10 +5842,10 @@
      "y": 242,
      "w": 554.6666666666666,
      "h": 620,
-     "fill": "#0D1220",
+     "fill": "#0F1526",
      "radius": 14,
-     "stroke": "#1F2A3F",
-     "strokeWidth": 2
+     "stroke": "#243049",
+     "strokeWidth": 1.5
     },
     {
      "kind": "text",
@@ -5245,8 +5857,8 @@
      "family": "IBM Plex Mono",
      "size": 20,
      "weight": 600,
-     "color": "#C6F135",
-     "letterSpacing": 3,
+     "color": "#C8F542",
+     "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
     },
@@ -5273,7 +5885,7 @@
      "family": "IBM Plex Sans",
      "size": 20,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     },
     {
@@ -5282,7 +5894,7 @@
      "y": 474,
      "w": 474.66666666666663,
      "h": 1,
-     "fill": "#1F2A3F"
+     "fill": "#243049"
     },
     {
      "kind": "icon",
@@ -5291,7 +5903,7 @@
      "y": 506,
      "w": 26,
      "h": 26,
-     "color": "#C6F135"
+     "color": "#C8F542"
     },
     {
      "kind": "text",
@@ -5313,7 +5925,7 @@
      "y": 562,
      "w": 26,
      "h": 26,
-     "color": "#C6F135"
+     "color": "#C8F542"
     },
     {
      "kind": "text",
@@ -5335,7 +5947,7 @@
      "y": 618,
      "w": 26,
      "h": 26,
-     "color": "#C6F135"
+     "color": "#C8F542"
     },
     {
      "kind": "text",
@@ -5357,7 +5969,7 @@
      "y": 674,
      "w": 26,
      "h": 26,
-     "color": "#C6F135"
+     "color": "#C8F542"
     },
     {
      "kind": "text",
@@ -5379,7 +5991,7 @@
      "w": 474.66666666666663,
      "h": 60,
      "label": "Choose Enterprise",
-     "fill": "#070A12",
+     "fill": "#0A0F1F",
      "color": "#F1F5F9",
      "family": "IBM Plex Sans",
      "size": 20,
@@ -5390,7 +6002,19 @@
   },
   {
    "name": "Closing",
-   "bg": "#070A12",
+   "bg": {
+    "angle": 160,
+    "stops": [
+     [
+      "#0A0F1F",
+      0
+     ],
+     [
+      "#04060E",
+      1
+     ]
+    ]
+   },
    "nodes": [
     {
      "kind": "ellipse",
@@ -5402,17 +6026,17 @@
       "angle": 135,
       "stops": [
        [
-        "#8B7CFF",
+        "#8F7BFF",
         0
        ],
        [
-        "#070A12",
+        "#04060E",
         1
        ]
       ],
       "radial": true
      },
-     "opacity": 0.55,
+     "opacity": 0.6,
      "bleed": true
     },
     {
@@ -5425,17 +6049,17 @@
       "angle": 135,
       "stops": [
        [
-        "#C6F135",
+        "#C8F542",
         0
        ],
        [
-        "#070A12",
+        "#04060E",
         1
        ]
       ],
       "radial": true
      },
-     "opacity": 0.22,
+     "opacity": 0.26,
      "bleed": true
     },
     {
@@ -5511,12 +6135,129 @@
      "opacity": 0.06
     },
     {
+     "kind": "ellipse",
+     "x": 1003,
+     "y": 873,
+     "w": 8,
+     "h": 8,
+     "fill": "#C8F542",
+     "opacity": 0.6
+    },
+    {
+     "kind": "ellipse",
+     "x": 39,
+     "y": 166,
+     "w": 6,
+     "h": 6,
+     "fill": "#C8F542",
+     "opacity": 0.79
+    },
+    {
+     "kind": "ellipse",
+     "x": 224,
+     "y": 806,
+     "w": 6,
+     "h": 6,
+     "fill": "#C8F542",
+     "opacity": 0.58
+    },
+    {
+     "kind": "ellipse",
+     "x": 189,
+     "y": 671,
+     "w": 8,
+     "h": 8,
+     "fill": "#C8F542",
+     "opacity": 0.7
+    },
+    {
+     "kind": "ellipse",
+     "x": 406,
+     "y": 349,
+     "w": 6,
+     "h": 6,
+     "fill": "#C8F542",
+     "opacity": 0.43999999999999995
+    },
+    {
+     "kind": "ellipse",
+     "x": 1701,
+     "y": 855,
+     "w": 7,
+     "h": 7,
+     "fill": "#C8F542",
+     "opacity": 0.5599999999999999
+    },
+    {
+     "kind": "ellipse",
+     "x": 612,
+     "y": 31,
+     "w": 8,
+     "h": 8,
+     "fill": "#8F7BFF",
+     "opacity": 0.57
+    },
+    {
+     "kind": "ellipse",
+     "x": 1052,
+     "y": 18,
+     "w": 6,
+     "h": 6,
+     "fill": "#8F7BFF",
+     "opacity": 0.7
+    },
+    {
+     "kind": "ellipse",
+     "x": 1341,
+     "y": 822,
+     "w": 6,
+     "h": 6,
+     "fill": "#8F7BFF",
+     "opacity": 0.38999999999999996
+    },
+    {
+     "kind": "ellipse",
+     "x": 1526,
+     "y": 997,
+     "w": 9,
+     "h": 9,
+     "fill": "#8F7BFF",
+     "opacity": 0.44999999999999996
+    },
+    {
+     "kind": "ellipse",
+     "x": 739,
+     "y": 973,
+     "w": 6,
+     "h": 6,
+     "fill": "#8F7BFF",
+     "opacity": 0.6599999999999999
+    },
+    {
+     "kind": "ellipse",
+     "x": 1200,
+     "y": 200,
+     "w": 640,
+     "h": 640,
+     "fill": "#C8F542",
+     "opacity": 0.12
+    },
+    {
+     "kind": "ellipse",
+     "x": 1264,
+     "y": 264,
+     "w": 512,
+     "h": 512,
+     "fill": "#C8F542",
+     "opacity": 0.16
+    },
+    {
      "kind": "rect",
      "x": 96,
      "y": 96,
      "w": 22,
      "h": 22,
-     "fill": "#C6F135",
+     "fill": "#C8F542",
      "radius": 6
     },
     {
@@ -5535,12 +6276,25 @@
     {
      "kind": "text",
      "x": 96,
+     "y": 236,
+     "w": 1000,
+     "h": 60,
+     "text": "// end of transmission",
+     "family": "IBM Plex Mono",
+     "size": 30,
+     "weight": 500,
+     "color": "#C8F542",
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
      "y": 300,
      "w": 1100,
-     "h": 138,
+     "h": 135,
      "text": "Thank you",
      "family": "Space Grotesk",
-     "size": 116,
+     "size": 114,
      "weight": 700,
      "color": "#F1F5F9",
      "lineHeight": 1.06
@@ -5548,14 +6302,14 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 462,
+     "y": 459,
      "w": 940,
      "h": 84,
      "text": "Questions now, or any time this week. The deck and the model are in the shared folder.",
      "family": "IBM Plex Sans",
      "size": 28,
      "weight": 400,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.4
     },
     {
@@ -5565,7 +6319,7 @@
      "y": 702,
      "w": 28,
      "h": 28,
-     "color": "#C6F135"
+     "color": "#C8F542"
     },
     {
      "kind": "text",
@@ -5587,7 +6341,7 @@
      "y": 764,
      "w": 28,
      "h": 28,
-     "color": "#C6F135"
+     "color": "#C8F542"
     },
     {
      "kind": "text",
@@ -5609,7 +6363,7 @@
      "y": 826,
      "w": 28,
      "h": 28,
-     "color": "#C6F135"
+     "color": "#C8F542"
     },
     {
      "kind": "text",
@@ -5631,8 +6385,8 @@
      "w": 340,
      "h": 64,
      "label": "Book a follow-up",
-     "fill": "#C6F135",
-     "color": "#070A12",
+     "fill": "#C8F542",
+     "color": "#04060E",
      "family": "IBM Plex Sans",
      "size": 22,
      "weight": 700,
@@ -5648,58 +6402,68 @@
      "family": "IBM Plex Mono",
      "size": 18,
      "weight": 500,
-     "color": "#8B95AB",
+     "color": "#93A0B8",
      "lineHeight": 1.3,
      "align": "right"
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "la-free-svg-illustrations-robots",
+     "x": 1250,
+     "y": 250,
+     "w": 540,
+     "h": 540
     }
    ]
   }
  ],
  "fillable": [
   {
-   "node": "p0-n11",
+   "node": "p0-n22",
    "kind": "text",
    "label": "Company",
    "hint": "Your company or team name"
   },
   {
-   "node": "p0-n13",
+   "node": "p0-n24",
    "kind": "text",
    "label": "Title",
    "hint": "Two short lines"
   },
   {
-   "node": "p0-n14",
+   "node": "p0-n25",
    "kind": "text",
    "label": "Subtitle",
    "hint": "One sentence on what the deck covers"
   },
   {
-   "node": "p0-n15",
+   "node": "p0-n26",
    "kind": "text",
    "label": "Presenter and date",
    "hint": "Who presents, and when"
   },
   {
-   "node": "p15-n15",
+   "node": "p15-n29",
    "kind": "text",
    "label": "Email",
    "hint": "Contact detail"
   },
   {
-   "node": "p15-n17",
+   "node": "p15-n31",
    "kind": "text",
    "label": "Website",
    "hint": "Contact detail"
   },
   {
-   "node": "p15-n19",
+   "node": "p15-n33",
    "kind": "text",
    "label": "Phone",
    "hint": "Contact detail"
   }
  ],
- "version": 1,
+ "version": 2,
  "created": "2026-09-29T00:00:00.000Z",
+ "updated": "2026-09-30T00:00:00.000Z",
  "rank": 11
 }
