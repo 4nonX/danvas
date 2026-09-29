@@ -379,7 +379,7 @@
      "x": 96,
      "y": 358,
      "w": 1100,
-     "h": 220,
+     "h": 112,
      "text": "Show first",
      "family": "JetBrains Mono",
      "size": 96,
@@ -390,7 +390,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 590,
+     "y": 490,
      "w": 900,
      "h": 90,
      "text": "Two demos on staging, against last week's real incidents. Slides only for what the terminal cannot show.",
@@ -2956,12 +2956,12 @@
      "size": 90,
      "weight": 800,
      "color": "#ECEAE2",
-     "lineHeight": 1.06
+     "lineHeight": 1.04
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 433,
+     "y": 443,
      "w": 940,
      "h": 120,
      "text": "Demo recordings and the sprint report are in the channel. Retro on Monday at ten.",

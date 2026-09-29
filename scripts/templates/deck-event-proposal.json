@@ -2898,12 +2898,12 @@
      "size": 112,
      "weight": 800,
      "color": "#FBF5EA",
-     "lineHeight": 1.06
+     "lineHeight": 1.04
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 457,
+     "y": 467,
      "w": 940,
      "h": 120,
      "text": "Approve the venue deposit and the $380K budget today; the venue holds the date until Friday.",

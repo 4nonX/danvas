@@ -2784,12 +2784,12 @@
      "size": 112,
      "weight": 500,
      "color": "#F3F2FC",
-     "lineHeight": 1.06
+     "lineHeight": 1.04
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 457,
+     "y": 467,
      "w": 940,
      "h": 120,
      "text": "This is the product we build together next. Argue with the bets before the roadmap locks in December.",

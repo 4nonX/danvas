@@ -368,7 +368,7 @@ export function ornamentPaper(K, g) {
   switch (K.ornament) {
     case "glow":
       return [
-        ellipse(1500, -520, 1000, 1000, { angle: 135, stops: [[g.accent2, 0], [g.bg2, 1]], radial: true }, { opacity: 0.3, bleed: true }),
+        ellipse(1500, -520, 1000, 1000, { angle: 135, stops: [[g.accent2, 0], [g.bg2 ?? g.bg, 1]], radial: true }, { opacity: 0.3, bleed: true }),
         ...[320, 640, 960, 1280, 1600].map((x) => rect(x, 0, 1, H, g.ink, { opacity: 0.045 })),
       ];
     case "hairlines":
@@ -447,7 +447,11 @@ export function note(K, g, str, deep = false, at = null) {
   const t = type(K, g);
   const sz = Math.round(K.accentSize * (deep ? 0.85 : 0.8));
   const cw = K.charWidth ?? 0.56;
-  if (at) return [text(at.x, at.y, at.w ?? 720, 52, str, t.kicker({ align: at.align ?? "center", size: sz }))];
+  if (at) {
+    const aw = at.w ?? 720;
+    const al = Math.min(2, linesFor(str, at.size ?? sz, aw, cw));
+    return [text(at.x, at.y, aw, Math.round((at.size ?? sz) * 1.25 * al), str, t.kicker({ align: at.align ?? "center", size: at.size ?? sz }))];
+  }
   const w = deep ? 720 : 760;
   const lines = Math.min(2, linesFor(str, sz, w, cw));
   const h = Math.round(sz * 1.25 * lines);
@@ -624,6 +628,7 @@ export function cover(K, i, c0) {
     });
     fill.push({ node: nodes.length - 4, label: "Presenter", hint: "Who presents" });
     if (K.total > 1) nodes.push(text(W - M - 240, H - 50, 240, 28, pageNo(i, K.total), t.meta({ align: "right" })));
+    nodes.push(...note(K, g, c.note, true, { x: W / 2 - 360, y: 800, w: 720 }));
     return { page: { name: "Cover", bg: deepGround(g), nodes, illustrations }, fill };
   }
   nodes.push(text(M, 372, textW, Math.round(K.accentSize * 1.3), K.kicker, t.kicker()));
@@ -733,8 +738,9 @@ export function section(K, i, c0) {
     const top = c.n ? 236 + K.scale.section + 20 : 330;
     if (c.n) nodes.push(text(M, 236, 800, K.scale.section + 20, c.n, t.numeral(K.scale.section)));
     nodes.push(rect(M, top, 120, 4, g.accent));
-    nodes.push(text(M, top + 28, 1100, 220, c.title, t.display(96, { lineHeight: 1.04 })));
-    nodes.push(text(M, top + 28 + 232, 900, 90, c.blurb, t.body(28)));
+    const tl = Math.max(1, Math.min(2, linesFor(c.title, 96, 1100, K.charWidth ?? 0.56)));
+    nodes.push(text(M, top + 28, 1100, Math.round(96 * 1.04 * tl) + 12, c.title, t.display(96, { lineHeight: 1.04 })));
+    nodes.push(text(M, top + 28 + Math.round(96 * 1.04 * tl) + 32, 900, 90, c.blurb, t.body(28)));
     nodes.push(...halo(1520, 560, 560, g.accent));
     illustrations.push(c.wide ? art(drawing, 1200, 380, 640, 400) : art(drawing, 1300, 340, 440, 440));
     nodes.push(text(M, 180, 1000, 50, c.kicker ?? K.kicker, t.kicker()));
@@ -1064,9 +1070,11 @@ export function closing(K, i, c0) {
   }
   nodes.push(...mark(K, g));
   nodes.push(text(M, 236, 1000, Math.round(K.accentSize * 1.3), K.farewell, t.kicker()));
+  const closeLines = c.title.split("\n").length;
   const closeSize = fitSize(c.title, K.scale.cover, 1100, 0.6, K.charWidth ?? 0.56);
-  nodes.push(text(M, 300, 1100, Math.round(closeSize * 1.1) + 10, c.title, t.display(closeSize)));
-  nodes.push(text(M, 300 + Math.round(closeSize * 1.1) + 34, 940, 120, c.subtitle, t.body(28)));
+  const closeH = Math.round(closeSize * 1.1 * closeLines) + 10;
+  nodes.push(text(M, 300, 1100, closeH, c.title, t.display(closeSize, { lineHeight: 1.04 })));
+  nodes.push(text(M, 300 + closeH + 34, 940, 120, c.subtitle, t.body(28)));
   const labels = ["Email", "Website", "Phone"];
   c.rows.forEach(([ic, v], k) => {
     const y = 700 + k * 62;

@@ -1474,7 +1474,7 @@
      "x": 1004,
      "y": 866,
      "w": 820,
-     "h": 52,
+     "h": 40,
      "text": "type a letter in the chat, the bars follow",
      "family": "Mansalva",
      "size": 32,
@@ -2255,7 +2255,7 @@
      "x": 96,
      "y": 504,
      "w": 1100,
-     "h": 220,
+     "h": 112,
      "text": "Live example",
      "family": "Lexend",
      "size": 96,
@@ -2266,7 +2266,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 736,
+     "y": 636,
      "w": 900,
      "h": 90,
      "text": "We leave the slides here. One real incident from our own platform, at the speed it happened.",
@@ -3260,12 +3260,12 @@
      "size": 108,
      "weight": 700,
      "color": "#F1F8F6",
-     "lineHeight": 1.06
+     "lineHeight": 1.04
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 453,
+     "y": 463,
      "w": 940,
      "h": 120,
      "text": "Every attendee gets the incident playbook and thirty days of the platform with the narrative feature on. Questions now.",

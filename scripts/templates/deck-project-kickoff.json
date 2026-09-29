@@ -1110,7 +1110,7 @@
      "x": 96,
      "y": 358,
      "w": 1100,
-     "h": 220,
+     "h": 112,
      "text": "The plan",
      "family": "Chivo",
      "size": 96,
@@ -1121,7 +1121,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 590,
+     "y": 490,
      "w": 900,
      "h": 90,
      "text": "Three phases over sixteen weeks, one owner per workstream, and the three risks we are already working on.",
@@ -3114,12 +3114,12 @@
      "size": 118,
      "weight": 800,
      "color": "#F1F3F5",
-     "lineHeight": 1.06
+     "lineHeight": 1.04
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 464,
+     "y": 474,
      "w": 940,
      "h": 120,
      "text": "Phase one begins on 9 November. The plan, the grid and the risk log live in the project space; if it is not there, ask in the channel.",

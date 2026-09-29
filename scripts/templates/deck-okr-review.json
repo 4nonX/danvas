@@ -3122,12 +3122,12 @@
      "size": 112,
      "weight": 800,
      "color": "#F3F5F9",
-     "lineHeight": 1.06
+     "lineHeight": 1.04
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 457,
+     "y": 467,
      "w": 940,
      "h": 120,
      "text": "Scores and the evidence behind each are in the tracker. Push back on the drafts before Friday.",

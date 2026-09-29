@@ -1391,7 +1391,7 @@
      "x": 96,
      "y": 504,
      "w": 1100,
-     "h": 220,
+     "h": 112,
      "text": "Where we stand",
      "family": "Space Grotesk",
      "size": 96,
@@ -1402,7 +1402,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 736,
+     "y": 636,
      "w": 900,
      "h": 90,
      "text": "The year in numbers, and what sits behind each of them.",
@@ -8406,12 +8406,12 @@
      "size": 114,
      "weight": 700,
      "color": "#F1F5F9",
-     "lineHeight": 1.06
+     "lineHeight": 1.04
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 459,
+     "y": 469,
      "w": 940,
      "h": 120,
      "text": "Questions now, or any time this week. The deck and the model are in the shared folder.",

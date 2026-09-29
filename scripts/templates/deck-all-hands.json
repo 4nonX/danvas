@@ -2688,12 +2688,12 @@
      "size": 118,
      "weight": 700,
      "color": "#FFF4E8",
-     "lineHeight": 1.06
+     "lineHeight": 1.04
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 464,
+     "y": 474,
      "w": 940,
      "h": 120,
      "text": "Questions in the channel all week. The recording and the numbers are in the all-hands folder.",

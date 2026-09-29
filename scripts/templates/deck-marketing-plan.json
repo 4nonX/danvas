@@ -1230,7 +1230,7 @@
      "x": 96,
      "y": 514,
      "w": 1100,
-     "h": 220,
+     "h": 212,
      "text": "One idea, then the year",
      "family": "DM Serif Display",
      "size": 96,
@@ -2885,12 +2885,12 @@
      "size": 112,
      "weight": 400,
      "color": "#FBF7F0",
-     "lineHeight": 1.06
+     "lineHeight": 1.04
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 457,
+     "y": 467,
      "w": 940,
      "h": 120,
      "text": "One dashboard, four numbers, checked every Monday at nine. If a channel misses two months, we move its money.",

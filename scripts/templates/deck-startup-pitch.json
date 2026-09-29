@@ -2411,12 +2411,12 @@
      "size": 118,
      "weight": 900,
      "color": "#FFFFFF",
-     "lineHeight": 1.06
+     "lineHeight": 1.04
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 464,
+     "y": 474,
      "w": 940,
      "h": 120,
      "text": "Raising $6M to accelerate what already works: two more regions, the compliance team, and the partner channel.",

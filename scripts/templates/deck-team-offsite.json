@@ -2231,7 +2231,7 @@
      "x": 96,
      "y": 514,
      "w": 1100,
-     "h": 220,
+     "h": 212,
      "text": "State of\nthe team",
      "family": "Quicksand",
      "size": 96,
@@ -3438,12 +3438,12 @@
      "size": 112,
      "weight": 700,
      "color": "#F7F3E9",
-     "lineHeight": 1.06
+     "lineHeight": 1.04
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 457,
+     "y": 467,
      "w": 940,
      "h": 120,
      "text": "One commitment each, written on a card, read aloud, and checked at the December retro.",

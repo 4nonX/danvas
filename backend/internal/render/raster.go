@@ -1086,6 +1086,7 @@ func (rc *rctx) rasterText(m mat, node map[string]any) {
 				}
 				return true
 			}
+			runStart := x
 			for _, r := range text {
 				if drawRune(r) {
 					continue
@@ -1106,6 +1107,26 @@ func (rc *rctx) rasterText(m mat, node map[string]any) {
 				}
 			}
 			_ = face.Close()
+			// Underline and strikethrough, drawn in the run's own colour after
+			// its glyphs, at the browser engine's offsets (baseline + 0.12 em,
+			// baseline - 0.3 em) and thickness (a sixteenth of the size).
+			if decs := asArr(style["decoration"]); len(decs) > 0 && x > runStart {
+				th := math.Max(1, size/16)
+				for _, dv := range decs {
+					var off float64
+					switch asStr(dv) {
+					case "underline":
+						off = size * 0.12
+					case "strikethrough":
+						off = -size * 0.3
+					default:
+						continue
+					}
+					x0, y0 := m.apply(runStart, y+off)
+					x1, y1 := m.apply(x, y+off)
+					rc.strokeSegDevice(x0, y0, x1, y1, th*avgScale(m)/2, rasterColor(col, rc.alpha))
+				}
+			}
 			return x
 		}
 		if ln.marker != "" {

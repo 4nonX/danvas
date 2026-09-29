@@ -791,7 +791,7 @@
      "x": 96,
      "y": 504,
      "w": 1100,
-     "h": 220,
+     "h": 112,
      "text": "In flight",
      "family": "Barlow Semi Condensed",
      "size": 96,
@@ -802,7 +802,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 736,
+     "y": 636,
      "w": 900,
      "h": 90,
      "text": "Six initiatives moving, two more stuck behind a contract and a legal review. The board first, then the one call to make.",
@@ -3026,12 +3026,12 @@
      "size": 112,
      "weight": 700,
      "color": "#EEF2F8",
-     "lineHeight": 1.06
+     "lineHeight": 1.04
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 457,
+     "y": 467,
      "w": 940,
      "h": 120,
      "text": "Narrative to general availability in Q4; APAC residency committed for 28 February. Revisit on 15 January with the deal status.",

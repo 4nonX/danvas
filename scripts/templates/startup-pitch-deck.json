@@ -2407,12 +2407,12 @@
      "size": 108,
      "weight": 800,
      "color": "#FAF4EC",
-     "lineHeight": 1.06
+     "lineHeight": 1.04
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 453,
+     "y": 463,
      "w": 940,
      "h": 120,
      "text": "To bring Locale to forty new cities: 60% product and engineering, 25% city launches, 15% operations and support.",

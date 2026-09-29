@@ -786,7 +786,7 @@
      "x": 96,
      "y": 520,
      "w": 1100,
-     "h": 220,
+     "h": 112,
      "text": "The motion",
      "family": "Vollkorn",
      "size": 96,
@@ -797,7 +797,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 752,
+     "y": 652,
      "w": 900,
      "h": 90,
      "text": "One promise per buyer, proof they can check, and a channel that carries it. Then ninety days, staged.",
@@ -3033,12 +3033,12 @@
      "size": 116,
      "weight": 700,
      "color": "#ECE8DF",
-     "lineHeight": 1.06
+     "lineHeight": 1.04
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 462,
+     "y": 472,
      "w": 940,
      "h": 120,
      "text": "The full plan, the persona research and the channel model are in the go-to-market folder.",

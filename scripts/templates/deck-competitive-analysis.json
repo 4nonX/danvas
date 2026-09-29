@@ -2253,7 +2253,7 @@
      "x": 96,
      "y": 520,
      "w": 1100,
-     "h": 220,
+     "h": 112,
      "text": "Our response",
      "family": "Barlow Condensed",
      "size": 96,
@@ -2264,7 +2264,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 752,
+     "y": 652,
      "w": 900,
      "h": 90,
      "text": "Three moves in order, one trigger we watch weekly, and a date on each of them.",
@@ -2819,12 +2819,12 @@
      "size": 116,
      "weight": 700,
      "color": "#F5F5F3",
-     "lineHeight": 1.06
+     "lineHeight": 1.04
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 462,
+     "y": 472,
      "w": 940,
      "h": 120,
      "text": "The full comparison, win-loss notes and the pricing response are in the strategy folder.",

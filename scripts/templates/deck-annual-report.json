@@ -920,7 +920,7 @@
      "x": 96,
      "y": 520,
      "w": 1100,
-     "h": 220,
+     "h": 112,
      "text": "The big moments",
      "family": "Libre Baskerville",
      "size": 96,
@@ -931,7 +931,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 752,
+     "y": 652,
      "w": 900,
      "h": 90,
      "text": "Four quarters, four things that changed the company.",
@@ -2833,12 +2833,12 @@
      "size": 112,
      "weight": 600,
      "color": "#F6F1E6",
-     "lineHeight": 1.06
+     "lineHeight": 1.04
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 457,
+     "y": 467,
      "w": 940,
      "h": 120,
      "text": "Three markets, one new product line, and the same promise: tell the truth early.",

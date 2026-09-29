@@ -196,12 +196,12 @@
      "size": 122,
      "weight": 800,
      "color": "#FFFFFF",
-     "lineHeight": 1.06
+     "lineHeight": 1.04
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 468,
+     "y": 478,
      "w": 940,
      "h": 120,
      "text": "Let's keep the conversation going. Questions now, or any time this week.",

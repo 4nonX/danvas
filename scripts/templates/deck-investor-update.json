@@ -4609,12 +4609,12 @@
      "size": 108,
      "weight": 700,
      "color": "#F4F3EF",
-     "lineHeight": 1.06
+     "lineHeight": 1.04
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 453,
+     "y": 463,
      "w": 940,
      "h": 120,
      "text": "Reply to this deck with anything; we read every note. The data room is updated with the September actuals.",

@@ -18,6 +18,8 @@ Every deck follows these, and yours must too:
 - No empty slot: every picture slot carries a drawing, every portrait circle a peep.
 - One bold move per slide.
 
+A single slide (`scripts/singles/`) is exactly one slide: the plan's `slides` has one entry, a raw slide or one layout with the look's identity on it. It never grows into a deck; a user inserts it into a deck of their own.
+
 ## The plan file
 
 `scripts/topics/<id>.mjs` (or `scripts/singles/<id>.mjs`) exports one object:
@@ -88,7 +90,7 @@ Ornament vocabulary (`ornament`), each with a deep-page and a reading-page form:
 
 `sun` and `lime` on a palette are used by the ornaments that name them (hairlines, blobs, sun use `sun`; blocks uses `lime` for confetti) and by your raw slides; other ornaments ignore them.
 
-Drawings on a deep ground: the `od-*` line figures are drawn in black and vanish on a dark ground; use them only on paper slides (the picture, checklist and facts slots) or pick an `il-*` or `la-*` drawing for the cover, section and closing. Some `il-*` scenes draw their outlines in dark ink too (a city road, a van), and some carry their pack title as dark lettering inside the scene (app development, programming); check a deep render before keeping one there. `art()` applies `cleanCard` to every `il-*` drawing, which strips the pack's card and any scene element toned like it; pass `art(id, x, y, w, h, { cleanCard: false })` when a scene loses its mountains or sun.
+Drawings on a deep ground: the `od-*` line figures are drawn in black and vanish on a dark ground; use them only on paper slides (the picture, checklist and facts slots) or pick an `il-*` or `la-*` drawing for the cover, section and closing. Some `il-*` scenes draw their outlines in dark ink too (a city road, a van), and some carry their pack title as lettering inside the scene (app development, programming, UI/UX); check a deep render before keeping one there. `art()` applies `cleanCard` to every `il-*` drawing, which strips the pack's card and any scene element toned like it; pass `art(id, x, y, w, h, { cleanCard: false })` when a scene loses its mountains or sun.
 
 ## Layouts and their content
 

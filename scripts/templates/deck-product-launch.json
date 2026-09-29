@@ -2939,12 +2939,12 @@
      "size": 92,
      "weight": 800,
      "color": "#F2E9D8",
-     "lineHeight": 1.06
+     "lineHeight": 1.04
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 435,
+     "y": 445,
      "w": 940,
      "h": 120,
      "text": "12 November. If it is not on the checklist, it does not ship. Screenshot this page.",

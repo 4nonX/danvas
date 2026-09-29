@@ -5006,12 +5006,12 @@
      "size": 112,
      "weight": 700,
      "color": "#F8F6F1",
-     "lineHeight": 1.06
+     "lineHeight": 1.04
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 457,
+     "y": 467,
      "w": 940,
      "h": 120,
      "text": "Session recordings, the coded notes and the prototype are in the research folder. Ask for any clip.",

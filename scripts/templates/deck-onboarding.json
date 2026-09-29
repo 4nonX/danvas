@@ -1323,7 +1323,7 @@
      "x": 96,
      "y": 358,
      "w": 1100,
-     "h": 220,
+     "h": 212,
      "text": "Your first\nthirty days",
      "family": "Fredoka",
      "size": 96,
@@ -4564,12 +4564,12 @@
      "size": 116,
      "weight": 600,
      "color": "#FFF8E8",
-     "lineHeight": 1.06
+     "lineHeight": 1.04
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 462,
+     "y": 472,
      "w": 940,
      "h": 120,
      "text": "No silly questions in your first month, and very few after that. Your buddy, the People channel, or anyone in the kitchen.",

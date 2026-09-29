@@ -2447,18 +2447,18 @@
      "x": 96,
      "y": 300,
      "w": 1100,
-     "h": 138,
+     "h": 265,
      "text": "Let's build the\nquiet standard",
      "family": "Playfair Display",
      "size": 116,
      "weight": 600,
      "color": "#FAF6EF",
-     "lineHeight": 1.06
+     "lineHeight": 1.04
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 462,
+     "y": 599,
      "w": 940,
      "h": 120,
      "text": "Three decisions today: the voice guide, the identity budget, and the campaign date. Everything else can wait for Q1.",

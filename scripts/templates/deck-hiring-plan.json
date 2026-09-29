@@ -1501,7 +1501,7 @@
      "x": 96,
      "y": 520,
      "w": 1100,
-     "h": 220,
+     "h": 212,
      "text": "How twenty-two\nget hired",
      "family": "Nunito",
      "size": 96,
@@ -2759,12 +2759,12 @@
      "size": 85,
      "weight": 800,
      "color": "#FBF7EF",
-     "lineHeight": 1.06
+     "lineHeight": 1.04
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 428,
+     "y": 438,
      "w": 940,
      "h": 120,
      "text": "Referrals for the six platform roles, four hours a week of interviewer time from every team lead, and the band adjustment approved in January.",

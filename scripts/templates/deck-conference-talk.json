@@ -1993,7 +1993,7 @@
      "x": 96,
      "y": 358,
      "w": 1100,
-     "h": 220,
+     "h": 212,
      "text": "What to do\nMonday",
      "family": "Anton",
      "size": 96,
@@ -2608,12 +2608,12 @@
      "size": 120,
      "weight": 400,
      "color": "#FFFFFF",
-     "lineHeight": 1.06
+     "lineHeight": 1.04
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 466,
+     "y": 476,
      "w": 940,
      "h": 120,
      "text": "Slides, the alert audit template and the timeline setup guide are at the link. Find me at the platform track table.",

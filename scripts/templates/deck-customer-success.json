@@ -8029,12 +8029,12 @@
      "size": 114,
      "weight": 700,
      "color": "#F3EDDF",
-     "lineHeight": 1.06
+     "lineHeight": 1.04
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 459,
+     "y": 469,
      "w": 940,
      "h": 120,
      "text": "Coverage moves to pods of three, the sixteen red accounts each get a named owner, and the focus list is on the wall.",

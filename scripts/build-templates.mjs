@@ -339,6 +339,9 @@ function illustrationGroup(specId, k, il, pageW, pageH, errors) {
       const b = nodeBBox(n);
       if (b.y0 > 0.86 * vbH) return false; // bottom-strip credit marks
       if (il.cleanCard && (b.x1 - b.x0) > 0.85 * vbW && (b.y1 - b.y0) > 0.85 * vbH) return false; // baked card
+      // A card drawn as two bands (a sky and a ground, each the full width and
+      // together the full height) is a card too.
+      if (il.cleanCard && (b.x1 - b.x0) > 0.85 * vbW && (b.y1 - b.y0) > 0.3 * vbH && (b.y0 < 0.05 * vbH || b.y1 > 0.95 * vbH)) return false;
       return true;
     });
     if (!nodes.length) { errors.push(`${specId} il${k}: nothing left after cleaning`); return null; }

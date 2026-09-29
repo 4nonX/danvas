@@ -1012,7 +1012,7 @@
      "x": 96,
      "y": 358,
      "w": 1100,
-     "h": 220,
+     "h": 112,
      "text": "What we did",
      "family": "Literata",
      "size": 96,
@@ -1023,7 +1023,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 590,
+     "y": 490,
      "w": 900,
      "h": 90,
      "text": "Connect the feeds read-only, run two payrolls in the shadows, then go live a country at a time.",
@@ -2563,12 +2563,12 @@
      "size": 84,
      "weight": 700,
      "color": "#FFFFFF",
-     "lineHeight": 1.06
+     "lineHeight": 1.04
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 426,
+     "y": 436,
      "w": 940,
      "h": 120,
      "text": "Every fleet operator we have deployed follows the same pattern: connect, shadow, go live. Eight weeks, start to finish.",

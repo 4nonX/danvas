@@ -1929,7 +1929,7 @@
      "x": 96,
      "y": 520,
      "w": 1100,
-     "h": 220,
+     "h": 112,
      "text": "Exercise one",
      "family": "Archivo Black",
      "size": 96,
@@ -1940,7 +1940,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 752,
+     "y": 652,
      "w": 900,
      "h": 90,
      "text": "Twenty minutes alone with a stack of cards and a marker. Quantity first; judging comes later.",
@@ -3411,12 +3411,12 @@
      "size": 112,
      "weight": 400,
      "color": "#FFFFFF",
-     "lineHeight": 1.06
+     "lineHeight": 1.04
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 457,
+     "y": 467,
      "w": 940,
      "h": 120,
      "text": "Five ideas, five owners, five first steps by next Friday. The wall gets photographed and posted before anyone leaves.",

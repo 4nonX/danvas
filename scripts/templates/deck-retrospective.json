@@ -3177,7 +3177,7 @@
      "x": 96,
      "y": 358,
      "w": 1100,
-     "h": 220,
+     "h": 212,
      "text": "The two we\ncommit to",
      "family": "Alegreya Sans",
      "size": 96,
@@ -3798,12 +3798,12 @@
      "size": 116,
      "weight": 800,
      "color": "#F6F1E7",
-     "lineHeight": 1.06
+     "lineHeight": 1.04
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 462,
+     "y": 472,
      "w": 940,
      "h": 120,
      "text": "Two changes, two owners, checked at the next retro. Everything said in this room stays about the work.",

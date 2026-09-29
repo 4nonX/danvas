@@ -1269,7 +1269,7 @@
      "x": 96,
      "y": 358,
      "w": 1100,
-     "h": 220,
+     "h": 112,
      "text": "Where the money went",
      "family": "Alegreya",
      "size": 96,
@@ -1280,7 +1280,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 590,
+     "y": 490,
      "w": 900,
      "h": 90,
      "text": "Every dollar, in the order it was spent: what reached a programme, what kept the doors open, and what raised the next one.",
@@ -2517,12 +2517,12 @@
      "size": 116,
      "weight": 700,
      "color": "#F6EEDF",
-     "lineHeight": 1.06
+     "lineHeight": 1.04
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 462,
+     "y": 472,
      "w": 940,
      "h": 120,
      "text": "A monthly gift, a volunteer shift, or an introduction to someone who should know about this work. Every one of them counts.",

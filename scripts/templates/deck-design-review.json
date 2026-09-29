@@ -4322,7 +4322,7 @@
      "x": 96,
      "y": 358,
      "w": 1100,
-     "h": 220,
+     "h": 112,
      "text": "Three open questions",
      "family": "Inter Tight",
      "size": 96,
@@ -4333,7 +4333,7 @@
     {
      "kind": "text",
      "x": 96,
-     "y": 590,
+     "y": 490,
      "w": 900,
      "h": 90,
      "text": "Decided on three things, open on three. The flow does not go to build until the room has answered these.",
@@ -5627,12 +5627,12 @@
      "size": 112,
      "weight": 600,
      "color": "#F7F6FA",
-     "lineHeight": 1.06
+     "lineHeight": 1.04
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 457,
+     "y": 467,
      "w": 940,
      "h": 120,
      "text": "Decisions from this room by Friday; the flow goes to build on Monday. Prototype and research notes are in the design folder.",
