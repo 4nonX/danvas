@@ -1115,7 +1115,7 @@
    ]
   },
   {
-   "name": "A customer, interview nine",
+   "name": "Quote",
    "bg": {
     "angle": 160,
     "stops": [
@@ -1205,7 +1205,7 @@
      "kind": "text",
      "x": 116,
      "y": 400,
-     "w": 1400,
+     "w": 1100,
      "h": 228,
      "text": "I do not remember a single Meridian advert. I remember every Meridian object I have ever held.",
      "family": "Playfair Display",

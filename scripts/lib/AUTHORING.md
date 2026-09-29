@@ -48,8 +48,9 @@ A look is one object; `look` in the plan overrides any part of the base (palette
   body: "Source Sans 3", bw: 400,           // reading face and weight
   mono: null,                               // optional mono for eyebrows, meta and labels (null = use body)
   accentFace: "Cormorant Garamond", accentWeight: 600, accentSize: 40,   // the kicker and hand notes
-  paper: { bg, ink, muted, line, panel, panel2, accent, accent2, accentInk?, sun?, lime? },
-  deep:  { bg, bg2, ink, muted, line, panel, panel2, accent, accent2, accentInk?, sun?, lime? },
+  numeralFace: "JetBrains Mono", numeralWeight: 700,                      // optional: every figure (figures, chart calls, big stat, agenda numbers) in this face
+  paper: { bg, ink, muted, line, panel, panel2, accent, accent2, accentInk?, accent2Ink?, sun?, lime? },
+  deep:  { bg, bg2, ink, muted, line, panel, panel2, accent, accent2, accentInk?, accent2Ink?, sun?, lime? },
   radius: 8,                                // corner radius of cards and buttons (0 for editorial)
   ornament: "rules",                        // the signature mark, see the vocabulary
   watermark: "&",                           // only for ornament "watermark"
@@ -62,7 +63,7 @@ A look is one object; `look` in the plan overrides any part of the base (palette
 Palette rules:
 - `bg` and `bg2` on `deep` are the gradient; `bg2` is the darker end.
 - `ink` must read on `bg` and on `panel`; `muted` is a softer ink; `line` is a hairline on the ground.
-- `accent` is used for rules, icons, numerals and the kicker. If it does not read as text on the deep ground (a saturated coral on cobalt vibrates), set `accentInk` on that ground to a calmer sibling; the library uses it for every text in the accent colour.
+- `accent` is used for rules, icons, numerals and the kicker. If it does not read as text on its ground (a saturated coral on cobalt vibrates; a bright gold on cream is too light), set `accentInk` on that ground to a darker or calmer sibling; the library uses it for every text in the accent colour, including the small delta pills and role labels. `accent2Ink` does the same for `accent2`, which the figures and team layouts use for every second card.
 - Buttons and pills pick their ink by the fill's luminance; you do not choose it.
 - Fonts must exist in the catalog (`packages/text/src/font-catalog.generated.ts`); grep `family: "Name"`.
 - Check contrast yourself: ink on bg, ink on panel, accent on bg, deep.ink on deep.bg. Keep body text above 4.5:1.
@@ -83,11 +84,13 @@ Ornament vocabulary (`ornament`), each with a deep-page and a reading-page form:
 - `orbs`: floating discs in the two accents. Playful, product.
 - `corner`: one big accent triangle in the top right corner. Bold, brief.
 
+Drawings on a deep ground: the `od-*` line figures are drawn in black and vanish on a dark ground; use them only on paper slides (the picture, checklist and facts slots) or pick an `il-*` or `la-*` drawing for the cover, section and closing.
+
 ## Layouts and their content
 
 Every layout takes `note` (a hand note in the accent face: bottom right on a reading page, under the picture on a deep page). Deep layouts take `art` (a drawing id) where noted. `[a, b, c]` means an array of those.
 
-- `cover` `{ title (two lines with \n), subtitle, presenter, chips [[figure, label]] (glow only), year (blocks only), presenterName, when, where (hairlines only), note }`
+- `cover` `{ title (two lines with \n), subtitle, presenter, art, chips [[figure, label]] (three chips under the subtitle: on by default for the glow ornament, on for any ornament when you pass them), year (blocks only), presenterName, when, where (hairlines only), note }`
 - `agenda` `{ eyebrow, title, items [[heading, sub, duration]] (five), card { eyebrow, big, meta [[label, value]] (four) }, note }`
 - `section` `{ n, title, blurb, kicker, art, note }`
 - `statement` `{ text (one sentence, up to three lines), source, note }`
@@ -105,7 +108,7 @@ Every layout takes `note` (a hand note in the accent face: bottom right on a rea
 - `split` `{ left { eyebrow, head (three lines), lines [3] }, right { eyebrow, head (two lines), body, checks [[icon, line]] (three) }, art }`
 - `table` `{ eyebrow, title, cols ["", a, b, c], rows [[label, a, b, c]] (five); a cell "yes" or "no" draws a check or a circle, note }`
 - `team` `{ eyebrow, title, people [[name, role, bio]] (four), peeps [ids], note }`
-- `quote` `{ text, name, role, note }`
+- `quote` `{ text, name, role, note }` (the page is named "Quote"; pass `pageName` on any slide to rename its page)
 - `pricing` `{ eyebrow, title, tiers [[name, price, per, [features x4], hot]] (three), hotLabel, hotCta, ctaPrefix, note }`
 - `bigStat` `{ eyebrow, value, caption, delta }`
 - `columns` `{ eyebrow, title, intro, cols [[head, sub, [[item, line]] x3]] (three), note }`
@@ -117,6 +120,8 @@ Icons: any key of `ICON_GLYPHS` in `packages/aistudio/dist/iconset.js` (Tabler n
 ## Raw slides
 
 A raw slide is a page object built with the library's primitives, for the one or two slides only this deck has. Import from the library: `text, rect, ellipse, button, icon, art, halo, sparkles, note, footer, mark, chrome, card, type, deepGround, mixHex, inkOn, W, H, M, CW`. The builder receives `K` (the look with meta merged and `K.total` set) and the page index `i`.
+
+The deep-page note sits at (1140, 872) by default; a raw slide that fills the bottom right passes its own spot: `note(K, g, str, true, { x, y, w, align })`.
 
 Rules for a raw slide:
 - Page is 1920 by 1080; margin `M` is 96; content width `CW` is 1728. Nothing outside the page unless it declares `bleed: true`.

@@ -12,9 +12,9 @@
   "accounts"
  ],
  "styleTags": [
+  "calm",
   "warm",
-  "friendly",
-  "organic"
+  "friendly"
  ],
  "size": [
   1920,
@@ -23,18 +23,18 @@
  "typography": [
   {
    "role": "heading",
-   "family": "Outfit",
+   "family": "Signika",
    "weight": 700
   },
   {
    "role": "body",
-   "family": "Nunito Sans",
+   "family": "Mulish",
    "weight": 400
   },
   {
    "role": "accent",
-   "family": "Caveat",
-   "weight": 600
+   "family": "Kalam",
+   "weight": 700
   }
  ],
  "pages": [
@@ -44,11 +44,11 @@
     "angle": 160,
     "stops": [
      [
-      "#2F4A36",
+      "#0F4C50",
       0
      ],
      [
-      "#1D3124",
+      "#083134",
       1
      ]
     ]
@@ -56,96 +56,615 @@
    "nodes": [
     {
      "kind": "ellipse",
-     "x": 1480,
-     "y": -260,
-     "w": 760,
-     "h": 760,
-     "fill": "#A9D2A0",
-     "opacity": 0.4,
-     "bleed": true
-    },
-    {
-     "kind": "ellipse",
-     "x": -200,
-     "y": 720,
-     "w": 560,
-     "h": 560,
-     "fill": "#F2905E",
-     "opacity": 0.35,
-     "bleed": true
-    },
-    {
-     "kind": "ellipse",
-     "x": 1720,
-     "y": 720,
-     "w": 300,
-     "h": 300,
-     "fill": "#F2C063",
-     "opacity": 0.6,
-     "bleed": true
-    },
-    {
-     "kind": "ellipse",
-     "x": 1353,
-     "y": 725,
-     "w": 5,
-     "h": 5,
-     "fill": "#F8F0E3",
-     "opacity": 0.5
-    },
-    {
-     "kind": "ellipse",
-     "x": 261,
-     "y": 647,
-     "w": 7,
-     "h": 7,
-     "fill": "#F8F0E3",
-     "opacity": 0.43999999999999995
-    },
-    {
-     "kind": "ellipse",
-     "x": 864,
-     "y": 872,
+     "x": 1320,
+     "y": 96,
      "w": 6,
      "h": 6,
-     "fill": "#F8F0E3",
-     "opacity": 0.71
+     "fill": "#F3EDDF",
+     "opacity": 0.16
     },
     {
      "kind": "ellipse",
-     "x": 1720,
-     "y": 907,
-     "w": 5,
-     "h": 5,
-     "fill": "#F8F0E3",
-     "opacity": 0.6
-    },
-    {
-     "kind": "ellipse",
-     "x": 1737,
-     "y": 697,
-     "w": 8,
-     "h": 8,
-     "fill": "#F8F0E3",
-     "opacity": 0.42
-    },
-    {
-     "kind": "ellipse",
-     "x": 1893,
-     "y": 153,
+     "x": 1408,
+     "y": 96,
      "w": 6,
      "h": 6,
-     "fill": "#F8F0E3",
-     "opacity": 0.7
+     "fill": "#F3EDDF",
+     "opacity": 0.16
     },
     {
      "kind": "ellipse",
-     "x": 526,
-     "y": 452,
+     "x": 1496,
+     "y": 96,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1584,
+     "y": 96,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1672,
+     "y": 96,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 96,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1848,
+     "y": 96,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1320,
+     "y": 184,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1408,
+     "y": 184,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1496,
+     "y": 184,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1584,
+     "y": 184,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1672,
+     "y": 184,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 184,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1848,
+     "y": 184,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1320,
+     "y": 272,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1408,
+     "y": 272,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1496,
+     "y": 272,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1584,
+     "y": 272,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1672,
+     "y": 272,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 272,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1848,
+     "y": 272,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1320,
+     "y": 360,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1408,
+     "y": 360,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1496,
+     "y": 360,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1584,
+     "y": 360,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1672,
+     "y": 360,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 360,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1848,
+     "y": 360,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1320,
+     "y": 448,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1408,
+     "y": 448,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1496,
+     "y": 448,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1584,
+     "y": 448,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1672,
+     "y": 448,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 448,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1848,
+     "y": 448,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1320,
+     "y": 536,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1408,
+     "y": 536,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1496,
+     "y": 536,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1584,
+     "y": 536,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1672,
+     "y": 536,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 536,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1848,
+     "y": 536,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1320,
+     "y": 624,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1408,
+     "y": 624,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1496,
+     "y": 624,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1584,
+     "y": 624,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1672,
+     "y": 624,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 624,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1848,
+     "y": 624,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1320,
+     "y": 712,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1408,
+     "y": 712,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1496,
+     "y": 712,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1584,
+     "y": 712,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1672,
+     "y": 712,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 712,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1848,
+     "y": 712,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1320,
+     "y": 800,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1408,
+     "y": 800,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1496,
+     "y": 800,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1584,
+     "y": 800,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1672,
+     "y": 800,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 800,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1848,
+     "y": 800,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1227,
+     "y": 380,
      "w": 9,
      "h": 9,
-     "fill": "#F8F0E3",
-     "opacity": 0.38
+     "fill": "#F28C3C",
+     "opacity": 0.76
+    },
+    {
+     "kind": "ellipse",
+     "x": 1429,
+     "y": 468,
+     "w": 5,
+     "h": 5,
+     "fill": "#F28C3C",
+     "opacity": 0.63
+    },
+    {
+     "kind": "ellipse",
+     "x": 1261,
+     "y": 823,
+     "w": 5,
+     "h": 5,
+     "fill": "#F28C3C",
+     "opacity": 0.53
+    },
+    {
+     "kind": "ellipse",
+     "x": 1516,
+     "y": 289,
+     "w": 5,
+     "h": 5,
+     "fill": "#F28C3C",
+     "opacity": 0.39999999999999997
+    },
+    {
+     "kind": "ellipse",
+     "x": 1383,
+     "y": 304,
+     "w": 8,
+     "h": 8,
+     "fill": "#F28C3C",
+     "opacity": 0.36
     },
     {
      "kind": "rect",
@@ -153,7 +672,7 @@
      "y": 96,
      "w": 22,
      "h": 22,
-     "fill": "#F2905E",
+     "fill": "#F28C3C",
      "radius": 6
     },
     {
@@ -163,10 +682,10 @@
      "w": 700,
      "h": 30,
      "text": "Fernwood",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 22,
      "weight": 600,
-     "color": "#F8F0E3",
+     "color": "#F3EDDF",
      "lineHeight": 1.3
     },
     {
@@ -176,10 +695,10 @@
      "w": 1000,
      "h": 60,
      "text": "The book of business",
-     "family": "Caveat",
-     "size": 46,
-     "weight": 600,
-     "color": "#F2905E",
+     "family": "Kalam",
+     "size": 40,
+     "weight": 700,
+     "color": "#F8B577",
      "lineHeight": 1.2
     },
     {
@@ -189,10 +708,10 @@
      "w": 1000,
      "h": 231,
      "text": "Accounts, health,\nand momentum",
-     "family": "Outfit",
+     "family": "Signika",
      "size": 105,
      "weight": 700,
-     "color": "#F8F0E3",
+     "color": "#F3EDDF",
      "lineHeight": 1.02
     },
     {
@@ -202,10 +721,10 @@
      "w": 900,
      "h": 84,
      "text": "Where the book stands, the saves and the wins, what is at risk, and the expansion plays that are landing.",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 28,
      "weight": 400,
-     "color": "#BBC9B4",
+     "color": "#B2CCC9",
      "lineHeight": 1.4
     },
     {
@@ -215,10 +734,10 @@
      "w": 900,
      "h": 28,
      "text": "Dana Whitfield, Head of Customer Success  ·  6 October 2026",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 18,
      "weight": 500,
-     "color": "#BBC9B4",
+     "color": "#B2CCC9",
      "lineHeight": 1.3
     },
     {
@@ -227,64 +746,222 @@
      "y": 940,
      "w": 240,
      "h": 28,
-     "text": "01 / 7",
-     "family": "Nunito Sans",
+     "text": "01 / 8",
+     "family": "Mulish",
      "size": 18,
      "weight": 500,
-     "color": "#BBC9B4",
+     "color": "#B2CCC9",
      "lineHeight": 1.3,
      "align": "right"
     },
     {
      "kind": "ellipse",
-     "x": 1180,
-     "y": 200,
-     "w": 660,
-     "h": 660,
-     "fill": "#466B4C"
-    },
-    {
-     "kind": "ellipse",
-     "x": 1160,
-     "y": 180,
+     "x": 1150,
+     "y": 170,
      "w": 700,
      "h": 700,
-     "fill": "#F2C063",
+     "fill": "#F28C3C",
      "opacity": 0.12
     },
     {
      "kind": "ellipse",
-     "x": 1230,
-     "y": 250,
+     "x": 1220,
+     "y": 240,
      "w": 560,
      "h": 560,
-     "fill": "#F2C063",
+     "fill": "#F28C3C",
      "opacity": 0.16
+    },
+    {
+     "kind": "text",
+     "x": 1140,
+     "y": 872,
+     "w": 720,
+     "h": 52,
+     "text": "a name next to every red account",
+     "family": "Kalam",
+     "size": 34,
+     "weight": 700,
+     "color": "#F8B577",
+     "lineHeight": 1.2,
+     "align": "center"
     }
    ],
    "illustrations": [
     {
      "asset": "la-conversation-illustration",
-     "x": 1230,
-     "y": 240,
-     "w": 560,
+     "x": 1210,
+     "y": 230,
+     "w": 580,
      "h": 580
     }
    ]
   },
   {
    "name": "Figures",
-   "bg": "#F8F0E3",
+   "bg": "#F3EDDF",
    "nodes": [
     {
      "kind": "ellipse",
-     "x": 1700,
-     "y": -180,
-     "w": 380,
-     "h": 380,
-     "fill": "#5F8F5A",
-     "opacity": 0.22,
-     "bleed": true
+     "x": 1360,
+     "y": 40,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1440,
+     "y": 40,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1520,
+     "y": 40,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1600,
+     "y": 40,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1680,
+     "y": 40,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 40,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1360,
+     "y": 120,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1440,
+     "y": 120,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1520,
+     "y": 120,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1600,
+     "y": 120,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1680,
+     "y": 120,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 120,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1360,
+     "y": 200,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1440,
+     "y": 200,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1520,
+     "y": 200,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1600,
+     "y": 200,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1680,
+     "y": 200,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 200,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
     },
     {
      "kind": "text",
@@ -293,10 +970,10 @@
      "w": 1200,
      "h": 28,
      "text": "Health overview",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 20,
      "weight": 600,
-     "color": "#E0703F",
+     "color": "#AE4B0E",
      "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
@@ -306,12 +983,12 @@
      "x": 96,
      "y": 124,
      "w": 1240,
-     "h": 78,
+     "h": 76,
      "text": "The book at a glance",
-     "family": "Outfit",
-     "size": 64,
+     "family": "Signika",
+     "size": 62,
      "weight": 700,
-     "color": "#2F2A25",
+     "color": "#0F3A3D",
      "lineHeight": 1.06
     },
     {
@@ -320,7 +997,7 @@
      "y": 968,
      "w": 1728,
      "h": 1,
-     "fill": "#DDD0BB"
+     "fill": "#D5CBB5"
     },
     {
      "kind": "text",
@@ -329,10 +1006,10 @@
      "w": 900,
      "h": 26,
      "text": "Fernwood  ·  Customer success review, Q3",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 18,
      "weight": 500,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.3
     },
     {
@@ -341,317 +1018,483 @@
      "y": 992,
      "w": 240,
      "h": 26,
-     "text": "02 / 7",
-     "family": "Nunito Sans",
+     "text": "02 / 8",
+     "family": "Mulish",
      "size": 18,
      "weight": 500,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.3,
      "align": "right"
     },
     {
      "kind": "rect",
      "x": 96,
-     "y": 246,
+     "y": 244,
      "w": 414,
      "h": 560,
-     "fill": "#EFE4D0",
-     "radius": 28,
-     "stroke": "#DDD0BB",
+     "fill": "#EAE2CF",
+     "radius": 10,
+     "stroke": "#D5CBB5",
      "strokeWidth": 1.5
     },
     {
      "kind": "rect",
      "x": 96,
-     "y": 246,
+     "y": 244,
      "w": 414,
      "h": 6,
-     "fill": "#E0703F",
+     "fill": "#D9631A",
      "radius": 0
     },
     {
      "kind": "text",
      "x": 132,
-     "y": 302,
+     "y": 300,
      "w": 342,
-     "h": 124,
+     "h": 116,
      "text": "312",
-     "family": "Outfit",
-     "size": 108,
+     "family": "Signika",
+     "size": 100,
      "weight": 700,
-     "color": "#E0703F",
+     "color": "#AE4B0E",
      "lineHeight": 1
     },
     {
      "kind": "text",
      "x": 132,
-     "y": 442,
+     "y": 440,
      "w": 342,
      "h": 34,
      "text": "Accounts",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 24,
      "weight": 600,
-     "color": "#2F2A25",
+     "color": "#0F3A3D",
      "lineHeight": 1.3
     },
     {
      "kind": "button",
      "x": 132,
-     "y": 496,
+     "y": 494,
      "w": 190,
      "h": 40,
      "label": "+18 this quarter",
-     "fill": "#eccfb6",
-     "color": "#E0703F",
-     "family": "Nunito Sans",
+     "fill": "#e7cbae",
+     "color": "#AE4B0E",
+     "family": "Mulish",
      "size": 17,
      "weight": 700
     },
     {
      "kind": "text",
      "x": 132,
-     "y": 566,
+     "y": 564,
      "w": 342,
      "h": 140,
      "text": "Twenty-six new, eight churned, all eight under fifty seats.",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 20,
      "weight": 400,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.4
     },
     {
      "kind": "rect",
      "x": 534,
-     "y": 246,
+     "y": 244,
      "w": 414,
      "h": 560,
-     "fill": "#EFE4D0",
-     "radius": 28,
-     "stroke": "#DDD0BB",
+     "fill": "#EAE2CF",
+     "radius": 10,
+     "stroke": "#D5CBB5",
      "strokeWidth": 1.5
     },
     {
      "kind": "rect",
      "x": 534,
-     "y": 246,
+     "y": 244,
      "w": 414,
      "h": 6,
-     "fill": "#5F8F5A",
+     "fill": "#136F70",
      "radius": 0
     },
     {
      "kind": "text",
      "x": 570,
-     "y": 302,
+     "y": 300,
      "w": 342,
-     "h": 124,
+     "h": 116,
      "text": "81%",
-     "family": "Outfit",
-     "size": 108,
+     "family": "Signika",
+     "size": 100,
      "weight": 700,
-     "color": "#5F8F5A",
+     "color": "#136F70",
      "lineHeight": 1
     },
     {
      "kind": "text",
      "x": 570,
-     "y": 442,
+     "y": 440,
      "w": 342,
      "h": 34,
      "text": "Green accounts",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 24,
      "weight": 600,
-     "color": "#2F2A25",
+     "color": "#0F3A3D",
      "lineHeight": 1.3
     },
     {
      "kind": "button",
      "x": 570,
-     "y": 496,
+     "y": 494,
      "w": 190,
      "h": 40,
      "label": "+6 pts",
-     "fill": "#d5d5bb",
-     "color": "#5F8F5A",
-     "family": "Nunito Sans",
+     "fill": "#c3cdbe",
+     "color": "#136F70",
+     "family": "Mulish",
      "size": 17,
      "weight": 700
     },
     {
      "kind": "text",
      "x": 570,
-     "y": 566,
+     "y": 564,
      "w": 342,
      "h": 140,
      "text": "Health score above 70; usage and support both trending up.",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 20,
      "weight": 400,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.4
     },
     {
      "kind": "rect",
      "x": 972,
-     "y": 246,
+     "y": 244,
      "w": 414,
      "h": 560,
-     "fill": "#EFE4D0",
-     "radius": 28,
-     "stroke": "#DDD0BB",
+     "fill": "#EAE2CF",
+     "radius": 10,
+     "stroke": "#D5CBB5",
      "strokeWidth": 1.5
     },
     {
      "kind": "rect",
      "x": 972,
-     "y": 246,
+     "y": 244,
      "w": 414,
      "h": 6,
-     "fill": "#E0703F",
+     "fill": "#D9631A",
      "radius": 0
     },
     {
      "kind": "text",
      "x": 1008,
-     "y": 302,
+     "y": 300,
      "w": 342,
-     "h": 124,
+     "h": 116,
      "text": "14%",
-     "family": "Outfit",
-     "size": 108,
+     "family": "Signika",
+     "size": 100,
      "weight": 700,
-     "color": "#E0703F",
+     "color": "#AE4B0E",
      "lineHeight": 1
     },
     {
      "kind": "text",
      "x": 1008,
-     "y": 442,
+     "y": 440,
      "w": 342,
      "h": 34,
      "text": "Yellow accounts",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 24,
      "weight": 600,
-     "color": "#2F2A25",
+     "color": "#0F3A3D",
      "lineHeight": 1.3
     },
     {
      "kind": "button",
      "x": 1008,
-     "y": 496,
+     "y": 494,
      "w": 190,
      "h": 40,
      "label": "−4 pts",
-     "fill": "#eccfb6",
-     "color": "#E0703F",
-     "family": "Nunito Sans",
+     "fill": "#e7cbae",
+     "color": "#AE4B0E",
+     "family": "Mulish",
      "size": 17,
      "weight": 700
     },
     {
      "kind": "text",
      "x": 1008,
-     "y": 566,
+     "y": 564,
      "w": 342,
      "h": 140,
      "text": "Mostly renewals inside ninety days with a champion change.",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 20,
      "weight": 400,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.4
     },
     {
      "kind": "rect",
      "x": 1410,
-     "y": 246,
+     "y": 244,
      "w": 414,
      "h": 560,
-     "fill": "#EFE4D0",
-     "radius": 28,
-     "stroke": "#DDD0BB",
+     "fill": "#EAE2CF",
+     "radius": 10,
+     "stroke": "#D5CBB5",
      "strokeWidth": 1.5
     },
     {
      "kind": "rect",
      "x": 1410,
-     "y": 246,
+     "y": 244,
      "w": 414,
      "h": 6,
-     "fill": "#5F8F5A",
+     "fill": "#136F70",
      "radius": 0
     },
     {
      "kind": "text",
      "x": 1446,
-     "y": 302,
+     "y": 300,
      "w": 342,
-     "h": 124,
+     "h": 116,
      "text": "5%",
-     "family": "Outfit",
-     "size": 108,
+     "family": "Signika",
+     "size": 100,
      "weight": 700,
-     "color": "#5F8F5A",
+     "color": "#136F70",
      "lineHeight": 1
     },
     {
      "kind": "text",
      "x": 1446,
-     "y": 442,
+     "y": 440,
      "w": 342,
      "h": 34,
      "text": "Red accounts",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 24,
      "weight": 600,
-     "color": "#2F2A25",
+     "color": "#0F3A3D",
      "lineHeight": 1.3
     },
     {
      "kind": "button",
      "x": 1446,
-     "y": 496,
+     "y": 494,
      "w": 190,
      "h": 40,
      "label": "−2 pts",
-     "fill": "#d5d5bb",
-     "color": "#5F8F5A",
-     "family": "Nunito Sans",
+     "fill": "#c3cdbe",
+     "color": "#136F70",
+     "family": "Mulish",
      "size": 17,
      "weight": 700
     },
     {
      "kind": "text",
      "x": 1446,
-     "y": 566,
+     "y": 564,
      "w": 342,
      "h": 140,
      "text": "Sixteen accounts, $1.1M in annual revenue, each with a named plan.",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 20,
      "weight": 400,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.4
+    },
+    {
+     "kind": "text",
+     "x": 1064,
+     "y": 908,
+     "w": 760,
+     "h": 48,
+     "text": "same scorecard as June",
+     "family": "Kalam",
+     "size": 32,
+     "weight": 700,
+     "color": "#AE4B0E",
+     "lineHeight": 1.2,
+     "align": "right"
     }
    ]
   },
   {
-   "name": "Chart",
-   "bg": "#F8F0E3",
+   "name": "Health grid",
+   "bg": "#F3EDDF",
    "nodes": [
     {
      "kind": "ellipse",
-     "x": 1700,
-     "y": -180,
-     "w": 380,
-     "h": 380,
-     "fill": "#5F8F5A",
-     "opacity": 0.22,
-     "bleed": true
+     "x": 1360,
+     "y": 40,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1440,
+     "y": 40,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1520,
+     "y": 40,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1600,
+     "y": 40,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1680,
+     "y": 40,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 40,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1360,
+     "y": 120,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1440,
+     "y": 120,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1520,
+     "y": 120,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1600,
+     "y": 120,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1680,
+     "y": 120,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 120,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1360,
+     "y": 200,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1440,
+     "y": 200,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1520,
+     "y": 200,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1600,
+     "y": 200,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1680,
+     "y": 200,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 200,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
     },
     {
      "kind": "text",
@@ -659,11 +1502,11 @@
      "y": 88,
      "w": 1200,
      "h": 28,
-     "text": "Health overview",
-     "family": "Nunito Sans",
+     "text": "Health grid",
+     "family": "Mulish",
      "size": 20,
      "weight": 600,
-     "color": "#E0703F",
+     "color": "#AE4B0E",
      "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
@@ -672,13 +1515,13 @@
      "kind": "text",
      "x": 96,
      "y": 124,
-     "w": 1100,
-     "h": 78,
-     "text": "Movement between tiers",
-     "family": "Outfit",
-     "size": 64,
+     "w": 1240,
+     "h": 76,
+     "text": "Every account, one tile",
+     "family": "Signika",
+     "size": 62,
      "weight": 700,
-     "color": "#2F2A25",
+     "color": "#0F3A3D",
      "lineHeight": 1.06
     },
     {
@@ -687,7 +1530,7 @@
      "y": 968,
      "w": 1728,
      "h": 1,
-     "fill": "#DDD0BB"
+     "fill": "#D5CBB5"
     },
     {
      "kind": "text",
@@ -696,10 +1539,10 @@
      "w": 900,
      "h": 26,
      "text": "Fernwood  ·  Customer success review, Q3",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 18,
      "weight": 500,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.3
     },
     {
@@ -708,170 +1551,3603 @@
      "y": 992,
      "w": 240,
      "h": 26,
-     "text": "03 / 7",
-     "family": "Nunito Sans",
+     "text": "03 / 8",
+     "family": "Mulish",
      "size": 18,
      "weight": 500,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.3,
      "align": "right"
     },
     {
+     "kind": "rect",
+     "x": 96,
+     "y": 252,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "ellipse",
+     "x": 112,
+     "y": 268,
+     "w": 8,
+     "h": 8,
+     "fill": "#F3EDDF"
+    },
+    {
+     "kind": "rect",
+     "x": 142,
+     "y": 252,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 188,
+     "y": 252,
+     "w": 40,
+     "h": 40,
+     "fill": "#C8412D",
+     "radius": 6
+    },
+    {
+     "kind": "ellipse",
+     "x": 204,
+     "y": 268,
+     "w": 8,
+     "h": 8,
+     "fill": "#0F3A3D",
+     "opacity": 0.8
+    },
+    {
+     "kind": "rect",
+     "x": 234,
+     "y": 252,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 280,
+     "y": 252,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "ellipse",
+     "x": 296,
+     "y": 268,
+     "w": 8,
+     "h": 8,
+     "fill": "#F3EDDF"
+    },
+    {
+     "kind": "rect",
+     "x": 326,
+     "y": 252,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 372,
+     "y": 252,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 418,
+     "y": 252,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 464,
+     "y": 252,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 510,
+     "y": 252,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 556,
+     "y": 252,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 602,
+     "y": 252,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "ellipse",
+     "x": 618,
+     "y": 268,
+     "w": 8,
+     "h": 8,
+     "fill": "#F3EDDF"
+    },
+    {
+     "kind": "rect",
+     "x": 648,
+     "y": 252,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 694,
+     "y": 252,
+     "w": 40,
+     "h": 40,
+     "fill": "#C8412D",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 740,
+     "y": 252,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 786,
+     "y": 252,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 832,
+     "y": 252,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 878,
+     "y": 252,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 924,
+     "y": 252,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 970,
+     "y": 252,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1016,
+     "y": 252,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1062,
+     "y": 252,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1108,
+     "y": 252,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1154,
+     "y": 252,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 298,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 142,
+     "y": 298,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 188,
+     "y": 298,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 234,
+     "y": 298,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 280,
+     "y": 298,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 326,
+     "y": 298,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "ellipse",
+     "x": 342,
+     "y": 314,
+     "w": 8,
+     "h": 8,
+     "fill": "#0F3A3D",
+     "opacity": 0.8
+    },
+    {
+     "kind": "rect",
+     "x": 372,
+     "y": 298,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 418,
+     "y": 298,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 464,
+     "y": 298,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 510,
+     "y": 298,
+     "w": 40,
+     "h": 40,
+     "fill": "#C8412D",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 556,
+     "y": 298,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 602,
+     "y": 298,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 648,
+     "y": 298,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 694,
+     "y": 298,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 740,
+     "y": 298,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "ellipse",
+     "x": 756,
+     "y": 314,
+     "w": 8,
+     "h": 8,
+     "fill": "#F3EDDF"
+    },
+    {
+     "kind": "rect",
+     "x": 786,
+     "y": 298,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 832,
+     "y": 298,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "ellipse",
+     "x": 848,
+     "y": 314,
+     "w": 8,
+     "h": 8,
+     "fill": "#0F3A3D",
+     "opacity": 0.8
+    },
+    {
+     "kind": "rect",
+     "x": 878,
+     "y": 298,
+     "w": 40,
+     "h": 40,
+     "fill": "#C8412D",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 924,
+     "y": 298,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 970,
+     "y": 298,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1016,
+     "y": 298,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1062,
+     "y": 298,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1108,
+     "y": 298,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "ellipse",
+     "x": 1124,
+     "y": 314,
+     "w": 8,
+     "h": 8,
+     "fill": "#F3EDDF"
+    },
+    {
+     "kind": "rect",
+     "x": 1154,
+     "y": 298,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 344,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 142,
+     "y": 344,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "ellipse",
+     "x": 158,
+     "y": 360,
+     "w": 8,
+     "h": 8,
+     "fill": "#F3EDDF"
+    },
+    {
+     "kind": "rect",
+     "x": 188,
+     "y": 344,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 234,
+     "y": 344,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 280,
+     "y": 344,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 326,
+     "y": 344,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 372,
+     "y": 344,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 418,
+     "y": 344,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 464,
+     "y": 344,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 510,
+     "y": 344,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 556,
+     "y": 344,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 602,
+     "y": 344,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 648,
+     "y": 344,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 694,
+     "y": 344,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "ellipse",
+     "x": 710,
+     "y": 360,
+     "w": 8,
+     "h": 8,
+     "fill": "#0F3A3D",
+     "opacity": 0.8
+    },
+    {
+     "kind": "rect",
+     "x": 740,
+     "y": 344,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 786,
+     "y": 344,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 832,
+     "y": 344,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 878,
+     "y": 344,
+     "w": 40,
+     "h": 40,
+     "fill": "#C8412D",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 924,
+     "y": 344,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 970,
+     "y": 344,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1016,
+     "y": 344,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1062,
+     "y": 344,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1108,
+     "y": 344,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1154,
+     "y": 344,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 390,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 142,
+     "y": 390,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "ellipse",
+     "x": 158,
+     "y": 406,
+     "w": 8,
+     "h": 8,
+     "fill": "#F3EDDF"
+    },
+    {
+     "kind": "rect",
+     "x": 188,
+     "y": 390,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 234,
+     "y": 390,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 280,
+     "y": 390,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 326,
+     "y": 390,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 372,
+     "y": 390,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 418,
+     "y": 390,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 464,
+     "y": 390,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 510,
+     "y": 390,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 556,
+     "y": 390,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 602,
+     "y": 390,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 648,
+     "y": 390,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 694,
+     "y": 390,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 740,
+     "y": 390,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 786,
+     "y": 390,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 832,
+     "y": 390,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 878,
+     "y": 390,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 924,
+     "y": 390,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 970,
+     "y": 390,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1016,
+     "y": 390,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1062,
+     "y": 390,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1108,
+     "y": 390,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1154,
+     "y": 390,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 436,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 142,
+     "y": 436,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 188,
+     "y": 436,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 234,
+     "y": 436,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 280,
+     "y": 436,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 326,
+     "y": 436,
+     "w": 40,
+     "h": 40,
+     "fill": "#C8412D",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 372,
+     "y": 436,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 418,
+     "y": 436,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "ellipse",
+     "x": 434,
+     "y": 452,
+     "w": 8,
+     "h": 8,
+     "fill": "#F3EDDF"
+    },
+    {
+     "kind": "rect",
+     "x": 464,
+     "y": 436,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 510,
+     "y": 436,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 556,
+     "y": 436,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 602,
+     "y": 436,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 648,
+     "y": 436,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 694,
+     "y": 436,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 740,
+     "y": 436,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 786,
+     "y": 436,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 832,
+     "y": 436,
+     "w": 40,
+     "h": 40,
+     "fill": "#C8412D",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 878,
+     "y": 436,
+     "w": 40,
+     "h": 40,
+     "fill": "#C8412D",
+     "radius": 6
+    },
+    {
+     "kind": "ellipse",
+     "x": 894,
+     "y": 452,
+     "w": 8,
+     "h": 8,
+     "fill": "#0F3A3D",
+     "opacity": 0.8
+    },
+    {
+     "kind": "rect",
+     "x": 924,
+     "y": 436,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 970,
+     "y": 436,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1016,
+     "y": 436,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1062,
+     "y": 436,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1108,
+     "y": 436,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1154,
+     "y": 436,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 482,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 142,
+     "y": 482,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 188,
+     "y": 482,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 234,
+     "y": 482,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 280,
+     "y": 482,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 326,
+     "y": 482,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 372,
+     "y": 482,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 418,
+     "y": 482,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 464,
+     "y": 482,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 510,
+     "y": 482,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 556,
+     "y": 482,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 602,
+     "y": 482,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "ellipse",
+     "x": 618,
+     "y": 498,
+     "w": 8,
+     "h": 8,
+     "fill": "#F3EDDF"
+    },
+    {
+     "kind": "rect",
+     "x": 648,
+     "y": 482,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 694,
+     "y": 482,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 740,
+     "y": 482,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 786,
+     "y": 482,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 832,
+     "y": 482,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 878,
+     "y": 482,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 924,
+     "y": 482,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 970,
+     "y": 482,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1016,
+     "y": 482,
+     "w": 40,
+     "h": 40,
+     "fill": "#C8412D",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1062,
+     "y": 482,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "ellipse",
+     "x": 1078,
+     "y": 498,
+     "w": 8,
+     "h": 8,
+     "fill": "#F3EDDF"
+    },
+    {
+     "kind": "rect",
+     "x": 1108,
+     "y": 482,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1154,
+     "y": 482,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 528,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 142,
+     "y": 528,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 188,
+     "y": 528,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 234,
+     "y": 528,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "ellipse",
+     "x": 250,
+     "y": 544,
+     "w": 8,
+     "h": 8,
+     "fill": "#F3EDDF"
+    },
+    {
+     "kind": "rect",
+     "x": 280,
+     "y": 528,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 326,
+     "y": 528,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 372,
+     "y": 528,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 418,
+     "y": 528,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 464,
+     "y": 528,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 510,
+     "y": 528,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 556,
+     "y": 528,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 602,
+     "y": 528,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 648,
+     "y": 528,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 694,
+     "y": 528,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 740,
+     "y": 528,
+     "w": 40,
+     "h": 40,
+     "fill": "#C8412D",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 786,
+     "y": 528,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 832,
+     "y": 528,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 878,
+     "y": 528,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 924,
+     "y": 528,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 970,
+     "y": 528,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1016,
+     "y": 528,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1062,
+     "y": 528,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1108,
+     "y": 528,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1154,
+     "y": 528,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 574,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 142,
+     "y": 574,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 188,
+     "y": 574,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 234,
+     "y": 574,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "ellipse",
+     "x": 250,
+     "y": 590,
+     "w": 8,
+     "h": 8,
+     "fill": "#F3EDDF"
+    },
+    {
+     "kind": "rect",
+     "x": 280,
+     "y": 574,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 326,
+     "y": 574,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 372,
+     "y": 574,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 418,
+     "y": 574,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 464,
+     "y": 574,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 510,
+     "y": 574,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 556,
+     "y": 574,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 602,
+     "y": 574,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 648,
+     "y": 574,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 694,
+     "y": 574,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 740,
+     "y": 574,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 786,
+     "y": 574,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 832,
+     "y": 574,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 878,
+     "y": 574,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 924,
+     "y": 574,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "ellipse",
+     "x": 940,
+     "y": 590,
+     "w": 8,
+     "h": 8,
+     "fill": "#F3EDDF"
+    },
+    {
+     "kind": "rect",
+     "x": 970,
+     "y": 574,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1016,
+     "y": 574,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "ellipse",
+     "x": 1032,
+     "y": 590,
+     "w": 8,
+     "h": 8,
+     "fill": "#0F3A3D",
+     "opacity": 0.8
+    },
+    {
+     "kind": "rect",
+     "x": 1062,
+     "y": 574,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1108,
+     "y": 574,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1154,
+     "y": 574,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 620,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 142,
+     "y": 620,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 188,
+     "y": 620,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 234,
+     "y": 620,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "ellipse",
+     "x": 250,
+     "y": 636,
+     "w": 8,
+     "h": 8,
+     "fill": "#F3EDDF"
+    },
+    {
+     "kind": "rect",
+     "x": 280,
+     "y": 620,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "ellipse",
+     "x": 296,
+     "y": 636,
+     "w": 8,
+     "h": 8,
+     "fill": "#F3EDDF"
+    },
+    {
+     "kind": "rect",
+     "x": 326,
+     "y": 620,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 372,
+     "y": 620,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 418,
+     "y": 620,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 464,
+     "y": 620,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 510,
+     "y": 620,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 556,
+     "y": 620,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 602,
+     "y": 620,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "ellipse",
+     "x": 618,
+     "y": 636,
+     "w": 8,
+     "h": 8,
+     "fill": "#F3EDDF"
+    },
+    {
+     "kind": "rect",
+     "x": 648,
+     "y": 620,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 694,
+     "y": 620,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 740,
+     "y": 620,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "ellipse",
+     "x": 756,
+     "y": 636,
+     "w": 8,
+     "h": 8,
+     "fill": "#F3EDDF"
+    },
+    {
+     "kind": "rect",
+     "x": 786,
+     "y": 620,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 832,
+     "y": 620,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 878,
+     "y": 620,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 924,
+     "y": 620,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 970,
+     "y": 620,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1016,
+     "y": 620,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1062,
+     "y": 620,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1108,
+     "y": 620,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1154,
+     "y": 620,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 666,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 142,
+     "y": 666,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 188,
+     "y": 666,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 234,
+     "y": 666,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 280,
+     "y": 666,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 326,
+     "y": 666,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 372,
+     "y": 666,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 418,
+     "y": 666,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 464,
+     "y": 666,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 510,
+     "y": 666,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 556,
+     "y": 666,
+     "w": 40,
+     "h": 40,
+     "fill": "#C8412D",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 602,
+     "y": 666,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 648,
+     "y": 666,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 694,
+     "y": 666,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 740,
+     "y": 666,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 786,
+     "y": 666,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 832,
+     "y": 666,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 878,
+     "y": 666,
+     "w": 40,
+     "h": 40,
+     "fill": "#C8412D",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 924,
+     "y": 666,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 970,
+     "y": 666,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "ellipse",
+     "x": 986,
+     "y": 682,
+     "w": 8,
+     "h": 8,
+     "fill": "#F3EDDF"
+    },
+    {
+     "kind": "rect",
+     "x": 1016,
+     "y": 666,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1062,
+     "y": 666,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1108,
+     "y": 666,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1154,
+     "y": 666,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 712,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 142,
+     "y": 712,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 188,
+     "y": 712,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 234,
+     "y": 712,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 280,
+     "y": 712,
+     "w": 40,
+     "h": 40,
+     "fill": "#C8412D",
+     "radius": 6
+    },
+    {
+     "kind": "ellipse",
+     "x": 296,
+     "y": 728,
+     "w": 8,
+     "h": 8,
+     "fill": "#0F3A3D",
+     "opacity": 0.8
+    },
+    {
+     "kind": "rect",
+     "x": 326,
+     "y": 712,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 372,
+     "y": 712,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 418,
+     "y": 712,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 464,
+     "y": 712,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "ellipse",
+     "x": 480,
+     "y": 728,
+     "w": 8,
+     "h": 8,
+     "fill": "#F3EDDF"
+    },
+    {
+     "kind": "rect",
+     "x": 510,
+     "y": 712,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 556,
+     "y": 712,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 602,
+     "y": 712,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 648,
+     "y": 712,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 694,
+     "y": 712,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 740,
+     "y": 712,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 786,
+     "y": 712,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 832,
+     "y": 712,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 878,
+     "y": 712,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 924,
+     "y": 712,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 970,
+     "y": 712,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1016,
+     "y": 712,
+     "w": 40,
+     "h": 40,
+     "fill": "#C8412D",
+     "radius": 6
+    },
+    {
+     "kind": "ellipse",
+     "x": 1032,
+     "y": 728,
+     "w": 8,
+     "h": 8,
+     "fill": "#0F3A3D",
+     "opacity": 0.8
+    },
+    {
+     "kind": "rect",
+     "x": 1062,
+     "y": 712,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1108,
+     "y": 712,
+     "w": 40,
+     "h": 40,
+     "fill": "#C8412D",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1154,
+     "y": 712,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 758,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 142,
+     "y": 758,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 188,
+     "y": 758,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 234,
+     "y": 758,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 280,
+     "y": 758,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 326,
+     "y": 758,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 372,
+     "y": 758,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 418,
+     "y": 758,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 464,
+     "y": 758,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 510,
+     "y": 758,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 556,
+     "y": 758,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 602,
+     "y": 758,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 648,
+     "y": 758,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 694,
+     "y": 758,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 740,
+     "y": 758,
+     "w": 40,
+     "h": 40,
+     "fill": "#C8412D",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 786,
+     "y": 758,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 832,
+     "y": 758,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 878,
+     "y": 758,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 924,
+     "y": 758,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 970,
+     "y": 758,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1016,
+     "y": 758,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1062,
+     "y": 758,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1108,
+     "y": 758,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "ellipse",
+     "x": 1124,
+     "y": 774,
+     "w": 8,
+     "h": 8,
+     "fill": "#F3EDDF"
+    },
+    {
+     "kind": "rect",
+     "x": 1154,
+     "y": 758,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 804,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 142,
+     "y": 804,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 188,
+     "y": 804,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 234,
+     "y": 804,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 280,
+     "y": 804,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 326,
+     "y": 804,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 372,
+     "y": 804,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 418,
+     "y": 804,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 464,
+     "y": 804,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 510,
+     "y": 804,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 556,
+     "y": 804,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "ellipse",
+     "x": 572,
+     "y": 820,
+     "w": 8,
+     "h": 8,
+     "fill": "#F3EDDF"
+    },
+    {
+     "kind": "rect",
+     "x": 602,
+     "y": 804,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 648,
+     "y": 804,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 694,
+     "y": 804,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 740,
+     "y": 804,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 786,
+     "y": 804,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 832,
+     "y": 804,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 878,
+     "y": 804,
+     "w": 40,
+     "h": 40,
+     "fill": "#D99A2B",
+     "radius": 6
+    },
+    {
+     "kind": "ellipse",
+     "x": 894,
+     "y": 820,
+     "w": 8,
+     "h": 8,
+     "fill": "#0F3A3D",
+     "opacity": 0.8
+    },
+    {
+     "kind": "rect",
+     "x": 924,
+     "y": 804,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 970,
+     "y": 804,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1016,
+     "y": 804,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1062,
+     "y": 804,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "ellipse",
+     "x": 1078,
+     "y": 820,
+     "w": 8,
+     "h": 8,
+     "fill": "#F3EDDF"
+    },
+    {
+     "kind": "rect",
+     "x": 1108,
+     "y": 804,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "rect",
+     "x": 1154,
+     "y": 804,
+     "w": 40,
+     "h": 40,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
      "kind": "text",
      "x": 96,
-     "y": 222,
-     "w": 1100,
+     "y": 860,
+     "w": 1098,
+     "h": 26,
+     "text": "One tile per account, largest first. Light dot: moved up a tier this quarter. Dark dot: moved down.",
+     "family": "Mulish",
+     "size": 18,
+     "weight": 500,
+     "color": "#4A6A6B",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 1234,
+     "y": 252,
+     "w": 590,
+     "h": 592,
+     "fill": "#EAE2CF",
+     "radius": 10,
+     "stroke": "#D5CBB5",
+     "strokeWidth": 1.5
+    },
+    {
+     "kind": "text",
+     "x": 1270,
+     "y": 282,
+     "w": 518,
+     "h": 26,
+     "text": "30 September, against 30 June",
+     "family": "Mulish",
+     "size": 17,
+     "weight": 600,
+     "color": "#AE4B0E",
+     "letterSpacing": 3,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "rect",
+     "x": 1270,
+     "y": 334,
+     "w": 26,
+     "h": 26,
+     "fill": "#2B8F62",
+     "radius": 6
+    },
+    {
+     "kind": "text",
+     "x": 1312,
+     "y": 328,
+     "w": 240,
+     "h": 34,
+     "text": "Green",
+     "family": "Mulish",
+     "size": 26,
+     "weight": 600,
+     "color": "#0F3A3D",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1312,
+     "y": 364,
+     "w": 346,
+     "h": 52,
+     "text": "Health score 70 and above",
+     "family": "Mulish",
+     "size": 17,
+     "weight": 500,
+     "color": "#4A6A6B",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1658,
+     "y": 320,
+     "w": 130,
      "h": 70,
-     "text": "Twenty-two accounts moved up a tier this quarter; nine moved down. The saves programme is working.",
-     "family": "Nunito Sans",
-     "size": 24,
-     "weight": 400,
-     "color": "#786C5F",
-     "lineHeight": 1.4
-    },
-    {
-     "kind": "chart",
-     "x": 96,
-     "y": 310,
-     "w": 1140,
-     "h": 560,
-     "chartType": "barGrouped",
-     "fontSize": 18,
-     "categories": [
-      "Red",
-      "Yellow",
-      "Green"
-     ],
-     "series": [
-      {
-       "name": "Start of quarter",
-       "values": [
-        22,
-        56,
-        216
-       ],
-       "color": "#5F8F5A"
-      },
-      {
-       "name": "End of quarter",
-       "values": [
-        16,
-        44,
-        252
-       ],
-       "color": "#E0703F"
-      }
-     ]
-    },
-    {
-     "kind": "text",
-     "x": 1320,
-     "y": 266,
-     "w": 504,
-     "h": 80,
-     "text": "22",
-     "family": "Outfit",
-     "size": 64,
+     "text": "252",
+     "family": "Signika",
+     "size": 60,
      "weight": 700,
-     "color": "#E0703F",
-     "lineHeight": 1
-    },
-    {
-     "kind": "text",
-     "x": 1320,
-     "y": 354,
-     "w": 504,
-     "h": 60,
-     "text": "Accounts moved up a tier",
-     "family": "Nunito Sans",
-     "size": 22,
-     "weight": 400,
-     "color": "#786C5F",
-     "lineHeight": 1.4
+     "color": "#0F3A3D",
+     "lineHeight": 1.06,
+     "align": "right"
     },
     {
      "kind": "rect",
-     "x": 1320,
+     "x": 1322,
      "y": 418,
-     "w": 504,
-     "h": 1,
-     "fill": "#DDD0BB"
-    },
-    {
-     "kind": "text",
-     "x": 1320,
-     "y": 446,
-     "w": 504,
-     "h": 80,
-     "text": "9",
-     "family": "Outfit",
-     "size": 64,
-     "weight": 700,
-     "color": "#E0703F",
-     "lineHeight": 1
-    },
-    {
-     "kind": "text",
-     "x": 1320,
-     "y": 534,
-     "w": 504,
-     "h": 60,
-     "text": "Accounts moved down",
-     "family": "Nunito Sans",
-     "size": 22,
-     "weight": 400,
-     "color": "#786C5F",
-     "lineHeight": 1.4
+     "w": 4,
+     "h": 20,
+     "fill": "#136F70",
+     "radius": 2
     },
     {
      "kind": "rect",
-     "x": 1320,
-     "y": 598,
-     "w": 504,
+     "x": 1322.59,
+     "y": 414.59,
+     "w": 4,
+     "h": 11,
+     "fill": "#136F70",
+     "rotation": 45
+    },
+    {
+     "kind": "rect",
+     "x": 1322.59,
+     "y": 417.41,
+     "w": 4,
+     "h": 11,
+     "fill": "#136F70",
+     "rotation": -45
+    },
+    {
+     "kind": "text",
+     "x": 1346,
+     "y": 412,
+     "w": 442,
+     "h": 30,
+     "text": "36 more than in June",
+     "family": "Mulish",
+     "size": 19,
+     "weight": 600,
+     "color": "#136F70",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 1270,
+     "y": 450,
+     "w": 518,
      "h": 1,
-     "fill": "#DDD0BB"
+     "fill": "#D5CBB5"
+    },
+    {
+     "kind": "rect",
+     "x": 1270,
+     "y": 478,
+     "w": 26,
+     "h": 26,
+     "fill": "#D99A2B",
+     "radius": 6
     },
     {
      "kind": "text",
-     "x": 1320,
-     "y": 626,
-     "w": 504,
-     "h": 80,
-     "text": "$2.4M",
-     "family": "Outfit",
-     "size": 64,
+     "x": 1312,
+     "y": 472,
+     "w": 240,
+     "h": 34,
+     "text": "Yellow",
+     "family": "Mulish",
+     "size": 26,
+     "weight": 600,
+     "color": "#0F3A3D",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1312,
+     "y": 508,
+     "w": 346,
+     "h": 52,
+     "text": "Score 40 to 69, or a renewal inside 90 days",
+     "family": "Mulish",
+     "size": 17,
+     "weight": 500,
+     "color": "#4A6A6B",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1658,
+     "y": 464,
+     "w": 130,
+     "h": 70,
+     "text": "44",
+     "family": "Signika",
+     "size": 60,
      "weight": 700,
-     "color": "#E0703F",
-     "lineHeight": 1
+     "color": "#0F3A3D",
+     "lineHeight": 1.06,
+     "align": "right"
+    },
+    {
+     "kind": "rect",
+     "x": 1322,
+     "y": 560,
+     "w": 4,
+     "h": 20,
+     "fill": "#D9631A",
+     "radius": 2
+    },
+    {
+     "kind": "rect",
+     "x": 1325.41,
+     "y": 580.59,
+     "w": 4,
+     "h": 11,
+     "fill": "#D9631A",
+     "rotation": 135
+    },
+    {
+     "kind": "rect",
+     "x": 1325.41,
+     "y": 583.41,
+     "w": 4,
+     "h": 11,
+     "fill": "#D9631A",
+     "rotation": 225
     },
     {
      "kind": "text",
-     "x": 1320,
-     "y": 714,
-     "w": 504,
+     "x": 1346,
+     "y": 556,
+     "w": 442,
+     "h": 30,
+     "text": "12 fewer than in June",
+     "family": "Mulish",
+     "size": 19,
+     "weight": 600,
+     "color": "#AE4B0E",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 1270,
+     "y": 594,
+     "w": 518,
+     "h": 1,
+     "fill": "#D5CBB5"
+    },
+    {
+     "kind": "rect",
+     "x": 1270,
+     "y": 622,
+     "w": 26,
+     "h": 26,
+     "fill": "#C8412D",
+     "radius": 6
+    },
+    {
+     "kind": "text",
+     "x": 1312,
+     "y": 616,
+     "w": 240,
+     "h": 34,
+     "text": "Red",
+     "family": "Mulish",
+     "size": 26,
+     "weight": 600,
+     "color": "#0F3A3D",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1312,
+     "y": 652,
+     "w": 346,
+     "h": 52,
+     "text": "Score under 40, or a champion gone",
+     "family": "Mulish",
+     "size": 17,
+     "weight": 500,
+     "color": "#4A6A6B",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1658,
+     "y": 608,
+     "w": 130,
+     "h": 70,
+     "text": "16",
+     "family": "Signika",
+     "size": 60,
+     "weight": 700,
+     "color": "#0F3A3D",
+     "lineHeight": 1.06,
+     "align": "right"
+    },
+    {
+     "kind": "rect",
+     "x": 1322,
+     "y": 704,
+     "w": 4,
+     "h": 20,
+     "fill": "#D9631A",
+     "radius": 2
+    },
+    {
+     "kind": "rect",
+     "x": 1325.41,
+     "y": 724.59,
+     "w": 4,
+     "h": 11,
+     "fill": "#D9631A",
+     "rotation": 135
+    },
+    {
+     "kind": "rect",
+     "x": 1325.41,
+     "y": 727.41,
+     "w": 4,
+     "h": 11,
+     "fill": "#D9631A",
+     "rotation": 225
+    },
+    {
+     "kind": "text",
+     "x": 1346,
+     "y": 700,
+     "w": 442,
+     "h": 30,
+     "text": "6 fewer than in June",
+     "family": "Mulish",
+     "size": 19,
+     "weight": 600,
+     "color": "#AE4B0E",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "rect",
+     "x": 1270,
+     "y": 738,
+     "w": 518,
+     "h": 1,
+     "fill": "#D5CBB5"
+    },
+    {
+     "kind": "text",
+     "x": 1270,
+     "y": 752,
+     "w": 518,
      "h": 60,
-     "text": "Renewals closed, 97% of the quarter's book",
-     "family": "Nunito Sans",
-     "size": 22,
+     "text": "22 accounts moved up a tier and 9 moved down. 26 new logos, 8 churned, all eight under fifty seats.",
+     "family": "Mulish",
+     "size": 19,
      "weight": 400,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.4
+    },
+    {
+     "kind": "text",
+     "x": 1064,
+     "y": 908,
+     "w": 760,
+     "h": 48,
+     "text": "the five biggest reds are on page six",
+     "family": "Kalam",
+     "size": 32,
+     "weight": 700,
+     "color": "#AE4B0E",
+     "lineHeight": 1.2,
+     "align": "right"
     }
    ]
   },
   {
    "name": "Three cards",
-   "bg": "#F8F0E3",
+   "bg": "#F3EDDF",
    "nodes": [
     {
      "kind": "ellipse",
-     "x": 1700,
-     "y": -180,
-     "w": 380,
-     "h": 380,
-     "fill": "#5F8F5A",
-     "opacity": 0.22,
-     "bleed": true
+     "x": 1360,
+     "y": 40,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1440,
+     "y": 40,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1520,
+     "y": 40,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1600,
+     "y": 40,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1680,
+     "y": 40,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 40,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1360,
+     "y": 120,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1440,
+     "y": 120,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1520,
+     "y": 120,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1600,
+     "y": 120,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1680,
+     "y": 120,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 120,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1360,
+     "y": 200,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1440,
+     "y": 200,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1520,
+     "y": 200,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1600,
+     "y": 200,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1680,
+     "y": 200,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 200,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
     },
     {
      "kind": "text",
@@ -880,10 +5156,10 @@
      "w": 1200,
      "h": 28,
      "text": "Saves and wins",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 20,
      "weight": 600,
-     "color": "#E0703F",
+     "color": "#AE4B0E",
      "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
@@ -893,12 +5169,12 @@
      "x": 96,
      "y": 124,
      "w": 1240,
-     "h": 78,
+     "h": 76,
      "text": "Accounts we turned around",
-     "family": "Outfit",
-     "size": 64,
+     "family": "Signika",
+     "size": 62,
      "weight": 700,
-     "color": "#2F2A25",
+     "color": "#0F3A3D",
      "lineHeight": 1.06
     },
     {
@@ -907,7 +5183,7 @@
      "y": 968,
      "w": 1728,
      "h": 1,
-     "fill": "#DDD0BB"
+     "fill": "#D5CBB5"
     },
     {
      "kind": "text",
@@ -916,10 +5192,10 @@
      "w": 900,
      "h": 26,
      "text": "Fernwood  ·  Customer success review, Q3",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 18,
      "weight": 500,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.3
     },
     {
@@ -928,281 +5204,1196 @@
      "y": 992,
      "w": 240,
      "h": 26,
-     "text": "04 / 7",
-     "family": "Nunito Sans",
+     "text": "04 / 8",
+     "family": "Mulish",
      "size": 18,
      "weight": 500,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.3,
      "align": "right"
     },
     {
      "kind": "rect",
      "x": 96,
-     "y": 246,
+     "y": 244,
      "w": 560,
      "h": 580,
-     "fill": "#EFE4D0",
-     "radius": 28,
-     "stroke": "#DDD0BB",
+     "fill": "#EAE2CF",
+     "radius": 10,
+     "stroke": "#D5CBB5",
      "strokeWidth": 1.5
     },
     {
      "kind": "rect",
      "x": 96,
-     "y": 246,
+     "y": 244,
      "w": 560,
      "h": 6,
-     "fill": "#E0703F",
+     "fill": "#D9631A",
      "radius": 0
     },
     {
      "kind": "ellipse",
      "x": 136,
-     "y": 294,
+     "y": 292,
      "w": 80,
      "h": 80,
-     "fill": "#eccdb3"
+     "fill": "#e7c9ab"
     },
     {
      "kind": "icon",
      "icon": "heart",
      "x": 156,
-     "y": 314,
+     "y": 312,
      "w": 40,
      "h": 40,
-     "color": "#E0703F"
+     "color": "#D9631A"
     },
     {
      "kind": "text",
      "x": 136,
-     "y": 410,
+     "y": 408,
      "w": 480,
      "h": 100,
      "text": "Brightline Logistics",
-     "family": "Outfit",
+     "family": "Signika",
      "size": 34,
      "weight": 700,
-     "color": "#2F2A25",
+     "color": "#0F3A3D",
      "lineHeight": 1.1
     },
     {
      "kind": "text",
      "x": 136,
-     "y": 522,
+     "y": 520,
      "w": 480,
      "h": 160,
      "text": "Red in July after a champion left. New champion onboarded in two weeks; renewed for three years in September.",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 22,
      "weight": 400,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.4
     },
     {
      "kind": "rect",
      "x": 136,
-     "y": 742,
+     "y": 740,
      "w": 480,
      "h": 1,
-     "fill": "#DDD0BB"
+     "fill": "#D5CBB5"
     },
     {
      "kind": "text",
      "x": 136,
-     "y": 766,
+     "y": 764,
      "w": 120,
      "h": 28,
      "text": "01",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 18,
      "weight": 500,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.3
     },
     {
      "kind": "rect",
      "x": 680,
-     "y": 246,
+     "y": 244,
      "w": 560,
      "h": 580,
-     "fill": "#EFE4D0",
-     "radius": 28,
-     "stroke": "#DDD0BB",
+     "fill": "#EAE2CF",
+     "radius": 10,
+     "stroke": "#D5CBB5",
      "strokeWidth": 1.5
     },
     {
      "kind": "rect",
      "x": 680,
-     "y": 246,
+     "y": 244,
      "w": 560,
      "h": 6,
-     "fill": "#5F8F5A",
+     "fill": "#136F70",
      "radius": 0
     },
     {
      "kind": "ellipse",
      "x": 720,
-     "y": 294,
+     "y": 292,
      "w": 80,
      "h": 80,
-     "fill": "#d2d3b8"
+     "fill": "#bfcbbc"
     },
     {
      "kind": "icon",
      "icon": "shield",
      "x": 740,
-     "y": 314,
+     "y": 312,
      "w": 40,
      "h": 40,
-     "color": "#5F8F5A"
+     "color": "#136F70"
     },
     {
      "kind": "text",
      "x": 720,
-     "y": 410,
+     "y": 408,
      "w": 480,
      "h": 100,
      "text": "Meridian Health",
-     "family": "Outfit",
+     "family": "Signika",
      "size": 34,
      "weight": 700,
-     "color": "#2F2A25",
+     "color": "#0F3A3D",
      "lineHeight": 1.1
     },
     {
      "kind": "text",
      "x": 720,
-     "y": 522,
+     "y": 520,
      "w": 480,
      "h": 160,
      "text": "Blocked on a security review for four months. A named engineer cleared it in nine days.",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 22,
      "weight": 400,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.4
     },
     {
      "kind": "rect",
      "x": 720,
-     "y": 742,
+     "y": 740,
      "w": 480,
      "h": 1,
-     "fill": "#DDD0BB"
+     "fill": "#D5CBB5"
     },
     {
      "kind": "text",
      "x": 720,
-     "y": 766,
+     "y": 764,
      "w": 120,
      "h": 28,
      "text": "02",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 18,
      "weight": 500,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.3
     },
     {
      "kind": "rect",
      "x": 1264,
-     "y": 246,
+     "y": 244,
      "w": 560,
      "h": 580,
-     "fill": "#EFE4D0",
-     "radius": 28,
-     "stroke": "#DDD0BB",
+     "fill": "#EAE2CF",
+     "radius": 10,
+     "stroke": "#D5CBB5",
      "strokeWidth": 1.5
     },
     {
      "kind": "rect",
      "x": 1264,
-     "y": 246,
+     "y": 244,
      "w": 560,
      "h": 6,
-     "fill": "#E0703F",
+     "fill": "#D9631A",
      "radius": 0
     },
     {
      "kind": "ellipse",
      "x": 1304,
-     "y": 294,
+     "y": 292,
      "w": 80,
      "h": 80,
-     "fill": "#eccdb3"
+     "fill": "#e7c9ab"
     },
     {
      "kind": "icon",
      "icon": "sparkles",
      "x": 1324,
-     "y": 314,
+     "y": 312,
      "w": 40,
      "h": 40,
-     "color": "#E0703F"
+     "color": "#D9631A"
     },
     {
      "kind": "text",
      "x": 1304,
-     "y": 410,
+     "y": 408,
      "w": 480,
      "h": 100,
      "text": "Cobalt Retail",
-     "family": "Outfit",
+     "family": "Signika",
      "size": 34,
      "weight": 700,
-     "color": "#2F2A25",
+     "color": "#0F3A3D",
      "lineHeight": 1.1
     },
     {
      "kind": "text",
      "x": 1304,
-     "y": 522,
+     "y": 520,
      "w": 480,
      "h": 160,
      "text": "Usage had halved. A workflow rebuild with their team doubled it back and added two departments.",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 22,
      "weight": 400,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.4
     },
     {
      "kind": "rect",
      "x": 1304,
-     "y": 742,
+     "y": 740,
      "w": 480,
      "h": 1,
-     "fill": "#DDD0BB"
+     "fill": "#D5CBB5"
     },
     {
      "kind": "text",
      "x": 1304,
-     "y": 766,
+     "y": 764,
      "w": 120,
      "h": 28,
      "text": "03",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 18,
      "weight": 500,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1064,
+     "y": 908,
+     "w": 760,
+     "h": 48,
+     "text": "the other nineteen are in the appendix",
+     "family": "Kalam",
+     "size": 32,
+     "weight": 700,
+     "color": "#AE4B0E",
+     "lineHeight": 1.2,
+     "align": "right"
+    }
+   ]
+  },
+  {
+   "name": "Quote",
+   "bg": {
+    "angle": 160,
+    "stops": [
+     [
+      "#0F4C50",
+      0
+     ],
+     [
+      "#083134",
+      1
+     ]
+    ]
+   },
+   "nodes": [
+    {
+     "kind": "ellipse",
+     "x": 1320,
+     "y": 96,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1408,
+     "y": 96,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1496,
+     "y": 96,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1584,
+     "y": 96,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1672,
+     "y": 96,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 96,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1848,
+     "y": 96,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1320,
+     "y": 184,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1408,
+     "y": 184,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1496,
+     "y": 184,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1584,
+     "y": 184,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1672,
+     "y": 184,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 184,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1848,
+     "y": 184,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1320,
+     "y": 272,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1408,
+     "y": 272,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1496,
+     "y": 272,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1584,
+     "y": 272,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1672,
+     "y": 272,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 272,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1848,
+     "y": 272,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1320,
+     "y": 360,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1408,
+     "y": 360,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1496,
+     "y": 360,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1584,
+     "y": 360,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1672,
+     "y": 360,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 360,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1848,
+     "y": 360,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1320,
+     "y": 448,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1408,
+     "y": 448,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1496,
+     "y": 448,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1584,
+     "y": 448,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1672,
+     "y": 448,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 448,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1848,
+     "y": 448,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1320,
+     "y": 536,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1408,
+     "y": 536,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1496,
+     "y": 536,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1584,
+     "y": 536,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1672,
+     "y": 536,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 536,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1848,
+     "y": 536,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1320,
+     "y": 624,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1408,
+     "y": 624,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1496,
+     "y": 624,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1584,
+     "y": 624,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1672,
+     "y": 624,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 624,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1848,
+     "y": 624,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1320,
+     "y": 712,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1408,
+     "y": 712,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1496,
+     "y": 712,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1584,
+     "y": 712,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1672,
+     "y": 712,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 712,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1848,
+     "y": 712,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1320,
+     "y": 800,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1408,
+     "y": 800,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1496,
+     "y": 800,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1584,
+     "y": 800,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1672,
+     "y": 800,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 800,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1848,
+     "y": 800,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1227,
+     "y": 380,
+     "w": 9,
+     "h": 9,
+     "fill": "#F28C3C",
+     "opacity": 0.76
+    },
+    {
+     "kind": "ellipse",
+     "x": 1429,
+     "y": 468,
+     "w": 5,
+     "h": 5,
+     "fill": "#F28C3C",
+     "opacity": 0.63
+    },
+    {
+     "kind": "ellipse",
+     "x": 1261,
+     "y": 823,
+     "w": 5,
+     "h": 5,
+     "fill": "#F28C3C",
+     "opacity": 0.53
+    },
+    {
+     "kind": "ellipse",
+     "x": 1516,
+     "y": 289,
+     "w": 5,
+     "h": 5,
+     "fill": "#F28C3C",
+     "opacity": 0.39999999999999997
+    },
+    {
+     "kind": "ellipse",
+     "x": 1383,
+     "y": 304,
+     "w": 8,
+     "h": 8,
+     "fill": "#F28C3C",
+     "opacity": 0.36
+    },
+    {
+     "kind": "rect",
+     "x": 96,
+     "y": 968,
+     "w": 1728,
+     "h": 1,
+     "fill": "#215E62"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 992,
+     "w": 900,
+     "h": 26,
+     "text": "Fernwood  ·  Customer success review, Q3",
+     "family": "Mulish",
+     "size": 18,
+     "weight": 500,
+     "color": "#B2CCC9",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 1584,
+     "y": 992,
+     "w": 240,
+     "h": 26,
+     "text": "05 / 8",
+     "family": "Mulish",
+     "size": 18,
+     "weight": 500,
+     "color": "#B2CCC9",
+     "lineHeight": 1.3,
+     "align": "right"
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 180,
+     "w": 260,
+     "h": 260,
+     "text": "“",
+     "family": "Signika",
+     "size": 280,
+     "weight": 700,
+     "color": "#F8B577",
+     "lineHeight": 1
+    },
+    {
+     "kind": "text",
+     "x": 116,
+     "y": 400,
+     "w": 1100,
+     "h": 213,
+     "text": "The week our champion left, Fernwood called us before we had worked out who to call.",
+     "family": "Signika",
+     "size": 52,
+     "weight": 700,
+     "color": "#F3EDDF",
+     "lineHeight": 1.26
+    },
+    {
+     "kind": "ellipse",
+     "name": "Photo",
+     "x": 116,
+     "y": 673,
+     "w": 84,
+     "h": 84,
+     "fill": "#1D666A"
+    },
+    {
+     "kind": "text",
+     "x": 224,
+     "y": 681,
+     "w": 800,
+     "h": 32,
+     "text": "Rowan Achebe",
+     "family": "Mulish",
+     "size": 24,
+     "weight": 600,
+     "color": "#F3EDDF",
+     "lineHeight": 1.3
+    },
+    {
+     "kind": "text",
+     "x": 224,
+     "y": 717,
+     "w": 800,
+     "h": 28,
+     "text": "Chief Financial Officer, Brightline Logistics",
+     "family": "Mulish",
+     "size": 20,
+     "weight": 400,
+     "color": "#B2CCC9",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "text",
+     "x": 1140,
+     "y": 872,
+     "w": 720,
+     "h": 52,
+     "text": "renewed for three years in September",
+     "family": "Kalam",
+     "size": 34,
+     "weight": 700,
+     "color": "#F8B577",
+     "lineHeight": 1.2,
+     "align": "center"
+    }
+   ],
+   "illustrations": [
+    {
+     "asset": "op-peep-31",
+     "x": 128,
+     "y": 681,
+     "w": 60,
+     "h": 68
     }
    ]
   },
   {
    "name": "Comparison table",
-   "bg": "#F8F0E3",
+   "bg": "#F3EDDF",
    "nodes": [
     {
      "kind": "ellipse",
-     "x": 1700,
-     "y": -180,
-     "w": 380,
-     "h": 380,
-     "fill": "#5F8F5A",
-     "opacity": 0.22,
-     "bleed": true
+     "x": 1360,
+     "y": 40,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1440,
+     "y": 40,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1520,
+     "y": 40,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1600,
+     "y": 40,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1680,
+     "y": 40,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 40,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1360,
+     "y": 120,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1440,
+     "y": 120,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1520,
+     "y": 120,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1600,
+     "y": 120,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1680,
+     "y": 120,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 120,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1360,
+     "y": 200,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1440,
+     "y": 200,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1520,
+     "y": 200,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1600,
+     "y": 200,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1680,
+     "y": 200,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 200,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
     },
     {
      "kind": "text",
@@ -1211,10 +6402,10 @@
      "w": 1200,
      "h": 28,
      "text": "At risk",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 20,
      "weight": 600,
-     "color": "#E0703F",
+     "color": "#AE4B0E",
      "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
@@ -1224,12 +6415,12 @@
      "x": 96,
      "y": 124,
      "w": 1240,
-     "h": 78,
+     "h": 76,
      "text": "Where we need help, and by when",
-     "family": "Outfit",
-     "size": 64,
+     "family": "Signika",
+     "size": 62,
      "weight": 700,
-     "color": "#2F2A25",
+     "color": "#0F3A3D",
      "lineHeight": 1.06
     },
     {
@@ -1238,7 +6429,7 @@
      "y": 968,
      "w": 1728,
      "h": 1,
-     "fill": "#DDD0BB"
+     "fill": "#D5CBB5"
     },
     {
      "kind": "text",
@@ -1247,10 +6438,10 @@
      "w": 900,
      "h": 26,
      "text": "Fernwood  ·  Customer success review, Q3",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 18,
      "weight": 500,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.3
     },
     {
@@ -1259,423 +6450,589 @@
      "y": 992,
      "w": 240,
      "h": 26,
-     "text": "05 / 7",
-     "family": "Nunito Sans",
+     "text": "06 / 8",
+     "family": "Mulish",
      "size": 18,
      "weight": 500,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.3,
      "align": "right"
     },
     {
      "kind": "rect",
      "x": 96,
-     "y": 246,
+     "y": 244,
      "w": 1728,
      "h": 76,
      "fill": {
       "angle": 160,
       "stops": [
        [
-        "#2F4A36",
+        "#0F4C50",
         0
        ],
        [
-        "#1D3124",
+        "#083134",
         1
        ]
       ]
      },
-     "radius": 12
+     "radius": 10
     },
     {
      "kind": "text",
      "x": 696,
-     "y": 268,
+     "y": 266,
      "w": 376,
      "h": 32,
      "text": "Revenue",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 22,
      "weight": 600,
-     "color": "#F8F0E3",
+     "color": "#F3EDDF",
      "lineHeight": 1.3,
      "align": "center"
     },
     {
      "kind": "text",
      "x": 1072,
-     "y": 268,
+     "y": 266,
      "w": 376,
      "h": 32,
      "text": "Renewal",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 22,
      "weight": 600,
-     "color": "#F8F0E3",
+     "color": "#F3EDDF",
      "lineHeight": 1.3,
      "align": "center"
     },
     {
      "kind": "text",
      "x": 1448,
-     "y": 268,
+     "y": 266,
      "w": 376,
      "h": 32,
      "text": "Ask",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 22,
      "weight": 600,
-     "color": "#F8F0E3",
+     "color": "#F3EDDF",
      "lineHeight": 1.3,
      "align": "center"
     },
     {
      "kind": "text",
      "x": 128,
-     "y": 352,
+     "y": 350,
      "w": 536,
      "h": 36,
      "text": "Harbor & Vale",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 24,
      "weight": 600,
-     "color": "#2F2A25",
+     "color": "#0F3A3D",
      "lineHeight": 1.3
     },
     {
      "kind": "text",
      "x": 696,
-     "y": 352,
+     "y": 350,
      "w": 376,
      "h": 36,
      "text": "$240K",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 24,
      "weight": 600,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.3,
      "align": "center"
     },
     {
      "kind": "text",
      "x": 1072,
-     "y": 352,
+     "y": 350,
      "w": 376,
      "h": 36,
      "text": "November",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 24,
      "weight": 600,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.3,
      "align": "center"
     },
     {
      "kind": "text",
      "x": 1448,
-     "y": 352,
+     "y": 350,
      "w": 376,
      "h": 36,
      "text": "Exec sponsor call",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 24,
      "weight": 600,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.3,
      "align": "center"
     },
     {
      "kind": "rect",
      "x": 96,
-     "y": 417,
+     "y": 415,
      "w": 1728,
      "h": 1,
-     "fill": "#DDD0BB"
+     "fill": "#D5CBB5"
     },
     {
      "kind": "rect",
      "x": 96,
-     "y": 418,
+     "y": 416,
      "w": 1728,
      "h": 96,
-     "fill": "#EFE4D0"
+     "fill": "#EAE2CF"
     },
     {
      "kind": "text",
      "x": 128,
-     "y": 448,
+     "y": 446,
      "w": 536,
      "h": 36,
      "text": "Summit Freight",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 24,
      "weight": 600,
-     "color": "#2F2A25",
+     "color": "#0F3A3D",
      "lineHeight": 1.3
     },
     {
      "kind": "text",
      "x": 696,
-     "y": 448,
+     "y": 446,
      "w": 376,
      "h": 36,
      "text": "$180K",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 24,
      "weight": 600,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.3,
      "align": "center"
     },
     {
      "kind": "text",
      "x": 1072,
-     "y": 448,
+     "y": 446,
      "w": 376,
      "h": 36,
      "text": "December",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 24,
      "weight": 600,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.3,
      "align": "center"
     },
     {
      "kind": "text",
      "x": 1448,
-     "y": 448,
+     "y": 446,
      "w": 376,
      "h": 36,
      "text": "Integration fix",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 24,
      "weight": 600,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.3,
      "align": "center"
     },
     {
      "kind": "rect",
      "x": 96,
-     "y": 513,
+     "y": 511,
      "w": 1728,
      "h": 1,
-     "fill": "#DDD0BB"
+     "fill": "#D5CBB5"
     },
     {
      "kind": "text",
      "x": 128,
-     "y": 544,
+     "y": 542,
      "w": 536,
      "h": 36,
      "text": "Atlas Insurance",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 24,
      "weight": 600,
-     "color": "#2F2A25",
+     "color": "#0F3A3D",
      "lineHeight": 1.3
     },
     {
      "kind": "text",
      "x": 696,
-     "y": 544,
+     "y": 542,
      "w": 376,
      "h": 36,
      "text": "$160K",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 24,
      "weight": 600,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.3,
      "align": "center"
     },
     {
      "kind": "text",
      "x": 1072,
-     "y": 544,
+     "y": 542,
      "w": 376,
      "h": 36,
      "text": "January",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 24,
      "weight": 600,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.3,
      "align": "center"
     },
     {
      "kind": "text",
      "x": 1448,
-     "y": 544,
+     "y": 542,
      "w": 376,
      "h": 36,
      "text": "Pricing exception",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 24,
      "weight": 600,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.3,
      "align": "center"
     },
     {
      "kind": "rect",
      "x": 96,
-     "y": 609,
+     "y": 607,
      "w": 1728,
      "h": 1,
-     "fill": "#DDD0BB"
+     "fill": "#D5CBB5"
     },
     {
      "kind": "rect",
      "x": 96,
-     "y": 610,
+     "y": 608,
      "w": 1728,
      "h": 96,
-     "fill": "#EFE4D0"
+     "fill": "#EAE2CF"
     },
     {
      "kind": "text",
      "x": 128,
-     "y": 640,
+     "y": 638,
      "w": 536,
      "h": 36,
      "text": "Pinecrest Schools",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 24,
      "weight": 600,
-     "color": "#2F2A25",
+     "color": "#0F3A3D",
      "lineHeight": 1.3
     },
     {
      "kind": "text",
      "x": 696,
-     "y": 640,
+     "y": 638,
      "w": 376,
      "h": 36,
      "text": "$120K",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 24,
      "weight": 600,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.3,
      "align": "center"
     },
     {
      "kind": "text",
      "x": 1072,
-     "y": 640,
+     "y": 638,
      "w": 376,
      "h": 36,
      "text": "November",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 24,
      "weight": 600,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.3,
      "align": "center"
     },
     {
      "kind": "text",
      "x": 1448,
-     "y": 640,
+     "y": 638,
      "w": 376,
      "h": 36,
      "text": "Training day",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 24,
      "weight": 600,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.3,
      "align": "center"
     },
     {
      "kind": "rect",
      "x": 96,
-     "y": 705,
+     "y": 703,
      "w": 1728,
      "h": 1,
-     "fill": "#DDD0BB"
+     "fill": "#D5CBB5"
     },
     {
      "kind": "text",
      "x": 128,
-     "y": 736,
+     "y": 734,
      "w": 536,
      "h": 36,
      "text": "Northwind Systems",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 24,
      "weight": 600,
-     "color": "#2F2A25",
+     "color": "#0F3A3D",
      "lineHeight": 1.3
     },
     {
      "kind": "text",
      "x": 696,
-     "y": 736,
+     "y": 734,
      "w": 376,
      "h": 36,
      "text": "$95K",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 24,
      "weight": 600,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.3,
      "align": "center"
     },
     {
      "kind": "text",
      "x": 1072,
-     "y": 736,
+     "y": 734,
      "w": 376,
      "h": 36,
      "text": "December",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 24,
      "weight": 600,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.3,
      "align": "center"
     },
     {
      "kind": "text",
      "x": 1448,
-     "y": 736,
+     "y": 734,
      "w": 376,
      "h": 36,
      "text": "Roadmap commitment",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 24,
      "weight": 600,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.3,
      "align": "center"
     },
     {
      "kind": "rect",
      "x": 96,
-     "y": 801,
+     "y": 799,
      "w": 1728,
      "h": 1,
-     "fill": "#DDD0BB"
+     "fill": "#D5CBB5"
+    },
+    {
+     "kind": "text",
+     "x": 1064,
+     "y": 908,
+     "w": 760,
+     "h": 48,
+     "text": "the sponsor call cannot slip",
+     "family": "Kalam",
+     "size": 32,
+     "weight": 700,
+     "color": "#AE4B0E",
+     "lineHeight": 1.2,
+     "align": "right"
     }
    ]
   },
   {
    "name": "Process",
-   "bg": "#F8F0E3",
+   "bg": "#F3EDDF",
    "nodes": [
     {
      "kind": "ellipse",
-     "x": 1700,
-     "y": -180,
-     "w": 380,
-     "h": 380,
-     "fill": "#5F8F5A",
-     "opacity": 0.22,
-     "bleed": true
+     "x": 1360,
+     "y": 40,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1440,
+     "y": 40,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1520,
+     "y": 40,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1600,
+     "y": 40,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1680,
+     "y": 40,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 40,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1360,
+     "y": 120,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1440,
+     "y": 120,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1520,
+     "y": 120,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1600,
+     "y": 120,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1680,
+     "y": 120,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 120,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1360,
+     "y": 200,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1440,
+     "y": 200,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1520,
+     "y": 200,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1600,
+     "y": 200,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1680,
+     "y": 200,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 200,
+     "w": 5,
+     "h": 5,
+     "fill": "#0F3A3D",
+     "opacity": 0.14
     },
     {
      "kind": "text",
@@ -1684,10 +7041,10 @@
      "w": 1200,
      "h": 28,
      "text": "Expansion plays",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 20,
      "weight": 600,
-     "color": "#E0703F",
+     "color": "#AE4B0E",
      "letterSpacing": 4,
      "upper": true,
      "lineHeight": 1.2
@@ -1697,12 +7054,12 @@
      "x": 96,
      "y": 124,
      "w": 1240,
-     "h": 78,
+     "h": 76,
      "text": "The four motions that are landing",
-     "family": "Outfit",
-     "size": 64,
+     "family": "Signika",
+     "size": 62,
      "weight": 700,
-     "color": "#2F2A25",
+     "color": "#0F3A3D",
      "lineHeight": 1.06
     },
     {
@@ -1711,7 +7068,7 @@
      "y": 968,
      "w": 1728,
      "h": 1,
-     "fill": "#DDD0BB"
+     "fill": "#D5CBB5"
     },
     {
      "kind": "text",
@@ -1720,10 +7077,10 @@
      "w": 900,
      "h": 26,
      "text": "Fernwood  ·  Customer success review, Q3",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 18,
      "weight": 500,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.3
     },
     {
@@ -1732,33 +7089,33 @@
      "y": 992,
      "w": 240,
      "h": 26,
-     "text": "06 / 7",
-     "family": "Nunito Sans",
+     "text": "07 / 8",
+     "family": "Mulish",
      "size": 18,
      "weight": 500,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.3,
      "align": "right"
     },
     {
      "kind": "ellipse",
      "x": 96,
-     "y": 276,
+     "y": 274,
      "w": 88,
      "h": 88,
-     "fill": "#E0703F"
+     "fill": "#D9631A"
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 276,
+     "y": 274,
      "w": 88,
      "h": 88,
      "text": "1",
-     "family": "Outfit",
+     "family": "Signika",
      "size": 34,
      "weight": 700,
-     "color": "#2F2A25",
+     "color": "#0F3A3D",
      "align": "center",
      "vAlign": "middle",
      "lineHeight": 1
@@ -1766,56 +7123,56 @@
     {
      "kind": "rect",
      "x": 200,
-     "y": 319,
+     "y": 317,
      "w": 322,
      "h": 2,
-     "fill": "#DDD0BB"
+     "fill": "#D5CBB5"
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 408,
+     "y": 406,
      "w": 402,
      "h": 44,
      "text": "Department to department",
-     "family": "Outfit",
+     "family": "Signika",
      "size": 32,
      "weight": 700,
-     "color": "#2F2A25",
+     "color": "#0F3A3D",
      "lineHeight": 1.06
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 462,
+     "y": 460,
      "w": 378,
      "h": 150,
      "text": "A live customer walks a neighbouring team through their setup. Closed nine expansions this way.",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 21,
      "weight": 400,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.4
     },
     {
      "kind": "ellipse",
      "x": 538,
-     "y": 276,
+     "y": 274,
      "w": 88,
      "h": 88,
-     "fill": "#2F4A36"
+     "fill": "#0F4C50"
     },
     {
      "kind": "text",
      "x": 538,
-     "y": 276,
+     "y": 274,
      "w": 88,
      "h": 88,
      "text": "2",
-     "family": "Outfit",
+     "family": "Signika",
      "size": 34,
      "weight": 700,
-     "color": "#F8F0E3",
+     "color": "#F3EDDF",
      "align": "center",
      "vAlign": "middle",
      "lineHeight": 1
@@ -1823,56 +7180,56 @@
     {
      "kind": "rect",
      "x": 642,
-     "y": 319,
+     "y": 317,
      "w": 322,
      "h": 2,
-     "fill": "#DDD0BB"
+     "fill": "#D5CBB5"
     },
     {
      "kind": "text",
      "x": 538,
-     "y": 408,
+     "y": 406,
      "w": 402,
      "h": 44,
      "text": "Usage threshold",
-     "family": "Outfit",
+     "family": "Signika",
      "size": 32,
      "weight": 700,
-     "color": "#2F2A25",
+     "color": "#0F3A3D",
      "lineHeight": 1.06
     },
     {
      "kind": "text",
      "x": 538,
-     "y": 462,
+     "y": 460,
      "w": 378,
      "h": 150,
      "text": "At 80% of seats, the account manager books the review before the customer asks.",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 21,
      "weight": 400,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.4
     },
     {
      "kind": "ellipse",
      "x": 980,
-     "y": 276,
+     "y": 274,
      "w": 88,
      "h": 88,
-     "fill": "#2F4A36"
+     "fill": "#0F4C50"
     },
     {
      "kind": "text",
      "x": 980,
-     "y": 276,
+     "y": 274,
      "w": 88,
      "h": 88,
      "text": "3",
-     "family": "Outfit",
+     "family": "Signika",
      "size": 34,
      "weight": 700,
-     "color": "#F8F0E3",
+     "color": "#F3EDDF",
      "align": "center",
      "vAlign": "middle",
      "lineHeight": 1
@@ -1880,56 +7237,56 @@
     {
      "kind": "rect",
      "x": 1084,
-     "y": 319,
+     "y": 317,
      "w": 322,
      "h": 2,
-     "fill": "#DDD0BB"
+     "fill": "#D5CBB5"
     },
     {
      "kind": "text",
      "x": 980,
-     "y": 408,
+     "y": 406,
      "w": 402,
      "h": 44,
      "text": "Executive business review",
-     "family": "Outfit",
+     "family": "Signika",
      "size": 32,
      "weight": 700,
-     "color": "#2F2A25",
+     "color": "#0F3A3D",
      "lineHeight": 1.06
     },
     {
      "kind": "text",
      "x": 980,
-     "y": 462,
+     "y": 460,
      "w": 378,
      "h": 150,
      "text": "Twice a year for every account over $100K. Every expansion this quarter followed one.",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 21,
      "weight": 400,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.4
     },
     {
      "kind": "ellipse",
      "x": 1422,
-     "y": 276,
+     "y": 274,
      "w": 88,
      "h": 88,
-     "fill": "#2F4A36"
+     "fill": "#0F4C50"
     },
     {
      "kind": "text",
      "x": 1422,
-     "y": 276,
+     "y": 274,
      "w": 88,
      "h": 88,
      "text": "4",
-     "family": "Outfit",
+     "family": "Signika",
      "size": 34,
      "weight": 700,
-     "color": "#F8F0E3",
+     "color": "#F3EDDF",
      "align": "center",
      "vAlign": "middle",
      "lineHeight": 1
@@ -1937,28 +7294,42 @@
     {
      "kind": "text",
      "x": 1422,
-     "y": 408,
+     "y": 406,
      "w": 402,
      "h": 44,
      "text": "Partner referral",
-     "family": "Outfit",
+     "family": "Signika",
      "size": 32,
      "weight": 700,
-     "color": "#2F2A25",
+     "color": "#0F3A3D",
      "lineHeight": 1.06
     },
     {
      "kind": "text",
      "x": 1422,
-     "y": 462,
+     "y": 460,
      "w": 378,
      "h": 150,
      "text": "Partners introduce their other customers. Four expansions, all in the first meeting.",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 21,
      "weight": 400,
-     "color": "#786C5F",
+     "color": "#4A6A6B",
      "lineHeight": 1.4
+    },
+    {
+     "kind": "text",
+     "x": 1064,
+     "y": 908,
+     "w": 760,
+     "h": 48,
+     "text": "all thirteen followed a business review",
+     "family": "Kalam",
+     "size": 32,
+     "weight": 700,
+     "color": "#AE4B0E",
+     "lineHeight": 1.2,
+     "align": "right"
     }
    ]
   },
@@ -1968,11 +7339,11 @@
     "angle": 160,
     "stops": [
      [
-      "#2F4A36",
+      "#0F4C50",
       0
      ],
      [
-      "#1D3124",
+      "#083134",
       1
      ]
     ]
@@ -1980,96 +7351,615 @@
    "nodes": [
     {
      "kind": "ellipse",
-     "x": 1480,
-     "y": -260,
-     "w": 760,
-     "h": 760,
-     "fill": "#A9D2A0",
-     "opacity": 0.4,
-     "bleed": true
-    },
-    {
-     "kind": "ellipse",
-     "x": -200,
-     "y": 720,
-     "w": 560,
-     "h": 560,
-     "fill": "#F2905E",
-     "opacity": 0.35,
-     "bleed": true
-    },
-    {
-     "kind": "ellipse",
-     "x": 1720,
-     "y": 720,
-     "w": 300,
-     "h": 300,
-     "fill": "#F2C063",
-     "opacity": 0.6,
-     "bleed": true
-    },
-    {
-     "kind": "ellipse",
-     "x": 1353,
-     "y": 725,
-     "w": 5,
-     "h": 5,
-     "fill": "#F8F0E3",
-     "opacity": 0.5
-    },
-    {
-     "kind": "ellipse",
-     "x": 261,
-     "y": 647,
-     "w": 7,
-     "h": 7,
-     "fill": "#F8F0E3",
-     "opacity": 0.43999999999999995
-    },
-    {
-     "kind": "ellipse",
-     "x": 864,
-     "y": 872,
+     "x": 1320,
+     "y": 96,
      "w": 6,
      "h": 6,
-     "fill": "#F8F0E3",
-     "opacity": 0.71
+     "fill": "#F3EDDF",
+     "opacity": 0.16
     },
     {
      "kind": "ellipse",
-     "x": 1720,
-     "y": 907,
-     "w": 5,
-     "h": 5,
-     "fill": "#F8F0E3",
-     "opacity": 0.6
-    },
-    {
-     "kind": "ellipse",
-     "x": 1737,
-     "y": 697,
-     "w": 8,
-     "h": 8,
-     "fill": "#F8F0E3",
-     "opacity": 0.42
-    },
-    {
-     "kind": "ellipse",
-     "x": 1893,
-     "y": 153,
+     "x": 1408,
+     "y": 96,
      "w": 6,
      "h": 6,
-     "fill": "#F8F0E3",
-     "opacity": 0.7
+     "fill": "#F3EDDF",
+     "opacity": 0.16
     },
     {
      "kind": "ellipse",
-     "x": 526,
-     "y": 452,
+     "x": 1496,
+     "y": 96,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1584,
+     "y": 96,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1672,
+     "y": 96,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 96,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1848,
+     "y": 96,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1320,
+     "y": 184,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1408,
+     "y": 184,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1496,
+     "y": 184,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1584,
+     "y": 184,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1672,
+     "y": 184,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 184,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1848,
+     "y": 184,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1320,
+     "y": 272,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1408,
+     "y": 272,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1496,
+     "y": 272,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1584,
+     "y": 272,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1672,
+     "y": 272,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 272,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1848,
+     "y": 272,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1320,
+     "y": 360,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1408,
+     "y": 360,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1496,
+     "y": 360,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1584,
+     "y": 360,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1672,
+     "y": 360,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 360,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1848,
+     "y": 360,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1320,
+     "y": 448,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1408,
+     "y": 448,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1496,
+     "y": 448,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1584,
+     "y": 448,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1672,
+     "y": 448,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 448,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1848,
+     "y": 448,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1320,
+     "y": 536,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1408,
+     "y": 536,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1496,
+     "y": 536,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1584,
+     "y": 536,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1672,
+     "y": 536,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 536,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1848,
+     "y": 536,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1320,
+     "y": 624,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1408,
+     "y": 624,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1496,
+     "y": 624,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1584,
+     "y": 624,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1672,
+     "y": 624,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 624,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1848,
+     "y": 624,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1320,
+     "y": 712,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1408,
+     "y": 712,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1496,
+     "y": 712,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1584,
+     "y": 712,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1672,
+     "y": 712,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 712,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1848,
+     "y": 712,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1320,
+     "y": 800,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1408,
+     "y": 800,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1496,
+     "y": 800,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1584,
+     "y": 800,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1672,
+     "y": 800,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1760,
+     "y": 800,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1848,
+     "y": 800,
+     "w": 6,
+     "h": 6,
+     "fill": "#F3EDDF",
+     "opacity": 0.16
+    },
+    {
+     "kind": "ellipse",
+     "x": 1227,
+     "y": 380,
      "w": 9,
      "h": 9,
-     "fill": "#F8F0E3",
-     "opacity": 0.38
+     "fill": "#F28C3C",
+     "opacity": 0.76
+    },
+    {
+     "kind": "ellipse",
+     "x": 1429,
+     "y": 468,
+     "w": 5,
+     "h": 5,
+     "fill": "#F28C3C",
+     "opacity": 0.63
+    },
+    {
+     "kind": "ellipse",
+     "x": 1261,
+     "y": 823,
+     "w": 5,
+     "h": 5,
+     "fill": "#F28C3C",
+     "opacity": 0.53
+    },
+    {
+     "kind": "ellipse",
+     "x": 1516,
+     "y": 289,
+     "w": 5,
+     "h": 5,
+     "fill": "#F28C3C",
+     "opacity": 0.39999999999999997
+    },
+    {
+     "kind": "ellipse",
+     "x": 1383,
+     "y": 304,
+     "w": 8,
+     "h": 8,
+     "fill": "#F28C3C",
+     "opacity": 0.36
     },
     {
      "kind": "ellipse",
@@ -2077,7 +7967,7 @@
      "y": 200,
      "w": 640,
      "h": 640,
-     "fill": "#F2905E",
+     "fill": "#F28C3C",
      "opacity": 0.12
     },
     {
@@ -2086,7 +7976,7 @@
      "y": 264,
      "w": 512,
      "h": 512,
-     "fill": "#F2905E",
+     "fill": "#F28C3C",
      "opacity": 0.16
     },
     {
@@ -2095,7 +7985,7 @@
      "y": 96,
      "w": 22,
      "h": 22,
-     "fill": "#F2905E",
+     "fill": "#F28C3C",
      "radius": 6
     },
     {
@@ -2105,10 +7995,10 @@
      "w": 700,
      "h": 30,
      "text": "Fernwood",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 22,
      "weight": 600,
-     "color": "#F8F0E3",
+     "color": "#F3EDDF",
      "lineHeight": 1.3
     },
     {
@@ -2118,10 +8008,10 @@
      "w": 1000,
      "h": 60,
      "text": "Thanks, team",
-     "family": "Caveat",
-     "size": 46,
-     "weight": 600,
-     "color": "#F2905E",
+     "family": "Kalam",
+     "size": 40,
+     "weight": 700,
+     "color": "#F8B577",
      "lineHeight": 1.2
     },
     {
@@ -2129,25 +8019,25 @@
      "x": 96,
      "y": 300,
      "w": 1100,
-     "h": 140,
+     "h": 135,
      "text": "Next quarter",
-     "family": "Outfit",
-     "size": 118,
+     "family": "Signika",
+     "size": 114,
      "weight": 700,
-     "color": "#F8F0E3",
+     "color": "#F3EDDF",
      "lineHeight": 1.06
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 464,
+     "y": 459,
      "w": 940,
      "h": 120,
      "text": "Coverage moves to pods of three, the sixteen red accounts each get a named owner, and the focus list is on the wall.",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 28,
      "weight": 400,
-     "color": "#BBC9B4",
+     "color": "#B2CCC9",
      "lineHeight": 1.4
     },
     {
@@ -2157,7 +8047,7 @@
      "y": 702,
      "w": 28,
      "h": 28,
-     "color": "#F2905E"
+     "color": "#F28C3C"
     },
     {
      "kind": "text",
@@ -2166,10 +8056,10 @@
      "w": 800,
      "h": 34,
      "text": "dana@fernwood.example",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 24,
      "weight": 500,
-     "color": "#F8F0E3",
+     "color": "#F3EDDF",
      "lineHeight": 1.3
     },
     {
@@ -2179,7 +8069,7 @@
      "y": 764,
      "w": 28,
      "h": 28,
-     "color": "#F2905E"
+     "color": "#F28C3C"
     },
     {
      "kind": "text",
@@ -2188,10 +8078,10 @@
      "w": 800,
      "h": 34,
      "text": "success.fernwood.example",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 24,
      "weight": 500,
-     "color": "#F8F0E3",
+     "color": "#F3EDDF",
      "lineHeight": 1.3
     },
     {
@@ -2201,7 +8091,7 @@
      "y": 826,
      "w": 28,
      "h": 28,
-     "color": "#F2905E"
+     "color": "#F28C3C"
     },
     {
      "kind": "text",
@@ -2210,10 +8100,10 @@
      "w": 800,
      "h": 34,
      "text": "Next review: 12 January",
-     "family": "Nunito Sans",
+     "family": "Mulish",
      "size": 24,
      "weight": 500,
-     "color": "#F8F0E3",
+     "color": "#F3EDDF",
      "lineHeight": 1.3
     },
     {
@@ -2223,12 +8113,12 @@
      "w": 340,
      "h": 64,
      "label": "See the focus accounts",
-     "fill": "#F2905E",
-     "color": "#2F2A25",
-     "family": "Nunito Sans",
+     "fill": "#F28C3C",
+     "color": "#0F3A3D",
+     "family": "Mulish",
      "size": 22,
      "weight": 700,
-     "radius": 28
+     "radius": 10
     },
     {
      "kind": "text",
@@ -2236,18 +8126,32 @@
      "y": 940,
      "w": 240,
      "h": 28,
-     "text": "07 / 7",
-     "family": "Nunito Sans",
+     "text": "08 / 8",
+     "family": "Mulish",
      "size": 18,
      "weight": 500,
-     "color": "#BBC9B4",
+     "color": "#B2CCC9",
      "lineHeight": 1.3,
      "align": "right"
+    },
+    {
+     "kind": "text",
+     "x": 1140,
+     "y": 872,
+     "w": 720,
+     "h": 52,
+     "text": "the list is on the wall by room four",
+     "family": "Kalam",
+     "size": 34,
+     "weight": 700,
+     "color": "#F8B577",
+     "lineHeight": 1.2,
+     "align": "center"
     }
    ],
    "illustrations": [
     {
-     "asset": "od-strolling",
+     "asset": "la-small-character-illustrations",
      "x": 1250,
      "y": 250,
      "w": 540,
@@ -2258,43 +8162,43 @@
  ],
  "fillable": [
   {
-   "node": "p0-n11",
+   "node": "p0-n69",
    "kind": "text",
    "label": "Company",
    "hint": "Your company or team name"
   },
   {
-   "node": "p0-n13",
+   "node": "p0-n71",
    "kind": "text",
    "label": "Title",
    "hint": "Two short lines"
   },
   {
-   "node": "p0-n14",
+   "node": "p0-n72",
    "kind": "text",
    "label": "Subtitle",
    "hint": "One sentence on what the deck covers"
   },
   {
-   "node": "p0-n15",
+   "node": "p0-n73",
    "kind": "text",
    "label": "Presenter and date",
    "hint": "Who presents, and when"
   },
   {
-   "node": "p6-n18",
+   "node": "p7-n76",
    "kind": "text",
    "label": "Email",
    "hint": "Contact detail"
   },
   {
-   "node": "p6-n20",
+   "node": "p7-n78",
    "kind": "text",
    "label": "Website",
    "hint": "Contact detail"
   },
   {
-   "node": "p6-n22",
+   "node": "p7-n80",
    "kind": "text",
    "label": "Phone",
    "hint": "Contact detail"

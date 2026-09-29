@@ -201,7 +201,7 @@ export function type(K, g) {
     strong: (size, o = {}) => ({ family: K.body, size, weight: 600, color: g.ink, lineHeight: 1.3, ...o }),
     eyebrow: (o = {}) => ({ family: K.mono ?? K.body, size: 20, weight: 600, color: g.accentInk ?? g.accent, letterSpacing: 4, upper: true, lineHeight: 1.2, ...o }),
     meta: (o = {}) => ({ family: K.mono ?? K.body, size: 18, weight: 500, color: g.muted, lineHeight: 1.3, ...o }),
-    numeral: (size, o = {}) => ({ family: K.display, size, weight: K.dw, color: g.accentInk ?? g.accent, lineHeight: 1, ...o }),
+    numeral: (size, o = {}) => ({ family: K.numeralFace ?? K.display, size, weight: K.numeralWeight ?? K.dw, color: g.accentInk ?? g.accent, lineHeight: 1, ...o }),
     /** The kicker line in the look's accent face: the one voice that is
      *  neither the display nor the body. */
     kicker: (o = {}) => ({ family: K.accentFace, size: K.accentSize, weight: K.accentWeight, color: g.accentInk ?? g.accent, lineHeight: 1.2, ...o }),
@@ -241,7 +241,7 @@ export function halo(cx, cy, size, color) {
 }
 
 /** A scatter of small dots at varied opacity, deterministic per seed. */
-export function sparkles(color, seed, n = 7, box = { x: 0, y: 0, w: W, h: H }) {
+export function sparkles(color, seed, n = 7, box = { x: 1180, y: 0, w: W - 1180, h: H - 120 }) {
   let s = seed * 9301 + 49297;
   const rnd = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
   const out = [];
@@ -277,7 +277,7 @@ function crosshairs(color, opacity) {
 export function ornamentDeep(K, g, opts = {}) {
   switch (K.ornament) {
     case "rules":
-      return [rect(40, 40, W - 80, H - 80, undefined, { stroke: g.accent, strokeWidth: 1.5, opacity: 0.7 }), ...sparkles(g.accent, 3, 8)];
+      return [rect(40, 40, W - 80, H - 80, undefined, { stroke: g.accent, strokeWidth: 1.5, opacity: 0.7 }), ...sparkles(g.accent, 3, 8, { x: 1100, y: 60, w: 760, h: 860 })];
     case "glow":
       return [
         ellipse(1380, -420, 1100, 1100, { angle: 135, stops: [[g.accent2, 0], [g.bg2, 1]], radial: true }, { opacity: 0.6, bleed: true }),
@@ -329,7 +329,7 @@ export function ornamentDeep(K, g, opts = {}) {
       // A dot grid over the right third, fading nothing: texture, not pattern.
       const out = [];
       for (let r = 0; r < 9; r++) for (let c = 0; c < 7; c++) out.push(ellipse(1320 + c * 88, 96 + r * 88, 6, 6, g.ink, { opacity: 0.16 }));
-      return [...out, ...sparkles(g.accent, 17, 5)];
+      return [...out, ...sparkles(g.accent, 17, 5, { x: 1180, y: 60, w: 680, h: 820 })];
     }
     case "stripes":
       // Three diagonal bands in tints of the accent, behind everything.
@@ -427,9 +427,10 @@ export function footer(K, g, i) {
 
 /** A slide's hand note in the accent face: bottom right on a reading page
  *  (above the footer rule), under the picture on a deep page. */
-export function note(K, g, str, deep = false) {
+export function note(K, g, str, deep = false, at = null) {
   if (!str) return [];
   const t = type(K, g);
+  if (at) return [text(at.x, at.y, at.w ?? 720, 52, str, t.kicker({ align: at.align ?? "center", size: Math.round(K.accentSize * 0.85) }))];
   return deep
     ? [text(1140, 872, 720, 52, str, t.kicker({ align: "center", size: Math.round(K.accentSize * 0.85) }))]
     : [text(W - M - 760, 908, 760, 48, str, t.kicker({ align: "right", size: Math.round(K.accentSize * 0.8) }))];
@@ -586,7 +587,7 @@ export function cover(K, i, c0) {
   if (centered) {
     // The flyer's composition: the drawing in its halo above a centered title.
     nodes.push(...halo(W / 2, 330, 400, g.accent));
-    illustrations.push(art(K.art.cover, W / 2 - 170, 190, 340, 280));
+    illustrations.push(art(c.art ?? K.art.cover, W / 2 - 170, 190, 340, 280));
     nodes.push(text(M, 500, CW, 56, K.kicker, t.kicker({ align: "center" })));
     nodes.push(text(M, 560, CW, titleH, c.title, t.display(coverSize, { lineHeight: 1.02, align: "center" })));
     fill.push({ node: nodes.length - 1, label: "Title", hint: "Two short lines" });
@@ -613,41 +614,44 @@ export function cover(K, i, c0) {
   nodes.push(text(M, 940, 900, 28, c.presenter, t.meta()));
   fill.push({ node: nodes.length - 1, label: "Presenter and date", hint: "Who presents, and when" });
   if (K.total > 1) nodes.push(text(W - M - 240, 940, 240, 28, pageNo(i, K.total), t.meta({ align: "right" })));
-  // The hero: a full-colour drawing in a halo, per look.
+  // The hero: a full-colour drawing in a halo, per look. Chips of figures
+  // under the subtitle for the glow look, or for any look that asks.
+  const coverArt = c.art ?? K.art.cover;
+  const chips = c0?.chips ?? (K.ornament === "glow" ? c.chips : null);
+  if (chips) {
+    chips.forEach(([n, l], k) => {
+      const x = M + k * 300;
+      nodes.push(rect(x, 848, 276, 64, g.panel, { radius: K.radius, stroke: g.line, strokeWidth: 1.5 }));
+      nodes.push(text(x + 20, 860, 130, 40, n, t.numeral(26, { family: K.mono ?? K.numeralFace ?? K.display })));
+      nodes.push(text(x + 150, 868, 110, 26, l, t.meta({ size: 16 })));
+    });
+  }
   switch (K.ornament) {
     case "blocks":
       nodes.push(rect(1272, 0, 648, H, g.accent, { bleed: true }));
       nodes.push(ellipse(1316, 260, 560, 560, g.ink, { opacity: 0.18 }));
       nodes.push(...confetti([g.lime, g.ink, g.bg], 4, 8, { x: 1290, y: 80, w: 610, h: 920 }));
       nodes.push(text(1330, 96, 500, 48, c.year, t.display(40, { align: "right" })));
-      illustrations.push(art(K.art.cover, 1336, 300, 520, 480));
+      illustrations.push(art(coverArt, 1336, 300, 520, 480));
       break;
-    case "glow": {
+    case "glow":
       nodes.push(...halo(1500, 470, 640, g.accent));
-      illustrations.push(art(K.art.cover, 1230, 200, 540, 540));
-      // Three figures as chips under the subtitle: the tech look's habit.
-      c.chips.forEach(([n, l], k) => {
-        const x = M + k * 300;
-        nodes.push(rect(x, 848, 276, 64, g.panel, { radius: K.radius, stroke: g.line, strokeWidth: 1.5 }));
-        nodes.push(text(x + 20, 860, 130, 40, n, t.numeral(26, { family: K.mono })));
-        nodes.push(text(x + 150, 868, 110, 26, l, t.meta({ size: 16 })));
-      });
+      illustrations.push(art(coverArt, 1230, 200, 540, 540));
       break;
-    }
     case "blobs":
       nodes.push(ellipse(1180, 200, 660, 660, g.panel2));
       nodes.push(...halo(1510, 530, 700, g.sun));
-      illustrations.push(art(K.art.cover, 1230, 240, 560, 580));
+      illustrations.push(art(coverArt, 1230, 240, 560, 580));
       break;
     case "crosshairs":
       nodes.push(rect(1176, 0, 744, H, g.panel, { bleed: true }));
       nodes.push(rect(1176, 0, 4, H, g.accent));
       nodes.push(...halo(1548, 540, 620, g.accent));
-      illustrations.push(art(K.art.cover, 1260, 260, 580, 560));
+      illustrations.push(art(coverArt, 1260, 260, 580, 560));
       break;
     default:
       nodes.push(...halo(1500, 520, 700, g.accent));
-      illustrations.push(art(K.art.cover, 1210, 230, 580, 580));
+      illustrations.push(art(coverArt, 1210, 230, 580, 580));
       break;
   }
   nodes.push(...note(K, g, c.note, true));
@@ -820,9 +824,10 @@ export function figures(K, i, c0) {
     const tone = k % 2 ? g.accent2 : g.accent;
     nodes.push(card(K, g, x, y, cw, h));
     nodes.push(rect(x, y, cw, 6, tone, { radius: 0 }));
-    nodes.push(text(x + 36, y + 56, cw - 72, K.scale.numeral + 16, n, t.numeral(K.scale.numeral * (n.length > 5 ? 0.8 : 1), { color: tone })));
+    nodes.push(text(x + 36, y + 56, cw - 72, K.scale.numeral + 16, n, t.numeral(K.scale.numeral * (n.length > 5 ? 0.8 : 1), { color: k % 2 ? (g.accent2Ink ?? g.accent2) : (g.accentInk ?? g.accent) })));
     nodes.push(text(x + 36, y + 196, cw - 72, 34, l, t.strong(24)));
-    nodes.push(button(x + 36, y + 250, 190, 40, d, { fill: mixHex(g.panel, tone, 0.18), color: tone, family: K.body, size: 17, weight: 700 }));
+    const toneInk = k % 2 ? (g.accent2Ink ?? g.accent2) : (g.accentInk ?? g.accent);
+    nodes.push(button(x + 36, y + 250, 190, 40, d, { fill: mixHex(g.panel, tone, 0.18), color: toneInk, family: K.body, size: 17, weight: 700 }));
     nodes.push(text(x + 36, y + 320, cw - 72, 140, note, t.body(20)));
   });
   nodes.push(...note(K, g, c.note));
@@ -953,7 +958,7 @@ export function team(K, i, c0) {
     const peeps = c.peeps ?? K.peeps;
     illustrations.push(art(peeps[k % peeps.length], px + 30, y + 22, 160, 176));
     nodes.push(text(x, y + 252, cw, 40, name, t.display(30, { align: "center" })));
-    nodes.push(text(x, y + 298, cw, 28, r, t.eyebrow({ align: "center", size: 17, color: tone })));
+    nodes.push(text(x, y + 298, cw, 28, r, t.eyebrow({ align: "center", size: 17, color: k % 2 ? (g.accent2Ink ?? g.accent2) : (g.accentInk ?? g.accent) })));
     nodes.push(text(x + 24, y + 344, cw - 48, 96, b, t.body(21, { align: "center" })));
   });
   nodes.push(...note(K, g, c.note));
@@ -967,7 +972,8 @@ export function quote(K, i, c0) {
   const nodes = [...ornamentDeep(K, g), ...footer(K, g, i)];
   nodes.push(text(M, 180, 260, 260, "“", t.numeral(280, { lineHeight: 1 })));
   const qh = Math.round(K.scale.quote * 1.3 * 3) + 10;
-  nodes.push(text(M + 20, 400, 1400, qh, c.text, t.display(K.scale.quote, { lineHeight: 1.26, weight: K.display === "Fraunces" ? 400 : K.dw })));
+  const qw = K.ornament === "dots" || K.ornament === "watermark" ? 1100 : 1400;
+  nodes.push(text(M + 20, 400, qw, qh, c.text, t.display(K.scale.quote, { lineHeight: 1.26, weight: K.display === "Fraunces" ? 400 : K.dw })));
   const ay = 400 + qh + 60;
   nodes.push(photo(M + 20, ay, 84, 84, g.panel2, { shape: "ellipse" }));
   const illustrations = [art(K.peeps[4 % K.peeps.length], M + 32, ay + 8, 60, 68)];
@@ -1280,7 +1286,7 @@ export function buildSpec(look0, plan) {
     const layout = LAYOUTS[name];
     if (!layout) throw new Error(`${plan.id}: unknown layout ${name}`);
     const { page, fill } = layout(K, i, content);
-    if (content?.name) page.name = content.name;
+    if (content?.pageName) page.name = content.pageName;
     pages.push(page);
     for (const f of fill ?? []) fillable.push({ node: `p${i}-n${f.node}`, kind: "text", label: f.label, hint: f.hint });
   });

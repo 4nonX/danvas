@@ -88,7 +88,8 @@ function baseNode(id, n) {
 function shapeNode(id, n, shape) {
   const out = { ...baseNode(id, n), type: "shape", shape, fills: n.fill === undefined ? [] : [fillOf(n.fill)] };
   if (n.radius) out.cornerRadius = radius(n.radius);
-  if (n.stroke) out.strokes = [{ ...fillOf(n.stroke), width: n.strokeWidth ?? 2 }];
+  // The schema's stroke is singular; both renderers read node.stroke.
+  if (n.stroke) out.stroke = { fill: fillOf(n.stroke), width: n.strokeWidth ?? 2, align: "center", cap: "butt", join: "miter" };
   return out;
 }
 
