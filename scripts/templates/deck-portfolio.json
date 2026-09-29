@@ -261,7 +261,8 @@
      "w": 620,
      "h": 620,
      "fill": "#4D82FF",
-     "opacity": 0.12
+     "opacity": 0.12,
+     "bleed": true
     },
     {
      "kind": "ellipse",
@@ -270,7 +271,8 @@
      "w": 496,
      "h": 496,
      "fill": "#4D82FF",
-     "opacity": 0.16
+     "opacity": 0.16,
+     "bleed": true
     }
    ],
    "illustrations": [
@@ -575,7 +577,7 @@
      "x": 1080,
      "y": 196,
      "w": 744,
-     "h": 740,
+     "h": 690,
      "fill": {
       "angle": 160,
       "stops": [
@@ -592,30 +594,32 @@
     },
     {
      "kind": "ellipse",
-     "x": 1192,
-     "y": 306,
-     "w": 520,
-     "h": 520,
+     "x": 1202,
+     "y": 291,
+     "w": 500,
+     "h": 500,
      "fill": "#2F6BFF",
-     "opacity": 0.12
+     "opacity": 0.12,
+     "bleed": true
     },
     {
      "kind": "ellipse",
-     "x": 1244,
-     "y": 358,
-     "w": 416,
-     "h": 416,
+     "x": 1252,
+     "y": 341,
+     "w": 400,
+     "h": 400,
      "fill": "#2F6BFF",
-     "opacity": 0.16
+     "opacity": 0.16,
+     "bleed": true
     }
    ],
    "illustrations": [
     {
      "asset": "la-ui-design",
-     "x": 1150,
-     "y": 280,
-     "w": 604,
-     "h": 570
+     "x": 1160,
+     "y": 270,
+     "w": 584,
+     "h": 540
     }
    ]
   },
@@ -911,7 +915,7 @@
      "x": 1080,
      "y": 196,
      "w": 744,
-     "h": 740,
+     "h": 690,
      "fill": {
       "angle": 160,
       "stops": [
@@ -928,30 +932,32 @@
     },
     {
      "kind": "ellipse",
-     "x": 1192,
-     "y": 306,
-     "w": 520,
-     "h": 520,
+     "x": 1202,
+     "y": 291,
+     "w": 500,
+     "h": 500,
      "fill": "#2F6BFF",
-     "opacity": 0.12
+     "opacity": 0.12,
+     "bleed": true
     },
     {
      "kind": "ellipse",
-     "x": 1244,
-     "y": 358,
-     "w": 416,
-     "h": 416,
+     "x": 1252,
+     "y": 341,
+     "w": 400,
+     "h": 400,
      "fill": "#2F6BFF",
-     "opacity": 0.16
+     "opacity": 0.16,
+     "bleed": true
     }
    ],
    "illustrations": [
     {
      "asset": "la-ui-design",
-     "x": 1150,
-     "y": 280,
-     "w": 604,
-     "h": 570
+     "x": 1160,
+     "y": 270,
+     "w": 584,
+     "h": 540
     }
    ]
   },
@@ -1863,7 +1869,8 @@
      "w": 640,
      "h": 640,
      "fill": "#4D82FF",
-     "opacity": 0.12
+     "opacity": 0.12,
+     "bleed": true
     },
     {
      "kind": "ellipse",
@@ -1872,7 +1879,8 @@
      "w": 512,
      "h": 512,
      "fill": "#4D82FF",
-     "opacity": 0.16
+     "opacity": 0.16,
+     "bleed": true
     },
     {
      "kind": "rect",

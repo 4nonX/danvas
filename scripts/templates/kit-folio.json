@@ -112,7 +112,8 @@
      "w": 400,
      "h": 400,
      "fill": "#F26A48",
-     "opacity": 0.12
+     "opacity": 0.12,
+     "bleed": true
     },
     {
      "kind": "ellipse",
@@ -121,7 +122,8 @@
      "w": 320,
      "h": 320,
      "fill": "#F26A48",
-     "opacity": 0.16
+     "opacity": 0.16,
+     "bleed": true
     },
     {
      "kind": "text",
@@ -964,7 +966,8 @@
      "w": 560,
      "h": 560,
      "fill": "#F26A48",
-     "opacity": 0.12
+     "opacity": 0.12,
+     "bleed": true
     },
     {
      "kind": "ellipse",
@@ -973,7 +976,8 @@
      "w": 448,
      "h": 448,
      "fill": "#F26A48",
-     "opacity": 0.16
+     "opacity": 0.16,
+     "bleed": true
     },
     {
      "kind": "text",
@@ -1353,7 +1357,7 @@
      "x": 1080,
      "y": 196,
      "w": 744,
-     "h": 740,
+     "h": 690,
      "fill": {
       "angle": 160,
       "stops": [
@@ -1370,30 +1374,32 @@
     },
     {
      "kind": "ellipse",
-     "x": 1192,
-     "y": 306,
-     "w": 520,
-     "h": 520,
+     "x": 1202,
+     "y": 291,
+     "w": 500,
+     "h": 500,
      "fill": "#E0492B",
-     "opacity": 0.12
+     "opacity": 0.12,
+     "bleed": true
     },
     {
      "kind": "ellipse",
-     "x": 1244,
-     "y": 358,
-     "w": 416,
-     "h": 416,
+     "x": 1252,
+     "y": 341,
+     "w": 400,
+     "h": 400,
      "fill": "#E0492B",
-     "opacity": 0.16
+     "opacity": 0.16,
+     "bleed": true
     }
    ],
    "illustrations": [
     {
      "asset": "la-doodle",
-     "x": 1150,
-     "y": 280,
-     "w": 604,
-     "h": 570
+     "x": 1160,
+     "y": 270,
+     "w": 584,
+     "h": 540
     }
    ]
   },
@@ -3988,7 +3994,8 @@
      "w": 360,
      "h": 360,
      "fill": "#F26A48",
-     "opacity": 0.12
+     "opacity": 0.12,
+     "bleed": true
     },
     {
      "kind": "ellipse",
@@ -3997,7 +4004,8 @@
      "w": 288,
      "h": 288,
      "fill": "#F26A48",
-     "opacity": 0.16
+     "opacity": 0.16,
+     "bleed": true
     },
     {
      "kind": "text",
@@ -4357,7 +4365,8 @@
      "w": 400,
      "h": 400,
      "fill": "#E0492B",
-     "opacity": 0.12
+     "opacity": 0.12,
+     "bleed": true
     },
     {
      "kind": "ellipse",
@@ -4366,7 +4375,8 @@
      "w": 320,
      "h": 320,
      "fill": "#E0492B",
-     "opacity": 0.16
+     "opacity": 0.16,
+     "bleed": true
     }
    ],
    "illustrations": [
@@ -4668,7 +4678,8 @@
      "w": 520,
      "h": 520,
      "fill": "#E0492B",
-     "opacity": 0.12
+     "opacity": 0.12,
+     "bleed": true
     },
     {
      "kind": "ellipse",
@@ -4677,7 +4688,8 @@
      "w": 416,
      "h": 416,
      "fill": "#E0492B",
-     "opacity": 0.16
+     "opacity": 0.16,
+     "bleed": true
     }
    ],
    "illustrations": [
@@ -5010,7 +5022,8 @@
      "w": 300,
      "h": 300,
      "fill": "#E0492B",
-     "opacity": 0.12
+     "opacity": 0.12,
+     "bleed": true
     },
     {
      "kind": "ellipse",
@@ -5019,7 +5032,8 @@
      "w": 240,
      "h": 240,
      "fill": "#E0492B",
-     "opacity": 0.16
+     "opacity": 0.16,
+     "bleed": true
     },
     {
      "kind": "text",
@@ -6580,7 +6594,8 @@
      "w": 640,
      "h": 640,
      "fill": "#F26A48",
-     "opacity": 0.12
+     "opacity": 0.12,
+     "bleed": true
     },
     {
      "kind": "ellipse",
@@ -6589,7 +6604,8 @@
      "w": 512,
      "h": 512,
      "fill": "#F26A48",
-     "opacity": 0.16
+     "opacity": 0.16,
+     "bleed": true
     },
     {
      "kind": "rect",

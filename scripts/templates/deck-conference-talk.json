@@ -482,7 +482,8 @@
      "w": 640,
      "h": 640,
      "fill": "#C8F542",
-     "opacity": 0.12
+     "opacity": 0.12,
+     "bleed": true
     },
     {
      "kind": "ellipse",
@@ -491,7 +492,8 @@
      "w": 512,
      "h": 512,
      "fill": "#C8F542",
-     "opacity": 0.16
+     "opacity": 0.16,
+     "bleed": true
     }
    ],
    "illustrations": [
@@ -2460,7 +2462,8 @@
      "w": 640,
      "h": 640,
      "fill": "#C8F542",
-     "opacity": 0.12
+     "opacity": 0.12,
+     "bleed": true
     },
     {
      "kind": "ellipse",
@@ -2469,7 +2472,8 @@
      "w": 512,
      "h": 512,
      "fill": "#C8F542",
-     "opacity": 0.16
+     "opacity": 0.16,
+     "bleed": true
     },
     {
      "kind": "rect",

@@ -258,6 +258,28 @@ function chartNode(id, n) {
   };
 }
 
+/** A path from a list of points in page space, as a stroked line, a filled
+ *  region, or both. The node sits at the points' bounding box with its
+ *  segments relative to it, the way the composer places its icons. */
+function pathNodeFromPoints(id, n) {
+  const pts = n.points.map((pt) => (Array.isArray(pt) ? { x: pt[0], y: pt[1] } : pt));
+  const xs = pts.flatMap((pt) => [pt.x, pt.cIn?.x, pt.cOut?.x].filter((v) => v !== undefined));
+  const ys = pts.flatMap((pt) => [pt.y, pt.cIn?.y, pt.cOut?.y].filter((v) => v !== undefined));
+  const x0 = Math.min(...xs), y0 = Math.min(...ys);
+  const w = Math.max(1, Math.max(...xs) - x0), h = Math.max(1, Math.max(...ys) - y0);
+  const rel = (pt) => ({ x: Math.round((pt.x - x0) * 100) / 100, y: Math.round((pt.y - y0) * 100) / 100 });
+  const segments = pts.map((pt) => ({ ...rel(pt), ...(pt.cIn ? { cIn: rel(pt.cIn) } : {}), ...(pt.cOut ? { cOut: rel(pt.cOut) } : {}) }));
+  return {
+    ...baseNode(id, { ...n, x: x0, y: y0, w, h }),
+    type: "path",
+    name: n.name ?? "Path",
+    segments,
+    closed: !!n.closed,
+    fills: n.fill === undefined ? [] : [fillOf(n.fill)],
+    ...(n.stroke ? { stroke: { fill: fillOf(n.stroke), width: n.strokeWidth ?? 2, align: "center", cap: n.cap ?? "round", join: n.join ?? "round" } } : {}),
+  };
+}
+
 /** A button compiles to a pill rect + a label the box centers both ways, so
  *  the label cannot drift off-center the way hand-placed CTA text does. */
 function buttonNodes(id, n) {
@@ -353,6 +375,13 @@ function compile(spec) {
       else if (n.kind === "icon") { const g = iconNode(id, n, errors, `${spec.id} p${pi} n${ni}`); if (g) children.push(g); }
       else if (n.kind === "drawing") { const g = drawingGroup(id, n, errors, `${spec.id} p${pi} n${ni}`); if (g) children.push(g); }
       else if (n.kind === "chart") children.push(chartNode(id, n));
+      else if (n.kind === "path") {
+        if (!Array.isArray(n.points) || n.points.length < 2) { errors.push(`${spec.id} p${pi} n${ni}: a path needs two or more points`); return; }
+        const node = pathNodeFromPoints(id, n);
+        // The bounds lint reads the spec node's box; a path's is its points'.
+        n.x = node.transform.x; n.y = node.transform.y; n.w = node.size.width; n.h = node.size.height;
+        children.push(node);
+      }
       else errors.push(`${spec.id} p${pi} n${ni}: unknown kind ${n.kind}`);
       // Alpha-hex lint: 8-digit colors silently lose their alpha; authors must
       // use node opacity for translucency.

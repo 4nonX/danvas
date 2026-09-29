@@ -173,7 +173,8 @@
      "w": 760,
      "h": 760,
      "fill": "#F2905E",
-     "opacity": 0.12
+     "opacity": 0.12,
+     "bleed": true
     },
     {
      "kind": "ellipse",
@@ -182,7 +183,8 @@
      "w": 608,
      "h": 608,
      "fill": "#F2905E",
-     "opacity": 0.16
+     "opacity": 0.16,
+     "bleed": true
     },
     {
      "kind": "text",

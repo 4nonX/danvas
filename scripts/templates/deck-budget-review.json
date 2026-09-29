@@ -766,7 +766,8 @@
      "w": 700,
      "h": 700,
      "fill": "#7FDDC0",
-     "opacity": 0.12
+     "opacity": 0.12,
+     "bleed": true
     },
     {
      "kind": "ellipse",
@@ -775,7 +776,8 @@
      "w": 560,
      "h": 560,
      "fill": "#7FDDC0",
-     "opacity": 0.16
+     "opacity": 0.16,
+     "bleed": true
     },
     {
      "kind": "text",
@@ -3411,7 +3413,8 @@
      "w": 560,
      "h": 560,
      "fill": "#7FDDC0",
-     "opacity": 0.12
+     "opacity": 0.12,
+     "bleed": true
     },
     {
      "kind": "ellipse",
@@ -3420,7 +3423,8 @@
      "w": 448,
      "h": 448,
      "fill": "#7FDDC0",
-     "opacity": 0.16
+     "opacity": 0.16,
+     "bleed": true
     },
     {
      "kind": "text",
@@ -5091,7 +5095,8 @@
      "w": 640,
      "h": 640,
      "fill": "#7FDDC0",
-     "opacity": 0.12
+     "opacity": 0.12,
+     "bleed": true
     },
     {
      "kind": "ellipse",
@@ -5100,7 +5105,8 @@
      "w": 512,
      "h": 512,
      "fill": "#7FDDC0",
-     "opacity": 0.16
+     "opacity": 0.16,
+     "bleed": true
     },
     {
      "kind": "rect",

@@ -167,6 +167,9 @@ export const icon = (name, x, y, size, color) => ({ kind: "icon", icon: name, x,
 /** A picture slot: a shape the editor fills when a photo is dropped on it. */
 export const photo = (x, y, w, h, fill, o = {}) =>
   o.shape === "ellipse" ? { kind: "ellipse", name: "Photo", x, y, w, h, fill } : { kind: "rect", name: "Photo", x, y, w, h, fill, ...(o.radius ? { radius: o.radius } : {}) };
+/** A stroked or filled path for a raw slide: points as [x, y] or
+ *  { x, y, cIn, cOut } in page space. */
+export const path = (points, o = {}) => ({ kind: "path", points, ...o });
 /** A drawing from the bundled packs, fitted and centered in the box. */
 export const art = (asset, x, y, w, h, o = {}) => ({ asset, x, y, w, h, ...(asset.startsWith("il-") ? { cleanCard: true } : {}), ...o });
 
@@ -212,18 +215,18 @@ export const pageNo = (i, total) => `${String(i + 1).padStart(2, "0")} / ${total
 
 /** Estimated width of a line of display type: a conservative average
  *  advance, so a heavy face still fits where the estimate says it does. */
-export const estWidth = (str, size) => str.length * size * 0.56;
+export const estWidth = (str, size, f = 0.56) => str.length * size * f;
 
 /** The size at which every line of `str` (split on newlines) fits `width`,
  *  never below `floor` of the asked size. */
-export function fitSize(str, size, width, floor = 0.6) {
-  const longest = Math.max(...str.split("\n").map((l) => estWidth(l, size)));
+export function fitSize(str, size, width, floor = 0.6, f = 0.56) {
+  const longest = Math.max(...str.split("\n").map((l) => estWidth(l, size, f)));
   if (longest <= width) return size;
   return Math.max(size * floor, Math.round(size * width / longest));
 }
 
 /** Lines a run of text takes at a size in a width. */
-export const linesFor = (str, size, width) => str.split("\n").reduce((n, l) => n + Math.max(1, Math.ceil(estWidth(l, size) / width)), 0);
+export const linesFor = (str, size, width, f = 0.56) => str.split("\n").reduce((n, l) => n + Math.max(1, Math.ceil(estWidth(l, size, f) / width)), 0);
 
 /** The deep pages' ground: a gradient from bg to bg2, darker toward the
  *  bottom right. */
@@ -235,8 +238,8 @@ export const deepGround = (g) => ({ angle: 160, stops: [[g.bg, 0], [g.bg2, 1]] }
  *  lights its subject. */
 export function halo(cx, cy, size, color) {
   return [
-    ellipse(cx - size / 2, cy - size / 2, size, size, color, { opacity: 0.12 }),
-    ellipse(cx - size * 0.4, cy - size * 0.4, size * 0.8, size * 0.8, color, { opacity: 0.16 }),
+    ellipse(cx - size / 2, cy - size / 2, size, size, color, { opacity: 0.12, bleed: true }),
+    ellipse(cx - size * 0.4, cy - size * 0.4, size * 0.8, size * 0.8, color, { opacity: 0.16, bleed: true }),
   ];
 }
 
@@ -263,6 +266,15 @@ export function confetti(colors, seed, n = 6, box = { x: 0, y: 0, w: W, h: H }) 
     out.push(rect(Math.round(box.x + rnd() * (box.w - w)), Math.round(box.y + rnd() * (box.h - h)), w, h, colors[k % colors.length], { rotation: Math.round(-40 + rnd() * 80), radius: 3 }));
   }
   return out;
+}
+
+/** A square rotated 45 degrees about its top-left corner and placed off the
+ *  page so that exactly one edge crosses the top right corner: the visible
+ *  part is the triangle (W - t, 0), (W, 0), (W, t). */
+function cornerTriangle(color, t, opacity) {
+  const e = Math.round(t * 0.4);
+  const side = Math.round((t + 2 * e) * Math.SQRT2);
+  return rect(W + e, -t - 3 * e, side, side, color, { rotation: 45, opacity, bleed: true });
 }
 
 function crosshairs(color, opacity) {
@@ -342,8 +354,10 @@ export function ornamentDeep(K, g, opts = {}) {
         ...sparkles(g.ink, 19, 6),
       ];
     case "corner":
-      // One big triangle of the accent in the top right corner, made of a rotated square.
-      return [rect(1560, -420, 760, 760, g.accent, { rotation: 45, opacity: 0.92, bleed: true }), ...sparkles(g.ink, 23, 6, { x: 0, y: 0, w: 1400, h: 700 })];
+      // One triangle of the accent in the top right corner. Rotation is about
+      // a node's top-left corner, so the square is placed off the page such
+      // that the one edge crossing the corner runs from (1460, 0) to (1920, 460).
+      return [cornerTriangle(g.accent, 460, 0.92), ...sparkles(g.ink, 23, 6, { x: 1150, y: 540, w: 700, h: 330 })];
     default:
       return [];
   }
@@ -374,7 +388,7 @@ export function ornamentPaper(K, g) {
     case "ridges":
       return [ellipse(1720, -160, 340, 340, mixHex(g.bg, g.accent, 0.18), { bleed: true })];
     case "arcs":
-      return [1100, 800].map((d, k) => ellipse(1920 - d / 2 - 120, -d / 2 + 60, d, d, undefined, { stroke: g.accent, strokeWidth: 2, opacity: 0.18 + k * 0.08, bleed: true }));
+      return [760, 520].map((d, k) => ellipse(1920 - d / 2 - 120, -d / 2 + 60, d, d, undefined, { stroke: g.accent, strokeWidth: 2, opacity: 0.18 + k * 0.08, bleed: true }));
     case "dots": {
       const out = [];
       for (let r = 0; r < 3; r++) for (let c = 0; c < 6; c++) out.push(ellipse(1360 + c * 80, 40 + r * 80, 5, 5, g.ink, { opacity: 0.14 }));
@@ -385,7 +399,7 @@ export function ornamentPaper(K, g) {
     case "orbs":
       return [ellipse(1760, -80, 200, 200, g.accent, { opacity: 0.85, bleed: true }), ellipse(1660, 140, 60, 60, g.accent2, { opacity: 0.8 })];
     case "corner":
-      return [rect(1760, -300, 420, 420, g.accent, { rotation: 45, opacity: 0.9, bleed: true })];
+      return [cornerTriangle(g.accent, 300, 0.9)];
     default:
       return [];
   }
@@ -402,9 +416,10 @@ export function chrome(K, g, i, eyebrow, title, opts = {}) {
   // A title that does not fit one line steps down to four fifths; one that
   // still does not fit wraps to two lines at that size, and the body starts
   // lower. The copy is never clipped and never runs into the body.
-  let size = fitSize(title, asked, width, 0.8);
+  const cw = K.charWidth ?? 0.56;
+  let size = fitSize(title, asked, width, 0.8, cw);
   let lines = opts.titleLines ?? 1;
-  if (lines === 1 && estWidth(title, size) > width) { size = Math.round(asked * 0.82); lines = 2; }
+  if (lines === 1 && estWidth(title, size, cw) > width) { size = Math.round(asked * 0.82); lines = 2; }
   const titleY = K.ornament === "hairlines" ? 132 : 124;
   const nodes = [
     ...ornamentPaper(K, g),
@@ -581,7 +596,7 @@ export function cover(K, i, c0) {
   nodes.push(...mark(K, g));
   fill.push({ node: nodes.length - 1, label: "Company", hint: "Your company or team name" });
   const textW = 1000;
-  const coverSize = fitSize(c.title, K.scale.cover, centered ? 1500 : textW);
+  const coverSize = fitSize(c.title, K.scale.cover, centered ? 1500 : textW, 0.6, K.charWidth ?? 0.56);
   const coverLines = c.title.split("\n").length;
   const titleH = Math.round(coverSize * 1.05 * coverLines) + 10;
   if (centered) {
@@ -707,10 +722,12 @@ export function section(K, i, c0) {
     nodes.push(...confetti([g.lime, g.accent, g.ink], 8, 6, { x: 1380, y: 120, w: 480, h: 840 }));
     illustrations.push(art(drawing, 1400, 300, 440, 440));
   } else {
-    nodes.push(text(M, 236, 800, K.scale.section + 20, c.n, t.numeral(K.scale.section)));
-    nodes.push(rect(M, 236 + K.scale.section + 20, 120, 4, g.accent));
-    nodes.push(text(M, 236 + K.scale.section + 48, 1100, 220, c.title, t.display(96, { lineHeight: 1.04 })));
-    nodes.push(text(M, 236 + K.scale.section + 48 + 232, 900, 90, c.blurb, t.body(28)));
+    // No numeral when the plan passes an empty n: the rule and title move up.
+    const top = c.n ? 236 + K.scale.section + 20 : 330;
+    if (c.n) nodes.push(text(M, 236, 800, K.scale.section + 20, c.n, t.numeral(K.scale.section)));
+    nodes.push(rect(M, top, 120, 4, g.accent));
+    nodes.push(text(M, top + 28, 1100, 220, c.title, t.display(96, { lineHeight: 1.04 })));
+    nodes.push(text(M, top + 28 + 232, 900, 90, c.blurb, t.body(28)));
     nodes.push(...halo(1520, 560, 560, g.accent));
     illustrations.push(art(drawing, 1300, 340, 440, 440));
     nodes.push(text(M, 180, 1000, 50, c.kicker ?? K.kicker, t.kicker()));
@@ -730,7 +747,7 @@ export function statement(K, i, c0) {
   const y = 296 + 40;
   // Long copy steps the size down until it holds in three lines.
   let size = K.scale.statement;
-  while (size > K.scale.statement * 0.6 && linesFor(c.text, size, 1560) > 3) size -= 4;
+  while (size > K.scale.statement * 0.6 && linesFor(c.text, size, 1560, K.charWidth ?? 0.56) > 3) size -= 4;
   nodes.push(text(M, y, 1560, Math.round(size * 1.12 * 3) + 10, c.text, t.display(size, { lineHeight: 1.1 })));
   nodes.push(text(M, y + Math.round(size * 1.12 * 3) + 50, 1000, 32, c.source, t.meta()));
   nodes.push(...note(K, g, c.note));
@@ -750,9 +767,9 @@ export function textPicture(K, i, c0) {
     nodes.push(text(M + 56, y + 52, 840, 70, s, t.body(22)));
   });
   // The picture slot: a tinted shape (drop a photo on it) with a drawing on it.
-  nodes.push(photo(1080, 196, 744, 740, { angle: 160, stops: [[mixHex(g.panel, g.accent2, 0.22), 0], [g.panel, 1]] }, { radius: K.radius * 1.5 }));
-  nodes.push(...halo(1452, 566, 520, g.accent));
-  const illustrations = [art(c.art ?? K.art.picture, 1150, 280, 604, 570)];
+  nodes.push(photo(1080, 196, 744, 690, { angle: 160, stops: [[mixHex(g.panel, g.accent2, 0.22), 0], [g.panel, 1]] }, { radius: K.radius * 1.5 }));
+  nodes.push(...halo(1452, 541, 500, g.accent));
+  const illustrations = [art(c.art ?? K.art.picture, 1160, 270, 584, 540)];
   nodes.push(...note(K, g, c.note));
   return { page: { name: "Text and picture", bg: g.bg, nodes, illustrations } };
 }
@@ -839,7 +856,7 @@ export function chart(K, i, c0) {
   const g = K.paper;
   const t = type(K, g);
   const { nodes, bodyTop } = chrome(K, g, i, c.eyebrow, c.title, { titleWidth: 1100 });
-  const long = linesFor(c.takeaway, 24, 1100) > 1;
+  const long = linesFor(c.takeaway, 24, 1100, K.charWidth ?? 0.56) > 1;
   nodes.push(text(M, bodyTop - 24, 1100, long ? 70 : 36, c.takeaway, t.body(24)));
   const cx = M, cy = bodyTop + (long ? 64 : 40), cw = 1140, ch = long ? 560 : 580;
   // Chart text draws in a fixed dark ink, so a dark look sets its chart on a
@@ -878,7 +895,7 @@ export function timeline(K, i, c0) {
     const done = k < c.done;
     nodes.push(ellipse(x, y, 30, 30, done ? g.accent : g.bg, done ? {} : { stroke: g.accent, strokeWidth: 3 }));
     nodes.push(text(x, y - 60, 300, 28, q, t.eyebrow()));
-    const two = linesFor(h, 32, cw - 48) > 1;
+    const two = linesFor(h, 32, cw - 48, K.charWidth ?? 0.56) > 1;
     nodes.push(text(x, y + 64, cw - 48, two ? 80 : 44, h, t.display(32, { lineHeight: 1.1 })));
     nodes.push(text(x, y + (two ? 152 : 116), cw - 48, 120, s, t.body(21)));
   });
@@ -1036,7 +1053,7 @@ export function closing(K, i, c0) {
   }
   nodes.push(...mark(K, g));
   nodes.push(text(M, 236, 1000, 60, K.farewell, t.kicker()));
-  const closeSize = fitSize(c.title, K.scale.cover, 1100, 0.6);
+  const closeSize = fitSize(c.title, K.scale.cover, 1100, 0.6, K.charWidth ?? 0.56);
   nodes.push(text(M, 300, 1100, Math.round(closeSize * 1.1) + 10, c.title, t.display(closeSize)));
   nodes.push(text(M, 300 + Math.round(closeSize * 1.1) + 34, 940, 120, c.subtitle, t.body(28)));
   const labels = ["Email", "Website", "Phone"];
@@ -1256,7 +1273,7 @@ export function fourCards(K, i, c0) {
     const tone = k % 2 ? g.accent2 : g.accent;
     nodes.push(card(K, g, x, y, 852, 264));
     nodes.push(ellipse(x + 40, y + 40, 72, 72, mixHex(g.panel, tone, 0.2)));
-    nodes.push(icon(ic, x + 58, y + 58, 36, tone));
+    nodes.push(icon(ic, x + 58, y + 58, 36, k % 2 ? (g.accent2Ink ?? g.accent2) : (g.accentInk ?? g.accent)));
     nodes.push(text(x + 140, y + 44, 672, 40, h, t.display(30)));
     nodes.push(text(x + 140, y + 96, 672, 120, sub, t.body(22)));
   });
@@ -1265,7 +1282,7 @@ export function fourCards(K, i, c0) {
 }
 
 /** A slide the deck script built itself, with these primitives. */
-export const raw = (K, i, c) => (typeof c.build === "function" ? c.build(K, i) : { page: c.page, fill: c.fill ?? [] });
+export const raw = (K, i, c) => (typeof c.build === "function" ? c.build(K, i, c) : { page: c.page, fill: c.fill ?? [] });
 
 export const LAYOUTS = { cover, agenda, section, statement, textPicture, twoColumns, threeCards, figures, chart, timeline, process, table, team, quote, pricing, closing, bigStat, columns, schedule, checklist, facts, split, fourCards, raw };
 
@@ -1278,7 +1295,15 @@ export function buildSpec(look0, plan) {
   // A plan may override any part of its look: palettes, faces, the
   // ornament, drawings, portraits, scale.
   const o = plan.look ?? {};
-  const look = { ...look0, ...o, paper: { ...look0.paper, ...(o.paper ?? {}) }, deep: { ...look0.deep, ...(o.deep ?? {}) }, art: { ...look0.art, ...(o.art ?? {}) }, scale: { ...look0.scale, ...(o.scale ?? {}) } };
+  // A palette override that sets its own accent starts clean: the base's
+  // accent inks and reserved colours (sun, lime) do not leak through.
+  const mergePalette = (b, ov) => {
+    if (!ov) return b;
+    const out = { ...b, ...ov };
+    if (ov.accent) for (const k of ["accentInk", "accent2Ink", "sun", "lime"]) if (!(k in ov)) delete out[k];
+    return out;
+  };
+  const look = { ...look0, ...o, paper: mergePalette(look0.paper, o.paper), deep: mergePalette(look0.deep, o.deep), art: { ...look0.art, ...(o.art ?? {}) }, scale: { ...look0.scale, ...(o.scale ?? {}) } };
   const K = { ...look, ...(plan.meta ?? {}), art: { ...look.art, ...(plan.meta?.art ?? {}) }, total: plan.slides.length };
   const pages = [];
   const fillable = [];

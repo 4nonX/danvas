@@ -40,7 +40,7 @@ export default {
 
 ## The look
 
-A look is one object; `look` in the plan overrides any part of the base (palettes, faces, ornament, art, peeps, scale are each merged shallowly). Fields:
+A look is one object; `look` in the plan overrides any part of the base (palettes, faces, ornament, art, peeps, scale are each merged shallowly). A palette override that sets its own `accent` starts clean: the base's `accentInk`, `accent2Ink`, `sun` and `lime` do not carry over unless you set them. Fields:
 
 ```js
 {
@@ -49,6 +49,7 @@ A look is one object; `look` in the plan overrides any part of the base (palette
   mono: null,                               // optional mono for eyebrows, meta and labels (null = use body)
   accentFace: "Cormorant Garamond", accentWeight: 600, accentSize: 40,   // the kicker and hand notes
   numeralFace: "JetBrains Mono", numeralWeight: 700,                      // optional: every figure (figures, chart calls, big stat, agenda numbers) in this face
+  charWidth: 0.48,                                                        // optional: average em per character of the display face, for fitting titles (0.56 default; a condensed face is near 0.45, a wide one near 0.62)
   paper: { bg, ink, muted, line, panel, panel2, accent, accent2, accentInk?, accent2Ink?, sun?, lime? },
   deep:  { bg, bg2, ink, muted, line, panel, panel2, accent, accent2, accentInk?, accent2Ink?, sun?, lime? },
   radius: 8,                                // corner radius of cards and buttons (0 for editorial)
@@ -82,9 +83,11 @@ Ornament vocabulary (`ornament`), each with a deep-page and a reading-page form:
 - `dots`: a dot grid over the right third. Engineering, data.
 - `stripes`: three diagonal bands in tints of the accent. Sport, speed, events.
 - `orbs`: floating discs in the two accents. Playful, product.
-- `corner`: one big accent triangle in the top right corner. Bold, brief.
+- `corner`: one accent triangle in the top right corner (from (1460, 0) to (1920, 460) on a deep page, (1620, 0) to (1920, 300) on paper). Bold, brief. The cover and closing drawings overlap its lower edge a little, by design.
 
-Drawings on a deep ground: the `od-*` line figures are drawn in black and vanish on a dark ground; use them only on paper slides (the picture, checklist and facts slots) or pick an `il-*` or `la-*` drawing for the cover, section and closing.
+`sun` and `lime` on a palette are used by the ornaments that name them (hairlines, blobs, sun use `sun`; blocks uses `lime` for confetti) and by your raw slides; other ornaments ignore them.
+
+Drawings on a deep ground: the `od-*` line figures are drawn in black and vanish on a dark ground; use them only on paper slides (the picture, checklist and facts slots) or pick an `il-*` or `la-*` drawing for the cover, section and closing. Some `il-*` scenes draw their outlines in dark ink too (a city road, a van); check a deep render before keeping one there. `art()` applies `cleanCard` to every `il-*` drawing, which strips the pack's card and any scene element toned like it; pass `art(id, x, y, w, h, { cleanCard: false })` when a scene loses its mountains or sun.
 
 ## Layouts and their content
 
@@ -92,7 +95,7 @@ Every layout takes `note` (a hand note in the accent face: bottom right on a rea
 
 - `cover` `{ title (two lines with \n), subtitle, presenter, art, chips [[figure, label]] (three chips under the subtitle: on by default for the glow ornament, on for any ornament when you pass them), year (blocks only), presenterName, when, where (hairlines only), note }`
 - `agenda` `{ eyebrow, title, items [[heading, sub, duration]] (five), card { eyebrow, big, meta [[label, value]] (four) }, note }`
-- `section` `{ n, title, blurb, kicker, art, note }`
+- `section` `{ n (the big numeral; pass "" to omit it when the deck has one section), title, blurb, kicker, art, note }`
 - `statement` `{ text (one sentence, up to three lines), source, note }`
 - `textPicture` `{ eyebrow, title, points [[heading, sub]] (three), art, note }`
 - `twoColumns` `{ eyebrow, title, left { eyebrow, head, lines [3], icon }, right { ... } }` (right sits on the deep ground)
@@ -113,13 +116,15 @@ Every layout takes `note` (a hand note in the accent face: bottom right on a rea
 - `bigStat` `{ eyebrow, value, caption, delta }`
 - `columns` `{ eyebrow, title, intro, cols [[head, sub, [[item, line]] x3]] (three), note }`
 - `closing` `{ title, subtitle, rows [[icon, text]] (three), cta, art, note }`
-- `raw` `{ build: (K, i) => ({ page: { name, bg, nodes, illustrations }, fill }) }`
+- `raw` `{ build: (K, i, content) => ({ page: { name, bg, nodes, illustrations }, fill }), ...anything else the builder wants }` (the builder receives the whole content object, so copy and notes can live in the plan rather than in the builder)
 
 Icons: any key of `ICON_GLYPHS` in `packages/aistudio/dist/iconset.js` (Tabler names such as `flag`, `shield`, `sparkles`, `coin`, `user`, `calendar`, `mail`, `world`, `phone`, `message`, `clock`, `bolt`, `chart-pie`, `database`, `lock`, `heart`, `trophy`, `map-pin`, `bulb`, `flame`, `flask`, `compass`, `truck`, `key`, `briefcase`, `microphone`, `device-mobile`, `home`, `sun`, `bed`, `circle-check`, `circle`, `alert-triangle`). `users` does not exist; use `user`.
 
 ## Raw slides
 
-A raw slide is a page object built with the library's primitives, for the one or two slides only this deck has. Import from the library: `text, rect, ellipse, button, icon, art, halo, sparkles, note, footer, mark, chrome, card, type, deepGround, mixHex, inkOn, W, H, M, CW`. The builder receives `K` (the look with meta merged and `K.total` set) and the page index `i`.
+A raw slide is a page object built with the library's primitives, for the one or two slides only this deck has. Import from the library: `text, rect, ellipse, button, icon, art, path, halo, sparkles, note, footer, mark, chrome, card, type, deepGround, mixHex, inkOn, W, H, M, CW`. The builder receives `K` (the look with meta merged and `K.total` set), the page index `i`, and its content object.
+
+`path(points, { stroke, strokeWidth, fill, closed, cap, join })` draws a line or a region from points in page space: `[[x, y], ...]` for straight segments, or `{ x, y, cIn: {x, y}, cOut: {x, y} }` for curves (cubic handles). Use it for a curve, an arrow, a connector or a chart line instead of a trail of ellipses; a rotated thin `rect` is still fine for a straight rule.
 
 The deep-page note sits at (1140, 872) by default; a raw slide that fills the bottom right passes its own spot: `note(K, g, str, true, { x, y, w, align })`.
 
@@ -128,7 +133,7 @@ Rules for a raw slide:
 - On a reading page, start from `chrome(K, K.paper, i, eyebrow, title)` (it returns `{ nodes, bodyTop }` with the ornament, eyebrow, title and footer in place) and add below `bodyTop`.
 - On a deep page, start with `...ornamentDeep(K, K.deep)` and end with `...footer(K, K.deep, i)`; use `deepGround(K.deep)` as `bg`.
 - Type roles come from `type(K, g)`: `display(size)`, `body(size)`, `strong(size)`, `eyebrow()`, `meta()`, `numeral(size)`, `kicker()`.
-- Text boxes must be tall enough for their lines: height about `size * 1.1 * lines`. Estimate width as `chars * size * 0.56`.
+- Text boxes must be tall enough for their lines: height about `size * 1.1 * lines`. Estimate width as `chars * size * charWidth` (0.56 unless the look sets `charWidth`).
 - Picture slots are shapes (`photo(...)` or a `rect`/`ellipse` named "Photo"), never frames; put the drawing on top with `illustrations: [art(id, x, y, w, h)]`.
 - Fillable fields are `{ node: <index into nodes>, label, hint }`; a button's label is `<index>-label`.
 

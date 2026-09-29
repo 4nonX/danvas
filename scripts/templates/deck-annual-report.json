@@ -172,7 +172,8 @@
      "w": 700,
      "h": 700,
      "fill": "#D9B25A",
-     "opacity": 0.12
+     "opacity": 0.12,
+     "bleed": true
     },
     {
      "kind": "ellipse",
@@ -181,7 +182,8 @@
      "w": 560,
      "h": 560,
      "fill": "#D9B25A",
-     "opacity": 0.16
+     "opacity": 0.16,
+     "bleed": true
     },
     {
      "kind": "text",
@@ -946,7 +948,8 @@
      "w": 560,
      "h": 560,
      "fill": "#D9B25A",
-     "opacity": 0.12
+     "opacity": 0.12,
+     "bleed": true
     },
     {
      "kind": "ellipse",
@@ -955,7 +958,8 @@
      "w": 448,
      "h": 448,
      "fill": "#D9B25A",
-     "opacity": 0.16
+     "opacity": 0.16,
+     "bleed": true
     },
     {
      "kind": "text",
@@ -1452,7 +1456,8 @@
      "w": 250,
      "h": 250,
      "fill": "#1E5B45",
-     "opacity": 0.12
+     "opacity": 0.12,
+     "bleed": true
     },
     {
      "kind": "ellipse",
@@ -1461,7 +1466,8 @@
      "w": 200,
      "h": 200,
      "fill": "#1E5B45",
-     "opacity": 0.16
+     "opacity": 0.16,
+     "bleed": true
     },
     {
      "kind": "rect",
@@ -1546,7 +1552,8 @@
      "w": 250,
      "h": 250,
      "fill": "#1E5B45",
-     "opacity": 0.12
+     "opacity": 0.12,
+     "bleed": true
     },
     {
      "kind": "ellipse",
@@ -1555,7 +1562,8 @@
      "w": 200,
      "h": 200,
      "fill": "#1E5B45",
-     "opacity": 0.16
+     "opacity": 0.16,
+     "bleed": true
     },
     {
      "kind": "rect",
@@ -1640,7 +1648,8 @@
      "w": 250,
      "h": 250,
      "fill": "#1E5B45",
-     "opacity": 0.12
+     "opacity": 0.12,
+     "bleed": true
     },
     {
      "kind": "ellipse",
@@ -1649,7 +1658,8 @@
      "w": 200,
      "h": 200,
      "fill": "#1E5B45",
-     "opacity": 0.16
+     "opacity": 0.16,
+     "bleed": true
     },
     {
      "kind": "rect",
@@ -1734,7 +1744,8 @@
      "w": 250,
      "h": 250,
      "fill": "#1E5B45",
-     "opacity": 0.12
+     "opacity": 0.12,
+     "bleed": true
     },
     {
      "kind": "ellipse",
@@ -1743,7 +1754,8 @@
      "w": 200,
      "h": 200,
      "fill": "#1E5B45",
-     "opacity": 0.16
+     "opacity": 0.16,
+     "bleed": true
     },
     {
      "kind": "rect",
@@ -2762,7 +2774,8 @@
      "w": 640,
      "h": 640,
      "fill": "#D9B25A",
-     "opacity": 0.12
+     "opacity": 0.12,
+     "bleed": true
     },
     {
      "kind": "ellipse",
@@ -2771,7 +2784,8 @@
      "w": 512,
      "h": 512,
      "fill": "#D9B25A",
-     "opacity": 0.16
+     "opacity": 0.16,
+     "bleed": true
     },
     {
      "kind": "rect",
