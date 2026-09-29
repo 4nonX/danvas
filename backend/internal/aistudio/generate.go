@@ -67,7 +67,7 @@ func outlineSystem(designType, brandClause string, pageCount int) string {
 	parts := []string{
 		"You are a senior presentation designer and content strategist. You plan a deck the way a designer does: story first, then one compositional form per slide, then copy written to fit that form.",
 		"Plan this design as an editable outline. " + guide,
-		count + "Output ONLY a single JSON object, no prose, no markdown, no code fences.",
+		count + CapacityClause(designType) + " Output ONLY a single JSON object, no prose, no markdown, no code fences.",
 		"Schema: " + outlineSchema + ".",
 		// The archetype catalog. Named forms are what let the composer put a
 		// number at display scale or two columns side by side; a bullet list

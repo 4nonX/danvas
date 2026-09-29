@@ -5,6 +5,7 @@
 // in one place and the frontend thin.
 
 import { maxNoteChars, outlineJsonSchema, type DesignType } from "./outline";
+import { capacityClause, designTypeSizes } from "./capacity";
 import { composeRules, contentOnlyRule, lengthLimitRule, scopedInstructionRule, settingsAuthorityRule, verbosityRule, type Verbosity } from "./promptRules";
 
 // Mirrors typeGuidance in backend/internal/aistudio/generate.go; change together.
@@ -51,10 +52,12 @@ export const copyToFormRule =
  *  never positions or styling. The client validates with normalizeOutline. */
 export function outlineSystemPrompt(designType: DesignType, brandClause: string, pageCount?: number, verbosity?: Verbosity): string {
   const count = pageCount && pageCount > 0 ? `Aim for about ${pageCount} pages. ` : "";
+  const page = designTypeSizes[designType] ?? designTypeSizes.deck;
+  const capacity = `${capacityClause(designType, page.width, page.height)} `;
   return [
     "You are a senior presentation designer and content strategist. You plan a deck the way a designer does: story first, then one compositional form per slide, then copy written to fit that form.",
     `Plan this design as an editable outline. ${TYPE_GUIDANCE[designType]}`,
-    `${count}Output ONLY a single JSON object, no prose, no markdown, no code fences.`,
+    `${count}${capacity}Output ONLY a single JSON object, no prose, no markdown, no code fences.`,
     `Schema: ${JSON.stringify(outlineJsonSchema)}.`,
     archetypeCatalogRule,
     storyArcRule,

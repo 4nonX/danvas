@@ -8,6 +8,8 @@ import { repairContrast } from "../repair";
 import { composeDeckFileWithReport } from "../compose";
 import { isDarkGround } from "../designSystem";
 import { deckLooks, lookFor, LOOKS } from "../look";
+import { artworkKinds, artworkNodes } from "../artwork";
+import { slotCapacity, capacityClause } from "../capacity";
 import { ICON_GLYPHS, ICON_KEYWORDS } from "../iconset";
 import { layoutDeck } from "../deck";
 import { deckThemes } from "../theme";
@@ -922,5 +924,55 @@ describe("the look", () => {
     expect(normalizeOutline({ title: "T", look: "fancy", pages: [pageFor("cover")] }).look).toBeUndefined();
     const { file } = composeDeckFileWithReport({ outline: { ...outline, pages: [pageFor("cover")] }, width: 1920, height: 1080 });
     expect(file.pages[0].children.map((n) => n.name)).not.toContain("Field");
+  });
+});
+
+describe("procedural artwork", () => {
+  const box = { x: 0, y: 0, width: 800, height: 500 };
+  const ds = deriveDesignSystem(theme, size, { seed: 1, catalog: catalogEntryForSeed(1) });
+  const palette = { ground: ds.colors.paper, primary: ds.colors.primary, accent: ds.colors.accentOnPaper };
+
+  for (const kind of artworkKinds) {
+    it(`${kind}: every form stays inside its box and the same seed draws the same picture`, () => {
+      const nodes = artworkNodes(kind, box, palette, 42);
+      expect(nodes.length).toBeGreaterThan(0);
+      for (const n of nodes) {
+        const t = n.transform; const sz = n.size;
+        expect(t.x).toBeGreaterThanOrEqual(-1);
+        expect(t.y).toBeGreaterThanOrEqual(-1);
+        expect(t.x + sz.width).toBeLessThanOrEqual(box.width + 1);
+        expect(t.y + sz.height).toBeLessThanOrEqual(box.height + 1);
+      }
+      const again = artworkNodes(kind, box, palette, 42).map((n) => ({ ...n, id: "" }));
+      expect(nodes.map((n) => ({ ...n, id: "" }))).toEqual(again);
+    });
+  }
+
+  it("takes the place of the picture on an abstract intent, with no prompt left for a provider", () => {
+    for (const a of ["cover", "imageCaption", "bigNumber", "closing"] as Archetype[]) {
+      const item = normalizeOutline({ title: "T", pages: [{ ...pageFor(a), image: { subject: "soft forms", treatment: "abstract" } }] }).pages[0];
+      const page = composeArchetypePage(item, ds, { index: 2, total: 5 });
+      expect(page.nodes.some((n) => n.name === "Artwork"), a).toBe(true);
+      expect(page.nodes.some((n) => n.name === "Image"), a).toBe(false);
+      expect(Object.keys(page.imagePrompts)).toEqual([]);
+      expect(qualityCheck({ background: page.background, nodes: page.nodes, size }).issues).toEqual([]);
+    }
+  });
+
+  it("finds a drawing from the subject's own words when an illustration intent named none", () => {
+    const item = normalizeOutline({ title: "T", pages: [{ ...pageFor("cover"), image: { subject: "a handshake between two partners", treatment: "illustration" } }] }).pages[0];
+    const page = composeArchetypePage(item, ds, { index: 0, total: 5 });
+    expect(page.nodes.find((n) => n.name === "Illustration")).toBeTruthy();
+  });
+});
+
+describe("the capacity clause", () => {
+  it("counts what one line holds on the page and says so", () => {
+    const c = slotCapacity(1920, 1080);
+    expect(c.title).toBeGreaterThan(30);
+    expect(c.point).toBeGreaterThan(c.columnPoint);
+    expect(c.columnPoint).toBeGreaterThan(20);
+    expect(capacityClause("deck", 1920, 1080)).toContain(`${c.title} characters of a title`);
+    expect(capacityClause("social", 1080, 1080)).toMatch(/^This post composes at 1080 by 1080/);
   });
 });

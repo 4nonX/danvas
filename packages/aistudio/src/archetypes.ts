@@ -27,6 +27,7 @@ import { ILLUSTRATIONS, ILLUSTRATION_KEYWORDS, type IllustrationDrawing } from "
 import type { PageVariant } from "./measure";
 import { ladderFrom, sizeFloor } from "./deckStyle";
 import { LOOKS, type LookSpec } from "./look";
+import { artworkKindFor, artworkNodes } from "./artwork";
 
 export interface ComposedPage {
   background: Fill;
@@ -597,6 +598,11 @@ class Composer {
    *  a picture slot, tagged so the image pipeline finds it by placeholder id
    *  and replaces it wholesale when the picture lands. */
   private imageSlot(r: Rect, prompt: string, radius = 0): Node {
+    // An abstract intent is drawn here and now: a few forms in the deck's
+    // hues, deterministic from the page, editable everywhere. No provider
+    // could give it a photograph and no stock search finds one, so the
+    // region used to keep its stand-in for good.
+    if (this.item.image?.treatment === "abstract") return this.artwork(r);
     this.slotSeq += 1;
     const id = `img-${this.ctx.index + 1}-${this.slotSeq}`;
     this.prompts[id] = prompt;
@@ -667,9 +673,30 @@ class Composer {
     } as never) as Node;
   }
 
-  /** The drawing the outline named for this page, when the set knows it. */
+  /** The drawing the outline named for this page, when the set knows it;
+   *  for an illustration intent that named none, one the subject's own words
+   *  match ("a handshake between partners" finds the handshake). */
   private get namedIllustration(): string | null {
-    return illustrationFor(this.item.image?.illustration);
+    const im = this.item.image;
+    return illustrationFor(im?.illustration) ?? (im?.treatment === "illustration" ? illustrationFor(im.subject) : null);
+  }
+
+  /** Procedural artwork in a region: one kind chosen by the page's seed,
+   *  every form inside the box, grouped so the quality loop sees one node.
+   *  Tagged so the picture ladders leave it alone. */
+  private artwork(r0: Rect): Node {
+    const r = this.mirror(r0);
+    const seed = Array.from(this.item.title).reduce((h, ch) => (Math.imul(h, 31) + ch.charCodeAt(0)) | 0, this.ctx.index * 7919 + 17);
+    const kind = artworkKindFor(seed);
+    const c = this.ds.colors;
+    const children = artworkNodes(kind, { x: 0, y: 0, width: r.width, height: r.height }, { ground: this.ground, primary: c.primary, accent: this.accent }, seed);
+    return createNode("group", {
+      name: "Artwork",
+      children,
+      transform: { x: r.x, y: r.y, scaleX: 1, scaleY: 1, rotation: 0 },
+      size: { width: r.width, height: r.height },
+      data: { artwork: kind },
+    } as never) as Node;
   }
 
   /** What the picture should show, in the deck's treatment. Falls back to the

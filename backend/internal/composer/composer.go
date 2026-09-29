@@ -153,13 +153,23 @@ func run(ctx context.Context, in Input, entry string) ([]byte, error) {
 	if in.Width <= 0 || in.Height <= 0 {
 		return nil, errors.New("composer: width and height must be positive")
 	}
-	p, err := program()
-	if err != nil {
-		return nil, fmt.Errorf("composer: bundle compile: %w", err)
-	}
 	inputJSON, err := json.Marshal(in)
 	if err != nil {
 		return nil, fmt.Errorf("composer: marshal input: %w", err)
+	}
+	out, err := callString(ctx, entry, string(inputJSON))
+	if err != nil {
+		return nil, err
+	}
+	return []byte(out), nil
+}
+
+// callString evaluates the bundle and calls one entry point with one string
+// argument, returning its string result.
+func callString(ctx context.Context, entry string, arg string) (string, error) {
+	p, err := program()
+	if err != nil {
+		return "", fmt.Errorf("composer: bundle compile: %w", err)
 	}
 
 	vm := goja.New()
@@ -176,20 +186,20 @@ func run(ctx context.Context, in Input, entry string) ([]byte, error) {
 	}()
 
 	if _, err := vm.RunProgram(p); err != nil {
-		return nil, fmt.Errorf("composer: bundle eval: %w", err)
+		return "", fmt.Errorf("composer: bundle eval: %w", err)
 	}
 	fnVal := vm.Get(entry)
 	fn, ok := goja.AssertFunction(fnVal)
 	if !ok {
-		return nil, fmt.Errorf("composer: bundle exposes no %s", entry)
+		return "", fmt.Errorf("composer: bundle exposes no %s", entry)
 	}
-	res, err := fn(goja.Undefined(), vm.ToValue(string(inputJSON)))
+	res, err := fn(goja.Undefined(), vm.ToValue(arg))
 	if err != nil {
-		return nil, fmt.Errorf("composer: compose failed: %w", err)
+		return "", fmt.Errorf("composer: compose failed: %w", err)
 	}
 	out, ok := res.Export().(string)
 	if !ok || out == "" {
-		return nil, errors.New("composer: compose returned no output")
+		return "", errors.New("composer: compose returned no output")
 	}
-	return []byte(out), nil
+	return out, nil
 }

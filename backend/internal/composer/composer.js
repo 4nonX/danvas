@@ -33975,6 +33975,49 @@ ${err.toString()}`);
     }
   });
 
+  // packages/aistudio/dist/capacity.js
+  var require_capacity = __commonJS({
+    "packages/aistudio/dist/capacity.js"(exports) {
+      "use strict";
+      Object.defineProperty(exports, "__esModule", { value: true });
+      exports.designTypeSizes = void 0;
+      exports.slotCapacity = slotCapacity;
+      exports.capacityClause = capacityClause2;
+      exports.designTypeSizes = {
+        deck: { width: 1920, height: 1080 },
+        doc: { width: 1240, height: 1754 },
+        poster: { width: 1080, height: 1350 },
+        social: { width: 1080, height: 1080 },
+        "social-set": { width: 1080, height: 1080 }
+      };
+      function slotCapacity(width, height) {
+        const short = Math.min(width, height);
+        const unit = Math.max(4, Math.round(short * 0.012));
+        const margin = unit * 6;
+        const gutter = unit * 2;
+        const col = (width - 2 * margin - 11 * gutter) / 12;
+        const full = width - 2 * margin;
+        const six = 6 * col + 5 * gutter;
+        const titlePx = height * 0.07;
+        const pointPx = height * 0.034;
+        const subPx = height * 0.034;
+        const labelPx = height * 0.036;
+        return {
+          title: Math.floor(full / (titlePx * 0.55)),
+          point: Math.floor((full - 1.6 * pointPx) / (pointPx * 0.5)),
+          columnPoint: Math.floor((six - 6 * unit - 1.6 * pointPx) / (pointPx * 0.5)),
+          coverSubhead: Math.floor(six / (subPx * 0.5)),
+          statLabel: Math.floor((six - 6 * unit) / (labelPx * 0.55))
+        };
+      }
+      function capacityClause2(designType, width, height) {
+        const c = slotCapacity(width, height);
+        const what = designType === "deck" ? "deck" : designType === "doc" ? "document" : designType === "poster" ? "poster" : "post";
+        return `This ${what} composes at ${width} by ${height}. At full size one line holds about ${c.title} characters of a title, ${c.point} of a bullet, ${c.columnPoint} of a column point, ${c.coverSubhead} of a cover subhead and ${c.statLabel} of a stat label; a title reads best on one or two lines and a bullet on one or two. Write to that width rather than well under it: a point far shorter than its line reads as thin, not concise.`;
+      }
+    }
+  });
+
   // packages/aistudio/dist/look.js
   var require_look = __commonJS({
     "packages/aistudio/dist/look.js"(exports) {
@@ -34060,6 +34103,177 @@ ${err.toString()}`);
         if (isDeckLook(named))
           return named;
         return catalogStyle && LOOK_FOR_STYLE[catalogStyle] || "classic";
+      }
+    }
+  });
+
+  // packages/aistudio/dist/artwork.js
+  var require_artwork = __commonJS({
+    "packages/aistudio/dist/artwork.js"(exports) {
+      "use strict";
+      Object.defineProperty(exports, "__esModule", { value: true });
+      exports.artworkKinds = void 0;
+      exports.artworkNodes = artworkNodes;
+      exports.artworkKindFor = artworkKindFor;
+      var schema_1 = require_dist();
+      exports.artworkKinds = ["waves", "blobs", "rings", "stripes", "dots"];
+      function mix(a, b, t) {
+        const l = (x, y) => x + (y - x) * t;
+        return { srgb: { r: l(a.srgb.r, b.srgb.r), g: l(a.srgb.g, b.srgb.g), b: l(a.srgb.b, b.srgb.b), a: 1 } };
+      }
+      function rng(seed) {
+        let s = seed >>> 0 || 1;
+        return () => {
+          s ^= s << 13;
+          s >>>= 0;
+          s ^= s >>> 17;
+          s ^= s << 5;
+          s >>>= 0;
+          return (s >>> 0) / 4294967296;
+        };
+      }
+      function ellipse(name, x, y, w, h, color, opacity) {
+        return (0, schema_1.createNode)("shape", {
+          name,
+          shape: "ellipse",
+          transform: { x: Math.round(x), y: Math.round(y), scaleX: 1, scaleY: 1, rotation: 0 },
+          size: { width: Math.round(w), height: Math.round(h) },
+          fills: [{ type: "solid", color: structuredClone(color) }],
+          opacity
+        });
+      }
+      function rect(name, x, y, w, h, color, opacity, rotation = 0) {
+        return (0, schema_1.createNode)("shape", {
+          name,
+          shape: "rect",
+          transform: { x: Math.round(x), y: Math.round(y), scaleX: 1, scaleY: 1, rotation },
+          size: { width: Math.round(w), height: Math.round(h) },
+          fills: [{ type: "solid", color: structuredClone(color) }],
+          opacity
+        });
+      }
+      function path(name, w, h, segments, color, opacity, closed = true) {
+        return (0, schema_1.createNode)("path", {
+          name,
+          transform: { x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0 },
+          size: { width: Math.round(w), height: Math.round(h) },
+          segments,
+          closed,
+          fills: [{ type: "solid", color: structuredClone(color) }],
+          opacity
+        });
+      }
+      function waveBand(w, h, top, amp, periods, phase) {
+        const n = Math.max(2, Math.round(periods * 2));
+        const step = w / n;
+        const segs = [];
+        for (let i = 0; i <= n; i++) {
+          const x = i * step;
+          const y = top + Math.sin(phase + i / n * periods * Math.PI * 2) * amp;
+          const prev = i > 0 ? segs[i - 1] : null;
+          const seg = { x, y };
+          if (prev) {
+            prev.cOut = { x: prev.x + step / 3, y: prev.y };
+            seg.cIn = { x: x - step / 3, y };
+          }
+          segs.push(seg);
+        }
+        segs.push({ x: w, y: h }, { x: 0, y: h });
+        return segs;
+      }
+      function blob(cx, cy, r, wobble, rand) {
+        const n = 8;
+        const pts = [];
+        for (let i = 0; i < n; i++) {
+          const a = i / n * Math.PI * 2;
+          const rr = r * (1 - wobble / 2 + rand() * wobble);
+          pts.push({ x: cx + Math.cos(a) * rr, y: cy + Math.sin(a) * rr });
+        }
+        const segs = [];
+        for (let i = 0; i < n; i++) {
+          const p = pts[i];
+          const prev = pts[(i - 1 + n) % n];
+          const next = pts[(i + 1) % n];
+          const tx = (next.x - prev.x) / 4;
+          const ty = (next.y - prev.y) / 4;
+          segs.push({ x: p.x, y: p.y, cIn: { x: p.x - tx, y: p.y - ty }, cOut: { x: p.x + tx, y: p.y + ty } });
+        }
+        return segs;
+      }
+      function artworkNodes(kind, box, palette, seed) {
+        const rand = rng(seed);
+        const w = box.width;
+        const h = box.height;
+        const { ground, primary, accent } = palette;
+        const soft = mix(ground, primary, 0.35);
+        const mid = mix(ground, primary, 0.65);
+        const out = [];
+        switch (kind) {
+          case "waves": {
+            const bands = 4;
+            for (let i = 0; i < bands; i++) {
+              const top = h * (0.35 + i / bands * 0.5);
+              const color = i % 2 === 0 ? mix(soft, primary, i / bands) : mix(mid, accent, i / bands);
+              out.push(path("Wave", w, h, waveBand(w, h, top, h * 0.06, 1.5 + i * 0.5, rand() * Math.PI * 2), color, 0.9));
+            }
+            break;
+          }
+          case "blobs": {
+            const n = 3;
+            for (let i = 0; i < n; i++) {
+              const r = Math.min(w, h) * (0.22 + rand() * 0.14);
+              const cx = r + rand() * (w - 2 * r);
+              const cy = r + rand() * (h - 2 * r);
+              const color = i === 0 ? mid : i === 1 ? mix(soft, accent, 0.5) : primary;
+              out.push(path("Blob", w, h, blob(cx, cy, r, 0.35, rand), color, 0.8));
+            }
+            break;
+          }
+          case "rings": {
+            const cx = w * (0.55 + rand() * 0.2);
+            const cy = h * (0.45 + rand() * 0.2);
+            const rMax = Math.min(cx, w - cx, cy, h - cy) * 0.98;
+            const rings = 5;
+            for (let i = rings; i >= 1; i--) {
+              const r = rMax * (i / rings);
+              const color = i % 2 === 0 ? mix(soft, primary, i / rings) : mix(ground, accent, 0.25 + i / rings * 0.4);
+              out.push(ellipse("Ring", cx - r, cy - r, r * 2, r * 2, color, 0.95));
+            }
+            break;
+          }
+          case "stripes": {
+            const n = 5;
+            const bandW = w / (n * 1.6);
+            for (let i = 0; i < n; i++) {
+              const x = i / n * w + bandW * 0.2;
+              const color = i % 2 === 0 ? mix(soft, primary, 0.3 + i / n * 0.5) : mix(mid, accent, i / n * 0.6);
+              out.push(rect("Stripe", x, h * 0.18, bandW, h * 0.64, color, 0.85, 0));
+            }
+            break;
+          }
+          case "dots": {
+            const cols = 9;
+            const rows = 6;
+            const cw = w / cols;
+            const rh = h / rows;
+            const ox = rand();
+            const oy = rand();
+            for (let r = 0; r < rows; r++) {
+              for (let c = 0; c < cols; c++) {
+                const t = Math.min(1, Math.hypot(c / cols - ox, r / rows - oy));
+                const d = Math.min(cw, rh) * (0.16 + (1 - t) * 0.5);
+                const color = t < 0.4 ? mix(primary, accent, 0.4) : mix(soft, primary, 0.5);
+                out.push(ellipse("Dot", c * cw + (cw - d) / 2, r * rh + (rh - d) / 2, d, d, color, 0.9));
+              }
+            }
+            break;
+          }
+        }
+        return out;
+      }
+      function artworkKindFor(seed) {
+        const n = exports.artworkKinds.length;
+        return exports.artworkKinds[(seed % n + n) % n];
       }
     }
   });
@@ -36445,6 +36659,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
       var illustrationset_1 = require_illustrationset();
       var deckStyle_1 = require_deckStyle();
       var look_1 = require_look();
+      var artwork_1 = require_artwork();
       var IMPACT = /* @__PURE__ */ new Set(["cover", "section", "statement", "quote", "closing"]);
       function archetypeIsImpact(a) {
         return IMPACT.has(a);
@@ -36918,6 +37133,9 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
          *  a picture slot, tagged so the image pipeline finds it by placeholder id
          *  and replaces it wholesale when the picture lands. */
         imageSlot(r, prompt, radius = 0) {
+          var _a5;
+          if (((_a5 = this.item.image) == null ? void 0 : _a5.treatment) === "abstract")
+            return this.artwork(r);
           this.slotSeq += 1;
           const id2 = `img-${this.ctx.index + 1}-${this.slotSeq}`;
           this.prompts[id2] = prompt;
@@ -36988,10 +37206,30 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             data: { illustration: name }
           });
         }
-        /** The drawing the outline named for this page, when the set knows it. */
+        /** The drawing the outline named for this page, when the set knows it;
+         *  for an illustration intent that named none, one the subject's own words
+         *  match ("a handshake between partners" finds the handshake). */
         get namedIllustration() {
           var _a5;
-          return illustrationFor((_a5 = this.item.image) == null ? void 0 : _a5.illustration);
+          const im = this.item.image;
+          return (_a5 = illustrationFor(im == null ? void 0 : im.illustration)) != null ? _a5 : (im == null ? void 0 : im.treatment) === "illustration" ? illustrationFor(im.subject) : null;
+        }
+        /** Procedural artwork in a region: one kind chosen by the page's seed,
+         *  every form inside the box, grouped so the quality loop sees one node.
+         *  Tagged so the picture ladders leave it alone. */
+        artwork(r0) {
+          const r = this.mirror(r0);
+          const seed = Array.from(this.item.title).reduce((h, ch) => Math.imul(h, 31) + ch.charCodeAt(0) | 0, this.ctx.index * 7919 + 17);
+          const kind = (0, artwork_1.artworkKindFor)(seed);
+          const c = this.ds.colors;
+          const children = (0, artwork_1.artworkNodes)(kind, { x: 0, y: 0, width: r.width, height: r.height }, { ground: this.ground, primary: c.primary, accent: this.accent }, seed);
+          return (0, schema_1.createNode)("group", {
+            name: "Artwork",
+            children,
+            transform: { x: r.x, y: r.y, scaleX: 1, scaleY: 1, rotation: 0 },
+            size: { width: r.width, height: r.height },
+            data: { artwork: kind }
+          });
         }
         /** What the picture should show, in the deck's treatment. Falls back to the
          *  slide's own subject when the outline named no image, so a form that
@@ -38735,6 +38973,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
       exports.outlineUserPrompt = outlineUserPrompt;
       exports.groundImagePrompt = groundImagePrompt;
       var outline_1 = require_outline();
+      var capacity_1 = require_capacity();
       var promptRules_1 = require_promptRules();
       var TYPE_GUIDANCE = {
         deck: "A presentation deck: a cover, a statement of the thesis, evidence pages in varied forms (bullets, twoColumn, threeUp, process, timeline, bigNumber, kpiGrid, chart, table, imageCaption, quote, team), and a closing with a specific ask. Aim for a clear narrative arc.",
@@ -38746,11 +38985,14 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
       exports.storyArcRule = "Plan a narrative arc before choosing forms: open with the cover, state the thesis as a 'statement' early, build with evidence, and end with a 'closing' that asks for something specific. Vary the forms: no more than 40 percent of pages may be 'bullets'; never place the same archetype on two adjacent pages except 'bullets' at most twice in a row; use 'bigNumber' whenever the brief or attached material contains a meaningful quantity, 'kpiGrid' when two to four figures belong together, 'timeline' for dated history or a roadmap, and 'table' when the material is a small grid of real values; use 'section' dividers only for decks of 10 or more pages; give an 'image' intent to every 'cover', 'imageCaption', 'section' and 'closing' page and to about half of the rest, with a concrete English subject and consistent treatment across the deck; for an internal, product or plan deck, name an 'illustration' keyword on the cover, sections and closing (growth, handshake, rocket, target, security, chart, analysis, team, idea, money, logistics, calendar, map) so a flat drawing stands in for the photo. Name a 'look' for the whole deck: 'editorial' (serif display, hairline rules, paper grounds; for stories, reports, culture, heritage, luxury), 'bold' (colour fields, giant numerals, heavy sans; for launches, campaigns, sport, youth, sales), 'technical' (a visible grid, mono labels, square corners; for engineering, data, infrastructure, developer audiences) or 'classic' (the balanced default); the subject and audience decide, not the mood words alone.";
       exports.copyToFormRule = "Write copy to fit the form: a title is a headline (under 60 characters), never a sentence with a full stop; points are parallel in structure and start with the same part of speech; a statement is one idea, not a summary; a stat.label says what the number means in plain words. Never write 'Slide 1', 'Introduction' or other structural labels as content. Never use a dash as a separator anywhere in slide copy (titles, subheads, points, labels); use a colon or a new sentence. A stat.value is the bare figure (42%, 3.2M, 312): no arrows, no words, no plus or minus for direction; the label says whether it rose or fell. Every figure comes from the brief or the attached material, exactly as given; never invent, round or extrapolate a number. Set every title, subhead, label and eyebrow in sentence case (the first word and proper nouns capitalized), never in Title Case. An eyebrow is a label of at most 24 characters and a stat label at most 60; a title under 60. Write to fit: copy over a budget is cut at a word, never rephrased. Data-heavy material is split across several table or chart pages, at most eight rows or twelve categories each, never one dense page; a table cell is at most 60 characters.";
       function outlineSystemPrompt(designType, brandClause, pageCount, verbosity) {
+        var _a5;
         const count = pageCount && pageCount > 0 ? `Aim for about ${pageCount} pages. ` : "";
+        const page = (_a5 = capacity_1.designTypeSizes[designType]) != null ? _a5 : capacity_1.designTypeSizes.deck;
+        const capacity = `${(0, capacity_1.capacityClause)(designType, page.width, page.height)} `;
         return [
           "You are a senior presentation designer and content strategist. You plan a deck the way a designer does: story first, then one compositional form per slide, then copy written to fit that form.",
           `Plan this design as an editable outline. ${TYPE_GUIDANCE[designType]}`,
-          `${count}Output ONLY a single JSON object, no prose, no markdown, no code fences.`,
+          `${count}${capacity}Output ONLY a single JSON object, no prose, no markdown, no code fences.`,
           `Schema: ${JSON.stringify(outline_1.outlineJsonSchema)}.`,
           exports.archetypeCatalogRule,
           exports.storyArcRule,
@@ -39172,6 +39414,9 @@ ${cites.map((c, i) => `${i + 1}. ${c.name.trim()} - ${c.url.trim()}`).join("\n")
       __exportStar(require_spec(), exports);
       __exportStar(require_layout(), exports);
       __exportStar(require_quality(), exports);
+      __exportStar(require_capacity(), exports);
+      __exportStar(require_look(), exports);
+      __exportStar(require_artwork(), exports);
       __exportStar(require_outline(), exports);
       __exportStar(require_promptRules(), exports);
       __exportStar(require_outlineEdit(), exports);
@@ -39233,4 +39478,8 @@ ${cites.map((c, i) => `${i + 1}. ${c.name.trim()} - ${c.url.trim()}`).join("\n")
   var import_dist = __toESM(require_dist3(), 1);
   globalThis.__composeDeckFile = (inputJson) => JSON.stringify((0, import_dist.composeDeckFile)(JSON.parse(inputJson)));
   globalThis.__composeDeckFileWithReport = (inputJson) => JSON.stringify((0, import_dist.composeDeckFileWithReport)(JSON.parse(inputJson)));
+  globalThis.__capacityClause = (inputJson) => {
+    const a = JSON.parse(inputJson);
+    return (0, import_dist.capacityClause)(a.designType, a.width, a.height);
+  };
 })();
