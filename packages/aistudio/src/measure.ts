@@ -42,6 +42,8 @@ export interface PageReport {
   /** Share of the reading area with no node on it, 0..1. */
   whitespace: number;
   issues: QualityIssue[];
+  /** Text runs the repair pass re-inked to AA before the page left. */
+  repairs: number;
 }
 
 export interface DeckReport {
@@ -52,6 +54,8 @@ export interface DeckReport {
   repetition: number[];
   /** Pages whose copy needs shortening: geometry has done what it can. */
   shorten: number[];
+  /** Text runs re-inked to AA across the deck. */
+  repairs: number;
   /** True when nothing needs a second pass. */
   ok: boolean;
 }
@@ -91,6 +95,7 @@ export interface MeasurablePage {
   nodes: Node[];
   overfull: string[];
   issues: QualityIssue[];
+  repairs?: number;
 }
 
 /** Whitespace above this on a paper page reads as unfinished. Impact pages
@@ -112,6 +117,7 @@ export function measureDeck(pages: MeasurablePage[], size: { width: number; heig
       overfull: [...new Set(p.overfull)],
       whitespace: Math.round(whitespaceShare(boxes, area) * 1000) / 1000,
       issues: p.issues,
+      repairs: p.repairs ?? 0,
     };
   });
   const bulletShare = pages.length ? pages.filter((p) => p.archetype === "bullets").length / pages.length : 0;
@@ -130,6 +136,7 @@ export function measureDeck(pages: MeasurablePage[], size: { width: number; heig
     bulletShare: Math.round(bulletShare * 100) / 100,
     repetition,
     shorten,
+    repairs: reports.reduce((n, r) => n + r.repairs, 0),
     // Repetition and sparseness are the fixer's business and are remedied by
     // variants before a caller sees this; what remains for a second pass is
     // copy that did not fit, and any hard quality issue.
@@ -160,6 +167,6 @@ export function planVariants(report: DeckReport, outline: DesignOutline): Record
 }
 
 /** Convenience for callers holding ComposedPages plus their quality issues. */
-export function toMeasurable(page: ComposedPage, issues: QualityIssue[]): MeasurablePage {
-  return { archetype: page.archetype, impact: page.impact, nodes: page.nodes, overfull: page.overfull, issues };
+export function toMeasurable(page: ComposedPage, issues: QualityIssue[], repairs = 0): MeasurablePage {
+  return { archetype: page.archetype, impact: page.impact, nodes: page.nodes, overfull: page.overfull, issues, repairs };
 }

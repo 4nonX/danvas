@@ -3,6 +3,10 @@ import { archetypes, normalizeOutline, type Archetype } from "../outline";
 import { deriveDesignSystem, catalogEntryForSeed, catalogEntryForMood, designSystemSlots, hueName, artDirectionFor } from "../designSystem";
 import { archetypeIsImpact, composeArchetypePage, keepLastWordCompany, iconGlyphFor, applyMotion, illustrationFor, decodeDrawingPath } from "../archetypes";
 import { ILLUSTRATIONS, ILLUSTRATION_KEYWORDS } from "../illustrationset";
+import { themeCatalog } from "../themeCatalog";
+import { repairContrast } from "../repair";
+import { composeDeckFileWithReport } from "../compose";
+import { isDarkGround } from "../designSystem";
 import { ICON_GLYPHS, ICON_KEYWORDS } from "../iconset";
 import { layoutDeck } from "../deck";
 import { deckThemes } from "../theme";
@@ -729,5 +733,44 @@ describe("a heading in a narrow column", () => {
     // The longest word holds one line of the column at the chosen size.
     const longest = Math.max(...text.split(" ").map((w) => w.length));
     expect(longest * 0.55 * size).toBeLessThanOrEqual(title.size.width);
+  });
+});
+
+describe("every catalog theme reads at AA on both grounds", () => {
+  for (const entry of themeCatalog) {
+    it(`${entry.id}: every ink clears 4.5:1 on its ground, and a reading page never sits on a mid-tone`, () => {
+      const ds = deriveDesignSystem(theme, size, { seed: 1, catalog: entry });
+      const c = ds.colors;
+      for (const [ink, ground] of [[c.inkOnDeep, c.deep], [c.ink, c.paper], [c.mutedOnDeep, c.deep], [c.mutedOnPaper, c.paper], [c.accentInkOnDeep, c.deep], [c.accentInkOnPaper, c.paper]] as const) {
+        expect(contrastRatio(ink, ground)).toBeGreaterThanOrEqual(4.5);
+      }
+      if (ds.readingGround === "deep") expect(isDarkGround(c.deep)).toBe(true);
+    });
+  }
+
+  it("Midnight, whose deep slot is a sky blue, composes a whole deck with no contrast issue and no repair needed", () => {
+    const pages = ["cover", "agenda", "kpiGrid", "twoColumn", "process", "quote", "closing"] as Archetype[];
+    const outline = { title: "Meridian: Q3 update", pages: pages.map((a) => pageFor(a)) };
+    const { report } = composeDeckFileWithReport({ outline, width: 1920, height: 1080, themeId: "theme-midnight" });
+    expect(report.pages.flatMap((p) => p.issues).filter((i) => i.kind === "contrast")).toEqual([]);
+    expect(report.repairs).toBe(0);
+  });
+});
+
+describe("the repair pass", () => {
+  it("re-inks a text the checker would flag, against the panel it sits on, and leaves passing text alone", () => {
+    const ds = deriveDesignSystem(theme, size, { seed: 1, catalog: catalogEntryForSeed(1) });
+    const item = normalizeOutline({ title: "T", pages: [pageFor("kpiGrid")] }).pages[0];
+    const page = composeArchetypePage(item, ds, { index: 1, total: 3 });
+    const input = { background: page.background, nodes: page.nodes, size };
+    expect(qualityCheck(input).issues).toEqual([]);
+    expect(repairContrast(input)).toBe(0);
+    // Paint a figure in a tint of its own panel: unreadable on purpose.
+    const fig = page.nodes.find((n) => n.name === "Figure") as unknown as { content: { runs: { style: { fill: { type: string; color: unknown } } }[] }[] };
+    const panel = page.nodes.find((n) => n.name === "Panel") as unknown as { fills: { color: unknown }[] };
+    fig.content[0].runs[0].style.fill = { type: "solid", color: structuredClone(panel.fills[0].color) };
+    expect(qualityCheck(input).issues.some((i) => i.kind === "contrast")).toBe(true);
+    expect(repairContrast(input)).toBeGreaterThan(0);
+    expect(qualityCheck(input).issues).toEqual([]);
   });
 });

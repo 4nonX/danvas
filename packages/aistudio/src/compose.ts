@@ -15,6 +15,7 @@ import {
   themeFromPalette,
   type DesignFile,
   type Fill,
+  type Node,
   type Page,
   type SlideLayout,
   type SlideMaster,
@@ -30,6 +31,8 @@ import { fallbackLayoutFill, repairLayoutSelection } from "./layoutSchema";
 import { accentRuleRect, pageTreatment, slotTypeScale } from "./deckStyle";
 import { reflowPage } from "./reflow";
 import { themeSlotNames } from "./themeGen";
+import { qualityCheck } from "./quality";
+import { repairContrast } from "./repair";
 import { catalogEntryForMood, designSystemSlots, type DeckLogo, type DeckMotion } from "./designSystem";
 import { applyMotion } from "./archetypes";
 import { measureDeck, type DeckReport } from "./measure";
@@ -338,13 +341,18 @@ export function composeDeckFileWithReport(input: ComposeDeckInput): { file: Desi
       } as unknown as Page;
     });
     report = measureDeck(
-      pages.map((pg, i) => ({
-        archetype: (outline.pages[i].archetype ?? "bullets"),
-        impact: pageTreatment(outline.pages[i].visualRole, theme.background).impact,
-        nodes: pg.children,
-        overfull: overfullByPage[i],
-        issues: [],
-      })),
+      pages.map((pg, i) => {
+        const page = { background: pg.background as Fill, nodes: pg.children as Node[], size: { width, height } };
+        const repairs = repairContrast(page);
+        return {
+          archetype: (outline.pages[i].archetype ?? "bullets"),
+          impact: pageTreatment(outline.pages[i].visualRole, theme.background).impact,
+          nodes: pg.children as Node[],
+          overfull: overfullByPage[i],
+          issues: qualityCheck(page).issues,
+          repairs,
+        };
+      }),
       { width, height },
       Math.round(Math.min(width, height) * 0.012) * 6,
     );

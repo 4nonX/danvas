@@ -100,6 +100,9 @@ type PageReport struct {
 	// fixes it, which is what the generation API hands back to the model once.
 	Overfull   []string `json:"overfull"`
 	Whitespace float64  `json:"whitespace"`
+	// Repairs counts the text runs the composer re-inked to AA before the
+	// page left it.
+	Repairs int `json:"repairs"`
 }
 
 // Report is the reviewer's verdict on a composed deck. Mirrors DeckReport in
@@ -109,6 +112,7 @@ type Report struct {
 	BulletShare float64      `json:"bulletShare"`
 	Repetition  []int        `json:"repetition"`
 	Shorten     []int        `json:"shorten"`
+	Repairs     int          `json:"repairs"`
 	OK          bool         `json:"ok"`
 }
 

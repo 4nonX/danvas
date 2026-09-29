@@ -328,6 +328,9 @@ func startGenerationJob(svc *aistudio.Service, aiSvc *ai.Service, up *uploads.Se
 				"ok":          report.OK,
 				"stillLong":   len(report.Shorten),
 				"bulletShare": report.BulletShare,
+				// Text runs the composer re-inked to AA on the way out, so a
+				// consumer knows the palette was corrected rather than clean.
+				"contrastRepairs": report.Repairs,
 			},
 			// How many picture regions the deck had and how many were filled
 			// through the workspace's image provider; a region that failed

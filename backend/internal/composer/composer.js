@@ -33336,23 +33336,31 @@ ${err.toString()}`);
         if (contrastRatio(fg, bg) >= target)
           return fg;
         const bgLum = relativeLuminance(bg);
-        const goDarker = bgLum > 0.5;
         const hsl = (0, convert_1.rgbToHsl)(fg);
-        let best = fg;
-        let bestRatio = contrastRatio(fg, bg);
-        const steps = 100;
-        for (let i = 1; i <= steps; i++) {
-          const l = goDarker ? (0, convert_1.clamp01)(hsl.l * (1 - i / steps)) : (0, convert_1.clamp01)(hsl.l + (1 - hsl.l) * (i / steps));
-          const candidate = (0, convert_1.hslToRgb)(__spreadProps(__spreadValues({}, hsl), { l }));
-          const r = contrastRatio(candidate, bg);
-          if (r > bestRatio) {
-            bestRatio = r;
-            best = candidate;
+        const walk = (goDarker) => {
+          let best = fg;
+          let bestRatio = contrastRatio(fg, bg);
+          const steps = 100;
+          for (let i = 1; i <= steps; i++) {
+            const l = goDarker ? (0, convert_1.clamp01)(hsl.l * (1 - i / steps)) : (0, convert_1.clamp01)(hsl.l + (1 - hsl.l) * (i / steps));
+            const candidate = (0, convert_1.hslToRgb)(__spreadProps(__spreadValues({}, hsl), { l }));
+            const r = contrastRatio(candidate, bg);
+            if (r > bestRatio) {
+              bestRatio = r;
+              best = candidate;
+            }
+            if (r >= target)
+              return { hit: candidate, best, bestRatio };
           }
-          if (r >= target)
-            return candidate;
-        }
-        return best;
+          return { hit: null, best, bestRatio };
+        };
+        const natural = walk(bgLum > 0.5);
+        if (natural.hit)
+          return natural.hit;
+        const other = walk(bgLum <= 0.5);
+        if (other.hit)
+          return other.hit;
+        return natural.bestRatio >= other.bestRatio ? natural.best : other.best;
       }
     }
   });
@@ -33864,6 +33872,7 @@ ${err.toString()}`);
     "packages/aistudio/dist/quality.js"(exports) {
       "use strict";
       Object.defineProperty(exports, "__esModule", { value: true });
+      exports.groundReferences = groundReferences;
       exports.qualityCheck = qualityCheck;
       var color_1 = require_dist2();
       function nodeBox(n) {
@@ -33894,6 +33903,38 @@ ${err.toString()}`);
         const tol = 1;
         return a.x < b.x + b.w - tol && a.x + a.w > b.x + tol && a.y < b.y + b.h - tol && a.y + a.h > b.y + tol;
       }
+      function fillReferences(fill) {
+        if (!fill)
+          return [];
+        if (fill.type === "solid")
+          return [fill.color];
+        if (fill.type === "gradient" && fill.stops.length)
+          return fill.stops.map((s) => s.color);
+        return [];
+      }
+      function groundReferences(node2, nodes, background) {
+        var _a5;
+        const box = nodeBox(node2);
+        if (!box)
+          return backgroundReferences(background);
+        const tol = 1;
+        let ground = null;
+        for (const n of nodes) {
+          if (n === node2)
+            break;
+          if (n.type !== "shape")
+            continue;
+          const b = nodeBox(n);
+          if (!b)
+            continue;
+          if (b.x - tol <= box.x && b.y - tol <= box.y && b.x + b.w + tol >= box.x + box.w && b.y + b.h + tol >= box.y + box.h) {
+            const refs = fillReferences((_a5 = n.fills) == null ? void 0 : _a5[0]);
+            if (refs.length)
+              ground = refs;
+          }
+        }
+        return ground != null ? ground : backgroundReferences(background);
+      }
       function qualityCheck(page) {
         var _a5, _b;
         const issues = [];
@@ -33910,7 +33951,7 @@ ${err.toString()}`);
             const fg = firstTextColor(n);
             if (fg) {
               let ratio = Infinity;
-              for (const ref of bgRefs)
+              for (const ref of groundReferences(n, page.nodes, page.background))
                 ratio = Math.min(ratio, (0, color_1.contrastRatio)(fg, ref));
               if (ratio < 4.5) {
                 issues.push({ kind: "contrast", nodeId: n.id, ratio, message: `Text contrast ${ratio.toFixed(2)}:1 is below AA (4.5:1).` });
@@ -35795,11 +35836,59 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
     }
   });
 
+  // packages/aistudio/dist/repair.js
+  var require_repair2 = __commonJS({
+    "packages/aistudio/dist/repair.js"(exports) {
+      "use strict";
+      Object.defineProperty(exports, "__esModule", { value: true });
+      exports.repairContrast = repairContrast;
+      var color_1 = require_dist2();
+      var quality_1 = require_quality();
+      var WHITE = { srgb: { r: 1, g: 1, b: 1, a: 1 } };
+      var BLACK = { srgb: { r: 0, g: 0, b: 0, a: 1 } };
+      function minRatio(c, refs) {
+        let r = Infinity;
+        for (const ref of refs)
+          r = Math.min(r, (0, color_1.contrastRatio)(c, ref));
+        return r;
+      }
+      function repairContrast(page) {
+        var _a5, _b, _c;
+        let changed = 0;
+        for (const node2 of page.nodes) {
+          if (node2.type !== "text")
+            continue;
+          const refs = (0, quality_1.groundReferences)(node2, page.nodes, page.background);
+          if (!refs.length)
+            continue;
+          const content = (_a5 = node2.content) != null ? _a5 : [];
+          for (const para of content) {
+            for (const run of (_b = para.runs) != null ? _b : []) {
+              const fill = (_c = run.style) == null ? void 0 : _c.fill;
+              if (!fill || fill.type !== "solid" || !run.style)
+                continue;
+              if (minRatio(fill.color, refs) >= 4.5)
+                continue;
+              const worst = refs.reduce((a, b) => (0, color_1.contrastRatio)(fill.color, a) <= (0, color_1.contrastRatio)(fill.color, b) ? a : b);
+              let fixed = (0, color_1.fixToAA)(fill.color, worst);
+              if (minRatio(fixed, refs) < 4.5)
+                fixed = minRatio(WHITE, refs) >= minRatio(BLACK, refs) ? WHITE : BLACK;
+              run.style.fill = { type: "solid", color: fixed };
+              changed++;
+            }
+          }
+        }
+        return changed;
+      }
+    }
+  });
+
   // packages/aistudio/dist/designSystem.js
   var require_designSystem = __commonJS({
     "packages/aistudio/dist/designSystem.js"(exports) {
       "use strict";
       Object.defineProperty(exports, "__esModule", { value: true });
+      exports.isDarkGround = isDarkGround;
       exports.hueName = hueName;
       exports.artDirectionFor = artDirectionFor;
       exports.catalogEntryForSeed = catalogEntryForSeed;
@@ -35827,6 +35916,18 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
       function withLightness(c, l, sMin = 0) {
         const hsl = (0, color_1.rgbToHsl)(c);
         return (0, color_1.hslToRgb)({ h: hsl.h, s: Math.max(hsl.s, sMin), l, a: 1 });
+      }
+      function groundForInk(g) {
+        if ((0, color_1.contrastRatio)(WHITE, g) >= 4.5 || (0, color_1.contrastRatio)(BLACK, g) >= 4.5)
+          return g;
+        const hsl = (0, color_1.rgbToHsl)(g);
+        let out = g;
+        for (let l = hsl.l; l > 0 && (0, color_1.contrastRatio)(WHITE, out) < 4.5; l -= 0.02)
+          out = (0, color_1.hslToRgb)(__spreadProps(__spreadValues({}, hsl), { l: Math.max(0, l) }));
+        return out;
+      }
+      function isDarkGround(g) {
+        return (0, color_1.relativeLuminance)(g) < 0.18;
       }
       function inkFor(ground) {
         const base = (0, color_1.contrastRatio)(WHITE, ground) >= (0, color_1.contrastRatio)(BLACK, ground) ? WHITE : BLACK;
@@ -35938,6 +36039,8 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           tint = mix(WHITE, primary, 0.13);
           ink = mix(withLightness(primary, 0.12, 0.2), BLACK, 0.35);
         }
+        deep = groundForInk(deep);
+        paper = groundForInk(paper);
         const inkOnDeep = inkFor(deep);
         const inkOnPaper = (0, color_1.contrastRatio)(ink, paper) >= 4.5 ? ink : (0, color_1.fixToAA)(ink, paper);
         const colors = {
@@ -35988,7 +36091,12 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           artDirection: artDirectionFor(opts.mood, colors),
           motion: (_l = opts.motion) != null ? _l : "subtle"
         }, ((_m = opts.logo) == null ? void 0 : _m.assetId) && opts.logo.url ? { logo: __spreadValues({}, opts.logo) } : {}), {
-          readingGround: ((_n = opts.catalog) == null ? void 0 : _n.style) === "dark" || ((_o = opts.catalog) == null ? void 0 : _o.style) === "tech" ? "deep" : "paper"
+          // A dark or tech style reads on its deep ground only when that ground
+          // is dark. Some entries carry a saturated mid-tone in the deep slot (a
+          // sky blue, an orange, a green) and their near-black paper is the
+          // surface a reading page wants; a mid-tone hosts no light ink at AA and
+          // painted every page of a deck in it.
+          readingGround: (((_n = opts.catalog) == null ? void 0 : _n.style) === "dark" || ((_o = opts.catalog) == null ? void 0 : _o.style) === "tech") && isDarkGround(colors.deep) ? "deep" : "paper"
         });
       }
       function designSystemSlots(ds) {
@@ -37553,6 +37661,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
       function measureDeck(pages, size2, margin) {
         const area = { x: margin, y: margin, w: size2.width - 2 * margin, h: size2.height - 2 * margin };
         const reports = pages.map((p, i) => {
+          var _a5;
           const boxes = p.nodes.filter((n) => n.name !== "Kicker" && n.name !== "Page number" && n.name !== "Logo" && n.name !== "Decor" && n.name !== "Footer").map(boxOf).filter((b) => !!b);
           return {
             index: i,
@@ -37562,7 +37671,8 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             // place it), so a name can repeat; the report lists each once.
             overfull: [...new Set(p.overfull)],
             whitespace: Math.round(whitespaceShare(boxes, area) * 1e3) / 1e3,
-            issues: p.issues
+            issues: p.issues,
+            repairs: (_a5 = p.repairs) != null ? _a5 : 0
           };
         });
         const bulletShare = pages.length ? pages.filter((p) => p.archetype === "bullets").length / pages.length : 0;
@@ -37579,6 +37689,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           bulletShare: Math.round(bulletShare * 100) / 100,
           repetition,
           shorten,
+          repairs: reports.reduce((n, r) => n + r.repairs, 0),
           // Repetition and sparseness are the fixer's business and are remedied by
           // variants before a caller sees this; what remains for a second pass is
           // copy that did not fit, and any hard quality issue.
@@ -37606,8 +37717,8 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         }
         return out;
       }
-      function toMeasurable(page, issues) {
-        return { archetype: page.archetype, impact: page.impact, nodes: page.nodes, overfull: page.overfull, issues };
+      function toMeasurable(page, issues, repairs = 0) {
+        return { archetype: page.archetype, impact: page.impact, nodes: page.nodes, overfull: page.overfull, issues, repairs };
       }
     }
   });
@@ -37619,6 +37730,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
       Object.defineProperty(exports, "__esModule", { value: true });
       exports.layoutDeck = layoutDeck;
       var quality_1 = require_quality();
+      var repair_1 = require_repair2();
       var designSystem_1 = require_designSystem();
       var archetypes_1 = require_archetypes();
       var measure_1 = require_measure();
@@ -37630,7 +37742,11 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         let sections = 0;
         const sectionNumbers = outline.pages.map((item) => item.archetype === "section" ? ++sections : void 0);
         const composeAll = (variants2) => outline.pages.map((item, i) => (0, archetypes_1.composeArchetypePage)(item, system, { index: i, total, variant: variants2[i], section: sectionNumbers[i] }));
-        const measure = (composed2) => (0, measure_1.measureDeck)(composed2.map((c) => (0, measure_1.toMeasurable)(c, (0, quality_1.qualityCheck)({ background: c.background, nodes: c.nodes, size: system.size }).issues)), system.size, system.margin);
+        const measure = (composed2) => (0, measure_1.measureDeck)(composed2.map((c) => {
+          const page = { background: c.background, nodes: c.nodes, size: system.size };
+          const repairs = (0, repair_1.repairContrast)(page);
+          return (0, measure_1.toMeasurable)(c, (0, quality_1.qualityCheck)(page).issues, repairs);
+        }), system.size, system.margin);
         let composed = composeAll({});
         let report = measure(composed);
         const variants = (0, measure_1.planVariants)(report, outline);
@@ -37774,6 +37890,8 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
       var deckStyle_1 = require_deckStyle();
       var reflow_1 = require_reflow();
       var themeGen_1 = require_themeGen();
+      var quality_1 = require_quality();
+      var repair_1 = require_repair2();
       var designSystem_1 = require_designSystem();
       var archetypes_1 = require_archetypes();
       var measure_1 = require_measure();
@@ -37981,12 +38099,15 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           });
           report = (0, measure_1.measureDeck)(pages.map((pg, i) => {
             var _a6;
+            const page = { background: pg.background, nodes: pg.children, size: { width, height } };
+            const repairs = (0, repair_1.repairContrast)(page);
             return {
               archetype: (_a6 = outline.pages[i].archetype) != null ? _a6 : "bullets",
               impact: (0, deckStyle_1.pageTreatment)(outline.pages[i].visualRole, theme.background).impact,
               nodes: pg.children,
               overfull: overfullByPage[i],
-              issues: []
+              issues: (0, quality_1.qualityCheck)(page).issues,
+              repairs
             };
           }), { width, height }, Math.round(Math.min(width, height) * 0.012) * 6);
         } else {

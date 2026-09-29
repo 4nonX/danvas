@@ -9,6 +9,7 @@
 import type { Fill, Node } from "@hc/schema";
 import type { Size } from "./layout";
 import { qualityCheck, type QualityReport } from "./quality";
+import { repairContrast } from "./repair";
 import type { Archetype, DeckTheme, DesignOutline } from "./outline";
 import { deriveDesignSystem, type DesignSystem, type DeriveOptions } from "./designSystem";
 import { composeArchetypePage, type ComposedPage } from "./archetypes";
@@ -58,9 +59,16 @@ export function layoutDeck(
   const sectionNumbers = outline.pages.map((item) => (item.archetype === "section" ? ++sections : undefined));
   const composeAll = (variants: Record<number, PageVariant>) =>
     outline.pages.map((item, i) => composeArchetypePage(item, system, { index: i, total, variant: variants[i], section: sectionNumbers[i] }));
+  // Look, and fix what a look can fix: a text the checker would flag for
+  // contrast is re-inked before it is measured, so the report says what
+  // shipped and not what almost did.
   const measure = (composed: ComposedPage[]) =>
     measureDeck(
-      composed.map((c) => toMeasurable(c, qualityCheck({ background: c.background, nodes: c.nodes, size: system.size }).issues)),
+      composed.map((c) => {
+        const page = { background: c.background, nodes: c.nodes, size: system.size };
+        const repairs = repairContrast(page);
+        return toMeasurable(c, qualityCheck(page).issues, repairs);
+      }),
       system.size,
       system.margin,
     );

@@ -23,7 +23,7 @@ import {
   type DesignOutline, type DesignType, type GenerationDials, type OutlineItem,
   toolCatalog, assistantSystemPrompt, parseAssistantReply, planMutates, summarizeDesign, type PlanStep,
   deriveOutline, switchOutline, sourcesOutlineItem, type PageText, type SourceCitation,
-  themeCatalogEntry, deckThemeFromCatalog, themeRecordFromCatalog, deckThemeFromRecord, pageTreatment, catalogEntryForMood, themeRecordFromDesignSystem , type DeckLogo } from "@hc/aistudio";
+  themeCatalogEntry, deckThemeFromCatalog, themeRecordFromCatalog, deckThemeFromRecord, pageTreatment, catalogEntryForMood, themeRecordFromDesignSystem, type DeckLogo, type DeckReport } from "@hc/aistudio";
 import { builtinMasterAndLayouts, type SlideLayout } from "@hc/schema";
 import { shouldGroundInLayouts } from "@/lib/generationRoute";
 import { promptText } from "@/lib/promptDialog";
@@ -3001,6 +3001,23 @@ async function resolvePlanStep(step: PlanStep, deps: AssistantDeps): Promise<{ p
 // changed (or read) the document successfully. Runs inside runAsTurn so all
 // steps collapse into a single undo entry. Generative steps consume the payload
 // pre-resolved by resolvePlanStep.
+// The composer's verdict on the deck it just built, carried to the turn that
+// reports the generation. The report used to stay inside the step: a deck
+// shipped with thirty-two texts flagged for contrast and nobody was told.
+let lastDeckCheck: string | null = null;
+function deckCheckNote(report: DeckReport): string {
+  const parts = [tr("editor.design_check_pages", { count: report.pages.length })];
+  if (report.repairs > 0) parts.push(tr("editor.design_check_repairs", { count: report.repairs }));
+  if (report.shorten.length) parts.push(tr("editor.design_check_long", { count: report.shorten.length }));
+  return parts.join(" ");
+}
+/** The pending check note, consumed once by the turn that reports it. */
+function takeDeckCheck(): string | null {
+  const note = lastDeckCheck;
+  lastDeckCheck = null;
+  return note;
+}
+
 function runPlanStep(step: PlanStep, ctx?: { brandTargets?: BrandFixTarget[]; payload?: ResolvedPayload; brandFonts?: { heading?: string; body?: string } }): boolean {
   const st = useEditor.getState();
   const a = step.args;
@@ -3438,6 +3455,7 @@ function runPlanStep(step: PlanStep, ctx?: { brandTargets?: BrandFixTarget[]; pa
       // palette, so an unbranded brief still gets a designed deck.
       const catalog = chosenEntry ?? (!themeRecord && !brandPalette.length ? catalogEntryForMood(clean.theme, seed) : null);
       const deck = layoutDeck(clean, themes[0], size, { catalog, brandPalette, seed, logo: brandLogo });
+      lastDeckCheck = deckCheckNote(deck.report);
       const base = append ? st.doc.pages.length : 0;
       const ids = append ? st.appendDeckPages(deck, size) : st.buildDeckFromOutline(deck, size);
       if (!ids.length) return false;
@@ -3996,7 +4014,8 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
         .map((r, i) => (!r.ok && skips[i] ? `${actionLabel(plan[i].action)}: ${skips[i]}` : null))
         .filter((v): v is string => !!v);
       const degradedNote = degraded.length ? `\n${tr("editor.without_the_model", { what: degraded.join(", ") })}` : "";
-      const text = (reply || tr("editor.done_2")) + extra + degradedNote + (notes.length ? `\n${notes.join("\n")}` : "");
+      const check = takeDeckCheck();
+      const text = (reply || tr("editor.done_2")) + extra + degradedNote + (notes.length ? `\n${notes.join("\n")}` : "") + (check ? `\n${check}` : "");
       const finalTurn: ChatTurn = { role: "assistant", text, steps: results, critique, critiqueAt: critique ? useEditor.getState().activePage : undefined };
       // One bubble per intent: a confirmed proposal's bubble BECOMES the
       // execution report (its chips flip from planned to actual results)

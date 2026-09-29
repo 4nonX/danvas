@@ -15,7 +15,7 @@
 // Pure and deterministic: the same theme and size always produce the same
 // system, on the client and under goja alike.
 
-import { contrastRatio, fixToAA, fromHex, hslToRgb, rgbToHsl, toHex } from "@hc/color";
+import { contrastRatio, fixToAA, fromHex, hslToRgb, relativeLuminance, rgbToHsl, toHex } from "@hc/color";
 import type { Color, Fill } from "@hc/schema";
 import type { DeckTheme } from "./outline";
 import type { ThemeCatalogEntry } from "./themeCatalog";
@@ -112,6 +112,25 @@ function mix(a: Color, b: Color, t: number): Color {
 function withLightness(c: Color, l: number, sMin = 0): Color {
   const hsl = rgbToHsl(c);
   return hslToRgb({ h: hsl.h, s: Math.max(hsl.s, sMin), l, a: 1 });
+}
+
+/** A ground at least one ink reads on at AA. A mid grey hosts neither
+ *  black nor white at 4.5:1, so it is darkened until white does; rare, but a
+ *  page on such a ground would have no readable text at all. */
+function groundForInk(g: Color): Color {
+  if (contrastRatio(WHITE, g) >= 4.5 || contrastRatio(BLACK, g) >= 4.5) return g;
+  const hsl = rgbToHsl(g);
+  let out = g;
+  for (let l = hsl.l; l > 0 && contrastRatio(WHITE, out) < 4.5; l -= 0.02) out = hslToRgb({ ...hsl, l: Math.max(0, l) });
+  return out;
+}
+
+/** True when a ground is dark enough to carry a reading page: light ink
+ *  reads on it at AA with room to spare. A saturated mid-tone (a sky blue,
+ *  an orange) is a fine impact ground under black ink and a poor reading
+ *  ground under anything. */
+export function isDarkGround(g: Color): boolean {
+  return relativeLuminance(g) < 0.18;
 }
 
 /** The ink that reads best on a ground, nudged to AA against it. */
@@ -276,6 +295,9 @@ export function deriveDesignSystem(theme: DeckTheme, size: { width: number; heig
     // Near-black carrying a whisper of the hue: a chosen neutral, not #111.
     ink = mix(withLightness(primary, 0.12, 0.2), BLACK, 0.35);
   }
+  // Every ground can host ink, whatever the source put in the slot.
+  deep = groundForInk(deep);
+  paper = groundForInk(paper);
   // Whatever the source, every ink is fixed against the ground it sits on.
   const inkOnDeep = inkFor(deep);
   const inkOnPaper = contrastRatio(ink, paper) >= 4.5 ? ink : fixToAA(ink, paper);
@@ -332,7 +354,12 @@ export function deriveDesignSystem(theme: DeckTheme, size: { width: number; heig
     artDirection: artDirectionFor(opts.mood, colors),
     motion: opts.motion ?? "subtle",
     ...(opts.logo?.assetId && opts.logo.url ? { logo: { ...opts.logo } } : {}),
-    readingGround: opts.catalog?.style === "dark" || opts.catalog?.style === "tech" ? "deep" : "paper",
+    // A dark or tech style reads on its deep ground only when that ground
+    // is dark. Some entries carry a saturated mid-tone in the deep slot (a
+    // sky blue, an orange, a green) and their near-black paper is the
+    // surface a reading page wants; a mid-tone hosts no light ink at AA and
+    // painted every page of a deck in it.
+    readingGround: (opts.catalog?.style === "dark" || opts.catalog?.style === "tech") && isDarkGround(colors.deep) ? "deep" : "paper",
   };
 }
 
