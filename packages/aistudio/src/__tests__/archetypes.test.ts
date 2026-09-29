@@ -471,6 +471,27 @@ describe("brand logo", () => {
     }
   });
 
+  it("draws the kit's dark-ground version on every deep page and the primary on paper, with each picture's own aspect", () => {
+    type N = { name?: string; source?: { assetId: string }; size: { width: number; height: number } };
+    const dark = { assetId: "asset-logo-dark", url: "/api/v1/assets/asset-logo-dark/content", aspect: 5 };
+    // The classic look paints its impact pages as a colour field (deep), so
+    // the cover takes the dark version and a bullets page the primary.
+    const ds = deriveDesignSystem(theme, size, { seed: 1, catalog: catalogEntryForSeed(1), logo: { ...logo, dark }, look: "classic" });
+    const cover = composeArchetypePage(normalizeOutline({ title: "T", pages: [pageFor("cover")] }).pages[0], ds, { index: 0, total: 4 });
+    const paper = composeArchetypePage(normalizeOutline({ title: "T", pages: [pageFor("bullets")] }).pages[0], ds, { index: 1, total: 4 });
+    const onCover = (cover.nodes as N[]).find((n) => n.name === "Logo")!;
+    const onPaper = (paper.nodes as N[]).find((n) => n.name === "Logo")!;
+    expect(cover.impact).toBe(true);
+    expect(onCover.source?.assetId).toBe("asset-logo-dark");
+    expect(onCover.size.width / onCover.size.height).toBeCloseTo(5, 0);
+    expect(onPaper.source?.assetId).toBe("asset-logo");
+    expect(onPaper.size.width / onPaper.size.height).toBeCloseTo(3, 0);
+    // A kit without a dark version keeps the primary everywhere.
+    const plain = deriveDesignSystem(theme, size, { seed: 1, catalog: catalogEntryForSeed(1), logo, look: "classic" });
+    const plainCover = composeArchetypePage(normalizeOutline({ title: "T", pages: [pageFor("cover")] }).pages[0], plain, { index: 0, total: 4 });
+    expect((plainCover.nodes as N[]).find((n) => n.name === "Logo")!.source?.assetId).toBe("asset-logo");
+  });
+
   it("honours the kit's minimum width and sizes the box to the picture's aspect, within the room the margin leaves", () => {
     const item = normalizeOutline({ title: "T", pages: [pageFor("bullets")] }).pages[0];
     type N = { name?: string; size: { width: number; height: number } };

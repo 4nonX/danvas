@@ -95,8 +95,11 @@ type generateInput struct {
 	Motion string `json:"motion"`
 	// Look is the deck's house style: "classic", "editorial", "bold" or
 	// "technical". Empty lets the model's choice, then the theme's, stand.
-	Look    string `json:"look"`
-	Sources []struct {
+	Look string `json:"look"`
+	// BrandKitID grounds the deck in this kit instead of the workspace's
+	// default; it must belong to the workspace.
+	BrandKitID string `json:"brandKitId"`
+	Sources    []struct {
 		Name string `json:"name"`
 		Text string `json:"text"`
 	} `json:"sources"`
@@ -113,6 +116,7 @@ type generatePlan struct {
 	ThemeID   string
 	Motion    string
 	Look      string
+	BrandKit  string
 	// Template contribution (E14), resolved by the caller (needs the
 	// templates service): the layout system and/or theme record.
 	LayoutSet   any
@@ -242,6 +246,7 @@ func planGeneration(ctx context.Context, acct *accounts.Service, userID string, 
 	plan.Brief = brief
 	plan.Palette = palette
 	plan.ThemeID = themeID
+	plan.BrandKit = strings.TrimSpace(in.BrandKitID)
 	switch look := strings.ToLower(strings.TrimSpace(in.Look)); look {
 	case "", "classic", "editorial", "bold", "technical":
 		plan.Look = look
@@ -273,7 +278,7 @@ func startGenerationJob(svc *aistudio.Service, aiSvc *ai.Service, up *uploads.Se
 		// The workspace's brand kit grounds the deck the way it grounds the
 		// editor's: voice into the outline, palette into the theme unless the
 		// caller named one, fonts into the type, the logo onto the pages.
-		grounding := groundInBrand(ctx, br, up, plan.Workspace, userID)
+		grounding := groundInBrand(ctx, br, up, plan.Workspace, userID, plan.BrandKit)
 		palette := plan.Palette
 		if len(palette) == 0 {
 			palette = grounding.Palette

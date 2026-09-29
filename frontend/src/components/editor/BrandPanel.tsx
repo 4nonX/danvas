@@ -403,19 +403,40 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
             <CollapsibleSection title={tr("editor.logos")} icon={ImageIcon} badge={kit.logos.length}>
               <div className="grid grid-cols-3 gap-2">
                 {kit.logos.map((l) => (
-                  <button
-                    key={l.id}
-                    onClick={() => placeLogo(l.assetId)}
-                    title={`Place ${l.label}`}
-                    className="flex aspect-square items-center justify-center overflow-hidden rounded-lg border border-neutral-200 bg-neutral-50 hover:border-brand-300"
-                  >
-                    {assetUrls[l.assetId] ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={resolveAssetUrl(assetUrls[l.assetId])} alt={l.label} className="max-h-full max-w-full object-contain" />
-                    ) : (
-                      <span className="text-[10px] text-neutral-400">{l.label}</span>
+                  <div key={l.id} className="flex flex-col gap-1">
+                    <button
+                      onClick={() => placeLogo(l.assetId)}
+                      title={`Place ${l.label}`}
+                      className="flex aspect-square items-center justify-center overflow-hidden rounded-lg border border-neutral-200 bg-neutral-50 hover:border-brand-300"
+                    >
+                      {assetUrls[l.assetId] ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={resolveAssetUrl(assetUrls[l.assetId])} alt={l.label} className="max-h-full max-w-full object-contain" />
+                      ) : (
+                        <span className="text-[10px] text-neutral-400">{l.label}</span>
+                      )}
+                    </button>
+                    {/* The version for dark grounds: generated decks draw it on every
+                        deep page, and the brand check accepts it as the logo. */}
+                    {l.variants?.dark && assetUrls[l.variants.dark] && (
+                      <button
+                        onClick={() => placeLogo(l.variants!.dark!)}
+                        title={tr("editor.logo_on_dark")}
+                        className="flex h-8 items-center justify-center overflow-hidden rounded-md border border-neutral-800 bg-neutral-900"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={resolveAssetUrl(assetUrls[l.variants.dark])} alt={`${l.label} ${tr("editor.logo_on_dark")}`} className="max-h-6 max-w-full object-contain" />
+                      </button>
                     )}
-                  </button>
+                    {canManage && workspaceId && (
+                      <AddLogoFromUploads
+                        workspaceId={workspaceId}
+                        assetUrls={assetUrls}
+                        label={l.variants?.dark ? tr("editor.change_dark_logo") : tr("editor.set_dark_logo")}
+                        onAdd={(assetId) => void oc.updateBrandKit(kit.id, { logos: kit.logos.map((x) => (x.id === l.id ? { ...x, variants: { ...(x.variants ?? {}), dark: assetId } } : x)) }).then((updated) => useBrand.getState().setKit(updated)).catch(() => toast.error(tr("editor.couldnt_save_brand_kit")))}
+                      />
+                    )}
+                  </div>
                 ))}
               </div>
             </CollapsibleSection>
@@ -1019,7 +1040,7 @@ function BrandFontField({ role, current, onSet }: { role: string; current: strin
   );
 }
 
-function AddLogoFromUploads({ workspaceId, assetUrls, onAdd }: { workspaceId: string; assetUrls: Record<string, string>; onAdd: (assetId: string, label: string) => void }) {
+function AddLogoFromUploads({ workspaceId, assetUrls, onAdd, label }: { workspaceId: string; assetUrls: Record<string, string>; onAdd: (assetId: string, label: string) => void; label?: string }) {
   const [open, setOpen] = useState(false);
   const [assets, setAssets] = useState<UploadedAsset[]>([]);
   useEffect(() => {
@@ -1029,7 +1050,7 @@ function AddLogoFromUploads({ workspaceId, assetUrls, onAdd }: { workspaceId: st
   return (
     <div className="mb-3">
       <button onClick={() => setOpen((v) => !v)} className="flex items-center gap-1 text-xs font-medium text-brand-ink hover:underline">
-        <Plus size={12} /> {tr("editor.add_logo_from_uploads")}
+        <Plus size={12} /> {label ?? tr("editor.add_logo_from_uploads")}
       </button>
       {open && (
         <div className="mt-2 grid grid-cols-4 gap-1.5">

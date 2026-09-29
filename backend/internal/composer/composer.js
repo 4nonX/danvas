@@ -37096,10 +37096,21 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             return [];
           return [{ kind: "text", maxFrac: 0.1, make: (r) => this.text({ name: "Eyebrow", rect: r, paragraphs: [e], role: "body", base: this.sz("eyebrow"), color: this.accentInk, exactSize: Math.round(this.sz("eyebrow")), tracking: this.look.tracking, mono: this.look.monoLabels, lineHeight: 1.2 }) }];
         }
+        /** The kit's logo for this page's ground: the dark-ground version on a
+         *  deep page when the kit has one, else the primary. The box keeps the
+         *  primary's minimum width; the aspect is the chosen picture's. */
+        pageLogo() {
+          const logo = this.ds.logo;
+          if (!logo)
+            return null;
+          if (this.onDeep && logo.dark)
+            return __spreadProps(__spreadValues({}, logo.dark), { minSizePx: logo.minSizePx });
+          return logo;
+        }
         /** The brand logo as an image node fitted into a box. Tagged so brand
          *  tooling recognises it as the kit's logo, not a picture to regenerate. */
         logoNode(r0) {
-          const logo = this.ds.logo;
+          const logo = this.pageLogo();
           const r = this.mirror(r0);
           return (0, schema_1.createNode)("image", {
             name: "Logo",
@@ -37272,7 +37283,8 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           const fw0 = w0;
           let logoW = 0;
           if (this.ds.logo) {
-            const aspect = this.ds.logo.aspect && this.ds.logo.aspect > 0 ? this.ds.logo.aspect : 2.5;
+            const chosen = this.pageLogo();
+            const aspect = chosen.aspect && chosen.aspect > 0 ? chosen.aspect : 2.5;
             let h = this.impact ? u * 4 : u * 3;
             let w = Math.round(h * aspect);
             const min2 = (_c = this.ds.logo.minSizePx) != null ? _c : 0;

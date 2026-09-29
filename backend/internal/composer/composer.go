@@ -93,6 +93,15 @@ type Logo struct {
 	Aspect float64 `json:"aspect,omitempty"`
 	// MinSizePx is the brand kit's floor on the logo's width.
 	MinSizePx int `json:"minSizePx,omitempty"`
+	// Dark is the version drawn on a dark ground, when the kit has one.
+	Dark *LogoVariant `json:"dark,omitempty"`
+}
+
+// LogoVariant is one alternative rendering of the kit's logo.
+type LogoVariant struct {
+	AssetID string  `json:"assetId"`
+	URL     string  `json:"url"`
+	Aspect  float64 `json:"aspect,omitempty"`
 }
 
 // PageReport is the reviewer's verdict on one composed page. Mirrors

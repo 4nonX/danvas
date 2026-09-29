@@ -44,7 +44,9 @@ A small catalog of mini-apps: QR codes, charts, tables, and shapes, with permiss
 
 ### Brand
 
-The workspace Brand Kit: switch or create kits; **Apply brand** sets the design's defaults going forward, **Re-skin to brand** recolors and re-fonts the existing design. The panel also runs a live brand check with per-violation fixes and a bulk auto-fix (one undo step), and exposes colors, fonts, logos, brand voice, locked regions, and kit version history. Admins can lock brand colors and fonts, with a lint policy of off, warn, or block (block also gates export). Brand kits theme design content only; the application itself never changes with them.
+The workspace Brand Kit: switch or create kits; **Apply brand** sets the design's defaults going forward, **Re-skin to brand** recolors and re-fonts the existing design. The panel also runs a live brand check with per-violation fixes and a bulk auto-fix (one undo step), and exposes colors, fonts, logos, brand voice, locked regions, and kit version history. Admins can lock brand colors and fonts, with a lint policy of off, warn, or block (block also gates export), and can restrict templates, which keeps everyone but a brand manager on the workspace's own gallery in the editor and on the dashboard. Brand kits theme design content only; the application itself never changes with them.
+
+The brand check and the locks accept the kit's swatches and any tint, shade or blend of them (a colour on a segment or in a triangle of the kit's palette plus white and black), so a generated deck's panels and soft inks are on brand without a swatch for each. Each logo can carry a version for dark backgrounds; generated decks draw it on every dark page and the brand check accepts it as the logo. A generated deck takes the workspace's default kit (palette, fonts, logo, voice) automatically; the API and the MCP tool accept a `brandKitId` to pick another kit of the same workspace.
 
 ![The brand panel](images/editor-brand.png)
 

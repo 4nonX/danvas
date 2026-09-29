@@ -91,7 +91,15 @@ export type DeckMotion = "subtle" | "none";
  *  fitted into, so a contained picture fills its box and sits on the margin;
  *  unknown means a wide box the picture is centered in. `minSizePx` is the
  *  kit's own floor on the logo's width, which the composer never goes under. */
-export interface DeckLogo { assetId: string; url: string; aspect?: number; minSizePx?: number }
+export interface DeckLogo {
+  assetId: string;
+  url: string;
+  aspect?: number;
+  minSizePx?: number;
+  /** The version drawn on a dark ground (the kit's "dark" variant), when
+   *  the kit has one; the composer picks it on every deep page. */
+  dark?: { assetId: string; url: string; aspect?: number };
+}
 
 /** Type pairings for a deck that arrives with no brand fonts and no catalog
  *  theme. Chosen by seed, never the same one for every deck, and none of them

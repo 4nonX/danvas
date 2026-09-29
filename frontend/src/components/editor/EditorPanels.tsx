@@ -140,18 +140,26 @@ export function TemplatesPanel() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activePage, rev]);
 
+  // A kit that restricts templates keeps everyone but a brand manager on the
+  // workspace's own gallery: the built-ins and other workspaces' templates
+  // are off-brand by definition.
+  const brandWorkspaceId = useBrand((s) => s.workspaceId);
+  const restrictToBrand = useBrand((s) => !!s.kit?.controls.restrictTemplates && !s.canManage);
+  const restrictedWorkspace = restrictToBrand ? brandWorkspaceId : null;
+
   useEffect(() => {
     let cancelled = false;
     // No workspace filter: the list endpoint's default scope is already
     // everything the caller may see (public + own private + all member
     // workspaces). Passing workspaceId NARROWS to that workspace only, which
-    // would hide public and cross-workspace templates from the gallery.
+    // would hide public and cross-workspace templates from the gallery; the
+    // kit's template restriction is the one case that wants exactly that.
     void oc
-      .listTemplates({ q: debouncedQuery.trim() || undefined })
+      .listTemplates({ q: debouncedQuery.trim() || undefined, ...(restrictedWorkspace ? { workspaceId: restrictedWorkspace } : {}) })
       .then((ts) => { if (!cancelled) setTemplates(ts); })
       .catch(() => { if (!cancelled) setTemplates([]); });
     return () => { cancelled = true; };
-  }, [debouncedQuery]);
+  }, [debouncedQuery, restrictedWorkspace]);
 
   // Rank: exact page-size matches, then same aspect ratio (within 2%), then the
   // rest of the gallery, keeping the server's order within each bucket.
@@ -250,6 +258,9 @@ export function TemplatesPanel() {
   const sectionCls = "mb-1.5 mt-3 text-xs font-semibold uppercase tracking-wide text-neutral-400";
   return (
     <PanelShell title={tr("editor.templates")}>
+      {restrictedWorkspace && (
+        <p className="mb-2 rounded-lg border border-brand-200 bg-brand-50 px-2.5 py-1.5 text-[11px] leading-snug text-brand-ink">{tr("editor.brand_templates_only")}</p>
+      )}
       <label className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-surface px-2.5 py-1.5 focus-within:border-brand-400">
         <Search size={14} className="shrink-0 text-neutral-400" />
         <input
@@ -5296,32 +5307,40 @@ export function AiPanel({ workspaceId, designId = null }: { workspaceId: string 
   const brandLogos = useBrand((s) => s.kit?.logos ?? null);
   const firstLogoAssetId = brandLogos?.[0]?.assetId ?? null;
   const firstLogoMinSize = brandLogos?.[0]?.minSizePx;
+  const firstLogoDarkId = brandLogos?.[0]?.variants?.dark ?? null;
   // The resolved URL (and the picture's aspect, once it has loaded) is keyed
   // by the asset it belongs to, so a kit change invalidates it at render time
   // (the key no longer matches) with no synchronous state write in the effect.
-  const [resolvedLogo, setResolvedLogo] = useState<{ assetId: string; url: string; aspect?: number } | null>(null);
+  const [resolvedLogo, setResolvedLogo] = useState<{ assetId: string; url: string; aspect?: number; dark?: { assetId: string; url: string; aspect?: number } } | null>(null);
   useEffect(() => {
     if (!workspaceId || !firstLogoAssetId) return;
     let cancelled = false;
     oc.listAssets(workspaceId)
       .then((assets) => {
         if (cancelled) return;
-        const hit = (assets as UploadedAsset[]).find((a) => a.id === firstLogoAssetId);
+        const list = assets as UploadedAsset[];
+        const hit = list.find((a) => a.id === firstLogoAssetId);
         if (!hit?.url) return;
-        setResolvedLogo({ assetId: hit.id, url: hit.url });
+        // The dark-ground version rides along when the kit names one and the
+        // asset still exists.
+        const darkHit = firstLogoDarkId ? list.find((a) => a.id === firstLogoDarkId) : undefined;
+        const dark = darkHit?.url ? { assetId: darkHit.id, url: darkHit.url } : undefined;
+        setResolvedLogo({ assetId: hit.id, url: hit.url, ...(dark ? { dark } : {}) });
         // The box the composer fits the logo into should match the picture,
         // so it sits on the margin instead of centered in a guessed box.
         if (typeof Image !== "undefined") {
-          const img = new Image();
-          img.onload = () => {
-            if (!cancelled && img.naturalWidth > 0 && img.naturalHeight > 0) setResolvedLogo({ assetId: hit.id, url: hit.url, aspect: img.naturalWidth / img.naturalHeight });
+          const measure = (url: string, apply: (aspect: number) => void) => {
+            const img = new Image();
+            img.onload = () => { if (!cancelled && img.naturalWidth > 0 && img.naturalHeight > 0) apply(img.naturalWidth / img.naturalHeight); };
+            img.src = resolveAssetUrl(url);
           };
-          img.src = resolveAssetUrl(hit.url);
+          measure(hit.url, (aspect) => setResolvedLogo((cur) => (cur && cur.assetId === hit.id ? { ...cur, aspect } : cur)));
+          if (dark) measure(dark.url, (aspect) => setResolvedLogo((cur) => (cur && cur.assetId === hit.id && cur.dark ? { ...cur, dark: { ...cur.dark, aspect } } : cur)));
         }
       })
       .catch(() => {});
     return () => { cancelled = true; };
-  }, [workspaceId, firstLogoAssetId]);
+  }, [workspaceId, firstLogoAssetId, firstLogoDarkId]);
   const brandLogo: DeckLogo | null =
     firstLogoAssetId && resolvedLogo?.assetId === firstLogoAssetId ? { ...resolvedLogo, ...(firstLogoMinSize ? { minSizePx: firstLogoMinSize } : {}) } : null;
   // Let the user bypass brand-voice grounding for the very next action.

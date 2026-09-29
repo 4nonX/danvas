@@ -40,14 +40,11 @@ type brandGrounding struct {
 // groundInBrand resolves the workspace's default kit (the first kit when none
 // is marked default). Any failure, including a workspace with no kit, is an
 // empty grounding: the deck still generates, unbranded, as it did before.
-func groundInBrand(ctx context.Context, br *brand.Service, up *uploads.Service, workspaceID, userID string) brandGrounding {
-	if br == nil {
-		return brandGrounding{}
-	}
-	kits, err := br.ListKits(ctx, workspaceID, userID)
-	if err != nil || len(kits) == 0 {
-		return brandGrounding{}
-	}
+// pickBrandKit chooses the kit a generation is grounded in: the one the
+// request named when it is among the workspace's kits, else the workspace
+// default, else the first. An id from another workspace is ignored rather
+// than read across the boundary.
+func pickBrandKit(kits []brand.BrandKit, kitID string) brand.BrandKit {
 	kit := kits[0]
 	for _, k := range kits {
 		if k.IsDefault {
@@ -55,6 +52,25 @@ func groundInBrand(ctx context.Context, br *brand.Service, up *uploads.Service, 
 			break
 		}
 	}
+	if kitID = strings.TrimSpace(kitID); kitID != "" {
+		for _, k := range kits {
+			if k.ID == kitID {
+				return k
+			}
+		}
+	}
+	return kit
+}
+
+func groundInBrand(ctx context.Context, br *brand.Service, up *uploads.Service, workspaceID, userID, kitID string) brandGrounding {
+	if br == nil {
+		return brandGrounding{}
+	}
+	kits, err := br.ListKits(ctx, workspaceID, userID)
+	if err != nil || len(kits) == 0 {
+		return brandGrounding{}
+	}
+	kit := pickBrandKit(kits, kitID)
 	assetURL := func(string) string { return "" }
 	assetAspect := func(string) float64 { return 0 }
 	if up != nil {
@@ -148,12 +164,21 @@ func brandGroundingFromKit(kit brand.BrandKit, assetURL func(id string) string, 
 	var logos []struct {
 		AssetID   string  `json:"assetId"`
 		MinSizePx float64 `json:"minSizePx"`
+		Variants  struct {
+			Dark string `json:"dark"`
+		} `json:"variants"`
 	}
 	if len(kit.Logos) > 0 && json.Unmarshal(kit.Logos, &logos) == nil {
 		for _, l := range logos {
 			if id := strings.TrimSpace(l.AssetID); id != "" {
 				if url := assetURL(id); url != "" {
 					g.Logo = &composer.Logo{AssetID: id, URL: url, Aspect: assetAspect(id), MinSizePx: int(math.Round(math.Max(0, l.MinSizePx)))}
+					// The dark-ground version, for every deep page.
+					if dark := strings.TrimSpace(l.Variants.Dark); dark != "" {
+						if durl := assetURL(dark); durl != "" {
+							g.Logo.Dark = &composer.LogoVariant{AssetID: dark, URL: durl, Aspect: assetAspect(dark)}
+						}
+					}
 				}
 				break
 			}

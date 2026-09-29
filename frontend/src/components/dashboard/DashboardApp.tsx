@@ -337,11 +337,25 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     return q.trim() ? oc.search(activeWorkspaceId, q.trim()) : oc.home(activeWorkspaceId, "recent");
   }, [activeWorkspaceId]);
 
+  // A default brand kit that restricts templates keeps everyone but a brand
+  // manager (owner or admin) on the workspace's own gallery; the built-ins
+  // and other workspaces' templates are off-brand by definition.
+  const activeRole = workspaces.find((w) => w.id === activeWorkspaceId)?.role;
   useEffect(() => {
     if (!activeWorkspaceId) return;
     let cancelled = false;
     void (async () => {
-      const [recent, tpls] = await Promise.all([oc.home(activeWorkspaceId, "recent"), oc.listTemplates().catch(() => [])]);
+      const manages = activeRole === "owner" || activeRole === "admin";
+      const restricted = manages
+        ? false
+        : await oc
+            .listBrandKits(activeWorkspaceId)
+            .then((kits) => !!(kits.find((k) => k.isDefault) ?? kits[0])?.controls.restrictTemplates)
+            .catch(() => false);
+      const [recent, tpls] = await Promise.all([
+        oc.home(activeWorkspaceId, "recent"),
+        oc.listTemplates(restricted ? { workspaceId: activeWorkspaceId } : undefined).catch(() => []),
+      ]);
       if (cancelled) return;
       setItems(recent);
       setTemplates(tpls);
@@ -350,7 +364,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     return () => {
       cancelled = true;
     };
-  }, [activeWorkspaceId]);
+  }, [activeWorkspaceId, activeRole]);
 
   // Load trashed designs when the Trash view is opened.
   useEffect(() => {
