@@ -56,7 +56,6 @@ import { mermaidToDiagram, normalizeDiagramSpec, type DiagramSpec } from "@hc/wh
 import type { BrandVoice, BrandLintViolation } from "@hc/sdk";
 import { useEditor, type BrandFixTarget, type DeckTextEntry } from "@/store/editor";
 import { useBrand } from "@/store/brand";
-import { useComments } from "@/store/comments";
 import { useToast } from "@/components/ui/Toast";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
@@ -64,6 +63,7 @@ import { mirrorInRtl } from "@/lib/locale";
 import { tr, trOr } from "@/lib/i18n";
 import { cancelAiImages, enqueueAiImages, retryFailedAiImages, subscribeAiImageQueue } from "@/lib/aiImageQueue";
 import { peekPendingAiRequest, requestOpenProperties, setAiBusy, subscribeAiRequests, takeStagedAiSources, type AiRequest } from "@/lib/aiRequests";
+import { mergeRestoredTurns } from "@/lib/aiTurns";
 import { AiProviderSettings } from "@/components/ai/AiProviderSettings";
 import { builtinThemes } from "@/lib/themeCatalog";
 import { cancelAiFills, enqueueAiFills, retryFailedAiFills, subscribeAiFillQueue } from "@/lib/aiFillQueue";
@@ -3505,8 +3505,14 @@ function runPlanStep(step: PlanStep, ctx?: { brandTargets?: BrandFixTarget[]; pa
   }
 }
 
-function AssistantPanel({ workspaceId, aiReady, voiceClause, brandPalette, brandFonts, brandLogo, imageCapable, editImageCapable }: {
+function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPalette, brandFonts, brandLogo, imageCapable, editImageCapable }: {
   workspaceId: string | null;
+  /** The open design, from the shell that loaded it. It used to be read from
+   *  the comments store, which is set only after the access lookup resolves
+   *  and never when that lookup fails, so a brief that landed early was sent
+   *  with no design to persist against and the history restore that ran
+   *  once the id arrived replaced the conversation. */
+  designId: string | null;
   aiReady: boolean;
   voiceClause: string;
   brandPalette: string[];
@@ -3518,7 +3524,10 @@ function AssistantPanel({ workspaceId, aiReady, voiceClause, brandPalette, brand
   const toast = useToast();
   const runAsTurn = useEditor((s) => s.runAsTurn);
   const undo = useEditor((s) => s.undo);
-  const designId = useComments((s) => s.designId); // current design (for persisted history)
+  // The latest id behind a stable ref, for a run that finishes after the user
+  // moved to another design.
+  const designIdRef = useRef(designId);
+  useEffect(() => { designIdRef.current = designId; }, [designId]);
   // Gates the Magic Switch row (C30): a form switch is offered on multi-page documents.
   const switchPageCount = useEditor((s) => s.doc.pages.length);
   const [input, setInput] = useState("");
@@ -3739,7 +3748,11 @@ function AssistantPanel({ workspaceId, aiReady, voiceClause, brandPalette, brand
       } catch {
         // history is best-effort; a fresh chat is fine
       }
-      if (!cancelled) setTurns(restored); // setState after await: allowed by the lint rule
+      // Merged, never replaced: a brief handed over from the dashboard is sent
+      // the moment this panel mounts, before the history comes back, and a
+      // wholesale replace wiped that prompt from view (the generation ran on
+      // underneath). Which request finished first decided whether it showed.
+      if (!cancelled) setTurns((current) => mergeRestoredTurns(restored, current)); // setState after await: allowed by the lint rule
     })();
     return () => { cancelled = true; };
   }, [designId]);
@@ -3861,7 +3874,7 @@ function AssistantPanel({ workspaceId, aiReady, voiceClause, brandPalette, brand
       // A plan resolves across tens of seconds of awaits while the editor keeps
       // the SAME store when the route switches design, so every mutation point
       // below re-checks that this is still the document the plan was made for.
-      const stillOnDesign = () => !designId || useComments.getState().designId === designId;
+      const stillOnDesign = () => !designId || designIdRef.current === designId;
       // Fallbacks that fired inside otherwise-successful steps. Reported at
       // the end rather than as toasts, so a deck that came out deterministic
       // says so instead of showing an unqualified green chip.
@@ -5191,7 +5204,7 @@ const FALLBACK_PRESETS: AiProviderPreset[] = [
 // self-host binary swap.
 let providerCatalogCache: AiProviderPreset[] | null = null;
 
-export function AiPanel({ workspaceId }: { workspaceId: string | null }) {
+export function AiPanel({ workspaceId, designId = null }: { workspaceId: string | null; designId?: string | null }) {
   // Re-render when the doc changes so the brand-voice indicator stays current.
   useEditor((s) => s.rev);
   // The active design's brand voice, already loaded by EditorApp via
@@ -5435,7 +5448,7 @@ export function AiPanel({ workspaceId }: { workspaceId: string | null }) {
           {/* Single conversational surface: one thread plans and applies every
               capability (write, image, whole-design, restyle, chart, critique).
               The model routes the intent to the right tool from the catalog. */}
-          <AssistantPanel workspaceId={workspaceId} aiReady voiceClause={voiceClause} brandPalette={brandPalette} brandFonts={brandFonts} brandLogo={brandLogo} imageCapable={imageCapable} editImageCapable={editImageCapable} />
+          <AssistantPanel workspaceId={workspaceId} designId={designId} aiReady voiceClause={voiceClause} brandPalette={brandPalette} brandFonts={brandFonts} brandLogo={brandLogo} imageCapable={imageCapable} editImageCapable={editImageCapable} />
         </div>
       )}
     </PanelShell>
