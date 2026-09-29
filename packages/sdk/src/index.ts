@@ -2110,6 +2110,12 @@ export class HyCanvasClient {
   aiCritique(input: { workspaceId: string; designSummary: string }): Promise<{ suggestions: string }> {
     return this.request("POST", "/v1/ai/critique", input);
   }
+  /** Ask a provider that can read images to look at one rendered page and
+   *  name the visible layout defects, in a fixed vocabulary. A text-only
+   *  provider answers 400 with `ai_describe_image_unsupported`. */
+  aiReviewPage(input: { workspaceId: string; imageBase64: string; title?: string }): Promise<{ findings: { kind: "overlap" | "clipped" | "overflow" | "unreadable" | "empty" | "other"; detail: string }[] }> {
+    return this.request("POST", "/v1/ai/review-page", input);
+  }
   /** Generate a complete design as a single editable SVG document at the target
    *  size. Works with text-only providers (e.g. DeepSeek): the model draws the
    *  design with vector primitives, and the client flattens the SVG to scene

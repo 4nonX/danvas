@@ -12,6 +12,7 @@ import (
 
 	"hycanvas/backend/internal/accounts"
 	"hycanvas/backend/internal/ai"
+	"hycanvas/backend/internal/aistudio"
 	"hycanvas/backend/internal/uploads"
 )
 
@@ -90,7 +91,7 @@ func aiFailure(err error) (status int, title, detail, code string) {
 		return http.StatusForbidden, "Forbidden", err.Error(), "ai_policy_blocked"
 	case errors.Is(err, ai.ErrImageUnsupported):
 		return http.StatusBadRequest, "Bad Request", "your AI provider cannot generate images; add a dedicated image provider in AI settings, or switch to an image-capable provider", "ai_image_unsupported"
-	case errors.Is(err, ai.ErrDescribeImageUnsupported):
+	case errors.Is(err, ai.ErrDescribeImageUnsupported), errors.Is(err, aistudio.ErrReviewUnsupported):
 		return http.StatusBadRequest, "Bad Request", "no configured provider can read images; add an image provider that supports vision, or switch to a provider that does", "ai_describe_image_unsupported"
 	case errors.Is(err, ai.ErrEditImageUnsupported):
 		return http.StatusBadRequest, "Bad Request", "your AI provider does not support image editing; switch to a provider with image editing (e.g. OpenAI) in AI settings", "ai_image_edit_unsupported"

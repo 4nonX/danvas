@@ -64,6 +64,7 @@ import { tr, trOr } from "@/lib/i18n";
 import { cancelAiImages, enqueueAiImages, retryFailedAiImages, subscribeAiImageQueue } from "@/lib/aiImageQueue";
 import { peekPendingAiRequest, requestOpenProperties, setAiBusy, subscribeAiRequests, takeStagedAiSources, type AiRequest } from "@/lib/aiRequests";
 import { mergeRestoredTurns } from "@/lib/aiTurns";
+import { reviewPages, reviewTurnText } from "@/lib/deckReview";
 import { AiProviderSettings } from "@/components/ai/AiProviderSettings";
 import { builtinThemes } from "@/lib/themeCatalog";
 import { cancelAiFills, enqueueAiFills, retryFailedAiFills, subscribeAiFillQueue } from "@/lib/aiFillQueue";
@@ -3017,6 +3018,14 @@ function takeDeckCheck(): string | null {
   lastDeckCheck = null;
   return note;
 }
+// The pages the last generation placed, so the look afterwards renders
+// exactly those and not a deck's older pages.
+let lastDeckSpan: { first: number; count: number } | null = null;
+function takeDeckSpan(): { first: number; count: number } | null {
+  const span = lastDeckSpan;
+  lastDeckSpan = null;
+  return span;
+}
 
 function runPlanStep(step: PlanStep, ctx?: { brandTargets?: BrandFixTarget[]; payload?: ResolvedPayload; brandFonts?: { heading?: string; body?: string } }): boolean {
   const st = useEditor.getState();
@@ -3459,6 +3468,7 @@ function runPlanStep(step: PlanStep, ctx?: { brandTargets?: BrandFixTarget[]; pa
       const base = append ? st.doc.pages.length : 0;
       const ids = append ? st.appendDeckPages(deck, size) : st.buildDeckFromOutline(deck, size);
       if (!ids.length) return false;
+      lastDeckSpan = { first: base, count: ids.length };
       // A fresh design takes the deck's title, in the file and on the record
       // the dashboard lists, as the layout-grounded path does.
       if (clean.title.trim() && isUntitledDoc(st.doc.title)) adoptDeckTitle(clean.title, designId);
@@ -3523,7 +3533,7 @@ function runPlanStep(step: PlanStep, ctx?: { brandTargets?: BrandFixTarget[]; pa
   }
 }
 
-function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPalette, brandFonts, brandLogo, imageCapable, editImageCapable }: {
+function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPalette, brandFonts, brandLogo, imageCapable, editImageCapable, visionCapable }: {
   workspaceId: string | null;
   /** The open design, from the shell that loaded it. It used to be read from
    *  the comments store, which is set only after the access lookup resolves
@@ -3538,6 +3548,8 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
   brandLogo: DeckLogo | null;
   imageCapable: boolean;
   editImageCapable: boolean;
+  /** The provider can read images, so a fresh deck gets a look. */
+  visionCapable: boolean;
 }) {
   const toast = useToast();
   const runAsTurn = useEditor((s) => s.runAsTurn);
@@ -3795,6 +3807,15 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
       return null;
     }
   }
+  async function lookAtDeck(span: { first: number; count: number }) {
+    if (!workspaceId) return;
+    const reviews = await reviewPages(workspaceId, useEditor.getState().doc, span.first, span.count);
+    if (!reviews) return;
+    const text = reviewTurnText(reviews);
+    setTurns((t) => [...t, { role: "assistant", text }]);
+    void persistTurn("assistant", text);
+  }
+
   async function persistTurn(role: "user" | "assistant", text: string, plan?: unknown) {
     if (!designId) return;
     const sid = await ensureSession();
@@ -4022,6 +4043,12 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
       // instead of the same reply text appearing twice in the thread.
       setTurns((t) => (opts?.fromProposal ? [...t.filter((turn) => !turn.proposed), finalTurn] : [...t, finalTurn]));
       void persistTurn("assistant", text, plan);
+      // The look: each page the generation placed, rendered as the user sees
+      // it and reviewed by a provider that can read images. Its findings land
+      // as a turn of their own once they arrive; a provider that cannot look
+      // says nothing.
+      const span = takeDeckSpan();
+      if (span && visionCapable && workspaceId) void lookAtDeck(span);
       if (done) toast.success(tr("editor.applied_n_steps", { count: done }));
       else if (!extra) toast.error(notes[0] ? notes[0] : tr("editor.nothing_was_applied_try_selecting_an_element"));
     } catch (e) {
@@ -5365,6 +5392,8 @@ export function AiPanel({ workspaceId, designId = null }: { workspaceId: string 
   // generated designs). DeepSeek/Anthropic are text-only; OpenAI/custom can.
   const imageCapable = !!config?.capabilities?.image;
   const editImageCapable = !!config?.capabilities?.editImage;
+  // Whether the provider can read images: gates the look at a fresh deck.
+  const visionCapable = !!config?.capabilities?.describeImage;
 
   return (
     <PanelShell title="AI" fill={chatView} roomy>
@@ -5470,7 +5499,7 @@ export function AiPanel({ workspaceId, designId = null }: { workspaceId: string 
           {/* Single conversational surface: one thread plans and applies every
               capability (write, image, whole-design, restyle, chart, critique).
               The model routes the intent to the right tool from the catalog. */}
-          <AssistantPanel workspaceId={workspaceId} designId={designId} aiReady voiceClause={voiceClause} brandPalette={brandPalette} brandFonts={brandFonts} brandLogo={brandLogo} imageCapable={imageCapable} editImageCapable={editImageCapable} />
+          <AssistantPanel workspaceId={workspaceId} designId={designId} aiReady voiceClause={voiceClause} brandPalette={brandPalette} brandFonts={brandFonts} brandLogo={brandLogo} imageCapable={imageCapable} editImageCapable={editImageCapable} visionCapable={visionCapable} />
         </div>
       )}
     </PanelShell>

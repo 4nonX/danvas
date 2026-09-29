@@ -316,6 +316,17 @@ func startGenerationJob(svc *aistudio.Service, aiSvc *ai.Service, up *uploads.Se
 			reg.Fail(job.ID, "could not save the generated design")
 			return
 		}
+		// The look, after the save so a slow reviewer can never cost the
+		// deck: each page rendered as an export would draw it, reviewed by
+		// a provider that can read images, findings in the quality result.
+		titles := make([]string, len(outline.Pages))
+		for i := range outline.Pages {
+			titles[i] = outline.Pages[i].Title
+		}
+		reviewed, review := reviewSavedDeck(ctx, svc, plan.Workspace, file, titles)
+		if review == nil {
+			review = []pageReview{}
+		}
 		reg.Complete(job.ID, map[string]any{
 			"designId":  rec.ID,
 			"title":     rec.Title,
@@ -331,6 +342,10 @@ func startGenerationJob(svc *aistudio.Service, aiSvc *ai.Service, up *uploads.Se
 				// Text runs the composer re-inked to AA on the way out, so a
 				// consumer knows the palette was corrected rather than clean.
 				"contrastRepairs": report.Repairs,
+				// The look: whether a provider that can read images reviewed
+				// the rendered pages, and what it saw, per page.
+				"reviewed": reviewed,
+				"review":   review,
 			},
 			// How many picture regions the deck had and how many were filled
 			// through the workspace's image provider; a region that failed
