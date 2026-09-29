@@ -228,11 +228,20 @@ type DesignOutline struct {
 	Title string        `json:"title"`
 	Theme string        `json:"theme"`
 	Pages []OutlineItem `json:"pages"`
+	// Look is the house style the model named for the whole deck. Mirrors
+	// DesignOutline.look in outline.ts.
+	Look string `json:"look,omitempty"`
 }
+
+// deckLooks is the set of house styles. Mirrors deckLooks in look.ts.
+var deckLooks = map[string]bool{"classic": true, "editorial": true, "bold": true, "technical": true}
 
 func validateOutline(o *DesignOutline) error {
 	if strings.TrimSpace(o.Title) == "" {
 		o.Title = "Untitled"
+	}
+	if !deckLooks[o.Look] {
+		o.Look = ""
 	}
 	clean := o.Pages[:0]
 	for _, p := range o.Pages {

@@ -33975,6 +33975,95 @@ ${err.toString()}`);
     }
   });
 
+  // packages/aistudio/dist/look.js
+  var require_look = __commonJS({
+    "packages/aistudio/dist/look.js"(exports) {
+      "use strict";
+      Object.defineProperty(exports, "__esModule", { value: true });
+      exports.LOOKS = exports.deckLooks = void 0;
+      exports.isDeckLook = isDeckLook;
+      exports.lookFor = lookFor;
+      exports.deckLooks = ["classic", "editorial", "bold", "technical"];
+      exports.LOOKS = {
+        classic: {
+          fonts: null,
+          scale: {},
+          radius: 1,
+          ruleLength: 7,
+          ruleThickness: 0.6,
+          tracking: 0.18,
+          monoLabels: false,
+          numeralBold: true,
+          numeralMono: false,
+          headlineBold: false,
+          cover: "split",
+          gridLines: false,
+          panel: "tint",
+          impactFill: "gradient"
+        },
+        editorial: {
+          fonts: { heading: "Fraunces", body: "Source Serif 4" },
+          scale: { coverTitle: 1.18, sectionTitle: 1.12, statement: 1.1, title: 1.05, quote: 1.08, numeral: 0.95 },
+          radius: 0,
+          ruleLength: 10,
+          ruleThickness: 0.15,
+          tracking: 0.22,
+          monoLabels: false,
+          numeralBold: false,
+          numeralMono: false,
+          headlineBold: false,
+          cover: "typographic",
+          gridLines: false,
+          panel: "outline",
+          impactFill: "paper"
+        },
+        bold: {
+          fonts: { heading: "Archivo Black", body: "Inter" },
+          scale: { coverTitle: 1.12, sectionTitle: 1.1, statement: 1.12, numeral: 1.2, kpiFigure: 1.15 },
+          radius: 0,
+          ruleLength: 8,
+          ruleThickness: 1.2,
+          tracking: 0.14,
+          monoLabels: false,
+          numeralBold: true,
+          numeralMono: false,
+          headlineBold: true,
+          cover: "field",
+          gridLines: false,
+          panel: "strong",
+          impactFill: "flat"
+        },
+        technical: {
+          fonts: { heading: "Space Grotesk", body: "IBM Plex Sans", mono: "IBM Plex Mono" },
+          scale: { title: 0.95, coverTitle: 0.95 },
+          radius: 0.5,
+          ruleLength: 7,
+          ruleThickness: 0.35,
+          tracking: 0.12,
+          monoLabels: true,
+          numeralBold: true,
+          numeralMono: true,
+          headlineBold: false,
+          cover: "split",
+          gridLines: true,
+          panel: "outline",
+          impactFill: "gradient"
+        }
+      };
+      var LOOK_FOR_STYLE = { tech: "technical", bold: "bold", editorial: "editorial" };
+      function isDeckLook(v) {
+        return typeof v === "string" && exports.deckLooks.includes(v);
+      }
+      function lookFor(explicit, named, catalogStyle) {
+        if (isDeckLook(explicit))
+          return explicit;
+        if (isDeckLook(named))
+          return named;
+        return catalogStyle && LOOK_FOR_STYLE[catalogStyle] || "classic";
+      }
+    }
+  });
+
   // packages/aistudio/dist/outline.js
   var require_outline = __commonJS({
     "packages/aistudio/dist/outline.js"(exports) {
@@ -33989,6 +34078,7 @@ ${err.toString()}`);
       exports.normalizeComposition = normalizeComposition;
       exports.normalizeOutline = normalizeOutline;
       exports.outlineItemToSpec = outlineItemToSpec;
+      var look_1 = require_look();
       exports.designTypes = ["deck", "doc", "social-set", "poster"];
       exports.visualRoles = ["cover", "agenda", "content", "comparison", "quote", "data", "closing"];
       exports.archetypes = [
@@ -34373,6 +34463,7 @@ ${err.toString()}`);
         const root = parsed;
         const title = str(root.title) || "Untitled";
         const theme = str(root.theme);
+        const look = (0, look_1.isDeckLook)(root.look) ? root.look : void 0;
         const rawPages = Array.isArray(root.pages) ? root.pages : [];
         const pages = [];
         for (const item of rawPages) {
@@ -34401,7 +34492,7 @@ ${err.toString()}`);
         if (!pages.length) {
           throw new OutlineError("The AI didn't return any pages. Try a more specific prompt.");
         }
-        return { title, theme, pages };
+        return __spreadValues({ title, theme, pages }, look ? { look } : {});
       }
       exports.outlineJsonSchema = {
         type: "object",
@@ -34410,6 +34501,7 @@ ${err.toString()}`);
         properties: {
           title: { type: "string" },
           theme: { type: "string", description: "short mood/topic phrase" },
+          look: { type: "string", enum: look_1.deckLooks, description: "the deck's house style: editorial, bold, technical or classic" },
           pages: {
             type: "array",
             minItems: 1,
@@ -34555,12 +34647,13 @@ ${err.toString()}`);
     "packages/aistudio/dist/outlineEdit.js"(exports) {
       "use strict";
       Object.defineProperty(exports, "__esModule", { value: true });
-      exports.maxOutlinePointChars = exports.maxOutlineTitleChars = exports.maxOutlinePages = exports.dialDensities = exports.dialScenarios = exports.dialAudiences = exports.dialTones = void 0;
+      exports.maxOutlinePointChars = exports.maxOutlineTitleChars = exports.maxOutlinePages = exports.dialDensities = exports.dialScenarios = exports.dialAudiences = exports.dialLooks = exports.dialTones = void 0;
       exports.dialsClause = dialsClause;
       exports.sanitizeEditedOutline = sanitizeEditedOutline;
       var outline_1 = require_outline();
       var promptRules_1 = require_promptRules();
       exports.dialTones = ["auto", "general", "persuasive", "inspiring", "instructive", "engaging"];
+      exports.dialLooks = ["auto", "classic", "editorial", "bold", "technical"];
       exports.dialAudiences = ["auto", "general", "business", "investor", "teacher", "student"];
       exports.dialScenarios = ["auto", "general", "analysis-report", "teaching-training", "promotional-materials", "public-speeches"];
       exports.dialDensities = ["auto", "concise", "standard", "detailed"];
@@ -34576,6 +34669,8 @@ ${err.toString()}`);
           parts.push(`Audience: ${dials.audience}.`);
         if (dials.scenario && dials.scenario !== "auto")
           parts.push(`Scenario: ${dials.scenario.replace(/-/g, " ")}.`);
+        if (dials.look && dials.look !== "auto")
+          parts.push(`Look: ${dials.look}.`);
         if (!parts.length)
           return "";
         return `Generation settings (authoritative): ${parts.join(" ")}`;
@@ -35991,6 +36086,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
       exports.deriveDesignSystem = deriveDesignSystem;
       exports.designSystemSlots = designSystemSlots;
       var color_1 = require_dist2();
+      var look_1 = require_look();
       var themeCatalog_1 = require_themeCatalog();
       var WHITE = { srgb: { r: 1, g: 1, b: 1, a: 1 } };
       var BLACK = { srgb: { r: 0, g: 0, b: 0, a: 1 } };
@@ -36107,7 +36203,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         return pool[i];
       }
       function deriveDesignSystem(theme, size2, opts = {}) {
-        var _a5, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o;
+        var _a5, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s;
         const width = Math.max(1, Math.round(size2.width));
         const height = Math.max(1, Math.round(size2.height));
         const short = Math.min(width, height);
@@ -36164,10 +36260,13 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         } : { type: "solid", color: deep };
         const paperBackground = { type: "solid", color: paper };
         const seeded = PAIRINGS[(((_h = opts.seed) != null ? _h : 0) % PAIRINGS.length + PAIRINGS.length) % PAIRINGS.length];
-        const fonts = {
-          heading: theme.fontHeading || ((_i = opts.catalog) == null ? void 0 : _i.fontHeading) || seeded.heading,
-          body: theme.fontBody || ((_j = opts.catalog) == null ? void 0 : _j.fontBody) || seeded.body
-        };
+        const look = (0, look_1.lookFor)(opts.look, opts.outlineLook, (_i = opts.catalog) == null ? void 0 : _i.style);
+        const spec = look_1.LOOKS[look];
+        const lookFonts = opts.fontsAuthored ? null : spec.fonts;
+        const fonts = __spreadValues({
+          heading: (_k = lookFonts == null ? void 0 : lookFonts.heading) != null ? _k : theme.fontHeading || ((_j = opts.catalog) == null ? void 0 : _j.fontHeading) || seeded.heading,
+          body: (_m = lookFonts == null ? void 0 : lookFonts.body) != null ? _m : theme.fontBody || ((_l = opts.catalog) == null ? void 0 : _l.fontBody) || seeded.body
+        }, ((_n = spec.fonts) == null ? void 0 : _n.mono) ? { mono: spec.fonts.mono } : {});
         const unit = Math.max(4, Math.round(short * 0.012));
         return __spreadProps(__spreadValues({
           size: { width, height },
@@ -36175,23 +36274,24 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           margin: unit * 6,
           gutter: unit * 2,
           columns: 12,
-          radius: Math.round(unit * 0.75),
+          radius: Math.round(unit * 0.75 * spec.radius),
           rule: Math.max(2, Math.round(unit * 0.35)),
           colors,
           fonts,
           impactBackground,
           paperBackground,
           kicker: theme.kicker,
-          dir: (_k = opts.dir) != null ? _k : "ltr",
+          dir: (_o = opts.dir) != null ? _o : "ltr",
           artDirection: artDirectionFor(opts.mood, colors),
-          motion: (_l = opts.motion) != null ? _l : "subtle"
-        }, ((_m = opts.logo) == null ? void 0 : _m.assetId) && opts.logo.url ? { logo: __spreadValues({}, opts.logo) } : {}), {
+          motion: (_p = opts.motion) != null ? _p : "subtle"
+        }, ((_q = opts.logo) == null ? void 0 : _q.assetId) && opts.logo.url ? { logo: __spreadValues({}, opts.logo) } : {}), {
           // A dark or tech style reads on its deep ground only when that ground
           // is dark. Some entries carry a saturated mid-tone in the deep slot (a
           // sky blue, an orange, a green) and their near-black paper is the
           // surface a reading page wants; a mid-tone hosts no light ink at AA and
           // painted every page of a deck in it.
-          readingGround: (((_n = opts.catalog) == null ? void 0 : _n.style) === "dark" || ((_o = opts.catalog) == null ? void 0 : _o.style) === "tech") && isDarkGround(colors.deep) ? "deep" : "paper"
+          readingGround: (((_r = opts.catalog) == null ? void 0 : _r.style) === "dark" || ((_s = opts.catalog) == null ? void 0 : _s.style) === "tech") && isDarkGround(colors.deep) ? "deep" : "paper",
+          look
         });
       }
       function designSystemSlots(ds) {
@@ -36344,6 +36444,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
       var iconset_1 = require_iconset();
       var illustrationset_1 = require_illustrationset();
       var deckStyle_1 = require_deckStyle();
+      var look_1 = require_look();
       var IMPACT = /* @__PURE__ */ new Set(["cover", "section", "statement", "quote", "closing"]);
       function archetypeIsImpact(a) {
         return IMPACT.has(a);
@@ -36549,10 +36650,28 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         get align() {
           return this.ds.dir === "rtl" ? "right" : "left";
         }
-        /** Whether this page sits on the deep ground: every impact page, and every
-         *  page of a deck whose theme keeps its reading pages dark. */
+        /** The deck's house style: what the forms are made of. */
+        get look() {
+          return look_1.LOOKS[this.ds.look];
+        }
+        /** Whether this page sits on the deep ground: an impact page unless the
+         *  look sets its impact pages on paper, and every page of a deck whose
+         *  theme keeps its reading pages dark. */
         get onDeep() {
-          return this.impact || this.ds.readingGround === "deep";
+          return this.impact ? this.look.impactFill !== "paper" : this.ds.readingGround === "deep";
+        }
+        /** The ink that reads on a ground the system did not plan for: black or
+         *  white, whichever clears it by more. */
+        inkOn(ground) {
+          return (0, color_1.contrastRatio)(WHITE_INK, ground) >= (0, color_1.contrastRatio)(BLACK_INK, ground) ? WHITE_INK : BLACK_INK;
+        }
+        /** What an impact page sits on, per the look. */
+        impactBackground() {
+          if (this.look.impactFill === "paper")
+            return this.ds.paperBackground;
+          if (this.look.impactFill === "flat")
+            return { type: "solid", color: structuredClone(this.ds.colors.deep) };
+          return this.ds.impactBackground;
         }
         get ground() {
           return this.onDeep ? this.ds.colors.deep : this.ds.colors.paper;
@@ -36581,8 +36700,9 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         /** A type size from the scale, in pixels, stepped up when the fixer set
          *  this page "large" and the size is one the variant governs. */
         sz(key) {
+          var _a5;
           const large = this.ctx.variant === "large" && LARGE_KEYS.has(key) ? LARGE_SCALE : 1;
-          return this.H * T[key] * large;
+          return this.H * T[key] * large * ((_a5 = this.look.scale[key]) != null ? _a5 : 1);
         }
         // --- measurement -----------------------------------------------------------
         lines(text2, size2, width, role) {
@@ -36662,7 +36782,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           const r = this.mirror(__spreadProps(__spreadValues({}, opts.rect), { height: boxHeight }));
           const align = (_e = opts.align) != null ? _e : this.align;
           const style = {
-            fontFamily: opts.role === "heading" ? this.ds.fonts.heading : this.ds.fonts.body,
+            fontFamily: opts.mono && this.ds.fonts.mono ? this.ds.fonts.mono : opts.role === "heading" ? this.ds.fonts.heading : this.ds.fonts.body,
             fontStyle: opts.bold ? "Bold" : "Regular",
             fontSize: size2,
             letterSpacing: opts.tracking ? opts.tracking * size2 : void 0,
@@ -36689,8 +36809,8 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           const size2 = Math.max((0, deckStyle_1.sizeFloor)(this.ds.size), Math.min(Math.round(base), Math.floor(rect.width / Math.max(ems, NUMERAL_ADVANCE)), Math.round(rect.height)));
           const r = this.mirror(rect);
           const runStyle = (fontSize) => ({
-            fontFamily: this.ds.fonts.heading,
-            fontStyle: "Bold",
+            fontFamily: this.look.numeralMono && this.ds.fonts.mono ? this.ds.fonts.mono : this.ds.fonts.heading,
+            fontStyle: this.look.numeralBold ? "Bold" : "Regular",
             fontSize,
             lineHeight: 1,
             letterSpacing: -0.02 * fontSize,
@@ -36708,31 +36828,41 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           });
           return { node: node2, height: size2, size: size2 };
         }
-        rect(name, r0, fill, radius = 0, data) {
+        rect(name, r0, fill, radius = 0, data, stroke) {
           const r = this.mirror(r0);
-          return (0, schema_1.createNode)("shape", __spreadValues(__spreadValues({
+          return (0, schema_1.createNode)("shape", __spreadValues(__spreadValues(__spreadValues({
             name,
             shape: "rect",
             transform: { x: r.x, y: r.y, scaleX: 1, scaleY: 1, rotation: 0 },
             size: { width: r.width, height: r.height },
             fills: [{ type: "solid", color: structuredClone(fill) }]
-          }, radius > 0 ? { cornerRadius: (0, schema_1.roundedCorners)(radius) } : {}), data ? { data } : {}));
+          }, stroke ? { stroke: { fill: { type: "solid", color: structuredClone(stroke.color) }, width: stroke.width, align: "inside" } } : {}), radius > 0 ? { cornerRadius: (0, schema_1.roundedCorners)(radius) } : {}), data ? { data } : {}));
         }
         /** The accent rule: the deck's one repeated mark. Short, above a heading. */
-        accentRule(x, y) {
-          const w = Math.round(this.ds.unit * 7);
-          const h = Math.max(6, Math.round(this.ds.unit * 0.6));
-          return this.rect("Accent", { x, y, width: w, height: h }, this.accent, Math.round(h / 2));
+        accentRule(x, y, color) {
+          const u = this.ds.unit;
+          const w = Math.round(u * this.look.ruleLength);
+          const h = Math.max(this.look.ruleThickness < 0.3 ? 2 : 6, Math.round(u * this.look.ruleThickness));
+          return this.rect("Accent", { x, y, width: w, height: h }, color != null ? color : this.accent, this.look.radius > 0 ? Math.round(h / 2) : 0);
         }
-        /** A tinted, rounded panel drawn behind a cell's content. Tagged so the
-         *  quality loop knows the content sits on it on purpose. */
+        /** A panel drawn behind a cell's content, made the way the look makes
+         *  one: the system's tint, a stronger tint of the primary hue, or the
+         *  ground outlined by a hairline. Tagged so the quality loop knows the
+         *  content sits on it on purpose. */
         panel(r) {
-          const n = this.rect("Panel", r, this.lifted, Math.round(this.ds.radius * 3), { panel: true });
-          return n;
+          const radius = Math.round(this.ds.radius * 3);
+          const c = this.ds.colors;
+          if (this.look.panel === "outline") {
+            return this.rect("Panel", r, this.ground, radius, { panel: true }, { color: mix(this.ink, this.ground, 0.72), width: 1 });
+          }
+          if (this.look.panel === "strong") {
+            return this.rect("Panel", r, this.onDeep ? mix(c.deep, c.primary, 0.35) : mix(c.paper, c.primary, 0.16), radius, { panel: true });
+          }
+          return this.rect("Panel", r, this.lifted, radius, { panel: true });
         }
         /** The eyebrow: two or three words, small and tracked, in the accent. */
         eyebrowNode(text2, rect, align) {
-          return this.text({ name: "Eyebrow", rect, paragraphs: [text2], role: "body", base: this.sz("eyebrow"), color: this.accentInk, exactSize: Math.round(this.sz("eyebrow")), tracking: 0.18, lineHeight: 1.2, align }).node;
+          return this.text({ name: "Eyebrow", rect, paragraphs: [text2], role: "body", base: this.sz("eyebrow"), color: this.accentInk, exactSize: Math.round(this.sz("eyebrow")), tracking: this.look.tracking, mono: this.look.monoLabels, lineHeight: 1.2, align }).node;
         }
         /** An eyebrow as a cluster block, for impact pages that name one. */
         eyebrowBlock() {
@@ -36740,7 +36870,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           const e = (_a5 = this.item.eyebrow) == null ? void 0 : _a5.trim();
           if (!e)
             return [];
-          return [{ kind: "text", maxFrac: 0.1, make: (r) => this.text({ name: "Eyebrow", rect: r, paragraphs: [e], role: "body", base: this.sz("eyebrow"), color: this.accentInk, exactSize: Math.round(this.sz("eyebrow")), tracking: 0.18, lineHeight: 1.2 }) }];
+          return [{ kind: "text", maxFrac: 0.1, make: (r) => this.text({ name: "Eyebrow", rect: r, paragraphs: [e], role: "body", base: this.sz("eyebrow"), color: this.accentInk, exactSize: Math.round(this.sz("eyebrow")), tracking: this.look.tracking, mono: this.look.monoLabels, lineHeight: 1.2 }) }];
         }
         /** The brand logo as an image node fitted into a box. Tagged so brand
          *  tooling recognises it as the kit's logo, not a picture to regenerate. */
@@ -36877,8 +37007,18 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         /** Reading-page furniture: the deck title small at the top, the page number
          *  small at the bottom. Impact pages stay quiet. */
         furniture(region, opts) {
-          var _a5, _b, _c, _d;
+          var _a5, _b, _c, _d, _e, _f;
           const u = this.ds.unit;
+          if (!this.impact && this.look.gridLines && !this.isPost) {
+            const lines = [];
+            for (let i = 1; i < this.ds.columns; i++) {
+              const x = Math.round(this.m + i * (this.col + this.ds.gutter) - this.ds.gutter / 2);
+              const line = this.rect("Decor", { x, y: this.top, width: 1, height: this.bodyBottom - this.top }, this.ink, 0, { decor: true });
+              line.opacity = 0.08;
+              lines.push(line);
+            }
+            this.nodes.unshift(...lines);
+          }
           const x0 = (_a5 = region == null ? void 0 : region.x) != null ? _a5 : this.m;
           const w0 = (_b = region == null ? void 0 : region.width) != null ? _b : this.W - 2 * this.m;
           const fx0 = x0;
@@ -36912,10 +37052,11 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             this.nodes.push(this.text({
               name: "Footer",
               rect: { x: fx0 + logoW, y: footerY, width: footerW, height: u * 2.6 },
+              mono: this.look.monoLabels,
               paragraphs: [this.ds.kicker],
               role: "body",
               base: this.sz("footer"),
-              color: this.muted,
+              color: (_e = opts == null ? void 0 : opts.footerInk) != null ? _e : this.muted,
               exactSize: Math.round(this.sz("footer")),
               tracking: 0.04
             }).node);
@@ -36924,10 +37065,11 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             const n = this.text({
               name: "Page number",
               rect: { x: fx0 + fw0 - u * 12, y: footerY, width: u * 12, height: u * 2.6 },
+              mono: this.look.monoLabels,
               paragraphs: [`${String(this.ctx.index + 1).padStart(2, "0")} / ${String(this.ctx.total).padStart(2, "0")}`],
               role: "body",
               base: this.sz("footer"),
-              color: this.muted,
+              color: (_f = opts == null ? void 0 : opts.footerInk) != null ? _f : this.muted,
               align: this.ds.dir === "rtl" ? "left" : "right",
               exactSize: Math.round(this.sz("footer")),
               tracking: 0.04
@@ -36953,7 +37095,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           let y = region.y + (center ? Math.max(0, Math.round((region.height - total) / 2)) : 0);
           for (const mrow of measured) {
             if (mrow.b.kind === "rule") {
-              this.nodes.push(this.accentRule(region.x, y));
+              this.nodes.push(this.accentRule(region.x, y, mrow.b.color));
             } else if (mrow.b.kind === "icon") {
               const ic = this.icon(mrow.b.glyph, region.x, y, mrow.b.size, this.accent);
               if (ic)
@@ -37077,7 +37219,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           }
           applyMotion(this.nodes, this.ds.motion);
           return {
-            background: structuredClone(this.impact ? this.ds.impactBackground : this.onDeep ? { type: "solid", color: this.ds.colors.deep } : this.ds.paperBackground),
+            background: structuredClone(this.impact ? this.impactBackground() : this.onDeep ? { type: "solid", color: this.ds.colors.deep } : this.ds.paperBackground),
             nodes: this.nodes,
             imagePrompts: this.prompts,
             impact: this.impact,
@@ -37107,6 +37249,14 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
               ...this.subheadBlock(this.sz("coverSub"), (_a5 = this.item.subhead) != null ? _a5 : this.item.points[0])
             ], 3, false);
             this.furniture();
+            return;
+          }
+          if (this.look.cover === "typographic" && !hasImage) {
+            this.typographicImpact("cover", drawing);
+            return;
+          }
+          if (this.look.cover === "field") {
+            this.fieldImpact("cover", drawing, hasImage);
             return;
           }
           const textCols = hasImage || drawing ? 6 : 8;
@@ -37146,6 +37296,14 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             this.furniture();
             return;
           }
+          if (this.look.cover === "typographic" && !hasImage) {
+            this.typographicImpact("section", drawing);
+            return;
+          }
+          if (this.look.cover === "field") {
+            this.fieldImpact("section", drawing, hasImage);
+            return;
+          }
           if (drawing) {
             const s = this.span(7, 5);
             const u = this.ds.unit;
@@ -37170,12 +37328,77 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           ], 3);
           this.furniture(hasImage ? { x: region.x, width: region.width } : void 0);
         }
+        /** The editorial construction of an impact page: the words are the
+         *  picture. Ten columns of display type on the paper, a hairline above,
+         *  the eyebrow small and tracked; a drawing, when named, sits small in the
+         *  trailing bottom corner and the words keep to nine columns so the two
+         *  never meet. */
+        typographicImpact(kind, drawing) {
+          var _a5;
+          const u = this.ds.unit;
+          const region = __spreadProps(__spreadValues({}, this.span(0, drawing ? 9 : 10)), { y: this.m + u * 4, height: this.H - 2 * this.m - u * 4 });
+          const n = kind === "section" ? this.ctx.section : void 0;
+          this.cluster(region, [
+            ...this.eyebrowBlock(),
+            ...n ? [{ kind: "text", maxFrac: 0.25, make: (r) => this.text({ name: "Section number", rect: r, paragraphs: [String(n).padStart(2, "0")], role: "heading", base: this.sz("sectionNumber"), bold: true, color: this.accentInk, exactSize: Math.round(this.sz("sectionNumber")), lineHeight: 1.05, tracking: 0.02 }) }] : [],
+            { kind: "rule" },
+            this.titleBlock(this.sz(kind === "cover" ? "coverTitle" : "sectionTitle"), this.look.headlineBold),
+            ...this.subheadBlock(kind === "section" ? this.sz("statementSub") : this.sz("coverSub"), (_a5 = this.item.subhead) != null ? _a5 : kind === "section" ? void 0 : this.item.points[0], kind === "closing" ? this.ink : void 0)
+          ], 3);
+          if (drawing) {
+            const s = this.span(9, 3);
+            const h = Math.round(this.H * 0.3);
+            const ill = this.illustration(drawing, { x: s.x, y: this.H - this.m - u * 2 - h, width: s.width, height: h });
+            if (ill)
+              this.nodes.push(ill);
+          }
+          this.furniture();
+        }
+        /** The bold construction of an impact page: a full-bleed colour field on
+         *  the leading seven columns carries the words reversed out of it, and
+         *  the drawing, the picture or the decor takes the rest on the deep
+         *  ground. The field is a panel to the quality loop; the words on it take
+         *  the ink that clears it. */
+        fieldImpact(kind, drawing, hasImage) {
+          var _a5, _b;
+          const u = this.ds.unit;
+          const c = this.ds.colors;
+          const s = this.span(0, 7);
+          const fieldW = s.x + s.width + Math.round(this.ds.gutter / 2);
+          const field = c.primary;
+          const ink = this.inkOn(field);
+          const soft = (0, color_1.fixToAA)(mix(ink, field, 0.22), field);
+          this.nodes.push(this.rect("Field", { x: 0, y: 0, width: fieldW, height: this.H }, field, 0, { panel: true }));
+          const bottom = kind === "cover" ? this.H - this.m : this.bodyBottom;
+          const region = { x: this.m, y: this.m, width: fieldW - 2 * this.m, height: bottom - this.m };
+          const e = (_a5 = this.item.eyebrow) == null ? void 0 : _a5.trim();
+          const n = kind === "section" ? this.ctx.section : void 0;
+          const sub = (_b = this.item.subhead) != null ? _b : kind === "section" ? void 0 : this.item.points[0];
+          this.cluster(region, [
+            ...e ? [{ kind: "text", maxFrac: 0.1, make: (r) => this.text({ name: "Eyebrow", rect: r, paragraphs: [e], role: "body", base: this.sz("eyebrow"), color: soft, exactSize: Math.round(this.sz("eyebrow")), tracking: this.look.tracking, mono: this.look.monoLabels, lineHeight: 1.2 }) }] : [],
+            ...n ? [{ kind: "text", maxFrac: 0.25, make: (r) => this.text({ name: "Section number", rect: r, paragraphs: [String(n).padStart(2, "0")], role: "heading", base: this.sz("sectionNumber"), bold: true, color: ink, exactSize: Math.round(this.sz("sectionNumber")), lineHeight: 1.05 }) }] : [],
+            { kind: "rule", color: ink },
+            { kind: "text", maxFrac: 0.5, make: (r) => this.text({ name: "Title", rect: r, paragraphs: [this.item.title], role: "heading", base: this.sz(kind === "cover" ? "coverTitle" : "sectionTitle"), bold: true, color: ink, lineHeight: 1.08 }) },
+            ...sub ? [{ kind: "text", maxFrac: 0.3, make: (r) => this.text({ name: "Subhead", rect: r, paragraphs: [sub], role: "body", base: this.sz("coverSub"), color: soft, lineHeight: 1.35 }) }] : []
+          ], 3);
+          const t = this.span(7, 5);
+          if (drawing) {
+            const ill = this.illustration(drawing, { x: t.x, y: this.m + u * 2, width: this.W - t.x - this.m, height: this.H - 2 * this.m - u * 4 });
+            if (ill)
+              this.nodes.push(ill);
+          } else if (hasImage) {
+            this.nodes.push(this.imageSlot({ x: fieldW, y: 0, width: this.W - fieldW, height: this.H }, this.imagePrompt()));
+          } else {
+            this.decor(this.span(8, 4));
+          }
+          this.furniture({ x: this.m, width: fieldW - 2 * this.m }, { footerInk: soft });
+        }
         statement() {
           this.cluster(this.span(0, 10), [
             ...this.eyebrowBlock(),
             ...this.pageIconBlock(),
             { kind: "rule" },
-            { kind: "text", maxFrac: 0.6, make: (r) => this.text({ name: "Statement", rect: r, paragraphs: [this.item.title], role: "heading", base: this.sz("statement"), bold: false, lineHeight: 1.12 }) },
+            { kind: "text", maxFrac: 0.6, make: (r) => this.text({ name: "Statement", rect: r, paragraphs: [this.item.title], role: "heading", base: this.sz("statement"), bold: this.look.headlineBold, lineHeight: 1.12 }) },
             ...this.subheadBlock(this.sz("statementSub"), this.item.subhead)
           ], 3);
           this.furniture();
@@ -37607,7 +37830,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             let whenH = 0;
             steps.forEach((st, i) => {
               if (st.when)
-                whenH = Math.max(whenH, this.text({ name: "When", rect: { x: cellsR[i].x, y: 0, width: cellsR[i].width, height: u * 6 }, paragraphs: [st.when], role: "heading", base: this.sz("timelineWhen"), bold: true, color: this.muted, align: "center", lineHeight: 1.2 }).height);
+                whenH = Math.max(whenH, this.text({ name: "When", rect: { x: cellsR[i].x, y: 0, width: cellsR[i].width, height: u * 6 }, paragraphs: [st.when], role: "heading", base: this.sz("timelineWhen"), bold: true, color: this.muted, align: "center", lineHeight: 1.2, mono: this.look.monoLabels }).height);
             });
             const lineY = y0 + (whenH ? whenH + u * 2 : 0);
             const labelH = Math.max(0, ...steps.map((st, i) => this.text({ name: "Label", rect: { x: cellsR[i].x, y: 0, width: cellsR[i].width, height: u * 8 }, paragraphs: [st.label], role: "heading", base: this.sz("stepLabel"), bold: true, align: "center", lineHeight: 1.15 }).height));
@@ -37616,7 +37839,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
               const c = cellsR[i];
               const cx = c.x + c.width / 2;
               if (st.when)
-                out.push(this.text({ name: "When", rect: { x: c.x, y: y0, width: c.width, height: whenH }, paragraphs: [st.when], role: "heading", base: this.sz("timelineWhen"), bold: true, color: this.muted, align: "center", lineHeight: 1.2, exactSize: Math.round(this.sz("timelineWhen")) }).node);
+                out.push(this.text({ name: "When", rect: { x: c.x, y: y0, width: c.width, height: whenH }, paragraphs: [st.when], role: "heading", base: this.sz("timelineWhen"), bold: true, color: this.muted, align: "center", lineHeight: 1.2, mono: this.look.monoLabels, exactSize: Math.round(this.sz("timelineWhen")) }).node);
               if (withIcons) {
                 const ic = this.icon(glyphs[i], Math.round(cx - dot / 2), lineY, dot, this.accent);
                 if (ic) {
@@ -37924,6 +38147,14 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             this.furniture();
             return;
           }
+          if (this.look.cover === "typographic" && !hasImage) {
+            this.typographicImpact("closing", drawing);
+            return;
+          }
+          if (this.look.cover === "field") {
+            this.fieldImpact("closing", drawing, hasImage);
+            return;
+          }
           if (drawing) {
             const s = this.span(7, 5);
             const u = this.ds.unit;
@@ -38077,9 +38308,9 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
       var archetypes_1 = require_archetypes();
       var measure_1 = require_measure();
       function layoutDeck(outline, theme, size2, opts) {
-        var _a5, _b;
+        var _a5, _b, _c;
         const themed = __spreadProps(__spreadValues({}, theme), { kicker: (_a5 = theme.kicker) != null ? _a5 : outline.title });
-        const system = (0, designSystem_1.deriveDesignSystem)(themed, size2, __spreadProps(__spreadValues({}, opts), { mood: (_b = opts == null ? void 0 : opts.mood) != null ? _b : outline.theme }));
+        const system = (0, designSystem_1.deriveDesignSystem)(themed, size2, __spreadProps(__spreadValues({}, opts), { mood: (_b = opts == null ? void 0 : opts.mood) != null ? _b : outline.theme, outlineLook: (_c = opts == null ? void 0 : opts.outlineLook) != null ? _c : outline.look }));
         const total = outline.pages.length;
         let sections = 0;
         const sectionNumbers = outline.pages.map((item) => item.archetype === "section" ? ++sections : void 0);
@@ -38304,7 +38535,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         return composeDeckFileWithReport2(input2).file;
       }
       function composeDeckFileWithReport2(input2) {
-        var _a5, _b, _c, _d, _e, _f, _g, _h, _i;
+        var _a5, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
         const outline = (0, outline_1.normalizeOutline)(input2.outline);
         const width = Math.max(1, Math.round(input2.width));
         const height = Math.max(1, Math.round(input2.height));
@@ -38455,7 +38686,8 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         } else {
           const dt = ((_i = input2.designType) != null ? _i : "").toLowerCase();
           const designType = dt === "social" || dt === "social-set" ? "social-set" : dt === "poster" ? "poster" : dt === "doc" ? "doc" : "deck";
-          const deck = (0, deck_1.layoutDeck)(outline, theme, { width, height }, { dir: input2.dir, catalog, brandPalette: input2.brandPalette, seed, motion: input2.motion, logo: input2.logo, designType });
+          const fontsAuthored = !!(((_j = input2.brandFonts) == null ? void 0 : _j.heading) || ((_k = input2.brandFonts) == null ? void 0 : _k.body) || input2.themeId || input2.themeRecord);
+          const deck = (0, deck_1.layoutDeck)(outline, theme, { width, height }, { dir: input2.dir, catalog, brandPalette: input2.brandPalette, seed, motion: input2.motion, logo: input2.logo, designType, look: input2.look, outlineLook: outline.look, fontsAuthored });
           system = deck.system;
           report = deck.report;
           pages = deck.pages.map((p, i) => __spreadValues({
@@ -38511,7 +38743,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         poster: "A single strong poster composition: one page, one bold message. Use the 'cover' archetype with an image intent."
       };
       exports.archetypeCatalogRule = "Every page names an archetype, its compositional form: 'cover' (title + subhead); 'agenda' (title + 3-6 points naming the sections to come, in order; only for decks of 6 or more pages); 'section' (a divider: short title, optional subhead); 'statement' (ONE idea as the title, at most 14 words, optional subhead; no points); 'bigNumber' (stat.value + stat.label, optional subhead as context; the figure is the slide); 'bullets' (title + 3-5 points, each a complete thought under 90 characters); 'twoColumn' (title + exactly 2 columns, each heading + 2-4 points; for comparisons and before/after); 'threeUp' (title + exactly 3 columns, each heading + 1-3 points; for features, pillars, options); 'process' (title + 3-5 steps, each label + detail; ONLY for a real sequence); 'quote' (quote.text + attribution); 'imageCaption' (title + image.subject + subhead as caption; the picture carries the slide); 'chart' (title + chart with real numbers from the brief or attached material; never invent data); 'kpiGrid' (title + 2-4 stats, each value + label; several figures that belong together); 'timeline' (title + 3-5 steps, each with a short 'when' such as a year or quarter, a label and a detail; for history and roadmaps); 'table' (title + table.columns and table.rows with real values from the brief or attached material; 2-4 columns, up to 6 rows; never invent data); 'team' (title + 1-4 people, each name + role; no pictures are generated for people); 'composition' (a bespoke page for what no other form holds: a diagram, a comparison built from shapes, a page that is one typographic gesture; up to 8 cells on a 12-column by 6-row grid, each a heading, body, list, figure, label, icon or picture with an optional tone of tint, accent or deep, cells never overlapping, and optional links drawn as arrows between cells; at most one per deck); 'closing' (title + subhead as the call to action). Every page except the cover names an 'eyebrow': two or three words saying what the page is about (The problem, What we tried, Traction, The ask), set small above the title. Icons: a column, a kpiGrid stat, a timeline step, and a bullets, statement, bigNumber, cover, section or closing page may each name an 'icon', one English keyword for a simple icon (shield, clock, users, chart, leaf, globe, bolt, heart, coin, truck, calendar, rocket, target, star, lock, cloud); name one for every item in a set or for none, and name one for most pages that can carry one.";
-      exports.storyArcRule = "Plan a narrative arc before choosing forms: open with the cover, state the thesis as a 'statement' early, build with evidence, and end with a 'closing' that asks for something specific. Vary the forms: no more than 40 percent of pages may be 'bullets'; never place the same archetype on two adjacent pages except 'bullets' at most twice in a row; use 'bigNumber' whenever the brief or attached material contains a meaningful quantity, 'kpiGrid' when two to four figures belong together, 'timeline' for dated history or a roadmap, and 'table' when the material is a small grid of real values; use 'section' dividers only for decks of 10 or more pages; give an 'image' intent to every 'cover', 'imageCaption', 'section' and 'closing' page and to about half of the rest, with a concrete English subject and consistent treatment across the deck; for an internal, product or plan deck, name an 'illustration' keyword on the cover, sections and closing (growth, handshake, rocket, target, security, chart, analysis, team, idea, money, logistics, calendar, map) so a flat drawing stands in for the photo.";
+      exports.storyArcRule = "Plan a narrative arc before choosing forms: open with the cover, state the thesis as a 'statement' early, build with evidence, and end with a 'closing' that asks for something specific. Vary the forms: no more than 40 percent of pages may be 'bullets'; never place the same archetype on two adjacent pages except 'bullets' at most twice in a row; use 'bigNumber' whenever the brief or attached material contains a meaningful quantity, 'kpiGrid' when two to four figures belong together, 'timeline' for dated history or a roadmap, and 'table' when the material is a small grid of real values; use 'section' dividers only for decks of 10 or more pages; give an 'image' intent to every 'cover', 'imageCaption', 'section' and 'closing' page and to about half of the rest, with a concrete English subject and consistent treatment across the deck; for an internal, product or plan deck, name an 'illustration' keyword on the cover, sections and closing (growth, handshake, rocket, target, security, chart, analysis, team, idea, money, logistics, calendar, map) so a flat drawing stands in for the photo. Name a 'look' for the whole deck: 'editorial' (serif display, hairline rules, paper grounds; for stories, reports, culture, heritage, luxury), 'bold' (colour fields, giant numerals, heavy sans; for launches, campaigns, sport, youth, sales), 'technical' (a visible grid, mono labels, square corners; for engineering, data, infrastructure, developer audiences) or 'classic' (the balanced default); the subject and audience decide, not the mood words alone.";
       exports.copyToFormRule = "Write copy to fit the form: a title is a headline (under 60 characters), never a sentence with a full stop; points are parallel in structure and start with the same part of speech; a statement is one idea, not a summary; a stat.label says what the number means in plain words. Never write 'Slide 1', 'Introduction' or other structural labels as content. Never use a dash as a separator anywhere in slide copy (titles, subheads, points, labels); use a colon or a new sentence. A stat.value is the bare figure (42%, 3.2M, 312): no arrows, no words, no plus or minus for direction; the label says whether it rose or fell. Every figure comes from the brief or the attached material, exactly as given; never invent, round or extrapolate a number. Set every title, subhead, label and eyebrow in sentence case (the first word and proper nouns capitalized), never in Title Case. An eyebrow is a label of at most 24 characters and a stat label at most 60; a title under 60. Write to fit: copy over a budget is cut at a word, never rephrased. Data-heavy material is split across several table or chart pages, at most eight rows or twelve categories each, never one dense page; a table cell is at most 60 characters.";
       function outlineSystemPrompt(designType, brandClause, pageCount, verbosity) {
         const count = pageCount && pageCount > 0 ? `Aim for about ${pageCount} pages. ` : "";

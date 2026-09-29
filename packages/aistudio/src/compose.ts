@@ -73,6 +73,9 @@ export interface ComposeDeckInput {
   /** What the pages are: "deck" (default), "doc", "poster" or "social" /
    *  "social-set". A post or poster composes without deck furniture. */
   designType?: string;
+  /** The deck's house style: "classic", "editorial", "bold" or "technical".
+   *  Overrides the look the outline named; a catalog style stands in for both. */
+  look?: string;
 }
 
 /** A T19 theme record as a generation DeckTheme (the template path's
@@ -362,7 +365,10 @@ export function composeDeckFileWithReport(input: ComposeDeckInput): { file: Desi
   } else {
     const dt = (input.designType ?? "").toLowerCase();
     const designType: DesignType = dt === "social" || dt === "social-set" ? "social-set" : dt === "poster" ? "poster" : dt === "doc" ? "doc" : "deck";
-    const deck = layoutDeck(outline, theme, { width, height }, { dir: input.dir, catalog, brandPalette: input.brandPalette, seed, motion: input.motion, logo: input.logo, designType });
+    // A brand kit or a theme the caller chose authored the fonts; a look's
+    // own pairing must not replace them.
+    const fontsAuthored = !!(input.brandFonts?.heading || input.brandFonts?.body || input.themeId || input.themeRecord);
+    const deck = layoutDeck(outline, theme, { width, height }, { dir: input.dir, catalog, brandPalette: input.brandPalette, seed, motion: input.motion, logo: input.logo, designType, look: input.look, outlineLook: outline.look, fontsAuthored });
     system = deck.system;
     report = deck.report;
     pages = deck.pages.map((p, i) => ({

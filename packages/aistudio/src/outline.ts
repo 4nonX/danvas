@@ -4,6 +4,7 @@
 // AiDesignSpec laid out by the Phase 1 engine. No page positions come from the
 // model - only content and intent - so a whole deck shares one visual system.
 
+import { deckLooks, isDeckLook, type DeckLook } from "./look";
 import type { AiDesignSpec, BlockRole, DesignBackground, DesignLayout } from "./spec";
 
 /** What kind of multi-page artifact we are generating. Drives length + arc. */
@@ -159,6 +160,9 @@ export interface DesignOutline {
   /** A short theme phrase (mood/topic) used to ground per-page styling. */
   theme: string;
   pages: OutlineItem[];
+  /** The house style the model named for the whole deck; a dial or an API
+   *  field overrides it, and a catalog style stands in when absent. */
+  look?: DeckLook;
 }
 
 /** A coherent visual system shared by every page in one generated design. */
@@ -500,6 +504,7 @@ export function normalizeOutline(parsed: unknown): DesignOutline {
   const root = parsed as Record<string, unknown>;
   const title = str(root.title) || "Untitled";
   const theme = str(root.theme);
+  const look = isDeckLook(root.look) ? root.look : undefined;
   const rawPages = Array.isArray(root.pages) ? root.pages : [];
   const pages: OutlineItem[] = [];
   for (const item of rawPages) {
@@ -534,7 +539,7 @@ export function normalizeOutline(parsed: unknown): DesignOutline {
   if (!pages.length) {
     throw new OutlineError("The AI didn't return any pages. Try a more specific prompt.");
   }
-  return { title, theme, pages };
+  return { title, theme, pages, ...(look ? { look } : {}) };
 }
 
 /** JSON Schema for a DesignOutline, embedded in the generation prompt. */
@@ -545,6 +550,7 @@ export const outlineJsonSchema = {
   properties: {
     title: { type: "string" },
     theme: { type: "string", description: "short mood/topic phrase" },
+    look: { type: "string", enum: deckLooks, description: "the deck's house style: editorial, bold, technical or classic" },
     pages: {
       type: "array",
       minItems: 1,

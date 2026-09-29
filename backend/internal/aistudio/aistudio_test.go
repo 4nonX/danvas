@@ -594,3 +594,20 @@ func TestNormalizeCompositionMirrorsTheClient(t *testing.T) {
 		t.Fatalf("no surviving cell should fall back to bullets, got %s", empty.Archetype)
 	}
 }
+
+func TestOutlineLookIsKeptWhenKnownAndDroppedWhenNot(t *testing.T) {
+	o := DesignOutline{Title: "t", Look: "editorial", Pages: []OutlineItem{{Title: "x", Archetype: "bullets", Points: []string{"a"}}}}
+	if err := validateOutline(&o); err != nil {
+		t.Fatal(err)
+	}
+	if o.Look != "editorial" {
+		t.Fatalf("look = %q", o.Look)
+	}
+	o.Look = "fancy"
+	if err := validateOutline(&o); err != nil {
+		t.Fatal(err)
+	}
+	if o.Look != "" {
+		t.Fatalf("unknown look should be dropped, got %q", o.Look)
+	}
+}

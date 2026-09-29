@@ -55,7 +55,7 @@ export function layoutDeck(
   const themed: DeckTheme = { ...theme, kicker: theme.kicker ?? outline.title };
   // The outline's own mood phrase directs the deck's pictures unless the
   // caller named one.
-  const system = deriveDesignSystem(themed, size, { ...opts, mood: opts?.mood ?? outline.theme });
+  const system = deriveDesignSystem(themed, size, { ...opts, mood: opts?.mood ?? outline.theme, outlineLook: opts?.outlineLook ?? outline.look });
   const total = outline.pages.length;
   // Section dividers are numbered in deck order.
   let sections = 0;

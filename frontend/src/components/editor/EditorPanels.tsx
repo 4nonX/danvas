@@ -13,7 +13,7 @@ import { stickers, stickerCategories, type Sticker } from "@/lib/stickers";
 import { parseModelJson } from "@/lib/magicDesign";
 import {
   normalizeOutline, deckThemes, layoutDeck, layoutDesign, groundImagePrompt, untrustedSourceRule,
-  sanitizeEditedOutline, dialsClause, dialDensities, dialTones, dialAudiences, dialScenarios, maxOutlinePages,
+  sanitizeEditedOutline, dialsClause, dialDensities, dialTones, dialAudiences, dialScenarios, dialLooks, maxOutlinePages,
   deriveLayoutContentSchema, layoutSelectionSchema, layoutSelectionSystemPrompt, layoutFillSystemPrompt, repairLayoutSelection,
   normalizeLayoutFill, fallbackLayoutFill, preferredLayoutFor, type LayoutFill,
   buildAgendaPages, pickAgendaLayout, extractTitleFromText, splitSlideSchema, splitSlideSystemPrompt,
@@ -1963,7 +1963,7 @@ type ResolvedPayload =
   | { kind: "diagram"; spec: DiagramSpec }
   | { kind: "clusters"; clusters: { title: string; ids: string[] }[] }
   | { kind: "summary"; text: string }
-  | { kind: "outline"; outline: DesignOutline; size: { width: number; height: number }; brandPalette: string[]; brandFonts: { heading?: string; body?: string }; brandLogo: DeckLogo | null; heroPlans: { pageIndex: number; prompt: string; subject: string; size: string }[]; workspaceId: string; designId: string | null; append: boolean; themeId?: string; themeRecord?: Theme; designType?: DesignType }
+  | { kind: "outline"; outline: DesignOutline; size: { width: number; height: number }; brandPalette: string[]; brandFonts: { heading?: string; body?: string }; brandLogo: DeckLogo | null; heroPlans: { pageIndex: number; prompt: string; subject: string; size: string }[]; workspaceId: string; designId: string | null; append: boolean; themeId?: string; themeRecord?: Theme; designType?: DesignType; look?: string }
   | { kind: "layoutDeck"; deckTitle: string; themeRecord: Theme; pages: { layoutId: string; name: string; note?: string; fill: LayoutFill; fillPrompt: string; verbatim?: boolean; background: unknown; accent: string | null }[]; background: unknown; imageSize: string; size: { width: number; height: number }; brandPalette: string[]; brandFonts: { heading?: string; body?: string }; brandLogo: DeckLogo | null; styleClause: string; heroPlans: { pageIndex: number; prompt: string; subject: string }[]; generateAllowed: boolean; workspaceId: string; designId: string | null; append: boolean }
   | { kind: "splitSlide"; pageIndex: number; pageId: string; halves: { layoutId: string; name: string; fill: LayoutFill }[] }
   | { kind: "insertComparison"; layoutId: string; name: string; fill: LayoutFill; afterIndex: number; afterPageId: string }
@@ -2991,7 +2991,7 @@ async function resolvePlanStep(step: PlanStep, deps: AssistantDeps): Promise<{ p
             ),
           }));
       }
-      return { payload: { kind: "outline", outline, size, brandPalette: deps.brandPalette, brandFonts: deps.brandFonts, brandLogo: deps.brandLogo ?? null, heroPlans, workspaceId: deps.workspaceId, designId: deps.designId ?? null, append, themeId: deps.styleThemeId, themeRecord: deps.styleThemeRecord, designType: dt } };
+      return { payload: { kind: "outline", outline, size, brandPalette: deps.brandPalette, brandFonts: deps.brandFonts, brandLogo: deps.brandLogo ?? null, heroPlans, workspaceId: deps.workspaceId, designId: deps.designId ?? null, append, themeId: deps.styleThemeId, themeRecord: deps.styleThemeRecord, designType: dt, look: deps.dials?.look } };
     }
     default:
       return {};
@@ -3446,7 +3446,7 @@ function runPlanStep(step: PlanStep, ctx?: { brandTargets?: BrandFixTarget[]; pa
         return true;
       }
       if (ctx?.payload?.kind !== "outline") return false;
-      const { outline, size, brandPalette, brandFonts, brandLogo, heroPlans, workspaceId, designId, append, themeId, themeRecord, designType } = ctx.payload;
+      const { outline, size, brandPalette, brandFonts, brandLogo, heroPlans, workspaceId, designId, append, themeId, themeRecord, designType, look } = ctx.payload;
       const clean: DesignOutline = { ...outline, pages: outline.pages.map((p) => ({ ...p, points: p.points.map((s) => s.trim()).filter(Boolean) })) };
       // F40 E12/E14: a template's theme record wins, then a chosen catalog
       // theme; else seed the default hue from the title so different briefs
@@ -3463,7 +3463,10 @@ function runPlanStep(step: PlanStep, ctx?: { brandTargets?: BrandFixTarget[]; pa
       // slots and pairing when one is chosen or when nothing else names a
       // palette, so an unbranded brief still gets a designed deck.
       const catalog = chosenEntry ?? (!themeRecord && !brandPalette.length ? catalogEntryForMood(clean.theme, seed) : null);
-      const deck = layoutDeck(clean, themes[0], size, { catalog, brandPalette, seed, logo: brandLogo, designType });
+      // A brand kit or a chosen theme authored the fonts; a look's own
+      // pairing must not replace them. The dial overrides the model's look.
+      const fontsAuthored = !!(themeRecord || chosenEntry || brandFonts?.heading || brandFonts?.body);
+      const deck = layoutDeck(clean, themes[0], size, { catalog, brandPalette, seed, logo: brandLogo, designType, look: look && look !== "auto" ? look : undefined, fontsAuthored });
       lastDeckCheck = deckCheckNote(deck.report);
       const base = append ? st.doc.pages.length : 0;
       const ids = append ? st.appendDeckPages(deck, size) : st.buildDeckFromOutline(deck, size);
@@ -4418,6 +4421,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
                 ["tone", dialTones],
                 ["audience", dialAudiences],
                 ["scenario", dialScenarios],
+                ["look", dialLooks],
               ] as const).map(([key, options]) => (
                 <label key={key} className="flex flex-col gap-0.5 text-start text-[10px] text-neutral-500">
                   {trOr(`editor.dial_${key}`, key)}
@@ -4594,6 +4598,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
                   ["tone", dialTones],
                   ["audience", dialAudiences],
                   ["scenario", dialScenarios],
+                  ["look", dialLooks],
                 ] as const).map(([key, options]) => (
                   <label key={key} className="flex flex-col gap-0.5 text-[10px] text-neutral-500">
                     {trOr(`editor.dial_${key}`, key)}

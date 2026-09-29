@@ -64,6 +64,9 @@ type Input struct {
 	// DesignType is what the pages are ("deck", "doc", "poster", "social"):
 	// a post or poster composes without deck furniture.
 	DesignType string `json:"designType,omitempty"`
+	// Look is the deck's house style ("classic", "editorial", "bold",
+	// "technical"); empty lets the outline's or the catalog's stand.
+	Look string `json:"look,omitempty"`
 	// BrandFonts are the workspace brand kit's faces by role; the generated
 	// theme sets headings and body in them. A catalog theme or a template
 	// keeps its own.

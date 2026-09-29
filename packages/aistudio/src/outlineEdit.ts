@@ -12,9 +12,12 @@ export interface GenerationDials {
   tone?: string;
   audience?: string;
   scenario?: string;
+  /** The deck's house style; auto lets the model name one. */
+  look?: string;
 }
 
 export const dialTones = ["auto", "general", "persuasive", "inspiring", "instructive", "engaging"] as const;
+export const dialLooks = ["auto", "classic", "editorial", "bold", "technical"] as const;
 export const dialAudiences = ["auto", "general", "business", "investor", "teacher", "student"] as const;
 export const dialScenarios = ["auto", "general", "analysis-report", "teaching-training", "promotional-materials", "public-speeches"] as const;
 export const dialDensities = ["auto", "concise", "standard", "detailed"] as const;
@@ -30,6 +33,7 @@ export function dialsClause(dials: GenerationDials | undefined): string {
   if (dials.tone && dials.tone !== "auto") parts.push(`Tone: ${dials.tone}.`);
   if (dials.audience && dials.audience !== "auto") parts.push(`Audience: ${dials.audience}.`);
   if (dials.scenario && dials.scenario !== "auto") parts.push(`Scenario: ${dials.scenario.replace(/-/g, " ")}.`);
+  if (dials.look && dials.look !== "auto") parts.push(`Look: ${dials.look}.`);
   if (!parts.length) return "";
   return `Generation settings (authoritative): ${parts.join(" ")}`;
 }

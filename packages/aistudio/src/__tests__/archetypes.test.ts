@@ -7,6 +7,7 @@ import { themeCatalog } from "../themeCatalog";
 import { repairContrast } from "../repair";
 import { composeDeckFileWithReport } from "../compose";
 import { isDarkGround } from "../designSystem";
+import { deckLooks, lookFor, LOOKS } from "../look";
 import { ICON_GLYPHS, ICON_KEYWORDS } from "../iconset";
 import { layoutDeck } from "../deck";
 import { deckThemes } from "../theme";
@@ -866,5 +867,60 @@ describe("a bespoke composition page", () => {
     const out = composeDeckFileWithReport({ outline: { title: "T", pages: [pageFor("composition")] }, width: 1080, height: 1080, designType: "social" });
     expect(out.report.pages[0].issues).toEqual([]);
     expect(out.file.pages[0].children.map((n) => n.name)).not.toContain("Page number");
+  });
+});
+
+describe("every look composes every archetype clean", () => {
+  for (const look of deckLooks) {
+    const ds = deriveDesignSystem(theme, size, { seed: 1, catalog: catalogEntryForSeed(1), look });
+    for (const a of archetypes) {
+      it(`${look} / ${a}: no overflow, no overlap, AA contrast`, () => {
+        const item = normalizeOutline({ title: "T", pages: [pageFor(a)] }).pages[0];
+        const page = composeArchetypePage(item, ds, { index: 3, total: 10, section: a === "section" ? 1 : undefined });
+        expect(page.nodes.length).toBeGreaterThan(0);
+        const q = qualityCheck({ background: page.background, nodes: page.nodes, size });
+        expect(q.issues, JSON.stringify(q.issues)).toEqual([]);
+      });
+    }
+  }
+});
+
+describe("the look", () => {
+  it("is the explicit choice, then the outline's, then the catalog style's, then classic", () => {
+    expect(lookFor("bold", "editorial", "tech")).toBe("bold");
+    expect(lookFor("auto", "editorial", "tech")).toBe("editorial");
+    expect(lookFor(undefined, "nonsense", "tech")).toBe("technical");
+    expect(lookFor(undefined, undefined, "warm")).toBe("classic");
+  });
+
+  it("brings its own pairing unless a brand kit or a chosen theme authored the fonts", () => {
+    const catalog = catalogEntryForSeed(1);
+    const editorial = deriveDesignSystem(theme, size, { seed: 1, catalog, look: "editorial" });
+    expect(editorial.fonts.heading).toBe(LOOKS.editorial.fonts!.heading);
+    const authored = deriveDesignSystem(theme, size, { seed: 1, catalog, look: "editorial", fontsAuthored: true });
+    expect(authored.fonts.heading).not.toBe(LOOKS.editorial.fonts!.heading);
+    const technical = deriveDesignSystem(theme, size, { seed: 1, catalog, look: "technical" });
+    expect(technical.fonts.mono).toBe(LOOKS.technical.fonts!.mono);
+    expect(technical.look).toBe("technical");
+  });
+
+  it("changes what the impact pages are made of", () => {
+    const item = normalizeOutline({ title: "T", pages: [{ ...pageFor("cover"), image: { subject: "a dune", treatment: "illustration", illustration: "growth" } }] }).pages[0];
+    const bold = composeArchetypePage(item, deriveDesignSystem(theme, size, { seed: 1, catalog: catalogEntryForSeed(1), look: "bold" }), { index: 0, total: 5 });
+    expect(bold.nodes.map((n) => n.name)).toContain("Field");
+    const editorial = composeArchetypePage(item, deriveDesignSystem(theme, size, { seed: 1, catalog: catalogEntryForSeed(1), look: "editorial" }), { index: 0, total: 5 });
+    expect(editorial.nodes.map((n) => n.name)).not.toContain("Field");
+    // Editorial impact pages sit on the paper, so the title takes the paper ink.
+    expect(editorial.background).toEqual(deriveDesignSystem(theme, size, { seed: 1, catalog: catalogEntryForSeed(1), look: "editorial" }).paperBackground);
+    const technical = composeArchetypePage(normalizeOutline({ title: "T", pages: [pageFor("bullets")] }).pages[0], deriveDesignSystem(theme, size, { seed: 1, catalog: catalogEntryForSeed(1), look: "technical" }), { index: 1, total: 5 });
+    expect(technical.nodes.filter((n) => n.name === "Decor").length).toBe(11);
+  });
+
+  it("is carried by the outline when the model names one", () => {
+    const outline = normalizeOutline({ title: "T", look: "editorial", pages: [pageFor("cover")] });
+    expect(outline.look).toBe("editorial");
+    expect(normalizeOutline({ title: "T", look: "fancy", pages: [pageFor("cover")] }).look).toBeUndefined();
+    const { file } = composeDeckFileWithReport({ outline: { ...outline, pages: [pageFor("cover")] }, width: 1920, height: 1080 });
+    expect(file.pages[0].children.map((n) => n.name)).not.toContain("Field");
   });
 });

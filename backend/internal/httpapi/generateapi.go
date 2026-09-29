@@ -92,7 +92,10 @@ type generateInput struct {
 	BrandPalette []string `json:"brandPalette"`
 	// Motion is the entrance motion on the composed pages: "subtle" (default)
 	// or "none".
-	Motion  string `json:"motion"`
+	Motion string `json:"motion"`
+	// Look is the deck's house style: "classic", "editorial", "bold" or
+	// "technical". Empty lets the model's choice, then the theme's, stand.
+	Look    string `json:"look"`
 	Sources []struct {
 		Name string `json:"name"`
 		Text string `json:"text"`
@@ -109,6 +112,7 @@ type generatePlan struct {
 	Palette   []string
 	ThemeID   string
 	Motion    string
+	Look      string
 	// Template contribution (E14), resolved by the caller (needs the
 	// templates service): the layout system and/or theme record.
 	LayoutSet   any
@@ -238,6 +242,12 @@ func planGeneration(ctx context.Context, acct *accounts.Service, userID string, 
 	plan.Brief = brief
 	plan.Palette = palette
 	plan.ThemeID = themeID
+	switch look := strings.ToLower(strings.TrimSpace(in.Look)); look {
+	case "", "classic", "editorial", "bold", "technical":
+		plan.Look = look
+	default:
+		return plan, &generateReject{http.StatusBadRequest, "invalid_look", "look must be one of classic, editorial, bold, technical"}
+	}
 	plan.Motion = motion
 	return plan, nil
 }
@@ -276,7 +286,7 @@ func startGenerationJob(svc *aistudio.Service, aiSvc *ai.Service, up *uploads.Se
 		compose := func() ([]byte, composer.Report, error) {
 			return composer.ComposeWithReport(ctx, composer.Input{
 				Outline: outline, Width: plan.Size.w, Height: plan.Size.h, BrandPalette: palette,
-				ThemeID: plan.ThemeID, LayoutSet: plan.LayoutSet, ThemeRecord: plan.ThemeRecord, Motion: plan.Motion, DesignType: plan.Dt,
+				ThemeID: plan.ThemeID, LayoutSet: plan.LayoutSet, ThemeRecord: plan.ThemeRecord, Motion: plan.Motion, DesignType: plan.Dt, Look: plan.Look,
 				BrandFonts: grounding.Fonts, Logo: grounding.Logo,
 			})
 		}

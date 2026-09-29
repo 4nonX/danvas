@@ -16,6 +16,7 @@
 // system, on the client and under goja alike.
 
 import { contrastRatio, fixToAA, fromHex, hslToRgb, relativeLuminance, rgbToHsl, toHex } from "@hc/color";
+import { LOOKS, lookFor, type DeckLook } from "./look";
 import type { Color, Fill } from "@hc/schema";
 import type { DeckTheme } from "./outline";
 import type { ThemeCatalogEntry } from "./themeCatalog";
@@ -59,7 +60,7 @@ export interface DesignSystem {
   radius: number;
   rule: number;
   colors: DesignSystemColors;
-  fonts: { heading: string; body: string };
+  fonts: { heading: string; body: string; mono?: string };
   impactBackground: Fill;
   paperBackground: Fill;
   /** The deck title, shown small on reading pages so they belong together. */
@@ -79,6 +80,8 @@ export interface DesignSystem {
    *  the deep ground with a bright accent, the way a tech review deck reads;
    *  the rest alternate the deep ground for impact pages with paper. */
   readingGround: "paper" | "deep";
+  /** The deck's house style: what the forms are made of. */
+  look: DeckLook;
 }
 
 export type DeckMotion = "subtle" | "none";
@@ -250,6 +253,13 @@ export function catalogEntryForMood(mood: string, seed: number): ThemeCatalogEnt
 }
 
 export interface DeriveOptions {
+  /** An explicit look (a dial, an API field), then the one the outline
+   *  named; the catalog style stands in for both. */
+  look?: unknown;
+  outlineLook?: unknown;
+  /** True when a brand kit or a theme the user chose set the fonts, so a
+   *  look's own pairing must not replace them. */
+  fontsAuthored?: boolean;
   /** A catalog theme: its six slots are used as-is. */
   catalog?: ThemeCatalogEntry | null;
   /** The outline's own mood phrase ("calm, coastal, restrained"), folded into
@@ -330,9 +340,15 @@ export function deriveDesignSystem(theme: DeckTheme, size: { width: number; heig
 
   // Fonts -------------------------------------------------------------------
   const seeded = PAIRINGS[(((opts.seed ?? 0) % PAIRINGS.length) + PAIRINGS.length) % PAIRINGS.length];
+  // The look's own pairing, unless a brand kit or a chosen theme authored
+  // the fonts; a mono face for labels rides along whenever the look has one.
+  const look = lookFor(opts.look, opts.outlineLook, opts.catalog?.style);
+  const spec = LOOKS[look];
+  const lookFonts = opts.fontsAuthored ? null : spec.fonts;
   const fonts = {
-    heading: theme.fontHeading || opts.catalog?.fontHeading || seeded.heading,
-    body: theme.fontBody || opts.catalog?.fontBody || seeded.body,
+    heading: lookFonts?.heading ?? (theme.fontHeading || opts.catalog?.fontHeading || seeded.heading),
+    body: lookFonts?.body ?? (theme.fontBody || opts.catalog?.fontBody || seeded.body),
+    ...(spec.fonts?.mono ? { mono: spec.fonts.mono } : {}),
   };
 
   // Spacing -----------------------------------------------------------------
@@ -343,7 +359,7 @@ export function deriveDesignSystem(theme: DeckTheme, size: { width: number; heig
     margin: unit * 6,
     gutter: unit * 2,
     columns: 12,
-    radius: Math.round(unit * 0.75),
+    radius: Math.round(unit * 0.75 * spec.radius),
     rule: Math.max(2, Math.round(unit * 0.35)),
     colors,
     fonts,
@@ -360,6 +376,7 @@ export function deriveDesignSystem(theme: DeckTheme, size: { width: number; heig
     // surface a reading page wants; a mid-tone hosts no light ink at AA and
     // painted every page of a deck in it.
     readingGround: (opts.catalog?.style === "dark" || opts.catalog?.style === "tech") && isDarkGround(colors.deep) ? "deep" : "paper",
+    look,
   };
 }
 

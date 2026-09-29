@@ -20,12 +20,13 @@
 
 import { createNode, roundedCorners, type Color, type Fill, type Node } from "@hc/schema";
 import type { Archetype, CompositionCell, DesignType, OutlineItem } from "./outline";
-import { contrastRatio } from "@hc/color";
+import { contrastRatio, fixToAA } from "@hc/color";
 import type { DeckMotion, DesignSystem } from "./designSystem";
 import { ICON_BOX, ICON_GLYPHS, ICON_KEYWORDS } from "./iconset";
 import { ILLUSTRATIONS, ILLUSTRATION_KEYWORDS, type IllustrationDrawing } from "./illustrationset";
 import type { PageVariant } from "./measure";
 import { ladderFrom, sizeFloor } from "./deckStyle";
+import { LOOKS, type LookSpec } from "./look";
 
 export interface ComposedPage {
   background: Fill;
@@ -283,10 +284,26 @@ class Composer {
     return this.ds.dir === "rtl" ? "right" : "left";
   }
 
-  /** Whether this page sits on the deep ground: every impact page, and every
-   *  page of a deck whose theme keeps its reading pages dark. */
+  /** The deck's house style: what the forms are made of. */
+  private get look(): LookSpec {
+    return LOOKS[this.ds.look];
+  }
+  /** Whether this page sits on the deep ground: an impact page unless the
+   *  look sets its impact pages on paper, and every page of a deck whose
+   *  theme keeps its reading pages dark. */
   private get onDeep(): boolean {
-    return this.impact || this.ds.readingGround === "deep";
+    return this.impact ? this.look.impactFill !== "paper" : this.ds.readingGround === "deep";
+  }
+  /** The ink that reads on a ground the system did not plan for: black or
+   *  white, whichever clears it by more. */
+  private inkOn(ground: Color): Color {
+    return contrastRatio(WHITE_INK, ground) >= contrastRatio(BLACK_INK, ground) ? WHITE_INK : BLACK_INK;
+  }
+  /** What an impact page sits on, per the look. */
+  private impactBackground(): Fill {
+    if (this.look.impactFill === "paper") return this.ds.paperBackground;
+    if (this.look.impactFill === "flat") return { type: "solid", color: structuredClone(this.ds.colors.deep) } as Fill;
+    return this.ds.impactBackground;
   }
   private get ground(): Color {
     return this.onDeep ? this.ds.colors.deep : this.ds.colors.paper;
@@ -317,7 +334,7 @@ class Composer {
    *  this page "large" and the size is one the variant governs. */
   private sz(key: keyof typeof T): number {
     const large = this.ctx.variant === "large" && LARGE_KEYS.has(key) ? LARGE_SCALE : 1;
-    return this.H * T[key] * large;
+    return this.H * T[key] * large * (this.look.scale[key] ?? 1);
   }
 
   // --- measurement -----------------------------------------------------------
@@ -397,6 +414,8 @@ class Composer {
      *  hanging indent, laid out by the text engine and the exporters alike,
      *  instead of a bullet character baked into the copy. */
     list?: "bullet" | "number";
+    /** Set in the look's mono face when it has one (labels, markers). */
+    mono?: boolean;
   }): { node: Node; height: number; size: number } {
     const lineHeight = opts.lineHeight ?? (opts.role === "heading" ? 1.1 : 1.4);
     const paraGap = opts.paraGap ?? (opts.role === "heading" ? 0.2 : 0.45);
@@ -424,7 +443,7 @@ class Composer {
     const r = this.mirror({ ...opts.rect, height: boxHeight });
     const align = opts.align ?? this.align;
     const style = {
-      fontFamily: opts.role === "heading" ? this.ds.fonts.heading : this.ds.fonts.body,
+      fontFamily: opts.mono && this.ds.fonts.mono ? this.ds.fonts.mono : opts.role === "heading" ? this.ds.fonts.heading : this.ds.fonts.body,
       fontStyle: opts.bold ? "Bold" : "Regular",
       fontSize: size,
       letterSpacing: opts.tracking ? opts.tracking * size : undefined,
@@ -460,8 +479,8 @@ class Composer {
     // Line height one: the baseline sits on the box's bottom edge, so a tall
     // glyph never rises past the box's top into the rule above it.
     const runStyle = (fontSize: number) => ({
-      fontFamily: this.ds.fonts.heading,
-      fontStyle: "Bold",
+      fontFamily: this.look.numeralMono && this.ds.fonts.mono ? this.ds.fonts.mono : this.ds.fonts.heading,
+      fontStyle: this.look.numeralBold ? "Bold" : "Regular",
       fontSize,
       lineHeight: 1,
       letterSpacing: -0.02 * fontSize,
@@ -479,7 +498,7 @@ class Composer {
     return { node, height: size, size };
   }
 
-  private rect(name: string, r0: Rect, fill: Color, radius = 0, data?: Record<string, unknown>): Node {
+  private rect(name: string, r0: Rect, fill: Color, radius = 0, data?: Record<string, unknown>, stroke?: { color: Color; width: number }): Node {
     const r = this.mirror(r0);
     return createNode("shape", {
       name,
@@ -487,6 +506,7 @@ class Composer {
       transform: { x: r.x, y: r.y, scaleX: 1, scaleY: 1, rotation: 0 },
       size: { width: r.width, height: r.height },
       fills: [{ type: "solid", color: structuredClone(fill) }],
+      ...(stroke ? { stroke: { fill: { type: "solid", color: structuredClone(stroke.color) }, width: stroke.width, align: "inside" } } : {}),
       // The file format's radius is per corner; the renderers read that form
       // and draw a bare number as square corners.
       ...(radius > 0 ? { cornerRadius: roundedCorners(radius) } : {}),
@@ -495,29 +515,39 @@ class Composer {
   }
 
   /** The accent rule: the deck's one repeated mark. Short, above a heading. */
-  private accentRule(x: number, y: number): Node {
-    const w = Math.round(this.ds.unit * 7);
-    const h = Math.max(6, Math.round(this.ds.unit * 0.6));
-    return this.rect("Accent", { x, y, width: w, height: h }, this.accent, Math.round(h / 2));
+  private accentRule(x: number, y: number, color?: Color): Node {
+    const u = this.ds.unit;
+    const w = Math.round(u * this.look.ruleLength);
+    const h = Math.max(this.look.ruleThickness < 0.3 ? 2 : 6, Math.round(u * this.look.ruleThickness));
+    return this.rect("Accent", { x, y, width: w, height: h }, color ?? this.accent, this.look.radius > 0 ? Math.round(h / 2) : 0);
   }
 
-  /** A tinted, rounded panel drawn behind a cell's content. Tagged so the
-   *  quality loop knows the content sits on it on purpose. */
+  /** A panel drawn behind a cell's content, made the way the look makes
+   *  one: the system's tint, a stronger tint of the primary hue, or the
+   *  ground outlined by a hairline. Tagged so the quality loop knows the
+   *  content sits on it on purpose. */
   private panel(r: Rect): Node {
-    const n = this.rect("Panel", r, this.lifted, Math.round(this.ds.radius * 3), { panel: true });
-    return n;
+    const radius = Math.round(this.ds.radius * 3);
+    const c = this.ds.colors;
+    if (this.look.panel === "outline") {
+      return this.rect("Panel", r, this.ground, radius, { panel: true }, { color: mix(this.ink, this.ground, 0.72), width: 1 });
+    }
+    if (this.look.panel === "strong") {
+      return this.rect("Panel", r, this.onDeep ? mix(c.deep, c.primary, 0.35) : mix(c.paper, c.primary, 0.16), radius, { panel: true });
+    }
+    return this.rect("Panel", r, this.lifted, radius, { panel: true });
   }
 
   /** The eyebrow: two or three words, small and tracked, in the accent. */
   private eyebrowNode(text: string, rect: Rect, align?: "left" | "right" | "center"): Node {
-    return this.text({ name: "Eyebrow", rect, paragraphs: [text], role: "body", base: this.sz("eyebrow"), color: this.accentInk, exactSize: Math.round(this.sz("eyebrow")), tracking: 0.18, lineHeight: 1.2, align }).node;
+    return this.text({ name: "Eyebrow", rect, paragraphs: [text], role: "body", base: this.sz("eyebrow"), color: this.accentInk, exactSize: Math.round(this.sz("eyebrow")), tracking: this.look.tracking, mono: this.look.monoLabels, lineHeight: 1.2, align }).node;
   }
 
   /** An eyebrow as a cluster block, for impact pages that name one. */
   private eyebrowBlock(): Array<{ kind: "text"; make: (rect: Rect) => { node: Node; height: number }; maxFrac: number }> {
     const e = this.item.eyebrow?.trim();
     if (!e) return [];
-    return [{ kind: "text", maxFrac: 0.1, make: (r: Rect) => this.text({ name: "Eyebrow", rect: r, paragraphs: [e], role: "body", base: this.sz("eyebrow"), color: this.accentInk, exactSize: Math.round(this.sz("eyebrow")), tracking: 0.18, lineHeight: 1.2 }) }];
+    return [{ kind: "text", maxFrac: 0.1, make: (r: Rect) => this.text({ name: "Eyebrow", rect: r, paragraphs: [e], role: "body", base: this.sz("eyebrow"), color: this.accentInk, exactSize: Math.round(this.sz("eyebrow")), tracking: this.look.tracking, mono: this.look.monoLabels, lineHeight: 1.2 }) }];
   }
 
   /** The brand logo as an image node fitted into a box. Tagged so brand
@@ -661,8 +691,20 @@ class Composer {
 
   /** Reading-page furniture: the deck title small at the top, the page number
    *  small at the bottom. Impact pages stay quiet. */
-  private furniture(region?: { x: number; width: number }, opts?: { band?: boolean }): void {
+  private furniture(region?: { x: number; width: number }, opts?: { band?: boolean; footerInk?: Color }): void {
     const u = this.ds.unit;
+    // The technical look shows its grid: eleven faint column lines behind a
+    // reading page's body, drawn first so everything sits over them.
+    if (!this.impact && this.look.gridLines && !this.isPost) {
+      const lines: Node[] = [];
+      for (let i = 1; i < this.ds.columns; i++) {
+        const x = Math.round(this.m + i * (this.col + this.ds.gutter) - this.ds.gutter / 2);
+        const line = this.rect("Decor", { x, y: this.top, width: 1, height: this.bodyBottom - this.top }, this.ink, 0, { decor: true });
+        (line as unknown as { opacity: number }).opacity = 0.08;
+        lines.push(line);
+      }
+      this.nodes.unshift(...lines);
+    }
     // A page whose picture bleeds to an edge keeps its furniture in the text
     // column, so nothing sits on the picture; every other page runs the
     // footer across the full width.
@@ -711,14 +753,14 @@ class Composer {
     const footerW = fw0 - logoW - u * 14;
     if (this.item.archetype !== "cover" && !this.isPost && this.ds.kicker && footerW >= u * 24) {
       this.nodes.push(this.text({
-        name: "Footer", rect: { x: fx0 + logoW, y: footerY, width: footerW, height: u * 2.6 },
-        paragraphs: [this.ds.kicker], role: "body", base: this.sz("footer"), color: this.muted, exactSize: Math.round(this.sz("footer")), tracking: 0.04,
+        name: "Footer", rect: { x: fx0 + logoW, y: footerY, width: footerW, height: u * 2.6 }, mono: this.look.monoLabels,
+        paragraphs: [this.ds.kicker], role: "body", base: this.sz("footer"), color: opts?.footerInk ?? this.muted, exactSize: Math.round(this.sz("footer")), tracking: 0.04,
       }).node);
     }
     if (this.item.archetype !== "cover" && !this.isPost) {
       const n = this.text({
-        name: "Page number", rect: { x: fx0 + fw0 - u * 12, y: footerY, width: u * 12, height: u * 2.6 },
-        paragraphs: [`${String(this.ctx.index + 1).padStart(2, "0")} / ${String(this.ctx.total).padStart(2, "0")}`], role: "body", base: this.sz("footer"), color: this.muted,
+        name: "Page number", rect: { x: fx0 + fw0 - u * 12, y: footerY, width: u * 12, height: u * 2.6 }, mono: this.look.monoLabels,
+        paragraphs: [`${String(this.ctx.index + 1).padStart(2, "0")} / ${String(this.ctx.total).padStart(2, "0")}`], role: "body", base: this.sz("footer"), color: opts?.footerInk ?? this.muted,
         align: this.ds.dir === "rtl" ? "left" : "right", exactSize: Math.round(this.sz("footer")), tracking: 0.04,
       });
       this.nodes.push(n.node);
@@ -729,7 +771,7 @@ class Composer {
    *  centered when it is shorter than the region. Each block is measured at
    *  the size it fits at, so the cluster's height is honest before anything
    *  is placed. */
-  private cluster(region: Rect, blocks: Array<{ kind: "rule" } | { kind: "icon"; glyph: string; size: number } | { kind: "text"; make: (rect: Rect) => { node: Node; height: number } ; maxFrac: number }>, gapUnits = 2, center = true): void {
+  private cluster(region: Rect, blocks: Array<{ kind: "rule"; color?: Color } | { kind: "icon"; glyph: string; size: number } | { kind: "text"; make: (rect: Rect) => { node: Node; height: number } ; maxFrac: number }>, gapUnits = 2, center = true): void {
     const u = this.ds.unit;
     // First pass: measure with each block offered its share of the region.
     const measured = blocks.map((b) => {
@@ -742,7 +784,7 @@ class Composer {
     let y = region.y + (center ? Math.max(0, Math.round((region.height - total) / 2)) : 0);
     for (const mrow of measured) {
       if (mrow.b.kind === "rule") {
-        this.nodes.push(this.accentRule(region.x, y));
+        this.nodes.push(this.accentRule(region.x, y, mrow.b.color));
       } else if (mrow.b.kind === "icon") {
         const ic = this.icon(mrow.b.glyph, region.x, y, mrow.b.size, this.accent);
         if (ic) this.nodes.push(ic);
@@ -833,7 +875,7 @@ class Composer {
     }
     applyMotion(this.nodes as Array<Node & { animation?: unknown }>, this.ds.motion);
     return {
-      background: structuredClone(this.impact ? this.ds.impactBackground : this.onDeep ? ({ type: "solid", color: this.ds.colors.deep } as Fill) : this.ds.paperBackground),
+      background: structuredClone(this.impact ? this.impactBackground() : this.onDeep ? ({ type: "solid", color: this.ds.colors.deep } as Fill) : this.ds.paperBackground),
       nodes: this.nodes,
       imagePrompts: this.prompts,
       impact: this.impact,
@@ -868,6 +910,8 @@ class Composer {
       this.furniture();
       return;
     }
+    if (this.look.cover === "typographic" && !hasImage) { this.typographicImpact("cover", drawing); return; }
+    if (this.look.cover === "field") { this.fieldImpact("cover", drawing, hasImage); return; }
     const textCols = hasImage || drawing ? 6 : 8;
     const region = this.span(0, textCols);
     if (drawing) {
@@ -909,6 +953,8 @@ class Composer {
       this.furniture();
       return;
     }
+    if (this.look.cover === "typographic" && !hasImage) { this.typographicImpact("section", drawing); return; }
+    if (this.look.cover === "field") { this.fieldImpact("section", drawing, hasImage); return; }
     if (drawing) {
       const s = this.span(7, 5);
       const u = this.ds.unit;
@@ -937,13 +983,82 @@ class Composer {
     this.furniture(hasImage ? { x: region.x, width: region.width } : undefined);
   }
 
+  /** The editorial construction of an impact page: the words are the
+   *  picture. Ten columns of display type on the paper, a hairline above,
+   *  the eyebrow small and tracked; a drawing, when named, sits small in the
+   *  trailing bottom corner and the words keep to nine columns so the two
+   *  never meet. */
+  private typographicImpact(kind: "cover" | "section" | "closing", drawing: string | null): void {
+    const u = this.ds.unit;
+    const region = { ...this.span(0, drawing ? 9 : 10), y: this.m + u * 4, height: this.H - 2 * this.m - u * 4 };
+    const n = kind === "section" ? this.ctx.section : undefined;
+    this.cluster(region, [
+      ...this.eyebrowBlock(),
+      ...(n ? [{ kind: "text" as const, maxFrac: 0.25, make: (r: Rect) => this.text({ name: "Section number", rect: r, paragraphs: [String(n).padStart(2, "0")], role: "heading", base: this.sz("sectionNumber"), bold: true, color: this.accentInk, exactSize: Math.round(this.sz("sectionNumber")), lineHeight: 1.05, tracking: 0.02 }) }] : []),
+      { kind: "rule" },
+      this.titleBlock(this.sz(kind === "cover" ? "coverTitle" : "sectionTitle"), this.look.headlineBold),
+      ...this.subheadBlock(kind === "section" ? this.sz("statementSub") : this.sz("coverSub"), this.item.subhead ?? (kind === "section" ? undefined : this.item.points[0]), kind === "closing" ? this.ink : undefined),
+    ], 3);
+    if (drawing) {
+      const s = this.span(9, 3);
+      const h = Math.round(this.H * 0.3);
+      const ill = this.illustration(drawing, { x: s.x, y: this.H - this.m - u * 2 - h, width: s.width, height: h });
+      if (ill) this.nodes.push(ill);
+    }
+    this.furniture();
+  }
+
+  /** The bold construction of an impact page: a full-bleed colour field on
+   *  the leading seven columns carries the words reversed out of it, and
+   *  the drawing, the picture or the decor takes the rest on the deep
+   *  ground. The field is a panel to the quality loop; the words on it take
+   *  the ink that clears it. */
+  private fieldImpact(kind: "cover" | "section" | "closing", drawing: string | null, hasImage: boolean): void {
+    const u = this.ds.unit;
+    const c = this.ds.colors;
+    const s = this.span(0, 7);
+    const fieldW = s.x + s.width + Math.round(this.ds.gutter / 2);
+    const field = c.primary;
+    const ink = this.inkOn(field);
+    // The secondary ink on the field: softened toward it, held to AA.
+    const soft = fixToAA(mix(ink, field, 0.22), field);
+    this.nodes.push(this.rect("Field", { x: 0, y: 0, width: fieldW, height: this.H }, field, 0, { panel: true }));
+    // The words keep above the footer band on a section or a closing, which
+    // carry one; a cover has none and takes the full height.
+    const bottom = kind === "cover" ? this.H - this.m : this.bodyBottom;
+    const region = { x: this.m, y: this.m, width: fieldW - 2 * this.m, height: bottom - this.m };
+    const e = this.item.eyebrow?.trim();
+    const n = kind === "section" ? this.ctx.section : undefined;
+    const sub = this.item.subhead ?? (kind === "section" ? undefined : this.item.points[0]);
+    this.cluster(region, [
+      ...(e ? [{ kind: "text" as const, maxFrac: 0.1, make: (r: Rect) => this.text({ name: "Eyebrow", rect: r, paragraphs: [e], role: "body", base: this.sz("eyebrow"), color: soft, exactSize: Math.round(this.sz("eyebrow")), tracking: this.look.tracking, mono: this.look.monoLabels, lineHeight: 1.2 }) }] : []),
+      ...(n ? [{ kind: "text" as const, maxFrac: 0.25, make: (r: Rect) => this.text({ name: "Section number", rect: r, paragraphs: [String(n).padStart(2, "0")], role: "heading", base: this.sz("sectionNumber"), bold: true, color: ink, exactSize: Math.round(this.sz("sectionNumber")), lineHeight: 1.05 }) }] : []),
+      { kind: "rule", color: ink },
+      { kind: "text" as const, maxFrac: 0.5, make: (r: Rect) => this.text({ name: "Title", rect: r, paragraphs: [this.item.title], role: "heading", base: this.sz(kind === "cover" ? "coverTitle" : "sectionTitle"), bold: true, color: ink, lineHeight: 1.08 }) },
+      ...(sub ? [{ kind: "text" as const, maxFrac: 0.3, make: (r: Rect) => this.text({ name: "Subhead", rect: r, paragraphs: [sub], role: "body", base: this.sz("coverSub"), color: soft, lineHeight: 1.35 }) }] : []),
+    ], 3);
+    const t = this.span(7, 5);
+    if (drawing) {
+      const ill = this.illustration(drawing, { x: t.x, y: this.m + u * 2, width: this.W - t.x - this.m, height: this.H - 2 * this.m - u * 4 });
+      if (ill) this.nodes.push(ill);
+    } else if (hasImage) {
+      this.nodes.push(this.imageSlot({ x: fieldW, y: 0, width: this.W - fieldW, height: this.H }, this.imagePrompt()));
+    } else {
+      this.decor(this.span(8, 4));
+    }
+    // The furniture keeps to the field, as the split forms keep theirs to
+    // the text column: nothing sits on the picture, and the footer and page
+    // number take the field's own ink.
+    this.furniture({ x: this.m, width: fieldW - 2 * this.m }, { footerInk: soft });
+  }
+
   private statement(): void {
     // One idea, set large, with room around it. The type is the visual.
     this.cluster(this.span(0, 10), [
       ...this.eyebrowBlock(),
       ...this.pageIconBlock(),
       { kind: "rule" },
-      { kind: "text", maxFrac: 0.6, make: (r) => this.text({ name: "Statement", rect: r, paragraphs: [this.item.title], role: "heading", base: this.sz("statement"), bold: false, lineHeight: 1.12 }) },
+      { kind: "text", maxFrac: 0.6, make: (r) => this.text({ name: "Statement", rect: r, paragraphs: [this.item.title], role: "heading", base: this.sz("statement"), bold: this.look.headlineBold, lineHeight: 1.12 }) },
       ...this.subheadBlock(this.sz("statementSub"), this.item.subhead),
     ], 3);
     this.furniture();
@@ -1428,7 +1543,7 @@ class Composer {
       // The time markers share one height so every dot sits on one line.
       let whenH = 0;
       steps.forEach((st, i) => {
-        if (st.when) whenH = Math.max(whenH, this.text({ name: "When", rect: { x: cellsR[i].x, y: 0, width: cellsR[i].width, height: u * 6 }, paragraphs: [st.when], role: "heading", base: this.sz("timelineWhen"), bold: true, color: this.muted, align: "center", lineHeight: 1.2 }).height);
+        if (st.when) whenH = Math.max(whenH, this.text({ name: "When", rect: { x: cellsR[i].x, y: 0, width: cellsR[i].width, height: u * 6 }, paragraphs: [st.when], role: "heading", base: this.sz("timelineWhen"), bold: true, color: this.muted, align: "center", lineHeight: 1.2, mono: this.look.monoLabels }).height);
       });
       const lineY = y0 + (whenH ? whenH + u * 2 : 0);
       // Labels share one height too, so every detail starts on the same row
@@ -1438,7 +1553,7 @@ class Composer {
       steps.forEach((st, i) => {
         const c = cellsR[i];
         const cx = c.x + c.width / 2;
-        if (st.when) out.push(this.text({ name: "When", rect: { x: c.x, y: y0, width: c.width, height: whenH }, paragraphs: [st.when], role: "heading", base: this.sz("timelineWhen"), bold: true, color: this.muted, align: "center", lineHeight: 1.2, exactSize: Math.round(this.sz("timelineWhen")) }).node);
+        if (st.when) out.push(this.text({ name: "When", rect: { x: c.x, y: y0, width: c.width, height: whenH }, paragraphs: [st.when], role: "heading", base: this.sz("timelineWhen"), bold: true, color: this.muted, align: "center", lineHeight: 1.2, mono: this.look.monoLabels, exactSize: Math.round(this.sz("timelineWhen")) }).node);
         if (withIcons) {
           const ic = this.icon(glyphs[i]!, Math.round(cx - dot / 2), lineY, dot, this.accent);
           if (ic) { (ic as unknown as { name: string }).name = "Marker"; out.push(ic); }
@@ -1739,6 +1854,8 @@ class Composer {
       this.furniture();
       return;
     }
+    if (this.look.cover === "typographic" && !hasImage) { this.typographicImpact("closing", drawing); return; }
+    if (this.look.cover === "field") { this.fieldImpact("closing", drawing, hasImage); return; }
     if (drawing) {
       const s = this.span(7, 5);
       const u = this.ds.unit;
