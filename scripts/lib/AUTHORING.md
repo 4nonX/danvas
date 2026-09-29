@@ -127,7 +127,7 @@ Icons: any key of `ICON_GLYPHS` in `packages/aistudio/dist/iconset.js` (Tabler n
 
 A raw slide is a page object built with the library's primitives, for the one or two slides only this deck has. Import from the library: `text, rect, ellipse, button, icon, art, path, halo, sparkles, note, footer, mark, chrome, card, type, deepGround, mixHex, inkOn, W, H, M, CW`. The builder receives `K` (the look with meta merged and `K.total` set), the page index `i`, and its content object.
 
-`path(points, { stroke, strokeWidth, fill, closed, cap, join, dash })` draws a line or a region from points in page space (`dash: [8, 6]` for a dotted or dashed line): `[[x, y], ...]` for straight segments, or `{ x, y, cIn: {x, y}, cOut: {x, y} }` for curves (cubic handles). Use it for a curve, an arrow, a connector or a chart line instead of a trail of ellipses; a rotated thin `rect` is still fine for a straight rule.
+`path(points, { stroke, strokeWidth, fill, closed, cap, join })` draws a line or a region from points in page space (a dash pattern is stored but neither renderer draws it, so a dashed or dotted line is a row of short rects or small ellipses): `[[x, y], ...]` for straight segments, or `{ x, y, cIn: {x, y}, cOut: {x, y} }` for curves (cubic handles). Use it for a curve, an arrow, a connector or a chart line instead of a trail of ellipses; a rotated thin `rect` is still fine for a straight rule.
 
 The deep-page note sits at (1140, 872) by default; a raw slide that fills the bottom right passes its own spot: `note(K, g, str, true, { x, y, w, align })`.
 

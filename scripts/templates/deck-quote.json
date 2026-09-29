@@ -20,46 +20,39 @@
  "typography": [
   {
    "role": "heading",
-   "family": "Fraunces",
-   "weight": 600
+   "family": "Crimson Pro",
+   "weight": 500
   },
   {
    "role": "body",
-   "family": "Inter",
+   "family": "Commissioner",
    "weight": 400
   },
   {
    "role": "accent",
-   "family": "Caveat",
-   "weight": 600
+   "family": "Cedarville Cursive",
+   "weight": 400
   }
  ],
  "pages": [
   {
-   "name": "Quote",
-   "bg": {
-    "angle": 160,
-    "stops": [
-     [
-      "#221E1A",
-      0
-     ],
-     [
-      "#100E0C",
-      1
-     ]
-    ]
-   },
+   "name": "Pull quote",
+   "bg": "#F9F3E6",
    "nodes": [
     {
-     "kind": "ellipse",
-     "x": 1560,
-     "y": -180,
-     "w": 520,
-     "h": 520,
-     "fill": "#F4C15D",
-     "bleed": true,
-     "opacity": 0.9
+     "kind": "text",
+     "x": 1160,
+     "y": 420,
+     "w": 760,
+     "h": 700,
+     "text": "”",
+     "family": "Crimson Pro",
+     "size": 620,
+     "weight": 500,
+     "color": "#eee8dc",
+     "align": "right",
+     "lineHeight": 1,
+     "bleed": true
     },
     {
      "kind": "rect",
@@ -67,111 +60,202 @@
      "y": 64,
      "w": 1728,
      "h": 2,
-     "fill": "#F5EFE4"
+     "fill": "#DCD1C1"
     },
     {
      "kind": "rect",
      "x": 96,
-     "y": 1014,
+     "y": 968,
      "w": 1728,
-     "h": 2,
-     "fill": "#F5EFE4"
-    },
-    {
-     "kind": "rect",
-     "x": 96,
-     "y": 84,
-     "w": 14,
-     "h": 14,
-     "fill": "#F26A48"
+     "h": 1,
+     "fill": "#DCD1C1"
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 1030,
+     "y": 992,
      "w": 900,
      "h": 26,
      "text": "Northwind Labs  ·  Q3 business review",
-     "family": "Inter",
+     "family": "Commissioner",
      "size": 18,
      "weight": 500,
-     "color": "#B0A798",
+     "color": "#655A5B",
      "lineHeight": 1.3
     },
     {
      "kind": "text",
      "x": 96,
-     "y": 180,
-     "w": 260,
+     "y": 88,
+     "w": 1000,
+     "h": 28,
+     "text": "Pull quote  ·  Product",
+     "family": "Commissioner",
+     "size": 20,
+     "weight": 600,
+     "color": "#7B1E2B",
+     "letterSpacing": 4,
+     "upper": true,
+     "lineHeight": 1.2
+    },
+    {
+     "kind": "text",
+     "x": 96,
+     "y": 290,
+     "w": 220,
      "h": 260,
      "text": "“",
-     "family": "Fraunces",
-     "size": 280,
-     "weight": 600,
-     "color": "#F26A48",
+     "family": "Crimson Pro",
+     "size": 260,
+     "weight": 500,
+     "color": "#7B1E2B",
      "lineHeight": 1
     },
     {
      "kind": "text",
-     "x": 116,
-     "y": 400,
-     "w": 1400,
-     "h": 228,
-     "text": "We don't ship features. We ship outcomes.",
-     "family": "Fraunces",
-     "size": 56,
-     "weight": 400,
-     "color": "#F5EFE4",
-     "lineHeight": 1.26
+     "x": 320,
+     "y": 316,
+     "w": 1300,
+     "h": 267,
+     "text": "We don’t ship features.\nWe ship outcomes.",
+     "family": "Crimson Pro",
+     "size": 112,
+     "weight": 500,
+     "color": "#1F1A1B",
+     "lineHeight": 1.12
+    },
+    {
+     "kind": "rect",
+     "x": 320,
+     "y": 615,
+     "w": 1300,
+     "h": 1,
+     "fill": "#DCD1C1"
     },
     {
      "kind": "ellipse",
      "name": "Photo",
-     "x": 116,
-     "y": 688,
-     "w": 84,
-     "h": 84,
-     "fill": "#38322C"
+     "x": 320,
+     "y": 639,
+     "w": 104,
+     "h": 104,
+     "fill": "#dcc4ba"
+    },
+    {
+     "kind": "rect",
+     "x": 452,
+     "y": 689,
+     "w": 36,
+     "h": 3,
+     "fill": "#7B1E2B"
     },
     {
      "kind": "text",
-     "x": 224,
-     "y": 696,
-     "w": 800,
-     "h": 32,
+     "x": 504,
+     "y": 669,
+     "w": 620,
+     "h": 36,
      "text": "Priya Nair",
-     "family": "Inter",
-     "size": 24,
-     "weight": 600,
-     "color": "#F5EFE4",
-     "lineHeight": 1.3
+     "family": "Crimson Pro",
+     "size": 26,
+     "weight": 500,
+     "color": "#1F1A1B",
+     "lineHeight": 1.06,
+     "upper": true,
+     "letterSpacing": 4
     },
     {
      "kind": "text",
-     "x": 224,
-     "y": 732,
-     "w": 800,
-     "h": 28,
+     "x": 504,
+     "y": 707,
+     "w": 620,
+     "h": 30,
      "text": "VP Product, Northwind Labs",
-     "family": "Inter",
+     "family": "Commissioner",
      "size": 20,
      "weight": 400,
-     "color": "#B0A798",
+     "color": "#655A5B",
      "lineHeight": 1.4
+    },
+    {
+     "kind": "rect",
+     "x": 1156,
+     "y": 639,
+     "w": 1,
+     "h": 104,
+     "fill": "#DCD1C1"
+    },
+    {
+     "kind": "text",
+     "x": 1196,
+     "y": 645,
+     "w": 424,
+     "h": 96,
+     "text": "Said at the September all-hands and again to the board. The roadmap went from forty items to nine the same month.",
+     "family": "Commissioner",
+     "size": 19,
+     "weight": 400,
+     "color": "#655A5B",
+     "lineHeight": 1.4
+    },
+    {
+     "kind": "text",
+     "x": 1064,
+     "y": 913,
+     "w": 760,
+     "h": 43,
+     "text": "she said it twice, so we wrote it down",
+     "family": "Cedarville Cursive",
+     "size": 34,
+     "weight": 400,
+     "color": "#7B1E2B",
+     "lineHeight": 1.2,
+     "align": "right"
     }
    ],
    "illustrations": [
     {
-     "asset": "op-peep-86",
-     "x": 128,
-     "y": 696,
-     "w": 60,
-     "h": 68
+     "asset": "op-peep-34",
+     "x": 335,
+     "y": 649,
+     "w": 74,
+     "h": 86
     }
    ]
   }
  ],
- "fillable": [],
+ "fillable": [
+  {
+   "node": "p0-n4",
+   "kind": "text",
+   "label": "Running head",
+   "hint": "Where in the deck this sits"
+  },
+  {
+   "node": "p0-n6",
+   "kind": "text",
+   "label": "Quote",
+   "hint": "One or two sentences, as said; break the lines yourself"
+  },
+  {
+   "node": "p0-n10",
+   "kind": "text",
+   "label": "Name",
+   "hint": "Who said it"
+  },
+  {
+   "node": "p0-n11",
+   "kind": "text",
+   "label": "Role",
+   "hint": "Title and company"
+  },
+  {
+   "node": "p0-n13",
+   "kind": "text",
+   "label": "Context",
+   "hint": "Where and when it was said, in two short sentences"
+  }
+ ],
  "version": 3,
  "created": "2026-07-04T00:00:00.000Z",
  "updated": "2026-09-30T00:00:00.000Z",
