@@ -1,0 +1,82 @@
+// The pure side of chat image attachments: which files count, what an image
+// contributes as grounding, how the planner is told, and which one a step
+// names. Reading pixels needs a browser canvas and is not covered here.
+import { describe, expect, it } from "vitest";
+import { imageAttachmentsNote, imageSource, isImageFile, nameFromUrl, paletteOf, pickAttachedImage, referencePalette, type AiImageAttachment } from "./aiImageAttachments";
+
+const img = (over: Partial<AiImageAttachment>): AiImageAttachment => ({
+  id: "a", name: "photo.jpg", url: "blob:x", width: 1200, height: 800, preview: "data:,", palette: ["#112233", "#445566"], ...over,
+});
+
+describe("isImageFile", () => {
+  it("takes images by type or by extension and leaves documents alone", () => {
+    expect(isImageFile({ name: "shot.PNG" })).toBe(true);
+    expect(isImageFile({ name: "camera", type: "image/heic" })).toBe(true);
+    expect(isImageFile({ name: "brief.pdf", type: "application/pdf" })).toBe(false);
+    expect(isImageFile({ name: "notes.md" })).toBe(false);
+  });
+});
+
+describe("nameFromUrl", () => {
+  it("names a picture after the last path segment, or image for a blob", () => {
+    expect(nameFromUrl("https://h.test/api/v1/uploads/ws/kiosk%20front.png?x=1")).toBe("kiosk front.png");
+    expect(nameFromUrl("/api/v1/stock/proxy/abc")).toBe("abc");
+    expect(nameFromUrl("blob:http://localhost/1234")).toBe("image");
+  });
+});
+
+describe("imageSource", () => {
+  it("grounds nothing until the provider has read the image", () => {
+    expect(imageSource(img({}))).toBeNull();
+  });
+  it("carries what the image shows, its size and its colours", () => {
+    const s = imageSource(img({ description: "A kiosk in a village square." }))!;
+    expect(s.name).toBe("Image: photo.jpg");
+    expect(s.text).toContain("1200 by 800");
+    expect(s.text).toContain("#112233, #445566");
+    expect(s.text).toContain("A kiosk in a village square.");
+  });
+});
+
+describe("referencePalette", () => {
+  it("takes the most recent image that has one, primary first", () => {
+    expect(referencePalette([img({ palette: ["#AAAAAA"] }), img({ id: "b", palette: [] })])).toEqual(["#AAAAAA"]);
+    expect(referencePalette([img({ palette: ["#111111", "#222222", "#333333", "#444444"] })])).toEqual(["#111111", "#222222", "#333333"]);
+    expect(referencePalette([])).toEqual([]);
+  });
+});
+
+describe("imageAttachmentsNote", () => {
+  it("names the images and the tools, and says when they can only be placed", () => {
+    expect(imageAttachmentsNote([])).toBe("");
+    const unread = imageAttachmentsNote([img({})]);
+    expect(unread).toContain("1 image in the chat (photo.jpg)");
+    expect(unread).toContain("placeAttachedImage");
+    expect(unread).toContain("only be placed");
+    const read = imageAttachmentsNote([img({ description: "x" }), img({ id: "b", name: "logo.png" })]);
+    expect(read).toContain("2 images");
+    expect(read).toContain("generateDesign");
+  });
+});
+
+describe("pickAttachedImage", () => {
+  const a = img({ id: "a", name: "kiosk-front.jpg" });
+  const b = img({ id: "b", name: "Team photo.png" });
+  it("matches a name or part of it, else takes the most recent", () => {
+    expect(pickAttachedImage([a, b], "kiosk")?.id).toBe("a");
+    expect(pickAttachedImage([a, b], "team photo")?.id).toBe("b");
+    expect(pickAttachedImage([a, b], "the kiosk-front picture")?.id).toBe("a");
+    expect(pickAttachedImage([a, b])?.id).toBe("b");
+    expect(pickAttachedImage([a, b], "nothing like it")?.id).toBe("b");
+    expect(pickAttachedImage([], "x")).toBeNull();
+  });
+});
+
+describe("paletteOf", () => {
+  it("reads the dominant colours of a bitmap", () => {
+    const px = [200, 30, 60, 255];
+    const data = Array.from({ length: 64 }, () => px).flat();
+    const palette = paletteOf({ width: 8, height: 8, data }, 3);
+    expect(palette[0]).toBe("#C81E3C");
+  });
+});

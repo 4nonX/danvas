@@ -390,6 +390,25 @@
     "mutates": true
   },
   {
+    "name": "placeAttachedImage",
+    "description": "Place an image the user attached in the chat onto a page: into the selected frame when one is selected, else as a new picture on the current page (or the page named). Use for 'add/put/use/insert this image/picture/photo/logo (on slide N)'.",
+    "params": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": false,
+        "description": "which attached image, by (part of) its file name; default: the most recent"
+      },
+      {
+        "name": "pageIndex",
+        "type": "number",
+        "required": false,
+        "description": "the 1-based page to place it on (default: the current page)"
+      }
+    ],
+    "mutates": true
+  },
+  {
     "name": "critique",
     "description": "Analyze one page (the current one by default) and report design issues (no changes). Use for 'check/review slide N'.",
     "params": [

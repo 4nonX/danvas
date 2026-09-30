@@ -65,6 +65,7 @@ import { mirrorInRtl } from "@/lib/locale";
 import { tr, trOr } from "@/lib/i18n";
 import { cancelAiImages, enqueueAiImages, retryFailedAiImages, subscribeAiImageQueue } from "@/lib/aiImageQueue";
 import { peekPendingAiRequest, requestOpenProperties, setAiBusy, subscribeAiRequests, takeStagedAiSources, type AiRequest } from "@/lib/aiRequests";
+import { attachableImageAccept, imageAttachmentsNote, imageSource, isImageFile, maxAiImages, nameFromUrl, pickAttachedImage, readImageAttachment, referencePalette, type AiImageAttachment, type ImageAttachmentSource } from "@/lib/aiImageAttachments";
 import { mergeRestoredTurns } from "@/lib/aiTurns";
 import { reviewPages, reviewTurnText } from "@/lib/deckReview";
 import { AiProviderSettings } from "@/components/ai/AiProviderSettings";
@@ -1502,8 +1503,7 @@ export function UploadsPanel({
             <div className="grid grid-cols-2 gap-2">
               {uploading.map((u) => (
                 <div key={u.id} className="relative overflow-hidden rounded-lg border border-neutral-200" title={u.error ? `${u.name} failed to upload` : `Uploading ${u.name}`}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={u.preview} alt="" className="aspect-square w-full object-cover opacity-40" />
+                          <img src={u.preview} alt="" className="aspect-square w-full object-cover opacity-40" />
                   <div className="absolute inset-0 grid place-items-center">
                     {u.error
                       ? <span className="text-[11px] font-semibold text-red-600">{tr("editor.failed")}</span>
@@ -1525,8 +1525,7 @@ export function UploadsPanel({
                 title={tr("editor.click_to_place_or_drag_onto_the_canvas")}
                 className="block w-full"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={a.thumbnail ?? resolveAssetUrl(a.url)} alt={a.filename ?? "upload"} className="aspect-square w-full object-cover" />
+                      <img src={a.thumbnail ?? resolveAssetUrl(a.url)} alt={a.filename ?? "upload"} className="aspect-square w-full object-cover" />
               </button>
               {/* Visible-but-transparent (not display:none) so the actions stay
                   Tab-reachable; focus-within reveals them for keyboard users. */}
@@ -2006,7 +2005,10 @@ type ResolvedPayload =
   | { kind: "regenerateSlide"; pageIndex: number; pageId: string; layoutId: string; layoutChanged: boolean; hadLayout: boolean; fill: LayoutFill; imageTasks: { placeholderId: string; prompt: string; subject: string }[]; imageSize: string; generateAllowed: boolean; workspaceId: string; designId: string | null }
   // A composed page set again: the revised item and the page the composer
   // drew from it, to land in place of the current one.
-  | { kind: "recomposeSlide"; pageIndex: number; pageId: string; item: OutlineItem; background: Fill; nodes: Node[]; imageTasks: { placeholderId: string; prompt: string; subject: string }[]; imageSize: string; generateAllowed: boolean; workspaceId: string; designId: string | null; assets: AssetRef[] };
+  | { kind: "recomposeSlide"; pageIndex: number; pageId: string; item: OutlineItem; background: Fill; nodes: Node[]; imageTasks: { placeholderId: string; prompt: string; subject: string }[]; imageSize: string; generateAllowed: boolean; workspaceId: string; designId: string | null; assets: AssetRef[] }
+  // An attached image to place: its (uploaded) URL, the page it goes on
+  // when the step named one, and the stock credit it carries.
+  | { kind: "placeImage"; image: string; pageIndex?: number; provenance?: Record<string, unknown> };
 
 /** Parse a model reply that must be a JSON array of exactly `n` strings.
  *  Tolerates markdown fences; anything else (wrong shape, wrong length,
@@ -2063,6 +2065,12 @@ interface AssistantDeps {
   /** A template's theme record (F40 E14): wins over styleThemeId; the deck is
    *  composed on the template's palette and fonts. */
   styleThemeRecord?: Theme;
+  /** Images attached in the chat: pictures placeAttachedImage can place. Their
+   *  descriptions, once read, ride in `sources` like a document's text. */
+  images?: AiImageAttachment[];
+  /** A picture from disk was uploaded to place it: the chip now points at the
+   *  asset, so a second placement does not upload it again. */
+  onImageUploaded?: (id: string, url: string) => void;
   /** Aborts every model call in this run: a generation can take minutes, and
    *  a user who changed their mind should not have to wait it out and pay for
    *  it. Passed to the SDK, which forwards it to fetch. */
@@ -2113,6 +2121,23 @@ function actionLabel(action: string): string {
 }
 
 const HERO_ROLES = new Set(["cover", "quote", "closing"]);
+/** What the vision model is asked about an attached image: the reading a
+ *  designer needs, not a caption. */
+const DESCRIBE_FOR_DESIGN = `Describe this image for a presentation designer in two to four sentences of plain prose (no headings, no markdown, no lists): the subject, the setting, the mood, the notable colours, and any text visible in it.`;
+
+/** A description as plain prose: a model that answers with a heading and
+ *  markdown emphasis anyway is stripped of them, so the chip and the source
+ *  read as a sentence. */
+function plainDescription(text: string): string {
+  return text
+    .split(/\r?\n/)
+    .map((line) => line.replace(/^\s*#{1,6}\s+.*$/, "").replace(/^\s*[-*]\s+/, "").trim())
+    .filter(Boolean)
+    .join(" ")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 const MAX_HERO_IMAGES = 6;
 
 /** Flatten a text node's runs into a plain string. */
@@ -2685,6 +2710,28 @@ async function resolvePlanStep(step: PlanStep, deps: AssistantDeps): Promise<{ p
           designId: deps.designId ?? null,
         },
       };
+    }
+    case "placeAttachedImage": {
+      const images = deps.images ?? [];
+      if (!images.length) return { error: tr("editor.skip_no_attached_image") };
+      const img = pickAttachedImage(images, typeof a.name === "string" ? a.name : undefined);
+      if (!img) return { error: tr("editor.skip_no_attached_image") };
+      const wanted = Math.round(Number(a.pageIndex));
+      const pageIndex = Number.isFinite(wanted) && wanted >= 1 && wanted <= st.doc.pages.length ? wanted - 1 : undefined;
+      let url = img.url;
+      if (img.file) {
+        // A picture from disk becomes a workspace upload first, so the page
+        // references an asset every collaborator and every export can load,
+        // not a URL that dies with this tab.
+        try {
+          const asset = await directUploadWithProgress(deps.workspaceId, img.file, { filename: img.file.name });
+          url = resolveAssetUrl(asset.url);
+          deps.onImageUploaded?.(img.id, url);
+        } catch {
+          return { error: tr("editor.skip_image_upload_failed") };
+        }
+      }
+      return { payload: { kind: "placeImage", image: url, pageIndex, provenance: img.provenance } };
     }
     case "splitSlide": {
       // One structured call splits the page's content into two outline items;
@@ -3355,6 +3402,14 @@ function runPlanStep(step: PlanStep, ctx?: { brandTargets?: BrandFixTarget[]; pa
       st.goToPage(pageIndex);
       return true;
     }
+    case "placeAttachedImage": {
+      if (ctx?.payload?.kind !== "placeImage") return false;
+      // The page the step named; the selection there is whatever the user
+      // left, so a selected frame on it still receives the picture.
+      if (ctx.payload.pageIndex !== undefined && ctx.payload.pageIndex !== st.activePage) st.goToPage(ctx.payload.pageIndex);
+      placeImage(ctx.payload.image, ctx.payload.provenance);
+      return true;
+    }
     case "splitSlide": {
       if (ctx?.payload?.kind !== "splitSlide") return false;
       const { pageIndex, pageId, halves } = ctx.payload;
@@ -3804,6 +3859,9 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
   const [attachOpen, setAttachOpen] = useState(false);
   const [attachUrl, setAttachUrl] = useState("");
   const [attachBusy, setAttachBusy] = useState(false);
+  // Images attached in the chat (cap 4): each a reference the provider reads
+  // when it can, and a picture placeAttachedImage can put on a page.
+  const [images, setImages] = useState<AiImageAttachment[]>([]);
   // Drag-and-drop attaching: a file dragged from the desktop onto the panel is
   // the same gesture users expect from any chat, and it lands on exactly the
   // pipeline the file picker uses. The canvas has its own image drop handler,
@@ -3976,7 +4034,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
     reviewAbort.current = aborter;
     setReview((r) => ({ outline: null, loading: true, dials, themeId: r?.themeId, templateId: r?.templateId }));
     try {
-      const deps: AssistantDeps = { workspaceId, voiceClause, brandPalette, brandFonts, brandLogo, imageCapable, editImageCapable, sources, dials, designId, signal: aborter.signal };
+      const deps: AssistantDeps = { workspaceId, voiceClause, brandPalette: runPalette(), brandFonts, brandLogo, imageCapable, editImageCapable, sources: groundingSources(), images, onImageUploaded, dials, designId, signal: aborter.signal };
       // A planned webSearch grounds the OUTLINE, and in the review flow the
       // outline is fetched here (the reviewed outline then bypasses the
       // execute-time fetch entirely) - so the search must run FIRST or its
@@ -4013,6 +4071,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
   async function execute(plan: PlanStep[], reply: string, reviewedOutline?: DesignOutline, dials?: GenerationDials, citations?: SourceCitation[], styleThemeId?: string, styleTemplateId?: string, opts?: { fromProposal?: boolean }) {
     if (!workspaceId) return;
     setBusy(true);
+    const grounding = groundingSources();
     // Per-run state from a run that failed after composing must not reach
     // this one: the check note and the page span are this run's or nobody's.
     takeDeckCheck();
@@ -4051,7 +4110,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
         setTurns((t) => [...t, { role: "assistant", text: msg }]);
         toast.error(msg);
       };
-      const deps: AssistantDeps = { workspaceId, voiceClause, brandPalette, brandFonts, brandLogo, imageCapable, editImageCapable, sources, reviewedOutline, dials, designId, citations, styleThemeId, signal: aborter.signal, onStage: setStage, onDegraded: (w) => { if (!degraded.includes(w)) degraded.push(w); } };
+      const deps: AssistantDeps = { workspaceId, voiceClause, brandPalette: runPalette(), brandFonts, brandLogo, imageCapable, editImageCapable, sources: grounding, images, onImageUploaded, reviewedOutline, dials, designId, citations, styleThemeId, signal: aborter.signal, onStage: setStage, onDegraded: (w) => { if (!degraded.includes(w)) degraded.push(w); } };
       // F40 E14: a template base contributes its layout system + theme. The
       // adoption happens BEFORE the resolve pass so the layout-grounded path
       // naturally picks up the adopted layouts from the document.
@@ -4135,7 +4194,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
         // Append only the sources the search ADDED: replacing the whole list
         // with the captured copy would overwrite any edit the user made to an
         // attachment while the generation ran.
-        const added = deps.sources.slice(sources.length);
+        const added = deps.sources.slice(grounding.length);
         if (added.length) setSources((cur) => [...cur, ...added].slice(0, maxSources));
       }
       // A planned critique step is read-only; surface its actual findings instead
@@ -4221,6 +4280,11 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
    *  names the reason when a file cannot be read, and never throws into the
    *  caller (a bad file must not take the panel down with it). */
   function attachFiles(picked: File[]) {
+    // Images take their own road: they are read here, not extracted to text.
+    const pictures = picked.filter((f) => isImageFile(f));
+    if (pictures.length) attachImages(pictures.map((file) => ({ file })));
+    const documents = picked.filter((f) => !isImageFile(f));
+    if (!documents.length) return;
     const room = maxSources - sources.length;
     if (room <= 0) {
       toast.error(tr("editor.attachment_limit_reached", { max: maxSources }));
@@ -4228,13 +4292,62 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
     }
     setAttachBusy(true);
     void (async () => {
-      const out = await extractAiSources(picked, room);
+      const out = await extractAiSources(documents, room);
       if (out.rejected) toast.error(tr("editor.only_documents_can_be_attached"));
       for (const e of out.errors) toast.error(e);
       if (out.sources.length) setSources((xs) => [...xs, ...out.sources].slice(0, maxSources));
       setAttachBusy(false);
     })();
   }
+
+  /** Attach images: from disk, or a URL an in-app drag carried (Uploads,
+   *  Stock). Each lands as a chip at once with its size and palette; with a
+   *  provider that reads images, its description arrives behind and from
+   *  then on grounds the next generation the way a document does. */
+  function attachImages(items: ImageAttachmentSource[]) {
+    if (!workspaceId) return;
+    const room = maxAiImages - images.length;
+    if (room <= 0) {
+      toast.error(tr("editor.image_attachment_limit_reached", { max: maxAiImages }));
+      return;
+    }
+    void (async () => {
+      for (const it of items.slice(0, room)) {
+        let img: AiImageAttachment;
+        try {
+          img = await readImageAttachment(it);
+        } catch {
+          toast.error(tr("editor.couldnt_read_that_image"));
+          continue;
+        }
+        setImages((xs) => [...xs, img].slice(0, maxAiImages));
+        if (!visionCapable || !img.preview) continue;
+        void oc.aiDescribeImage({ workspaceId, imageBase64: img.preview, instruction: DESCRIBE_FOR_DESIGN })
+          .then(({ text }) => setImages((xs) => xs.map((x) => (x.id === img.id ? { ...x, description: plainDescription(text) || undefined, read: true } : x))))
+          .catch(() => setImages((xs) => xs.map((x) => (x.id === img.id ? { ...x, read: true } : x))));
+      }
+    })();
+  }
+  function removeImage(id: string) {
+    setImages((xs) => {
+      const gone = xs.find((x) => x.id === id);
+      if (gone?.file) URL.revokeObjectURL(gone.url);
+      return xs.filter((x) => x.id !== id);
+    });
+  }
+  const onImageUploaded = (id: string, url: string) => {
+    setImages((xs) => xs.map((x) => {
+      if (x.id !== id) return x;
+      if (x.file) URL.revokeObjectURL(x.url);
+      return { ...x, url, file: undefined };
+    }));
+  };
+  /** What grounds a generation: the documents, and every attached image the
+   *  provider has read. */
+  const groundingSources = (extra: AiSource[] = []) => [...sources, ...extra, ...images.map(imageSource).filter((x): x is AiSource => !!x)].slice(0, maxSources);
+  /** The palette a generation is set in: the brand's, else the most recently
+   *  attached image's, so "make it look like this" gets its colours. */
+  const runPalette = () => (brandPalette.length ? brandPalette : referencePalette(images));
 
   async function send(textArg?: string, extraSources?: AiSource[]) {
     const userText = (textArg ?? input).trim();
@@ -4271,9 +4384,13 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
       // Sources staged by another surface arrive with this call: setSources
       // has not re-rendered yet, so the state copy alone would miss them.
       const active = extraSources?.length ? [...sources, ...extraSources].slice(0, maxSources) : sources;
-      const plannerText = active.length
-        ? `${userText}\n[Note: the user attached ${active.length} source${active.length === 1 ? "" : "s"} (${active.map((sc) => sc.name).join(", ")}; ${active.reduce((n, sc) => n + sc.text.length, 0)} chars total). To create a deck/design from them, plan generateDesign - the executor grounds the outline in the attachments automatically.]`
-        : userText;
+      const notes = [
+        active.length
+          ? `[Note: the user attached ${active.length} source${active.length === 1 ? "" : "s"} (${active.map((sc) => sc.name).join(", ")}; ${active.reduce((n, sc) => n + sc.text.length, 0)} chars total). To create a deck/design from them, plan generateDesign - the executor grounds the outline in the attachments automatically.]`
+          : "",
+        imageAttachmentsNote(images),
+      ].filter(Boolean);
+      const plannerText = notes.length ? `${userText}\n${notes.join("\n")}` : userText;
       let res;
       try {
         const r = await oc.aiAssistant({ workspaceId, designSummary: summary, history, message: plannerText }, aborter.signal);
@@ -4439,7 +4556,9 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
     <div
       className="relative flex min-h-0 flex-1 flex-col"
       onDragOver={(e) => {
-        if (!e.dataTransfer.types.includes("Files") || attachBusy) return;
+        // OS files, or a picture dragged in from Uploads or Stock.
+        const t = e.dataTransfer.types;
+        if ((!t.includes("Files") && !t.includes("application/x-oc-image")) || attachBusy) return;
         e.preventDefault();
         setDropActive(true);
       }}
@@ -4450,9 +4569,21 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
         setDropActive(false);
       }}
       onDrop={(e) => {
-        if (!e.dataTransfer.types.includes("Files")) return;
+        const inApp = e.dataTransfer.getData("application/x-oc-image");
+        if (!e.dataTransfer.types.includes("Files") && !inApp) return;
         e.preventDefault();
         setDropActive(false);
+        if (inApp) {
+          // The same payload the canvas takes: the picture's URL, and a stock
+          // credit when it has one.
+          let provenance: Record<string, unknown> | undefined;
+          try {
+            const raw = e.dataTransfer.getData("application/x-oc-provenance");
+            if (raw) provenance = JSON.parse(raw) as Record<string, unknown>;
+          } catch { /* a malformed payload just means no credit metadata */ }
+          attachImages([{ url: inApp, name: nameFromUrl(inApp), provenance }]);
+          return;
+        }
         attachFiles(Array.from(e.dataTransfer.files ?? []));
       }}
     >
@@ -4948,6 +5079,31 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
           )}
         </div>
       ))}
+      {/* Image attachments: a thumbnail, the size, the colours read off it,
+          and what the provider saw in it (or that it cannot see). */}
+      {images.map((im) => (
+        <div key={im.id} className="mt-2 flex shrink-0 items-center gap-2 rounded-lg border border-brand-200 bg-brand-50 px-2.5 py-1.5 text-[11px] text-brand-ink">
+          <img src={im.url} alt="" className="h-9 w-9 shrink-0 rounded object-cover ring-1 ring-black/10" />
+          <div className="min-w-0 flex-1">
+            <div className="truncate" title={im.name}>{im.name} · {im.width}×{im.height}</div>
+            <div className="flex items-center gap-1 text-[10px] text-brand-ink/70">
+              {im.palette.slice(0, 5).map((hex) => (
+                <span key={hex} title={hex} className="inline-block h-2.5 w-2.5 shrink-0 rounded-full ring-1 ring-black/10" style={{ background: hex }} />
+              ))}
+              <span className="min-w-0 truncate" title={im.description ?? undefined}>
+                {!visionCapable
+                  ? tr("editor.image_attached_as_picture_only")
+                  : im.description
+                    ? im.description
+                    : im.read || !im.preview
+                      ? tr("editor.image_not_described")
+                      : tr("editor.reading_the_image")}
+              </span>
+            </div>
+          </div>
+          <button onClick={() => removeImage(im.id)} aria-label={tr("editor.remove_attached_content")} className="rounded p-0.5 hover:bg-brand-100"><X size={12} /></button>
+        </div>
+      ))}
       {attachOpen && sources.length >= maxSources && (
         <p className="mt-2 shrink-0 rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1.5 text-[10px] text-neutral-500">
           {tr("editor.attachment_limit_reached", { max: maxSources })}
@@ -5024,7 +5180,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
                 ref={attachFileRef}
                 type="file"
                 multiple
-                accept={attachableAccept}
+                accept={`${attachableAccept},${attachableImageAccept}`}
                 className="hidden"
                 onChange={(e) => {
                   const files = Array.from(e.target.files ?? []);
@@ -5046,7 +5202,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
             title={tr("editor.attach_content_to_build_from_paste_url_or_fi")}
             aria-label={tr("editor.attach_content")}
             aria-expanded={attachOpen}
-            className={`mb-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg ${attachOpen || sources.length ? "bg-brand-50 text-brand-ink" : "text-neutral-400 hover:bg-neutral-100"}`}
+            className={`mb-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg ${attachOpen || sources.length || images.length ? "bg-brand-50 text-brand-ink" : "text-neutral-400 hover:bg-neutral-100"}`}
           >
             <Paperclip size={15} />
           </button>
