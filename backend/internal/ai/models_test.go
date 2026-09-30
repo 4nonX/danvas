@@ -107,6 +107,15 @@ func TestParseBedrockCatalog(t *testing.T) {
 	if len(profiles) != 1 || profiles[0].ID != "us.anthropic.claude-opus-4-7" {
 		t.Fatalf("profiles = %+v", profiles)
 	}
+	// A text field keeps the chat profiles and drops the image and video
+	// ones; an image field keeps only what is named like an image model.
+	mixed := []ModelInfo{{ID: "us.anthropic.claude-opus-4-7"}, {ID: "us.stability.stable-image-core-v1:1"}, {ID: "us.twelvelabs.pegasus-1-2-v1:0"}, {ID: "us.amazon.nova-pro-v1:0"}}
+	if got := strings.Join(ids(finishCatalog(mixed, PurposeText)), ","); got != "us.amazon.nova-pro-v1:0,us.anthropic.claude-opus-4-7" {
+		t.Fatalf("text profiles = %q", got)
+	}
+	if got := strings.Join(ids(finishCatalog(mixed, PurposeImage)), ","); got != "us.stability.stable-image-core-v1:1" {
+		t.Fatalf("image profiles = %q", got)
+	}
 	// The catalog lives on the control plane host of the same region.
 	if got := bedrockControlPlaneURL("https://bedrock-runtime.us-east-1.amazonaws.com"); got != "https://bedrock.us-east-1.amazonaws.com" {
 		t.Fatalf("control plane = %q", got)

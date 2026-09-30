@@ -378,18 +378,39 @@ func (s *Service) listBedrockModels(ctx context.Context, cfg CallConfig, purpose
 	}
 	raw, err := s.getJSON(ctx, control+"/foundation-models?"+query, nil, sign)
 	if err != nil {
+		// A credential scoped to InvokeModel alone is refused the catalog
+		// with 403 and is still a working credential, so a Bedrock refusal
+		// is "no catalog" rather than a rejected key; the connection test is
+		// the authority on the key.
+		var se *httpStatusError
+		if errors.As(err, &se) && se.status == http.StatusForbidden {
+			return ModelList{Models: []ModelInfo{}}, nil
+		}
 		return noCatalog(cfg, err)
 	}
 	models := parseBedrockModels(raw, purpose)
 
-	// Inference profiles carry the text models; an image field has no use
-	// for them, and a failure to list them leaves the models already found.
-	if purpose != PurposeImage {
-		if raw, err := s.getJSON(ctx, control+"/inference-profiles?maxResults=1000&typeEquals=SYSTEM_DEFINED", nil, sign); err == nil {
-			models = append(models, parseBedrockProfiles(raw)...)
+	// Inference profiles are how the current models are reached, image
+	// models included (an account may see Stability's image profiles and no
+	// on-demand image model at all). A profile carries no modality, so the
+	// image field takes the profiles named like image models and the text
+	// field the rest; a failure to list them leaves the models already found.
+	if raw, err := s.getJSON(ctx, control+"/inference-profiles?maxResults=1000&typeEquals=SYSTEM_DEFINED", nil, sign); err == nil {
+		for _, p := range parseBedrockProfiles(raw) {
+			if purpose == PurposeImage && !imageModelRe.MatchString(p.ID) {
+				continue
+			}
+			models = append(models, p)
 		}
 	}
-	return finishCatalog(models, ""), nil
+	// The modality has done the image filtering; the text field still drops
+	// what the TEXT modality admits but a chat field cannot use (rerankers,
+	// speech and video models, the image profiles).
+	byName := ""
+	if purpose == PurposeText {
+		byName = PurposeText
+	}
+	return finishCatalog(models, byName), nil
 }
 
 // --- shaping ------------------------------------------------------------------
@@ -399,7 +420,7 @@ var (
 	// which list every model a key can reach with no modality to filter on.
 	imageModelRe = regexp.MustCompile(`(?i)(dall-e|gpt-image|image|flux|cogview|stable-diffusion|sdxl|imagen|canvas|kolors|seedream|photon|recraft|ideogram)`)
 	// notTextModelRe names what a chat field has no use for.
-	notTextModelRe = regexp.MustCompile(`(?i)(embed|whisper|tts|moderation|dall-e|gpt-image|transcribe|-audio|realtime|sora|rerank|guard)`)
+	notTextModelRe = regexp.MustCompile(`(?i)(embed|whisper|tts|moderation|dall-e|gpt-image|transcribe|-audio|realtime|sora|rerank|guard|sonic|speech|stability|stable-|canvas|titan-image|nova-reel|upscale|twelvelabs|marengo|pegasus)`)
 )
 
 // purposeAdmits reports whether a model name may serve a purpose, on the name
