@@ -212,11 +212,15 @@ export function AiProviderSettings({
   // it through the connection signature and the button fetches again.
   const storedProvider = config?.provider ?? "";
   const storedHasKey = !!config?.hasKey;
+  const storedBaseUrl = config?.baseUrl ?? "";
   useEffect(() => {
     if (!workspaceId || !storedHasKey || !storedProvider || !canEdit) return;
     let cancelled = false;
     const ws = workspaceId;
-    const sig = JSON.stringify([ws, storedProvider, config?.baseUrl ?? "", "", "", true]);
+    // The same signature the form computes for these untouched fields, so
+    // the list shows until something is typed. A save that changes the host
+    // re-runs this, because the stored host is part of it.
+    const sig = JSON.stringify([ws, storedProvider, storedBaseUrl.trim(), "", "", true]);
     const preset = presets.find((p) => p.id === storedProvider);
     const wantsImages = (preset?.capabilities.image ?? true);
     // No "loading" mark here: the fetch is quiet and the button stays
@@ -237,7 +241,7 @@ export function AiProviderSettings({
     );
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the stored record identifies the fetch; presets only name capabilities
-  }, [workspaceId, storedProvider, storedHasKey, canEdit]);
+  }, [workspaceId, storedProvider, storedHasKey, storedBaseUrl, canEdit]);
 
   // The optional web-search grounding provider is a separate record; it is
   // fetched here because only this form edits it.
