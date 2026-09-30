@@ -25,6 +25,7 @@ import { fromHex } from "@hc/color";
 import { normalizeOutline, type DesignType } from "./outline";
 import { deckThemes } from "./theme";
 import { layoutDeck } from "./deck";
+import { slotsFromThemeRecord } from "./kit/look";
 import { layoutDesign, readableTextColor } from "./layout";
 import type { DesignSystem } from "./designSystem";
 import { fallbackLayoutFill, repairLayoutSelection } from "./layoutSchema";
@@ -371,7 +372,7 @@ export function composeDeckFileWithReport(input: ComposeDeckInput): { file: Desi
     // A brand kit or a theme the caller chose authored the fonts; a look's
     // own pairing must not replace them.
     const fontsAuthored = !!(input.brandFonts?.heading || input.brandFonts?.body || input.themeId || input.themeRecord);
-    const deck = layoutDeck(outline, theme, { width, height }, { dir: input.dir, catalog, brandPalette: input.brandPalette, seed, motion: input.motion, logo: input.logo, designType, look: input.look, outlineLook: outline.look, fontsAuthored, renderer: input.renderer === "classic" ? "classic" : "kit", brandFonts: input.brandFonts, themeChosen: !!(input.themeId || input.themeRecord) });
+    const deck = layoutDeck(outline, theme, { width, height }, { dir: input.dir, catalog, brandPalette: input.brandPalette, seed, motion: input.motion, logo: input.logo, designType, look: input.look, outlineLook: outline.look, fontsAuthored, renderer: input.renderer === "classic" ? "classic" : "kit", brandFonts: input.brandFonts, themeChosen: !!(input.themeId || input.themeRecord), themeSlots: input.themeRecord ? slotsFromThemeRecord(input.themeRecord) : null });
     system = deck.system;
     report = deck.report;
     pages = deck.pages.map((p, i) => ({

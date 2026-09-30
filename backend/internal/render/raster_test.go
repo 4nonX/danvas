@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"image"
 	"image/png"
+	"math"
 	"testing"
 )
 
@@ -238,5 +239,32 @@ func TestRasterPathStrokeWithoutFill(t *testing.T) {
 	cr, cg, cb, _ := img.At(50, 70).RGBA()
 	if cr>>8 < 240 || cg>>8 < 240 || cb>>8 < 240 {
 		t.Fatalf("expected white below the arc, got r=%d g=%d b=%d", cr>>8, cg>>8, cb>>8)
+	}
+}
+
+// A dash pattern cuts a line into its "on" runs: 10 on, 5 off along a 40px
+// line gives three dashes (the last one cut short), a closed square walks
+// once around, and a pattern with nothing to draw strokes solid.
+func TestDashPolyline(t *testing.T) {
+	line := [][2]float64{{0, 0}, {40, 0}}
+	pieces := dashPolyline(line, false, []float64{10, 5})
+	if len(pieces) != 3 {
+		t.Fatalf("want 3 dashes, got %d: %v", len(pieces), pieces)
+	}
+	if got := pieces[1][0][0]; math.Abs(got-15) > 1e-9 {
+		t.Fatalf("second dash starts at %v, want 15", got)
+	}
+	if got := pieces[2][len(pieces[2])-1][0]; math.Abs(got-40) > 1e-9 {
+		t.Fatalf("last dash ends at %v, want 40 (cut short)", got)
+	}
+	square := [][2]float64{{0, 0}, {10, 0}, {10, 10}, {0, 10}}
+	if n := len(dashPolyline(square, true, []float64{5, 5})); n != 4 {
+		t.Fatalf("a closed square with 5 on 5 off wants 4 dashes, got %d", n)
+	}
+	if dashPattern(map[string]any{"dash": []any{0.0, 0.0}}, 1) != nil {
+		t.Fatal("an all-zero pattern must stroke solid")
+	}
+	if got := dashPattern(map[string]any{"dash": []any{4.0, 2.0}}, 2); len(got) != 2 || got[0] != 8 || got[1] != 4 {
+		t.Fatalf("dash lengths must scale to device space, got %v", got)
 	}
 }

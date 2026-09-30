@@ -36,6 +36,6 @@ export * from "./transform";
 // vocabulary (text, rect, card) would collide with the layout module's names.
 export * as kit from "./kit";
 export { composeKitPage, kitFits, type KitContext } from "./kit/render";
-export { resolveKitStyle, applyBrand, makeLook, type KitStyle, type KitLook, type KitPalette } from "./kit/look";
+export { resolveKitStyle, styleForMood, slotsFromThemeRecord, applyBrand, makeLook, type KitStyle, type KitLook, type KitPalette } from "./kit/look";
 export { KIT_STYLES, kitStyleNames } from "./kit/looks";
 export { kitVocabularyRule, kitStyleRule, kitVoiceRule, kitDrawingRule, kitSignatureRule, kitDrawingNames, kitSignatures } from "./kit/vocab";

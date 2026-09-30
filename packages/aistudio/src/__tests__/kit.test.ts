@@ -11,7 +11,8 @@ import { layoutDeck } from "../deck";
 import { normalizeOutline } from "../outline";
 import { deckThemes } from "../theme";
 import { KIT_STYLES, kitStyleNames } from "../kit/looks";
-import { applyBrand, makeLook, resolveKitStyle } from "../kit/look";
+import { applyBrand, makeLook, resolveKitStyle, slotsFromThemeRecord, styleForMood } from "../kit/look";
+import { iconGlyphFor } from "../archetypes";
 import { kitFits, leadingFigure, splitPoint } from "../kit/render";
 import { kitDrawingNames, kitVocabularyRule } from "../kit/vocab";
 import { PACK_DRAWINGS, PACK_KEYWORDS } from "../kit/packset";
@@ -147,6 +148,26 @@ describe("the kit sets a 16 by 9 deck in a named style", () => {
     expect(deck.pages[1].imagePrompts[ids[0]]).toContain("a wide monitor on a tidy desk");
     expect(deck.pages[1].nodes.some((n) => n.name === "Illustration")).toBe(false);
     expect(deck.renderer).toBe("kit");
+  });
+
+  it("matches a style to the mood when the outline names none, and reads a theme record's slots", () => {
+    expect(styleForMood("a team offsite in the mountains, camping and community")?.name).toBe("campfire");
+    expect(styleForMood("the product launch countdown and the sales kickoff")?.name).toBe("ember");
+    expect(styleForMood("zzz qqq")).toBeNull();
+    expect(resolveKitStyle({ seed: 1, mood: "an investor update, monthly, candour and numbers" }).name).toBe("amber");
+    const rec = { colors: ["primary", "accent", "deep", "tint", "ink", "paper"].map((name, i) => ({ id: `c${i}`, name, color: { srgb: { r: i / 10, g: 0.5, b: 0.2, a: 1 } } })) };
+    expect(slotsFromThemeRecord(rec)).toEqual(["#008033", "#1A8033", "#338033", "#4D8033", "#668033", "#808033"]);
+    expect(slotsFromThemeRecord({ colors: rec.colors.slice(0, 3) })).toBeNull();
+    // The record's slots repaint the kit the way a chosen catalog theme does.
+    const deck = layoutDeck(normalizeOutline(outline), deckThemes({ count: 1 })[0], { width: 1920, height: 1080 }, { renderer: "kit", seed: 3, themeSlots: ["#0E7A5F", "#F4B942", "#0B2B22", "#EAF0EC", "#101815", "#FBFAF6"] });
+    expect(toHex(deck.system.colors.paper).toUpperCase()).toBe("#FBFAF6");
+    expect(toHex(deck.system.colors.deep).toUpperCase()).toBe("#0B2B22");
+  });
+
+  it("names a glyph by its own name before the keyword table", () => {
+    expect(iconGlyphFor("circle-check")).toBe("circle-check");
+    expect(iconGlyphFor("alert-triangle")).toBe("alert-triangle");
+    expect(iconGlyphFor("shield")).toBeTruthy();
   });
 
   it("shapes copy for the forms", () => {

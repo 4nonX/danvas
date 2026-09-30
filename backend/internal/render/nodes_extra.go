@@ -647,7 +647,53 @@ func chartInsets(node map[string]any, w, h float64) (x0, y0, pw, ph float64) {
 	if hasValueAxis(asStr(node["chartType"])) && chartAxisShown(style, "showY") {
 		left += 22 * k
 	}
+	if chartAxisShown(style, "showX") && hasCategoryLabels(node) {
+		bottom += 14 * k
+	}
 	return left, top, math.Max(1, w-left-right), math.Max(1, h-top-bottom)
+}
+
+// hasCategoryLabels reports whether the chart names its categories and is a
+// kind that lays them out along the x axis. Mirrors the browser engine.
+func hasCategoryLabels(node map[string]any) bool {
+	return len(asArr(node["categories"])) > 0 && hasValueAxis(asStr(node["chartType"]))
+}
+
+// drawCategoryLabels sets the category names under the x axis, one per slot
+// centre (bars) or step (lines, points), each cut to its slot with an
+// ellipsis so neighbours never collide. Mirrors drawCategoryLabels in the
+// browser engine: same size, ink and baseline.
+func (rc *rctx) drawCategoryLabels(m mat, node map[string]any, x0, baseline, pw float64, n int, k float64, slots bool) {
+	if !hasCategoryLabels(node) || n <= 0 {
+		return
+	}
+	cats := asArr(node["categories"])
+	slotW := pw
+	if slots {
+		slotW = pw / float64(n)
+	} else if n > 1 {
+		slotW = pw / float64(n-1)
+	}
+	ink := rc.solid(0x52, 0x52, 0x5b)
+	room := math.Max(8, slotW-6*k)
+	for i := 0; i < n && i < len(cats); i++ {
+		text := asStr(cats[i])
+		if text == "" {
+			continue
+		}
+		if rc.chartTextWidth(10*k, 500, text, m) > room {
+			r := []rune(text)
+			for len(r) > 1 && rc.chartTextWidth(10*k, 500, string(r)+"\u2026", m) > room {
+				r = r[:len(r)-1]
+			}
+			text = string(r) + "\u2026"
+		}
+		x := x0 + float64(i)*slotW
+		if slots {
+			x = x0 + (float64(i)+0.5)*slotW
+		}
+		rc.chartText(m, text, x, baseline+12*k, 10*k, 500, "center", ink)
+	}
 }
 
 func chartCategoryCount(categories, series []any) int {
@@ -879,6 +925,7 @@ func (rc *rctx) rasterChart(m mat, node map[string]any) {
 	}
 	if chartAxisShown(style, "showX") {
 		rc.chartStroke(m, x0, y0+ph, x0+pw, y0+ph, 1, rc.solid(0xd4, 0xd4, 0xd8))
+		rc.drawCategoryLabels(m, node, x0, y0+ph, pw, n, k, typ == "bar" || typ == "barGrouped" || typ == "barStacked")
 	}
 	if chartAxisShown(style, "showY") {
 		rc.drawYAxis(m, x0, y0, ph, maxV, k)
@@ -1091,6 +1138,7 @@ func (rc *rctx) drawScatter(m mat, node map[string]any, x0, y0, pw, ph float64, 
 	style := asObj(node["style"])
 	if chartAxisShown(style, "showX") {
 		rc.chartStroke(m, x0, y0+ph, x0+pw, y0+ph, 1, rc.solid(0xd4, 0xd4, 0xd8))
+		rc.drawCategoryLabels(m, node, x0, y0+ph, pw, n, k, false)
 	}
 	if chartAxisShown(style, "showY") {
 		rc.drawYAxis(m, x0, y0, ph, maxV, k)

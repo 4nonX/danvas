@@ -334,7 +334,107 @@ func (rc *rctx) strokeOutline(m mat, node map[string]any, outline [][2]float64, 
 	if width <= 0 {
 		return
 	}
-	rc.strokePolyline(transformPts(m, outline), width*avgScale(m), rasterColor(paint, rc.alpha), closed)
+	rc.strokeDashed(transformPts(m, outline), width*avgScale(m), rasterColor(paint, rc.alpha), closed, dashPattern(stroke, avgScale(m)))
+}
+
+// dashPattern reads a stroke's dash lengths (user units) as device lengths,
+// or nil for a solid stroke: no pattern, or nothing in it to draw.
+func dashPattern(stroke map[string]any, scale float64) []float64 {
+	raw := asArr(stroke["dash"])
+	if len(raw) == 0 {
+		return nil
+	}
+	out := make([]float64, 0, len(raw))
+	total := 0.0
+	for _, v := range raw {
+		d := asNum(v)
+		if d < 0 || math.IsNaN(d) || math.IsInf(d, 0) {
+			return nil
+		}
+		out = append(out, d*scale)
+		total += d
+	}
+	if total <= 0 {
+		return nil
+	}
+	return out
+}
+
+// strokeDashed strokes a polyline solid, or as the dashes of a pattern the
+// way the browser strokes with setLineDash: on, off, on, along the line and
+// once around a closed outline.
+func (rc *rctx) strokeDashed(dev [][2]float64, widthDev float64, col color.RGBA, closed bool, dash []float64) {
+	if dash == nil {
+		rc.strokePolyline(dev, widthDev, col, closed)
+		return
+	}
+	for _, piece := range dashPolyline(dev, closed, dash) {
+		rc.strokePolyline(piece, widthDev, col, false)
+	}
+}
+
+// dashPolyline cuts a device-space polyline into the "on" runs of a dash
+// pattern (device lengths, at least one positive). A closed outline is
+// walked once around; every piece comes back as an open polyline.
+func dashPolyline(dev [][2]float64, closed bool, pattern []float64) [][][2]float64 {
+	if len(dev) < 2 || len(pattern) == 0 {
+		return nil
+	}
+	pts := dev
+	if closed {
+		pts = append(append([][2]float64{}, dev...), dev[0])
+	}
+	var out [][][2]float64
+	var cur [][2]float64
+	idx := 0
+	remain := pattern[0]
+	on := true
+	advance := func() {
+		on = !on
+		for range pattern {
+			idx = (idx + 1) % len(pattern)
+			remain = pattern[idx]
+			if remain > 0 {
+				return
+			}
+			on = !on
+		}
+	}
+	for remain == 0 {
+		advance()
+	}
+	if on {
+		cur = [][2]float64{pts[0]}
+	}
+	for i := 0; i+1 < len(pts); i++ {
+		p0, p1 := pts[i], pts[i+1]
+		segLen := math.Hypot(p1[0]-p0[0], p1[1]-p0[1])
+		pos := 0.0
+		for segLen-pos > remain {
+			pos += remain
+			t := pos / segLen
+			pt := [2]float64{p0[0] + (p1[0]-p0[0])*t, p0[1] + (p1[1]-p0[1])*t}
+			if on {
+				cur = append(cur, pt)
+				if len(cur) >= 2 {
+					out = append(out, cur)
+				}
+				cur = nil
+			}
+			advance()
+			if on {
+				cur = [][2]float64{pt}
+			}
+		}
+		remain -= segLen - pos
+		if on {
+			cur = append(cur, p1)
+		}
+	}
+	if on && len(cur) >= 2 {
+		out = append(out, cur)
+	}
+	return out
 }
 
 // strokePolyline strokes a device-space polyline as one thick quad per segment
@@ -648,8 +748,9 @@ func (rc *rctx) rasterPath(m mat, node map[string]any) {
 		if width <= 0 {
 			width = 1
 		}
+		dash := dashPattern(stroke, avgScale(m))
 		for _, c := range contours {
-			rc.strokePolyline(flattenPathContour(m, c.segs, c.closed), width*avgScale(m), col, c.closed)
+			rc.strokeDashed(flattenPathContour(m, c.segs, c.closed), width*avgScale(m), col, c.closed, dash)
 		}
 	}
 }

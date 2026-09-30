@@ -162,6 +162,8 @@ export function iconGlyphFor(keyword: string | undefined): string | null {
   if (!keyword) return null;
   const k = keyword.trim().toLowerCase();
   if (!k) return null;
+  // A glyph's own name (circle-check, alert-triangle) is the glyph.
+  if (ICON_GLYPHS[k]) return k;
   const direct = ICON_KEYWORDS[k];
   if (direct) return direct;
   for (const w of k.split(/[^a-z]+/)) {

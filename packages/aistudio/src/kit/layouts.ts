@@ -75,6 +75,83 @@ export function cover(K: KitLook, i: number, c: CoverContent): Slide {
     nodes.push(...note(K, g, c.note, true, { x: W / 2 - 360, y: 800, w: 720 }));
     return { name: "Cover", bg: deepGround(g), nodes, drawings };
   }
+  // The cover's construction follows the ornament family, so the deck's
+  // silhouettes differ across styles: words beside a lit drawing (the
+  // default), a typographic page with the drawing small (watermark), a band
+  // along the foot carrying the facts (stripes, corner, orbs), or the words
+  // high and the drawing low on the ornament's horizon (sun, ridges, dots,
+  // arcs, rules).
+  const construction: "typographic" | "band" | "stacked" | "split" =
+    K.ornament === "watermark" ? "typographic" :
+    K.ornament === "stripes" || K.ornament === "corner" || K.ornament === "orbs" ? "band" :
+    K.ornament === "sun" || K.ornament === "ridges" || K.ornament === "dots" || K.ornament === "arcs" || K.ornament === "rules" ? "stacked" : "split";
+  const presenterLine = c.presenter ?? [c.presenterName, c.when].filter(Boolean).join("  ·  ");
+  const chips = (x0: number, y0: number) => {
+    (c.chips ?? []).slice(0, 3).forEach(([n, l], k) => {
+      const x = x0 + k * 300;
+      nodes.push(rect(x, y0, 276, 64, g.panel, { radius: K.radius, stroke: g.line, strokeWidth: 1.5, panel: true }));
+      nodes.push(text(x + 20, y0 + 12, 130, 40, n, t.numeral(26, { family: K.mono ?? K.numeralFace ?? K.display })));
+      nodes.push(text(x + 150, y0 + 20, 110, 26, l, t.meta({ size: 16 })));
+    });
+  };
+  const wordsAt = (top: number, width: number, size: number) => {
+    const lines = c.title.split("\n").length;
+    const th = Math.round(size * 1.05 * lines) + 10;
+    if (K.kicker) nodes.push(text(M, top, width, Math.round(K.accentSize * 1.3), K.kicker, t.kicker()));
+    const ty = top + Math.round(K.accentSize * 1.3) + 16;
+    nodes.push(text(M, ty, width, th, c.title, t.display(size, { lineHeight: 1.02, name: "Title" })));
+    let y = ty + th + 30;
+    if (subtitle) {
+      const subLines = Math.max(1, Math.min(3, linesFor(subtitle, 28, Math.min(width, 900), 0.5)));
+      nodes.push(text(M, y, Math.min(width, 900), subLines * 40, subtitle, t.body(28)));
+      y += subLines * 40;
+    }
+    return y;
+  };
+  if (construction === "typographic") {
+    const size = fitSize(c.title, K.scale.cover * 1.18, 1500, 0.5, cw);
+    const after = wordsAt(236, 1500, size);
+    if (presenterLine) nodes.push(text(M, 940, 900, 28, presenterLine, t.meta()));
+    if (K.total > 1) nodes.push(text(W - M - 240, 940, 240, 28, pageNo(i, K.total), t.meta({ align: "right", name: "Page number", fixed: true })));
+    chips(M, Math.max(after + 24, 760));
+    nodes.push(...halo(1640, 800, 280, g.accent));
+    if (c.art) drawings.push(drawing(c.art, 1520, 680, 240, 240));
+    nodes.push(...note(K, g, c.note, true, { x: 1040, y: 700, w: 440, align: "right" }));
+    return { name: "Cover", bg: deepGround(g), nodes, drawings };
+  }
+  if (construction === "band") {
+    nodes.push(rect(0, 772, W, H - 772, g.panel, { decor: true }));
+    nodes.push(rect(0, 772, W, 2, g.line, { decor: true }));
+    wordsAt(236, textW, coverSize);
+    if (presenterLine) nodes.push(text(M, c.chips?.length ? 908 : 880, 900, 28, presenterLine, t.meta()));
+    if (K.total > 1) nodes.push(text(W - M - 240, c.chips?.length ? 908 : 880, 240, 28, pageNo(i, K.total), t.meta({ align: "right", name: "Page number", fixed: true })));
+    chips(M, 808);
+    // Under the corner triangle's edge (it runs from (1460, 0) to (1920, 460))
+    // the drawing sits lower and further left; elsewhere it fills the corner.
+    if (K.ornament === "corner") {
+      nodes.push(...halo(1390, 470, 560, g.accent));
+      if (c.art) drawings.push(drawing(c.art, 1150, 230, 480, 480));
+    } else {
+      nodes.push(...halo(1500, 400, 600, g.accent));
+      if (c.art) drawings.push(drawing(c.art, 1240, 150, 520, 500));
+    }
+    nodes.push(...note(K, g, c.note, true, { x: 1100, y: 830, w: 720, align: "right" }));
+    return { name: "Cover", bg: deepGround(g), nodes, drawings };
+  }
+  if (construction === "stacked") {
+    const after = wordsAt(180, textW, coverSize);
+    if (presenterLine) nodes.push(text(M, 940, 900, 28, presenterLine, t.meta()));
+    if (K.total > 1) nodes.push(text(W - M - 240, 940, 240, 28, pageNo(i, K.total), t.meta({ align: "right", name: "Page number", fixed: true })));
+    // The aside follows the words, in the left column, clear of the sun or
+    // moon the ornament hangs in the top right; the chips move under it.
+    const asideNodes = note(K, g, c.note, true, { x: M, y: after + 24, w: 760, align: "left" });
+    nodes.push(...asideNodes);
+    chips(M, Math.max(after + 24 + (asideNodes.length ? 112 : 0), 848));
+    // The drawing sits low on the ornament's horizon and clear of the footer line.
+    nodes.push(...halo(1480, 650, 560, g.accent));
+    if (c.art) drawings.push(drawing(c.art, 1220, 400, 520, 500));
+    return { name: "Cover", bg: deepGround(g), nodes, drawings };
+  }
   if (K.kicker) nodes.push(text(M, 372, textW, Math.round(K.accentSize * 1.3), K.kicker, t.kicker()));
   nodes.push(text(M, 446, textW, titleH, c.title, t.display(coverSize, { lineHeight: 1.02, name: "Title" })));
   let y = 446 + titleH + 30;
@@ -83,17 +160,9 @@ export function cover(K: KitLook, i: number, c: CoverContent): Slide {
     nodes.push(text(M, y, 900, subLines * 40, subtitle, t.body(28)));
     y += subLines * 40;
   }
-  const presenterLine = c.presenter ?? [c.presenterName, c.when].filter(Boolean).join("  ·  ");
   if (presenterLine) nodes.push(text(M, 940, 900, 28, presenterLine, t.meta()));
   if (K.total > 1) nodes.push(text(W - M - 240, 940, 240, 28, pageNo(i, K.total), t.meta({ align: "right", name: "Page number", fixed: true })));
-  if (c.chips?.length) {
-    c.chips.slice(0, 3).forEach(([n, l], k) => {
-      const x = M + k * 300;
-      nodes.push(rect(x, 848, 276, 64, g.panel, { radius: K.radius, stroke: g.line, strokeWidth: 1.5, panel: true }));
-      nodes.push(text(x + 20, 860, 130, 40, n, t.numeral(26, { family: K.mono ?? K.numeralFace ?? K.display })));
-      nodes.push(text(x + 150, 868, 110, 26, l, t.meta({ size: 16 })));
-    });
-  }
+  chips(M, 848);
   switch (K.ornament) {
     case "blocks":
       nodes.push(rect(1272, 0, 648, H, g.accent, { decor: true }));

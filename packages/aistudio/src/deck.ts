@@ -60,6 +60,9 @@ export type LayoutDeckOptions = DeriveOptions & {
    *  the kit wears its six slots; a theme picked by mood for an unbranded
    *  deck does not override the kit's own style. */
   themeChosen?: boolean;
+  /** A template theme record's six slots (slotsFromThemeRecord), which the
+   *  kit wears the way it wears a chosen catalog theme's. */
+  themeSlots?: string[] | null;
 };
 
 /** Lay out every outline page into a DeckPage. */
@@ -85,10 +88,11 @@ export function layoutDeck(
   // file's theme record then carries the kit's palette and pairing, so the
   // theme picker shows what the pages wear.
   const useKit = opts?.renderer === "kit" && kitFits(size, opts?.designType);
-  const chosenSlots = opts?.themeChosen && opts?.catalog ? opts.catalog.colors : null;
+  const chosenSlots = opts?.themeSlots ?? (opts?.themeChosen && opts?.catalog ? opts.catalog.colors : null);
+  const styleOpts = { style: outline.style, look: opts?.look ?? opts?.outlineLook ?? outline.look, seed: opts?.seed, mood: [outline.theme, outline.title].filter(Boolean).join(" ") };
   const kitLook = useKit
     ? makeLook(
-        applyBrand(chosenSlots ? applyThemeSlots(resolveKitStyle({ style: outline.style, look: opts?.look ?? opts?.outlineLook ?? outline.look, seed: opts?.seed }), chosenSlots) : resolveKitStyle({ style: outline.style, look: opts?.look ?? opts?.outlineLook ?? outline.look, seed: opts?.seed }), {
+        applyBrand(chosenSlots ? applyThemeSlots(resolveKitStyle(styleOpts), chosenSlots) : resolveKitStyle(styleOpts), {
           brandPalette: opts?.brandPalette,
           brandFonts: opts?.fontsAuthored ? { heading: opts?.brandFonts?.heading ?? theme.fontHeading, body: opts?.brandFonts?.body ?? theme.fontBody } : undefined,
         }),

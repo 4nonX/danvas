@@ -140,18 +140,62 @@ export interface ResolveStyleOptions {
   look?: unknown;
   /** A seed for the fallback pick; the deck title hashed. */
   seed?: number;
+  /** The deck's mood phrase and title, matched against the styles' hints
+   *  when the outline named no style. */
+  mood?: string;
+}
+
+const MOOD_STOP = new Set(["a", "an", "the", "and", "or", "for", "of", "to", "in", "on", "with", "one", "paper", "ink", "deep", "ground", "display", "sans", "serif", "face", "hand", "kicker", "corner", "dot", "grid", "decks", "deck", "dark", "light", "warm", "cool", "modern", "clean", "bold"]);
+
+const tokens = (text: string): string[] => text.toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length > 2 && !MOOD_STOP.has(w));
+
+/** The style whose hint shares the most words with the deck's mood and
+ *  title, or null when none shares any: a brief about an offsite lands on
+ *  the campfire, one about a launch on the ember, without the model having
+ *  named either. */
+export function styleForMood(mood: string, pool: string[] = kitStyleNames): KitStyle | null {
+  const words = new Set(tokens(mood));
+  if (!words.size) return null;
+  let best: KitStyle | null = null;
+  let bestScore = 0;
+  for (const name of pool) {
+    const style = KIT_STYLES[name];
+    let score = 0;
+    for (const w of new Set(tokens(style.hint))) if (words.has(w)) score += 1;
+    if (score > bestScore) { bestScore = score; best = style; }
+  }
+  return best;
 }
 
 /** The style a deck is set in: the one the outline named when the
- *  vocabulary has it, else one from the family a dial named, else one by
- *  seed, so two decks with different titles never default to the same one. */
+ *  vocabulary has it, else the one its mood and title point at within the
+ *  family a dial named, else one by seed, so two decks with different
+ *  titles never default to the same one. */
 export function resolveKitStyle(opts: ResolveStyleOptions): KitStyle {
   const named = (opts.style ?? "").trim().toLowerCase();
   if (named && KIT_STYLES[named]) return KIT_STYLES[named];
   const seed = Math.abs(opts.seed ?? 0);
   const family = typeof opts.look === "string" ? FAMILIES[opts.look] : undefined;
   const pool = family ?? kitStyleNames;
+  if (opts.mood) {
+    const matched = styleForMood(opts.mood, pool);
+    if (matched) return matched;
+  }
   return KIT_STYLES[pool[seed % pool.length]];
+}
+
+/** The six slots (primary, accent, deep, tint, ink, paper) of a theme
+ *  record, by swatch name where the record names them and by position when
+ *  it carries at least six, else null: a template's theme repaints the kit
+ *  the way a chosen catalog theme does. */
+export function slotsFromThemeRecord(rec: { colors?: Array<{ name?: string; color?: { srgb: { r: number; g: number; b: number } } }> }): string[] | null {
+  const colors = rec.colors ?? [];
+  const hex = (c: { srgb: { r: number; g: number; b: number } }) => "#" + [c.srgb.r, c.srgb.g, c.srgb.b].map((v) => Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16).padStart(2, "0")).join("").toUpperCase();
+  const names = ["primary", "accent", "deep", "tint", "ink", "paper"];
+  const byName = names.map((n) => colors.find((c) => c.name === n)?.color);
+  if (byName.every((c) => !!c)) return byName.map((c) => hex(c!));
+  if (colors.length >= 6 && colors.slice(0, 6).every((c) => !!c.color)) return colors.slice(0, 6).map((c) => hex(c.color!));
+  return null;
 }
 
 export interface BrandOptions {

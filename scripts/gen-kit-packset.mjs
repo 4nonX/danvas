@@ -36,13 +36,13 @@ const DRAWINGS = {
   thinking: "la-guy-with-glasses", waiting: "la-waitng-illustration", doodle: "la-doodle", scooter: "la-scooter", coffee: "la-coffee", cafe: "il-day30-cafe",
   building: "la-building", city: "il-day65-city-road", house: "la-house-illustrations", home: "il-day31-sweet-home",
   map: "il-109-map-location", travel: "il-day61-travel-bag", camping: "il-day96-camping", farm: "il-day53-farm", kitchen: "il-day59-kitchen", food: "il-day82-burger",
-  coding: "il-111-coding", developer: "il-day13-it-girl", desktop: "il-day41-desktop", computer: "il-day38-macintosh", storage: "il-day44-hdd", floppy: "il-day18-floppy",
-  design: "il-day94-ui-ux", easel: "il-day10-canvas-stand", writing: "il-day73-writing-tool", palette: "il-day15-color-tool", stationery: "il-day74-stationary-set",
-  abacus: "il-day36-abacus", calculator: "il-day37-calculator", vault: "il-day6-open-vault", safe: "il-day5-vault", wallet: "il-day78-wallet", sale: "la-sale",
-  blackboard: "il-day11-blackboard", library: "il-day57-reading-room", school: "il-day63-school-bag", owl: "il-day22-owl",
+  coding: "il-111-coding", developer: "il-day13-it-girl", desktop: "il-day41-desktop", computer: "il-day38-macintosh", storage: "il-day44-hdd",
+  design: "il-day94-ui-ux", easel: "il-day10-canvas-stand", writing: "il-day73-writing-tool", palette: "il-day15-color-tool",
+  abacus: "il-day36-abacus", calculator: "il-day37-calculator", vault: "il-day6-open-vault", wallet: "il-day78-wallet", sale: "la-sale",
+  blackboard: "il-day11-blackboard", library: "il-day57-reading-room",
   "walkie-talkie": "il-day17-walkie-talkie", radio: "il-day17-walkie-talkie", camera: "il-day4-polariod", video: "la-youtube-illustration",
-  logistics: "il-day14-forklift", forklift: "il-day14-forklift", fitness: "il-103-gym-time", lantern: "il-day21-lantern", rainbow: "il-day26-rainbow", tools: "la-tools", science: "la-test-tubes", website: "la-website-builder",
-  jumping: "od-jumping", strolling: "od-strolling", dancing: "od-ballet", running: "od-running",
+  logistics: "il-day14-forklift", forklift: "il-day14-forklift", fitness: "il-103-gym-time", tools: "la-tools", science: "la-test-tubes", website: "la-website-builder",
+  jumping: "od-jumping", strolling: "od-strolling", running: "od-running",
 };
 // Drawn portraits for team and quote slots, the ones the templates use most.
 const PEEPS = ["op-peep-84", "op-peep-86", "op-peep-105", "op-peep-53", "op-peep-23", "op-peep-72", "op-peep-9", "op-peep-56", "op-peep-41", "op-peep-55", "op-peep-58", "op-peep-47"];
@@ -62,7 +62,10 @@ const fillHex = (fills) => {
   if (f.type === "gradient" && f.stops?.length) return hex(f.stops[0].color.srgb);
   return null;
 };
-const f1 = (n) => { const s = (Math.round(n * 10) / 10).toString(); return s.replace(/^(-?)0\./, "$1."); };
+// Coordinates to a tenth for a small box; a drawing in a thousand-unit box
+// (the illlustrations pack) is exact enough at whole units and a fifth lighter.
+let precision = 10;
+const f1 = (n) => { const s = (Math.round(n * precision) / precision).toString(); return s.replace(/^(-?)0\./, "$1."); };
 const KAPPA = 0.5522847498;
 
 /** Every contour of a node in page (viewBox) space: a path's own, a shape's outline. */
@@ -138,6 +141,7 @@ function bake(id) {
   });
   if (!kept.length) throw new Error(`${id}: nothing left after cleaning`);
   const all = bboxOf(kept.flatMap((it) => it.contours));
+  precision = Math.max(all.x1 - all.x0, all.y1 - all.y0) > 600 ? 1 : 10;
   const layers = [];
   for (const { n, contours } of kept) {
     const fill = fillHex(n.fills);
