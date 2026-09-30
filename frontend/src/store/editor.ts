@@ -1110,7 +1110,9 @@ interface EditorState {
   group(): void;
   ungroupSelection(): void;
   orderSelection(op: "front" | "back" | "forward" | "backward"): void;
-  alignSelection(edge: AlignEdge): void;
+  /** Align the selection: to the page for one node, to the selection's own
+   *  box for many. "center" is both axes at once, as ONE undo step. */
+  alignSelection(edge: AlignEdge | "center"): void;
   distributeSelection(axis: "h" | "v", by: "edge" | "gap"): void;
   /** Mirror the selection horizontally/vertically about its bounding-box center. */
   flipSelection(axis: "h" | "v"): void;
@@ -8115,6 +8117,17 @@ export const useEditor = create<EditorState>((set, get) => {
         selection.length > 1
           ? (unionAABB(doc, selection) ?? { x: 0, y: 0, width: page.width, height: page.height })
           : { x: 0, y: 0, width: page.width, height: page.height };
+      if (edge === "center") {
+        // Both axes in one step: the two delta maps are summed per node so
+        // undo puts the selection back in one move.
+        const merged = alignDeltas(items, "hcenter", target);
+        for (const [id, d] of alignDeltas(items, "vmiddle", target)) {
+          const cur = merged.get(id) ?? { dx: 0, dy: 0 };
+          merged.set(id, { dx: cur.dx + d.dx, dy: cur.dy + d.dy });
+        }
+        applyDeltas(set, get, merged);
+        return;
+      }
       applyDeltas(set, get, alignDeltas(items, edge, target));
     },
     flipSelection: (axis) => {

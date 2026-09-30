@@ -1,11 +1,18 @@
 // Layer panel: the active page's nodes in z-order (front at top), two-way synced
-// with canvas selection, with per-row lock/hide/rename and drag-to-reorder
-// (FR-19). Reorder maps the visual (front-first) order back to child indices.
+// with canvas selection, with per-row lock/hide/rename, a step forward and a
+// step back on every row, and drag-to-reorder (FR-19). A drop lands the
+// dragged layer directly in front of the row it is dropped on; the zone under
+// the last row sends it to the back. Alt+Up and Alt+Down move the focused
+// row a step, the way the arrow keys alone move the selection.
 
 import { useState } from "react";
-import { Eye, EyeOff, Lock, Unlock, GripVertical, Copy, Trash2 } from "lucide-react";
+import { Eye, EyeOff, Lock, Unlock, GripVertical, Copy, Trash2, ArrowUp, ArrowDown } from "lucide-react";
 import { useEditor } from "@/store/editor";
+import { layerDropIndex } from "@/lib/layerOrder";
 import { tr } from "@/lib/i18n";
+
+/** The end-of-list drop target's id in the drag state. */
+const BACK = "\u0000back";
 
 export function LayerPanel() {
   useEditor((s) => s.rev);
@@ -19,14 +26,23 @@ export function LayerPanel() {
   const page = doc.pages[Math.min(activePage, doc.pages.length - 1)];
   const children = page?.children ?? [];
   const ordered = [...children].reverse(); // front at top
+  const childIds = children.map((n) => n.id);
 
-  const drop = (targetId: string) => {
+  /** Drop the dragged layer in front of `targetId`, or at the back for null. */
+  const drop = (targetId: string | null) => {
     const id = dragId;
     setDragId(null);
     setDragOverId(null);
-    if (!id || id === targetId) return;
-    const to = children.findIndex((n) => n.id === targetId);
-    if (to >= 0) useEditor.getState().reorderLayer(id, to);
+    if (!id) return;
+    const to = layerDropIndex(childIds, id, targetId);
+    if (to !== null) useEditor.getState().reorderLayer(id, to);
+  };
+
+  /** One step toward the front (+1) or the back (-1). */
+  const step = (id: string, dir: 1 | -1) => {
+    const from = childIds.indexOf(id);
+    if (from < 0) return;
+    useEditor.getState().reorderLayer(id, from + dir);
   };
 
   return (
@@ -43,6 +59,8 @@ export function LayerPanel() {
         )}
         {ordered.map((node, rowIndex) => {
           const selected = selection.includes(node.id);
+          const atFront = rowIndex === 0;
+          const atBack = rowIndex === ordered.length - 1;
           // Roving tabindex (APG listbox): exactly ONE row is a tab stop, so a
           // 50-layer design does not put 50 stops between the panel and the
           // next control. Arrow keys move within the list.
@@ -57,7 +75,7 @@ export function LayerPanel() {
               draggable
               onDragStart={() => setDragId(node.id)}
               onDragOver={(e) => { e.preventDefault(); if (dragOverId !== node.id) setDragOverId(node.id); }}
-              onDrop={() => drop(node.id)}
+              onDrop={(e) => { e.preventDefault(); drop(node.id); }}
               onDragEnd={() => { setDragId(null); setDragOverId(null); }}
               onPointerDown={(e) => {
                 if (e.shiftKey) useEditor.getState().addToSelection([node.id]);
@@ -67,7 +85,11 @@ export function LayerPanel() {
                 // Keys from the action buttons or the rename input bubble here;
                 // only act when the row itself is focused.
                 if (e.target !== e.currentTarget) return;
-                if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+                if (e.altKey && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+                  // Move the layer itself; the focused row keeps the layer.
+                  e.preventDefault();
+                  step(node.id, e.key === "ArrowUp" ? 1 : -1);
+                } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
                   e.preventDefault();
                   const to = ordered[rowIndex + (e.key === "ArrowDown" ? 1 : -1)];
                   if (!to) return;
@@ -109,6 +131,30 @@ export function LayerPanel() {
                   {node.name ?? node.type}
                 </span>
               )}
+              {/* One step forward or back, on the row: the reason most people
+                  open this panel, and dragging a row one slot is fiddly. */}
+              <button
+                type="button"
+                title={tr("editor.bring_forward")}
+                aria-label={tr("editor.bring_forward")}
+                disabled={atFront}
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={() => step(node.id, 1)}
+                className="shrink-0 text-neutral-400 opacity-0 hover:text-neutral-700 focus-visible:opacity-100 disabled:opacity-0 group-hover:opacity-100 group-hover:disabled:opacity-20"
+              >
+                <ArrowUp size={14} />
+              </button>
+              <button
+                type="button"
+                title={tr("editor.send_backward")}
+                aria-label={tr("editor.send_backward")}
+                disabled={atBack}
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={() => step(node.id, -1)}
+                className="shrink-0 text-neutral-400 opacity-0 hover:text-neutral-700 focus-visible:opacity-100 disabled:opacity-0 group-hover:opacity-100 group-hover:disabled:opacity-20"
+              >
+                <ArrowDown size={14} />
+              </button>
               <button
                 type="button"
                 title={node.hidden ? tr("editor.show") : tr("editor.hide")}
@@ -154,6 +200,20 @@ export function LayerPanel() {
             </div>
           );
         })}
+        {/* Past the last row: the only way to drop a layer BEHIND everything,
+            since a drop on a row lands in front of it. Shown while dragging. */}
+        {dragId !== null && ordered.length > 1 && (
+          <div
+            data-testid="layer-drop-back"
+            onDragOver={(e) => { e.preventDefault(); if (dragOverId !== BACK) setDragOverId(BACK); }}
+            onDrop={(e) => { e.preventDefault(); drop(null); }}
+            className={`mx-2 mt-1 rounded-lg border-2 border-dashed px-2 py-2 text-center text-xs ${
+              dragOverId === BACK ? "border-brand-500 bg-brand-50 text-brand-ink" : "border-neutral-200 text-neutral-400"
+            }`}
+          >
+            {tr("editor.drop_here_to_send_to_back")}
+          </div>
+        )}
       </div>
     </div>
   );

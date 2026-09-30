@@ -15,7 +15,9 @@ import {
 import type { BrandKit, BrandKitVersion, BrandLintViolation, UploadedAsset, BrandUpdateSummary } from "@hc/sdk";
 import type { Color } from "@hc/schema";
 import { extractPalette, toHex, type Bitmap } from "@hc/color";
+import { locate } from "@hc/editor";
 import { PanelShell, CollapsibleSection } from "./EditorPanels";
+import { collectPageColors, collectSelectionColors } from "@/lib/pageColors";
 import { useEditor, type ReskinResult, type ReskinOverrides, type BrandFixTarget } from "@/store/editor";
 import { useBrand, brandHexColors, brandFontFamilies } from "@/store/brand";
 import { fonts } from "@/lib/fontProvider";
@@ -94,6 +96,29 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
 
   const swatches = useMemo(() => brandHexColors(kit), [kit]);
   const families = useMemo(() => brandFontFamilies(kit), [kit]);
+
+  // Add colours to the kit's first palette from where the colours already
+  // are: a picked or typed value, the selection, or the whole page. Skips
+  // what the palette already holds and says so.
+  const addColors = useCallback(async (hexes: string[]) => {
+    if (!kit) return;
+    const have = new Set(brandHexColors(kit).map((h) => h.toLowerCase()));
+    const fresh = [...new Set(hexes.map((h) => h.toLowerCase()))].filter((h) => /^#[0-9a-f]{6}$/.test(h) && !have.has(h));
+    if (!fresh.length) {
+      toast.toast(tr("editor.color_already_in_palette"));
+      return;
+    }
+    const base = kit.palettes[0] ?? { id: `p-${crypto.randomUUID()}`, name: tr("editor.palette"), colors: [] };
+    const first = { ...base, colors: [...base.colors, ...fresh.map((hex) => ({ id: `s-${crypto.randomUUID()}`, role: "accent", value: srgbFromHexFull(hex) }))] };
+    const palettes = kit.palettes.length ? kit.palettes.map((p, i) => (i === 0 ? first : p)) : [first];
+    try {
+      const updated = await oc.updateBrandKit(kit.id, { palettes });
+      useBrand.getState().setKit(updated);
+      toast.success(tr("editor.colors_added", { count: String(fresh.length) }));
+    } catch {
+      toast.error(tr("editor.couldnt_save_brand_kit"));
+    }
+  }, [kit, toast]);
 
   // Apply a brand color: to the selection's fills, or the page background if
   // nothing is selected (so a click is never a no-op).
@@ -375,6 +400,10 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
                 ))}
               </div>
             )}
+            {/* Adding colours, where the colours are looked at: a picker and a
+                hex field, the selection's colours, or the page's. Managers only,
+                as with every kit edit. */}
+            {canManage && <AddBrandColors onAdd={(hexes) => void addColors(hexes)} />}
           </CollapsibleSection>
 
           {/* Fonts (FR-1, FR-4). */}
@@ -1369,6 +1398,79 @@ function BrandFromWebsite({
 }
 
 // --- color helpers ----------------------------------------------------------
+/** The add-colour row of the Colors section: pick or type a colour and add
+ *  it, or take the selection's colours or the whole page's. */
+function AddBrandColors({ onAdd }: { onAdd: (hexes: string[]) => void }) {
+  const [hex, setHex] = useState("#9b2c72");
+  const selection = useEditor((s) => s.selection);
+  useEditor((s) => s.rev);
+  const toast = useToast();
+  const clean = hex.trim().toLowerCase();
+  const valid = /^#[0-9a-f]{6}$/.test(clean);
+  const fromSelection = () => {
+    const st = useEditor.getState();
+    const nodes = st.selection.map((id) => locate(st.doc, id)?.node).filter((n): n is NonNullable<typeof n> => !!n);
+    const colors = collectSelectionColors(nodes);
+    if (!colors.length) { toast.toast(tr("editor.select_an_element_to_take_its_color")); return; }
+    onAdd(colors);
+  };
+  const fromPage = () => {
+    const st = useEditor.getState();
+    const page = st.doc.pages[Math.min(st.activePage, st.doc.pages.length - 1)];
+    const colors = page ? collectPageColors(page) : [];
+    if (!colors.length) { toast.toast(tr("editor.no_colors_on_this_page")); return; }
+    onAdd(colors);
+  };
+  return (
+    <div className="mt-2 flex flex-col gap-1.5">
+      <div className="flex items-center gap-1.5">
+        <input
+          type="color"
+          value={valid ? clean : "#000000"}
+          onChange={(e) => setHex(e.target.value)}
+          aria-label={tr("editor.add_color")}
+          title={tr("editor.add_color")}
+          className="oc-color h-8 w-8 shrink-0 cursor-pointer rounded-lg border border-neutral-200"
+        />
+        <input
+          value={hex}
+          onChange={(e) => setHex(e.target.value.startsWith("#") || e.target.value === "" ? e.target.value : `#${e.target.value}`)}
+          onKeyDown={(e) => { if (e.key === "Enter" && valid) { onAdd([clean]); } }}
+          aria-label={tr("editor.hex")}
+          placeholder="#9b2c72"
+          spellCheck={false}
+          className="min-w-0 flex-1 rounded-lg border border-neutral-200 px-2 py-1.5 font-mono text-xs uppercase outline-none focus:border-brand-400"
+        />
+        <button
+          type="button"
+          onClick={() => onAdd([clean])}
+          disabled={!valid}
+          className="flex shrink-0 items-center gap-1 rounded-lg bg-brand-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-brand-700 disabled:bg-neutral-200 disabled:text-neutral-400"
+        >
+          <Plus size={13} /> {tr("editor.add")}
+        </button>
+      </div>
+      <div className="flex gap-1.5">
+        <button
+          type="button"
+          onClick={fromSelection}
+          disabled={!selection.length}
+          className="flex-1 rounded-lg border border-neutral-200 px-2 py-1.5 text-xs text-neutral-700 hover:border-brand-300 hover:bg-brand-50 disabled:opacity-40"
+        >
+          {tr("editor.add_from_selection")}
+        </button>
+        <button
+          type="button"
+          onClick={fromPage}
+          className="flex-1 rounded-lg border border-neutral-200 px-2 py-1.5 text-xs text-neutral-700 hover:border-brand-300 hover:bg-brand-50"
+        >
+          {tr("editor.add_from_this_page")}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function srgbFromHex(hex: string): Color {
   return srgbFromHexFull(hex);
 }
