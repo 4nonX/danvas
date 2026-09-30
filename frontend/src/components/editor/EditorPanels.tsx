@@ -1981,7 +1981,33 @@ interface ChatTurn {
   /** Images sent with a user turn, shown in its bubble the way any chat
    *  shows them. A restored turn knows their names and sizes only. */
   images?: TurnImage[];
+  /** Documents sent with a user turn (a file, a pasted note, a fetched
+   *  page), or the pages a web search found, on the assistant turn that
+   *  reported it. Shown as chips in the bubble; a restored turn knows their
+   *  names and lengths. */
+  files?: TurnFile[];
 }
+
+/** What a chat bubble keeps of a document sent with its message. */
+interface TurnFile {
+  id: string;
+  name: string;
+  chars: number;
+}
+
+/** A document in the conversation: staged in the composer (no sentAt,
+ *  editable and removable) or sent with a message (in its bubble, grounding
+ *  every later generation in this conversation). */
+type ChatSource = AiSource & { id: string; sentAt?: number };
+const asChatSource = (sc: AiSource & { id?: string; sentAt?: number }): ChatSource => ({ ...sc, id: sc.id ?? `src-${Math.random().toString(36).slice(2, 10)}` });
+const toTurnFile = (sc: ChatSource): TurnFile => ({ id: sc.id, name: sc.name, chars: sc.text.length });
+/** A document's length for a chip: characters under a thousand, else k. */
+const charsLabel = (n: number): string => (n < 1000 ? `${n} chars` : `${Math.round(n / 1000)}k chars`);
+/** How much of each document sent with a message the planner reads, so a
+ *  question about a note is answered from the note and not guessed at; the
+ *  executor still grounds a generation in the whole text. */
+const PLANNER_EXCERPT_CHARS = 1500;
+const PLANNER_EXCERPT_TOTAL = 6000;
 
 /** A proposal the user moved past without confirming never ran: unflag it and
  *  strike its chips so a later execution report can't replace the wrong turn. */
@@ -2135,6 +2161,19 @@ const HERO_ROLES = new Set(["cover", "quote", "closing"]);
  *  this" gets its colours. Regeneration of an existing page keeps the brand
  *  palette alone, so the page matches the deck it sits in. */
 const paletteFor = (deps: AssistantDeps): string[] => (deps.brandPalette.length ? deps.brandPalette : deps.referencePalette ?? []);
+/** The opening of each document, within a shared budget, for the planner. */
+function documentExcerpts(docs: { name: string; text: string }[]): string {
+  let left = PLANNER_EXCERPT_TOTAL;
+  return docs
+    .map((sc) => {
+      const take = Math.min(PLANNER_EXCERPT_CHARS, left);
+      left -= take;
+      const body = sc.text.trim().slice(0, take);
+      return `--- ${sc.name} ---\n${body}${sc.text.trim().length > take ? "…" : ""}`;
+    })
+    .join("\n");
+}
+
 /** What the vision model is asked about an attached image: the reading a
  *  designer needs, not a caption. */
 const DESCRIBE_FOR_DESIGN = `Describe this image for a presentation designer in two to four sentences of plain prose (no headings, no markdown, no lists): the subject, the setting, the mood, the notable colours, and any text visible in it.`;
@@ -3829,8 +3868,8 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
       // Attachments staged alongside the brief (the dashboard composer lets a
       // user attach the documents the design should be built from).
       const staged = takeStagedAiSources();
-      if (staged.length) setSources((xs) => [...xs, ...staged].slice(0, maxSources));
-      void send(req.text, staged);
+      if (staged.length) setSources((xs) => [...xs, ...staged.map(asChatSource)].slice(0, maxSources));
+      void send(req.text);
       return;
     }
     const text = tr("editor.regenerate_slide_n_instruction", { n: req.pageIndex + 1, instruction: req.instruction });
@@ -3869,8 +3908,17 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
   }, [designId]);
   // Attached source content for create-from-document/URL/file (FR-23).
   // T15: multiple grounding attachments (cap 8), each editable before use.
-  const [sources, setSources] = useState<{ name: string; text: string }[]>([]);
-  const [editingSource, setEditingSource] = useState<number | null>(null);
+  // The conversation's documents: staged in the composer (chips, editable)
+  // or sent with a message (in its bubble). Behind a ref written
+  // synchronously, so a send sees what a caller staged a moment ago.
+  const [sources, setSourcesState] = useState<ChatSource[]>([]);
+  const sourcesRef = useRef<ChatSource[]>([]);
+  const setSources = (fn: (xs: ChatSource[]) => ChatSource[]) => {
+    sourcesRef.current = fn(sourcesRef.current);
+    setSourcesState(sourcesRef.current);
+  };
+  const stagedSources = sources.filter((sc) => !sc.sentAt);
+  const [editingSource, setEditingSource] = useState<string | null>(null);
   const [attachOpen, setAttachOpen] = useState(false);
   const [attachUrl, setAttachUrl] = useState("");
   const [attachBusy, setAttachBusy] = useState(false);
@@ -3990,7 +4038,12 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
                     .filter((im) => im && typeof im.name === "string")
                     .map((im, k) => ({ id: `restored-${k}`, name: String(im.name), width: Number(im.width) || 0, height: Number(im.height) || 0 }))
                 : [];
-              return { role: t.role, text: t.text, ...(steps?.length ? { steps } : {}), ...(images.length ? { images } : {}) };
+              const files = Array.isArray((prov as { files?: unknown } | undefined)?.files)
+                ? ((prov as { files: { name?: unknown; chars?: unknown }[] }).files)
+                    .filter((f) => f && typeof f.name === "string")
+                    .map((f, k) => ({ id: `restored-file-${k}`, name: String(f.name), chars: Number(f.chars) || 0 }))
+                : [];
+              return { role: t.role, text: t.text, ...(steps?.length ? { steps } : {}), ...(images.length ? { images } : {}), ...(files.length ? { files } : {}) };
             });
           }
         }
@@ -4092,7 +4145,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
       // Only what the search ADDED joins the document chips: the images'
       // descriptions ride in the grounding too, and would otherwise come
       // back as document chips beside their own image chips.
-      setReview((r) => ({ outline, loading: false, dials, searchedSources: searchStep ? [...sources, ...(deps.sources ?? []).slice(grounding.length)] : undefined, citations: deps.citations, themeId: r?.themeId, templateId: r?.templateId }));
+      setReview((r) => ({ outline, loading: false, dials, searchedSources: searchStep ? (deps.sources ?? []).slice(grounding.length) : undefined, citations: deps.citations, themeId: r?.themeId, templateId: r?.templateId }));
     } catch {
       if (seq === reviewSeq.current) setReview((r) => ({ outline: null, loading: false, dials, themeId: r?.themeId, templateId: r?.templateId }));
     }
@@ -4233,12 +4286,18 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
       // reflect them in the panel state so the user sees (and can remove) the
       // grounding chip after the turn.
       const searched = payloads.find((p0): p0 is Extract<ResolvedPayload, { kind: "webSearch" }> => p0?.kind === "webSearch");
+      let foundFiles: TurnFile[] = [];
       if (searched && deps.sources) {
-        // Append only the sources the search ADDED: replacing the whole list
-        // with the captured copy would overwrite any edit the user made to an
-        // attachment while the generation ran.
+        // Only the sources the search ADDED join the conversation, as the
+        // assistant's own attachments on the turn that reports the run: they
+        // ground every later generation here, like a document the user sent.
         const added = deps.sources.slice(grounding.length);
-        if (added.length) setSources((cur) => [...cur, ...added].slice(0, maxSources));
+        if (added.length) {
+          const now = Date.now();
+          const found = added.map((sc) => asChatSource({ ...sc, sentAt: now }));
+          setSources((cur) => [...cur, ...found].slice(0, maxSources));
+          foundFiles = found.map(toTurnFile);
+        }
       }
       // A planned critique step is read-only; surface its actual findings instead
       // of just a "done" chip.
@@ -4270,7 +4329,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
       const degradedNote = degraded.length ? `\n${tr("editor.without_the_model", { what: degraded.join(", ") })}` : "";
       const check = takeDeckCheck();
       const text = (reply || tr("editor.done_2")) + extra + degradedNote + (notes.length ? `\n${notes.join("\n")}` : "") + (check ? `\n${check}` : "");
-      const finalTurn: ChatTurn = { role: "assistant", text, steps: results, critique, critiqueAt: critique ? critiqueAt : undefined };
+      const finalTurn: ChatTurn = { role: "assistant", text, steps: results, critique, critiqueAt: critique ? critiqueAt : undefined, ...(foundFiles.length ? { files: foundFiles } : {}) };
       // One bubble per intent: a confirmed proposal's bubble BECOMES the
       // execution report (its chips flip from planned to actual results)
       // instead of the same reply text appearing twice in the thread.
@@ -4338,7 +4397,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
       const out = await extractAiSources(documents, room);
       if (out.rejected) toast.error(tr("editor.only_documents_can_be_attached"));
       for (const e of out.errors) toast.error(e);
-      if (out.sources.length) setSources((xs) => [...xs, ...out.sources].slice(0, maxSources));
+      if (out.sources.length) setSources((xs) => [...xs, ...out.sources.map(asChatSource)].slice(0, maxSources));
       setAttachBusy(false);
     })();
   }
@@ -4402,14 +4461,23 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
     sentWithLastRef.current = new Set(going.map((im) => im.id));
     return going;
   }
-  /** What grounds a generation: the documents, and the images sent with the
-   *  latest message that the provider has read. An image from an earlier
-   *  message is context the planner was told about then, and still places by
-   *  name; it must not constrain a later deck. */
-  const groundingSources = (extra: AiSource[] = []) =>
-    [...sources, ...extra, ...imagesRef.current.filter((im) => sentWithLastRef.current.has(im.id)).map(imageSource).filter((x): x is AiSource => !!x)].slice(0, maxSources);
+  /** The staged documents go out with the message, into its bubble, and
+   *  stay in the conversation as grounding. */
+  function sendStagedSources(stamp: number): ChatSource[] {
+    const going = sourcesRef.current.filter((sc) => !sc.sentAt);
+    if (going.length) setSources((xs) => xs.map((sc) => (sc.sentAt ? sc : { ...sc, sentAt: stamp })));
+    return going;
+  }
+  /** What grounds a generation: every document sent in this conversation
+   *  (a deck is built from the notes and files the user handed over, however
+   *  many messages ago), and the images sent with the LATEST message that the
+   *  provider has read. An image from an earlier message is context the
+   *  planner was told about then, and still places by name; a stale
+   *  screenshot must not constrain a later deck. */
+  const groundingSources = () =>
+    [...sourcesRef.current.filter((sc) => !!sc.sentAt), ...imagesRef.current.filter((im) => sentWithLastRef.current.has(im.id)).map(imageSource).filter((x): x is AiSource => !!x)].slice(0, maxSources);
 
-  async function send(textArg?: string, extraSources?: AiSource[]) {
+  async function send(textArg?: string) {
     const userText = (textArg ?? input).trim();
     if (!workspaceId || !userText || !aiReady || busy) return;
     if (!textArg) setInput("");
@@ -4419,8 +4487,17 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
     // any chat sends a picture with the words about it.
     const stamp = Date.now();
     const going = sendStagedImages(stamp);
-    setTurns((t) => [...demoteProposals(t), { role: "user", text: userText, ...(going.length ? { images: going.map(toTurnImage) } : {}) }]);
-    void persistTurn("user", userText, undefined, going.length ? { images: going.map((im) => ({ name: im.name, width: im.width, height: im.height })) } : undefined);
+    const goingFiles = sendStagedSources(stamp);
+    setTurns((t) => [...demoteProposals(t), {
+      role: "user",
+      text: userText,
+      ...(going.length ? { images: going.map(toTurnImage) } : {}),
+      ...(goingFiles.length ? { files: goingFiles.map(toTurnFile) } : {}),
+    }]);
+    void persistTurn("user", userText, undefined, going.length || goingFiles.length ? {
+      ...(going.length ? { images: going.map((im) => ({ name: im.name, width: im.width, height: im.height })) } : {}),
+      ...(goingFiles.length ? { files: goingFiles.map((sc) => ({ name: sc.name, chars: sc.text.length })) } : {}),
+    } : undefined);
     setBusy(true);
     const aborter = new AbortController();
     runAbort.current = aborter;
@@ -4454,14 +4531,16 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
       // Prefer the backend orchestrator (server-side validation/retry, FR-12);
       // fall back to the free-text path. Either way the client re-validates arg
       // types via parseAssistantReply before anything executes.
-      // With sources attached, tell the planner they exist (the executor does
-      // the grounding); the user's words alone often don't mention it.
-      // Sources staged by another surface arrive with this call: setSources
-      // has not re-rendered yet, so the state copy alone would miss them.
-      const active = extraSources?.length ? [...sources, ...extraSources].slice(0, maxSources) : sources;
+      // With documents attached, tell the planner they exist (the executor
+      // does the grounding); the user's words alone often don't mention it.
+      // What came with THIS message is named apart from what came before.
+      const earlierDocs = sourcesRef.current.filter((sc) => sc.sentAt && sc.sentAt !== stamp);
       const notes = [
-        active.length
-          ? `[Note: the user attached ${active.length} source${active.length === 1 ? "" : "s"} (${active.map((sc) => sc.name).join(", ")}; ${active.reduce((n, sc) => n + sc.text.length, 0)} chars total). To create a deck/design from them, plan generateDesign - the executor grounds the outline in the attachments automatically.]`
+        goingFiles.length
+          ? `[Note: the user attached ${goingFiles.length} document${goingFiles.length === 1 ? "" : "s"} with this message (${goingFiles.map((sc) => sc.name).join(", ")}; ${goingFiles.reduce((n, sc) => n + sc.text.length, 0)} chars total). To create a deck/design from them, plan generateDesign - the executor grounds the outline in the full attachments automatically. A question about them is answered from these excerpts:\n${documentExcerpts(goingFiles)}]`
+          : "",
+        earlierDocs.length
+          ? `[Note: documents attached earlier in this conversation still ground a generation: ${earlierDocs.map((sc) => sc.name).join(", ")}.]`
           : "",
         imageAttachmentsNote(imagesRef.current, imagesRef.current.filter((im) => im.sentAt === stamp)),
       ].filter(Boolean);
@@ -4580,6 +4659,13 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
   }
   function startNewChat() {
     setTurns([]);
+    // A new conversation starts with nothing attached: the documents and
+    // pictures of the old one were that conversation's.
+    setSources(() => []);
+    setEditingSource(null);
+    for (const im of imagesRef.current) if (im.url.startsWith("blob:")) URL.revokeObjectURL(im.url);
+    setImages(() => []);
+    sentWithLastRef.current = new Set();
     setPending(null);
     clearReview();
     setInput("");
@@ -4793,6 +4879,13 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
                       ))}
                     </div>
                   )}
+                  {t.files && t.files.length > 0 && (
+                    <div className="mb-1.5 flex flex-wrap gap-1">
+                      {t.files.map((f) => (
+                        <span key={f.id} title={f.name} className="flex max-w-full items-center gap-1 rounded-md bg-white/15 px-1.5 py-0.5 text-[11px]"><FileText size={11} className="shrink-0" /> <span className="truncate">{f.name}</span> · {charsLabel(f.chars)}</span>
+                      ))}
+                    </div>
+                  )}
                   <span className="whitespace-pre-wrap">{t.text}</span>
                 </div>
               </div>
@@ -4801,6 +4894,15 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
                 {AssistantAvatar}
                 <div className="max-w-[85%] rounded-2xl rounded-bl-sm bg-neutral-100 px-3 py-2 text-sm text-neutral-800">
                   <span className="whitespace-pre-wrap">{t.text}</span>
+                  {/* The pages a web search found, as the assistant's own
+                      attachments on the turn that reports the run. */}
+                  {t.files && t.files.length > 0 && (
+                    <div className="mt-1.5 flex flex-wrap gap-1">
+                      {t.files.map((f) => (
+                        <span key={f.id} title={f.name} className="flex max-w-full items-center gap-1 rounded-md bg-neutral-200 px-1.5 py-0.5 text-[10px] text-neutral-600"><FileText size={11} className="shrink-0" /> <span className="truncate">{f.name}</span> · {charsLabel(f.chars)}</span>
+                      ))}
+                    </div>
+                  )}
                   {t.steps && t.steps.length > 0 && (
                     <div className="mt-1.5 flex flex-wrap gap-1">
                       {t.steps.map((s, j) => (
@@ -4921,7 +5023,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
                   // citations it produced, exactly as the review path does.
                   const searched = review?.searchedSources;
                   const cites = review?.citations;
-                  if (searched) setSources(searched.slice(0, maxSources));
+                  if (searched?.length) { const now = Date.now(); setSources((cur) => [...cur, ...searched.map((sc) => asChatSource({ ...sc, sentAt: now }))].slice(0, maxSources)); }
                   const planToRun = searched ? p.plan.filter((st) => st.action !== "webSearch") : p.plan;
                   setPending(null);
                   clearReview();
@@ -5055,7 +5157,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
                         // found sources as chips.
                         const searched = review.searchedSources;
                         const cites = review.citations;
-                        if (searched) setSources(searched.slice(0, maxSources));
+                        if (searched?.length) { const now = Date.now(); setSources((cur) => [...cur, ...searched.map((sc) => asChatSource({ ...sc, sentAt: now }))].slice(0, maxSources)); }
                         clearReview();
                         const planToRun = searched ? p?.plan.filter((s) => s.action !== "webSearch") ?? [] : p?.plan ?? [];
                         if (p && clean.pages.length) void execute(planToRun, p.reply, clean, dials, cites, review.themeId, review.templateId, { fromProposal: true });
@@ -5145,25 +5247,25 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
       {/* Source attachments (FR-23/T15): paste text, fetch URLs, or pick files
           (multiple, cap 8, mixable in one sitting); each is editable before
           the next generation grounds its outline in ALL of them. */}
-      {sources.map((sc, i) => (
-        <div key={`${sc.name}-${i}`} className="mt-2 flex shrink-0 flex-col gap-1 rounded-lg border border-brand-200 bg-brand-50 px-2.5 py-1.5 text-[11px] text-brand-ink">
+      {stagedSources.map((sc) => (
+        <div key={sc.id} className="mt-2 flex shrink-0 flex-col gap-1 rounded-lg border border-brand-200 bg-brand-50 px-2.5 py-1.5 text-[11px] text-brand-ink">
           <div className="flex items-center gap-2">
             <FileText size={12} className="shrink-0" />
-            <span className="min-w-0 flex-1 truncate" title={sc.name}>{sc.name} · {Math.round(sc.text.length / 1000)}k chars</span>
+            <span className="min-w-0 flex-1 truncate" title={sc.name}>{sc.name} · {charsLabel(sc.text.length)}</span>
             <button
-              onClick={() => setEditingSource(editingSource === i ? null : i)}
+              onClick={() => setEditingSource(editingSource === sc.id ? null : sc.id)}
               aria-label={tr("editor.edit_extracted_text")}
               className="rounded p-0.5 hover:bg-brand-100"
             >
               <Pencil size={12} />
             </button>
-            <button onClick={() => { setSources((xs) => xs.filter((_, j) => j !== i)); setEditingSource(null); }} aria-label={tr("editor.remove_attached_content")} className="rounded p-0.5 hover:bg-brand-100"><X size={12} /></button>
+            <button onClick={() => { setSources((xs) => xs.filter((x) => x.id !== sc.id)); setEditingSource(null); }} aria-label={tr("editor.remove_attached_content")} className="rounded p-0.5 hover:bg-brand-100"><X size={12} /></button>
           </div>
-          {editingSource === i && (
+          {editingSource === sc.id && (
             <textarea
               value={sc.text}
               rows={6}
-              onChange={(e) => setSources((xs) => xs.map((x, j) => (j === i ? { ...x, text: e.target.value } : x)))}
+              onChange={(e) => setSources((xs) => xs.map((x) => (x.id === sc.id ? { ...x, text: e.target.value } : x)))}
               className="w-full resize-y rounded-md border border-brand-200 bg-surface px-2 py-1.5 text-xs text-neutral-800 outline-none focus:border-brand-400"
             />
           )}
@@ -5230,7 +5332,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
               // (a note, two links, a file), and closing after each one made
               // the user reopen it every time. The chips above show what has
               // landed; the paperclip closes it when they are done.
-              if (t) { setSources((xs) => [...xs, { name: tr("editor.pasted_text"), text: t }]); e.target.value = ""; }
+              if (t) { setSources((xs) => [...xs, asChatSource({ name: tr("editor.pasted_text"), text: t })]); e.target.value = ""; }
             }}
           />
           <div className="flex items-center gap-1.5">
@@ -5246,7 +5348,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
                 const url = attachUrl.trim();
                 setAttachBusy(true);
                 void oc.aiExtractUrl({ url })
-                  .then((r) => { setSources((xs) => [...xs, { name: r.title || url, text: r.text }]); setAttachUrl(""); })
+                  .then((r) => { setSources((xs) => [...xs, asChatSource({ name: r.title || url, text: r.text })]); setAttachUrl(""); })
                   .catch(() => toast.error(tr("editor.couldnt_read_that_page")))
                   .finally(() => setAttachBusy(false));
               }}
@@ -5293,7 +5395,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
             title={tr("editor.attach_content_to_build_from_paste_url_or_fi")}
             aria-label={tr("editor.attach_content")}
             aria-expanded={attachOpen}
-            className={`mb-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg ${attachOpen || sources.length || staged.length ? "bg-brand-50 text-brand-ink" : "text-neutral-400 hover:bg-neutral-100"}`}
+            className={`mb-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg ${attachOpen || stagedSources.length || staged.length ? "bg-brand-50 text-brand-ink" : "text-neutral-400 hover:bg-neutral-100"}`}
           >
             <Paperclip size={15} />
           </button>
