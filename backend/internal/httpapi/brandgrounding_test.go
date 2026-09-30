@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"hycanvas/backend/internal/brand"
@@ -73,5 +74,32 @@ func TestBrandGroundingFromKitToleratesEmptyAndBadKits(t *testing.T) {
 	blank := brand.BrandKit{Voice: json.RawMessage(`{"tone":[" "],"doSay":[],"dontSay":[""]}`)}
 	if g := brandGroundingFromKit(blank, func(string) string { return "" }, func(string) float64 { return 0 }); g.Clause != "" {
 		t.Fatalf("blank voice produced %q", g.Clause)
+	}
+}
+
+// The starter kit grounds a deck the way its spec intends: plum then magenta
+// lead the palette, both faces are the brand face, the lockup is the logo
+// with its paper version for deep pages, and the voice clause carries the
+// tone and the do and don't lists.
+func TestBrandGroundingFromTheStarterKit(t *testing.T) {
+	starter, err := brand.BuildStarterKit(func(file string) string { return "id-" + file })
+	if err != nil {
+		t.Fatalf("BuildStarterKit: %v", err)
+	}
+	kit := brand.BrandKit{Palettes: starter.Palettes, Fonts: starter.Fonts, Logos: starter.Logos, Voice: starter.Voice}
+	g := brandGroundingFromKit(kit, func(id string) string { return "/assets/" + id }, func(string) float64 { return 5 })
+	if len(g.Palette) != 8 || g.Palette[0] != "#9b2c72" || g.Palette[1] != "#d6409a" {
+		t.Fatalf("palette = %v", g.Palette)
+	}
+	if g.Fonts == nil || g.Fonts.Heading != "Plus Jakarta Sans" || g.Fonts.Body != "Plus Jakarta Sans" {
+		t.Fatalf("fonts = %+v", g.Fonts)
+	}
+	if g.Logo == nil || g.Logo.AssetID != "id-hycanvas-logo-ink.png" || g.Logo.MinSizePx != 96 || g.Logo.Dark == nil || g.Logo.Dark.AssetID != "id-hycanvas-logo-paper.png" {
+		t.Fatalf("logo = %+v", g.Logo)
+	}
+	for _, want := range []string{"Write in this brand voice. Tone: confident, plain-spoken, warm, specific.", " Do: lead with what the reader can make;", " Don't: compare HyCanvas with other design tools;"} {
+		if !strings.Contains(g.Clause, want) {
+			t.Fatalf("clause %q lacks %q", g.Clause, want)
+		}
 	}
 }

@@ -47,7 +47,8 @@
     "gen:kit-packset": "node scripts/gen-kit-packset.mjs",
     "gen:kit-vocab": "node scripts/gen-kit-vocab.mjs",
     "gen:deck-icons": "node scripts/gen-deck-icons.mjs",
-    "gen:deck-illustrations": "node scripts/gen-deck-illustrations.mjs"
+    "gen:deck-illustrations": "node scripts/gen-deck-illustrations.mjs",
+    "gen:brand-starter": "node scripts/build-brand-starter.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.1.0",

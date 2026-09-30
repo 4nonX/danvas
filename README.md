@@ -269,6 +269,7 @@ All configuration is read from the root `.env` (copy `.env.example`). The most i
 | `S3_*` | optional | S3-compatible object storage (endpoint, bucket, keys) when `STORAGE_DRIVER=s3`. |
 | `ASSET_QUOTA_BYTES` | optional | Per-workspace upload cap in bytes (default 2 GiB). |
 | `USER_STORAGE_QUOTA_BYTES` | optional | Global per-user upload cap across all workspaces; unset/0 = unlimited. For public instances. |
+| `BRAND_STARTER_KIT` | optional | `hycanvas` (default) seeds HyCanvas's own brand kit into workspaces that have none; `off` disables it. See [Branding and theming](#branding-and-theming). |
 | `AI_SECRET` | optional | Encrypts stored per-workspace AI keys; falls back to `JWT_SECRET`. |
 | `OIDC_*` | optional | OIDC single sign-on (issuer, client id/secret). |
 | `AUTH_*_ENABLED` | optional | Enable/disable each sign-in method's login and signup (password, magic link, OIDC). Defaults preserve prior behavior. See [Choosing which sign-in methods are allowed](#choosing-which-sign-in-methods-are-allowed). |
@@ -309,6 +310,12 @@ User-saved templates (Save as template) are stored in the database and need no r
 The app's color identity lives in one file: `frontend/src/theme.config.mjs` (the brand and accent scales, the identity gradient, the editor canvas-overlay colors, and the collaborator presence palette). To rebrand, edit that file and run `npm run gen:theme`. The generator rewrites the Tailwind CSS tokens, the typed canvas-overlay constants, and the Go presence palette, so one change propagates across the UI chrome, the gradient, the logo, the favicon/theme-color, the canvas overlays, and presence colors. `npm run gen:theme:check` (run as part of `npm run lint`) fails if the committed generated files drift from the source.
 
 This product/app accent is intentionally separate from the per-workspace Brand Kit, which themes design content rather than the app shell.
+
+### The starter brand kit
+
+HyCanvas ships its own brand kit the way it ships the template catalog: compiled into the binary (`backend/internal/brand/starter`) and present from the start. A workspace that has no kit receives it as the workspace default when the workspace is created (signup, a first single sign-on login, a new team workspace) and, once, on the first boot after the upgrade for workspaces that predate it. The kit carries the brand palette (plum, magenta, deep plum, blush, ink, paper, plus the gradient ends), Plus Jakarta Sans for headings and body, the logo, the mark and the app tile with light and dark versions stored as assets in the workspace library, and a house voice. A workspace that already has a kit is never touched, and a starter kit the owner deletes or replaces never comes back: the seeding records its visit on the workspace.
+
+The default kit grounds every AI generation in the workspace (voice, palette, faces and the logo on every page), so an instance whose users bring their own brands should set `BRAND_STARTER_KIT="off"`. The spec is `starter/hycanvas.json`; the logo PNGs are rendered from the SVG masters in `starter/src` by `npm run gen:brand-starter` (needs `rsvg-convert`), and a change to either needs a backend rebuild so the binary re-embeds the files.
 
 ## Releases and publishing (maintainers)
 

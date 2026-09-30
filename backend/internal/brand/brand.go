@@ -35,6 +35,9 @@ type Service struct {
 	db     DBTX
 	access Access
 	store  DesignStore
+	// starterAssets stores the starter kit's logo artwork (starter.go); nil
+	// seeds the kit without logos.
+	starterAssets StarterAssets
 }
 
 // NewService wires the brand service (kit-management). Call WithDesignScope to
