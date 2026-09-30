@@ -2,6 +2,7 @@ package aistudio
 
 import (
 	"context"
+	"encoding/json"
 	"strings"
 	"testing"
 )
@@ -195,6 +196,7 @@ func TestShortenPageKeepsTheFormAndSurvivesBadReplies(t *testing.T) {
 		Title: "Why the shoreline is retreating faster than anyone planned for", Archetype: "bullets", VisualRole: "content",
 		Points: []string{"Erosion is accelerating on the north shore every winter", "Two villages have already relocated inland"},
 		Note:   "Say this slowly.", Image: &ImageIntent{Subject: "cliff", Treatment: "photo"},
+		Aside: "the number that surprised us", Drawing: "camping", Signature: "stickyWall", Pairs: []Pair{{Label: "North", Value: "40%"}},
 	}
 	// A good reply: shorter copy, same form.
 	gen := &stubGen{replies: []string{`{"title":"Why the shoreline is retreating","archetype":"bullets","points":["Erosion accelerating on the north shore","Two villages already relocated"]}`}}
@@ -205,6 +207,10 @@ func TestShortenPageKeepsTheFormAndSurvivesBadReplies(t *testing.T) {
 	}
 	if out.Note != page.Note || out.Image == nil {
 		t.Fatal("shortening must carry the note and the image intent through")
+	}
+	// The kit's voice and vocabulary are not copy; they ride through unchanged.
+	if out.Aside != page.Aside || out.Drawing != page.Drawing || out.Signature != page.Signature || len(out.Pairs) != 1 || out.Pairs[0].Value != "40%" {
+		t.Fatalf("shortening must carry the aside, drawing, signature and pairs through, got %+v", out)
 	}
 
 	// A reply that drops the payload the form needs would downgrade it; the
@@ -221,5 +227,32 @@ func TestShortenPageKeepsTheFormAndSurvivesBadReplies(t *testing.T) {
 	svc = NewService(nil, gen)
 	if got := svc.ShortenPage(context.Background(), "ws", page, ""); got.Title != page.Title {
 		t.Fatalf("junk replies must leave the page unchanged, got %+v", got)
+	}
+}
+
+// The outline schema is a formatted string; every verb must be filled and
+// the result must parse, or the model is handed a broken schema.
+func TestOutlineSchemaIsWellFormedJSONWithTheKitFields(t *testing.T) {
+	if strings.Contains(outlineSchema, "%!") {
+		t.Fatalf("outlineSchema has an unfilled verb: %.120s", outlineSchema[strings.Index(outlineSchema, "%!"):])
+	}
+	var v map[string]any
+	if err := json.Unmarshal([]byte(outlineSchema), &v); err != nil {
+		t.Fatalf("outlineSchema is not JSON: %v", err)
+	}
+	props := v["properties"].(map[string]any)
+	for _, k := range []string{"style", "organization", "kicker", "farewell"} {
+		if _, ok := props[k]; !ok {
+			t.Fatalf("root property %q missing", k)
+		}
+	}
+	page := props["pages"].(map[string]any)["items"].(map[string]any)["properties"].(map[string]any)
+	for _, k := range []string{"aside", "drawing", "signature", "pairs"} {
+		if _, ok := page[k]; !ok {
+			t.Fatalf("page property %q missing", k)
+		}
+	}
+	if got := page["aside"].(map[string]any)["maxLength"]; got != float64(maxAsideChars) {
+		t.Fatalf("aside maxLength %v, want %d", got, maxAsideChars)
 	}
 }

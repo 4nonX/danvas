@@ -67,7 +67,7 @@ export function outlineSystemPrompt(designType: DesignType, brandClause: string,
     // drawings and the one signature form. Word-for-word with the Go door's
     // generated copy (kitvocab_gen.go); a deck of any type may carry them,
     // and the composer uses them where the kit sets the deck.
-    kitVocabularyRule,
+    designType === "deck" ? kitVocabularyRule : "",
     `The note is a REQUIRED speaker note for the presenter: 1-3 spoken-style sentences of plain text (no markdown, 100-${maxNoteChars} characters) that add context, evidence, or delivery cues. It must never restate the slide's visible text. Never exceed the length limit; rephrase rather than clipping mid-sentence.`,
     "Do NOT include any layout, colors, sizes, or positions. The archetype is the only visual decision you make; the composer owns geometry.",
     composeRules(settingsAuthorityRule(), contentOnlyRule(), verbosityRule(verbosity), lengthLimitRule(), scopedInstructionRule()),

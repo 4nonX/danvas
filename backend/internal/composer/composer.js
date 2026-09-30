@@ -41472,12 +41472,16 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
       }
       function photoNode(p) {
         var _a5;
-        const data = { panel: true };
         if (p.placeholderId) {
-          data.placeholderId = p.placeholderId;
-          data.aiImagePrompt = (_a5 = p.prompt) != null ? _a5 : "";
+          return (0, schema_1.createNode)("shape", __spreadProps(__spreadValues(__spreadProps(__spreadValues({}, base(__spreadProps(__spreadValues({}, p), { name: "Image" }))), {
+            shape: "rect",
+            fills: [fillOf(p.fill)]
+          }), p.radius ? { cornerRadius: radius(p.radius) } : {}), {
+            data: { placeholderId: p.placeholderId, aiImagePrompt: (_a5 = p.prompt) != null ? _a5 : "" }
+          }));
         }
-        return (0, schema_1.createNode)("frame", __spreadProps(__spreadValues(__spreadProps(__spreadValues({}, base(__spreadProps(__spreadValues({}, p), { name: p.placeholderId ? "Image" : "Photo" }))), {
+        const data = { panel: true };
+        return (0, schema_1.createNode)("frame", __spreadProps(__spreadValues(__spreadProps(__spreadValues({}, base(__spreadProps(__spreadValues({}, p), { name: "Photo" }))), {
           clip: true,
           children: [],
           maskShape: p.shape === "ellipse" ? "ellipse" : "rect",
@@ -43464,10 +43468,10 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         const mult = /[kK]\b/.test(s) ? 1e3 : /[mM]\b/.test(s) ? 1e6 : /[bB]n?\b/.test(s) ? 1e9 : 1;
         return v * mult;
       };
-      function pictureFor(item, K, ctx, slot, prompts, seq) {
+      function pictureFor(item, K, ctx, slot, prompts, seq, allowPhoto = true) {
         var _a5, _b;
         const im = item.image;
-        if ((im == null ? void 0 : im.treatment) === "photo" && im.subject) {
+        if (allowPhoto && (im == null ? void 0 : im.treatment) === "photo" && im.subject) {
           const id2 = `img-${ctx.index + 1}-${seq}`;
           const prompt = `${im.subject}, clean professional photography, ${ctx.artDirection}`;
           prompts[id2] = prompt;
@@ -43679,15 +43683,15 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         const eyebrow = (_b = item.eyebrow) != null ? _b : "";
         const pts = (_c = item.points) != null ? _c : [];
         const aside = item.aside;
-        const pic = (slot) => pictureFor(item, K, ctx, slot, prompts, 1);
+        const pic = (slot, allowPhoto = true) => pictureFor(item, K, ctx, slot, prompts, 1, allowPhoto);
         switch (arch) {
           case "cover": {
-            const p = pic("cover");
+            const p = pic("cover", false);
             const chips = ((_d = item.stats) == null ? void 0 : _d.length) ? item.stats.slice(0, 3).map((s) => [figure(s), s.label]) : void 0;
             return L.cover(K, i, { title: item.title, subtitle: item.subhead, presenterName: K.ornament === "hairlines" && K.company ? K.company : void 0, chips, art: p.art, note: aside });
           }
           case "section": {
-            const p = pic("section");
+            const p = pic("section", false);
             return L.section(K, i, { n: ctx.section ? String(ctx.section).padStart(2, "0") : void 0, title: item.title, blurb: (_e = item.subhead) != null ? _e : pts[0], art: p.art, note: aside });
           }
           case "statement":
@@ -43737,7 +43741,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             if (cols.length < 2)
               return L.textPicture(K, i, __spreadProps(__spreadValues({ eyebrow, title: item.title, points: pts.map(splitPoint) }, pic("picture")), { note: aside }));
             if (/problem|challenge|pain|today|before|without/i.test(cols[0].heading) && /solution|answer|fix|approach|after|with|tomorrow|our/i.test(cols[1].heading)) {
-              const p = pic("picture");
+              const p = pic("picture", false);
               return L.split(K, i, {
                 left: { eyebrow: cols[0].heading, head: item.title, lines: cols[0].points },
                 right: { eyebrow: cols[1].heading, head: cols[1].points.length > 1 ? (_h = item.subhead) != null ? _h : cols[1].heading : cols[1].heading, body: cols[1].points.length > 1 ? void 0 : item.subhead, checks: cols[1].points.map((p0) => [glyph(p0), p0]) },
@@ -43781,7 +43785,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
               var _a6;
               return /^\d{1,2}[:.]\d{2}/.test((_a6 = s.when) != null ? _a6 : "");
             }).length >= steps.length - 1) {
-              const p = pic("section");
+              const p = pic("section", false);
               const last2 = steps[steps.length - 1];
               return L.schedule(K, i, { eyebrow, title: item.title, slots: steps.slice(0, 6).map((s) => {
                 var _a6, _b2;
@@ -43840,7 +43844,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           case "composition":
             return composition(K, i, item, pic("picture"));
           case "closing": {
-            const p = pic("closing");
+            const p = pic("closing", false);
             const rows = [];
             const rest = [];
             for (const p0 of pts) {
@@ -43950,7 +43954,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           archetype: c.archetype,
           imagePrompts: c.imagePrompts
         }, outline.pages[i].note ? { note: outline.pages[i].note } : {}));
-        return { title: outline.title, pages, system, report };
+        return { title: outline.title, pages, system, report, renderer: kitLook ? "kit" : "classic" };
       }
     }
   });
@@ -44402,7 +44406,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           // drawings and the one signature form. Word-for-word with the Go door's
           // generated copy (kitvocab_gen.go); a deck of any type may carry them,
           // and the composer uses them where the kit sets the deck.
-          vocab_1.kitVocabularyRule,
+          designType === "deck" ? vocab_1.kitVocabularyRule : "",
           `The note is a REQUIRED speaker note for the presenter: 1-3 spoken-style sentences of plain text (no markdown, 100-${outline_1.maxNoteChars} characters) that add context, evidence, or delivery cues. It must never restate the slide's visible text. Never exceed the length limit; rephrase rather than clipping mid-sentence.`,
           "Do NOT include any layout, colors, sizes, or positions. The archetype is the only visual decision you make; the composer owns geometry.",
           (0, promptRules_1.composeRules)((0, promptRules_1.settingsAuthorityRule)(), (0, promptRules_1.contentOnlyRule)(), (0, promptRules_1.verbosityRule)(verbosity), (0, promptRules_1.lengthLimitRule)(), (0, promptRules_1.scopedInstructionRule)()),

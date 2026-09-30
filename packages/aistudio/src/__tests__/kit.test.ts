@@ -122,6 +122,33 @@ describe("the kit sets a 16 by 9 deck in a named style", () => {
     expect(toHex(byMood.system.colors.paper).toUpperCase()).toBe(KIT_STYLES.campfire.paper.bg.toUpperCase());
   });
 
+  it("registers a picture slot only where a layout draws one", () => {
+    const photo = { subject: "a wide monitor on a tidy desk", treatment: "photo" as const };
+    const withPhotos = {
+      ...outline,
+      pages: [
+        { ...outline.pages[0], image: photo },
+        { title: "The new control plane", archetype: "imageCaption", eyebrow: "What shipped", subhead: "One dashboard replaces four.", image: photo, points: ["Latency: p95 down 38%", "Cost: $41k a month saved"], note: "n" },
+        { ...outline.pages[5], image: photo },
+      ],
+    };
+    const deck = layoutDeck(normalizeOutline(withPhotos), deckThemes({ count: 1 })[0], { width: 1920, height: 1080 }, { renderer: "kit", seed: 3 });
+    // The cover and the closing compose a drawing in a halo whatever the
+    // intent, and hand the pipeline nothing; the caption page gets one tagged
+    // stand-in shape, the same kind both picture ladders replace.
+    expect(Object.keys(deck.pages[0].imagePrompts)).toEqual([]);
+    expect(deck.pages[0].nodes.some((n) => n.name === "Illustration")).toBe(true);
+    expect(Object.keys(deck.pages[2].imagePrompts)).toEqual([]);
+    const ids = Object.keys(deck.pages[1].imagePrompts);
+    expect(ids).toHaveLength(1);
+    const slot = deck.pages[1].nodes.find((n) => (n as N).data?.placeholderId === ids[0]) as N | undefined;
+    expect(slot?.type).toBe("shape");
+    expect(slot?.name).toBe("Image");
+    expect(deck.pages[1].imagePrompts[ids[0]]).toContain("a wide monitor on a tidy desk");
+    expect(deck.pages[1].nodes.some((n) => n.name === "Illustration")).toBe(false);
+    expect(deck.renderer).toBe("kit");
+  });
+
   it("shapes copy for the forms", () => {
     expect(splitPoint("Retention leads growth: net revenue retention held above 118%.")).toEqual(["Retention leads growth", "net revenue retention held above 118%."]);
     expect(splitPoint("Mornings are won by seven")).toEqual(["Mornings are won by seven", ""]);

@@ -65,6 +65,10 @@ func outlineSystem(designType, brandClause string, pageCount int) string {
 	if pageCount > 0 {
 		count = fmt.Sprintf("Aim for about %d pages. ", pageCount)
 	}
+	kitClause := ""
+	if designType == "deck" || designType == "" {
+		kitClause = kitVocabularyRule
+	}
 	parts := []string{
 		"You are a senior presentation designer and content strategist. You plan a deck the way a designer does: story first, then one compositional form per slide, then copy written to fit that form.",
 		"Plan this design as an editable outline. " + guide,
@@ -100,7 +104,8 @@ func outlineSystem(designType, brandClause string, pageCount int) string {
 		// The kit's vocabulary: the style the deck is set in, its voice, the
 		// drawings and the one signature form. Generated from the composer
 		// package (kitvocab_gen.go) and held identical to kit/vocab.ts by test.
-		kitVocabularyRule,
+		// Only a deck is set by the kit, so only a deck's prompt carries it.
+		kitClause,
 		fmt.Sprintf("The note is a REQUIRED speaker note for the presenter: 1-3 spoken-style sentences of plain text (no markdown, 100-%d characters) that add context, evidence, or delivery cues. It must never restate the slide's visible text. Never exceed the length limit; rephrase rather than clipping mid-sentence.", maxNoteChars),
 		"Do NOT include any layout, colors, sizes, or positions. The archetype is the only visual decision you make; the composer owns geometry.",
 		ruleSettingsAuthority + " " + ruleContentOnly + " " + ruleVerbosity("") + " " + ruleLengthLimit + " " + ruleScopedInstruction,
@@ -108,7 +113,13 @@ func outlineSystem(designType, brandClause string, pageCount int) string {
 	if strings.TrimSpace(brandClause) != "" {
 		parts = append(parts, brandClause)
 	}
-	return strings.Join(parts, " ")
+	kept := parts[:0]
+	for _, part := range parts {
+		if part != "" {
+			kept = append(kept, part)
+		}
+	}
+	return strings.Join(kept, " ")
 }
 
 // capOutlinePages enforces the page-count contract the model only receives as a
@@ -311,6 +322,19 @@ func (s *Service) ShortenPage(ctx context.Context, workspaceID string, page Outl
 	}
 	if out.Eyebrow == "" {
 		out.Eyebrow = page.Eyebrow
+	}
+	// The kit's voice and vocabulary are not copy to shorten; they ride through.
+	if out.Aside == "" {
+		out.Aside = page.Aside
+	}
+	if out.Drawing == "" {
+		out.Drawing = page.Drawing
+	}
+	if out.Signature == "" {
+		out.Signature = page.Signature
+	}
+	if len(out.Pairs) == 0 {
+		out.Pairs = page.Pairs
 	}
 	normalizeArchetypeFields(&out)
 	// A downgrade would mean the shortened reply dropped a payload the form

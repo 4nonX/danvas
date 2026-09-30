@@ -300,11 +300,23 @@ function iconNode(p: IconPrim): Node | null {
   } as never) as Node;
 }
 
+/** A picture slot. Tagged for the picture pipeline, it is the same stand-in
+ *  shape the classic composer makes (both ladders, the editor's and the
+ *  API's, replace a tagged shape with the picture); untagged, it is an empty
+ *  image frame a photo can be dropped on, elliptical for a portrait. */
 function photoNode(p: PhotoPrim): Node {
+  if (p.placeholderId) {
+    return createNode("shape", {
+      ...base({ ...p, name: "Image" }),
+      shape: "rect",
+      fills: [fillOf(p.fill)],
+      ...(p.radius ? { cornerRadius: radius(p.radius) } : {}),
+      data: { placeholderId: p.placeholderId, aiImagePrompt: p.prompt ?? "" },
+    } as never) as Node;
+  }
   const data: Record<string, unknown> = { panel: true };
-  if (p.placeholderId) { data.placeholderId = p.placeholderId; data.aiImagePrompt = p.prompt ?? ""; }
   return createNode("frame", {
-    ...base({ ...p, name: p.placeholderId ? "Image" : "Photo" }),
+    ...base({ ...p, name: "Photo" }),
     clip: true,
     children: [],
     maskShape: p.shape === "ellipse" ? "ellipse" : "rect",

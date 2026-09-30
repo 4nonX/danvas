@@ -95,9 +95,13 @@ interface PictureChoice { picture: L.PictureIntent | null; art?: string }
 
 /** What a picture slot carries: a tagged placeholder for a photograph the
  *  pipeline will fetch or generate, else a drawing from the pack. */
-function pictureFor(item: OutlineItem, K: KitLook, ctx: KitContext, slot: keyof KitLook["art"], prompts: Record<string, string>, seq: number): PictureChoice {
+function pictureFor(item: OutlineItem, K: KitLook, ctx: KitContext, slot: keyof KitLook["art"], prompts: Record<string, string>, seq: number, allowPhoto = true): PictureChoice {
   const im = item.image;
-  if (im?.treatment === "photo" && im.subject) {
+  // A slot is registered only where the layout draws one; the deep pages
+  // (cover, section, closing) and the split and schedule compose a drawing in
+  // a halo whatever the intent, so a prompt with no node to land on is never
+  // handed to the picture pipeline.
+  if (allowPhoto && im?.treatment === "photo" && im.subject) {
     const id = `img-${ctx.index + 1}-${seq}`;
     const prompt = `${im.subject}, clean professional photography, ${ctx.artDirection}`;
     prompts[id] = prompt;
@@ -254,17 +258,17 @@ function catalogSlide(K: KitLook, i: number, item: OutlineItem, ctx: KitContext,
   const eyebrow = item.eyebrow ?? "";
   const pts = item.points ?? [];
   const aside = item.aside;
-  const pic = (slot: keyof KitLook["art"]) => pictureFor(item, K, ctx, slot, prompts, 1);
+  const pic = (slot: keyof KitLook["art"], allowPhoto = true) => pictureFor(item, K, ctx, slot, prompts, 1, allowPhoto);
   switch (arch) {
     case "cover": {
-      const p = pic("cover");
+      const p = pic("cover", false);
       const chips = item.stats?.length ? item.stats.slice(0, 3).map((s) => [figure(s), s.label] as [string, string]) : undefined;
       // The mark already names the organization; the centered cover's meta
       // row is the one place it is said again.
       return L.cover(K, i, { title: item.title, subtitle: item.subhead, presenterName: K.ornament === "hairlines" && K.company ? K.company : undefined, chips, art: p.art, note: aside });
     }
     case "section": {
-      const p = pic("section");
+      const p = pic("section", false);
       return L.section(K, i, { n: ctx.section ? String(ctx.section).padStart(2, "0") : undefined, title: item.title, blurb: item.subhead ?? pts[0], art: p.art, note: aside });
     }
     case "statement":
@@ -302,7 +306,7 @@ function catalogSlide(K: KitLook, i: number, item: OutlineItem, ctx: KitContext,
       // A problem beside its answer is the pitch's split page: the problem
       // on the deep ground, the answer checked off on paper.
       if (/problem|challenge|pain|today|before|without/i.test(cols[0].heading) && /solution|answer|fix|approach|after|with|tomorrow|our/i.test(cols[1].heading)) {
-        const p = pic("picture");
+        const p = pic("picture", false);
         return L.split(K, i, {
           left: { eyebrow: cols[0].heading, head: item.title, lines: cols[0].points },
           right: { eyebrow: cols[1].heading, head: cols[1].points.length > 1 ? item.subhead ?? cols[1].heading : cols[1].heading, body: cols[1].points.length > 1 ? undefined : item.subhead, checks: cols[1].points.map((p0) => [glyph(p0), p0] as [string, string]) },
@@ -334,7 +338,7 @@ function catalogSlide(K: KitLook, i: number, item: OutlineItem, ctx: KitContext,
       // Steps stamped with clock times are a day's schedule: slots down the
       // left, the evening on a deep card at right.
       if (steps.length >= 3 && steps.filter((s) => /^\d{1,2}[:.]\d{2}/.test(s.when ?? "")).length >= steps.length - 1) {
-        const p = pic("section");
+        const p = pic("section", false);
         const last = steps[steps.length - 1];
         return L.schedule(K, i, { eyebrow, title: item.title, slots: steps.slice(0, 6).map((s) => [s.when ?? "", s.label, s.detail ?? ""]), after: { eyebrow: item.subhead ? "Then" : last.when ?? "", head: item.subhead ?? last.label, note: aside }, art: p.art });
       }
@@ -374,7 +378,7 @@ function catalogSlide(K: KitLook, i: number, item: OutlineItem, ctx: KitContext,
     case "composition":
       return composition(K, i, item, pic("picture"));
     case "closing": {
-      const p = pic("closing");
+      const p = pic("closing", false);
       const rows: [string, string][] = [];
       const rest: string[] = [];
       for (const p0 of pts) { const ic = contactIcon(p0); if (ic && rows.length < 3) rows.push([ic, p0]); else rest.push(p0); }

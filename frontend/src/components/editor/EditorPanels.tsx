@@ -3539,11 +3539,13 @@ function runPlanStep(step: PlanStep, ctx?: { brandTargets?: BrandFixTarget[]; pa
         }),
       );
       // A page whose picture the composer drew itself (a drawing from the
-      // set, procedural artwork) needs no hero picture behind it either.
+      // set, procedural artwork) needs no hero picture behind it either, and
+      // a kit deck draws every picture it wants: a photograph lands in a
+      // tagged slot, everything else is a drawing in a halo.
       const withSlots = new Set(deck.pages.map((p, i) => (Object.keys(p.imagePrompts).length || p.nodes.some((n) => n.name === "Illustration" || n.name === "Artwork") ? i : -1)));
       enqueueAiImages([
         ...slotTasks,
-        ...heroPlans.filter((h) => !withSlots.has(h.pageIndex)).map((h) => ({
+        ...heroPlans.filter((h) => deck.renderer !== "kit" && !withSlots.has(h.pageIndex)).map((h) => ({
           workspaceId,
           designId: designId ?? "",
           pageId: ids[h.pageIndex],

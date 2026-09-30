@@ -39,6 +39,10 @@ export interface DeckResult {
   system: DesignSystem;
   /** The reviewer's report on the deck as returned, after the fix pass. */
   report: DeckReport;
+  /** Which composer drew the pages. A kit deck draws its own pictures
+   *  (drawings in halos, tagged slots for photographs), so a caller adds no
+   *  hero picture behind any of its pages. */
+  renderer: "kit" | "classic";
 }
 
 export type LayoutDeckOptions = DeriveOptions & {
@@ -143,5 +147,5 @@ export function layoutDeck(
     imagePrompts: c.imagePrompts,
     ...(outline.pages[i].note ? { note: outline.pages[i].note } : {}),
   }));
-  return { title: outline.title, pages, system, report };
+  return { title: outline.title, pages, system, report, renderer: kitLook ? "kit" : "classic" };
 }
