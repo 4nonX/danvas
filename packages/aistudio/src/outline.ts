@@ -111,8 +111,19 @@ export const archetypeBudgets = {
   imageSubject: 140, chartCategories: 12, chartSeries: 4,
   stats: 4, tableColumns: 5, tableRows: 8, tableCell: 60, people: 4, personName: 40, personRole: 40, stepWhen: 20, columnIcon: 30,
   eyebrow: 24,
+  // The kit's voice and vocabulary fields (kit/): the deck's style, kicker
+  // and farewell, a page's aside, drawing, signature form and pairs.
+  style: 24, organization: 60, kicker: 40, farewell: 32, aside: 60, drawing: 30, signature: 20, pairs: 8, pairLabel: 40, pairValue: 24,
   compositionCells: 8, compositionText: 140, compositionPoints: 4, compositionPoint: 70, compositionLinks: 8,
 } as const;
+
+/** A label and its value, for the kit's signature forms (a ledger line, a
+ *  poll bar, a health tile) and for a kpiGrid's deltas. */
+export interface Pair { label: string; value: string }
+
+/** The kit's signature forms a page may name; at most one page per deck
+ *  gets its form. Mirrored in specs.go and in kit/signature.ts. */
+export const outlineSignatures = ["scoreboard", "beforeAfter", "funnel", "ledger", "stickyWall", "matrix", "runOfShow", "poll", "definition", "healthGrid"] as const;
 
 export interface OutlineItem {
   id: string;
@@ -149,6 +160,16 @@ export interface OutlineItem {
   /** Two or three words saying what the page is about ("The problem",
    *  "Traction", "The ask"), set small and tracked above the title. */
   eyebrow?: string;
+  /** A hand-written remark in the presenter's voice, set in the deck's
+   *  accent face beside the content; never a restatement of the slide. */
+  aside?: string;
+  /** One keyword naming a full-colour drawing from the kit's pack, placed
+   *  in a halo beside the page's copy. */
+  drawing?: string;
+  /** The kit's signature form for this page, when the deck gives it one. */
+  signature?: string;
+  /** Labels and values for the signature forms and for kpiGrid deltas. */
+  pairs?: Pair[];
 }
 
 /** Hard cap on a speaker note; the prompt asks for 100..500 chars and the
@@ -163,6 +184,14 @@ export interface DesignOutline {
   /** The house style the model named for the whole deck; a dial or an API
    *  field overrides it, and a catalog style stands in when absent. */
   look?: DeckLook;
+  /** The kit style the deck is set in (kit/looks.ts); unknown or absent
+   *  names fall back to one chosen by the title. */
+  style?: string;
+  /** The deck's voice: where it comes from, the line that opens the cover
+   *  and the statements, and the closing's first line. */
+  organization?: string;
+  kicker?: string;
+  farewell?: string;
 }
 
 /** A coherent visual system shared by every page in one generated design. */
@@ -505,6 +534,10 @@ export function normalizeOutline(parsed: unknown): DesignOutline {
   const title = str(root.title) || "Untitled";
   const theme = str(root.theme);
   const look = isDeckLook(root.look) ? root.look : undefined;
+  const style = iconKeyword(root.style).slice(0, archetypeBudgets.style);
+  const organization = clipToBudget(root.organization, archetypeBudgets.organization);
+  const kicker = clipToBudget(root.kicker, archetypeBudgets.kicker);
+  const farewell = clipToBudget(root.farewell, archetypeBudgets.farewell);
   const rawPages = Array.isArray(root.pages) ? root.pages : [];
   const pages: OutlineItem[] = [];
   for (const item of rawPages) {
@@ -527,6 +560,15 @@ export function normalizeOutline(parsed: unknown): DesignOutline {
     const visualRole = namedRole ?? roleForArchetype[typed.archetype];
     const note = normalizeNote(p.note);
     const titleMax = typed.archetype === "statement" ? archetypeBudgets.statement : archetypeBudgets.title;
+    const aside = clipToBudget(p.aside, archetypeBudgets.aside);
+    const drawing = iconKeyword(p.drawing);
+    const signature = (outlineSignatures as readonly string[]).includes(str(p.signature)) ? str(p.signature) : "";
+    const pairs = Array.isArray(p.pairs)
+      ? (p.pairs as unknown[]).slice(0, archetypeBudgets.pairs).map((v) => {
+          const o = (v && typeof v === "object" ? v : {}) as Record<string, unknown>;
+          return { label: clipToBudget(o.label, archetypeBudgets.pairLabel), value: clipToBudget(o.value, archetypeBudgets.pairValue) };
+        }).filter((pr) => pr.label && pr.value)
+      : [];
     pages.push({
       id: nextId(),
       title: undashTitle(clipToBudget(pTitle, titleMax)) || "Untitled",
@@ -534,12 +576,16 @@ export function normalizeOutline(parsed: unknown): DesignOutline {
       visualRole,
       ...(note ? { note } : {}),
       ...typed,
+      ...(aside ? { aside } : {}),
+      ...(drawing ? { drawing } : {}),
+      ...(signature ? { signature } : {}),
+      ...(pairs.length ? { pairs } : {}),
     });
   }
   if (!pages.length) {
     throw new OutlineError("The AI didn't return any pages. Try a more specific prompt.");
   }
-  return { title, theme, pages, ...(look ? { look } : {}) };
+  return { title, theme, pages, ...(look ? { look } : {}), ...(style ? { style } : {}), ...(organization ? { organization } : {}), ...(kicker ? { kicker } : {}), ...(farewell ? { farewell } : {}) };
 }
 
 /** JSON Schema for a DesignOutline, embedded in the generation prompt. */
@@ -551,6 +597,10 @@ export const outlineJsonSchema = {
     title: { type: "string" },
     theme: { type: "string", description: "short mood/topic phrase" },
     look: { type: "string", enum: deckLooks, description: "the deck's house style: editorial, bold, technical or classic" },
+    style: { type: "string", maxLength: archetypeBudgets.style, description: "the deck's visual system, one of the named styles" },
+    organization: { type: "string", maxLength: archetypeBudgets.organization, description: "the company, team or event the deck comes from, when the brief names it" },
+    kicker: { type: "string", maxLength: archetypeBudgets.kicker, description: "a short line in the deck's own voice that opens the cover and the statement pages" },
+    farewell: { type: "string", maxLength: archetypeBudgets.farewell, description: "the closing's first line" },
     pages: {
       type: "array",
       minItems: 1,
@@ -575,6 +625,10 @@ export const outlineJsonSchema = {
           stats: { type: "array", minItems: 2, maxItems: archetypeBudgets.stats, items: { type: "object", additionalProperties: false, required: ["value", "label"], properties: { value: { type: "string", maxLength: archetypeBudgets.statValue }, unit: { type: "string", maxLength: archetypeBudgets.statUnit }, label: { type: "string", maxLength: archetypeBudgets.statLabel }, icon: { type: "string", maxLength: archetypeBudgets.columnIcon, description: "one English keyword naming a simple icon for the figure" } } }, description: "2-4 figures that belong together; only for kpiGrid" },
           table: { type: "object", additionalProperties: false, required: ["columns", "rows"], properties: { columns: { type: "array", minItems: 1, maxItems: archetypeBudgets.tableColumns, items: { type: "string", maxLength: archetypeBudgets.tableCell } }, rows: { type: "array", minItems: 1, maxItems: archetypeBudgets.tableRows, items: { type: "array", items: { type: "string", maxLength: archetypeBudgets.tableCell } } } }, description: "a small table of real values from the brief or attached material; only for table" },
           composition: { type: "object", additionalProperties: false, required: ["cells"], properties: { cells: { type: "array", minItems: 1, maxItems: archetypeBudgets.compositionCells, items: { type: "object", additionalProperties: false, required: ["col", "span", "row", "rows", "kind"], properties: { col: { type: "integer", minimum: 0, maximum: 11 }, span: { type: "integer", minimum: 1, maximum: 12 }, row: { type: "integer", minimum: 0, maximum: 5 }, rows: { type: "integer", minimum: 1, maximum: 6 }, kind: { type: "string", enum: ["heading", "body", "list", "figure", "label", "icon", "picture"] }, text: { type: "string", maxLength: archetypeBudgets.compositionText }, points: { type: "array", maxItems: archetypeBudgets.compositionPoints, items: { type: "string", maxLength: archetypeBudgets.compositionPoint } }, value: { type: "string", maxLength: archetypeBudgets.statValue }, unit: { type: "string", maxLength: archetypeBudgets.statUnit }, icon: { type: "string", maxLength: archetypeBudgets.columnIcon }, tone: { type: "string", enum: ["plain", "tint", "accent", "deep"] } } } }, links: { type: "array", maxItems: archetypeBudgets.compositionLinks, items: { type: "array", minItems: 2, maxItems: 2, items: { type: "integer", minimum: 0 } } } }, description: "a bespoke page: up to 8 cells placed on a 12-column by 6-row grid (col 0-11, span, row 0-5, rows), each a heading, body, list, figure, label, icon or picture with an optional tone (tint, accent, deep) that paints a panel behind it; links are pairs of cell indexes drawn as arrows; cells never overlap; only for composition, and only when no catalog form fits" },
+          aside: { type: "string", maxLength: archetypeBudgets.aside, description: "a hand-written remark in the presenter's voice beside the content; about one page in three; never restates the slide" },
+          drawing: { type: "string", maxLength: archetypeBudgets.drawing, description: "one keyword naming a full-colour drawing for the page, from the named list" },
+          signature: { type: "string", enum: outlineSignatures, description: "a form built for this page's content; at most one page per deck" },
+          pairs: { type: "array", maxItems: archetypeBudgets.pairs, items: { type: "object", additionalProperties: false, required: ["label", "value"], properties: { label: { type: "string", maxLength: archetypeBudgets.pairLabel }, value: { type: "string", maxLength: archetypeBudgets.pairValue } } }, description: "labels and values for a signature form (ledger lines, poll bars, health statuses, funnel figures) or kpiGrid deltas" },
           people: { type: "array", minItems: 1, maxItems: archetypeBudgets.people, items: { type: "object", additionalProperties: false, required: ["name"], properties: { name: { type: "string", maxLength: archetypeBudgets.personName }, role: { type: "string", maxLength: archetypeBudgets.personRole } } }, description: "the people on a team slide; only for team" },
           note: {
             type: "string",

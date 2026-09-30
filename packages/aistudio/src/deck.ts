@@ -14,6 +14,9 @@ import type { Archetype, DeckTheme, DesignOutline, DesignType } from "./outline"
 import { deriveDesignSystem, type DesignSystem, type DeriveOptions } from "./designSystem";
 import { composeArchetypePage, type ComposedPage } from "./archetypes";
 import { measureDeck, planVariants, toMeasurable, type DeckReport, type PageVariant } from "./measure";
+import { fromHex } from "@hc/color";
+import { applyBrand, applyThemeSlots, makeLook, resolveKitStyle } from "./kit/look";
+import { composeKitPage, kitFits } from "./kit/render";
 
 export interface DeckPage {
   background: Fill;
@@ -41,6 +44,18 @@ export interface DeckResult {
 export type LayoutDeckOptions = DeriveOptions & {
   /** What the pages are; a post or poster carries no deck furniture. */
   designType?: DesignType;
+  /** Which composer draws the pages: the kit (the signature templates'
+   *  systems and forms; the doors' default for a 16 by 9 deck) or the
+   *  classic archetype composer. The kit falls back to the classic composer
+   *  for a page it cannot set (a post, a poster, a document). */
+  renderer?: "kit" | "classic";
+  /** The brand kit's faces, applied to the kit's display and body roles
+   *  when `fontsAuthored` is set. */
+  brandFonts?: { heading?: string; body?: string };
+  /** True when the user chose the catalog theme (a dial, a template), so
+   *  the kit wears its six slots; a theme picked by mood for an unbranded
+   *  deck does not override the kit's own style. */
+  themeChosen?: boolean;
 };
 
 /** Lay out every outline page into a DeckPage. */
@@ -55,13 +70,45 @@ export function layoutDeck(
   const themed: DeckTheme = { ...theme, kicker: theme.kicker ?? outline.title };
   // The outline's own mood phrase directs the deck's pictures unless the
   // caller named one.
-  const system = deriveDesignSystem(themed, size, { ...opts, mood: opts?.mood ?? outline.theme, outlineLook: opts?.outlineLook ?? outline.look });
+  let system = deriveDesignSystem(themed, size, { ...opts, mood: opts?.mood ?? outline.theme, outlineLook: opts?.outlineLook ?? outline.look });
   const total = outline.pages.length;
   // Section dividers are numbered in deck order.
   let sections = 0;
   const sectionNumbers = outline.pages.map((item) => (item.archetype === "section" ? ++sections : undefined));
-  const composeAll = (variants: Record<number, PageVariant>) =>
-    outline.pages.map((item, i) => composeArchetypePage(item, system, { index: i, total, variant: variants[i], section: sectionNumbers[i], designType: opts?.designType }));
+  // The kit sets a 16 by 9 deck in one of the signature templates' systems:
+  // the style the outline named (or one by title seed), repainted in the
+  // brand when there is one, with the deck's own voice merged in. The
+  // file's theme record then carries the kit's palette and pairing, so the
+  // theme picker shows what the pages wear.
+  const useKit = opts?.renderer === "kit" && kitFits(size, opts?.designType);
+  const chosenSlots = opts?.themeChosen && opts?.catalog ? opts.catalog.colors : null;
+  const kitLook = useKit
+    ? makeLook(
+        applyBrand(chosenSlots ? applyThemeSlots(resolveKitStyle({ style: outline.style, look: opts?.look ?? opts?.outlineLook ?? outline.look, seed: opts?.seed }), chosenSlots) : resolveKitStyle({ style: outline.style, look: opts?.look ?? opts?.outlineLook ?? outline.look, seed: opts?.seed }), {
+          brandPalette: opts?.brandPalette,
+          brandFonts: opts?.fontsAuthored ? { heading: opts?.brandFonts?.heading ?? theme.fontHeading, body: opts?.brandFonts?.body ?? theme.fontBody } : undefined,
+        }),
+        { organization: outline.organization, deckName: outline.title, kicker: outline.kicker, farewell: outline.farewell, total, logo: opts?.logo },
+      )
+    : null;
+  if (kitLook) {
+    const c = (hex: string) => fromHex(hex) ?? system.colors.ink;
+    system = {
+      ...system,
+      fonts: { heading: kitLook.display, body: kitLook.body, ...(kitLook.mono ? { mono: kitLook.mono } : {}) },
+      colors: { ...system.colors, primary: c(kitLook.paper.accent2), accent: c(kitLook.paper.accent), deep: c(kitLook.deep.bg), tint: c(kitLook.paper.panel), ink: c(kitLook.paper.ink), paper: c(kitLook.paper.bg) },
+      radius: kitLook.radius,
+    };
+  }
+  const signatureUsed = { value: false };
+  const composeAll = (variants: Record<number, PageVariant>) => {
+    signatureUsed.value = false;
+    return outline.pages.map((item, i) =>
+      kitLook
+        ? composeKitPage(item, kitLook, { index: i, total, section: sectionNumbers[i], designType: opts?.designType, motion: system.motion, scale: size.width / 1920, artDirection: system.artDirection, signatureUsed })
+        : composeArchetypePage(item, system, { index: i, total, variant: variants[i], section: sectionNumbers[i], designType: opts?.designType }),
+    );
+  };
   // Look, and fix what a look can fix: a text the checker would flag for
   // contrast is re-inked before it is measured, so the report says what
   // shipped and not what almost did.
@@ -80,7 +127,9 @@ export function layoutDeck(
   // copy, stays in the report for the caller.
   let composed = composeAll({});
   let report = measure(composed);
-  const variants = planVariants(report, outline);
+  // The kit's forms carry their own rhythm; variants are the classic
+  // composer's remedy and are not re-composed for.
+  const variants = kitLook ? {} : planVariants(report, outline);
   if (Object.keys(variants).length) {
     composed = composeAll(variants);
     report = measure(composed);

@@ -58,6 +58,20 @@ type OutlineItem struct {
 	// Eyebrow is two or three words saying what the page is about, set small
 	// above the title.
 	Eyebrow string `json:"eyebrow,omitempty"`
+	// The kit's voice and vocabulary (kit/ in the composer package): a
+	// hand-written aside, a drawing keyword, a signature form and the pairs
+	// of label and value the signature forms draw from. Mirrors outline.ts.
+	Aside     string `json:"aside,omitempty"`
+	Drawing   string `json:"drawing,omitempty"`
+	Signature string `json:"signature,omitempty"`
+	Pairs     []Pair `json:"pairs,omitempty"`
+}
+
+// Pair is a label and its value, for the kit's signature forms and a
+// kpiGrid's deltas. Mirrors Pair in outline.ts.
+type Pair struct {
+	Label string `json:"label"`
+	Value string `json:"value"`
 }
 
 // CompositionCell is one cell of a bespoke page on the 12-column by 6-row
@@ -214,6 +228,15 @@ const (
 	maxStepWhen       = 20
 	maxColIcon        = 30
 	maxEyebrowChars   = 24
+	maxStyleChars     = 24
+	maxOrgChars       = 60
+	maxKickerChars    = 40
+	maxFarewellChars  = 32
+	maxAsideChars     = 60
+	maxDrawingChars   = 30
+	maxPairs          = 8
+	maxPairLabelChars = 40
+	maxPairValueChars = 24
 	maxCompCells      = 8
 	maxCompText       = 140
 	maxCompPoints     = 4
@@ -231,6 +254,13 @@ type DesignOutline struct {
 	// Look is the house style the model named for the whole deck. Mirrors
 	// DesignOutline.look in outline.ts.
 	Look string `json:"look,omitempty"`
+	// Style is the kit style the deck is set in; Organization, Kicker and
+	// Farewell are the deck's voice. Mirrors outline.ts; an unknown style is
+	// kept and falls back in the composer, as the TypeScript normalizer does.
+	Style        string `json:"style,omitempty"`
+	Organization string `json:"organization,omitempty"`
+	Kicker       string `json:"kicker,omitempty"`
+	Farewell     string `json:"farewell,omitempty"`
 }
 
 // deckLooks is the set of house styles. Mirrors deckLooks in look.ts.
@@ -243,6 +273,10 @@ func validateOutline(o *DesignOutline) error {
 	if !deckLooks[o.Look] {
 		o.Look = ""
 	}
+	o.Style = iconKeyword(clipRunes(strings.TrimSpace(o.Style), maxStyleChars))
+	o.Organization = clipRunes(strings.TrimSpace(o.Organization), maxOrgChars)
+	o.Kicker = clipRunes(strings.TrimSpace(o.Kicker), maxKickerChars)
+	o.Farewell = clipRunes(strings.TrimSpace(o.Farewell), maxFarewellChars)
 	clean := o.Pages[:0]
 	for _, p := range o.Pages {
 		// Archetype and role are two views of one decision. A reply that names
@@ -482,6 +516,25 @@ func iconKeyword(v string) string {
 
 func normalizeArchetypeFields(p *OutlineItem) {
 	p.Icon = iconKeyword(p.Icon)
+	p.Aside = clipRunes(strings.TrimSpace(p.Aside), maxAsideChars)
+	p.Drawing = iconKeyword(clipRunes(strings.TrimSpace(p.Drawing), maxDrawingChars))
+	if !kitSignatures[strings.TrimSpace(p.Signature)] {
+		p.Signature = ""
+	} else {
+		p.Signature = strings.TrimSpace(p.Signature)
+	}
+	pairs := p.Pairs[:0]
+	for _, pr := range p.Pairs {
+		if len(pairs) >= maxPairs {
+			break
+		}
+		pr.Label = clipRunes(strings.TrimSpace(pr.Label), maxPairLabelChars)
+		pr.Value = clipRunes(strings.TrimSpace(pr.Value), maxPairValueChars)
+		if pr.Label != "" && pr.Value != "" {
+			pairs = append(pairs, pr)
+		}
+	}
+	p.Pairs = pairs
 	p.Title = undashTitle(clipRunes(strings.TrimSpace(p.Title), maxTitleChars))
 	p.Subhead = clipRunes(strings.TrimSpace(p.Subhead), maxSubheadChars)
 	p.Eyebrow = clipRunes(strings.TrimSpace(p.Eyebrow), maxEyebrowChars)

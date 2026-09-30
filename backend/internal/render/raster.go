@@ -1339,7 +1339,13 @@ func (rc *rctx) rasterNodeDirect(m mat, node map[string]any) {
 		if asStr(node["type"]) == "frame" {
 			if fill := firstFill(node); fill != nil {
 				if w, h := sizeOf(node); w > 0 && h > 0 {
-					rc.fillPolyPaint(transformPts(cm, [][2]float64{{0, 0}, {w, 0}, {w, h}, {0, h}}), fill, avgScale(cm))
+					// An elliptical frame (a portrait slot) fills its ellipse, as
+					// the browser clips it; every other mask fills the box.
+					if asStr(node["maskShape"]) == "ellipse" {
+						rc.fillPolyPaint(transformPts(cm, ellipseOutline(w, h, avgScale(cm))), fill, avgScale(cm))
+					} else {
+						rc.fillPolyPaint(transformPts(cm, [][2]float64{{0, 0}, {w, 0}, {w, h}, {0, h}}), fill, avgScale(cm))
+					}
 				}
 			}
 		}

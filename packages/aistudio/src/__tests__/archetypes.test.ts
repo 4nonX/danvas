@@ -784,7 +784,8 @@ describe("every catalog theme reads at AA on both grounds", () => {
   it("Midnight, whose deep slot is a sky blue, composes a whole deck with no contrast issue and no repair needed", () => {
     const pages = ["cover", "agenda", "kpiGrid", "twoColumn", "process", "quote", "closing"] as Archetype[];
     const outline = { title: "Meridian: Q3 update", pages: pages.map((a) => pageFor(a)) };
-    const { report } = composeDeckFileWithReport({ outline, width: 1920, height: 1080, themeId: "theme-midnight" });
+    // The classic composer's own guarantee: the catalog theme's derived inks.
+    const { report } = composeDeckFileWithReport({ outline, width: 1920, height: 1080, themeId: "theme-midnight", renderer: "classic" });
     expect(report.pages.flatMap((p) => p.issues).filter((i) => i.kind === "contrast")).toEqual([]);
     expect(report.repairs).toBe(0);
   });

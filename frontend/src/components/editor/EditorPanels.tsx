@@ -3498,7 +3498,10 @@ function runPlanStep(step: PlanStep, ctx?: { brandTargets?: BrandFixTarget[]; pa
       // A brand kit or a chosen theme authored the fonts; a look's own
       // pairing must not replace them. The dial overrides the model's look.
       const fontsAuthored = !!(themeRecord || chosenEntry || brandFonts?.heading || brandFonts?.body);
-      const deck = layoutDeck(clean, themes[0], size, { catalog, brandPalette, seed, logo: brandLogo, designType, look: look && look !== "auto" ? look : undefined, fontsAuthored });
+      // The kit sets a 16 by 9 deck in one of the signature templates'
+      // systems (the style the outline named, repainted in the brand or a
+      // chosen theme); other pages keep the classic composer.
+      const deck = layoutDeck(clean, themes[0], size, { catalog, brandPalette, seed, logo: brandLogo, designType, look: look && look !== "auto" ? look : undefined, fontsAuthored, renderer: "kit", brandFonts, themeChosen: !!(themeRecord || chosenEntry) });
       lastDeckCheck = deckCheckNote(deck.report);
       const base = append ? st.doc.pages.length : 0;
       const ids = append ? st.appendDeckPages(deck, size) : st.buildDeckFromOutline(deck, size);

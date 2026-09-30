@@ -111,7 +111,9 @@ describe("composeDeckFile brand grounding", () => {
     expect(pages.every((p) => p.children.some((n) => n.name === "Logo"))).toBe(true);
     const title = pages[1].children.find((n) => n.name === "Title")!;
     expect(title.content![0].runs[0].style.fontFamily).toBe("Fraunces");
-    const points = pages[1].children.find((n) => n.name === "Points")!;
-    expect(points.content![0].runs[0].style.fontFamily).toBe("Nunito");
+    // Body copy (the kit sets a point as its own text; the classic composer
+    // as one "Points" list) wears the brand's body face.
+    const body = pages[1].children.filter((n) => n.content && n.name !== "Title" && n.name !== "Eyebrow" && n.name !== "Kicker").map((n) => n.content![0].runs[0].style.fontFamily);
+    expect(body).toContain("Nunito");
   });
 });

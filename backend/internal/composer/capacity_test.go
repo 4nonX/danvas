@@ -37,3 +37,17 @@ func sizeFor(dt string) [2]int {
 	}
 	return [2]int{1920, 1080}
 }
+
+// The Go door's copy of the kit vocabulary clause (kitvocab_gen.go, written
+// by scripts/gen-kit-vocab.mjs) must say exactly what the composer's own
+// module says, or the model is offered a style or a drawing the composer
+// does not have.
+func TestKitVocabularyRuleMatchesTheComposer(t *testing.T) {
+	got, err := callString(context.Background(), "__kitVocabularyRule", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != aistudio.KitVocabularyRule() {
+		t.Fatalf("kit vocabulary clause drifted from the composer's:\n  bundle: %.200s...\n  go:     %.200s...", got, aistudio.KitVocabularyRule())
+	}
+}

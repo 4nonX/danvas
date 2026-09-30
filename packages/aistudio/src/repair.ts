@@ -27,6 +27,9 @@ export function repairContrast(page: PageInput): number {
   let changed = 0;
   for (const node of page.nodes) {
     if (node.type !== "text") continue;
+    // Ornament set as type (a watermark glyph in a tint of the ground) is
+    // meant to be faint; it is not copy and is never re-inked.
+    if ((node as { data?: { decor?: boolean } }).data?.decor) continue;
     const refs = groundReferences(node, page.nodes, page.background);
     if (!refs.length) continue;
     const content = (node as { content?: Array<{ runs?: Array<{ style?: { fill?: Fill } }> }> }).content ?? [];
