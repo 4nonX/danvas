@@ -3,9 +3,10 @@
 // The SVG sources under starter/src are the masters: the visitor mark and the
 // horizontal lockup are drawn in currentColor (the wordmark is outlined, so no
 // font is needed), and the app tile carries its own gradient. This script
-// renders the PNGs the kit ships, one ink version for light grounds and one
-// paper version for dark grounds of each currentColor master, at a size that
-// stays sharp on a full-bleed cover. The Go raster exporter decodes PNG and
+// renders the PNGs the kit ships: one ink version for light grounds and one
+// paper version for dark grounds of each currentColor master, plus the colour
+// lockup (the app's own header logo) for a light ground that wants the brand
+// colour rather than ink, at a size that stays sharp on a full-bleed cover. The Go raster exporter decodes PNG and
 // not SVG, which is why the kit stores rasters and not the masters.
 //
 //   node scripts/build-brand-starter.mjs
@@ -35,6 +36,7 @@ const JOBS = [
   { src: "mark.svg", out: "hycanvas-mark-ink.png", color: INK, height: 1024 },
   { src: "mark.svg", out: "hycanvas-mark-paper.png", color: PAPER, height: 1024 },
   { src: "tile.svg", out: "hycanvas-tile.png", width: 1024 },
+  { src: "lockup-color.svg", out: "hycanvas-logo-color.png", width: 2048 },
 ];
 
 try {

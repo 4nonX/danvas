@@ -29,7 +29,8 @@
   "logos": [
     { "id": "l-logo", "label": "HyCanvas logo", "file": "hycanvas-logo-ink.png", "dark": "hycanvas-logo-paper.png", "minSizePx": 96, "clearSpaceRatio": 0.25 },
     { "id": "l-mark", "label": "HyCanvas mark", "file": "hycanvas-mark-ink.png", "dark": "hycanvas-mark-paper.png", "minSizePx": 24, "clearSpaceRatio": 0.25 },
-    { "id": "l-tile", "label": "HyCanvas app tile", "file": "hycanvas-tile.png", "minSizePx": 24, "clearSpaceRatio": 0.2 }
+    { "id": "l-tile", "label": "HyCanvas app tile", "file": "hycanvas-tile.png", "minSizePx": 24, "clearSpaceRatio": 0.2 },
+    { "id": "l-logo-color", "label": "HyCanvas logo in colour", "file": "hycanvas-logo-color.png", "minSizePx": 96, "clearSpaceRatio": 0.25 }
   ],
   "voice": {
     "tone": ["confident", "plain-spoken", "warm", "specific"],

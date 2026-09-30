@@ -84,7 +84,7 @@ func TestStarterKitCompiles(t *testing.T) {
 	if err := json.Unmarshal(kit.Logos, &logos); err != nil {
 		t.Fatalf("logos: %v", err)
 	}
-	if len(logos) != 3 {
+	if len(logos) != 4 {
 		t.Fatalf("logos = %+v", logos)
 	}
 	// The lockup leads: it is the logo the composer places on every page.
@@ -94,9 +94,13 @@ func TestStarterKitCompiles(t *testing.T) {
 	if logos[1].Variants["dark"] != "asset:hycanvas-mark-paper.png" {
 		t.Fatalf("mark = %+v", logos[1])
 	}
-	// The tile carries its own gradient and needs no dark version.
+	// The tile carries its own gradient and needs no dark version; so does
+	// the colour lockup, which is for light grounds only.
 	if logos[2].AssetID != "asset:hycanvas-tile.png" || len(logos[2].Variants) != 0 {
 		t.Fatalf("tile = %+v", logos[2])
+	}
+	if logos[3].AssetID != "asset:hycanvas-logo-color.png" || len(logos[3].Variants) != 0 {
+		t.Fatalf("colour lockup = %+v", logos[3])
 	}
 
 	var voice struct {
@@ -128,7 +132,7 @@ func TestStarterArtworkIsEmbeddedAndDecodes(t *testing.T) {
 	if err != nil {
 		t.Fatalf("StarterFiles: %v", err)
 	}
-	if len(files) != 5 {
+	if len(files) != 6 {
 		t.Fatalf("files = %+v", files)
 	}
 	names := map[string]bool{}
@@ -148,6 +152,7 @@ func TestStarterArtworkIsEmbeddedAndDecodes(t *testing.T) {
 		aspect := float64(cfg.Width) / float64(cfg.Height)
 		switch {
 		case strings.HasPrefix(f.Path, "hycanvas-logo-"):
+			// The ink, paper and colour lockups share one geometry.
 			if aspect < 4 || aspect > 6 || cfg.Width < 1600 {
 				t.Fatalf("%s: %dx%d is not a lockup", f.Path, cfg.Width, cfg.Height)
 			}

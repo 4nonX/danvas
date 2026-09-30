@@ -217,7 +217,7 @@ func TestStarterKitSeeding_DB(t *testing.T) {
 	if err != nil || !seeded {
 		t.Fatalf("SeedStarterKit = %v, %v", seeded, err)
 	}
-	if len(assets.stored) != 5 || assets.stored[0] != "HyCanvas logo.png" || assets.stored[1] != "HyCanvas logo on dark.png" {
+	if len(assets.stored) != 6 || assets.stored[0] != "HyCanvas logo.png" || assets.stored[1] != "HyCanvas logo on dark.png" {
 		t.Fatalf("stored = %v", assets.stored)
 	}
 	kits, err := svc.ListKits(ctx, ws.ID, owner.ID)
@@ -233,7 +233,7 @@ func TestStarterKitSeeding_DB(t *testing.T) {
 		AssetID  string            `json:"assetId"`
 		Variants map[string]string `json:"variants"`
 	}
-	if err := json.Unmarshal(kit.Logos, &logos); err != nil || len(logos) != 3 || logos[0].AssetID != "asset-HyCanvas logo" || logos[0].Variants["dark"] != "asset-HyCanvas logo on dark" {
+	if err := json.Unmarshal(kit.Logos, &logos); err != nil || len(logos) != 4 || logos[0].AssetID != "asset-HyCanvas logo" || logos[0].Variants["dark"] != "asset-HyCanvas logo on dark" {
 		t.Fatalf("logos = %s (%v)", kit.Logos, err)
 	}
 	var palettes []struct {
