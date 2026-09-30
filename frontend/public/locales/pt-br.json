@@ -902,6 +902,7 @@
   "editor.cmd_z": "Cmd+Z",
   "editor.code": "Código",
   "editor.collapse": "Recolher",
+  "editor.expand": "Expandir",
   "editor.collapse_fonts_snap_colors_to_a_few_roles_an": "Unifique as fontes, ajuste as cores a poucos papéis e uniformize os raios de canto na página.",
   "editor.collapse_inspector": "Recolher inspetor",
   "editor.collapse_panel": "Recolher painel",

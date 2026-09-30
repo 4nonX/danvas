@@ -902,6 +902,7 @@
   "editor.cmd_z": "Cmd+Z",
   "editor.code": "Código",
   "editor.collapse": "Contraer",
+  "editor.expand": "Expandir",
   "editor.collapse_fonts_snap_colors_to_a_few_roles_an": "Unifica las fuentes, ajusta los colores a unos pocos roles y armoniza los radios de esquina en toda la página.",
   "editor.collapse_inspector": "Contraer inspector",
   "editor.collapse_panel": "Contraer panel",

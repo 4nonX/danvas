@@ -902,6 +902,7 @@
   "editor.cmd_z": "Cmd+Z",
   "editor.code": "代码",
   "editor.collapse": "收起",
+  "editor.expand": "展开",
   "editor.collapse_fonts_snap_colors_to_a_few_roles_an": "精简字体,将颜色归为少数角色,并统一整页的圆角。",
   "editor.collapse_inspector": "收起检查器",
   "editor.collapse_panel": "收起面板",

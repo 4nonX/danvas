@@ -5402,14 +5402,17 @@ export const useEditor = create<EditorState>((set, get) => {
     },
     reorderLayer: (id, toIndex) => {
       if (editBlocked(id)) return; // a filler may not restack a brand locked region
-      const page = get().doc.pages[curPageIndex()];
-      const from = page.children.findIndex((n) => n.id === id);
-      if (from < 0) return;
-      const to = Math.max(0, Math.min(toIndex, page.children.length - 1));
+      // Among its own siblings: a page's top-level layers, or the children of
+      // the group it sits in, so the panel can restack inside a group too.
+      const loc = locate(get().doc, id);
+      if (!loc) return;
+      const siblings = loc.siblings;
+      const from = loc.index;
+      const to = Math.max(0, Math.min(toIndex, siblings.length - 1));
       if (from === to) return;
       perform(
-        () => { const [n] = page.children.splice(from, 1); page.children.splice(to, 0, n); },
-        () => { const i = page.children.findIndex((x) => x.id === id); if (i >= 0) { const [n] = page.children.splice(i, 1); page.children.splice(from, 0, n); } },
+        () => { const [n] = siblings.splice(from, 1); siblings.splice(to, 0, n); },
+        () => { const i = siblings.findIndex((x) => x.id === id); if (i >= 0) { const [n] = siblings.splice(i, 1); siblings.splice(from, 0, n); } },
       );
     },
     setNodeHidden: (id, hidden) => {
@@ -8096,14 +8099,26 @@ export const useEditor = create<EditorState>((set, get) => {
       // layout mutation a filler may not perform; filter those out.
       const selection = get().selection.filter((id) => !editBlocked(id));
       if (!selection.length) return;
-      const page = doc.pages[curPageIndex()];
-      const before = page.children.map((n) => n.id);
+      // Each node moves among its own siblings: top-level layers on the page,
+      // a group's children inside the group. A selection spanning containers
+      // restacks within each, as ONE undo step.
+      const groups = new Map<Node[], string[]>();
+      for (const id of selection) {
+        const loc = locate(doc, id);
+        if (!loc) continue;
+        const ids = groups.get(loc.siblings) ?? [];
+        ids.push(id);
+        groups.set(loc.siblings, ids);
+      }
+      if (!groups.size) return;
+      const befores = new Map<Node[], string[]>();
+      for (const siblings of groups.keys()) befores.set(siblings, siblings.map((n) => n.id));
       perform(
         () => {
-          page.children = orderOp(page.children, selection, op);
+          for (const [siblings, ids] of groups) siblings.splice(0, siblings.length, ...orderOp(siblings, ids, op));
         },
         () => {
-          page.children.sort((a, b) => before.indexOf(a.id) - before.indexOf(b.id));
+          for (const [siblings, before] of befores) siblings.sort((a, b) => before.indexOf(a.id) - before.indexOf(b.id));
         },
       );
     },

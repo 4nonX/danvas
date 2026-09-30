@@ -902,6 +902,7 @@
   "editor.cmd_z": "Cmd+Z",
   "editor.code": "Code",
   "editor.collapse": "Collapse",
+  "editor.expand": "Expand",
   "editor.collapse_fonts_snap_colors_to_a_few_roles_an": "Collapse fonts, snap colors to a few roles, and unify corner radii across the page.",
   "editor.collapse_inspector": "Collapse inspector",
   "editor.collapse_panel": "Collapse panel",

@@ -8,6 +8,7 @@ Small things that make editing feel right, gathered from hands-on use of the edi
 | G02 | Alignment where the element is: an Align button on the floating selection toolbar opening left, centre, right, top, middle, bottom and centre on page; the panel's Arrange section open by default and captioned "Align to page" or "Align to selection" | done 2026-09-30 |
 | G03 | Brand colours from the work: an add row in the Brand panel's Colors section with a picker, a hex field, the selection's colours and the page's colours | done 2026-09-30 |
 | G04 | Layers that move: a drop lands directly in front of the row it lands on in either direction, a zone under the last row sends to the back, every row has a step forward and a step back, and Alt with the arrow keys moves the focused layer | done 2026-09-30 |
+| G05 | Layers inside groups: a group opens to list its children indented, and every restack (drop, step, forward, back, front, the toolbar and shortcuts) acts among a node's own siblings | done 2026-09-30 |
 
 ## G01: Rulers that read
 
@@ -33,4 +34,10 @@ Small things that make editing feel right, gathered from hands-on use of the edi
 - Shipped: `layerDropIndex` works in the panel's own front-first order (remove the dragged row, insert before the target) and maps back to the children index, so the result is the same whichever way the drag went. A dashed zone under the last row appears while dragging and sends the layer to the back. Every row shows a step forward and a step back on hover, disabled at the ends, and Alt with the arrow keys moves the focused row.
 - Verified: the drop maths in both directions, the no-op cases and the back zone; the panel's drag, zone, buttons and keys in a rendered test.
 
-Still open: the panel lists top-level layers only; the children of a group are reached on the canvas.
+## G05: Layers inside groups
+
+- Was: the panel listed the page's top-level layers only, and the z-order commands looked for the selection among them, so a node inside a group could not be listed, dragged or moved with Bring forward and Send backward at all.
+- Shipped: a group row opens (chevron, or Right and Left on the keyboard) to list its children indented, with the same hide, lock, rename, step, duplicate and delete controls. The store's `reorderLayer` and `orderSelection` locate each node and restack it among its own siblings, a selection spanning containers restacking within each as one undo step, so the toolbar buttons, the context menu and the bracket shortcuts work inside a group too. A drop restacks within the same container; a drop across containers changes nothing, and the send-to-back zone is offered for top-level layers only.
+- Verified: reorder and every z-order command inside a group, the cross-container selection as one undo step, and the panel's expand, indent, restack-within and ignored cross-container drop in a rendered test.
+
+Still open: moving a layer between containers (into or out of a group) is done by grouping and ungrouping, not by dragging in the panel.

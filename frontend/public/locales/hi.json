@@ -902,6 +902,7 @@
   "editor.cmd_z": "Cmd+Z",
   "editor.code": "कोड",
   "editor.collapse": "समेटें",
+  "editor.expand": "विस्तृत करें",
   "editor.collapse_fonts_snap_colors_to_a_few_roles_an": "फ़ॉन्ट समेटें, रंगों को कुछ भूमिकाओं तक सीमित करें, और पूरे पृष्ठ में कोने की गोलाई एक करें।",
   "editor.collapse_inspector": "निरीक्षक समेटें",
   "editor.collapse_panel": "पैनल समेटें",

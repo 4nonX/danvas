@@ -902,6 +902,7 @@
   "editor.cmd_z": "Cmd+Z",
   "editor.code": "コード",
   "editor.collapse": "折りたたむ",
+  "editor.expand": "展開",
   "editor.collapse_fonts_snap_colors_to_a_few_roles_an": "フォントを整理し、色を少数の役割に絞り、ページ全体の角丸を統一します。",
   "editor.collapse_inspector": "インスペクターを折りたたむ",
   "editor.collapse_panel": "パネルを折りたたむ",

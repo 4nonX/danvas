@@ -902,6 +902,7 @@
   "editor.cmd_z": "Cmd+Z",
   "editor.code": "Code",
   "editor.collapse": "Einklappen",
+  "editor.expand": "Ausklappen",
   "editor.collapse_fonts_snap_colors_to_a_few_roles_an": "Schriften zusammenfassen, Farben auf wenige Rollen festlegen und Eckenradien auf der Seite vereinheitlichen.",
   "editor.collapse_inspector": "Inspektor einklappen",
   "editor.collapse_panel": "Panel einklappen",

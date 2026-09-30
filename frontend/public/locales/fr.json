@@ -902,6 +902,7 @@
   "editor.cmd_z": "Cmd+Z",
   "editor.code": "Code",
   "editor.collapse": "Réduire",
+  "editor.expand": "Développer",
   "editor.collapse_fonts_snap_colors_to_a_few_roles_an": "Réduisez les polices, ramenez les couleurs à quelques rôles et unifiez les rayons d'angle sur la page.",
   "editor.collapse_inspector": "Réduire l'inspecteur",
   "editor.collapse_panel": "Réduire le panneau",

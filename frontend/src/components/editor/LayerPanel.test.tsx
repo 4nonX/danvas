@@ -19,7 +19,7 @@ function shape(id: string): Node {
 }
 
 const order = () => useEditor.getState().doc.pages[0].children.map((n) => n.id);
-const rows = () => screen.getAllByRole("option");
+const rows = () => screen.getAllByRole("treeitem");
 const row = (name: string) => rows().find((r) => within(r).queryByText(name))!;
 
 beforeEach(() => {
@@ -81,5 +81,55 @@ describe("the layer panel", () => {
     a.focus();
     fireEvent.keyDown(a, { key: "ArrowUp", altKey: true });
     expect(order()).toEqual(["b", "a", "c"]);
+  });
+});
+
+describe("layers inside a group", () => {
+  beforeEach(() => {
+    cleanup();
+    const doc = createBlankDesign({ title: "t", width: 800, height: 600 });
+    const g = createNode("group", { id: "g", name: "Group", children: [shape("x"), shape("y")] } as Partial<Node>);
+    doc.pages[0].children.push(shape("a"), g);
+    useEditor.getState().loadDoc(doc);
+  });
+  const inGroup = () => ((useEditor.getState().doc.pages[0].children.find((n) => n.id === "g") as unknown as { children: Node[] }).children).map((n) => n.id);
+
+  it("opens a group to list its children indented, and closes it again", () => {
+    render(<LayerPanel />);
+    expect(rows().map((r) => r.textContent?.includes("X"))).toEqual([false, false]);
+    fireEvent.click(within(row("Group")).getByRole("button", { name: "editor.expand" }));
+    expect(rows()).toHaveLength(4);
+    expect(row("Y").getAttribute("aria-level")).toBe("2");
+    fireEvent.click(within(row("Group")).getByRole("button", { name: "editor.collapse" }));
+    expect(rows()).toHaveLength(2);
+  });
+
+  it("restacks a child among the group's children, never the page's", () => {
+    render(<LayerPanel />);
+    fireEvent.click(within(row("Group")).getByRole("button", { name: "editor.expand" }));
+    fireEvent.click(within(row("X")).getByRole("button", { name: "editor.bring_forward" }));
+    expect(inGroup()).toEqual(["y", "x"]);
+    expect(order()).toEqual(["a", "g"]);
+    // Dragging a child onto its sibling restacks inside the group.
+    fireEvent.dragStart(row("Y"));
+    fireEvent.dragOver(row("X"));
+    fireEvent.drop(row("X"));
+    expect(inGroup()).toEqual(["x", "y"]);
+    // Dragging a child onto a top-level row is not a restack and changes nothing.
+    fireEvent.dragStart(row("Y"));
+    fireEvent.dragOver(row("A"));
+    fireEvent.drop(row("A"));
+    expect(inGroup()).toEqual(["x", "y"]);
+    expect(order()).toEqual(["a", "g"]);
+  });
+
+  it("offers the back zone for a top-level layer only", () => {
+    render(<LayerPanel />);
+    fireEvent.click(within(row("Group")).getByRole("button", { name: "editor.expand" }));
+    fireEvent.dragStart(row("Y"));
+    expect(screen.queryByTestId("layer-drop-back")).toBeNull();
+    fireEvent.dragEnd(row("Y"));
+    fireEvent.dragStart(row("Group"));
+    expect(screen.getByTestId("layer-drop-back")).toBeTruthy();
   });
 });
