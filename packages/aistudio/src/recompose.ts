@@ -124,7 +124,10 @@ export function isComposedSlide(page: { children: unknown[]; layoutId?: string; 
   const kids = page.children as LooseNode[];
   if (kids.some((n) => n.type === "text" && n.data?.placeholderId)) return false;
   const names = new Set(kids.map((n) => n.name));
-  return names.has("Title") && ["Decor", "Page number", "Kicker", "Eyebrow", "Footer"].some((n) => names.has(n));
+  // The furniture both composers set: the kit's decor, page number, kicker,
+  // eyebrow and footer; the classic composer's points, section number and
+  // subhead. A page the user drew from the toolbar names none of these.
+  return names.has("Title") && ["Decor", "Page number", "Kicker", "Eyebrow", "Footer", "Points", "Section number", "Subhead"].some((n) => names.has(n));
 }
 
 /** The page's text, one line per box named by its role, for the model to
@@ -335,7 +338,10 @@ export function recomposeSlide(input: RecomposeInput): RecomposedSlide | null {
     if (!styleName) {
       // A deck from before the recipe: the style is read off the page's own
       // ornament, so the page comes back matching its neighbours.
-      const probeItem: OutlineItem = { id: "probe", title: item.title, points: [], visualRole: item.visualRole, archetype: item.archetype, ...(item.eyebrow ? { eyebrow: item.eyebrow } : {}) };
+      // The probe carries the page's CURRENT title, so the title's set size
+      // (which follows the copy's length) matches the one on the page.
+      const currentTitle = (page.children as LooseNode[]).find((n) => n.type === "text" && n.name === "Title");
+      const probeItem: OutlineItem = { id: "probe", title: (currentTitle && flatText(currentTitle)) || item.title, points: [], visualRole: item.visualRole, archetype: item.archetype, ...(item.eyebrow ? { eyebrow: item.eyebrow } : {}) };
       styleName = recoverKitStyle(page, (style) => composeKitPage(probeItem, kitLookFor(style, input, recipe, voice, theme, fontsAuthored), { ...ctx, signatureUsed: { value: true } }).nodes) ?? undefined;
     }
     const kit = kitLookFor(baseStyle(input, recipe, styleName, mood, seed), input, recipe, voice, theme, fontsAuthored);

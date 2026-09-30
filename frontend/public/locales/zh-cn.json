@@ -357,6 +357,7 @@
   "dashboard.no_tasks_assigned_to_you_comments_converted": "没有分配给你的任务。转为任务并分配给你的评论会显示在这里。",
   "dashboard.no_templates_yet_open_a_design_and_use_save": "还没有模板。打开一个设计并使用“保存为模板”即可添加。",
   "dashboard.nothing_here_yet": "这里还没有内容。",
+  "dashboard.only_documents_can_be_attached": "此处只能附加文档（txt、md、pdf、docx、pptx、xlsx）。图片可在编辑器的 AI 聊天中附加。",
   "dashboard.only_the_first_200_rows_will_be_generated_in": "本批次仅生成前200行(其余被截断)。",
   "dashboard.open": "打开",
   "dashboard.output_format": "输出格式",

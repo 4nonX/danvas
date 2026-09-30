@@ -1503,7 +1503,8 @@ export function UploadsPanel({
             <div className="grid grid-cols-2 gap-2">
               {uploading.map((u) => (
                 <div key={u.id} className="relative overflow-hidden rounded-lg border border-neutral-200" title={u.error ? `${u.name} failed to upload` : `Uploading ${u.name}`}>
-                          <img src={u.preview} alt="" className="aspect-square w-full object-cover opacity-40" />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={u.preview} alt="" className="aspect-square w-full object-cover opacity-40" />
                   <div className="absolute inset-0 grid place-items-center">
                     {u.error
                       ? <span className="text-[11px] font-semibold text-red-600">{tr("editor.failed")}</span>
@@ -1525,7 +1526,8 @@ export function UploadsPanel({
                 title={tr("editor.click_to_place_or_drag_onto_the_canvas")}
                 className="block w-full"
               >
-                      <img src={a.thumbnail ?? resolveAssetUrl(a.url)} alt={a.filename ?? "upload"} className="aspect-square w-full object-cover" />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={a.thumbnail ?? resolveAssetUrl(a.url)} alt={a.filename ?? "upload"} className="aspect-square w-full object-cover" />
               </button>
               {/* Visible-but-transparent (not display:none) so the actions stay
                   Tab-reachable; focus-within reveals them for keyboard users. */}
@@ -2068,6 +2070,10 @@ interface AssistantDeps {
   /** Images attached in the chat: pictures placeAttachedImage can place. Their
    *  descriptions, once read, ride in `sources` like a document's text. */
   images?: AiImageAttachment[];
+  /** The most recently attached image's colours: what a GENERATION is set in
+   *  when the workspace has no brand palette (paletteFor). Never a
+   *  recomposition's palette: a page set again must match its siblings. */
+  referencePalette?: string[];
   /** A picture from disk was uploaded to place it: the chip now points at the
    *  asset, so a second placement does not upload it again. */
   onImageUploaded?: (id: string, url: string) => void;
@@ -2121,6 +2127,11 @@ function actionLabel(action: string): string {
 }
 
 const HERO_ROLES = new Set(["cover", "quote", "closing"]);
+/** The palette a generation (a deck, a theme, a picture) is set in: the
+ *  brand's, else the most recently attached image's, so "make it look like
+ *  this" gets its colours. Regeneration of an existing page keeps the brand
+ *  palette alone, so the page matches the deck it sits in. */
+const paletteFor = (deps: AssistantDeps): string[] => (deps.brandPalette.length ? deps.brandPalette : deps.referencePalette ?? []);
 /** What the vision model is asked about an attached image: the reading a
  *  designer needs, not a caption. */
 const DESCRIBE_FOR_DESIGN = `Describe this image for a presentation designer in two to four sentences of plain prose (no headings, no markdown, no lists): the subject, the setting, the mood, the notable colours, and any text visible in it.`;
@@ -2285,7 +2296,8 @@ function prepareGenerateBrief(a: Record<string, unknown>, deps: AssistantDeps): 
   const size = explicit && explicit.width > 0 && explicit.height > 0
     ? { width: explicit.width, height: explicit.height }
     : { width: page?.width ?? 1280, height: page?.height ?? 720 };
-  const brandClause = [deps.voiceClause, deps.brandPalette.length ? `Use this brand palette: ${deps.brandPalette.join(", ")}.` : ""].filter(Boolean).join(" ").trim();
+  const palette = paletteFor(deps);
+  const brandClause = [deps.voiceClause, palette.length ? `Use this brand palette: ${palette.join(", ")}.` : ""].filter(Boolean).join(" ").trim();
   const pageCount = typeof a.pageCount === "number" ? a.pageCount : dt === "poster" ? 1 : undefined;
   let brief = String(a.prompt);
   const dials = dialsClause(deps.dials);
@@ -2551,14 +2563,14 @@ async function resolvePlanStep(step: PlanStep, deps: AssistantDeps): Promise<{ p
       const logo = String(a.style ?? "").toLowerCase().includes("logo");
       const prompt = logo
         ? `A clean, modern, flat vector-style logo for: ${String(a.prompt)}. Centered, simple, bold shapes, solid background, no text or lettering unless explicitly requested.`
-        : groundImagePrompt(`${String(a.prompt)}. Well-composed, high detail, professional quality.`, { palette: deps.brandPalette, aspect: "square" });
+        : groundImagePrompt(`${String(a.prompt)}. Well-composed, high detail, professional quality.`, { palette: paletteFor(deps), aspect: "square" });
       const { image } = await oc.aiImage({ workspaceId: deps.workspaceId, prompt, size: "1024x1024" });
       if (!image) return { error: tr("editor.skip_no_image_returned") };
       return { payload: { kind: "image", image } };
     }
     case "generateBackgroundImage": {
       if (!deps.imageCapable) return { error: tr("editor.skip_provider_no_images") };
-      const prompt = groundImagePrompt(`${String(a.prompt)}. A full-bleed background image, subtle and uncluttered so text stays readable on top.`, { palette: deps.brandPalette, aspect: "landscape" });
+      const prompt = groundImagePrompt(`${String(a.prompt)}. A full-bleed background image, subtle and uncluttered so text stays readable on top.`, { palette: paletteFor(deps), aspect: "landscape" });
       const { image } = await oc.aiImage({ workspaceId: deps.workspaceId, prompt, size: "1792x1024" });
       if (!image) return { error: tr("editor.skip_no_image_returned") };
       return { payload: { kind: "bgimage", image } };
@@ -2850,7 +2862,7 @@ async function resolvePlanStep(step: PlanStep, deps: AssistantDeps): Promise<{ p
           system: themeGenSystemPrompt(),
           prompt: themeGenUserPrompt(typeof a.description === "string" ? a.description : undefined, {
             deckTitle: st.doc.title || undefined,
-            brandPalette: deps.brandPalette.length ? deps.brandPalette : undefined,
+            brandPalette: paletteFor(deps).length ? paletteFor(deps) : undefined,
           }),
           schema: generatedThemeSchema(),
         });
@@ -3044,7 +3056,7 @@ async function resolvePlanStep(step: PlanStep, deps: AssistantDeps): Promise<{ p
                   subject: p.title,
                   prompt: groundImagePrompt(
                     `${outline.title}${p.title ? ` - ${p.title}` : ""}. ${outline.theme ?? ""}. A soft, uncluttered, low-contrast background with generous empty space so overlaid text stays readable. No text, no words, no logos in the image.`,
-                    { palette: deps.brandPalette, aspect },
+                    { palette: paletteFor(deps), aspect },
                   ),
                 }))
             : [];
@@ -3059,7 +3071,7 @@ async function resolvePlanStep(step: PlanStep, deps: AssistantDeps): Promise<{ p
             ? deckThemeFromRecord(deps.styleThemeRecord, outline.title)
             : chosen
               ? deckThemeFromCatalog(chosen, outline.title)
-              : deckThemes({ brandPalette: deps.brandPalette, kicker: outline.title, count: 1, fontHeading: deps.brandFonts.heading, fontBody: deps.brandFonts.body, seed })[0];
+              : deckThemes({ brandPalette: paletteFor(deps), kicker: outline.title, count: 1, fontHeading: deps.brandFonts.heading, fontBody: deps.brandFonts.body, seed })[0];
           const background = layoutDesign({ layout: "centered", background: theme.background, blocks: [], dir: "ltr" }, size).background;
           // T19 (d): the deck's visual system doubles as the file theme, so
           // the theme picker reflects it and a later swap remaps exactly the
@@ -3090,7 +3102,7 @@ async function resolvePlanStep(step: PlanStep, deps: AssistantDeps): Promise<{ p
               background,
               imageSize,
               size,
-              brandPalette: deps.brandPalette,
+              brandPalette: paletteFor(deps),
               brandFonts: deps.brandFonts,
               brandLogo: deps.brandLogo ?? null,
               styleClause,
@@ -3120,11 +3132,11 @@ async function resolvePlanStep(step: PlanStep, deps: AssistantDeps): Promise<{ p
             subject: p.title,
             prompt: groundImagePrompt(
               `${outline.title}${p.title ? ` - ${p.title}` : ""}. ${outline.theme ?? ""}. A soft, uncluttered, low-contrast background with generous empty space so overlaid text stays readable. No text, no words, no logos in the image.`,
-              { palette: deps.brandPalette, aspect },
+              { palette: paletteFor(deps), aspect },
             ),
           }));
       }
-      return { payload: { kind: "outline", outline, size, brandPalette: deps.brandPalette, brandFonts: deps.brandFonts, brandLogo: deps.brandLogo ?? null, heroPlans, workspaceId: deps.workspaceId, designId: deps.designId ?? null, append, themeId: deps.styleThemeId, themeRecord: deps.styleThemeRecord, designType: dt, look: deps.dials?.look } };
+      return { payload: { kind: "outline", outline, size, brandPalette: paletteFor(deps), brandFonts: deps.brandFonts, brandLogo: deps.brandLogo ?? null, heroPlans, workspaceId: deps.workspaceId, designId: deps.designId ?? null, append, themeId: deps.styleThemeId, themeRecord: deps.styleThemeRecord, designType: dt, look: deps.dials?.look } };
     }
     default:
       return {};
@@ -4034,7 +4046,8 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
     reviewAbort.current = aborter;
     setReview((r) => ({ outline: null, loading: true, dials, themeId: r?.themeId, templateId: r?.templateId }));
     try {
-      const deps: AssistantDeps = { workspaceId, voiceClause, brandPalette: runPalette(), brandFonts, brandLogo, imageCapable, editImageCapable, sources: groundingSources(), images, onImageUploaded, dials, designId, signal: aborter.signal };
+      const grounding = groundingSources();
+      const deps: AssistantDeps = { workspaceId, voiceClause, brandPalette, brandFonts, brandLogo, imageCapable, editImageCapable, sources: grounding, images, referencePalette: referencePalette(images), onImageUploaded, dials, designId, signal: aborter.signal };
       // A planned webSearch grounds the OUTLINE, and in the review flow the
       // outline is fetched here (the reviewed outline then bypasses the
       // execute-time fetch entirely) - so the search must run FIRST or its
@@ -4049,7 +4062,10 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
       // C33: the search's structured citations must survive into the eventual
       // execute (which drops the webSearch step), or the reviewed deck would
       // lose its Sources page.
-      setReview((r) => ({ outline, loading: false, dials, searchedSources: searchStep ? deps.sources : undefined, citations: deps.citations, themeId: r?.themeId, templateId: r?.templateId }));
+      // Only what the search ADDED joins the document chips: the images'
+      // descriptions ride in the grounding too, and would otherwise come
+      // back as document chips beside their own image chips.
+      setReview((r) => ({ outline, loading: false, dials, searchedSources: searchStep ? [...sources, ...(deps.sources ?? []).slice(grounding.length)] : undefined, citations: deps.citations, themeId: r?.themeId, templateId: r?.templateId }));
     } catch {
       if (seq === reviewSeq.current) setReview((r) => ({ outline: null, loading: false, dials, themeId: r?.themeId, templateId: r?.templateId }));
     }
@@ -4110,7 +4126,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
         setTurns((t) => [...t, { role: "assistant", text: msg }]);
         toast.error(msg);
       };
-      const deps: AssistantDeps = { workspaceId, voiceClause, brandPalette: runPalette(), brandFonts, brandLogo, imageCapable, editImageCapable, sources: grounding, images, onImageUploaded, reviewedOutline, dials, designId, citations, styleThemeId, signal: aborter.signal, onStage: setStage, onDegraded: (w) => { if (!degraded.includes(w)) degraded.push(w); } };
+      const deps: AssistantDeps = { workspaceId, voiceClause, brandPalette, brandFonts, brandLogo, imageCapable, editImageCapable, sources: grounding, images, referencePalette: referencePalette(images), onImageUploaded, reviewedOutline, dials, designId, citations, styleThemeId, signal: aborter.signal, onStage: setStage, onDegraded: (w) => { if (!degraded.includes(w)) degraded.push(w); } };
       // F40 E14: a template base contributes its layout system + theme. The
       // adoption happens BEFORE the resolve pass so the layout-grounded path
       // naturally picks up the adopted layouts from the document.
@@ -4345,9 +4361,6 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
   /** What grounds a generation: the documents, and every attached image the
    *  provider has read. */
   const groundingSources = (extra: AiSource[] = []) => [...sources, ...extra, ...images.map(imageSource).filter((x): x is AiSource => !!x)].slice(0, maxSources);
-  /** The palette a generation is set in: the brand's, else the most recently
-   *  attached image's, so "make it look like this" gets its colours. */
-  const runPalette = () => (brandPalette.length ? brandPalette : referencePalette(images));
 
   async function send(textArg?: string, extraSources?: AiSource[]) {
     const userText = (textArg ?? input).trim();
@@ -5083,6 +5096,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
           and what the provider saw in it (or that it cannot see). */}
       {images.map((im) => (
         <div key={im.id} className="mt-2 flex shrink-0 items-center gap-2 rounded-lg border border-brand-200 bg-brand-50 px-2.5 py-1.5 text-[11px] text-brand-ink">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={im.url} alt="" className="h-9 w-9 shrink-0 rounded object-cover ring-1 ring-black/10" />
           <div className="min-w-0 flex-1">
             <div className="truncate" title={im.name}>{im.name} · {im.width}×{im.height}</div>

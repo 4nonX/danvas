@@ -357,6 +357,7 @@
   "dashboard.no_tasks_assigned_to_you_comments_converted": "割り当てられたタスクはありません。タスク化されあなたに割り当てられたコメントがここに表示されます。",
   "dashboard.no_templates_yet_open_a_design_and_use_save": "テンプレートはまだありません。デザインを開いて「テンプレートとして保存」で追加できます。",
   "dashboard.nothing_here_yet": "ここにはまだ何もありません。",
+  "dashboard.only_documents_can_be_attached": "ここに添付できるのは文書だけです（txt、md、pdf、docx、pptx、xlsx）。画像はエディターのAIチャットで添付できます。",
   "dashboard.only_the_first_200_rows_will_be_generated_in": "このバッチでは最初の200行のみ生成されます(残りは切り捨て)。",
   "dashboard.open": "開く",
   "dashboard.output_format": "出力フォーマット",

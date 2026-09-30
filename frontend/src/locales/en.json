@@ -357,6 +357,7 @@
   "dashboard.no_tasks_assigned_to_you_comments_converted": "No tasks assigned to you. Comments converted to tasks and assigned to you show up here.",
   "dashboard.no_templates_yet_open_a_design_and_use_save": "No templates yet. Open a design and use Save as template to add one here.",
   "dashboard.nothing_here_yet": "Nothing here yet.",
+  "dashboard.only_documents_can_be_attached": "Only documents can be attached here (txt, md, pdf, docx, pptx, xlsx). Images attach in the editor's AI chat.",
   "dashboard.only_the_first_200_rows_will_be_generated_in": "Only the first 200 rows will be generated in this batch (the rest are truncated).",
   "dashboard.open": "Open",
   "dashboard.output_format": "Output format",

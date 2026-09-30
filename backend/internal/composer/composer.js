@@ -44564,7 +44564,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         }))
           return false;
         const names = new Set(kids.map((n) => n.name));
-        return names.has("Title") && ["Decor", "Page number", "Kicker", "Eyebrow", "Footer"].some((n) => names.has(n));
+        return names.has("Title") && ["Decor", "Page number", "Kicker", "Eyebrow", "Footer", "Points", "Section number", "Subhead"].some((n) => names.has(n));
       }
       function slideTextDump(page) {
         var _a5, _b, _c;
@@ -44735,7 +44735,8 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         if (useKit) {
           let styleName = recipe == null ? void 0 : recipe.style;
           if (!styleName) {
-            const probeItem = __spreadValues({ id: "probe", title: item.title, points: [], visualRole: item.visualRole, archetype: item.archetype }, item.eyebrow ? { eyebrow: item.eyebrow } : {});
+            const currentTitle = page.children.find((n) => n.type === "text" && n.name === "Title");
+            const probeItem = __spreadValues({ id: "probe", title: currentTitle && flatText(currentTitle) || item.title, points: [], visualRole: item.visualRole, archetype: item.archetype }, item.eyebrow ? { eyebrow: item.eyebrow } : {});
             styleName = (_n = recoverKitStyle(page, (style) => (0, render_1.composeKitPage)(probeItem, kitLookFor(style, input2, recipe, voice, theme, fontsAuthored), __spreadProps(__spreadValues({}, ctx), { signatureUsed: { value: true } })).nodes)) != null ? _n : void 0;
           }
           const kit = kitLookFor(baseStyle(input2, recipe, styleName, mood, seed), input2, recipe, voice, theme, fontsAuthored);
@@ -44935,6 +44936,10 @@ Brief: ${prompt.trim()}`;
             { name: "instruction", type: "string", required: false, description: "optional guidance, e.g. 'cluster by customer segment'" }
           ], mutates: true },
           { name: "summarizeStickies", description: "Summarize the board's sticky notes into a text note on the canvas: key themes, decisions, and action items. Use for 'summarize the board / the stickies / this brainstorm'.", params: [], mutates: true },
+          { name: "placeAttachedImage", description: "Place an image the user attached in the chat onto a page: into the selected frame when one is selected, else as a new picture on the current page (or the page named). Use for 'add/put/use/insert this image/picture/photo/logo (on slide N)'.", params: [
+            { name: "name", type: "string", required: false, description: "which attached image, by (part of) its file name; default: the most recent" },
+            { name: "pageIndex", type: "number", required: false, description: "the 1-based page to place it on (default: the current page)" }
+          ], mutates: true },
           { name: "critique", description: "Analyze one page (the current one by default) and report design issues (no changes). Use for 'check/review slide N'.", params: [
             { name: "pageIndex", type: "number", required: false, description: "the 1-based page to analyze (default: the current page)" }
           ], mutates: false }

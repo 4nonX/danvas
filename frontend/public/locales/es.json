@@ -357,6 +357,7 @@
   "dashboard.no_tasks_assigned_to_you_comments_converted": "No tienes tareas asignadas. Los comentarios convertidos en tareas y asignados a ti aparecen aquí.",
   "dashboard.no_templates_yet_open_a_design_and_use_save": "Aún no hay plantillas. Abre un diseño y usa Guardar como plantilla para añadir una aquí.",
   "dashboard.nothing_here_yet": "Aún no hay nada aquí.",
+  "dashboard.only_documents_can_be_attached": "Aquí solo se pueden adjuntar documentos (txt, md, pdf, docx, pptx, xlsx). Las imágenes se adjuntan en el chat de IA del editor.",
   "dashboard.only_the_first_200_rows_will_be_generated_in": "Solo se generarán las primeras 200 filas en este lote (el resto se descarta).",
   "dashboard.open": "Abrir",
   "dashboard.output_format": "Formato de salida",

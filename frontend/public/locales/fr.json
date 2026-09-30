@@ -357,6 +357,7 @@
   "dashboard.no_tasks_assigned_to_you_comments_converted": "Aucune tâche ne vous est attribuée. Les commentaires convertis en tâches et qui vous sont attribués apparaissent ici.",
   "dashboard.no_templates_yet_open_a_design_and_use_save": "Pas encore de modèles. Ouvrez un design et utilisez Enregistrer comme modèle pour en ajouter un ici.",
   "dashboard.nothing_here_yet": "Rien ici pour l'instant.",
+  "dashboard.only_documents_can_be_attached": "Seuls des documents peuvent être joints ici (txt, md, pdf, docx, pptx, xlsx). Les images se joignent dans le chat IA de l'éditeur.",
   "dashboard.only_the_first_200_rows_will_be_generated_in": "Seules les 200 premières lignes seront générées dans ce lot (le reste est tronqué).",
   "dashboard.open": "Ouvrir",
   "dashboard.output_format": "Format de sortie",

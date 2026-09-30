@@ -357,6 +357,7 @@
   "dashboard.no_tasks_assigned_to_you_comments_converted": "Ihnen sind keine Aufgaben zugewiesen. In Aufgaben umgewandelte und Ihnen zugewiesene Kommentare erscheinen hier.",
   "dashboard.no_templates_yet_open_a_design_and_use_save": "Noch keine Vorlagen. Öffnen Sie ein Design und nutzen Sie „Als Vorlage speichern“, um hier eine hinzuzufügen.",
   "dashboard.nothing_here_yet": "Hier ist noch nichts.",
+  "dashboard.only_documents_can_be_attached": "Hier können nur Dokumente angehängt werden (txt, md, pdf, docx, pptx, xlsx). Bilder lassen sich im KI-Chat des Editors anhängen.",
   "dashboard.only_the_first_200_rows_will_be_generated_in": "In diesem Durchgang werden nur die ersten 200 Zeilen generiert (der Rest wird abgeschnitten).",
   "dashboard.open": "Öffnen",
   "dashboard.output_format": "Ausgabeformat",

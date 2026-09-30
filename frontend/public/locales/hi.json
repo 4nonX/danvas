@@ -357,6 +357,7 @@
   "dashboard.no_tasks_assigned_to_you_comments_converted": "आपको कोई कार्य नहीं सौंपा गया। कार्यों में बदली और आपको सौंपी गई टिप्पणियाँ यहाँ दिखती हैं।",
   "dashboard.no_templates_yet_open_a_design_and_use_save": "अभी कोई टेम्पलेट नहीं। कोई डिज़ाइन खोलकर 'टेम्पलेट के रूप में सहेजें' उपयोग करें।",
   "dashboard.nothing_here_yet": "यहाँ अभी कुछ नहीं।",
+  "dashboard.only_documents_can_be_attached": "यहाँ केवल दस्तावेज़ संलग्न किए जा सकते हैं (txt, md, pdf, docx, pptx, xlsx)। छवियाँ एडिटर की AI चैट में संलग्न होती हैं।",
   "dashboard.only_the_first_200_rows_will_be_generated_in": "इस बैच में केवल पहली 200 पंक्तियाँ बनेंगी (बाक़ी छोड़ दी जाती हैं)।",
   "dashboard.open": "खोलें",
   "dashboard.output_format": "आउटपुट प्रारूप",

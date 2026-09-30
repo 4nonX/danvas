@@ -256,7 +256,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     setBriefBusy(true);
     try {
       const out = await extractAiSources(picked, room);
-      if (out.rejected) toast.error(tr("editor.only_documents_can_be_attached"));
+      if (out.rejected) toast.error(tr("dashboard.only_documents_can_be_attached"));
       for (const e of out.errors) toast.error(e);
       if (out.sources.length) setBriefSources((xs) => [...xs, ...out.sources].slice(0, maxAiSources));
     } finally {

@@ -68,14 +68,25 @@ export function nameFromUrl(url: string): string {
   }
 }
 
-function loadImage(url: string): Promise<HTMLImageElement> {
+function loadImage(url: string, anonymous: boolean): Promise<HTMLImageElement> {
   const img = new Image();
-  img.crossOrigin = "anonymous";
+  if (anonymous) img.crossOrigin = "anonymous";
   return new Promise((res, rej) => {
     img.onload = () => res(img);
     img.onerror = () => rej(new Error("image unreadable"));
     img.src = url;
   });
+}
+
+/** The image with its pixels readable when the host allows it (a file, the
+ *  app's own storage), else loaded plainly: a picture on a host that sends
+ *  no CORS header still attaches, as a picture to place. */
+async function loadForReading(url: string): Promise<{ img: HTMLImageElement; readable: boolean }> {
+  try {
+    return { img: await loadImage(url, true), readable: true };
+  } catch {
+    return { img: await loadImage(url, false), readable: false };
+  }
 }
 
 /** Load an image (a file, or a URL an in-app drag carried) and read what the
@@ -87,7 +98,7 @@ export async function readImageAttachment(src: ImageAttachmentSource): Promise<A
   const fromUrl = "file" in src ? null : src;
   const file = fromDisk?.file;
   const url = file ? URL.createObjectURL(file) : fromUrl!.url;
-  const img = await loadImage(url);
+  const { img, readable } = await loadForReading(url);
   const width = img.naturalWidth || 1;
   const height = img.naturalHeight || 1;
   const scale = Math.min(1, PREVIEW_EDGE / Math.max(width, height));
@@ -97,6 +108,7 @@ export async function readImageAttachment(src: ImageAttachmentSource): Promise<A
   let preview = "";
   let palette: string[] = [];
   try {
+    if (!readable) throw new Error("pixels unreadable");
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("canvas unavailable");
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
