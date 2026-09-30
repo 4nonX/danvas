@@ -127,12 +127,32 @@ describe("the model catalog", () => {
     await waitFor(() => expect(oc.listAiModels).toHaveBeenCalledWith("ws-1", undefined, "text"));
     const model = mainField("Model (optional)") as HTMLInputElement;
     await waitFor(() => expect(screen.getByText("2 models available. Pick one from the list or type a name.")).toBeTruthy());
-    const list = document.getElementById(model.getAttribute("list")!)!;
-    expect(within(list as HTMLElement).getAllByRole("option", { hidden: true }).map((o) => (o as HTMLOptionElement).value)).toEqual(["gpt-4o", "gpt-4o-mini"]);
+    // The list opens on focus, matches anywhere in the id or label, and a
+    // pick writes the id into the field.
+    // The suggestion list (not the page's provider selects, which have options too).
+    const suggestions = () => screen.queryByRole("listbox");
+    const items = () => within(suggestions()!).getAllByRole("option").map((o) => o.textContent);
+    // The field holds a picked model, so focus opens the whole catalog with
+    // it highlighted, and Enter keeps it.
+    fireEvent.focus(model);
+    expect(items()).toEqual(["gpt-4oGPT-4o", "gpt-4o-mini"]);
+    expect(within(suggestions()!).getAllByRole("option")[1].getAttribute("aria-selected")).toBe("true");
+    fireEvent.keyDown(model, { key: "Enter" });
+    expect(model.value).toBe("gpt-4o-mini");
+    fireEvent.focus(model);
+    fireEvent.change(model, { target: { value: "mini" } });
+    expect(items()).toEqual(["gpt-4o-mini"]);
+    fireEvent.keyDown(model, { key: "Enter" });
+    expect(model.value).toBe("gpt-4o-mini");
+    expect(suggestions()).toBeNull();
+    // A name the catalog does not carry stays as typed.
+    fireEvent.change(model, { target: { value: "gpt-6-preview" } });
+    expect(suggestions()).toBeNull();
+    expect(model.value).toBe("gpt-6-preview");
     // The image model field gets the image catalog beside it.
     const imageModel = mainField("Image model (optional)") as HTMLInputElement;
-    const imageList = document.getElementById(imageModel.getAttribute("list")!)!;
-    expect(within(imageList as HTMLElement).getAllByRole("option", { hidden: true }).map((o) => (o as HTMLOptionElement).value)).toEqual(["dall-e-3"]);
+    fireEvent.focus(imageModel);
+    expect(items()).toEqual(["dall-e-3"]);
   });
 
   it("fetches with the settings as typed, and retires the list when the connection changes", async () => {

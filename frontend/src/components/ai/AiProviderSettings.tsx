@@ -20,6 +20,7 @@ import { apiCodeMessage } from "@/lib/errors";
 import { confirmAction } from "@/lib/promptDialog";
 import { tr } from "@/lib/i18n";
 import { aiCapabilityGaps, newAiGaps, type AiGap } from "@/lib/aiCapabilityGaps";
+import { ModelSuggestInput } from "./ModelSuggestInput";
 
 /** The field a failed connection test points at, so the form can mark it. */
 function fieldForCode(code: string | undefined): "key" | "model" | "baseUrl" | null {
@@ -802,20 +803,15 @@ export function AiProviderSettings({
               {shownCatalog?.state === "loading" ? tr("editor.fetching_models") : tr("editor.fetch_models")}
             </button>
           </span>
-          <input
+          <ModelSuggestInput
             id={modelInputId}
-            list={`${modelInputId}-list`}
             value={model}
-            onChange={(e) => setModel(e.target.value)}
+            onChange={setModel}
+            models={shownCatalog?.models ?? []}
             placeholder={modelHint || tr("editor.model_optional")}
-            aria-invalid={badField === "model" || undefined}
+            invalid={badField === "model"}
             className={fieldCls + invalid("model")}
           />
-          <datalist id={`${modelInputId}-list`}>
-            {(shownCatalog?.models ?? []).map((m) => (
-              <option key={m.id} value={m.id}>{m.label ?? m.id}</option>
-            ))}
-          </datalist>
           {catalogNote(shownCatalog, shownCatalog?.models ?? []) && (
             <span role="status" className={`text-[11px] font-normal ${shownCatalog?.state === "failed" ? "text-red-700" : "text-neutral-500"}`}>
               {catalogNote(shownCatalog, shownCatalog?.models ?? [])}
@@ -829,19 +825,14 @@ export function AiProviderSettings({
         {mainCanImage && !imgProvider && (
           <div className={labelCls}>
             <label htmlFor={imageModelInputId}>{tr("editor.image_model_optional")}</label>
-            <input
+            <ModelSuggestInput
               id={imageModelInputId}
-              list={`${imageModelInputId}-list`}
               value={imageModel}
-              onChange={(e) => setImageModel(e.target.value)}
+              onChange={setImageModel}
+              models={shownCatalog?.imageModels ?? []}
               placeholder={selPreset?.defaultImageModel || tr("editor.image_model_optional")}
               className={fieldCls}
             />
-            <datalist id={`${imageModelInputId}-list`}>
-              {(shownCatalog?.imageModels ?? []).map((m) => (
-                <option key={m.id} value={m.id}>{m.label ?? m.id}</option>
-              ))}
-            </datalist>
           </div>
         )}
 
@@ -1026,19 +1017,14 @@ export function AiProviderSettings({
                       {shownImgCatalog?.state === "loading" ? tr("editor.fetching_models") : tr("editor.fetch_models")}
                     </button>
                   </span>
-                  <input
+                  <ModelSuggestInput
                     id={imgModelInputId}
-                    list={`${imgModelInputId}-list`}
                     value={imgModel}
-                    onChange={(e) => setImgModel(e.target.value)}
+                    onChange={setImgModel}
+                    models={shownImgCatalog?.models ?? []}
                     placeholder={imgPreset?.defaultImageModel || tr("editor.image_model_optional")}
                     className={fieldCls}
                   />
-                  <datalist id={`${imgModelInputId}-list`}>
-                    {(shownImgCatalog?.models ?? []).map((m) => (
-                      <option key={m.id} value={m.id}>{m.label ?? m.id}</option>
-                    ))}
-                  </datalist>
                   {catalogNote(shownImgCatalog, shownImgCatalog?.models ?? []) && (
                     <span role="status" className={`text-[11px] font-normal ${shownImgCatalog?.state === "failed" ? "text-red-700" : "text-neutral-500"}`}>
                       {catalogNote(shownImgCatalog, shownImgCatalog?.models ?? [])}

@@ -1943,7 +1943,9 @@ export class HyCanvasClient {
     candidate?: { provider: string; baseUrl?: string; apiKey?: string; apiSecret?: string },
     purpose?: "text" | "image",
   ): Promise<AiModelList> {
-    return this.request("POST", `/v1/workspaces/${workspaceId}/ai-config/models`, candidate ? { ...candidate, purpose } : undefined);
+    // The purpose travels even without a candidate: a body with no provider
+    // means "the stored config", and the server reads the purpose from it.
+    return this.request("POST", `/v1/workspaces/${workspaceId}/ai-config/models`, candidate ? { ...candidate, purpose } : purpose ? { purpose } : undefined);
   }
   /** List the image models a CANDIDATE dedicated image provider serves,
    *  without saving it; an omitted key or secret means the stored one. */
