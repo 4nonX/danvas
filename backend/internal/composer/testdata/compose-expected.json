@@ -5,7 +5,16 @@
   "title": "Solar for Small Business",
   "unit": "px",
   "dpi": 96,
-  "meta": {},
+  "meta": {
+    "aiDeck": {
+      "renderer": "kit",
+      "style": "copper",
+      "mood": "clean, optimistic, energy",
+      "designType": "deck",
+      "fontsAuthored": false,
+      "themeSlots": null
+    }
+  },
   "pages": [
     {
       "id": "api-page-1",
@@ -19858,7 +19867,20 @@
           }
         }
       ],
-      "notes": "Welcome everyone and set the stakes: energy is the second-largest overhead for most small shops."
+      "notes": "Welcome everyone and set the stakes: energy is the second-largest overhead for most small shops.",
+      "data": {
+        "aiOutline": {
+          "id": "ol-1",
+          "title": "Solar for Small Business",
+          "points": [
+            "Cut energy costs by up to 60%",
+            "Federal incentives cover 30%"
+          ],
+          "visualRole": "cover",
+          "note": "Welcome everyone and set the stakes: energy is the second-largest overhead for most small shops.",
+          "archetype": "cover"
+        }
+      }
     },
     {
       "id": "api-page-2",
@@ -29253,7 +29275,20 @@
             }
           }
         }
-      ]
+      ],
+      "data": {
+        "aiOutline": {
+          "id": "ol-2",
+          "title": "The Cost Problem",
+          "points": [
+            "Commercial rates rose 24% in five years",
+            "Peak-hour pricing punishes daytime businesses",
+            "Diesel backup is loud, dirty, expensive"
+          ],
+          "visualRole": "content",
+          "archetype": "bullets"
+        }
+      }
     },
     {
       "id": "api-page-3",
@@ -35765,7 +35800,21 @@
           }
         }
       ],
-      "notes": "Pause on the year-two crossover point."
+      "notes": "Pause on the year-two crossover point.",
+      "data": {
+        "aiOutline": {
+          "id": "ol-3",
+          "title": "Payback Timeline",
+          "points": [
+            "Year 0-1: installation and incentives",
+            "Year 2-5: net savings begin",
+            "Year 6+: pure margin"
+          ],
+          "visualRole": "data",
+          "note": "Pause on the year-two crossover point.",
+          "archetype": "bullets"
+        }
+      }
     },
     {
       "id": "api-page-4",
@@ -38517,7 +38566,35 @@
           }
         }
       ],
-      "notes": "Most shops lease; walk through the crossover point before taking questions on the outright option."
+      "notes": "Most shops lease; walk through the crossover point before taking questions on the outright option.",
+      "data": {
+        "aiOutline": {
+          "id": "ol-4",
+          "title": "Two Ways to Pay",
+          "points": [],
+          "visualRole": "comparison",
+          "note": "Most shops lease; walk through the crossover point before taking questions on the outright option.",
+          "archetype": "twoColumn",
+          "columns": [
+            {
+              "heading": "Buy outright",
+              "points": [
+                "Largest savings",
+                "Own the asset"
+              ],
+              "icon": "coin"
+            },
+            {
+              "heading": "Lease",
+              "points": [
+                "No upfront cost",
+                "Fixed monthly rate"
+              ],
+              "icon": "calendar"
+            }
+          ]
+        }
+      }
     },
     {
       "id": "api-page-5",
@@ -51616,7 +51693,19 @@
             }
           }
         }
-      ]
+      ],
+      "data": {
+        "aiOutline": {
+          "id": "ol-5",
+          "title": "Start This Quarter",
+          "points": [
+            "Free site assessment",
+            "Financing from $0 down"
+          ],
+          "visualRole": "closing",
+          "archetype": "closing"
+        }
+      }
     }
   ],
   "assets": [],

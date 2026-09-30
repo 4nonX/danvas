@@ -4,7 +4,7 @@
 
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type FormEvent } from "react";
 import { Square, SquareRoundCorner, Circle, Triangle, Pentagon, Hexagon, Star, Diamond, Octagon, Frame, QrCode, Type, Upload, Search, Table as TableIcon, BarChart3, LineChart, AreaChart, PieChart, Donut, ScatterChart, Radar, Wand2, ImagePlus, Settings2, Trash2, Folder, FolderPlus, Pencil, X, Tag, ChevronLeft, Link as LinkIcon, Mic, Video, MonitorUp, CircleStop, Spline, Clock, LayoutGrid, Shapes, Sparkles, Stethoscope, AlignStartVertical, Play, ChevronDown, Send, Plus, RotateCcw, FileDown, FileText, Paperclip, Layers } from "lucide-react";
-import { migrate, type ChartType, type Node, type Fill, type Color, type Theme } from "@hc/schema";
+import { migrate, type AssetRef, type ChartType, type Node, type Fill, type Color, type Theme } from "@hc/schema";
 import { searchFonts, type FontCatalogEntry } from "@hc/text";
 import { toHex, fromHex, relativeLuminance } from "@hc/color";
 import { formatBytes } from "@/lib/format";
@@ -23,7 +23,8 @@ import {
   type DesignOutline, type DesignType, type GenerationDials, type OutlineItem,
   toolCatalog, assistantSystemPrompt, parseAssistantReply, planMutates, summarizeDesign, type PlanStep,
   deriveOutline, switchOutline, sourcesOutlineItem, type PageText, type SourceCitation,
-  themeCatalogEntry, deckThemeFromCatalog, themeRecordFromCatalog, deckThemeFromRecord, pageTreatment, catalogEntryForMood, themeRecordFromDesignSystem, type DeckLogo, type DeckReport, slotsFromThemeRecord } from "@hc/aistudio";
+  themeCatalogEntry, deckThemeFromCatalog, themeRecordFromCatalog, deckThemeFromRecord, pageTreatment, catalogEntryForMood, themeRecordFromDesignSystem, type DeckLogo, type DeckReport, slotsFromThemeRecord,
+  isComposedSlide, slideItemOf, slideTextDump, reviseSlideSystemPrompt, reviseSlideSchema, reviseSlideItem, recomposeSlide } from "@hc/aistudio";
 import { builtinMasterAndLayouts, type SlideLayout } from "@hc/schema";
 import { shouldGroundInLayouts } from "@/lib/generationRoute";
 import { promptText } from "@/lib/promptDialog";
@@ -2002,7 +2003,10 @@ type ResolvedPayload =
   | { kind: "webSearch"; query: string; count: number }
   | { kind: "deckTheme"; theme: Theme }
   | { kind: "chartData"; chartType: ChartType; categories: string[]; series: { name: string; values: number[] }[]; csv: string }
-  | { kind: "regenerateSlide"; pageIndex: number; pageId: string; layoutId: string; layoutChanged: boolean; hadLayout: boolean; fill: LayoutFill; imageTasks: { placeholderId: string; prompt: string; subject: string }[]; imageSize: string; generateAllowed: boolean; workspaceId: string; designId: string | null };
+  | { kind: "regenerateSlide"; pageIndex: number; pageId: string; layoutId: string; layoutChanged: boolean; hadLayout: boolean; fill: LayoutFill; imageTasks: { placeholderId: string; prompt: string; subject: string }[]; imageSize: string; generateAllowed: boolean; workspaceId: string; designId: string | null }
+  // A composed page set again: the revised item and the page the composer
+  // drew from it, to land in place of the current one.
+  | { kind: "recomposeSlide"; pageIndex: number; pageId: string; item: OutlineItem; background: Fill; nodes: Node[]; imageTasks: { placeholderId: string; prompt: string; subject: string }[]; imageSize: string; generateAllowed: boolean; workspaceId: string; designId: string | null; assets: AssetRef[] };
 
 /** Parse a model reply that must be a JSON array of exactly `n` strings.
  *  Tolerates markdown fences; anything else (wrong shape, wrong length,
@@ -2559,6 +2563,56 @@ async function resolvePlanStep(step: PlanStep, deps: AssistantDeps): Promise<{ p
       if (!page) return { error: tr("editor.skip_page_missing") };
       const instruction = String(a.instruction ?? "").trim();
       if (!instruction) return { error: tr("editor.skip_instruction_needed") };
+      // A composed page (the archetype or kit composer drew it: named nodes
+      // on a background, no layout link) regenerates by recomposition: its
+      // outline item, kept on the page or read by the model off its text, is
+      // revised per the instruction and set again through the composer that
+      // set its siblings, so the page comes back in the deck's own system.
+      if (isComposedSlide(page as unknown as { children: unknown[]; layoutId?: string; data?: Record<string, unknown> })) {
+        const current = slideItemOf(page as unknown as { data?: Record<string, unknown> });
+        const shown = current
+          ? JSON.stringify(Object.fromEntries(Object.entries(current).filter(([k]) => k !== "id")))
+          : slideTextDump(page as unknown as { notes?: string; children: unknown[] });
+        const heading = current ? `Current slide (its outline item):` : `Current slide (its text boxes, top to bottom, named by role):`;
+        let item: OutlineItem;
+        try {
+          const { text } = await oc.aiTextStructured({
+            workspaceId: deps.workspaceId,
+            system: reviseSlideSystemPrompt(deps.voiceClause),
+            prompt: `Deck: ${st.doc.title}\nSlide ${idx + 1} of ${st.doc.pages.length}\nInstruction: ${instruction}\n${heading}\n${shown.slice(0, 8000)}`,
+            schema: reviseSlideSchema(),
+          }, deps.signal);
+          item = reviseSlideItem(parseModelJson(text), current);
+        } catch (e) {
+          if (deps.signal?.aborted) throw e;
+          return { error: tr("editor.skip_couldnt_regenerate_slide") };
+        }
+        const composed = recomposeSlide({ doc: st.doc, pageIndex: idx, item, brandPalette: deps.brandPalette, brandFonts: deps.brandFonts, logo: deps.brandLogo ?? null });
+        if (!composed) return { error: tr("editor.skip_couldnt_regenerate_slide") };
+        const { aspect, imageSize } = aspectAndImageSize(page);
+        // The logo the composer places references assets the file must list
+        // (a deck set before the workspace had a logo carries no ref yet).
+        const assets: AssetRef[] = [];
+        for (const l of [deps.brandLogo, deps.brandLogo?.dark]) {
+          if (l?.assetId && l.url && !assets.some((r) => r.id === l.assetId)) assets.push({ id: l.assetId, kind: "image", url: l.url, mime: "image/*", checksum: "" });
+        }
+        return {
+          payload: {
+            kind: "recomposeSlide",
+            pageIndex: idx,
+            pageId: page.id,
+            item,
+            background: composed.background,
+            nodes: composed.nodes,
+            imageTasks: Object.entries(composed.imagePrompts).map(([placeholderId, prompt]) => ({ placeholderId, prompt: groundImagePrompt(prompt, { palette: deps.brandPalette, aspect }), subject: prompt })),
+            imageSize,
+            generateAllowed: deps.imageCapable,
+            workspaceId: deps.workspaceId,
+            designId: deps.designId ?? null,
+            assets,
+          },
+        };
+      }
       // Read-only planning: the resolve phase must not mutate the document
       // (ensureSlideLayouts runs inside the APPLY turn); built-ins here only
       // shape the schemas, and their ids match what the apply installs.
@@ -2566,9 +2620,9 @@ async function resolvePlanStep(step: PlanStep, deps: AssistantDeps): Promise<{ p
       const layouts = docLayouts?.length ? docLayouts : builtinMasterAndLayouts({ width: page.width, height: page.height }).layouts;
       type Slotted = { type: string; data?: { placeholderId?: string; aiImagePrompt?: string }; content?: { runs: { text: string }[] }[] };
       const slotted = (page.children as Slotted[]).filter((n) => n.data?.placeholderId);
-      // A slide with no placeholder boxes (freeform/pre-layout generation) has
-      // nothing this tool can rewrite in place: refuse cleanly instead of
-      // stacking new boxes over the existing content.
+      // A slide with no placeholder boxes and none of the composers' structure
+      // (a page the user drew) has nothing this tool can rewrite in place:
+      // refuse cleanly instead of stacking new boxes over the content.
       if (!slotted.length) return { error: tr("editor.skip_slide_not_layout_linked") };
       const currentTexts = slotted
         .filter((n) => n.type === "text" && n.content?.length)
@@ -3244,6 +3298,29 @@ function runPlanStep(step: PlanStep, ctx?: { brandTargets?: BrandFixTarget[]; pa
       return true;
     }
     case "regenerateSlide": {
+      if (ctx?.payload?.kind === "recomposeSlide") {
+        const { pageIndex, pageId, item, background, nodes, imageTasks, imageSize, generateAllowed, workspaceId, designId, assets } = ctx.payload;
+        // The page must still be the one that was resolved (identity guard).
+        const live = st.doc.pages[pageIndex] as unknown as { id: string } | undefined;
+        if (!live || live.id !== pageId) return false;
+        // The page keeps its id; its content, note and item are replaced in
+        // one step, and the photo slots the composer tagged resolve behind.
+        if (!st.replacePageContent(pageIndex, { background, children: nodes, notes: item.note, data: { aiOutline: item }, assets })) return false;
+        const turnId = st.currentTurnId();
+        enqueueAiImages(imageTasks.map((t) => ({
+          workspaceId,
+          designId: designId ?? "",
+          turnId,
+          pageId,
+          placeholderId: t.placeholderId,
+          prompt: t.prompt,
+          subject: t.subject,
+          size: imageSize,
+          generateAllowed,
+        })));
+        st.goToPage(pageIndex);
+        return true;
+      }
       if (ctx?.payload?.kind !== "regenerateSlide") return false;
       const { pageIndex, pageId, layoutId, layoutChanged, hadLayout, fill, imageTasks, imageSize, generateAllowed, workspaceId, designId } = ctx.payload;
       // The page must still be the one that was resolved (identity guard).
@@ -4065,13 +4142,21 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
       // of just a "done" chip.
       let extra = "";
       let critique: CritiqueIssue[] | undefined;
-      if (plan.some((s) => s.action === "critique")) {
+      let critiqueAt: number | undefined;
+      const critiqueStep = plan.find((s) => s.action === "critique");
+      if (critiqueStep) {
         const st = useEditor.getState();
-        const issues = critiquePage(st.doc, st.activePage);
+        // The page the step names ("check slide 2"), else the current one.
+        const named = Math.round(Number(critiqueStep.args?.pageIndex));
+        const namedOk = Number.isFinite(named) && named >= 1 && named <= st.doc.pages.length;
+        critiqueAt = namedOk ? named - 1 : st.activePage;
+        const issues = critiquePage(st.doc, critiqueAt);
         // C32: the findings render as a structured per-issue fix list on the
         // turn; the text carries just the count so nothing is said twice.
         critique = issues.length ? issues : undefined;
-        extra = issues.length ? ` ${tr("editor.critique_found_issues", { count: issues.length })}` : ` ${tr("editor.critique_page_clean")}`;
+        extra = issues.length
+          ? ` ${namedOk ? tr("editor.critique_found_issues_on_page", { count: issues.length, n: critiqueAt + 1 }) : tr("editor.critique_found_issues", { count: issues.length })}`
+          : ` ${namedOk ? tr("editor.critique_page_n_clean", { n: critiqueAt + 1 }) : tr("editor.critique_page_clean")}`;
       }
       const done = results.filter((r) => r.ok).length;
       // Every reason, not just the first: a five-step plan with three
@@ -4083,7 +4168,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
       const degradedNote = degraded.length ? `\n${tr("editor.without_the_model", { what: degraded.join(", ") })}` : "";
       const check = takeDeckCheck();
       const text = (reply || tr("editor.done_2")) + extra + degradedNote + (notes.length ? `\n${notes.join("\n")}` : "") + (check ? `\n${check}` : "");
-      const finalTurn: ChatTurn = { role: "assistant", text, steps: results, critique, critiqueAt: critique ? useEditor.getState().activePage : undefined };
+      const finalTurn: ChatTurn = { role: "assistant", text, steps: results, critique, critiqueAt: critique ? critiqueAt : undefined };
       // One bubble per intent: a confirmed proposal's bubble BECOMES the
       // execution report (its chips flip from planned to actual results)
       // instead of the same reply text appearing twice in the thread.

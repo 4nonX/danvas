@@ -25,6 +25,7 @@ export * from "./compose";
 export * from "./deckStyle";
 export * from "./reflow";
 export * from "./deck";
+export * from "./recompose";
 export * from "./designSystem";
 export * from "./archetypes";
 export * from "./measure";

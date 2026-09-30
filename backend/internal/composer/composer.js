@@ -34283,7 +34283,7 @@ ${err.toString()}`);
     "packages/aistudio/dist/outline.js"(exports) {
       "use strict";
       Object.defineProperty(exports, "__esModule", { value: true });
-      exports.outlineJsonSchema = exports.OutlineError = exports.maxNoteChars = exports.outlineSignatures = exports.archetypeBudgets = exports.compositionTones = exports.compositionKinds = exports.roleForArchetype = exports.archetypeForRole = exports.archetypes = exports.visualRoles = exports.designTypes = void 0;
+      exports.outlineItemJsonSchema = exports.outlineJsonSchema = exports.OutlineError = exports.maxNoteChars = exports.outlineSignatures = exports.archetypeBudgets = exports.compositionTones = exports.compositionKinds = exports.roleForArchetype = exports.archetypeForRole = exports.archetypes = exports.visualRoles = exports.designTypes = void 0;
       exports.normalizeNote = normalizeNote;
       exports.clipToBudget = clipToBudget;
       exports.bareFigure = bareFigure;
@@ -34784,6 +34784,7 @@ ${err.toString()}`);
           }
         }
       };
+      exports.outlineItemJsonSchema = exports.outlineJsonSchema.properties.pages.items;
       var ROLE_LAYOUT = {
         cover: "centered",
         agenda: "title-top",
@@ -44089,9 +44090,16 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           name: outline.pages[i].title || `Page ${i + 1}`,
           quality: { ok: report.pages[i].issues.length === 0, issues: report.pages[i].issues },
           archetype: c.archetype,
-          imagePrompts: c.imagePrompts
+          imagePrompts: c.imagePrompts,
+          item: outline.pages[i]
         }, outline.pages[i].note ? { note: outline.pages[i].note } : {}));
-        return { title: outline.title, pages, system, report, renderer: kitLook ? "kit" : "classic" };
+        const recipe = __spreadProps(__spreadValues(__spreadValues(__spreadValues(__spreadValues(__spreadValues(__spreadValues(__spreadValues({
+          renderer: kitLook ? "kit" : "classic"
+        }, kitLook ? { style: kitLook.name } : {}), typeof styleOpts.look === "string" && styleOpts.look ? { look: styleOpts.look } : {}), outline.theme ? { mood: outline.theme } : {}), outline.organization ? { organization: outline.organization } : {}), outline.kicker ? { kicker: outline.kicker } : {}), outline.farewell ? { farewell: outline.farewell } : {}), (opts == null ? void 0 : opts.designType) ? { designType: opts.designType } : {}), {
+          fontsAuthored: !!(opts == null ? void 0 : opts.fontsAuthored),
+          themeSlots: chosenSlots != null ? chosenSlots : null
+        });
+        return { title: outline.title, pages, system, report, renderer: kitLook ? "kit" : "classic", recipe };
       }
     }
   });
@@ -44292,7 +44300,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         return composeDeckFileWithReport2(input2).file;
       }
       function composeDeckFileWithReport2(input2) {
-        var _a5, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
+        var _a5, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l;
         const outline = (0, outline_1.normalizeOutline)(input2.outline);
         const width = Math.max(1, Math.round(input2.width));
         const height = Math.max(1, Math.round(input2.height));
@@ -44320,6 +44328,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         let layoutsOut;
         let system = null;
         let report = null;
+        let recipe = null;
         if ((_f = (_e = input2.layoutSet) == null ? void 0 : _e.layouts) == null ? void 0 : _f.length) {
           masters = structuredClone((_g = input2.layoutSet.masters) != null ? _g : []);
           layoutsOut = structuredClone(input2.layoutSet.layouts);
@@ -44447,14 +44456,15 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           const deck = (0, deck_1.layoutDeck)(outline, theme, { width, height }, { dir: input2.dir, catalog, brandPalette: input2.brandPalette, seed, motion: input2.motion, logo: input2.logo, designType, look: input2.look, outlineLook: outline.look, fontsAuthored, renderer: input2.renderer === "classic" ? "classic" : "kit", brandFonts: input2.brandFonts, themeChosen: !!(input2.themeId || input2.themeRecord), themeSlots: input2.themeRecord ? (0, look_1.slotsFromThemeRecord)(input2.themeRecord) : null });
           system = deck.system;
           report = deck.report;
-          pages = deck.pages.map((p, i) => __spreadValues({
+          recipe = (_l = deck.recipe) != null ? _l : null;
+          pages = deck.pages.map((p, i) => __spreadValues(__spreadValues({
             id: `api-page-${i + 1}`,
             name: p.name || `Page ${i + 1}`,
             width,
             height,
             background: p.background,
             children: p.nodes
-          }, p.note ? { notes: p.note } : {}));
+          }, p.note ? { notes: p.note } : {}), p.item ? { data: { aiOutline: p.item } } : {}));
         }
         const file2 = __spreadProps(__spreadValues(__spreadValues({
           format: "hycanvas.design",
@@ -44464,8 +44474,9 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           unit: "px",
           dpi: 96,
           // Required by the file schema even when empty; the editor tolerates its
-          // absence on load but the .hyc door validates strictly.
-          meta: {},
+          // absence on load but the .hyc door validates strictly. A composed deck
+          // records how it was set, for per-slide regeneration in the editor.
+          meta: recipe ? { aiDeck: recipe } : {},
           pages,
           // The logo is the one asset a composed deck references before any
           // picture lands; the archetype door placed it on every page.
@@ -44482,6 +44493,264 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           theme: record2 != null ? record2 : system ? themeRecordFromDesignSystem(system, theme, outline.theme) : themeRecordFromSlots(null, theme, outline.theme)
         });
         return { file: file2, report: report != null ? report : { pages: [], bulletShare: 0, repetition: [], shorten: [], ok: true } };
+      }
+    }
+  });
+
+  // packages/aistudio/dist/recompose.js
+  var require_recompose = __commonJS({
+    "packages/aistudio/dist/recompose.js"(exports) {
+      "use strict";
+      Object.defineProperty(exports, "__esModule", { value: true });
+      exports.deckRecipeOf = deckRecipeOf;
+      exports.slideItemOf = slideItemOf;
+      exports.isComposedSlide = isComposedSlide;
+      exports.slideTextDump = slideTextDump;
+      exports.reviseSlideSchema = reviseSlideSchema;
+      exports.reviseSlideSystemPrompt = reviseSlideSystemPrompt;
+      exports.reviseSlideItem = reviseSlideItem;
+      exports.recoverKitStyle = recoverKitStyle;
+      exports.recomposeSlide = recomposeSlide;
+      var color_1 = require_dist2();
+      var compose_1 = require_compose();
+      var theme_1 = require_theme2();
+      var designSystem_1 = require_designSystem();
+      var archetypes_1 = require_archetypes();
+      var render_1 = require_render();
+      var look_1 = require_look2();
+      var looks_1 = require_looks();
+      var repair_1 = require_repair2();
+      var outline_1 = require_outline();
+      var titleSeed = (title) => Array.from(title).reduce((h, ch) => Math.imul(h, 31) + ch.charCodeAt(0) | 0, 7);
+      function deckRecipeOf(meta3) {
+        const rec = meta3 && typeof meta3 === "object" ? meta3.aiDeck : void 0;
+        if (!rec || typeof rec !== "object")
+          return null;
+        const r = rec;
+        const str = (v) => typeof v === "string" && v.trim() ? v : void 0;
+        return {
+          renderer: r.renderer === "classic" ? "classic" : "kit",
+          style: str(r.style),
+          look: str(r.look),
+          mood: str(r.mood),
+          organization: str(r.organization),
+          kicker: str(r.kicker),
+          farewell: str(r.farewell),
+          designType: str(r.designType),
+          fontsAuthored: typeof r.fontsAuthored === "boolean" ? r.fontsAuthored : void 0,
+          themeSlots: Array.isArray(r.themeSlots) && r.themeSlots.every((s) => typeof s === "string") ? r.themeSlots : r.themeSlots === null ? null : void 0
+        };
+      }
+      function slideItemOf(page) {
+        var _a5, _b;
+        const raw = (_a5 = page.data) == null ? void 0 : _a5.aiOutline;
+        if (!raw || typeof raw !== "object" || Array.isArray(raw))
+          return null;
+        try {
+          return (_b = (0, outline_1.normalizeOutline)({ title: "slide", theme: "", pages: [raw] }).pages[0]) != null ? _b : null;
+        } catch (e) {
+          return null;
+        }
+      }
+      function isComposedSlide(page) {
+        if (slideItemOf(page))
+          return true;
+        if (page.layoutId)
+          return false;
+        const kids = page.children;
+        if (kids.some((n) => {
+          var _a5;
+          return n.type === "text" && ((_a5 = n.data) == null ? void 0 : _a5.placeholderId);
+        }))
+          return false;
+        const names = new Set(kids.map((n) => n.name));
+        return names.has("Title") && ["Decor", "Page number", "Kicker", "Eyebrow", "Footer"].some((n) => names.has(n));
+      }
+      function slideTextDump(page) {
+        var _a5, _b, _c;
+        const lines = [];
+        for (const n of page.children) {
+          if (n.type !== "text")
+            continue;
+          const name = (_a5 = n.name) != null ? _a5 : "Text";
+          if (name === "Footer" || name === "Page number" || name === "Kicker")
+            continue;
+          const text2 = ((_b = n.content) != null ? _b : []).map((par) => par.runs.map((r) => r.text).join("")).join(" / ").trim();
+          if (text2)
+            lines.push(`${name}: ${text2}`);
+        }
+        if ((_c = page.notes) == null ? void 0 : _c.trim())
+          lines.push(`Speaker note: ${page.notes.trim()}`);
+        return lines.join("\n");
+      }
+      function reviseSlideSchema() {
+        const item = JSON.parse(JSON.stringify(outline_1.outlineItemJsonSchema));
+        item.required = ["title", "archetype"];
+        delete item.properties.note.minLength;
+        return item;
+      }
+      function reviseSlideSystemPrompt(styleClause = "") {
+        return "You REVISE one existing presentation slide per the user's instruction and return the slide as an outline item. Ground the revision in the slide's current content: keep every figure, date, name and proper noun exactly as written unless the instruction changes it; add material only where the instruction asks for it. When asked to fit, tighten or shorten, cut words and merge points; never drop a fact. Keep the slide's form (archetype) and its typed fields (stats, table, columns, steps, quote, pairs) unless the instruction calls for another form; when the current slide is given as text boxes named by role, infer the form from them (rows of short cells are a table, figures with labels are a kpiGrid, two headed groups are columns). Write in the same language as the current content unless the instruction says otherwise. " + (styleClause.trim() ? styleClause.trim() + " " : "") + "Output ONLY a single JSON object matching the schema, no prose or fences. Schema: " + JSON.stringify(reviseSlideSchema());
+      }
+      var TYPED_FIELDS = ["stat", "quote", "steps", "columns", "chart", "stats", "table", "people", "composition", "pairs", "signature"];
+      function reviseSlideItem(parsed, current) {
+        const raw = parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+        const base = current ? __spreadValues({}, current) : {};
+        delete base.id;
+        if (current && typeof raw.archetype === "string" && raw.archetype !== current.archetype) {
+          for (const k of TYPED_FIELDS)
+            if (!(k in raw))
+              delete base[k];
+        }
+        return (0, outline_1.normalizeOutline)({ title: "slide", theme: "", pages: [__spreadValues(__spreadValues({}, base), raw)] }).pages[0];
+      }
+      function baseStyle(input2, recipe, styleName, mood, seed) {
+        return (0, look_1.resolveKitStyle)({ style: styleName, look: recipe == null ? void 0 : recipe.look, seed, mood: [mood, input2.doc.title].filter(Boolean).join(" ") });
+      }
+      function kitLookFor(style, input2, recipe, voice, theme, fontsAuthored) {
+        var _a5, _b, _c, _d, _e, _f, _g;
+        const record2 = (_a5 = input2.doc.theme) != null ? _a5 : null;
+        const slots = recipe && recipe.themeSlots !== void 0 ? recipe.themeSlots : record2 ? (0, look_1.slotsFromThemeRecord)(record2) : null;
+        const repainted = (0, look_1.applyBrand)(slots ? (0, look_1.applyThemeSlots)(style, slots) : style, {
+          brandPalette: (_b = input2.brandPalette) != null ? _b : [],
+          brandFonts: fontsAuthored ? { heading: (_d = (_c = input2.brandFonts) == null ? void 0 : _c.heading) != null ? _d : theme.fontHeading, body: (_f = (_e = input2.brandFonts) == null ? void 0 : _e.body) != null ? _f : theme.fontBody } : void 0
+        });
+        return (0, look_1.makeLook)(repainted, { organization: voice.organization, deckName: input2.doc.title, kicker: voice.kicker, farewell: voice.farewell, total: input2.doc.pages.length, logo: (_g = input2.logo) != null ? _g : null });
+      }
+      var flatText = (n) => {
+        var _a5;
+        return ((_a5 = n.content) != null ? _a5 : []).map((par) => par.runs.map((r) => r.text).join("")).join(" ").trim();
+      };
+      function deckVoiceOf(doc2, recipe) {
+        if (recipe)
+          return { organization: recipe.organization, kicker: recipe.kicker, farewell: recipe.farewell };
+        const voice = {};
+        const last2 = doc2.pages.length - 1;
+        doc2.pages.forEach((p, i) => {
+          var _a5, _b;
+          for (const n of p.children) {
+            if (n.type !== "text")
+              continue;
+            const text2 = flatText(n);
+            if (!text2)
+              continue;
+            if (n.name === "Kicker") {
+              if (i === last2 && i > 0)
+                (_a5 = voice.farewell) != null ? _a5 : voice.farewell = text2;
+              else
+                (_b = voice.kicker) != null ? _b : voice.kicker = text2;
+            } else if (n.name === "Footer" && !voice.organization) {
+              voice.organization = text2.split("\xB7").map((s) => s.trim()).filter(Boolean).find((s) => s !== doc2.title.trim());
+            }
+          }
+        });
+        return voice;
+      }
+      function ornamentSignature(nodes) {
+        var _a5, _b, _c, _d, _e, _f;
+        const sig = /* @__PURE__ */ new Map();
+        const add = (k) => {
+          var _a6;
+          return sig.set(k, ((_a6 = sig.get(k)) != null ? _a6 : 0) + 1);
+        };
+        let panel = false;
+        for (const n of nodes) {
+          if (n.name === "Decor" && n.size)
+            add(`${(_a5 = n.shape) != null ? _a5 : n.type}:${Math.round(n.size.width)}x${Math.round(n.size.height)}`);
+          else if (n.name === "Title" && n.type === "text") {
+            const size2 = (_f = (_e = (_d = (_c = (_b = n.content) == null ? void 0 : _b[0]) == null ? void 0 : _c.runs) == null ? void 0 : _d[0]) == null ? void 0 : _e.style) == null ? void 0 : _f.fontSize;
+            if (size2)
+              add(`title:${Math.round(size2)}`);
+          } else if (n.name === "Panel" && !panel && n.cornerRadius !== void 0) {
+            panel = true;
+            add(`panel:${JSON.stringify(n.cornerRadius)}`);
+          }
+        }
+        return sig;
+      }
+      function ornamentMatch(page, probe) {
+        var _a5;
+        let total = 0;
+        let hit = 0;
+        for (const [k, n] of probe) {
+          total += n;
+          hit += Math.min(n, (_a5 = page.get(k)) != null ? _a5 : 0);
+        }
+        return total ? hit / total : 0;
+      }
+      function recoverKitStyle(page, probe) {
+        const have = ornamentSignature(page.children);
+        if (!have.size)
+          return null;
+        let best = null;
+        let bestScore = 0;
+        for (const name of looks_1.kitStyleNames) {
+          const style = looks_1.KIT_STYLES[name];
+          if (!style)
+            continue;
+          const score = ornamentMatch(have, ornamentSignature(probe(style)));
+          if (score > bestScore) {
+            bestScore = score;
+            best = name;
+          }
+        }
+        return bestScore >= 0.6 ? best : null;
+      }
+      function withKit(system, kit) {
+        const c = (hex3) => {
+          var _a5;
+          return (_a5 = (0, color_1.fromHex)(hex3)) != null ? _a5 : system.colors.ink;
+        };
+        return __spreadProps(__spreadValues({}, system), {
+          fonts: __spreadValues({ heading: kit.display, body: kit.body }, kit.mono ? { mono: kit.mono } : {}),
+          colors: __spreadProps(__spreadValues({}, system.colors), { primary: c(kit.paper.accent2), accent: c(kit.paper.accent), deep: c(kit.deep.bg), tint: c(kit.paper.panel), ink: c(kit.paper.ink), paper: c(kit.paper.bg) }),
+          radius: kit.radius
+        });
+      }
+      function recomposeSlide(input2) {
+        var _a5, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n;
+        const { doc: doc2, pageIndex, item } = input2;
+        const page = doc2.pages[pageIndex];
+        if (!page)
+          return null;
+        const size2 = { width: Math.max(1, Math.round(page.width)), height: Math.max(1, Math.round(page.height)) };
+        const recipe = deckRecipeOf(doc2.meta);
+        const total = doc2.pages.length;
+        const seed = titleSeed(doc2.title);
+        const brandPalette = (_a5 = input2.brandPalette) != null ? _a5 : [];
+        const record2 = (_b = doc2.theme) != null ? _b : null;
+        const theme = record2 ? (0, compose_1.deckThemeFromRecord)(record2, doc2.title) : (0, theme_1.deckThemes)({ brandPalette, kicker: doc2.title, count: 1, seed, fontHeading: (_c = input2.brandFonts) == null ? void 0 : _c.heading, fontBody: (_d = input2.brandFonts) == null ? void 0 : _d.body })[0];
+        const themed = __spreadProps(__spreadValues({}, theme), { kicker: (_e = theme.kicker) != null ? _e : doc2.title });
+        const designType = (_f = recipe == null ? void 0 : recipe.designType) != null ? _f : "deck";
+        const fontsAuthored = (_i = recipe == null ? void 0 : recipe.fontsAuthored) != null ? _i : !!(((_g = input2.brandFonts) == null ? void 0 : _g.heading) || ((_h = input2.brandFonts) == null ? void 0 : _h.body) || record2);
+        const mood = (_k = (_j = recipe == null ? void 0 : recipe.mood) != null ? _j : record2 == null ? void 0 : record2.name) != null ? _k : "";
+        const voice = deckVoiceOf(doc2, recipe);
+        const plain = (0, designSystem_1.deriveDesignSystem)(themed, size2, { brandPalette, seed, logo: (_l = input2.logo) != null ? _l : null, look: recipe == null ? void 0 : recipe.look, mood, fontsAuthored, catalog: null, dir: input2.dir });
+        const items = doc2.pages.map((p, i) => i === pageIndex ? item : slideItemOf(p));
+        const section = item.archetype === "section" ? items.slice(0, pageIndex).filter((it) => (it == null ? void 0 : it.archetype) === "section").length + 1 : void 0;
+        const signatureUsed = items.some((it, i) => i !== pageIndex && !!(it == null ? void 0 : it.signature));
+        const ctx = { index: pageIndex, total, section, designType, motion: plain.motion, scale: size2.width / 1920, artDirection: plain.artDirection, signatureUsed: { value: signatureUsed } };
+        const useKit = ((_m = recipe == null ? void 0 : recipe.renderer) != null ? _m : "kit") === "kit" && (0, render_1.kitFits)(size2, designType);
+        let parts = { system: plain, kit: null };
+        if (useKit) {
+          let styleName = recipe == null ? void 0 : recipe.style;
+          if (!styleName) {
+            const probeItem = __spreadValues({ id: "probe", title: item.title, points: [], visualRole: item.visualRole, archetype: item.archetype }, item.eyebrow ? { eyebrow: item.eyebrow } : {});
+            styleName = (_n = recoverKitStyle(page, (style) => (0, render_1.composeKitPage)(probeItem, kitLookFor(style, input2, recipe, voice, theme, fontsAuthored), __spreadProps(__spreadValues({}, ctx), { signatureUsed: { value: true } })).nodes)) != null ? _n : void 0;
+          }
+          const kit = kitLookFor(baseStyle(input2, recipe, styleName, mood, seed), input2, recipe, voice, theme, fontsAuthored);
+          parts = { system: withKit(plain, kit), kit };
+        }
+        const composed = parts.kit ? (0, render_1.composeKitPage)(item, parts.kit, __spreadProps(__spreadValues({}, ctx), { motion: parts.system.motion, artDirection: parts.system.artDirection })) : (0, archetypes_1.composeArchetypePage)(item, parts.system, { index: pageIndex, total, section, designType });
+        const repairs = (0, repair_1.repairContrast)({ background: composed.background, nodes: composed.nodes, size: size2 });
+        return __spreadValues({
+          background: composed.background,
+          nodes: composed.nodes,
+          imagePrompts: composed.imagePrompts,
+          archetype: composed.archetype,
+          overfull: composed.overfull,
+          repairs
+        }, parts.kit ? { style: parts.kit.name } : {});
       }
     }
   });
@@ -44651,7 +44920,7 @@ Brief: ${prompt.trim()}`;
             { name: "topicB", type: "string", required: true },
             { name: "afterPageIndex", type: "number", required: false, description: "1-based page to insert after (default: the current page)" }
           ], mutates: true },
-          { name: "regenerateSlide", description: "Regenerate ONE slide's content per an instruction, keeping the deck's layout system, the slide's identity, and any images whose prompts are unchanged. Use for 'redo/rewrite/improve slide N' or 'make slide N more data-driven'.", params: [
+          { name: "regenerateSlide", description: "Regenerate ONE slide per an instruction, keeping the deck's visual system, the slide's identity, and any images whose prompts are unchanged. Use for 'redo/rewrite/improve/polish/fix slide N', 'make slide N fit', 'make slide N more data-driven', or any change to one slide's content or arrangement.", params: [
             { name: "pageIndex", type: "number", required: true, description: "the 1-based page number to regenerate" },
             { name: "instruction", type: "string", required: true, description: "how to change it, e.g. 'more data-driven' or 'shorter, punchier'" }
           ], mutates: true },
@@ -44666,7 +44935,9 @@ Brief: ${prompt.trim()}`;
             { name: "instruction", type: "string", required: false, description: "optional guidance, e.g. 'cluster by customer segment'" }
           ], mutates: true },
           { name: "summarizeStickies", description: "Summarize the board's sticky notes into a text note on the canvas: key themes, decisions, and action items. Use for 'summarize the board / the stickies / this brainstorm'.", params: [], mutates: true },
-          { name: "critique", description: "Analyze the current page and report design issues (no changes).", params: [], mutates: false }
+          { name: "critique", description: "Analyze one page (the current one by default) and report design issues (no changes). Use for 'check/review slide N'.", params: [
+            { name: "pageIndex", type: "number", required: false, description: "the 1-based page to analyze (default: the current page)" }
+          ], mutates: false }
         ];
       }
       var AssistantError = class extends Error {
@@ -45038,6 +45309,7 @@ ${cites.map((c, i) => `${i + 1}. ${c.name.trim()} - ${c.url.trim()}`).join("\n")
       __exportStar(require_deckStyle(), exports);
       __exportStar(require_reflow(), exports);
       __exportStar(require_deck(), exports);
+      __exportStar(require_recompose(), exports);
       __exportStar(require_designSystem(), exports);
       __exportStar(require_archetypes(), exports);
       __exportStar(require_measure(), exports);

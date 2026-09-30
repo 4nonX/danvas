@@ -643,6 +643,9 @@ export const outlineJsonSchema = {
   },
 } as const;
 
+/** JSON Schema for ONE outline item: what a per-slide revision returns. */
+export const outlineItemJsonSchema = outlineJsonSchema.properties.pages.items;
+
 // --- Outline -> per-page spec ---------------------------------------------
 
 /** Map a visual role to a base layout intent. */

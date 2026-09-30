@@ -569,6 +569,12 @@ interface EditorState {
    *  style option) after the last page, as ONE undo step. Returns new page ids. */
   appendDeckPages(deck: DeckResult, target: { width: number; height: number }): string[];
 
+  /** Replace one page's content in place (background, children, notes and
+   *  data) as ONE undo step; the page keeps its id and every other field,
+   *  and asset refs the new content needs (a logo) are listed when missing.
+   *  Per-slide regeneration of a composed deck lands through this. */
+  replacePageContent(pageIndex: number, next: { background?: Fill; children: Node[]; notes?: string; data?: Record<string, unknown>; assets?: AssetRef[] }): boolean;
+
   /** F39 Phase 3: run `fn` (which calls other store mutators) and collapse every
    *  undo entry it pushes into ONE undo turn, so an assistant turn reverts with a
    *  single Cmd+Z (FR-8). Returns the number of entries collapsed. */
@@ -1636,6 +1642,21 @@ function addAssetRef(doc: DesignFile, ref: AssetRef): boolean {
   return true;
 }
 
+/** The recipe stamped on a file's meta by a deck generation, if any. */
+function deckRecipeOnDoc(doc: DesignFile): unknown {
+  const meta = (doc as unknown as { meta?: Record<string, unknown> }).meta;
+  return meta && typeof meta === "object" ? meta.aiDeck : undefined;
+}
+
+/** Stamp (or, with undefined, clear) the deck recipe on a file's meta,
+ *  editing the meta record in place so its other keys survive. */
+function stampDeckRecipe(doc: DesignFile, recipe: unknown): void {
+  const d = doc as unknown as { meta?: Record<string, unknown> };
+  if (!d.meta || typeof d.meta !== "object") d.meta = {};
+  if (recipe === undefined) delete d.meta.aiDeck;
+  else d.meta.aiDeck = structuredClone(recipe);
+}
+
 function removeAssetRef(doc: DesignFile, id: string): void {
   if (!Array.isArray(doc.assets)) return;
   const i = doc.assets.findIndex((a) => a.id === id);
@@ -2274,6 +2295,8 @@ export const useEditor = create<EditorState>((set, get) => {
         background: p.background,
         children: structuredClone(p.nodes),
         ...(p.note ? { notes: p.note } : {}), // speaker notes from the outline
+        // The item the page was set from, for a later per-slide regeneration.
+        ...(p.item ? { data: { aiOutline: structuredClone(p.item) } } : {}),
       }));
       const pageIds = newPages.map((p) => p.id);
       const before = structuredClone(doc.pages);
@@ -2289,9 +2312,12 @@ export const useEditor = create<EditorState>((set, get) => {
       // assets the file must list; they ride in the same undo step as the pages.
       const logoRefs = deckLogoRefs(deck);
       let addedLogoIds: string[] = [];
+      // How the deck was set rides on the file's meta, so one page can be set
+      // again later; a replaced deck replaces the recipe too.
+      const prevRecipe = deckRecipeOnDoc(get().doc);
       perform(
-        () => { replaceAll(after, 0, []); addedLogoIds = addDeckLogoRefs(get().doc, logoRefs); },
-        () => { replaceAll(before, prevActive, prevSel); for (const id of addedLogoIds) removeAssetRef(get().doc, id); }, // restore the user's prior view on undo
+        () => { replaceAll(after, 0, []); addedLogoIds = addDeckLogoRefs(get().doc, logoRefs); if (deck.recipe) stampDeckRecipe(get().doc, deck.recipe); },
+        () => { replaceAll(before, prevActive, prevSel); for (const id of addedLogoIds) removeAssetRef(get().doc, id); if (deck.recipe) stampDeckRecipe(get().doc, prevRecipe); }, // restore the user's prior view on undo
       );
       return pageIds;
     },
@@ -2309,6 +2335,7 @@ export const useEditor = create<EditorState>((set, get) => {
         background: p.background,
         children: structuredClone(p.nodes),
         ...(p.note ? { notes: p.note } : {}), // speaker notes from the outline
+        ...(p.item ? { data: { aiOutline: structuredClone(p.item) } } : {}),
       }));
       const pageIds = newPages.map((p) => p.id);
       const snapshot = structuredClone(newPages);
@@ -2318,10 +2345,13 @@ export const useEditor = create<EditorState>((set, get) => {
       // Only an asset ref this step ADDED is removed on undo: a deck appended
       // to one that already carried the logo leaves the earlier ref alone.
       let addedLogoIds: string[] = [];
+      // An appended deck never overrides the recipe of the deck it joins.
+      const stampRecipe = !!deck.recipe && !deckRecipeOnDoc(get().doc);
       perform(
         () => {
           (get().doc.pages as unknown as unknown[]).push(...(structuredClone(snapshot) as unknown[]));
           addedLogoIds = addDeckLogoRefs(get().doc, logoRefs);
+          if (stampRecipe) stampDeckRecipe(get().doc, deck.recipe);
           set({ activePage: get().doc.pages.length - newPages.length, selection: [] });
         },
         () => {
@@ -2331,10 +2361,39 @@ export const useEditor = create<EditorState>((set, get) => {
             if (i >= 0) live.splice(i, 1);
           }
           for (const id of addedLogoIds) removeAssetRef(get().doc, id);
+          if (stampRecipe) stampDeckRecipe(get().doc, undefined);
           set({ activePage: Math.min(prevActive, get().doc.pages.length - 1), selection: prevSel });
         },
       );
       return pageIds;
+    },
+    replacePageContent: (pageIndex, next) => {
+      const page = get().doc.pages[pageIndex] as unknown as { background?: Fill; children: Node[]; notes?: string; data?: Record<string, unknown> } | undefined;
+      if (!page) return false;
+      type Content = { background?: Fill; children: Node[]; notes?: string; data?: Record<string, unknown> };
+      const before: Content = { background: structuredClone(page.background), children: structuredClone(page.children), notes: page.notes, data: page.data ? structuredClone(page.data) : undefined };
+      const after: Content = {
+        background: next.background ? structuredClone(next.background) : before.background,
+        children: structuredClone(next.children),
+        notes: next.notes !== undefined ? next.notes : before.notes,
+        data: next.data ? { ...(before.data ?? {}), ...structuredClone(next.data) } : before.data,
+      };
+      // The page object and its children array stay the same objects, edited
+      // in place, so every other field the page carries (a transition, a
+      // reading order, a key this client does not know) survives.
+      const assign = (v: Content) => {
+        if (v.background === undefined) delete page.background; else page.background = structuredClone(v.background);
+        page.children.splice(0, page.children.length, ...structuredClone(v.children));
+        if (v.notes === undefined) delete page.notes; else page.notes = v.notes;
+        if (v.data === undefined) delete page.data; else page.data = structuredClone(v.data);
+      };
+      const prevSel = get().selection;
+      let addedAssetIds: string[] = [];
+      perform(
+        () => { assign(after); addedAssetIds = addDeckLogoRefs(get().doc, next.assets ?? []); set({ selection: [] }); },
+        () => { assign(before); for (const id of addedAssetIds) removeAssetRef(get().doc, id); set({ selection: prevSel }); },
+      );
+      return true;
     },
     runWithoutHistory: (fn) => {
       suppressHistory++;

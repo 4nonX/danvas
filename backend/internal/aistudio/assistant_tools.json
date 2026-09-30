@@ -321,7 +321,7 @@
   },
   {
     "name": "regenerateSlide",
-    "description": "Regenerate ONE slide's content per an instruction, keeping the deck's layout system, the slide's identity, and any images whose prompts are unchanged. Use for 'redo/rewrite/improve slide N' or 'make slide N more data-driven'.",
+    "description": "Regenerate ONE slide per an instruction, keeping the deck's visual system, the slide's identity, and any images whose prompts are unchanged. Use for 'redo/rewrite/improve/polish/fix slide N', 'make slide N fit', 'make slide N more data-driven', or any change to one slide's content or arrangement.",
     "params": [
       {
         "name": "pageIndex",
@@ -391,8 +391,15 @@
   },
   {
     "name": "critique",
-    "description": "Analyze the current page and report design issues (no changes).",
-    "params": [],
+    "description": "Analyze one page (the current one by default) and report design issues (no changes). Use for 'check/review slide N'.",
+    "params": [
+      {
+        "name": "pageIndex",
+        "type": "number",
+        "required": false,
+        "description": "the 1-based page to analyze (default: the current page)"
+      }
+    ],
     "mutates": false
   }
 ]

@@ -24,7 +24,7 @@ import {
 import { fromHex } from "@hc/color";
 import { normalizeOutline, type DesignType } from "./outline";
 import { deckThemes } from "./theme";
-import { layoutDeck } from "./deck";
+import { layoutDeck, type DeckRecipe } from "./deck";
 import { slotsFromThemeRecord } from "./kit/look";
 import { layoutDesign, readableTextColor } from "./layout";
 import type { DesignSystem } from "./designSystem";
@@ -211,6 +211,7 @@ export function composeDeckFileWithReport(input: ComposeDeckInput): { file: Desi
   let layoutsOut: SlideLayout[] | undefined;
   let system: DesignSystem | null = null;
   let report: DeckReport | null = null;
+  let recipe: DeckRecipe | null = null;
   if (input.layoutSet?.layouts?.length) {
     // Layout-grounded composition (E14): the template's own layout system,
     // materialized the way the editor's apply pass does it - deterministic
@@ -375,6 +376,7 @@ export function composeDeckFileWithReport(input: ComposeDeckInput): { file: Desi
     const deck = layoutDeck(outline, theme, { width, height }, { dir: input.dir, catalog, brandPalette: input.brandPalette, seed, motion: input.motion, logo: input.logo, designType, look: input.look, outlineLook: outline.look, fontsAuthored, renderer: input.renderer === "classic" ? "classic" : "kit", brandFonts: input.brandFonts, themeChosen: !!(input.themeId || input.themeRecord), themeSlots: input.themeRecord ? slotsFromThemeRecord(input.themeRecord) : null });
     system = deck.system;
     report = deck.report;
+    recipe = deck.recipe ?? null;
     pages = deck.pages.map((p, i) => ({
       id: `api-page-${i + 1}`,
       name: p.name || `Page ${i + 1}`,
@@ -383,6 +385,9 @@ export function composeDeckFileWithReport(input: ComposeDeckInput): { file: Desi
       background: p.background,
       children: p.nodes,
       ...(p.note ? { notes: p.note } : {}),
+      // The item the page was set from, so the editor can revise and set
+      // this one page again later (per-slide regeneration).
+      ...(p.item ? { data: { aiOutline: p.item } } : {}),
     }) as unknown as Page);
   }
 
@@ -394,8 +399,9 @@ export function composeDeckFileWithReport(input: ComposeDeckInput): { file: Desi
     unit: "px",
     dpi: 96,
     // Required by the file schema even when empty; the editor tolerates its
-    // absence on load but the .hyc door validates strictly.
-    meta: {},
+    // absence on load but the .hyc door validates strictly. A composed deck
+    // records how it was set, for per-slide regeneration in the editor.
+    meta: recipe ? { aiDeck: recipe } : {},
     pages,
     // The logo is the one asset a composed deck references before any
     // picture lands; the archetype door placed it on every page.

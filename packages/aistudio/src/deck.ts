@@ -10,7 +10,7 @@ import type { Fill, Node } from "@hc/schema";
 import type { Size } from "./layout";
 import { qualityCheck, type QualityReport } from "./quality";
 import { repairContrast } from "./repair";
-import type { Archetype, DeckTheme, DesignOutline, DesignType } from "./outline";
+import type { Archetype, DeckTheme, DesignOutline, DesignType, OutlineItem } from "./outline";
 import { deriveDesignSystem, type DesignSystem, type DeriveOptions } from "./designSystem";
 import { composeArchetypePage, type ComposedPage } from "./archetypes";
 import { measureDeck, planVariants, toMeasurable, type DeckReport, type PageVariant } from "./measure";
@@ -30,6 +30,32 @@ export interface DeckPage {
   /** Placeholder id to English image prompt for every picture region on the
    *  page, so a caller can hand them to the image pipeline. */
   imagePrompts: Record<string, string>;
+  /** The outline item the page was set from, kept on the page (Page.data
+   *  aiOutline) so a later per-slide regeneration revises the item and sets
+   *  it again rather than reading the copy back out of the boxes. */
+  item?: OutlineItem;
+}
+
+/** What setting one page again, later, needs to know about how the deck was
+ *  set and that neither the theme record nor the workspace brand carries:
+ *  the composer, the kit style and the deck's voice. Stamped on the file's
+ *  meta as `aiDeck`. A deck composed before the recipe existed recomposes
+ *  from the theme record and the title, with the style recovered from the
+ *  page's own ornament. */
+export interface DeckRecipe {
+  renderer: "kit" | "classic";
+  /** The kit style the deck is set in (kit/looks.ts), when the kit drew it. */
+  style?: string;
+  look?: string;
+  /** The outline's mood phrase, which directs the deck's pictures. */
+  mood?: string;
+  organization?: string;
+  kicker?: string;
+  farewell?: string;
+  designType?: DesignType;
+  fontsAuthored?: boolean;
+  /** The six slots the kit wore, or null when it wore the brand alone. */
+  themeSlots?: string[] | null;
 }
 
 export interface DeckResult {
@@ -43,6 +69,8 @@ export interface DeckResult {
    *  (drawings in halos, tagged slots for photographs), so a caller adds no
    *  hero picture behind any of its pages. */
   renderer: "kit" | "classic";
+  /** How the deck was set, for a later per-slide recomposition. */
+  recipe?: DeckRecipe;
 }
 
 export type LayoutDeckOptions = DeriveOptions & {
@@ -149,7 +177,20 @@ export function layoutDeck(
     quality: { ok: report.pages[i].issues.length === 0, issues: report.pages[i].issues },
     archetype: c.archetype,
     imagePrompts: c.imagePrompts,
+    item: outline.pages[i],
     ...(outline.pages[i].note ? { note: outline.pages[i].note } : {}),
   }));
-  return { title: outline.title, pages, system, report, renderer: kitLook ? "kit" : "classic" };
+  const recipe: DeckRecipe = {
+    renderer: kitLook ? "kit" : "classic",
+    ...(kitLook ? { style: kitLook.name } : {}),
+    ...(typeof styleOpts.look === "string" && styleOpts.look ? { look: styleOpts.look } : {}),
+    ...(outline.theme ? { mood: outline.theme } : {}),
+    ...(outline.organization ? { organization: outline.organization } : {}),
+    ...(outline.kicker ? { kicker: outline.kicker } : {}),
+    ...(outline.farewell ? { farewell: outline.farewell } : {}),
+    ...(opts?.designType ? { designType: opts.designType } : {}),
+    fontsAuthored: !!opts?.fontsAuthored,
+    themeSlots: chosenSlots ?? null,
+  };
+  return { title: outline.title, pages, system, report, renderer: kitLook ? "kit" : "classic", recipe };
 }
