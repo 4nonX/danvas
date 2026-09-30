@@ -9,7 +9,8 @@
 // a first OIDC login, a team workspace) and, for the workspaces that predate
 // the kit, on the first boot after the upgrade. The visit is recorded on the
 // workspace, so a kit the owner deletes or replaces never comes back, and a
-// workspace that already had a kit is left alone.
+// workspace that already has a kit of its own (one with content, or one the
+// owner named) is left alone; an empty untitled placeholder is not a brand.
 //
 // The default kit grounds every generation in the workspace (voice, palette,
 // faces and the logo on every page), so an instance whose users bring their
@@ -283,8 +284,10 @@ func (s *Service) SeedStarterKit(ctx context.Context, workspaceID, ownerID strin
 	if err != nil {
 		return false, err
 	}
-	if len(existing) > 0 {
-		return false, nil
+	for _, k := range existing {
+		if kitIsOwn(k) {
+			return false, nil
+		}
 	}
 	ids := map[string]string{}
 	if s.starterAssets != nil {
@@ -375,6 +378,42 @@ func (s *Service) SeedStarterKits(ctx context.Context) (int, error) {
 			return made, nil
 		}
 	}
+}
+
+// untitledKitName is the name CreateKit gives a kit made without one.
+const untitledKitName = "Untitled brand kit"
+
+// kitIsOwn reports whether a kit is the workspace's own brand, which the
+// seeding must not displace: one with any content (a palette, a face, a
+// logo, a collection or a voice), or one the owner named. An empty kit still
+// carrying the default name is a placeholder from a click in the panel; the
+// starter kit is seeded beside it and becomes the default in its stead.
+func kitIsOwn(k BrandKitRow) bool {
+	if strings.TrimSpace(k.Name) != untitledKitName {
+		return true
+	}
+	for _, raw := range []json.RawMessage{k.Palettes, k.Fonts, k.Logos, k.Collections} {
+		var items []json.RawMessage
+		if len(raw) > 0 && json.Unmarshal(raw, &items) == nil && len(items) > 0 {
+			return true
+		}
+	}
+	var voice struct {
+		Tone       []string `json:"tone"`
+		DoSay      []string `json:"doSay"`
+		DontSay    []string `json:"dontSay"`
+		SampleCopy string   `json:"sampleCopy"`
+	}
+	if len(k.Voice) > 0 && json.Unmarshal(k.Voice, &voice) == nil {
+		for _, list := range [][]string{voice.Tone, voice.DoSay, voice.DontSay, {voice.SampleCopy}} {
+			for _, v := range list {
+				if strings.TrimSpace(v) != "" {
+					return true
+				}
+			}
+		}
+	}
+	return false
 }
 
 // claimStarterVisit records the visit and reports whether this caller was

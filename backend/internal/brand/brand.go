@@ -210,7 +210,7 @@ func (s *Service) CreateKit(ctx context.Context, workspaceID, userID, name strin
 	}
 	n := strings.TrimSpace(name)
 	if n == "" {
-		n = "Untitled brand kit"
+		n = untitledKitName
 	}
 	existing, err := s.listForWorkspace(ctx, workspaceID)
 	if err != nil {

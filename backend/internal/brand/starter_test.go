@@ -223,3 +223,31 @@ func hexOfRGB(r, g, b float64) string {
 	}
 	return string(out)
 }
+
+// A kit counts as the workspace's own when it has any content or a name the
+// owner gave it; an empty kit under the default name is a placeholder.
+func TestKitIsOwn(t *testing.T) {
+	empty := BrandKitRow{Name: "Untitled brand kit", Palettes: json.RawMessage("[]"), Fonts: json.RawMessage("[]"), Logos: json.RawMessage("[]"), Collections: json.RawMessage("[]")}
+	if kitIsOwn(empty) {
+		t.Fatal("an empty untitled kit is a placeholder")
+	}
+	blankVoice := empty
+	blankVoice.Voice = json.RawMessage(`{"tone":[""," "],"doSay":[],"dontSay":[],"sampleCopy":" "}`)
+	if kitIsOwn(blankVoice) {
+		t.Fatal("a blank voice is no content")
+	}
+	cases := map[string]BrandKitRow{
+		"named":      {Name: "Acme", Palettes: json.RawMessage("[]")},
+		"palette":    {Name: "Untitled brand kit", Palettes: json.RawMessage(`[{"id":"p","colors":[]}]`)},
+		"font":       {Name: "Untitled brand kit", Fonts: json.RawMessage(`[{"role":"body","fontFamily":"Inter"}]`)},
+		"logo":       {Name: "Untitled brand kit", Logos: json.RawMessage(`[{"assetId":"a"}]`)},
+		"collection": {Name: "Untitled brand kit", Collections: json.RawMessage(`[{"id":"c"}]`)},
+		"voice":      {Name: "Untitled brand kit", Voice: json.RawMessage(`{"tone":["warm"]}`)},
+		"sample":     {Name: "Untitled brand kit", Voice: json.RawMessage(`{"sampleCopy":"Hello"}`)},
+	}
+	for name, k := range cases {
+		if !kitIsOwn(k) {
+			t.Fatalf("%s: should count as the workspace's own", name)
+		}
+	}
+}

@@ -290,6 +290,23 @@ func TestStarterKitSeeding_DB(t *testing.T) {
 		t.Fatalf("artwork stored for a workspace that was not seeded")
 	}
 
+	// An empty kit still carrying the default name is a placeholder, not the
+	// workspace's brand: the starter kit lands beside it and takes the default.
+	placeholderWS, err := acct.CreateWorkspace(ctx, owner.ID, "Placeholder", "team")
+	if err != nil {
+		t.Fatalf("create placeholder ws: %v", err)
+	}
+	placeholder, err := svc.CreateKit(ctx, placeholderWS.ID, owner.ID, "", nil)
+	if err != nil || placeholder.Name != "Untitled brand kit" || !placeholder.IsDefault {
+		t.Fatalf("placeholder kit = %+v, %v", placeholder, err)
+	}
+	if seeded, err := svc.SeedStarterKit(ctx, placeholderWS.ID, owner.ID); err != nil || !seeded {
+		t.Fatalf("seed beside placeholder = %v, %v", seeded, err)
+	}
+	if kits, _ := svc.ListKits(ctx, placeholderWS.ID, owner.ID); len(kits) != 2 || kits[0].Name != "HyCanvas" || !kits[0].IsDefault || kits[1].ID != placeholder.ID || kits[1].IsDefault {
+		t.Fatalf("placeholder workspace kits = %+v", kits)
+	}
+
 	// The hook seeds the workspaces the accounts service creates.
 	acct.WithWorkspaceHook(func(ctx context.Context, workspaceID, ownerID string) {
 		if _, err := svc.SeedStarterKit(ctx, workspaceID, ownerID); err != nil {
