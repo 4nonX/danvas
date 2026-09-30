@@ -2964,6 +2964,7 @@
   "errors.api_ai_provider_auth_failed": "O provedor de IA rejeitou a chave de API do workspace. Verifique a chave nas configurações de IA.",
   "errors.api_ai_provider_failed": "A solicitação ao provedor de IA falhou.",
   "errors.api_ai_provider_model_not_found": "O provedor de IA não reconhece o modelo ou endpoint configurado. Verifique o nome do modelo e a URL base nas configurações de IA.",
+  "errors.api_ai_provider_model_forbidden": "O provedor de IA recusou o modelo configurado para esta chave. Escolha um modelo que a chave possa usar ou conceda acesso a ela no console do provedor.",
   "errors.api_ai_provider_quota_exhausted": "A conta do provedor de IA está sem crédito. Recarregue ou troque de provedor nas configurações de IA.",
   "errors.api_ai_provider_rate_limited": "O provedor de IA limitou a frequência das solicitações. Aguarde um momento e tente novamente.",
   "errors.api_ai_secret_required": "Este provedor assina suas requisições e precisa de uma chave de acesso e de uma chave secreta.",

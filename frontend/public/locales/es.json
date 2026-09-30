@@ -2964,6 +2964,7 @@
   "errors.api_ai_provider_auth_failed": "El proveedor de IA rechazó la clave de API del espacio de trabajo. Revisa la clave en los ajustes de IA.",
   "errors.api_ai_provider_failed": "La solicitud al proveedor de IA falló.",
   "errors.api_ai_provider_model_not_found": "El proveedor de IA no reconoce el modelo o endpoint configurado. Revisa el nombre del modelo y la URL base en los ajustes de IA.",
+  "errors.api_ai_provider_model_forbidden": "El proveedor de IA rechazó el modelo configurado para esta clave. Elige un modelo que la clave pueda usar o concédele acceso en la consola del proveedor.",
   "errors.api_ai_provider_quota_exhausted": "La cuenta del proveedor de IA se quedó sin crédito. Recarga o cambia de proveedor en los ajustes de IA.",
   "errors.api_ai_provider_rate_limited": "El proveedor de IA limitó la frecuencia de solicitudes. Espera un momento y vuelve a intentarlo.",
   "errors.api_ai_secret_required": "Este proveedor firma sus solicitudes y necesita tanto una clave de acceso como una clave secreta.",

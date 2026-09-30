@@ -594,7 +594,13 @@ var errProviderTransport = fmt.Errorf("%w: no response", errProviderFailed)
 // whether a failure is negotiable (a 4xx rejecting an unsupported request
 // parameter) without ever echoing the provider's body. It IS an
 // errProviderFailed for every existing errors.Is check.
-type httpStatusError struct{ status int }
+type httpStatusError struct {
+	status int
+	// reason is the provider's own message, bounded and stripped; it stays
+	// inside this package (logged, and read by badGateway to tell a refused
+	// model from a refused credential) and is never returned to a client.
+	reason string
+}
 
 func (e *httpStatusError) Error() string {
 	return fmt.Sprintf("provider request failed (%d)", e.status)
@@ -693,8 +699,9 @@ func (s *Service) do(httpReq *http.Request, timeout time.Duration) ([]byte, erro
 	// bare 403 cannot tell an operator a rejected key from a missing IAM
 	// permission from a signature mismatch.
 	if res.StatusCode < 200 || res.StatusCode >= 300 {
-		slog.Warn("ai provider rejected the request", "host", httpReq.URL.Host, "status", res.StatusCode, "reason", upstreamReason(res.Body))
-		return nil, &httpStatusError{status: res.StatusCode}
+		reason := upstreamReason(res.Body)
+		slog.Warn("ai provider rejected the request", "host", httpReq.URL.Host, "status", res.StatusCode, "reason", reason)
+		return nil, &httpStatusError{status: res.StatusCode, reason: reason}
 	}
 	if cl, err := strconv.ParseInt(res.Header.Get("content-length"), 10, 64); err == nil && cl > maxResponseBytes {
 		return nil, errProviderFailed

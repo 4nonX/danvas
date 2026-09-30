@@ -117,6 +117,12 @@ func aiFailure(err error) (status int, title, detail, code string) {
 		if errors.Is(err, ai.ErrReplyTruncated) {
 			return http.StatusBadGateway, "Bad Gateway", ai.ErrReplyTruncated.Error(), "ai_reply_truncated"
 		}
+		// A credential the provider knows but will not let use THIS model
+		// (an IAM policy naming other inference profiles, model access not
+		// enabled): the fix is in the model field, not the key.
+		if errors.Is(err, ai.ErrModelForbidden) {
+			return http.StatusBadGateway, "Bad Gateway", "the AI provider refused the configured model for this key; choose a model the key is allowed to use, or grant it access in the provider's console", "ai_provider_model_forbidden"
+		}
 		var up *ai.UpstreamError
 		upstream := 0
 		if errors.As(err, &up) {
@@ -174,6 +180,8 @@ func aiProblem(w http.ResponseWriter, r *http.Request, err error) {
 		problemWithCode(w, r, status, title, detail, "ai_provider_quota_exhausted")
 	case "ai_provider_model_not_found":
 		problemWithCode(w, r, status, title, detail, "ai_provider_model_not_found")
+	case "ai_provider_model_forbidden":
+		problemWithCode(w, r, status, title, detail, "ai_provider_model_forbidden")
 	case "ai_provider_rate_limited":
 		problemWithCode(w, r, status, title, detail, "ai_provider_rate_limited")
 	case "ai_provider_failed":

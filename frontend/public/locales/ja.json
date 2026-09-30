@@ -2964,6 +2964,7 @@
   "errors.api_ai_provider_auth_failed": "AIプロバイダーがワークスペースのAPIキーを拒否しました。AI設定でキーを確認してください。",
   "errors.api_ai_provider_failed": "AIプロバイダーへのリクエストに失敗しました。",
   "errors.api_ai_provider_model_not_found": "AIプロバイダーが設定されたモデルまたはエンドポイントを認識できません。AI設定でモデル名とベースURLを確認してください。",
+  "errors.api_ai_provider_model_forbidden": "AI プロバイダーがこのキーに対して設定されたモデルを拒否しました。キーが使用できるモデルを選ぶか、プロバイダーのコンソールでアクセスを許可してください。",
   "errors.api_ai_provider_quota_exhausted": "AIプロバイダーのアカウント残高がありません。チャージするか、AI設定でプロバイダーを切り替えてください。",
   "errors.api_ai_provider_rate_limited": "AIプロバイダーがリクエストをレート制限しました。少し待ってからもう一度お試しください。",
   "errors.api_ai_secret_required": "このプロバイダーはリクエストに署名するため、アクセスキーとシークレットキーの両方が必要です。",

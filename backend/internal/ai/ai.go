@@ -53,7 +53,17 @@ func badGateway(cfg CallConfig, err error) error {
 	var se *httpStatusError
 	if errors.As(err, &se) {
 		slog.Warn("ai provider call failed", "provider", cfg.Provider, "upstream_status", se.status)
-		return errors.Join(ErrBadGateway, &UpstreamError{Provider: string(cfg.Provider), Status: se.status})
+		up := &UpstreamError{Provider: string(cfg.Provider), Status: se.status}
+		// A 403 is two different problems on the providers that sign or scope
+		// their keys: a credential that is wrong, and a credential that is fine
+		// but not allowed this MODEL (Bedrock's IAM policy per inference
+		// profile, model access not enabled, an OpenAI project without the
+		// model). The provider's own words tell them apart, so the second is
+		// marked and the form can point at the model rather than the key.
+		if (se.status == http.StatusForbidden || se.status == http.StatusUnauthorized) && modelAccessDenied(se.reason) {
+			return errors.Join(ErrBadGateway, ErrModelForbidden, up)
+		}
+		return errors.Join(ErrBadGateway, up)
 	}
 	slog.Warn("ai provider call failed", "provider", cfg.Provider, "err", err)
 	if errors.Is(err, errProviderTransport) {
@@ -63,6 +73,32 @@ func badGateway(cfg CallConfig, err error) error {
 		return errors.Join(ErrBadGateway, ErrReplyTruncated)
 	}
 	return ErrBadGateway
+}
+
+// modelAccessDenied reads a provider's refusal for the shape of "this model is
+// not allowed for this credential", as opposed to a credential it does not
+// recognize: AWS IAM's "is not authorized to perform ... on resource" and
+// AccessDeniedException, Bedrock's "don't have access to the model", and the
+// OpenAI-compatible "does not have access to model".
+func modelAccessDenied(reason string) bool {
+	r := strings.ToLower(reason)
+	if r == "" {
+		return false
+	}
+	for _, needle := range []string{
+		"not authorized to perform",
+		"accessdeniedexception",
+		"access denied",
+		"have access to the model",
+		"have access to model",
+		"model access",
+		"not enabled for this account",
+	} {
+		if strings.Contains(r, needle) {
+			return true
+		}
+	}
+	return false
 }
 
 var (
@@ -99,6 +135,12 @@ var (
 	// can name the missing field.
 	ErrKeyRequired = errors.New("provider requires an API key")
 
+	// ErrModelForbidden rides alongside ErrBadGateway when the provider
+	// refused the MODEL for an otherwise working credential (an IAM policy
+	// that names other inference profiles, model access not enabled, a
+	// project without the model). Distinct from a rejected key so the form
+	// points at the model field, where the fix is.
+	ErrModelForbidden = errors.New("the provider refused the configured model for this credential")
 	// ErrProviderUnreachable rides alongside ErrBadGateway when the call never
 	// got an HTTP answer (DNS, TLS, refused, timeout). That is nearly always a
 	// wrong base URL, and saying "the request failed" pointed at nothing.

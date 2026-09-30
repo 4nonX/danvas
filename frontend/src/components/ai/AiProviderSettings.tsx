@@ -30,6 +30,7 @@ function fieldForCode(code: string | undefined): "key" | "model" | "baseUrl" | n
     case "ai_key_required_for_provider_change":
       return "key";
     case "ai_provider_model_not_found":
+    case "ai_provider_model_forbidden":
       return "model";
     case "ai_provider_unreachable":
     case "ai_base_url_required":

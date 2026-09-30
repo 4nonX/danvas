@@ -2964,6 +2964,7 @@
   "errors.api_ai_provider_auth_failed": "The AI provider rejected the workspace API key. Check the key in AI settings.",
   "errors.api_ai_provider_failed": "The AI provider request failed.",
   "errors.api_ai_provider_model_not_found": "The AI provider doesn't recognize the configured model or endpoint. Check the model name and base URL in AI settings.",
+  "errors.api_ai_provider_model_forbidden": "The AI provider refused the configured model for this key. Choose a model the key is allowed to use, or grant it access in the provider's console.",
   "errors.api_ai_provider_quota_exhausted": "The AI provider account is out of credit. Top up or switch providers in AI settings.",
   "errors.api_ai_provider_rate_limited": "The AI provider rate-limited the request. Wait a moment and try again.",
   "errors.api_ai_secret_required": "This provider signs its requests and needs both an access key and a secret key.",

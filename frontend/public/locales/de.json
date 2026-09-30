@@ -2964,6 +2964,7 @@
   "errors.api_ai_provider_auth_failed": "Der KI-Anbieter hat den API-Schlüssel des Arbeitsbereichs abgelehnt. Prüfe den Schlüssel in den KI-Einstellungen.",
   "errors.api_ai_provider_failed": "Die Anfrage an den KI-Anbieter ist fehlgeschlagen.",
   "errors.api_ai_provider_model_not_found": "Der KI-Anbieter kennt das konfigurierte Modell oder den Endpunkt nicht. Prüfe Modellname und Basis-URL in den KI-Einstellungen.",
+  "errors.api_ai_provider_model_forbidden": "Der KI-Anbieter hat das konfigurierte Modell für diesen Schlüssel abgelehnt. Wähle ein Modell, das der Schlüssel verwenden darf, oder erteile ihm Zugriff in der Konsole des Anbieters.",
   "errors.api_ai_provider_quota_exhausted": "Das Konto beim KI-Anbieter hat kein Guthaben mehr. Lade es auf oder wechsle den Anbieter in den KI-Einstellungen.",
   "errors.api_ai_provider_rate_limited": "Der KI-Anbieter hat die Anfrage wegen zu vieler Aufrufe abgelehnt. Warte einen Moment und versuche es erneut.",
   "errors.api_ai_secret_required": "Dieser Anbieter signiert seine Anfragen und benötigt sowohl einen Zugriffsschlüssel als auch einen geheimen Schlüssel.",

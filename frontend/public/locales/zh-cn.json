@@ -2964,6 +2964,7 @@
   "errors.api_ai_provider_auth_failed": "AI 服务商拒绝了工作区的 API 密钥。请在 AI 设置中检查密钥。",
   "errors.api_ai_provider_failed": "AI服务商请求失败。",
   "errors.api_ai_provider_model_not_found": "AI 服务商无法识别所配置的模型或端点。请在 AI 设置中检查模型名称和基础 URL。",
+  "errors.api_ai_provider_model_forbidden": "AI 提供商拒绝了此密钥所配置的模型。请选择该密钥可使用的模型，或在提供商控制台中授予访问权限。",
   "errors.api_ai_provider_quota_exhausted": "AI 服务商账户余额不足。请充值，或在 AI 设置中更换服务商。",
   "errors.api_ai_provider_rate_limited": "AI 服务商对请求进行了限流。请稍候再试。",
   "errors.api_ai_secret_required": "该提供商会对请求进行签名，需要同时提供访问密钥和私密密钥。",

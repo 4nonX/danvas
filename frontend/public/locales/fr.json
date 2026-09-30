@@ -2964,6 +2964,7 @@
   "errors.api_ai_provider_auth_failed": "Le fournisseur d'IA a rejeté la clé d'API de l'espace de travail. Vérifiez la clé dans les réglages IA.",
   "errors.api_ai_provider_failed": "La requête au fournisseur d'IA a échoué.",
   "errors.api_ai_provider_model_not_found": "Le fournisseur d'IA ne reconnaît pas le modèle ou le point de terminaison configuré. Vérifiez le nom du modèle et l'URL de base dans les réglages IA.",
+  "errors.api_ai_provider_model_forbidden": "Le fournisseur d'IA a refusé le modèle configuré pour cette clé. Choisissez un modèle que la clé peut utiliser, ou accordez-lui l'accès dans la console du fournisseur.",
   "errors.api_ai_provider_quota_exhausted": "Le compte du fournisseur d'IA n'a plus de crédit. Rechargez-le ou changez de fournisseur dans les réglages IA.",
   "errors.api_ai_provider_rate_limited": "Le fournisseur d'IA a limité le débit des requêtes. Patientez un instant puis réessayez.",
   "errors.api_ai_secret_required": "Ce fournisseur signe ses requêtes et a besoin d'une clé d'accès et d'une clé secrète.",
