@@ -11,7 +11,7 @@ import { layoutDeck } from "../deck";
 import { normalizeOutline } from "../outline";
 import { deckThemes } from "../theme";
 import { KIT_STYLES, kitStyleNames } from "../kit/looks";
-import { applyBrand, makeLook, resolveKitStyle, slotsFromThemeRecord, styleForMood } from "../kit/look";
+import { applyBrand, makeLook, mark, resolveKitStyle, slotsFromThemeRecord, styleForMood } from "../kit/look";
 import { iconGlyphFor } from "../archetypes";
 import { kitFits, leadingFigure, splitPoint } from "../kit/render";
 import { kitDrawingNames, kitVocabularyRule } from "../kit/vocab";
@@ -182,5 +182,30 @@ describe("the kit sets a 16 by 9 deck in a named style", () => {
     for (const name of kitStyleNames) expect(kitVocabularyRule).toContain(`'${name}'`);
     for (const name of kitDrawingNames) expect(PACK_DRAWINGS[PACK_KEYWORDS[name]]).toBeDefined();
     expect(kitVocabularyRule).toContain("'scoreboard'");
+  });
+});
+
+describe("the organization mark beside the logo", () => {
+  const look = (aspect: number) =>
+    makeLook(applyBrand(resolveKitStyle({ style: "campfire" }), {}), {
+      organization: "Northwind Roasters", total: 3,
+      logo: { assetId: "logo", url: "/a/logo", aspect, dark: { assetId: "logo-dark", url: "/a/logo-dark", aspect } },
+    });
+  const names = (prims: { kind: string; name?: string }[]) => prims.map((p) => (p as { name?: string }).name ?? p.kind);
+
+  it("sets the name beside a compact mark", () => {
+    const K = look(1);
+    const prims = mark(K, K.paper);
+    expect(prims.some((p) => p.kind === "logo")).toBe(true);
+    expect(names(prims)).toContain("Mark");
+  });
+
+  it("leaves the name out beside a lockup that already carries it, on either ground", () => {
+    const K = look(5);
+    for (const g of [K.paper, K.deep]) {
+      const prims = mark(K, g);
+      expect(prims.some((p) => p.kind === "logo")).toBe(true);
+      expect(names(prims)).not.toContain("Mark");
+    }
   });
 });

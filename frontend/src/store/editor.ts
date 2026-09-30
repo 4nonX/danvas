@@ -1601,10 +1601,28 @@ function newEffectOfKind(kind: Effect["kind"]): Effect | null {
   }
 }
 
-/** The asset ref a composed deck's brand logo needs in the file, or null. */
-function deckLogoRef(deck: DeckResult): AssetRef | null {
+/** The asset refs a composed deck's brand logo needs in the file: the logo
+ *  itself and, when the kit has one, its dark-ground version, which the
+ *  composer places on every deep page. Empty when the deck has no logo. */
+function deckLogoRefs(deck: DeckResult): AssetRef[] {
   const logo = deck.system?.logo;
-  return logo?.assetId && logo.url ? { id: logo.assetId, kind: "image", url: logo.url, mime: "image/*", checksum: "" } : null;
+  const refs: AssetRef[] = [];
+  for (const l of [logo, logo?.dark]) {
+    if (l?.assetId && l.url && !refs.some((r) => r.id === l.assetId)) refs.push({ id: l.assetId, kind: "image", url: l.url, mime: "image/*", checksum: "" });
+  }
+  return refs;
+}
+
+/** List a deck's logo assets in the file and start loading them, so the
+ *  pages draw the logo at once rather than after the next reload; returns
+ *  the ids this call added, for undo. */
+function addDeckLogoRefs(doc: DesignFile, refs: AssetRef[]): string[] {
+  const added: string[] = [];
+  for (const ref of refs) {
+    if (addAssetRef(doc, ref)) added.push(ref.id);
+    if (typeof window !== "undefined") imageAssets.register(ref.id, ref.url);
+  }
+  return added;
 }
 
 /** Add an asset ref unless the file already lists that id; true when added.
@@ -2265,12 +2283,13 @@ export const useEditor = create<EditorState>((set, get) => {
         live.splice(0, live.length, ...(structuredClone(pages) as unknown[]));
         set({ activePage: Math.max(0, Math.min(activePage, live.length - 1)), selection });
       };
-      // The brand logo the composer placed references an asset the file must
-      // list; it rides in the same undo step as the pages.
-      const logoRef = deckLogoRef(deck);
+      // The brand logo the composer placed (and its dark version) reference
+      // assets the file must list; they ride in the same undo step as the pages.
+      const logoRefs = deckLogoRefs(deck);
+      let addedLogoIds: string[] = [];
       perform(
-        () => { replaceAll(after, 0, []); if (logoRef) addAssetRef(get().doc, logoRef); },
-        () => { replaceAll(before, prevActive, prevSel); if (logoRef) removeAssetRef(get().doc, logoRef.id); }, // restore the user's prior view on undo
+        () => { replaceAll(after, 0, []); addedLogoIds = addDeckLogoRefs(get().doc, logoRefs); },
+        () => { replaceAll(before, prevActive, prevSel); for (const id of addedLogoIds) removeAssetRef(get().doc, id); }, // restore the user's prior view on undo
       );
       return pageIds;
     },
@@ -2293,14 +2312,14 @@ export const useEditor = create<EditorState>((set, get) => {
       const snapshot = structuredClone(newPages);
       const prevSel = get().selection;
       const prevActive = get().activePage;
-      const logoRef = deckLogoRef(deck);
+      const logoRefs = deckLogoRefs(deck);
       // Only an asset ref this step ADDED is removed on undo: a deck appended
       // to one that already carried the logo leaves the earlier ref alone.
-      let addedLogoRef = false;
+      let addedLogoIds: string[] = [];
       perform(
         () => {
           (get().doc.pages as unknown as unknown[]).push(...(structuredClone(snapshot) as unknown[]));
-          if (logoRef) addedLogoRef = addAssetRef(get().doc, logoRef);
+          addedLogoIds = addDeckLogoRefs(get().doc, logoRefs);
           set({ activePage: get().doc.pages.length - newPages.length, selection: [] });
         },
         () => {
@@ -2309,7 +2328,7 @@ export const useEditor = create<EditorState>((set, get) => {
             const i = live.findIndex((p) => p.id === id);
             if (i >= 0) live.splice(i, 1);
           }
-          if (logoRef && addedLogoRef) removeAssetRef(get().doc, logoRef.id);
+          for (const id of addedLogoIds) removeAssetRef(get().doc, id);
           set({ activePage: Math.min(prevActive, get().doc.pages.length - 1), selection: prevSel });
         },
       );

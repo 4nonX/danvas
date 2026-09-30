@@ -594,6 +594,15 @@ export function brandLogo(K: KitLook, g: KitPalette, x: number, y: number, h: nu
   return { nodes: [logo(chosen.assetId, x, y + Math.round((h - height) / 2), width, height)], width };
 }
 
+/** Whether the logo drawn on a ground is wide enough to be a lockup with the
+ *  organization's name in it (width over height of 2.5 or more). */
+export function logoCarriesName(K: KitLook, g: KitPalette): boolean {
+  const lg = K.logo;
+  if (!lg) return false;
+  const chosen = isDark(g.bg) && lg.dark ? lg.dark : lg;
+  return (chosen.aspect ?? 0) >= 2.5;
+}
+
 /** The footer: a rule, the logo, the organization and the deck, the page number. */
 export function footer(K: KitLook, g: KitPalette, i: number): Prim[] {
   const t = type(K, g);
@@ -640,7 +649,9 @@ export const deepCard = (K: KitLook, x: number, y: number, w: number, h: number)
 export function mark(K: KitLook, g: KitPalette, y = M): Prim[] {
   const t = type(K, g);
   const lg = brandLogo(K, g, M, y - 12, 48);
-  if (lg.width) return [...lg.nodes, ...(K.company ? [text(M + lg.width + 24, y - 3, 700, 30, K.company, t.strong(22, { name: "Mark", fixed: true }))] : [])];
+  // A wide logo is a lockup that already carries the name, so the organization
+  // is not set beside it a second time; a compact mark still gets the name.
+  if (lg.width) return [...lg.nodes, ...(K.company && !logoCarriesName(K, g) ? [text(M + lg.width + 24, y - 3, 700, 30, K.company, t.strong(22, { name: "Mark", fixed: true }))] : [])];
   if (!K.company) return [];
   return [...decor([rect(M, y, 22, 22, g.accent, { radius: K.radius ? 6 : 0 })]), text(M + 36, y - 3, 700, 30, K.company, t.strong(22, { name: "Mark", fixed: true }))];
 }

@@ -41705,6 +41705,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
       exports.ornamentPaper = ornamentPaper;
       exports.chrome = chrome;
       exports.brandLogo = brandLogo;
+      exports.logoCarriesName = logoCarriesName;
       exports.footer = footer;
       exports.note = note;
       exports.mark = mark;
@@ -42199,6 +42200,14 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         const height = Math.round(width / aspect);
         return { nodes: [(0, spec_1.logo)(chosen.assetId, x, y + Math.round((h - height) / 2), width, height)], width };
       }
+      function logoCarriesName(K, g) {
+        var _a5;
+        const lg = K.logo;
+        if (!lg)
+          return false;
+        const chosen = isDark(g.bg) && lg.dark ? lg.dark : lg;
+        return ((_a5 = chosen.aspect) != null ? _a5 : 0) >= 2.5;
+      }
       function footer(K, g, i) {
         const t = type(K, g);
         const y = K.ornament === "hairlines" ? exports.H - 50 : 992;
@@ -42239,7 +42248,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         const t = type(K, g);
         const lg = brandLogo(K, g, exports.M, y - 12, 48);
         if (lg.width)
-          return [...lg.nodes, ...K.company ? [(0, spec_1.text)(exports.M + lg.width + 24, y - 3, 700, 30, K.company, t.strong(22, { name: "Mark", fixed: true }))] : []];
+          return [...lg.nodes, ...K.company && !logoCarriesName(K, g) ? [(0, spec_1.text)(exports.M + lg.width + 24, y - 3, 700, 30, K.company, t.strong(22, { name: "Mark", fixed: true }))] : []];
         if (!K.company)
           return [];
         return [...(0, spec_1.decor)([(0, spec_1.rect)(exports.M, y, 22, 22, g.accent, { radius: K.radius ? 6 : 0 })]), (0, spec_1.text)(exports.M + 36, y - 3, 700, 30, K.company, t.strong(22, { name: "Mark", fixed: true }))];
