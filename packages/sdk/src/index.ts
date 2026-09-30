@@ -455,6 +455,22 @@ export interface AiImageConfigView {
   capabilities: AiCapabilities;
 }
 
+/** One model a provider lists, for the settings form's model field. */
+export interface AiModelInfo {
+  id: string;
+  /** The provider's display name for it, when it gives one. */
+  label?: string;
+}
+
+/** A provider's model catalog. `supported` is false when the provider has no
+ *  catalog the server can read (an endpoint without a models route, an Azure
+ *  resource that does not answer the deployments call); the model field then
+ *  stays free text. */
+export interface AiModelList {
+  models: AiModelInfo[];
+  supported: boolean;
+}
+
 /** One entry of the server's provider preset catalog (GET /ai/providers). */
 export interface AiProviderPreset {
   id: string;
@@ -1914,6 +1930,28 @@ export class HyCanvasClient {
     candidate?: { provider: string; model?: string; imageModel?: string; baseUrl?: string; apiKey?: string; apiSecret?: string },
   ): Promise<void> {
     return this.request("POST", `/v1/workspaces/${workspaceId}/ai-config/test`, candidate);
+  }
+  /** List the models a provider serves, for the model field. With
+   *  `candidate`, the list comes from those unsaved settings (an omitted key
+   *  or secret means the stored one, as on a save) and nothing is stored;
+   *  without it, from the stored config. `purpose` narrows the catalog to
+   *  chat models ("text") or image models ("image"); omitted lists all.
+   *  Listing is free: no tokens are spent and nothing is metered. A rejected
+   *  key rejects with the same classified problem a call would. */
+  listAiModels(
+    workspaceId: string,
+    candidate?: { provider: string; baseUrl?: string; apiKey?: string; apiSecret?: string },
+    purpose?: "text" | "image",
+  ): Promise<AiModelList> {
+    return this.request("POST", `/v1/workspaces/${workspaceId}/ai-config/models`, candidate ? { ...candidate, purpose } : undefined);
+  }
+  /** List the image models a CANDIDATE dedicated image provider serves,
+   *  without saving it; an omitted key or secret means the stored one. */
+  listAiImageModels(
+    workspaceId: string,
+    candidate: { provider: string; baseUrl?: string; apiKey?: string; apiSecret?: string },
+  ): Promise<AiModelList> {
+    return this.request("POST", `/v1/workspaces/${workspaceId}/ai-image-config/models`, candidate);
   }
   getAiUsage(workspaceId: string): Promise<{ tokensThisMonth: number }> {
     return this.request("GET", `/v1/workspaces/${workspaceId}/ai-usage`);

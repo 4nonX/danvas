@@ -11,8 +11,8 @@
 // editor needs it anyway (to decide what the assistant may offer) and a second
 // fetch for the same data would be waste.
 
-import { useEffect, useState } from "react";
-import { ApiError, type AiProviderPreset, type AiConfigView, type AiImageConfigView } from "@hc/sdk";
+import { useEffect, useId, useState } from "react";
+import { ApiError, type AiModelInfo, type AiProviderPreset, type AiConfigView, type AiImageConfigView } from "@hc/sdk";
 import { oc } from "@/lib/sdk";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
@@ -53,6 +53,32 @@ function gapLine(gap: AiGap): string {
 
 /** A provider missing from the catalog is treated as capable, as the server does. */
 const PERMISSIVE_CAPS = { text: true, image: true, describeImage: true, editImage: true };
+
+/** A fetched model catalog, tied to the connection it came from. */
+interface ModelCatalog {
+  sig: string;
+  state: "loading" | "ok" | "none" | "failed";
+  /** Chat models, for the model field. */
+  models: AiModelInfo[];
+  /** Image models, for the image model field beside it (main provider only). */
+  imageModels: AiModelInfo[];
+  detail?: string;
+}
+
+/** The line under a model field that says what the catalog holds. */
+function catalogNote(c: ModelCatalog | null, models: AiModelInfo[]): string {
+  if (!c) return "";
+  switch (c.state) {
+    case "ok":
+      return tr("editor.models_available", { count: String(models.length) });
+    case "none":
+      return tr("editor.models_not_listed");
+    case "failed":
+      return `${tr("editor.models_fetch_failed")}: ${c.detail ?? ""}`;
+    default:
+      return "";
+  }
+}
 
 export function AiProviderSettings({
   workspaceId,
@@ -152,6 +178,17 @@ export function AiProviderSettings({
   // itself. An empty box said nothing about whether one existed, so it shows a
   // masked stand-in until the user asks to replace it.
   const [replacingKey, setReplacingKey] = useState(false);
+  // The provider's model catalog, fetched on demand once the connection
+  // details are in, and offered under the model fields. It carries the
+  // signature of the connection it was fetched with, so a change of provider,
+  // host or key retires it rather than offering another provider's models.
+  // "none" is a provider with no catalog on this route: the field stays free
+  // text and says so.
+  const [catalog, setCatalog] = useState<ModelCatalog | null>(null);
+  const [imgCatalog, setImgCatalog] = useState<ModelCatalog | null>(null);
+  const modelInputId = useId();
+  const imageModelInputId = useId();
+  const imgModelInputId = useId();
 
   // Re-arm when the workspace (or its stored config) changes, the render-time
   // adjustment pattern: never show one workspace's provider while another's is
@@ -168,6 +205,39 @@ export function AiProviderSettings({
     setApiSecret("");
     setReplacingKey(false);
   }
+
+  // A provider with a stored key gets its catalog fetched as the form opens,
+  // so the model field offers real names before anything is typed. Free on
+  // every provider, so it costs the workspace nothing. Typed changes retire
+  // it through the connection signature and the button fetches again.
+  const storedProvider = config?.provider ?? "";
+  const storedHasKey = !!config?.hasKey;
+  useEffect(() => {
+    if (!workspaceId || !storedHasKey || !storedProvider || !canEdit) return;
+    let cancelled = false;
+    const ws = workspaceId;
+    const sig = JSON.stringify([ws, storedProvider, config?.baseUrl ?? "", "", "", true]);
+    const preset = presets.find((p) => p.id === storedProvider);
+    const wantsImages = (preset?.capabilities.image ?? true);
+    // No "loading" mark here: the fetch is quiet and the button stays
+    // available; the answer lands when it lands.
+    void Promise.all([
+      oc.listAiModels(ws, undefined, "text"),
+      wantsImages ? oc.listAiModels(ws, undefined, "image") : Promise.resolve(null),
+    ]).then(
+      ([text, images]) => {
+        if (cancelled) return;
+        setCatalog({ sig, state: text.supported ? "ok" : "none", models: text.models, imageModels: images?.models ?? [] });
+      },
+      (e: unknown) => {
+        if (cancelled) return;
+        const coded = e instanceof ApiError ? apiCodeMessage(e.body) : null;
+        setCatalog({ sig, state: "failed", models: [], imageModels: [], detail: coded ?? tr("dashboard.the_provider_did_not_answer") });
+      },
+    );
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the stored record identifies the fetch; presets only name capabilities
+  }, [workspaceId, storedProvider, storedHasKey, canEdit]);
 
   // The optional web-search grounding provider is a separate record; it is
   // fetched here because only this form edits it.
@@ -262,6 +332,15 @@ export function AiProviderSettings({
   const shownVerdict = verdict && verdict.sig === candidateSig ? verdict : null;
   const badField = shownVerdict?.state === "failed" ? fieldForCode(shownVerdict.code) : null;
   const testing = shownVerdict?.state === "checking";
+
+  // The connection each catalog belongs to: provider, host and credential,
+  // stored or typed. Not the model fields, which the catalog exists to fill.
+  const connSig = JSON.stringify([workspaceId, provider, baseUrl.trim(), apiKey, apiSecret, sameProvider && !!config?.hasKey]);
+  const shownCatalog = catalog && catalog.sig === connSig ? catalog : null;
+  const imgConnSig = JSON.stringify([workspaceId, imgProvider, imgBaseUrl.trim(), imgKey, imgSecret, imgSameProvider && imgHasKey]);
+  const shownImgCatalog = imgCatalog && imgCatalog.sig === imgConnSig ? imgCatalog : null;
+  const mainHasKey = !!apiKey.trim() || (sameProvider && !!config?.hasKey);
+  const imgHasCredential = !!imgKey.trim() || (imgSameProvider && imgHasKey);
 
   // What these settings leave unavailable, said where they are saved rather
   // than discovered as a failed generation. Only judged once the image
@@ -359,6 +438,68 @@ export function AiProviderSettings({
     }
     setVerdict({ sig, state: "ok" });
     return true;
+  }
+
+  /** Fetch the main provider's catalog for the settings as typed: chat models
+   *  for the model field and, when the form shows one, image models for the
+   *  image model field. Free on every provider, so it can run the moment the
+   *  key is in. */
+  async function fetchModels() {
+    if (!workspaceId || catalog?.state === "loading") return;
+    const ws = workspaceId;
+    const sig = connSig;
+    const empty = { sig, models: [] as AiModelInfo[], imageModels: [] as AiModelInfo[] };
+    if (!mainHasKey) {
+      setCatalog({ ...empty, state: "failed", detail: tr("editor.fetch_models_needs_key") });
+      return;
+    }
+    if (requiresBaseUrl && !baseUrl.trim()) {
+      setCatalog({ ...empty, state: "failed", detail: tr("errors.api_ai_base_url_required") });
+      return;
+    }
+    setCatalog({ ...empty, state: "loading" });
+    const candidate = { provider, baseUrl: baseUrl.trim(), apiKey: apiKey || undefined, apiSecret: apiSecret || undefined };
+    try {
+      const wantsImages = mainCanImage && !imgProvider;
+      const [text, images] = await Promise.all([
+        oc.listAiModels(ws, candidate, "text"),
+        wantsImages ? oc.listAiModels(ws, candidate, "image") : Promise.resolve(null),
+      ]);
+      setCatalog({ sig, state: text.supported ? "ok" : "none", models: text.models, imageModels: images?.models ?? [] });
+    } catch (e) {
+      const coded = e instanceof ApiError ? apiCodeMessage(e.body) : null;
+      setCatalog({ ...empty, state: "failed", detail: coded ?? tr("dashboard.the_provider_did_not_answer") });
+    }
+  }
+
+  /** The same for the dedicated image provider, whose catalog is image
+   *  models only. */
+  async function fetchImageModels() {
+    if (!workspaceId || !imgProvider || imgCatalog?.state === "loading") return;
+    const ws = workspaceId;
+    const sig = imgConnSig;
+    const empty = { sig, models: [] as AiModelInfo[], imageModels: [] as AiModelInfo[] };
+    if (!imgHasCredential) {
+      setImgCatalog({ ...empty, state: "failed", detail: tr("editor.fetch_models_needs_key") });
+      return;
+    }
+    if (!!imgPreset?.needsBaseUrl && !imgBaseUrl.trim()) {
+      setImgCatalog({ ...empty, state: "failed", detail: tr("editor.image_provider_base_url_required") });
+      return;
+    }
+    setImgCatalog({ ...empty, state: "loading" });
+    try {
+      const r = await oc.listAiImageModels(ws, {
+        provider: imgProvider,
+        baseUrl: imgBaseUrl.trim(),
+        ...(imgKey.trim() ? { apiKey: imgKey.trim() } : {}),
+        ...(imgSecret.trim() ? { apiSecret: imgSecret.trim() } : {}),
+      });
+      setImgCatalog({ sig, state: r.supported ? "ok" : "none", models: r.models, imageModels: r.models });
+    } catch (e) {
+      const coded = e instanceof ApiError ? apiCodeMessage(e.body) : null;
+      setImgCatalog({ ...empty, state: "failed", detail: coded ?? tr("editor.the_image_provider_did_not_answer") });
+    }
   }
 
   async function testConnection() {
@@ -560,32 +701,6 @@ export function AiProviderSettings({
           </select>
         </label>
 
-        <label className={labelCls}>
-          {tr("editor.model_optional")}
-          <input
-            value={model}
-            onChange={(e) => setModel(e.target.value)}
-            placeholder={modelHint || tr("editor.model_optional")}
-            aria-invalid={badField === "model" || undefined}
-            className={fieldCls + invalid("model")}
-          />
-        </label>
-
-        {/* Hidden once a dedicated image provider is chosen: that provider's
-            own model field takes over, and two image-model boxes on one form
-            is a guessing game about which one is in effect. */}
-        {mainCanImage && !imgProvider && (
-          <label className={labelCls}>
-            {tr("editor.image_model_optional")}
-            <input
-              value={imageModel}
-              onChange={(e) => setImageModel(e.target.value)}
-              placeholder={selPreset?.defaultImageModel || tr("editor.image_model_optional")}
-              className={fieldCls}
-            />
-          </label>
-        )}
-
         {/* Always editable: several presets front more than one host
             (Moonshot's international and mainland platforms issue separate
             keys, and proxies are common), and a hidden field meant a key for
@@ -662,6 +777,67 @@ export function AiProviderSettings({
               className={fieldCls}
             />
           </label>
+        )}
+
+        {/* The model fields come AFTER the connection details, in the order the
+            form is filled: once the host and key are in, the provider's own
+            catalog can be fetched and offered here. A <div> with an explicit
+            label, not a wrapping <label>: the fetch button inside a label would
+            take the field's name. Free text stays allowed for a name the
+            catalog does not carry. */}
+        <div className={labelCls}>
+          <span className="flex items-center justify-between gap-2">
+            <label htmlFor={modelInputId}>{tr("editor.model_optional")}</label>
+            <button
+              type="button"
+              onClick={() => void fetchModels()}
+              disabled={!workspaceId || shownCatalog?.state === "loading"}
+              className="shrink-0 text-xs font-medium text-brand-ink hover:underline disabled:opacity-40"
+            >
+              {shownCatalog?.state === "loading" ? tr("editor.fetching_models") : tr("editor.fetch_models")}
+            </button>
+          </span>
+          <input
+            id={modelInputId}
+            list={`${modelInputId}-list`}
+            value={model}
+            onChange={(e) => setModel(e.target.value)}
+            placeholder={modelHint || tr("editor.model_optional")}
+            aria-invalid={badField === "model" || undefined}
+            className={fieldCls + invalid("model")}
+          />
+          <datalist id={`${modelInputId}-list`}>
+            {(shownCatalog?.models ?? []).map((m) => (
+              <option key={m.id} value={m.id}>{m.label ?? m.id}</option>
+            ))}
+          </datalist>
+          {catalogNote(shownCatalog, shownCatalog?.models ?? []) && (
+            <span role="status" className={`text-[11px] font-normal ${shownCatalog?.state === "failed" ? "text-red-700" : "text-neutral-500"}`}>
+              {catalogNote(shownCatalog, shownCatalog?.models ?? [])}
+            </span>
+          )}
+        </div>
+
+        {/* Hidden once a dedicated image provider is chosen: that provider's
+            own model field takes over, and two image-model boxes on one form
+            is a guessing game about which one is in effect. */}
+        {mainCanImage && !imgProvider && (
+          <div className={labelCls}>
+            <label htmlFor={imageModelInputId}>{tr("editor.image_model_optional")}</label>
+            <input
+              id={imageModelInputId}
+              list={`${imageModelInputId}-list`}
+              value={imageModel}
+              onChange={(e) => setImageModel(e.target.value)}
+              placeholder={selPreset?.defaultImageModel || tr("editor.image_model_optional")}
+              className={fieldCls}
+            />
+            <datalist id={`${imageModelInputId}-list`}>
+              {(shownCatalog?.imageModels ?? []).map((m) => (
+                <option key={m.id} value={m.id}>{m.label ?? m.id}</option>
+              ))}
+            </datalist>
+          </div>
         )}
 
       </div>
@@ -777,16 +953,6 @@ export function AiProviderSettings({
             {imgProvider && (
               <>
                 <label className={labelCls}>
-                  {tr("editor.image_model_optional")}
-                  <input
-                    value={imgModel}
-                    onChange={(e) => setImgModel(e.target.value)}
-                    placeholder={imgPreset?.defaultImageModel || tr("editor.image_model_optional")}
-                    className={fieldCls}
-                  />
-                </label>
-
-                <label className={labelCls}>
                   {tr("editor.base_url")}
                   <input
                     value={imgBaseUrl}
@@ -843,6 +1009,37 @@ export function AiProviderSettings({
                     />
                   </label>
                 )}
+                <div className={labelCls}>
+                  <span className="flex items-center justify-between gap-2">
+                    <label htmlFor={imgModelInputId}>{tr("editor.image_model_optional")}</label>
+                    <button
+                      type="button"
+                      onClick={() => void fetchImageModels()}
+                      disabled={!workspaceId || shownImgCatalog?.state === "loading"}
+                      className="shrink-0 text-xs font-medium text-brand-ink hover:underline disabled:opacity-40"
+                    >
+                      {shownImgCatalog?.state === "loading" ? tr("editor.fetching_models") : tr("editor.fetch_models")}
+                    </button>
+                  </span>
+                  <input
+                    id={imgModelInputId}
+                    list={`${imgModelInputId}-list`}
+                    value={imgModel}
+                    onChange={(e) => setImgModel(e.target.value)}
+                    placeholder={imgPreset?.defaultImageModel || tr("editor.image_model_optional")}
+                    className={fieldCls}
+                  />
+                  <datalist id={`${imgModelInputId}-list`}>
+                    {(shownImgCatalog?.models ?? []).map((m) => (
+                      <option key={m.id} value={m.id}>{m.label ?? m.id}</option>
+                    ))}
+                  </datalist>
+                  {catalogNote(shownImgCatalog, shownImgCatalog?.models ?? []) && (
+                    <span role="status" className={`text-[11px] font-normal ${shownImgCatalog?.state === "failed" ? "text-red-700" : "text-neutral-500"}`}>
+                      {catalogNote(shownImgCatalog, shownImgCatalog?.models ?? [])}
+                    </span>
+                  )}
+                </div>
               </>
             )}
           </div>

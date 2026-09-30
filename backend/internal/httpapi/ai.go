@@ -61,10 +61,12 @@ func mountAI(api chi.Router, svc *ai.Service, acct *accounts.Service, up *upload
 		r.Put("/workspaces/{id}/ai-config", aiSetConfigHandler(svc, acct))
 		r.Delete("/workspaces/{id}/ai-config", aiDeleteConfigHandler(svc, acct))
 		r.Post("/workspaces/{id}/ai-config/test", aiTestConfigHandler(svc, acct))
+		r.Post("/workspaces/{id}/ai-config/models", aiListModelsHandler(svc, acct))
 		r.Get("/workspaces/{id}/ai-image-config", aiGetImageConfigHandler(svc, acct))
 		r.Put("/workspaces/{id}/ai-image-config", aiSetImageConfigHandler(svc, acct))
 		r.Delete("/workspaces/{id}/ai-image-config", aiDeleteImageConfigHandler(svc, acct))
 		r.Post("/workspaces/{id}/ai-image-config/test", aiTestImageConfigHandler(svc, acct))
+		r.Post("/workspaces/{id}/ai-image-config/models", aiListImageModelsHandler(svc, acct))
 		r.Get("/workspaces/{id}/ai-policy", aiGetPolicyHandler(svc, acct))
 		r.Put("/workspaces/{id}/ai-policy", aiSetPolicyHandler(svc, acct))
 		r.Get("/workspaces/{id}/ai-usage", aiGetUsageHandler(svc, acct))
@@ -293,6 +295,81 @@ func aiTestConfigHandler(svc *ai.Service, acct *accounts.Service) http.HandlerFu
 			return
 		}
 		w.WriteHeader(http.StatusNoContent)
+	}
+}
+
+// aiModelsBody is a candidate config plus the field the list is for.
+type aiModelsBody struct {
+	aiConfigBody
+	// Purpose narrows the catalog: "text" for the chat model field, "image"
+	// for the image model field, empty for everything the provider lists.
+	Purpose string `json:"purpose"`
+}
+
+// aiListModelsHandler lists the models a provider serves, for the settings
+// form's model field. With a body it reads the CANDIDATE's host and key and
+// saves nothing, so the list can be fetched the moment the key is typed;
+// without one it reads the stored config. Admin-only, like the connection
+// test: the request carries the credential.
+//
+// Listing costs no tokens and is not metered. A provider with no catalog on
+// this route answers supported:false rather than an error, so the field stays
+// free text with a reason; a rejected key comes back as the same classified
+// problem a call would raise.
+func aiListModelsHandler(svc *ai.Service, acct *accounts.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := chi.URLParam(r, "id")
+		if !aiAssert(r, acct, id, "admin") {
+			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "admin access required", "admin_access_required")
+			return
+		}
+		var body aiModelsBody
+		present, err := decodeCandidate(r, &body)
+		if err != nil {
+			problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "invalid body", "invalid_body")
+			return
+		}
+		purpose := strings.ToLower(strings.TrimSpace(body.Purpose))
+		if purpose != "" && purpose != ai.PurposeText && purpose != ai.PurposeImage {
+			problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "invalid body", "invalid_body")
+			return
+		}
+		var list ai.ModelList
+		if present && body.Provider != "" {
+			list, err = svc.ListModels(r.Context(), id, body.input(), purpose)
+		} else {
+			list, err = svc.ListStoredModels(r.Context(), id, purpose)
+		}
+		if err != nil {
+			aiProblem(w, r, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, list)
+	}
+}
+
+// aiListImageModelsHandler lists the image models a CANDIDATE dedicated image
+// provider serves; the image provider exists only for image calls, so the
+// list is always the image one.
+func aiListImageModelsHandler(svc *ai.Service, acct *accounts.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := chi.URLParam(r, "id")
+		if !aiAssert(r, acct, id, "admin") {
+			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "admin access required", "admin_access_required")
+			return
+		}
+		var body aiImageConfigBody
+		present, err := decodeCandidate(r, &body)
+		if err != nil || !present || body.Provider == "" {
+			problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "invalid body", "invalid_body")
+			return
+		}
+		list, err := svc.ListImageModels(r.Context(), id, body.input())
+		if err != nil {
+			imageConfigProblem(w, r, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, list)
 	}
 }
 
