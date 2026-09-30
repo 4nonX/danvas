@@ -332,8 +332,12 @@ export function textPicture(K: KitLook, i: number, c: TextPictureContent): Slide
     if (s) {
       nodes.push(text(M + 56, y, 840, 44, h, t.display(n <= 3 ? 32 : 28)));
       nodes.push(text(M + 56, y + (n <= 3 ? 52 : 44), 840, n <= 3 ? 70 : 60, s, t.body(n <= 3 ? 22 : 20)));
-    } else {
+    } else if (h.length <= 48) {
       nodes.push(text(M + 56, y, 840, step - 40, h, t.display(n <= 3 ? 30 : 26, { lineHeight: 1.15 })));
+    } else {
+      // A long point with no line is a sentence, not a heading: the body
+      // face, strong, holds three lines where the display face held two.
+      nodes.push(text(M + 56, y, 840, step - 30, h, t.strong(n <= 3 ? 24 : 22, { weight: 500, lineHeight: 1.3 })));
     }
   });
   const slot = pictureSlot(K, g, { x: 1080, y: 196, w: 744, h: 690 }, c.art, c.picture, 500, { x: 1160, y: 270, w: 584, h: 540 }, K.radius * 1.5);
@@ -699,7 +703,7 @@ export function closing(K: KitLook, i: number, c: ClosingContent): Slide {
   const closeSize = fitSize(c.title, K.scale.cover, 1100, 0.6, K.charWidth ?? 0.56);
   const closeH = Math.round(closeSize * 1.1 * closeLines) + 10;
   nodes.push(text(M, 300, 1100, closeH, c.title, t.display(closeSize, { lineHeight: 1.04, name: "Title" })));
-  if (c.subtitle) nodes.push(text(M, 300 + closeH + 34, 940, 160, c.subtitle, t.body(28)));
+  if (c.subtitle) nodes.push(text(M, 300 + closeH + 34, 940, 200, c.subtitle, t.body(28)));
   (c.rows ?? []).slice(0, 4).forEach(([ic, v], k) => {
     const y = 700 + k * 62;
     if (ic) nodes.push(icon(ic, M, y + 2, 28, g.accent));
@@ -858,7 +862,8 @@ export function facts(K: KitLook, i: number, c: FactsContent): Slide {
     nodes.push(ellipse(M, y, 56, 56, mixHex(g.panel, g.accent, 0.18), { panel: true }));
     if (ic) nodes.push(icon(ic, M + 14, y + 14, 28, g.accentInk ?? g.accent));
     else nodes.push(text(M, y, 56, 56, String(k + 1), numeralLabel(K, g, 22)));
-    nodes.push(text(M + 80, y - 2, 740, sub ? 34 : step - 20, h, t.display(sub ? 26 : 24, sub ? {} : { lineHeight: 1.15 })));
+    if (sub || h.length <= 44) nodes.push(text(M + 80, y - 2, 740, sub ? 34 : step - 20, h, t.display(sub ? 26 : 24, sub ? {} : { lineHeight: 1.15 })));
+    else nodes.push(text(M + 80, y - 2, 740, step - 14, h, t.strong(21, { weight: 500, lineHeight: 1.3 })));
     if (sub) nodes.push(text(M + 80, y + 34, 740, 60, sub, t.body(20)));
   });
   const slot = pictureSlot(K, g, { x: 1080, y: 268, w: 700, h: 610 }, c.art, c.picture, 500, { x: 1190, y: 320, w: 480, h: 420 }, K.radius);
@@ -933,8 +938,10 @@ export function fourCards(K: KitLook, i: number, c: FourCardsContent): Slide {
     if (sub) {
       nodes.push(text(x + 140, y + 44, 672, 40, h, t.display(30)));
       nodes.push(text(x + 140, y + 96, 672, cardH - 120, sub, t.body(22)));
-    } else {
+    } else if (h.length <= 48) {
       nodes.push(text(x + 140, y + 44, 672, cardH - 80, h, t.display(28, { lineHeight: 1.15 })));
+    } else {
+      nodes.push(text(x + 140, y + 44, 672, cardH - 80, h, t.strong(24, { weight: 500, lineHeight: 1.3 })));
     }
   });
   nodes.push(...note(K, g, c.note));

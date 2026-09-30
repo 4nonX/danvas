@@ -34930,20 +34930,28 @@ ${err.toString()}`);
         return t.length > max2 ? t.slice(0, max2).trimEnd() : t;
       }
       function sanitizeEditedOutline(outline) {
-        var _a5, _b, _c, _d, _e;
+        var _a5, _b, _c, _d, _e, _f, _g, _h, _k, _l;
         const pages = [];
         for (const item of (_a5 = outline.pages) != null ? _a5 : []) {
           if (pages.length >= exports.maxOutlinePages)
             break;
           const title = clip((_b = item.title) != null ? _b : "", exports.maxOutlineTitleChars);
           const points = ((_c = item.points) != null ? _c : []).map((p) => clip(p, exports.maxOutlinePointChars)).filter(Boolean).slice(0, 8);
-          if (!title && !points.length)
+          const hasPayload = !!(item.stat || item.quote || ((_d = item.steps) == null ? void 0 : _d.length) || ((_e = item.columns) == null ? void 0 : _e.length) || item.chart || ((_f = item.stats) == null ? void 0 : _f.length) || item.table || ((_g = item.people) == null ? void 0 : _g.length) || item.composition || ((_h = item.pairs) == null ? void 0 : _h.length));
+          if (!title && !points.length && !hasPayload)
             continue;
           const visualRole = outline_1.visualRoles.includes(item.visualRole) ? item.visualRole : "content";
           const note = (0, outline_1.normalizeNote)(item.note);
-          pages.push(__spreadValues({ id: item.id, title: title || "Untitled", points, visualRole }, note ? { note } : {}));
+          const _i = item, { note: _note } = _i, rest = __objRest(_i, ["note"]);
+          void _note;
+          pages.push(__spreadValues(__spreadProps(__spreadValues({}, rest), { id: item.id, title: title || "Untitled", points, visualRole }), note ? { note } : {}));
         }
-        return __spreadValues({ title: clip((_d = outline.title) != null ? _d : "", exports.maxOutlineTitleChars) || "Untitled", theme: ((_e = outline.theme) != null ? _e : "").trim(), pages }, (0, look_1.isDeckLook)(outline.look) ? { look: outline.look } : {});
+        const _j = outline, { pages: _pages, title: _title, theme: _theme, look: _look } = _j, restRoot = __objRest(_j, ["pages", "title", "theme", "look"]);
+        void _pages;
+        void _title;
+        void _theme;
+        void _look;
+        return __spreadValues(__spreadProps(__spreadValues({}, restRoot), { title: clip((_k = outline.title) != null ? _k : "", exports.maxOutlineTitleChars) || "Untitled", theme: ((_l = outline.theme) != null ? _l : "").trim(), pages }), (0, look_1.isDeckLook)(outline.look) ? { look: outline.look } : {});
       }
     }
   });
@@ -41952,10 +41960,10 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         const cw = (_a5 = K.charWidth) != null ? _a5 : 0.56;
         return {
           display: (size2, o = {}) => __spreadValues({ family: K.display, size: size2, weight: K.dw, color: g.ink, lineHeight: 1.06, cw }, o),
-          body: (size2, o = {}) => __spreadValues({ family: K.body, size: size2, weight: K.bw, color: g.muted, lineHeight: 1.4, cw: 0.5 }, o),
+          body: (size2, o = {}) => __spreadValues({ family: K.body, size: size2, weight: K.bw, color: g.muted, lineHeight: 1.4, cw: 0.54 }, o),
           strong: (size2, o = {}) => {
             var _a6;
-            return __spreadValues({ family: K.body, size: size2, weight: (_a6 = K.strongWeight) != null ? _a6 : 600, color: g.ink, lineHeight: 1.3, cw: 0.52 }, o);
+            return __spreadValues({ family: K.body, size: size2, weight: (_a6 = K.strongWeight) != null ? _a6 : 600, color: g.ink, lineHeight: 1.3, cw: 0.56 }, o);
           },
           eyebrow: (o = {}) => {
             var _a6, _b;
@@ -42575,8 +42583,10 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           if (s) {
             nodes.push((0, spec_1.text)(look_1.M + 56, y, 840, 44, h, t.display(n <= 3 ? 32 : 28)));
             nodes.push((0, spec_1.text)(look_1.M + 56, y + (n <= 3 ? 52 : 44), 840, n <= 3 ? 70 : 60, s, t.body(n <= 3 ? 22 : 20)));
-          } else {
+          } else if (h.length <= 48) {
             nodes.push((0, spec_1.text)(look_1.M + 56, y, 840, step - 40, h, t.display(n <= 3 ? 30 : 26, { lineHeight: 1.15 })));
+          } else {
+            nodes.push((0, spec_1.text)(look_1.M + 56, y, 840, step - 30, h, t.strong(n <= 3 ? 24 : 22, { weight: 500, lineHeight: 1.3 })));
           }
         });
         const slot = pictureSlot(K, g, { x: 1080, y: 196, w: 744, h: 690 }, c.art, c.picture, 500, { x: 1160, y: 270, w: 584, h: 540 }, K.radius * 1.5);
@@ -42928,7 +42938,7 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
         const closeH = Math.round(closeSize * 1.1 * closeLines) + 10;
         nodes.push((0, spec_1.text)(look_1.M, 300, 1100, closeH, c.title, t.display(closeSize, { lineHeight: 1.04, name: "Title" })));
         if (c.subtitle)
-          nodes.push((0, spec_1.text)(look_1.M, 300 + closeH + 34, 940, 160, c.subtitle, t.body(28)));
+          nodes.push((0, spec_1.text)(look_1.M, 300 + closeH + 34, 940, 200, c.subtitle, t.body(28)));
         ((_b = c.rows) != null ? _b : []).slice(0, 4).forEach(([ic, v], k) => {
           const y = 700 + k * 62;
           if (ic)
@@ -43069,7 +43079,10 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
             nodes.push((0, spec_1.icon)(ic, look_1.M + 14, y + 14, 28, (_a5 = g.accentInk) != null ? _a5 : g.accent));
           else
             nodes.push((0, spec_1.text)(look_1.M, y, 56, 56, String(k + 1), numeralLabel(K, g, 22)));
-          nodes.push((0, spec_1.text)(look_1.M + 80, y - 2, 740, sub ? 34 : step - 20, h, t.display(sub ? 26 : 24, sub ? {} : { lineHeight: 1.15 })));
+          if (sub || h.length <= 44)
+            nodes.push((0, spec_1.text)(look_1.M + 80, y - 2, 740, sub ? 34 : step - 20, h, t.display(sub ? 26 : 24, sub ? {} : { lineHeight: 1.15 })));
+          else
+            nodes.push((0, spec_1.text)(look_1.M + 80, y - 2, 740, step - 14, h, t.strong(21, { weight: 500, lineHeight: 1.3 })));
           if (sub)
             nodes.push((0, spec_1.text)(look_1.M + 80, y + 34, 740, 60, sub, t.body(20)));
         });
@@ -43132,8 +43145,10 @@ Data columns: ${matrix.headers.join(", ")} (${matrix.rows.length} rows, from "${
           if (sub) {
             nodes.push((0, spec_1.text)(x + 140, y + 44, 672, 40, h, t.display(30)));
             nodes.push((0, spec_1.text)(x + 140, y + 96, 672, cardH - 120, sub, t.body(22)));
-          } else {
+          } else if (h.length <= 48) {
             nodes.push((0, spec_1.text)(x + 140, y + 44, 672, cardH - 80, h, t.display(28, { lineHeight: 1.15 })));
+          } else {
+            nodes.push((0, spec_1.text)(x + 140, y + 44, 672, cardH - 80, h, t.strong(24, { weight: 500, lineHeight: 1.3 })));
           }
         });
         nodes.push(...(0, look_1.note)(K, g, c.note));

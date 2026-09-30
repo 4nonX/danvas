@@ -41784,7 +41784,7 @@
           },
           "size": {
             "width": 940,
-            "height": 160
+            "height": 200
           },
           "opacity": 1,
           "blendMode": "normal",
@@ -41792,7 +41792,7 @@
           "box": {
             "mode": "fixed",
             "width": 940,
-            "height": 160,
+            "height": 200,
             "autoFit": {
               "enabled": false,
               "min": 8,

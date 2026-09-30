@@ -368,8 +368,8 @@ export function type(K: KitLook, g: KitPalette) {
   const cw = K.charWidth ?? 0.56;
   return {
     display: (size: number, o: RoleOpts = {}): TextRole => ({ family: K.display, size, weight: K.dw, color: g.ink, lineHeight: 1.06, cw, ...o }),
-    body: (size: number, o: RoleOpts = {}): TextRole => ({ family: K.body, size, weight: K.bw, color: g.muted, lineHeight: 1.4, cw: 0.5, ...o }),
-    strong: (size: number, o: RoleOpts = {}): TextRole => ({ family: K.body, size, weight: K.strongWeight ?? 600, color: g.ink, lineHeight: 1.3, cw: 0.52, ...o }),
+    body: (size: number, o: RoleOpts = {}): TextRole => ({ family: K.body, size, weight: K.bw, color: g.muted, lineHeight: 1.4, cw: 0.54, ...o }),
+    strong: (size: number, o: RoleOpts = {}): TextRole => ({ family: K.body, size, weight: K.strongWeight ?? 600, color: g.ink, lineHeight: 1.3, cw: 0.56, ...o }),
     eyebrow: (o: RoleOpts = {}): TextRole => ({ family: K.mono ?? K.body, size: 20, weight: 600, color: g.accentInk ?? g.accent, letterSpacing: 4, upper: true, lineHeight: 1.2, cw: 0.72, name: "Eyebrow", ...o }),
     meta: (o: RoleOpts = {}): TextRole => ({ family: K.mono ?? K.body, size: 18, weight: 500, color: g.muted, lineHeight: 1.3, cw: K.mono ? 0.6 : 0.5, ...o }),
     numeral: (size: number, o: RoleOpts = {}): TextRole => ({ family: K.numeralFace ?? K.display, size, weight: K.numeralWeight ?? K.dw, color: g.accentInk ?? g.accent, lineHeight: 1, cw: 0.62, name: "Figure", ...o }),
