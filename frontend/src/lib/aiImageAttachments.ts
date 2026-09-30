@@ -36,7 +36,26 @@ export interface AiImageAttachment {
   /** Stock provenance carried by an in-app drag, so a placed picture keeps
    *  its credit the way a canvas drop does. */
   provenance?: Record<string, unknown>;
+  /** When the image went out with a message. Absent while it is staged in
+   *  the composer; set, it lives in the thread (shown in that message's
+   *  bubble, still placeable by name), like an image in any chat. */
+  sentAt?: number;
 }
+
+/** What a chat bubble keeps of an image sent with its message. A restored
+ *  turn has no URL: the picture lived in the session that sent it. */
+export interface TurnImage {
+  id: string;
+  name: string;
+  url?: string;
+  width: number;
+  height: number;
+}
+
+export const toTurnImage = (im: AiImageAttachment): TurnImage => ({ id: im.id, name: im.name, url: im.url, width: im.width, height: im.height });
+
+/** How many images the thread keeps around for placement by name. */
+export const maxThreadImages = 12;
 
 /** How many images one chat may carry at once. */
 export const maxAiImages = 4;
@@ -162,19 +181,35 @@ export function referencePalette(images: AiImageAttachment[]): string[] {
   return [];
 }
 
-/** The note the planner reads when images are attached: what they are and
- *  which tools act on them. The user's words alone rarely say "attached". */
-export function imageAttachmentsNote(images: AiImageAttachment[]): string {
+const clip = (text: string, max: number): string => (text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text);
+
+/** The note the planner reads when images are in the conversation: what came
+ *  with THIS message and what it shows, that an image is context (a screenshot,
+ *  a reference) and not content to add unless the message asks for that, and
+ *  which earlier images are still placeable by name. The user's words alone
+ *  rarely say "attached". */
+export function imageAttachmentsNote(images: AiImageAttachment[], withMessage: AiImageAttachment[] = []): string {
   if (!images.length) return "";
-  const names = images.map((im) => im.name).join(", ");
-  const read = images.some((im) => im.description);
-  return (
-    `[Note: the user attached ${images.length} image${images.length === 1 ? "" : "s"} in the chat (${names}). ` +
-    `To put one on the page, plan placeAttachedImage (name: which one, pageIndex: optional). ` +
-    (read
-      ? `To create or restyle a design from or about them, plan generateDesign or generateTheme; the executor grounds the outline in what the images show.]`
-      : `The provider has not read them, so they can only be placed.]`)
-  );
+  const sent = new Set(withMessage.map((im) => im.id));
+  const earlier = images.filter((im) => !sent.has(im.id));
+  const parts: string[] = [];
+  if (withMessage.length) {
+    const shown = withMessage
+      .map((im) => `${im.name} (${im.width} by ${im.height} px)${im.description ? `, which shows: ${clip(im.description, 600)}` : ", which the provider could not read"}`)
+      .join("; ");
+    parts.push(`The user attached ${withMessage.length === 1 ? "an image" : `${withMessage.length} images`} with this message: ${shown}.`);
+    // Model-facing text, in template literals: the string extractor reads
+    // quoted prose as user-visible copy, and this is a prompt.
+    parts.push(
+      `An attached image is context for the request, the way a screenshot of the design or a reference is: read what it shows and answer or plan the fitting change. ` +
+      `Do NOT add it to the design unless the message explicitly asks to add, insert, put or use the picture (or logo) in the design; only then plan placeAttachedImage (name: which one, pageIndex: optional). ` +
+      `To create or restyle a design from or about it, plan generateDesign or generateTheme; the executor grounds the outline in what it shows.`,
+    );
+  }
+  if (earlier.length) {
+    parts.push(`Earlier in this conversation the user attached: ${earlier.map((im) => im.name).join(", ")}. placeAttachedImage can still place one of them by name when the message asks for that.`);
+  }
+  return `[Note: ${parts.join(" ")}]`;
 }
 
 /** The attached image a step names ("the logo", "photo.jpg"), matched on any

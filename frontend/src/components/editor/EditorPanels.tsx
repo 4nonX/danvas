@@ -65,7 +65,7 @@ import { mirrorInRtl } from "@/lib/locale";
 import { tr, trOr } from "@/lib/i18n";
 import { cancelAiImages, enqueueAiImages, retryFailedAiImages, subscribeAiImageQueue } from "@/lib/aiImageQueue";
 import { peekPendingAiRequest, requestOpenProperties, setAiBusy, subscribeAiRequests, takeStagedAiSources, type AiRequest } from "@/lib/aiRequests";
-import { attachableImageAccept, imageAttachmentsNote, imageSource, isImageFile, maxAiImages, nameFromUrl, pickAttachedImage, readImageAttachment, referencePalette, type AiImageAttachment, type ImageAttachmentSource } from "@/lib/aiImageAttachments";
+import { attachableImageAccept, imageAttachmentsNote, imageSource, isImageFile, maxAiImages, maxThreadImages, nameFromUrl, pickAttachedImage, readImageAttachment, referencePalette, toTurnImage, type AiImageAttachment, type ImageAttachmentSource, type TurnImage } from "@/lib/aiImageAttachments";
 import { mergeRestoredTurns } from "@/lib/aiTurns";
 import { reviewPages, reviewTurnText } from "@/lib/deckReview";
 import { AiProviderSettings } from "@/components/ai/AiProviderSettings";
@@ -1978,6 +1978,9 @@ interface ChatTurn {
    *  turn - one bubble per intent, never the same reply printed twice - and
    *  its chips render in the neutral planned style until then. */
   proposed?: boolean;
+  /** Images sent with a user turn, shown in its bubble the way any chat
+   *  shows them. A restored turn knows their names and sizes only. */
+  images?: TurnImage[];
 }
 
 /** A proposal the user moved past without confirming never ran: unflag it and
@@ -3871,9 +3874,25 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
   const [attachOpen, setAttachOpen] = useState(false);
   const [attachUrl, setAttachUrl] = useState("");
   const [attachBusy, setAttachBusy] = useState(false);
-  // Images attached in the chat (cap 4): each a reference the provider reads
-  // when it can, and a picture placeAttachedImage can put on a page.
-  const [images, setImages] = useState<AiImageAttachment[]>([]);
+  // The conversation's images: staged in the composer (no sentAt, shown as
+  // chips, cap 4 per message) or sent with a message (shown in its bubble,
+  // still placeable by name). Behind a ref written synchronously, so a send
+  // that awaits a reading sees the description the moment it lands.
+  const [images, setImagesState] = useState<AiImageAttachment[]>([]);
+  const imagesRef = useRef<AiImageAttachment[]>([]);
+  const setImages = (fn: (xs: AiImageAttachment[]) => AiImageAttachment[]) => {
+    imagesRef.current = fn(imagesRef.current);
+    setImagesState(imagesRef.current);
+  };
+  // The vision reading in flight per image, awaited by a send so the planner
+  // learns what the picture shows before it plans.
+  const readsRef = useRef(new Map<string, Promise<void>>());
+  // The images that went out with the latest message: what grounds that
+  // message's generation (an earlier screenshot must not).
+  const sentWithLastRef = useRef<Set<string>>(new Set());
+  const staged = images.filter((im) => !im.sentAt);
+  // Object URLs of pictures from disk die with the panel.
+  useEffect(() => () => { for (const im of imagesRef.current) if (im.url.startsWith("blob:")) URL.revokeObjectURL(im.url); }, []);
   // Drag-and-drop attaching: a file dragged from the desktop onto the panel is
   // the same gesture users expect from any chat, and it lands on exactly the
   // pipeline the file picker uses. The canvas has its own image drop handler,
@@ -3963,7 +3982,15 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
               const steps = plan
                 ?.map((st) => (typeof st?.action === "string" ? { action: st.action, ok: true } : null))
                 .filter((v): v is { action: string; ok: boolean } => !!v);
-              return { role: t.role, text: t.text, ...(steps?.length ? { steps } : {}) };
+              // The images a user turn went out with come back by name: the
+              // pictures lived in the session that sent them.
+              const prov = (t as { provenance?: { images?: unknown } }).provenance;
+              const images = Array.isArray(prov?.images)
+                ? (prov.images as { name?: unknown; width?: unknown; height?: unknown }[])
+                    .filter((im) => im && typeof im.name === "string")
+                    .map((im, k) => ({ id: `restored-${k}`, name: String(im.name), width: Number(im.width) || 0, height: Number(im.height) || 0 }))
+                : [];
+              return { role: t.role, text: t.text, ...(steps?.length ? { steps } : {}), ...(images.length ? { images } : {}) };
             });
           }
         }
@@ -4005,12 +4032,12 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
     void persistTurn("assistant", text);
   }
 
-  async function persistTurn(role: "user" | "assistant", text: string, plan?: unknown) {
+  async function persistTurn(role: "user" | "assistant", text: string, plan?: unknown, extra?: Record<string, unknown>) {
     if (!designId) return;
     const sid = await ensureSession();
     if (!sid) return;
     try {
-      await oc.appendAiTurn(designId, sid, { role, text, plan, provenance: { feature: "assistant", at: new Date().toISOString() } });
+      await oc.appendAiTurn(designId, sid, { role, text, plan, provenance: { feature: "assistant", at: new Date().toISOString(), ...extra } });
     } catch {
       // best-effort
     }
@@ -4047,7 +4074,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
     setReview((r) => ({ outline: null, loading: true, dials, themeId: r?.themeId, templateId: r?.templateId }));
     try {
       const grounding = groundingSources();
-      const deps: AssistantDeps = { workspaceId, voiceClause, brandPalette, brandFonts, brandLogo, imageCapable, editImageCapable, sources: grounding, images, referencePalette: referencePalette(images), onImageUploaded, dials, designId, signal: aborter.signal };
+      const deps: AssistantDeps = { workspaceId, voiceClause, brandPalette, brandFonts, brandLogo, imageCapable, editImageCapable, sources: grounding, images: imagesRef.current, referencePalette: referencePalette(imagesRef.current), onImageUploaded, dials, designId, signal: aborter.signal };
       // A planned webSearch grounds the OUTLINE, and in the review flow the
       // outline is fetched here (the reviewed outline then bypasses the
       // execute-time fetch entirely) - so the search must run FIRST or its
@@ -4126,7 +4153,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
         setTurns((t) => [...t, { role: "assistant", text: msg }]);
         toast.error(msg);
       };
-      const deps: AssistantDeps = { workspaceId, voiceClause, brandPalette, brandFonts, brandLogo, imageCapable, editImageCapable, sources: grounding, images, referencePalette: referencePalette(images), onImageUploaded, reviewedOutline, dials, designId, citations, styleThemeId, signal: aborter.signal, onStage: setStage, onDegraded: (w) => { if (!degraded.includes(w)) degraded.push(w); } };
+      const deps: AssistantDeps = { workspaceId, voiceClause, brandPalette, brandFonts, brandLogo, imageCapable, editImageCapable, sources: grounding, images: imagesRef.current, referencePalette: referencePalette(imagesRef.current), onImageUploaded, reviewedOutline, dials, designId, citations, styleThemeId, signal: aborter.signal, onStage: setStage, onDegraded: (w) => { if (!degraded.includes(w)) degraded.push(w); } };
       // F40 E14: a template base contributes its layout system + theme. The
       // adoption happens BEFORE the resolve pass so the layout-grounded path
       // naturally picks up the adopted layouts from the document.
@@ -4322,7 +4349,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
    *  then on grounds the next generation the way a document does. */
   function attachImages(items: ImageAttachmentSource[]) {
     if (!workspaceId) return;
-    const room = maxAiImages - images.length;
+    const room = maxAiImages - imagesRef.current.filter((im) => !im.sentAt).length;
     if (room <= 0) {
       toast.error(tr("editor.image_attachment_limit_reached", { max: maxAiImages }));
       return;
@@ -4336,31 +4363,51 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
           toast.error(tr("editor.couldnt_read_that_image"));
           continue;
         }
-        setImages((xs) => [...xs, img].slice(0, maxAiImages));
+        setImages((xs) => [...xs, img]);
         if (!visionCapable || !img.preview) continue;
-        void oc.aiDescribeImage({ workspaceId, imageBase64: img.preview, instruction: DESCRIBE_FOR_DESIGN })
+        const read = oc.aiDescribeImage({ workspaceId, imageBase64: img.preview, instruction: DESCRIBE_FOR_DESIGN })
           .then(({ text }) => setImages((xs) => xs.map((x) => (x.id === img.id ? { ...x, description: plainDescription(text) || undefined, read: true } : x))))
-          .catch(() => setImages((xs) => xs.map((x) => (x.id === img.id ? { ...x, read: true } : x))));
+          .catch(() => setImages((xs) => xs.map((x) => (x.id === img.id ? { ...x, read: true } : x))))
+          .finally(() => { readsRef.current.delete(img.id); });
+        readsRef.current.set(img.id, read);
       }
     })();
   }
   function removeImage(id: string) {
     setImages((xs) => {
       const gone = xs.find((x) => x.id === id);
-      if (gone?.file) URL.revokeObjectURL(gone.url);
+      if (gone?.url.startsWith("blob:")) URL.revokeObjectURL(gone.url);
       return xs.filter((x) => x.id !== id);
     });
   }
   const onImageUploaded = (id: string, url: string) => {
     setImages((xs) => xs.map((x) => {
       if (x.id !== id) return x;
-      if (x.file) URL.revokeObjectURL(x.url);
+      if (x.url.startsWith("blob:")) URL.revokeObjectURL(x.url);
       return { ...x, url, file: undefined };
     }));
   };
-  /** What grounds a generation: the documents, and every attached image the
-   *  provider has read. */
-  const groundingSources = (extra: AiSource[] = []) => [...sources, ...extra, ...images.map(imageSource).filter((x): x is AiSource => !!x)].slice(0, maxSources);
+  /** The staged images go out with the message: they move into its bubble
+   *  and stay in the conversation, placeable by name, while the thread keeps
+   *  no more than maxThreadImages of them. */
+  function sendStagedImages(stamp: number): AiImageAttachment[] {
+    const going = imagesRef.current.filter((im) => !im.sentAt);
+    if (!going.length) return [];
+    setImages((xs) => {
+      const marked = xs.map((im) => (im.sentAt ? im : { ...im, sentAt: stamp }));
+      const excess = Math.max(0, marked.length - maxThreadImages);
+      for (const old of marked.slice(0, excess)) if (old.url.startsWith("blob:")) URL.revokeObjectURL(old.url);
+      return marked.slice(excess);
+    });
+    sentWithLastRef.current = new Set(going.map((im) => im.id));
+    return going;
+  }
+  /** What grounds a generation: the documents, and the images sent with the
+   *  latest message that the provider has read. An image from an earlier
+   *  message is context the planner was told about then, and still places by
+   *  name; it must not constrain a later deck. */
+  const groundingSources = (extra: AiSource[] = []) =>
+    [...sources, ...extra, ...imagesRef.current.filter((im) => sentWithLastRef.current.has(im.id)).map(imageSource).filter((x): x is AiSource => !!x)].slice(0, maxSources);
 
   async function send(textArg?: string, extraSources?: AiSource[]) {
     const userText = (textArg ?? input).trim();
@@ -4368,13 +4415,28 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
     if (!textArg) setInput("");
     setPending(null);
     clearReview();
-    setTurns((t) => [...demoteProposals(t), { role: "user", text: userText }]);
-    void persistTurn("user", userText);
+    // The staged images go out with the message, into its bubble, the way
+    // any chat sends a picture with the words about it.
+    const stamp = Date.now();
+    const going = sendStagedImages(stamp);
+    setTurns((t) => [...demoteProposals(t), { role: "user", text: userText, ...(going.length ? { images: going.map(toTurnImage) } : {}) }]);
+    void persistTurn("user", userText, undefined, going.length ? { images: going.map((im) => ({ name: im.name, width: im.width, height: im.height })) } : undefined);
     setBusy(true);
     const aborter = new AbortController();
     runAbort.current = aborter;
     setStage(tr("editor.stage_planning"));
     try {
+      // A picture sent with the message is read before the plan is made, so
+      // the planner knows what it shows (a screenshot of the design, a
+      // reference) rather than only its name; bounded, so a slow provider
+      // never holds the message.
+      const reads = going.map((im) => readsRef.current.get(im.id)).filter((r): r is Promise<void> => !!r);
+      if (reads.length) {
+        setStage(tr("editor.reading_the_image"));
+        await Promise.race([Promise.all(reads), new Promise<void>((r) => setTimeout(r, 12_000))]);
+        if (aborter.signal.aborted) throw abortError();
+        setStage(tr("editor.stage_planning"));
+      }
       const st = useEditor.getState();
       const summaryDoc = {
         title: st.doc.title,
@@ -4401,7 +4463,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
         active.length
           ? `[Note: the user attached ${active.length} source${active.length === 1 ? "" : "s"} (${active.map((sc) => sc.name).join(", ")}; ${active.reduce((n, sc) => n + sc.text.length, 0)} chars total). To create a deck/design from them, plan generateDesign - the executor grounds the outline in the attachments automatically.]`
           : "",
-        imageAttachmentsNote(images),
+        imageAttachmentsNote(imagesRef.current, imagesRef.current.filter((im) => im.sentAt === stamp)),
       ].filter(Boolean);
       const plannerText = notes.length ? `${userText}\n${notes.join("\n")}` : userText;
       let res;
@@ -4717,7 +4779,22 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
           turns.map((t, i) =>
             t.role === "user" ? (
               <div key={i} className="flex justify-end">
-                <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-sm bg-brand-600 px-3 py-2 text-sm text-white">{t.text}</div>
+                <div className="max-w-[85%] rounded-2xl rounded-br-sm bg-brand-600 px-3 py-2 text-sm text-white">
+                  {/* The pictures this message went out with; a restored turn
+                      shows their names, the pictures having lived in the
+                      session that sent them. */}
+                  {t.images && t.images.length > 0 && (
+                    <div className="mb-1.5 flex flex-wrap gap-1.5">
+                      {t.images.map((im) => im.url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img key={im.id} src={im.url} alt={im.name} title={im.name} className="max-h-28 max-w-full rounded-lg object-contain ring-1 ring-white/30" />
+                      ) : (
+                        <span key={im.id} className="flex items-center gap-1 rounded-md bg-white/15 px-1.5 py-0.5 text-[11px]"><ImagePlus size={11} /> {im.name}</span>
+                      ))}
+                    </div>
+                  )}
+                  <span className="whitespace-pre-wrap">{t.text}</span>
+                </div>
               </div>
             ) : (
               <div key={i} className="flex items-start gap-2">
@@ -5094,7 +5171,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
       ))}
       {/* Image attachments: a thumbnail, the size, the colours read off it,
           and what the provider saw in it (or that it cannot see). */}
-      {images.map((im) => (
+      {staged.map((im) => (
         <div key={im.id} className="mt-2 flex shrink-0 items-center gap-2 rounded-lg border border-brand-200 bg-brand-50 px-2.5 py-1.5 text-[11px] text-brand-ink">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={im.url} alt="" className="h-9 w-9 shrink-0 rounded object-cover ring-1 ring-black/10" />
@@ -5216,7 +5293,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
             title={tr("editor.attach_content_to_build_from_paste_url_or_fi")}
             aria-label={tr("editor.attach_content")}
             aria-expanded={attachOpen}
-            className={`mb-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg ${attachOpen || sources.length || images.length ? "bg-brand-50 text-brand-ink" : "text-neutral-400 hover:bg-neutral-100"}`}
+            className={`mb-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg ${attachOpen || sources.length || staged.length ? "bg-brand-50 text-brand-ink" : "text-neutral-400 hover:bg-neutral-100"}`}
           >
             <Paperclip size={15} />
           </button>

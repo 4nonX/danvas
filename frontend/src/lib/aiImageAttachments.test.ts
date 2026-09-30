@@ -47,15 +47,30 @@ describe("referencePalette", () => {
 });
 
 describe("imageAttachmentsNote", () => {
-  it("names the images and the tools, and says when they can only be placed", () => {
+  it("says nothing when no image is in the conversation", () => {
     expect(imageAttachmentsNote([])).toBe("");
-    const unread = imageAttachmentsNote([img({})]);
-    expect(unread).toContain("1 image in the chat (photo.jpg)");
-    expect(unread).toContain("placeAttachedImage");
-    expect(unread).toContain("only be placed");
-    const read = imageAttachmentsNote([img({ description: "x" }), img({ id: "b", name: "logo.png" })]);
-    expect(read).toContain("2 images");
-    expect(read).toContain("generateDesign");
+  });
+  it("names the image sent with the message, what it shows, and that it is context, not content", () => {
+    const shot = img({ id: "s", name: "slide-2.png", description: "A slide whose two text boxes sit at different heights." });
+    const note = imageAttachmentsNote([shot], [shot]);
+    expect(note).toContain("an image with this message: slide-2.png (1200 by 800 px), which shows: A slide whose two text boxes");
+    expect(note).toContain("Do NOT add it to the design unless the message explicitly asks");
+    expect(note).toContain("placeAttachedImage");
+    expect(note).not.toContain("Earlier in this conversation");
+  });
+  it("says when the provider could not read it", () => {
+    const pic = img({});
+    expect(imageAttachmentsNote([pic], [pic])).toContain("which the provider could not read");
+  });
+  it("lists earlier images as placeable by name, apart from the ones sent now", () => {
+    const earlier = img({ id: "e", name: "logo.png", sentAt: 1 });
+    const now = img({ id: "n", name: "photo.jpg", description: "x" });
+    const note = imageAttachmentsNote([earlier, now], [now]);
+    expect(note).toContain("with this message: photo.jpg");
+    expect(note).toContain("Earlier in this conversation the user attached: logo.png");
+    const onlyEarlier = imageAttachmentsNote([earlier], []);
+    expect(onlyEarlier).toContain("logo.png");
+    expect(onlyEarlier).not.toContain("with this message");
   });
 });
 

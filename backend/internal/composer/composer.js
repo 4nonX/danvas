@@ -44936,7 +44936,7 @@ Brief: ${prompt.trim()}`;
             { name: "instruction", type: "string", required: false, description: "optional guidance, e.g. 'cluster by customer segment'" }
           ], mutates: true },
           { name: "summarizeStickies", description: "Summarize the board's sticky notes into a text note on the canvas: key themes, decisions, and action items. Use for 'summarize the board / the stickies / this brainstorm'.", params: [], mutates: true },
-          { name: "placeAttachedImage", description: "Place an image the user attached in the chat onto a page: into the selected frame when one is selected, else as a new picture on the current page (or the page named). Use for 'add/put/use/insert this image/picture/photo/logo (on slide N)'.", params: [
+          { name: "placeAttachedImage", description: "Place an image the user attached in the chat onto a page: into the selected frame when one is selected, else as a new picture on the current page (or the page named). Use ONLY when the message explicitly asks to add, insert, put or use the attached picture or logo in the design ('add this image on slide 3', 'use this photo here'); an image sent as a screenshot or a reference is context for the request, never content to place.", params: [
             { name: "name", type: "string", required: false, description: "which attached image, by (part of) its file name; default: the most recent" },
             { name: "pageIndex", type: "number", required: false, description: "the 1-based page to place it on (default: the current page)" }
           ], mutates: true },

@@ -440,7 +440,7 @@ var assistantToolCatalogText = func() string {
 	return strings.Join(lines, "\n")
 }()
 
-const assistantToolGuidance = `For writeText/generateImage/generateBackgroundImage/editSelectedImage/rewriteSelectedText/generateDesign pass the user's INTENT as the prompt/instruction arg (never the finished text). writeText adds a new text box; generateImage adds an image. So you CAN add text, shapes, images, and full layouts.`
+const assistantToolGuidance = `For writeText/generateImage/generateBackgroundImage/editSelectedImage/rewriteSelectedText/generateDesign pass the user's INTENT as the prompt/instruction arg (never the finished text). writeText adds a new text box; generateImage adds an image. So you CAN add text, shapes, images, and full layouts. An image the user attached to the message is context for the request (a screenshot of the design, a reference) unless the message explicitly asks to add, insert, put or use the picture in the design; only then plan placeAttachedImage, and never generateImage in its place.`
 
 // Assistant runs one agentic turn: a validated plan of editor actions or one
 // clarifying question (FR-6/7/10/12). The design summary is supplied by the
