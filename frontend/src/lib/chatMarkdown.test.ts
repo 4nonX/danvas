@@ -23,8 +23,10 @@ describe("parseInlines", () => {
     ]);
     expect(parseInlines("[x](javascript:alert(1))")).toEqual([{ kind: "text", text: "[x](javascript:alert(1))" }]);
   });
-  it("does not read a lone asterisk or snake_case as markup", () => {
+  it("does not read a lone asterisk, spaced asterisks or snake_case as markup", () => {
     expect(parseInlines("2 * 3 and snake_case_name")).toEqual([{ kind: "text", text: "2 * 3 and snake_case_name" }]);
+    expect(parseInlines("2 * 3 * 4 is 24")).toEqual([{ kind: "text", text: "2 * 3 * 4 is 24" }]);
+    expect(parseInlines("**bold** and *it*")).toEqual([{ kind: "bold", text: "bold" }, { kind: "text", text: " and " }, { kind: "italic", text: "it" }]);
   });
 });
 

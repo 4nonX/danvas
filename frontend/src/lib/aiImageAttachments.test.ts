@@ -93,5 +93,7 @@ describe("paletteOf", () => {
     const data = Array.from({ length: 64 }, () => px).flat();
     const palette = paletteOf({ width: 8, height: 8, data }, 3);
     expect(palette[0]).toBe("#C81E3C");
+    // One flat colour yields one swatch, not the same hex three times.
+    expect(new Set(palette).size).toBe(palette.length);
   });
 });

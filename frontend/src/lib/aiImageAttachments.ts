@@ -153,7 +153,8 @@ export async function readImageAttachment(src: ImageAttachmentSource): Promise<A
 /** The dominant colours of a bitmap as hexes, most present first. */
 export function paletteOf(bmp: { width: number; height: number; data: Uint8ClampedArray | number[] }, count = 6): string[] {
   try {
-    return extractPalette(bmp, count).map((c) => toHex(c).toUpperCase());
+    // Two clusters can round to one hex; the palette lists each colour once.
+    return [...new Set(extractPalette(bmp, count).map((c) => toHex(c).toUpperCase()))];
   } catch {
     return [];
   }

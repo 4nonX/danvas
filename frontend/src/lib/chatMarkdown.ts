@@ -31,7 +31,9 @@ export function parseInlines(text: string): Inline[] {
   const out: Inline[] = [];
   // Tokens, longest first: code, bold, italic (asterisk or underscore),
   // markdown links, bare web links.
-  const re = /(`[^`\n]+`)|(\*\*[^*\n]+\*\*)|(__[^_\n]+__)|(\*[^*\n]+\*)|(\b_[^_\n]+_\b)|(\[[^\]\n]+\]\((https?:\/\/[^\s)]+)\))|(https?:\/\/[^\s<>"')\]]+)/g;
+  // Emphasis opens and closes on a non-space character, so "2 * 3 * 4"
+  // and a stray asterisk stay text.
+  const re = /(`[^`\n]+`)|(\*\*(?!\s)[^*\n]+?(?<!\s)\*\*)|(__(?!\s)[^_\n]+?(?<!\s)__)|(\*(?!\s)[^*\n]+?(?<!\s)\*)|(\b_(?!\s)[^_\n]+?(?<!\s)_\b)|(\[[^\]\n]+\]\((https?:\/\/[^\s)]+)\))|(https?:\/\/[^\s<>"')\]]+)/g;
   let last = 0;
   for (let m = re.exec(text); m; m = re.exec(text)) {
     if (m.index > last) out.push({ kind: "text", text: text.slice(last, m.index) });

@@ -4026,6 +4026,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
       }));
       setPending(null);
       clearReview();
+      resetAttachments();
     } catch {
       toast.error(tr("editor.couldnt_open_that_conversation"));
     }
@@ -4452,7 +4453,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
       return;
     }
     const text = e.clipboardData?.getData("text/plain") ?? "";
-    if (text.length > 1500 || text.split("\n").length > 12) {
+    if (text.length > 3000 || text.split("\n").length > 30) {
       e.preventDefault();
       setSources((xs) => [...xs, asChatSource({ name: tr("editor.pasted_text"), text: text.trim() })].slice(0, maxSources));
     }
@@ -4534,7 +4535,10 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
 
   async function send(textArg?: string) {
     const userText = (textArg ?? input).trim();
-    if (!workspaceId || !userText || !aiReady || busy) return;
+    // A message may be attachments alone, as in any chat: the planner is
+    // then asked to read the request from them.
+    const hasStaged = imagesRef.current.some((im) => !im.sentAt) || sourcesRef.current.some((sc) => !sc.sentAt);
+    if (!workspaceId || (!userText && !hasStaged) || !aiReady || busy) return;
     if (!textArg) setInput("");
     setPending(null);
     clearReview();
@@ -4599,7 +4603,8 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
           : "",
         imageAttachmentsNote(imagesRef.current, imagesRef.current.filter((im) => im.sentAt === stamp)),
       ].filter(Boolean);
-      const plannerText = notes.length ? `${userText}\n${notes.join("\n")}` : userText;
+      const spoken = userText || `(The user sent attachments without words: read the request from them. A document or a picture to build from calls for generateDesign; a picture of the design calls for a review; otherwise reply with what you make of them.)`;
+      const plannerText = notes.length ? `${spoken}\n${notes.join("\n")}` : spoken;
       let res;
       try {
         const r = await oc.aiAssistant({ workspaceId, designSummary: summary, history, message: plannerText }, aborter.signal);
@@ -4712,15 +4717,20 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
     el.style.height = "auto";
     el.style.height = `${Math.min(el.scrollHeight, 140)}px`;
   }
-  function startNewChat() {
-    setTurns([]);
-    // A new conversation starts with nothing attached: the documents and
-    // pictures of the old one were that conversation's.
+  /** Another conversation starts with nothing attached: the documents and
+   *  pictures were the old one's. */
+  function resetAttachments() {
     setSources(() => []);
     setEditingSource(null);
     for (const im of imagesRef.current) if (im.url.startsWith("blob:")) URL.revokeObjectURL(im.url);
     setImages(() => []);
     sentWithLastRef.current = new Set();
+    setLinkOpen(false);
+    setAttachOpen(false);
+  }
+  function startNewChat() {
+    setTurns([]);
+    resetAttachments();
     setPending(null);
     clearReview();
     setInput("");
@@ -4757,7 +4767,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
       setBusy(false);
     }
   }
-  const canSend = !!input.trim() && !busy && aiReady;
+  const canSend = (!!input.trim() || staged.length > 0 || stagedSources.length > 0) && !busy && aiReady;
   // A proposed turn's chips describe a PLAN, not applied work: it must not
   // enable Undo or trigger the post-generation follow-ups.
   const hasApplied = turns.some((t) => !t.proposed && t.steps?.some((s) => s.ok));
@@ -5354,8 +5364,8 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
                   <div className="min-w-0 max-w-[9rem]">
                     <div className="truncate font-medium" title={im.name}>{im.name}</div>
                     <div className="flex items-center gap-1 text-[10px] text-neutral-500">
-                      {im.palette.slice(0, 4).map((hex) => (
-                        <span key={hex} title={hex} className="inline-block h-2 w-2 shrink-0 rounded-full ring-1 ring-black/10" style={{ background: hex }} />
+                      {im.palette.slice(0, 4).map((hex, k) => (
+                        <span key={`${k}-${hex}`} title={hex} className="inline-block h-2 w-2 shrink-0 rounded-full ring-1 ring-black/10" style={{ background: hex }} />
                       ))}
                       <span className="truncate" title={im.description ?? undefined}>
                         {!visionCapable
@@ -5476,7 +5486,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
             <span className="flex-1" />
             <button
               onClick={() => void genVector()}
-              disabled={!canSend}
+              disabled={!input.trim() || busy || !aiReady}
               title={tr("editor.draw_the_whole_design_as_an_editable_vector")}
               className="flex items-center gap-1 rounded-full border border-neutral-200 bg-surface px-2 py-0.5 text-[10px] text-neutral-500 hover:border-brand-300 hover:text-brand-ink disabled:opacity-40"
             >

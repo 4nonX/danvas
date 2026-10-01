@@ -23,19 +23,19 @@ function Inlines({ runs }: { runs: Inline[] }) {
 export function ChatMarkdown({ text, className }: { text: string; className?: string }) {
   const blocks = parseChatMarkdown(text);
   return (
-    <div className={className}>
+    <div className={["space-y-2", className].filter(Boolean).join(" ")}>
       {blocks.map((b, i) => {
         switch (b.kind) {
           case "heading":
-            return <p key={i} className="mt-2 font-semibold first:mt-0"><Inlines runs={b.inlines} /></p>;
+            return <p key={i} className="font-semibold"><Inlines runs={b.inlines} /></p>;
           case "list":
             return b.ordered
-              ? <ol key={i} className="my-1 list-decimal space-y-0.5 ps-5">{b.items.map((it, j) => <li key={j}><Inlines runs={it} /></li>)}</ol>
-              : <ul key={i} className="my-1 list-disc space-y-0.5 ps-5">{b.items.map((it, j) => <li key={j}><Inlines runs={it} /></li>)}</ul>;
+              ? <ol key={i} className="list-decimal space-y-0.5 ps-5">{b.items.map((it, j) => <li key={j}><Inlines runs={it} /></li>)}</ol>
+              : <ul key={i} className="list-disc space-y-0.5 ps-5">{b.items.map((it, j) => <li key={j}><Inlines runs={it} /></li>)}</ul>;
           case "code":
-            return <pre key={i} className="my-1 overflow-x-auto rounded-lg bg-neutral-200/60 px-2.5 py-2 font-mono text-[12px] leading-5"><code>{b.text}</code></pre>;
+            return <pre key={i} className="overflow-x-auto rounded-lg bg-neutral-200/60 px-2.5 py-2 font-mono text-[12px] leading-5"><code>{b.text}</code></pre>;
           default:
-            return <p key={i} className="whitespace-pre-wrap [&+p]:mt-2"><Inlines runs={b.inlines} /></p>;
+            return <p key={i} className="whitespace-pre-wrap"><Inlines runs={b.inlines} /></p>;
         }
       })}
     </div>
