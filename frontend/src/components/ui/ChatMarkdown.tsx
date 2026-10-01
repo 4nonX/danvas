@@ -2,7 +2,8 @@
 // HTML is injected: the parser yields blocks and inline runs, and this maps
 // them to elements, so a model's (or a read source's) text never reaches the
 // page as markup.
-import { parseChatMarkdown, type Inline } from "@/lib/chatMarkdown";
+import { useEffect, useState } from "react";
+import { cutBlocks, parseChatMarkdown, type Inline } from "@/lib/chatMarkdown";
 
 function Inlines({ runs }: { runs: Inline[] }) {
   return (
@@ -20,8 +21,9 @@ function Inlines({ runs }: { runs: Inline[] }) {
   );
 }
 
-export function ChatMarkdown({ text, className }: { text: string; className?: string }) {
-  const blocks = parseChatMarkdown(text);
+export function ChatMarkdown({ text, className, limit }: { text: string; className?: string; limit?: number }) {
+  const parsed = parseChatMarkdown(text);
+  const blocks = limit === undefined ? parsed : cutBlocks(parsed, limit);
   return (
     <div className={["space-y-2", className].filter(Boolean).join(" ")}>
       {blocks.map((b, i) => {
@@ -40,4 +42,25 @@ export function ChatMarkdown({ text, className }: { text: string; className?: st
       })}
     </div>
   );
+}
+
+/** How many characters a reveal adds per frame: a reply arrives at reading
+ *  pace rather than all at once, the way a chat shows an answer. */
+const REVEAL_STEP = 6;
+
+const reducedMotion = (): boolean => typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+/** A reply revealed progressively on arrival, formatting intact; a reply
+ *  that was already there (a restored conversation) and a reader who asked
+ *  for reduced motion get it whole. */
+export function RevealingMarkdown({ text, animate, className }: { text: string; animate: boolean; className?: string }) {
+  const total = text.length;
+  const [shown, setShown] = useState(() => (animate && !reducedMotion() ? 0 : total));
+  const done = shown >= total;
+  useEffect(() => {
+    if (done) return;
+    const id = window.setInterval(() => setShown((n) => Math.min(total, n + REVEAL_STEP)), 16);
+    return () => window.clearInterval(id);
+  }, [done, total]);
+  return <ChatMarkdown text={text} className={className} limit={done ? undefined : shown} />;
 }

@@ -69,7 +69,7 @@ import { attachableImageAccept, imageAttachmentsNote, imageSource, isImageFile, 
 import { mergeRestoredTurns } from "@/lib/aiTurns";
 import { reviewPages, reviewTurnText } from "@/lib/deckReview";
 import { AiProviderSettings } from "@/components/ai/AiProviderSettings";
-import { ChatMarkdown } from "@/components/ui/ChatMarkdown";
+import { RevealingMarkdown } from "@/components/ui/ChatMarkdown";
 import { builtinThemes } from "@/lib/themeCatalog";
 import { cancelAiFills, enqueueAiFills, retryFailedAiFills, subscribeAiFillQueue } from "@/lib/aiFillQueue";
 import { stickerLabel, stickerCategoryLabel } from "@/lib/stickers";
@@ -1987,6 +1987,9 @@ interface ChatTurn {
    *  reported it. Shown as chips in the bubble; a restored turn knows their
    *  names and lengths. */
   files?: TurnFile[];
+  /** True for a reply that arrived in this session, which is revealed at
+   *  reading pace; a restored reply shows whole. */
+  fresh?: boolean;
 }
 
 /** What a chat bubble keeps of a document sent with its message. */
@@ -2022,6 +2025,9 @@ const charsLabel = (n: number): string => (n < 1000 ? `${n} chars` : `${Math.rou
  *  executor still grounds a generation in the whole text. */
 const PLANNER_EXCERPT_CHARS = 1500;
 const PLANNER_EXCERPT_TOTAL = 6000;
+/** How much of a document persists with the turn that sent it, so a
+ *  reopened conversation still grounds a generation in it. */
+const PERSIST_TEXT_CHARS = 20_000;
 
 /** A proposal the user moved past without confirming never ran: unflag it and
  *  strike its chips so a later execution report can't replace the wrong turn. */
@@ -4027,6 +4033,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
       setPending(null);
       clearReview();
       resetAttachments();
+      restoreAttachments(persisted);
     } catch {
       toast.error(tr("editor.couldnt_open_that_conversation"));
     }
@@ -4066,7 +4073,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
               const images = Array.isArray(prov?.images)
                 ? (prov.images as { name?: unknown; width?: unknown; height?: unknown }[])
                     .filter((im) => im && typeof im.name === "string")
-                    .map((im, k) => ({ id: `restored-${k}`, name: String(im.name), width: Number(im.width) || 0, height: Number(im.height) || 0 }))
+                    .map((im, k) => ({ id: `restored-${k}`, name: String(im.name), width: Number(im.width) || 0, height: Number(im.height) || 0, ...(typeof (im as { url?: unknown }).url === "string" ? { url: (im as { url: string }).url } : {}) }))
                 : [];
               const files = Array.isArray((prov as { files?: unknown } | undefined)?.files)
                 ? ((prov as { files: { name?: unknown; chars?: unknown }[] }).files)
@@ -4075,6 +4082,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
                 : [];
               return { role: t.role, text: t.text, ...(steps?.length ? { steps } : {}), ...(images.length ? { images } : {}), ...(files.length ? { files } : {}) };
             });
+            restoreAttachmentsRef.current(persisted);
           }
         }
       } catch {
@@ -4359,7 +4367,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
       const degradedNote = degraded.length ? `\n${tr("editor.without_the_model", { what: degraded.join(", ") })}` : "";
       const check = takeDeckCheck();
       const text = (reply || tr("editor.done_2")) + extra + degradedNote + (notes.length ? `\n${notes.join("\n")}` : "") + (check ? `\n${check}` : "");
-      const finalTurn: ChatTurn = { role: "assistant", text, steps: results, critique, critiqueAt: critique ? critiqueAt : undefined, ...(foundFiles.length ? { files: foundFiles } : {}) };
+      const finalTurn: ChatTurn = { role: "assistant", text, steps: results, critique, critiqueAt: critique ? critiqueAt : undefined, fresh: true, ...(foundFiles.length ? { files: foundFiles } : {}) };
       // One bubble per intent: a confirmed proposal's bubble BECOMES the
       // execution report (its chips flip from planned to actual results)
       // instead of the same reply text appearing twice in the thread.
@@ -4533,7 +4541,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
   const groundingSources = () =>
     [...sourcesRef.current.filter((sc) => !!sc.sentAt), ...imagesRef.current.filter((im) => sentWithLastRef.current.has(im.id)).map(imageSource).filter((x): x is AiSource => !!x)].slice(0, maxSources);
 
-  async function send(textArg?: string) {
+  async function send(textArg?: string, opts?: { repeat?: boolean }) {
     const userText = (textArg ?? input).trim();
     // A message may be attachments alone, as in any chat: the planner is
     // then asked to read the request from them.
@@ -4545,18 +4553,20 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
     // The staged images go out with the message, into its bubble, the way
     // any chat sends a picture with the words about it.
     const stamp = Date.now();
-    const going = sendStagedImages(stamp);
-    const goingFiles = sendStagedSources(stamp);
-    setTurns((t) => [...demoteProposals(t), {
-      role: "user",
-      text: userText,
-      ...(going.length ? { images: going.map(toTurnImage) } : {}),
-      ...(goingFiles.length ? { files: goingFiles.map(toTurnFile) } : {}),
-    }]);
-    void persistTurn("user", userText, undefined, going.length || goingFiles.length ? {
-      ...(going.length ? { images: going.map((im) => ({ name: im.name, width: im.width, height: im.height })) } : {}),
-      ...(goingFiles.length ? { files: goingFiles.map((sc) => ({ name: sc.name, chars: sc.text.length })) } : {}),
-    } : undefined);
+    // A repeat (Regenerate) plans the last message again: no new bubble, and
+    // what is staged stays staged for the message the user is writing.
+    const going = opts?.repeat ? [] : sendStagedImages(stamp);
+    const goingFiles = opts?.repeat ? [] : sendStagedSources(stamp);
+    if (!opts?.repeat) {
+      setTurns((t) => [...demoteProposals(t), {
+        role: "user",
+        text: userText,
+        ...(going.length ? { images: going.map(toTurnImage) } : {}),
+        ...(goingFiles.length ? { files: goingFiles.map(toTurnFile) } : {}),
+      }]);
+    } else {
+      setTurns(demoteProposals);
+    }
     setBusy(true);
     const aborter = new AbortController();
     runAbort.current = aborter;
@@ -4572,6 +4582,12 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
         await Promise.race([Promise.all(reads), new Promise<void>((r) => setTimeout(r, 12_000))]);
         if (aborter.signal.aborted) throw abortError();
         setStage(tr("editor.stage_planning"));
+      }
+      // The turn persists before the reply does, so the conversation reads
+      // in order when reopened; a slow upload is not waited on for long.
+      if (!opts?.repeat) {
+        await Promise.race([persistUserTurn(userText, stamp, goingFiles), new Promise<void>((r) => setTimeout(r, 15_000))]);
+        if (aborter.signal.aborted) throw abortError();
       }
       const st = useEditor.getState();
       const summaryDoc = {
@@ -4627,7 +4643,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
         // "just generate" escape as a quick reply, so the questions never
         // become a gate the user can't skip.
         const creationAsk = /\b(deck|presentation|slides?|poster|flyer|docs?|documents?|posts?|design|make|create|build|generate)\b/i.test(userText);
-        setTurns((t) => [...t, { role: "assistant", text: res.clarify!, quick: creationAsk ? [tr("editor.just_generate")] : undefined }]);
+        setTurns((t) => [...t, { role: "assistant", text: res.clarify!, quick: creationAsk ? [tr("editor.just_generate")] : undefined, fresh: true }]);
         void persistTurn("assistant", res.clarify);
         return;
       }
@@ -4640,12 +4656,12 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
           const now = useEditor.getState();
           const issues = critiquePage(now.doc, now.activePage);
           const msg = issues.length ? tr("editor.critique_found_issues", { count: issues.length }) : tr("editor.critique_page_clean");
-          setTurns((t) => [...t, { role: "assistant", text: msg, critique: issues.length ? issues : undefined, critiqueAt: issues.length ? now.activePage : undefined }]);
+          setTurns((t) => [...t, { role: "assistant", text: msg, critique: issues.length ? issues : undefined, critiqueAt: issues.length ? now.activePage : undefined, fresh: true }]);
           void persistTurn("assistant", msg);
           return;
         }
         const reply = res.reply || tr("editor.i_couldnt_map_that_to_an_action");
-        setTurns((t) => [...t, { role: "assistant", text: reply }]);
+        setTurns((t) => [...t, { role: "assistant", text: reply, fresh: true }]);
         void persistTurn("assistant", reply);
         return;
       }
@@ -4717,6 +4733,66 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
     el.style.height = "auto";
     el.style.height = `${Math.min(el.scrollHeight, 140)}px`;
   }
+  /** The attachments a persisted conversation carried, back into this one
+   *  as sent: a picture by its workspace URL with what the provider saw in
+   *  it, a document by its text, so a reopened conversation still places its
+   *  pictures by name and grounds a generation in its documents. */
+  function restoreAttachments(persisted: { role: string; provenance?: unknown }[]) {
+    const imgs: AiImageAttachment[] = [];
+    const docs: ChatSource[] = [];
+    persisted.forEach((t, k) => {
+      if (t.role !== "user") return;
+      const prov = t.provenance as { at?: unknown; images?: unknown; files?: unknown } | undefined;
+      const at = (typeof prov?.at === "string" && Date.parse(prov.at)) || 1;
+      if (Array.isArray(prov?.images)) {
+        (prov.images as Record<string, unknown>[]).forEach((im, j) => {
+          if (!im || typeof im.url !== "string" || typeof im.name !== "string") return;
+          const palette = Array.isArray(im.palette) ? (im.palette as unknown[]).filter((h): h is string => typeof h === "string") : [];
+          imgs.push({ id: `restored-${k}-${j}`, name: im.name, url: im.url, width: Number(im.width) || 0, height: Number(im.height) || 0, preview: "", palette, ...(typeof im.description === "string" ? { description: im.description } : {}), read: true, sentAt: at });
+        });
+      }
+      if (Array.isArray(prov?.files)) {
+        (prov.files as Record<string, unknown>[]).forEach((f, j) => {
+          if (!f || typeof f.name !== "string" || typeof f.text !== "string" || !f.text.trim()) return;
+          docs.push({ id: `restored-file-${k}-${j}`, name: f.name, text: f.text, sentAt: at });
+        });
+      }
+    });
+    if (imgs.length) setImages((xs) => [...imgs, ...xs].slice(-maxThreadImages));
+    if (docs.length) setSources((xs) => [...docs, ...xs].slice(0, maxSources));
+  }
+  // The restore effect runs once per design and reaches the current
+  // implementation through a ref (the latest-ref pattern used above).
+  const restoreAttachmentsRef = useRef(restoreAttachments);
+  useEffect(() => { restoreAttachmentsRef.current = restoreAttachments; });
+  /** The user's turn persists with what it carried: a picture from disk
+   *  becomes a workspace upload first, so a reopened conversation shows it
+   *  and can still place it; a document rides along as text (capped), so
+   *  it still grounds a generation then. A failed upload keeps the name. */
+  async function persistUserTurn(text: string, stamp: number, files: ChatSource[]) {
+    const sent = imagesRef.current.filter((im) => im.sentAt === stamp);
+    const images = await Promise.all(sent.map(async (im) => {
+      let url = im.url;
+      if (im.file && workspaceId) {
+        try {
+          const asset = await directUploadWithProgress(workspaceId, im.file, { filename: im.file.name });
+          url = resolveAssetUrl(asset.url);
+          onImageUploaded(im.id, url);
+        } catch {
+          url = "";
+        }
+      } else if (/^(blob|data):/.test(url)) {
+        url = "";
+      }
+      const latest = imagesRef.current.find((x) => x.id === im.id) ?? im;
+      return { name: im.name, width: im.width, height: im.height, ...(url ? { url } : {}), ...(latest.description ? { description: latest.description } : {}), ...(im.palette.length ? { palette: im.palette } : {}) };
+    }));
+    const extra = {
+      ...(images.length ? { images } : {}),
+      ...(files.length ? { files: files.map((sc) => ({ name: sc.name, chars: sc.text.length, text: sc.text.slice(0, PERSIST_TEXT_CHARS) })) } : {}),
+    };
+    await persistTurn("user", text, undefined, Object.keys(extra).length ? extra : undefined);
+  }
   /** Another conversation starts with nothing attached: the documents and
    *  pictures were the old one's. */
   function resetAttachments() {
@@ -4768,6 +4844,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
     }
   }
   const canSend = (!!input.trim() || staged.length > 0 || stagedSources.length > 0) && !busy && aiReady;
+  const lastUserText = [...turns].reverse().find((t) => t.role === "user" && t.text.trim())?.text ?? "";
   // A proposed turn's chips describe a PLAN, not applied work: it must not
   // enable Undo or trigger the post-generation follow-ups.
   const hasApplied = turns.some((t) => !t.proposed && t.steps?.some((s) => s.ok));
@@ -4936,7 +5013,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
         ) : (
           turns.map((t, i) =>
             t.role === "user" ? (
-              <div key={i} className="flex justify-end">
+              <div key={i} className="group flex flex-col items-end">
                 <div className="max-w-[88%] rounded-2xl rounded-br-md bg-neutral-100 px-3.5 py-2 text-sm leading-6 text-neutral-900">
                   {/* The pictures this message went out with; a restored turn
                       shows their names, the pictures having lived in the
@@ -4960,12 +5037,35 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
                   )}
                   <CollapsibleText text={t.text} />
                 </div>
+                {/* Message actions, on hover or focus: edit puts the words
+                    back in the composer to change and resend. */}
+                {t.text.trim() && (
+                  <div className="mt-0.5 flex items-center gap-0.5 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+                    <button
+                      onClick={() => { setInput(t.text); requestAnimationFrame(() => { const el = inputRef.current; if (el) { el.focus(); autosize(el); } }); }}
+                      disabled={busy}
+                      title={tr("editor.edit_and_resend")}
+                      aria-label={tr("editor.edit_and_resend")}
+                      className="rounded p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 disabled:opacity-40"
+                    >
+                      <Pencil size={12} />
+                    </button>
+                    <button
+                      onClick={() => { void navigator.clipboard?.writeText(t.text).then(() => toast.success(tr("editor.copied"))).catch(() => {}); }}
+                      title={tr("editor.copy_message")}
+                      aria-label={tr("editor.copy_message")}
+                      className="rounded p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"
+                    >
+                      <Copy size={12} />
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <div key={i} className="group flex items-start gap-2.5">
                 {AssistantAvatar}
                 <div className="min-w-0 flex-1 pt-0.5 text-sm leading-6 text-neutral-800">
-                  <ChatMarkdown text={t.text} />
+                  <RevealingMarkdown text={t.text} animate={!!t.fresh} />
                   {/* The pages a web search found, as the assistant's own
                       attachments on the turn that reports the run. */}
                   {t.files && t.files.length > 0 && (
@@ -5035,6 +5135,19 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
                       >
                         <Copy size={12} />
                       </button>
+                      {/* Regenerate plans the last message again; the
+                          outcome lands as a new reply, and Undo still
+                          reverts anything the first one applied. */}
+                      {i === turns.length - 1 && !busy && !pending && lastUserText && (
+                        <button
+                          onClick={() => void send(lastUserText, { repeat: true })}
+                          title={tr("editor.ask_again_for_this_message")}
+                          aria-label={tr("editor.regenerate")}
+                          className="flex items-center gap-1 rounded p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"
+                        >
+                          <RotateCcw size={12} />
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -5314,20 +5427,6 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
       {/* C30 Magic Switch: re-shape the current content into another form
           (appended, never replacing). Shown on multi-page documents, where a
           form switch is worth offering. */}
-      {switchPageCount >= 2 && !pending && !busy && aiReady && (
-        <div className="mt-2 flex shrink-0 flex-wrap items-center gap-1.5">
-          <span className="text-[11px] text-neutral-400">{tr("editor.magic_switch")}:</span>
-          {([["doc", tr("editor.switch_to_doc")], ["social", tr("editor.switch_to_social_posts")], ["poster", tr("editor.switch_to_poster")]] as const).map(([k, label]) => (
-            <button
-              key={k}
-              onClick={() => void execute([{ action: "magicSwitch", args: { designType: k }, status: "planned" }], tr("editor.reshaping_your_content", { form: label }))}
-              className="rounded-full border border-neutral-200 bg-surface px-2.5 py-1 text-[11px] text-neutral-600 hover:border-brand-300 hover:text-brand-ink"
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      )}
 
       {/* Composer, pinned to the bottom: what is attached, the message, the
           tools, in one box the way a chat has them. Attachments stage here
@@ -5467,6 +5566,23 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
                   <button role="menuitem" onClick={() => { setAttachOpen(false); attachFileRef.current?.click(); }} className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-start hover:bg-neutral-100"><Paperclip size={13} /> {tr("editor.add_photos_and_files")}</button>
                   <button role="menuitem" onClick={() => { setAttachOpen(false); setLinkOpen(true); }} className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-start hover:bg-neutral-100"><LinkIcon size={13} /> {tr("editor.add_a_link")}</button>
                   <p className="px-2 py-1 text-[10px] text-neutral-400">{tr("editor.paste_to_attach_hint")}</p>
+                  {/* Magic Switch (C30): the whole document re-shaped into
+                      another form, offered where the other tools are. */}
+                  {switchPageCount >= 2 && !pending && (
+                    <>
+                      <p className="mt-1 border-t border-neutral-100 px-2 pb-0.5 pt-1.5 text-[10px] text-neutral-400">{tr("editor.magic_switch")}</p>
+                      {([["doc", tr("editor.switch_to_doc")], ["social", tr("editor.switch_to_social_posts")], ["poster", tr("editor.switch_to_poster")]] as const).map(([k, label]) => (
+                        <button
+                          key={k}
+                          role="menuitem"
+                          onClick={() => { setAttachOpen(false); void execute([{ action: "magicSwitch", args: { designType: k }, status: "planned" }], tr("editor.reshaping_your_content", { form: label })); }}
+                          className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-start hover:bg-neutral-100"
+                        >
+                          <Wand2 size={13} /> {label}
+                        </button>
+                      ))}
+                    </>
+                  )}
                 </div>
               )}
             </div>

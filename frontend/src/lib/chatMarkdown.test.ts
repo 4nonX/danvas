@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { hasMarkdown, parseChatMarkdown, parseInlines } from "./chatMarkdown";
+import { cutBlocks, hasMarkdown, parseChatMarkdown, parseInlines } from "./chatMarkdown";
 
 describe("parseInlines", () => {
   it("reads bold, italic, code and leaves the rest as text", () => {
@@ -43,5 +43,17 @@ describe("parseChatMarkdown", () => {
     expect(parseChatMarkdown("Just a sentence.")).toEqual([{ kind: "paragraph", inlines: [{ kind: "text", text: "Just a sentence." }] }]);
     expect(hasMarkdown("Just a sentence.")).toBe(false);
     expect(hasMarkdown("- a bullet")).toBe(true);
+  });
+});
+
+describe("cutBlocks", () => {
+  it("keeps formatting while showing only the first characters", () => {
+    const blocks = parseChatMarkdown("The **plan**:\n\n- one\n- two");
+    const cut = cutBlocks(blocks, 7);
+    expect(cut).toEqual([{ kind: "paragraph", inlines: [{ kind: "text", text: "The " }, { kind: "bold", text: "pla" }] }]);
+    // "The plan:" is nine visible characters; two more reach into the list.
+    const more = cutBlocks(blocks, 11);
+    expect(more[1]).toMatchObject({ kind: "list", items: [[{ kind: "text", text: "on" }]] });
+    expect(cutBlocks(blocks, 1000)).toEqual(blocks);
   });
 });

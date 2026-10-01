@@ -103,3 +103,36 @@ export function parseChatMarkdown(text: string): Block[] {
 export function hasMarkdown(text: string): boolean {
   return /(\*\*|`|^\s{0,3}(?:[-*•]|\d{1,3}[.)]|#{1,6})\s|\[[^\]]+\]\(https?:|https?:\/\/)/m.test(text);
 }
+
+/** The blocks cut to the first `limit` characters of visible text, so a
+ *  reply can be revealed progressively while keeping its formatting. */
+export function cutBlocks(blocks: Block[], limit: number): Block[] {
+  let left = Math.max(0, limit);
+  const out: Block[] = [];
+  const cutInlines = (runs: Inline[]): Inline[] => {
+    const res: Inline[] = [];
+    for (const r of runs) {
+      if (left <= 0) break;
+      if (r.text.length <= left) { res.push(r); left -= r.text.length; }
+      else { res.push({ ...r, text: r.text.slice(0, left) }); left = 0; }
+    }
+    return res;
+  };
+  for (const b of blocks) {
+    if (left <= 0) break;
+    if (b.kind === "code") {
+      out.push(b.text.length <= left ? b : { kind: "code", text: b.text.slice(0, left) });
+      left -= b.text.length;
+    } else if (b.kind === "list") {
+      const items: Inline[][] = [];
+      for (const it of b.items) {
+        if (left <= 0) break;
+        items.push(cutInlines(it));
+      }
+      out.push({ ...b, items });
+    } else {
+      out.push({ ...b, inlines: cutInlines(b.inlines) });
+    }
+  }
+  return out;
+}
