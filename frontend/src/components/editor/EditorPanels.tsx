@@ -3,7 +3,7 @@
 // are undoable. Uploads/stock images are placed via the image asset provider.
 
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type FormEvent } from "react";
-import { Square, SquareRoundCorner, Circle, Triangle, Pentagon, Hexagon, Star, Diamond, Octagon, Frame, QrCode, Type, Upload, Search, Table as TableIcon, BarChart3, LineChart, AreaChart, PieChart, Donut, ScatterChart, Radar, Wand2, ImagePlus, Settings2, Trash2, Folder, FolderPlus, Pencil, X, Tag, ChevronLeft, Link as LinkIcon, Mic, Video, MonitorUp, CircleStop, Spline, Clock, LayoutGrid, Shapes, Sparkles, Stethoscope, AlignStartVertical, Play, ChevronDown, Send, Plus, RotateCcw, FileDown, FileText, Paperclip, Layers } from "lucide-react";
+import { Square, SquareRoundCorner, Circle, Triangle, Pentagon, Hexagon, Star, Diamond, Octagon, Frame, QrCode, Type, Upload, Search, Table as TableIcon, BarChart3, LineChart, AreaChart, PieChart, Donut, ScatterChart, Radar, Wand2, ImagePlus, Settings2, Trash2, Folder, FolderPlus, Pencil, X, Tag, ChevronLeft, Link as LinkIcon, Mic, Video, MonitorUp, CircleStop, Spline, Clock, LayoutGrid, Shapes, Sparkles, Stethoscope, AlignStartVertical, Play, ChevronDown, Send, Plus, RotateCcw, FileDown, FileText, Paperclip, Layers, Copy, ArrowDown } from "lucide-react";
 import { migrate, type AssetRef, type ChartType, type Node, type Fill, type Color, type Theme } from "@hc/schema";
 import { searchFonts, type FontCatalogEntry } from "@hc/text";
 import { toHex, fromHex, relativeLuminance } from "@hc/color";
@@ -69,6 +69,7 @@ import { attachableImageAccept, imageAttachmentsNote, imageSource, isImageFile, 
 import { mergeRestoredTurns } from "@/lib/aiTurns";
 import { reviewPages, reviewTurnText } from "@/lib/deckReview";
 import { AiProviderSettings } from "@/components/ai/AiProviderSettings";
+import { ChatMarkdown } from "@/components/ui/ChatMarkdown";
 import { builtinThemes } from "@/lib/themeCatalog";
 import { cancelAiFills, enqueueAiFills, retryFailedAiFills, subscribeAiFillQueue } from "@/lib/aiFillQueue";
 import { stickerLabel, stickerCategoryLabel } from "@/lib/stickers";
@@ -2001,6 +2002,19 @@ interface TurnFile {
 type ChatSource = AiSource & { id: string; sentAt?: number };
 const asChatSource = (sc: AiSource & { id?: string; sentAt?: number }): ChatSource => ({ ...sc, id: sc.id ?? `src-${Math.random().toString(36).slice(2, 10)}` });
 const toTurnFile = (sc: ChatSource): TurnFile => ({ id: sc.id, name: sc.name, chars: sc.text.length });
+/** A long user message folded to its opening, the way a chat shows a pasted
+ *  brief, with the rest one click away. */
+function CollapsibleText({ text, limit = 700 }: { text: string; limit?: number }) {
+  const [open, setOpen] = useState(false);
+  if (text.length <= limit) return <span className="whitespace-pre-wrap">{text}</span>;
+  return (
+    <>
+      <span className="whitespace-pre-wrap">{open ? text : `${text.slice(0, limit).trimEnd()}…`}</span>
+      <button onClick={() => setOpen((v) => !v)} className="mt-1 block text-[11px] font-medium text-brand-ink hover:underline">{open ? tr("editor.show_less") : tr("editor.show_more")}</button>
+    </>
+  );
+}
+
 /** A document's length for a chip: characters under a thousand, else k. */
 const charsLabel = (n: number): string => (n < 1000 ? `${n} chars` : `${Math.round(n / 1000)}k chars`);
 /** How much of each document sent with a message the planner reads, so a
@@ -3920,6 +3934,10 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
   const stagedSources = sources.filter((sc) => !sc.sentAt);
   const [editingSource, setEditingSource] = useState<string | null>(null);
   const [attachOpen, setAttachOpen] = useState(false);
+  // The link row inside the composer, opened from the attach menu.
+  const [linkOpen, setLinkOpen] = useState(false);
+  // Shown when the thread is scrolled up past recent messages.
+  const [awayFromBottom, setAwayFromBottom] = useState(false);
   const [attachUrl, setAttachUrl] = useState("");
   const [attachBusy, setAttachBusy] = useState(false);
   // The conversation's images: staged in the composer (no sentAt, shown as
@@ -3939,6 +3957,17 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
   // message's generation (an earlier screenshot must not).
   const sentWithLastRef = useRef<Set<string>>(new Set());
   const staged = images.filter((im) => !im.sentAt);
+  // The attach menu closes on a click anywhere else, as a menu does.
+  useEffect(() => {
+    if (!attachOpen) return;
+    const onDown = (ev: MouseEvent) => {
+      const t = ev.target as globalThis.Node | null;
+      if (attachToggleRef.current?.parentElement?.contains(t)) return;
+      setAttachOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [attachOpen]);
   // Object URLs of pictures from disk die with the panel.
   useEffect(() => () => { for (const im of imagesRef.current) if (im.url.startsWith("blob:")) URL.revokeObjectURL(im.url); }, []);
   // Drag-and-drop attaching: a file dragged from the desktop onto the panel is
@@ -4402,6 +4431,32 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
     })();
   }
 
+  /** Fetch the link in the composer's link row as a document. */
+  function fetchLink() {
+    const url = attachUrl.trim();
+    if (!/^https?:\/\//i.test(url) || attachBusy) return;
+    setAttachBusy(true);
+    void oc.aiExtractUrl({ url })
+      .then((r) => { setSources((xs) => [...xs, asChatSource({ name: r.title || url, text: r.text })].slice(0, maxSources)); setAttachUrl(""); setLinkOpen(false); })
+      .catch(() => toast.error(tr("editor.couldnt_read_that_page")))
+      .finally(() => setAttachBusy(false));
+  }
+  /** A paste into the message: a picture from the clipboard attaches as an
+   *  image, and a long text (a brief, a document's contents) attaches as a
+   *  source instead of flooding the message, the way a chat handles it. */
+  function onComposerPaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
+    const files = Array.from(e.clipboardData?.files ?? []);
+    if (files.length) {
+      e.preventDefault();
+      attachFiles(files);
+      return;
+    }
+    const text = e.clipboardData?.getData("text/plain") ?? "";
+    if (text.length > 1500 || text.split("\n").length > 12) {
+      e.preventDefault();
+      setSources((xs) => [...xs, asChatSource({ name: tr("editor.pasted_text"), text: text.trim() })].slice(0, maxSources));
+    }
+  }
   /** Attach images: from disk, or a URL an in-app drag carried (Uploads,
    *  Stock). Each lands as a chip at once with its size and palette; with a
    *  provider that reads images, its description arrives behind and from
@@ -4800,7 +4855,14 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
       )}
 
       {/* Message thread (the only scrolling region). */}
-      <div ref={scrollRef} className="oc-scroll -mx-1 flex-1 space-y-3 overflow-y-auto px-1 py-1">
+      <div
+        ref={scrollRef}
+        onScroll={(e) => {
+          const el = e.currentTarget;
+          setAwayFromBottom(el.scrollHeight - el.scrollTop - el.clientHeight > 160);
+        }}
+        className="oc-scroll -mx-1 flex-1 space-y-4 overflow-y-auto px-1 py-1"
+      >
         {turns.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center gap-4 px-2 text-center">
             <div className="grid h-11 w-11 place-items-center rounded-full bg-brand-600 text-white shadow-sm"><Sparkles size={20} /></div>
@@ -4865,7 +4927,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
           turns.map((t, i) =>
             t.role === "user" ? (
               <div key={i} className="flex justify-end">
-                <div className="max-w-[85%] rounded-2xl rounded-br-sm bg-brand-600 px-3 py-2 text-sm text-white">
+                <div className="max-w-[88%] rounded-2xl rounded-br-md bg-neutral-100 px-3.5 py-2 text-sm leading-6 text-neutral-900">
                   {/* The pictures this message went out with; a restored turn
                       shows their names, the pictures having lived in the
                       session that sent them. */}
@@ -4873,40 +4935,40 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
                     <div className="mb-1.5 flex flex-wrap gap-1.5">
                       {t.images.map((im) => im.url ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img key={im.id} src={im.url} alt={im.name} title={im.name} className="max-h-28 max-w-full rounded-lg object-contain ring-1 ring-white/30" />
+                        <img key={im.id} src={im.url} alt={im.name} title={im.name} className="max-h-32 max-w-full rounded-lg object-contain ring-1 ring-black/10" />
                       ) : (
-                        <span key={im.id} className="flex items-center gap-1 rounded-md bg-white/15 px-1.5 py-0.5 text-[11px]"><ImagePlus size={11} /> {im.name}</span>
+                        <span key={im.id} className="flex items-center gap-1 rounded-md bg-neutral-200 px-1.5 py-0.5 text-[11px] text-neutral-700"><ImagePlus size={11} /> {im.name}</span>
                       ))}
                     </div>
                   )}
                   {t.files && t.files.length > 0 && (
                     <div className="mb-1.5 flex flex-wrap gap-1">
                       {t.files.map((f) => (
-                        <span key={f.id} title={f.name} className="flex max-w-full items-center gap-1 rounded-md bg-white/15 px-1.5 py-0.5 text-[11px]"><FileText size={11} className="shrink-0" /> <span className="truncate">{f.name}</span> · {charsLabel(f.chars)}</span>
+                        <span key={f.id} title={f.name} className="flex max-w-full items-center gap-1 rounded-md bg-neutral-200 px-1.5 py-0.5 text-[11px] text-neutral-700"><FileText size={11} className="shrink-0" /> <span className="truncate">{f.name}</span> · {charsLabel(f.chars)}</span>
                       ))}
                     </div>
                   )}
-                  <span className="whitespace-pre-wrap">{t.text}</span>
+                  <CollapsibleText text={t.text} />
                 </div>
               </div>
             ) : (
-              <div key={i} className="flex items-start gap-2">
+              <div key={i} className="group flex items-start gap-2.5">
                 {AssistantAvatar}
-                <div className="max-w-[85%] rounded-2xl rounded-bl-sm bg-neutral-100 px-3 py-2 text-sm text-neutral-800">
-                  <span className="whitespace-pre-wrap">{t.text}</span>
+                <div className="min-w-0 flex-1 pt-0.5 text-sm leading-6 text-neutral-800">
+                  <ChatMarkdown text={t.text} />
                   {/* The pages a web search found, as the assistant's own
                       attachments on the turn that reports the run. */}
                   {t.files && t.files.length > 0 && (
                     <div className="mt-1.5 flex flex-wrap gap-1">
                       {t.files.map((f) => (
-                        <span key={f.id} title={f.name} className="flex max-w-full items-center gap-1 rounded-md bg-neutral-200 px-1.5 py-0.5 text-[10px] text-neutral-600"><FileText size={11} className="shrink-0" /> <span className="truncate">{f.name}</span> · {charsLabel(f.chars)}</span>
+                        <span key={f.id} title={f.name} className="flex max-w-full items-center gap-1 rounded-md bg-neutral-100 px-1.5 py-0.5 text-[10px] text-neutral-600"><FileText size={11} className="shrink-0" /> <span className="truncate">{f.name}</span> · {charsLabel(f.chars)}</span>
                       ))}
                     </div>
                   )}
                   {t.steps && t.steps.length > 0 && (
                     <div className="mt-1.5 flex flex-wrap gap-1">
                       {t.steps.map((s, j) => (
-                        <span key={j} className={`rounded px-1.5 py-0.5 text-[10px] ${t.proposed ? "bg-neutral-200 text-neutral-600" : s.ok ? "bg-emerald-100 text-emerald-700" : "bg-neutral-200 text-neutral-500 line-through"}`}>{actionLabel(s.action)}</span>
+                        <span key={j} className={`rounded-md px-1.5 py-0.5 text-[10px] ${t.proposed ? "bg-neutral-100 text-neutral-600" : s.ok ? "bg-emerald-50 text-emerald-700" : "bg-neutral-100 text-neutral-500 line-through"}`}>{actionLabel(s.action)}</span>
                       ))}
                     </div>
                   )}
@@ -4918,7 +4980,7 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
                     ) : (
                       <ul className="mt-1.5 flex flex-col gap-1">
                         {t.critique.map((issue) => (
-                          <li key={issue.id} className="flex items-start gap-1.5 rounded-md bg-surface px-2 py-1 text-[11px] text-neutral-600">
+                          <li key={issue.id} className="flex items-start gap-1.5 rounded-md border border-neutral-200 bg-surface px-2 py-1 text-[11px] text-neutral-600">
                             <span className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${ISSUE_DOT[issue.severity]}`} />
                             <button onClick={() => issue.nodeId && highlightNode(issue.nodeId)} disabled={!issue.nodeId} className="min-w-0 flex-1 text-start hover:text-brand-ink disabled:cursor-default" title={issue.nodeId ? tr("editor.show_on_canvas") : undefined}>{issue.message}</button>
                             {issue.fix && (
@@ -4952,6 +5014,19 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
                       ))}
                     </div>
                   )}
+                  {/* Message actions, shown on hover or focus, as a chat does. */}
+                  {!t.proposed && t.text.trim() && (
+                    <div className="mt-0.5 flex items-center gap-0.5 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+                      <button
+                        onClick={() => { void navigator.clipboard?.writeText(t.text).then(() => toast.success(tr("editor.copied"))).catch(() => {}); }}
+                        title={tr("editor.copy_message")}
+                        aria-label={tr("editor.copy_message")}
+                        className="rounded p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"
+                      >
+                        <Copy size={12} />
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ),
@@ -4960,15 +5035,15 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
         {busy && (
           // role=status so the wait is announced, not just drawn: a screen
           // reader user pressed Enter and heard nothing until the reply landed.
-          <div className="flex items-start gap-2" role="status" aria-live="polite">
+          <div className="flex items-start gap-2.5" role="status" aria-live="polite">
             {AssistantAvatar}
-            <div className="flex items-center gap-2 rounded-2xl rounded-bl-sm bg-neutral-100 px-3 py-2.5">
+            <div className="flex min-h-7 items-center gap-2 text-sm text-neutral-600">
               <span className="flex items-center gap-1">
                 <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-neutral-400 [animation-delay:-0.3s]" />
                 <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-neutral-400 [animation-delay:-0.15s]" />
                 <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-neutral-400" />
               </span>
-              <span className="text-xs text-neutral-600">{stage ?? tr("editor.thinking")}</span>
+              <span className="text-xs">{stage ?? tr("editor.thinking")}</span>
               <button onClick={stopRun} className="rounded-full border border-neutral-300 px-2 py-0.5 text-[11px] font-medium text-neutral-600 hover:border-neutral-400 hover:text-neutral-800">
                 {tr("editor.stop")}
               </button>
@@ -4978,9 +5053,9 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
         {/* The refinement phase runs AFTER the deck lands, so it needs its own
             line: without it, slides silently rewrite themselves. */}
         {!busy && fillProgress && (
-          <div className="flex items-start gap-2" role="status" aria-live="polite">
+          <div className="flex items-start gap-2.5" role="status" aria-live="polite">
             {AssistantAvatar}
-            <div className="flex items-center gap-2 rounded-2xl rounded-bl-sm bg-neutral-100 px-3 py-2.5 text-xs text-neutral-600">
+            <div className="flex min-h-7 items-center gap-2 text-xs text-neutral-600">
               <span>{tr("editor.writing_slide_of", { done: fillProgress.done + 1, total: fillProgress.total })}</span>
               <button onClick={stopRun} className="rounded-full border border-neutral-300 px-2 py-0.5 text-[11px] font-medium text-neutral-600 hover:border-neutral-400 hover:text-neutral-800">
                 {tr("editor.stop")}
@@ -5244,187 +5319,176 @@ function AssistantPanel({ workspaceId, designId, aiReady, voiceClause, brandPale
         </div>
       )}
 
-      {/* Source attachments (FR-23/T15): paste text, fetch URLs, or pick files
-          (multiple, cap 8, mixable in one sitting); each is editable before
-          the next generation grounds its outline in ALL of them. */}
-      {stagedSources.map((sc) => (
-        <div key={sc.id} className="mt-2 flex shrink-0 flex-col gap-1 rounded-lg border border-brand-200 bg-brand-50 px-2.5 py-1.5 text-[11px] text-brand-ink">
-          <div className="flex items-center gap-2">
-            <FileText size={12} className="shrink-0" />
-            <span className="min-w-0 flex-1 truncate" title={sc.name}>{sc.name} · {charsLabel(sc.text.length)}</span>
-            <button
-              onClick={() => setEditingSource(editingSource === sc.id ? null : sc.id)}
-              aria-label={tr("editor.edit_extracted_text")}
-              className="rounded p-0.5 hover:bg-brand-100"
-            >
-              <Pencil size={12} />
-            </button>
-            <button onClick={() => { setSources((xs) => xs.filter((x) => x.id !== sc.id)); setEditingSource(null); }} aria-label={tr("editor.remove_attached_content")} className="rounded p-0.5 hover:bg-brand-100"><X size={12} /></button>
-          </div>
-          {editingSource === sc.id && (
-            <textarea
-              value={sc.text}
-              rows={6}
-              onChange={(e) => setSources((xs) => xs.map((x) => (x.id === sc.id ? { ...x, text: e.target.value } : x)))}
-              className="w-full resize-y rounded-md border border-brand-200 bg-surface px-2 py-1.5 text-xs text-neutral-800 outline-none focus:border-brand-400"
-            />
-          )}
-        </div>
-      ))}
-      {/* Image attachments: a thumbnail, the size, the colours read off it,
-          and what the provider saw in it (or that it cannot see). */}
-      {staged.map((im) => (
-        <div key={im.id} className="mt-2 flex shrink-0 items-center gap-2 rounded-lg border border-brand-200 bg-brand-50 px-2.5 py-1.5 text-[11px] text-brand-ink">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={im.url} alt="" className="h-9 w-9 shrink-0 rounded object-cover ring-1 ring-black/10" />
-          <div className="min-w-0 flex-1">
-            <div className="truncate" title={im.name}>{im.name} · {im.width}×{im.height}</div>
-            <div className="flex items-center gap-1 text-[10px] text-brand-ink/70">
-              {im.palette.slice(0, 5).map((hex) => (
-                <span key={hex} title={hex} className="inline-block h-2.5 w-2.5 shrink-0 rounded-full ring-1 ring-black/10" style={{ background: hex }} />
-              ))}
-              <span className="min-w-0 truncate" title={im.description ?? undefined}>
-                {!visionCapable
-                  ? tr("editor.image_attached_as_picture_only")
-                  : im.description
-                    ? im.description
-                    : im.read || !im.preview
-                      ? tr("editor.image_not_described")
-                      : tr("editor.reading_the_image")}
-              </span>
-            </div>
-          </div>
-          <button onClick={() => removeImage(im.id)} aria-label={tr("editor.remove_attached_content")} className="rounded p-0.5 hover:bg-brand-100"><X size={12} /></button>
-        </div>
-      ))}
-      {attachOpen && sources.length >= maxSources && (
-        <p className="mt-2 shrink-0 rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1.5 text-[10px] text-neutral-500">
-          {tr("editor.attachment_limit_reached", { max: maxSources })}
-        </p>
-      )}
-      {attachOpen && sources.length < maxSources && (
+      {/* Composer, pinned to the bottom: what is attached, the message, the
+          tools, in one box the way a chat has them. Attachments stage here
+          and go out with the message; the + menu adds files and links, and a
+          long paste or a pasted picture attaches itself. */}
+      <div className="relative mt-2 shrink-0">
+        {awayFromBottom && turns.length > 0 && (
+          <button
+            onClick={() => { const el = scrollRef.current; if (el) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" }); }}
+            title={tr("editor.scroll_to_latest")}
+            aria-label={tr("editor.scroll_to_latest")}
+            className="absolute -top-10 left-1/2 z-10 grid h-8 w-8 -translate-x-1/2 place-items-center rounded-full border border-neutral-200 bg-surface text-neutral-600 shadow-md hover:text-neutral-900"
+          >
+            <ArrowDown size={14} />
+          </button>
+        )}
         <div
-          className="mt-2 flex shrink-0 flex-col gap-1.5 rounded-lg border border-neutral-200 bg-neutral-50 p-2"
+          className="rounded-2xl border border-neutral-300 bg-surface px-2.5 pb-1.5 pt-2 focus-within:border-brand-400"
           onKeyDown={(e) => {
-            // Escape closes it and returns focus to the control that opened
-            // it, rather than stranding the user inside a panel they cannot
-            // dismiss from the keyboard.
-            if (e.key !== "Escape") return;
+            // Escape closes the menu or the link row and returns to the message.
+            if (e.key !== "Escape" || (!attachOpen && !linkOpen)) return;
             e.stopPropagation();
             setAttachOpen(false);
-            attachToggleRef.current?.focus();
+            setLinkOpen(false);
+            inputRef.current?.focus();
           }}
         >
-          {/* The cap is 8 and sources mix freely, which nothing on screen said:
-              users read the panel closing after one add as a limit of one. */}
-          <p className="text-[10px] text-neutral-500">
-            {sources.length
-              ? tr("editor.attachments_added_of_max", { n: sources.length, max: maxSources })
-              : tr("editor.attach_up_to_max_sources", { max: maxSources })}
-          </p>
-          <textarea
-            placeholder={tr("editor.paste_text_or_notes_to_build_from")}
-            rows={3}
-            className="w-full resize-none rounded-md border border-neutral-200 bg-surface px-2 py-1.5 text-xs outline-none focus:border-brand-400"
-            onBlur={(e) => {
-              const t = e.target.value.trim();
-              // The panel STAYS open: attaching is usually building a set
-              // (a note, two links, a file), and closing after each one made
-              // the user reopen it every time. The chips above show what has
-              // landed; the paperclip closes it when they are done.
-              if (t) { setSources((xs) => [...xs, asChatSource({ name: tr("editor.pasted_text"), text: t })]); e.target.value = ""; }
-            }}
-          />
-          <div className="flex items-center gap-1.5">
-            <input
-              value={attachUrl}
-              onChange={(e) => setAttachUrl(e.target.value)}
-              placeholder="https://a-page-to-import…"
-              className="min-w-0 flex-1 rounded-md border border-neutral-200 bg-surface px-2 py-1.5 text-xs outline-none focus:border-brand-400"
+          {(staged.length > 0 || stagedSources.length > 0 || attachBusy) && (
+            <div className="mb-2 flex flex-wrap gap-1.5">
+              {staged.map((im) => (
+                <div key={im.id} className="group/chip relative flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 p-1 pe-2 text-[11px] text-neutral-700">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={im.url} alt="" className="h-10 w-10 shrink-0 rounded-lg object-cover ring-1 ring-black/5" />
+                  <div className="min-w-0 max-w-[9rem]">
+                    <div className="truncate font-medium" title={im.name}>{im.name}</div>
+                    <div className="flex items-center gap-1 text-[10px] text-neutral-500">
+                      {im.palette.slice(0, 4).map((hex) => (
+                        <span key={hex} title={hex} className="inline-block h-2 w-2 shrink-0 rounded-full ring-1 ring-black/10" style={{ background: hex }} />
+                      ))}
+                      <span className="truncate" title={im.description ?? undefined}>
+                        {!visionCapable
+                          ? tr("editor.image_attached_as_picture_only")
+                          : im.description
+                            ? im.description
+                            : im.read || !im.preview
+                              ? tr("editor.image_not_described")
+                              : tr("editor.reading_the_image")}
+                      </span>
+                    </div>
+                  </div>
+                  <button onClick={() => removeImage(im.id)} aria-label={tr("editor.remove_attached_content")} className="absolute -end-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full border border-neutral-200 bg-surface text-neutral-500 shadow-sm hover:text-neutral-900"><X size={11} /></button>
+                </div>
+              ))}
+              {stagedSources.map((sc) => (
+                <div key={sc.id} className="relative flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-neutral-50 px-2 py-1.5 text-[11px] text-neutral-700">
+                  <FileText size={13} className="shrink-0 text-neutral-500" />
+                  <div className="min-w-0 max-w-[9rem]">
+                    <div className="truncate font-medium" title={sc.name}>{sc.name}</div>
+                    <div className="text-[10px] text-neutral-500">{charsLabel(sc.text.length)}</div>
+                  </div>
+                  <button
+                    onClick={() => setEditingSource(editingSource === sc.id ? null : sc.id)}
+                    aria-label={tr("editor.edit_extracted_text")}
+                    title={tr("editor.edit_extracted_text")}
+                    className={`rounded p-0.5 hover:bg-neutral-200 ${editingSource === sc.id ? "text-brand-ink" : "text-neutral-500"}`}
+                  >
+                    <Pencil size={11} />
+                  </button>
+                  <button onClick={() => { setSources((xs) => xs.filter((x) => x.id !== sc.id)); if (editingSource === sc.id) setEditingSource(null); }} aria-label={tr("editor.remove_attached_content")} className="absolute -end-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full border border-neutral-200 bg-surface text-neutral-500 shadow-sm hover:text-neutral-900"><X size={11} /></button>
+                </div>
+              ))}
+              {attachBusy && (
+                <div className="flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-neutral-50 px-2 py-1.5 text-[11px] text-neutral-500"><Spinner /> {tr("editor.fetching")}</div>
+              )}
+            </div>
+          )}
+          {editingSource && stagedSources.some((sc) => sc.id === editingSource) && (
+            <textarea
+              value={stagedSources.find((sc) => sc.id === editingSource)?.text ?? ""}
+              rows={5}
+              onChange={(e) => setSources((xs) => xs.map((x) => (x.id === editingSource ? { ...x, text: e.target.value } : x)))}
+              className="mb-2 w-full resize-y rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1.5 text-xs text-neutral-800 outline-none focus:border-brand-400"
             />
-            <button
-              disabled={attachBusy || !/^https?:\/\//i.test(attachUrl.trim())}
-              onClick={() => {
-                const url = attachUrl.trim();
-                setAttachBusy(true);
-                void oc.aiExtractUrl({ url })
-                  .then((r) => { setSources((xs) => [...xs, asChatSource({ name: r.title || url, text: r.text })]); setAttachUrl(""); })
-                  .catch(() => toast.error(tr("editor.couldnt_read_that_page")))
-                  .finally(() => setAttachBusy(false));
-              }}
-              className="rounded-md bg-neutral-900 px-2.5 py-1.5 text-xs font-medium text-surface disabled:opacity-40"
-            >
-              {attachBusy ? tr("editor.fetching") : tr("editor.fetch")}
-            </button>
-            {/* A real button, not a label wrapping a display:none input: that
-                combination is focusable by neither, so attaching a local file
-                was mouse-only. Same ref-and-click pattern the uploads panel
-                and the dashboard already use. */}
-            <button
-              type="button"
-              onClick={() => attachFileRef.current?.click()}
-              className="rounded-md border border-neutral-200 bg-surface px-2.5 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100"
-            >
-              {tr("editor.file")}
-            </button>
-            <label className="hidden">
-              {tr("editor.file")}
+          )}
+          {linkOpen && (
+            <div className="mb-2 flex items-center gap-1.5">
+              <LinkIcon size={13} className="shrink-0 text-neutral-500" />
               <input
-                ref={attachFileRef}
-                type="file"
-                multiple
-                accept={`${attachableAccept},${attachableImageAccept}`}
-                className="hidden"
-                onChange={(e) => {
-                  const files = Array.from(e.target.files ?? []);
-                  e.target.value = "";
-                  attachFiles(files);
-                }}
+                value={attachUrl}
+                autoFocus
+                onChange={(e) => setAttachUrl(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && /^https?:\/\//i.test(attachUrl.trim())) { e.preventDefault(); fetchLink(); } }}
+                placeholder="https://a-page-to-import…"
+                className="min-w-0 flex-1 rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1 text-xs outline-none focus:border-brand-400"
               />
-            </label>
-          </div>
-        </div>
-      )}
-
-      {/* Composer, pinned to the bottom. */}
-      <div className="mt-2 shrink-0">
-        <div className="flex items-end gap-1.5 rounded-2xl border border-neutral-300 bg-surface px-2 py-1.5 focus-within:border-brand-400">
-          <button
-            ref={attachToggleRef}
-            onClick={() => setAttachOpen((v) => !v)}
-            title={tr("editor.attach_content_to_build_from_paste_url_or_fi")}
-            aria-label={tr("editor.attach_content")}
-            aria-expanded={attachOpen}
-            className={`mb-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg ${attachOpen || stagedSources.length || staged.length ? "bg-brand-50 text-brand-ink" : "text-neutral-400 hover:bg-neutral-100"}`}
-          >
-            <Paperclip size={15} />
-          </button>
+              <button
+                disabled={attachBusy || !/^https?:\/\//i.test(attachUrl.trim())}
+                onClick={fetchLink}
+                className="rounded-lg bg-neutral-900 px-2.5 py-1 text-xs font-medium text-surface disabled:opacity-40"
+              >
+                {attachBusy ? tr("editor.fetching") : tr("editor.fetch")}
+              </button>
+              <button onClick={() => { setLinkOpen(false); setAttachUrl(""); }} aria-label={tr("editor.cancel")} className="rounded p-1 text-neutral-500 hover:bg-neutral-100"><X size={12} /></button>
+            </div>
+          )}
           <textarea
             ref={inputRef}
             value={input}
             onChange={(e) => { setInput(e.target.value); autosize(e.currentTarget); }}
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void send(); } }}
+            onPaste={onComposerPaste}
             rows={1}
             placeholder={tr("editor.ask_anything")}
             disabled={!aiReady}
-            className="max-h-[140px] flex-1 resize-none bg-transparent py-1 text-sm outline-none placeholder:text-neutral-400 disabled:opacity-50"
+            className="max-h-[160px] w-full resize-none bg-transparent px-1 py-1 text-sm leading-6 outline-none placeholder:text-neutral-400 disabled:opacity-50"
           />
-          <button onClick={() => void send()} disabled={!canSend} title={tr("editor.send_enter")} aria-label={tr("editor.send_enter")} className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-600 text-white transition hover:bg-brand-700 disabled:opacity-40">
-            <Send size={15} />
-          </button>
+          <div className="mt-1 flex items-center gap-1">
+            <div className="relative">
+              <button
+                ref={attachToggleRef}
+                onClick={() => setAttachOpen((v) => !v)}
+                title={tr("editor.attach_content_to_build_from_paste_url_or_fi")}
+                aria-label={tr("editor.attach_content")}
+                aria-expanded={attachOpen}
+                aria-haspopup="menu"
+                className={`grid h-7 w-7 place-items-center rounded-full border ${attachOpen ? "border-brand-400 bg-brand-50 text-brand-ink" : "border-neutral-300 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800"}`}
+              >
+                <Plus size={15} />
+              </button>
+              {attachOpen && (
+                <div role="menu" className="absolute bottom-9 start-0 z-20 w-60 rounded-xl border border-neutral-200 bg-surface p-1 text-xs text-neutral-700 shadow-lg">
+                  <p className="px-2 py-1 text-[10px] text-neutral-400">
+                    {sources.length
+                      ? tr("editor.attachments_added_of_max", { n: sources.length, max: maxSources })
+                      : tr("editor.attach_up_to_max_sources", { max: maxSources })}
+                  </p>
+                  <button role="menuitem" onClick={() => { setAttachOpen(false); attachFileRef.current?.click(); }} className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-start hover:bg-neutral-100"><Paperclip size={13} /> {tr("editor.add_photos_and_files")}</button>
+                  <button role="menuitem" onClick={() => { setAttachOpen(false); setLinkOpen(true); }} className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-start hover:bg-neutral-100"><LinkIcon size={13} /> {tr("editor.add_a_link")}</button>
+                  <p className="px-2 py-1 text-[10px] text-neutral-400">{tr("editor.paste_to_attach_hint")}</p>
+                </div>
+              )}
+            </div>
+            <input
+              ref={attachFileRef}
+              type="file"
+              multiple
+              accept={`${attachableAccept},${attachableImageAccept}`}
+              className="hidden"
+              aria-label={tr("editor.add_photos_and_files")}
+              onChange={(e) => {
+                const files = Array.from(e.target.files ?? []);
+                e.target.value = "";
+                attachFiles(files);
+              }}
+            />
+            <span className="flex-1" />
+            <button
+              onClick={() => void genVector()}
+              disabled={!canSend}
+              title={tr("editor.draw_the_whole_design_as_an_editable_vector")}
+              className="flex items-center gap-1 rounded-full border border-neutral-200 bg-surface px-2 py-0.5 text-[10px] text-neutral-500 hover:border-brand-300 hover:text-brand-ink disabled:opacity-40"
+            >
+              <Spline size={11} /> {tr("editor.vector_design")}
+              <span className="rounded bg-brand-100 px-1 text-[9px] font-medium text-brand-ink">{tr("editor.beta")}</span>
+            </button>
+            <button onClick={() => void send()} disabled={!canSend} title={tr("editor.send_enter")} aria-label={tr("editor.send_enter")} className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-600 text-white transition hover:bg-brand-700 disabled:opacity-40">
+              <Send size={15} />
+            </button>
+          </div>
         </div>
-        <div className="mt-1 flex items-center justify-between px-1">
-          <p className="text-[10px] text-neutral-400">{tr("editor.enter_to_send_shift_enter_for_a_new_line")}</p>
-          <button
-            onClick={() => void genVector()}
-            disabled={!canSend}
-            title={tr("editor.draw_the_whole_design_as_an_editable_vector")}
-            className="flex items-center gap-1 rounded-full border border-neutral-200 bg-surface px-2 py-0.5 text-[10px] text-neutral-500 hover:border-brand-300 hover:text-brand-ink disabled:opacity-40"
-          >
-            <Spline size={11} /> {tr("editor.vector_design")}
-            <span className="rounded bg-brand-100 px-1 text-[9px] font-medium text-brand-ink">{tr("editor.beta")}</span>
-          </button>
-        </div>
+        <p className="mt-1 px-2 text-[10px] text-neutral-400">{tr("editor.enter_to_send_shift_enter_for_a_new_line")}</p>
       </div>
     </div>
   );
