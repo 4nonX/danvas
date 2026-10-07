@@ -269,12 +269,23 @@ func TestDeckPDFTagsEveryPage(t *testing.T) {
 	}
 }
 
-// A deck of only hidden slides has nothing to export, and says so rather than
-// emitting a PDF with zero pages, which no viewer accepts.
-func TestDeckPDFRejectsAnEmptyDeck(t *testing.T) {
-	file := Design(map[string]any{"pages": []any{map[string]any{"id": "p", "hidden": true, "width": 10.0, "height": 10.0}}})
-	if _, err := ToDeckPDF(file); err != ErrPageRange {
-		t.Errorf("want ErrPageRange for an all-hidden deck, got %v", err)
+// With every slide hidden there is no deck to present, but the export still
+// asks for the design: all pages are drawn instead of failing with nothing (a
+// single-page label hidden by accident could not be exported as tagged PDF).
+func TestDeckPDFDrawsAnAllHiddenDeck(t *testing.T) {
+	page := func(id string) map[string]any {
+		return map[string]any{"id": id, "hidden": true, "width": 10.0, "height": 10.0}
+	}
+	out, err := ToDeckPDF(Design(map[string]any{"pages": []any{page("p1"), page("p2")}}))
+	if err != nil {
+		t.Fatalf("ToDeckPDF: %v", err)
+	}
+	if !strings.Contains(string(out), "/Count 2") {
+		t.Error("an all-hidden deck should export every page")
+	}
+	// A design without pages still has nothing to draw.
+	if _, err := ToDeckPDF(Design(map[string]any{"pages": []any{}})); err != ErrPageRange {
+		t.Errorf("want ErrPageRange for a design without pages, got %v", err)
 	}
 }
 

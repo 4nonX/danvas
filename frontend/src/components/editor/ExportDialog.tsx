@@ -6,7 +6,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { compileAttribution, attributionText } from "@hc/stock";
 import { AlertTriangle, ShieldAlert, Image as ImageIcon, FileText, Shapes, Download, Film, Printer } from "lucide-react";
-import { toSvg, rasterDimensions, encodeApng, encodeGif, designPageToLottie, deckToPptx, type PptxImage, type PptxRaster } from "@hc/export";
+import { rasterDimensions, encodeApng, encodeGif, designPageToLottie, deckToPptx, type PptxImage, type PptxRaster } from "@hc/export";
 import { worldAABB } from "@hc/editor";
 import { resolveAssetUrl } from "@/lib/sdk";
 import { zipFiles, type ZipEntry } from "@/lib/zip";
@@ -630,8 +630,11 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
       const opaque = format === "jpg" || !transparent;
       const useZip = pages.length > 1 && zipBatch && !quiet;
       const entries: ZipEntry[] = [];
+      const vectorSvg = format === "svg" ? (await import("@/lib/vectorPdf")).exportVectorSvg : null;
       const renderBlob = async (i: number): Promise<Blob | null> => {
-        if (format === "svg") return new Blob([toSvg(doc, i)], { type: "image/svg+xml" });
+        // SVG goes through the engine like the vector PDF, so it matches the
+        // editor exactly (text as outlines, effects as embedded patches).
+        if (vectorSvg) return new Blob([await vectorSvg(doc, i, { assets: imageAssets })], { type: "image/svg+xml" });
         const canvas = renderPageCanvas(doc, i, scale, opaque);
         if (!canvas) return null;
         const type = format === "png" ? "image/png" : "image/jpeg";

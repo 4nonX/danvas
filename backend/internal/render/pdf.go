@@ -1175,10 +1175,20 @@ func firstSource(src []ImageSource) ImageSource {
 // deck being delivered.
 func ToDeckPDF(file Design, src ...ImageSource) ([]byte, error) {
 	fonts := parseDesignFonts(file)
+	pages := asArr(file["pages"])
+	// With every page hidden there is no deck to present, but an export still
+	// asks for the design: draw all pages rather than fail with nothing.
+	allHidden := true
+	for _, p := range pages {
+		if !asBool(asObj(p)["hidden"]) {
+			allHidden = false
+			break
+		}
+	}
 	var out []pdfPage
-	for _, p := range asArr(file["pages"]) {
+	for _, p := range pages {
 		page := asObj(p)
-		if asBool(page["hidden"]) {
+		if asBool(page["hidden"]) && !allHidden {
 			continue
 		}
 		out = append(out, renderPDFPage(file, page, firstSource(src), fonts))

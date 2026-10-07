@@ -1,7 +1,10 @@
-// A Canvas2D-shaped drawing target that writes PDF instead of pixels. The
+// A Canvas2D-shaped drawing target that records vectors instead of pixels. The
 // rendering engine draws a page into it exactly as it draws to the screen, so
 // line breaks, positions, crops and grouping match the editor, while the output
-// stays resolution independent:
+// stays resolution independent. VectorCanvas holds everything format neutral
+// (state, paths, text outlines, raster fallbacks); a backend writes the
+// result: PdfCanvas below (vector PDF, EPS) and SvgCanvas (svgCanvas.ts).
+// For PDF:
 //   - paths, fills, strokes, clips, transparency and blend modes -> PDF vectors
 //   - linear/radial gradients -> PDF shadings
 //   - text -> vector glyph outlines from the real font files (fontSource.ts)
@@ -19,10 +22,10 @@
 import type * as fontkit from "fontkit";
 import { faceKeyOf, parseCanvasFont, type FaceRequest, type LoadedFace } from "./fontSource";
 
-type Mat = { a: number; b: number; c: number; d: number; e: number; f: number };
+export type Mat = { a: number; b: number; c: number; d: number; e: number; f: number };
 const IDENTITY: Mat = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
 
-function mul(m: Mat, t: Mat): Mat {
+export function mul(m: Mat, t: Mat): Mat {
   return {
     a: m.a * t.a + m.c * t.b,
     b: m.b * t.a + m.d * t.b,
@@ -35,7 +38,7 @@ function mul(m: Mat, t: Mat): Mat {
 function apply(m: Mat, x: number, y: number): [number, number] {
   return [m.a * x + m.c * y + m.e, m.b * x + m.d * y + m.f];
 }
-function scaleOf(m: Mat): number {
+export function scaleOf(m: Mat): number {
   return Math.sqrt(Math.abs(m.a * m.d - m.b * m.c)) || 1;
 }
 
@@ -46,10 +49,10 @@ export function num(n: number): string {
   return s.includes(".") ? s.replace(/\.?0+$/, "") || "0" : s;
 }
 
-type Seg = { op: "M" | "L"; x: number; y: number } | { op: "C"; x1: number; y1: number; x2: number; y2: number; x: number; y: number } | { op: "Z" };
-type Box = { x0: number; y0: number; x1: number; y1: number };
+export type Seg = { op: "M" | "L"; x: number; y: number } | { op: "C"; x1: number; y1: number; x2: number; y2: number; x: number; y: number } | { op: "Z" };
+export type Box = { x0: number; y0: number; x1: number; y1: number };
 
-function pathBox(path: Seg[]): Box | null {
+export function pathBox(path: Seg[]): Box | null {
   let b: Box | null = null;
   const add = (x: number, y: number) => {
     if (!b) b = { x0: x, y0: y, x1: x, y1: y };
@@ -87,7 +90,7 @@ function tracePath(ctx: CanvasRenderingContext2D, path: Seg[]): void {
 
 /** A canvas gradient as data, so it can become a PDF shading or, when PDF
  *  cannot express it, a real gradient on the fallback canvas. */
-class GradientProxy {
+export class GradientProxy {
   stops: { offset: number; color: string }[] = [];
   constructor(
     readonly kind: "linear" | "radial" | "conic",
@@ -108,7 +111,7 @@ class GradientProxy {
   }
 }
 
-type Rgba = { r: number; g: number; b: number; a: number };
+export type Rgba = { r: number; g: number; b: number; a: number };
 
 interface State {
   ctm: Mat;
@@ -212,17 +215,14 @@ export interface ColorOut {
   blackOnly: boolean;
 }
 
-export interface PdfCanvasOptions {
+export interface VectorCanvasOptions {
   /** Device size of the page (engine canvas px). */
   width: number;
   height: number;
   /** Parsed fonts by face key; missing faces rasterize their text. */
   faces: Map<string, LoadedFace | null>;
-  resources: PdfResources;
   /** Collect pass: record the font faces text needs, draw nothing. */
   collect?: Map<string, FaceRequest>;
-  /** Write colours as CMYK (default: DeviceRGB). */
-  color?: ColorOut;
   /** Flatten transparency (for formats without it, e.g. EPS): a full-page
    *  device-resolution canvas, pre-filled with paper white, on which every
    *  operation is also drawn. Opaque operations stay vector; anything with
@@ -232,6 +232,15 @@ export interface PdfCanvasOptions {
   backdrop?: CanvasRenderingContext2D;
 }
 
+export interface PdfCanvasOptions extends VectorCanvasOptions {
+  resources: PdfResources;
+  /** Write colours as CMYK (default: DeviceRGB). */
+  color?: ColorOut;
+}
+
+/** A clip outline in device space. */
+export type ClipPath = { path: Seg[]; rule: CanvasFillRule };
+
 /** Counters describing how a page was written (for tests and the UI). */
 export interface PdfPageStats {
   vectorOps: number;
@@ -240,11 +249,10 @@ export interface PdfPageStats {
   images: number;
 }
 
-export class PdfCanvas {
-  private s: State;
+export abstract class VectorCanvas {
+  protected s: State;
   private stack: State[] = [];
   private path: Seg[] = [];
-  private ops: string[] = [];
   private measure: CanvasRenderingContext2D;
   private colorCtx: CanvasRenderingContext2D;
   private colorCache = new Map<string, Rgba>();
@@ -256,7 +264,7 @@ export class PdfCanvas {
   imageSmoothingEnabled = true;
   imageSmoothingQuality: ImageSmoothingQuality = "high";
 
-  constructor(private readonly o: PdfCanvasOptions) {
+  constructor(protected readonly o: VectorCanvasOptions) {
     this.s = {
       ctm: IDENTITY, fillStyle: "#000000", strokeStyle: "#000000", lineWidth: 1, lineCap: "butt", lineJoin: "miter",
       miterLimit: 10, dash: [], dashOffset: 0, globalAlpha: 1, composite: "source-over", font: "10px sans-serif",
@@ -267,21 +275,35 @@ export class PdfCanvas {
     this.colorCtx = makeCanvas(1, 1).getContext("2d")!;
   }
 
-  /** The page's content stream operators (device space). */
-  content(): string {
-    return this.ops.join("\n");
-  }
+  // --- backend ---------------------------------------------------------------
+  // Everything below is written through these, in device space (y down).
+  // Blend modes arrive as PDF names ("Normal", "Multiply", ...).
+  protected abstract emitSave(): void;
+  protected abstract emitRestore(): void;
+  /** Fill with a solid colour (alpha already includes globalAlpha). */
+  protected abstract emitFill(path: Seg[], rule: CanvasFillRule, c: Rgba, alpha: number, blend: string): void;
+  /** Fill with a gradient whose geometry is in the space of `ctm`. */
+  protected abstract emitGradientFill(path: Seg[], rule: CanvasFillRule, g: GradientProxy, ctm: Mat, alpha: number, blend: string): void;
+  /** Stroke with a solid colour; line settings from the current state, the
+   *  width and dashes scaled to device space with `scaleOf(ctm)`. */
+  protected abstract emitStroke(path: Seg[], c: Rgba, alpha: number, blend: string): void;
+  /** Intersect the clip with `path` until the matching restore. */
+  protected abstract emitClip(path: Seg[], rule: CanvasFillRule): void;
+  /** Place an image: `place` maps the unit square (rows top-down) to device
+   *  space. `source` identifies a reusable image, null for one-off pixels.
+   *  `blend` null: a plain, opaque patch (no graphics state). */
+  protected abstract emitImage(source: object | null, width: number, height: number, rgba: Uint8ClampedArray, place: Mat, alpha: number, blend: string | null, clip?: ClipPath): void;
 
   // --- state ---------------------------------------------------------------
   save(): void {
     this.stack.push({ ...this.s, dash: [...this.s.dash], clips: [...this.s.clips] });
-    this.ops.push("q");
+    this.emitSave();
   }
   restore(): void {
     const prev = this.stack.pop();
     if (!prev) return;
     this.s = prev;
-    this.ops.push("Q");
+    this.emitRestore();
   }
   setTransform(a: number | DOMMatrix2DInit, b?: number, c?: number, d?: number, e?: number, f?: number): void {
     if (typeof a === "object") this.s.ctm = { a: a.a ?? 1, b: a.b ?? 0, c: a.c ?? 0, d: a.d ?? 1, e: a.e ?? 0, f: a.f ?? 0 };
@@ -464,7 +486,7 @@ export class PdfCanvas {
   }
 
   // --- paint helpers -------------------------------------------------------
-  private color(css: string): Rgba {
+  protected color(css: string): Rgba {
     let c = this.colorCache.get(css);
     if (c) return c;
     const ctx = this.colorCtx;
@@ -504,66 +526,10 @@ export class PdfCanvas {
     return false;
   }
 
-  /** A colour's components in the output space (RGB, or CMYK via the
-   *  profile; pure black in black ink only when asked). */
-  private components(c: { r: number; g: number; b: number }): number[] {
-    const out = this.o.color;
-    if (!out) return [c.r, c.g, c.b];
-    if (out.blackOnly && c.r <= 0.002 && c.g <= 0.002 && c.b <= 0.002) return [0, 0, 0, 1];
-    return out.cmyk(c.r, c.g, c.b);
-  }
-
-  /** The fill (or stroke) colour operator for a colour. */
-  private colorOp(c: { r: number; g: number; b: number }, stroke: boolean): string {
-    const v = this.components(c).map(num).join(" ");
-    if (this.o.color) return `${v} ${stroke ? "K" : "k"}`;
-    return `${v} ${stroke ? "RG" : "rg"}`;
-  }
-
-  /** Shading dictionary for a gradient, in the CTM's user space. */
-  private shading(g: GradientProxy): string {
-    const stops = [...g.stops].sort((a, b) => a.offset - b.offset);
-    if (stops[0].offset > 0) stops.unshift({ offset: 0, color: stops[0].color });
-    if (stops[stops.length - 1].offset < 1) stops.push({ offset: 1, color: stops[stops.length - 1].color });
-    // CMYK through a profile is not linear in RGB: each stop-to-stop piece is
-    // split so the press colours follow the on-screen blend closely.
-    const sub = this.o.color ? 8 : 1;
-    const pts: { offset: number; c: { r: number; g: number; b: number } }[] = [];
-    for (let i = 0; i < stops.length - 1; i++) {
-      const a = this.color(stops[i].color), b = this.color(stops[i + 1].color);
-      for (let k = 0; k < sub; k++) {
-        const t = k / sub;
-        pts.push({ offset: stops[i].offset + (stops[i + 1].offset - stops[i].offset) * t, c: { r: a.r + (b.r - a.r) * t, g: a.g + (b.g - a.g) * t, b: a.b + (b.b - a.b) * t } });
-      }
-    }
-    const lastStop = this.color(stops[stops.length - 1].color);
-    pts.push({ offset: 1, c: lastStop });
-    const arr = (c: { r: number; g: number; b: number }) => `[${this.components(c).map(num).join(" ")}]`;
-    const pieces: string[] = [];
-    const bounds: string[] = [];
-    const encode: string[] = [];
-    for (let i = 0; i < pts.length - 1; i++) {
-      pieces.push(`<< /FunctionType 2 /Domain [0 1] /C0 ${arr(pts[i].c)} /C1 ${arr(pts[i + 1].c)} /N 1 >>`);
-      if (i > 0) bounds.push(num(pts[i].offset));
-      encode.push("0 1");
-    }
-    const fn = pieces.length === 1
-      ? pieces[0]
-      : `<< /FunctionType 3 /Domain [0 1] /Functions [${pieces.join(" ")}] /Bounds [${bounds.join(" ")}] /Encode [${encode.join(" ")}] >>`;
-    const a = g.args;
-    const coords = g.kind === "linear" ? `[${a.map(num).join(" ")}]` : `[${num(a[0])} ${num(a[1])} ${num(a[2])} ${num(a[3])} ${num(a[4])} ${num(a[5])}]`;
-    return `<< /ShadingType ${g.kind === "linear" ? 2 : 3} /ColorSpace /${this.o.color ? "DeviceCMYK" : "DeviceRGB"} /Coords ${coords} /Function ${fn} /Extend [true true] >>`;
-  }
-
-  private matrixOp(m: Mat): string {
-    return `${num(m.a)} ${num(m.b)} ${num(m.c)} ${num(m.d)} ${num(m.e)} ${num(m.f)} cm`;
-  }
-
   /** Fill a device-space path with the current fill style (vector). */
   private paintFill(path: Seg[], rule: CanvasFillRule, style: unknown): void {
     if (!path.length) return;
     const blend = this.blendName() ?? "Normal";
-    const res = this.o.resources;
     if (typeof style === "string") {
       const c = this.color(style);
       const alpha = c.a * this.s.globalAlpha;
@@ -572,7 +538,7 @@ export class PdfCanvas {
         this.onBackdrop((ctx) => { ctx.setTransform(1, 0, 0, 1, 0, 0); tracePath(ctx, path); ctx.fill(rule); });
         if (alpha < 0.999 || blend !== "Normal") { this.patch(pathBox(path), { path, rule }); return; }
       }
-      this.ops.push(`q /${res.gs(alpha, alpha, blend)} gs ${this.colorOp(c, false)}`, pathOps(path), rule === "evenodd" ? "f* Q" : "f Q");
+      this.emitFill(path, rule, c, alpha, blend);
     } else if (style instanceof GradientProxy) {
       if (this.s.globalAlpha <= 0) return;
       if (this.o.backdrop) {
@@ -580,24 +546,14 @@ export class PdfCanvas {
         this.onBackdrop((ctx) => { ctx.setTransform(1, 0, 0, 1, 0, 0); tracePath(ctx, path); ctx.setTransform(m.a, m.b, m.c, m.d, m.e, m.f); ctx.fill(rule); });
         if (this.s.globalAlpha < 0.999 || blend !== "Normal") { this.patch(pathBox(path), { path, rule }); return; }
       }
-      const sh = res.addShading(this.shading(style));
-      this.ops.push(`q /${res.gs(this.s.globalAlpha, this.s.globalAlpha, blend)} gs`, pathOps(path), rule === "evenodd" ? "W* n" : "W n", this.matrixOp(this.s.ctm), `/${sh} sh Q`);
+      this.emitGradientFill(path, rule, style, this.s.ctm, this.s.globalAlpha, blend);
     }
     this.stats.vectorOps++;
-  }
-
-  private strokeParams(): string {
-    const k = scaleOf(this.s.ctm);
-    const cap = this.s.lineCap === "round" ? 1 : this.s.lineCap === "square" ? 2 : 0;
-    const join = this.s.lineJoin === "round" ? 1 : this.s.lineJoin === "bevel" ? 2 : 0;
-    const dash = this.s.dash.length ? `[${this.s.dash.map((d) => num(d * k)).join(" ")}] ${num(this.s.dashOffset * k)} d` : "[] 0 d";
-    return `${num(this.s.lineWidth * k)} w ${cap} J ${join} j ${num(this.s.miterLimit)} M ${dash}`;
   }
 
   private paintStroke(path: Seg[], style: unknown): void {
     if (!path.length) return;
     const blend = this.blendName() ?? "Normal";
-    const res = this.o.resources;
     if (typeof style === "string") {
       const c = this.color(style);
       const alpha = c.a * this.s.globalAlpha;
@@ -617,7 +573,7 @@ export class PdfCanvas {
           return;
         }
       }
-      this.ops.push(`q /${res.gs(alpha, alpha, blend)} gs ${this.colorOp(c, true)} ${this.strokeParams()}`, pathOps(path), "S Q");
+      this.emitStroke(path, c, alpha, blend);
     } else if (style instanceof GradientProxy) {
       // A gradient stroke: stroke-to-clip is not available in PDF without
       // outlining, so this is the one gradient case drawn as a patch.
@@ -708,9 +664,7 @@ export class PdfCanvas {
     if (x1 <= x0 || y1 <= y0) return;
     const w = x1 - x0, h = y1 - y0;
     const data = this.o.backdrop.getImageData(x0, y0, w, h).data;
-    const name = this.o.resources.addImage(null, w, h, data);
-    const clipOps = clip ? [pathOps(clip.path), clip.rule === "evenodd" ? "W* n" : "W n"] : [];
-    this.ops.push("q", ...clipOps, `${num(w)} 0 0 ${num(-h)} ${num(x0)} ${num(y0 + h)} cm /${name} Do Q`);
+    this.emitImage(null, w, h, data, { a: w, b: 0, c: 0, d: h, e: x0, f: y0 }, 1, null, clip);
     this.stats.rasterPatches++;
   }
 
@@ -745,9 +699,7 @@ export class PdfCanvas {
     let any = false;
     for (let i = 3; i < data.length; i += 4) if (data[i]) { any = true; break; }
     if (!any) return;
-    const name = this.o.resources.addImage(null, w, h, data);
-    const blend = this.blendName() ?? "Normal";
-    this.ops.push(`q /${this.o.resources.gs(1, 1, blend)} gs ${num(w)} 0 0 ${num(-h)} ${num(x0)} ${num(y0 + h)} cm /${name} Do Q`);
+    this.emitImage(null, w, h, data, { a: w, b: 0, c: 0, d: h, e: x0, f: y0 }, 1, this.blendName() ?? "Normal");
     this.stats.rasterPatches++;
   }
 
@@ -788,8 +740,7 @@ export class PdfCanvas {
     const rule = (typeof a === "string" ? a : b) ?? "nonzero";
     const path = [...this.path];
     this.s.clips = [...this.s.clips, { path, rule }];
-    if (path.length) this.ops.push(pathOps(path), rule === "evenodd" ? "W* n" : "W n");
-    else this.ops.push("0 0 m h W n");
+    this.emitClip(path, rule);
   }
   private withTempPath(build: () => void, paint: () => void): void {
     const saved = this.path, last = this.last, start = this.start;
@@ -879,21 +830,20 @@ export class PdfCanvas {
       if (!soft) for (let i = 3; i < data.length; i += 4) if (data[i] < 255) { soft = true; break; }
       if (soft) { this.patch(box, { path: outline, rule: "nonzero" }); return; }
     }
-    const name = this.o.resources.addImage(isSvg ? null : (img as object), pw, ph, data);
     // Full image placed so the source rect lands on the destination rect,
     // clipped to the destination: unit square -> image rows top-down.
     const fx = dw / sw, fy = dh / sh;
-    const place: Mat = { a: iw * fx, b: 0, c: 0, d: -ih * fy, e: dx - sx * fx, f: dy - sy * fy + ih * fy };
+    const place: Mat = { a: iw * fx, b: 0, c: 0, d: ih * fy, e: dx - sx * fx, f: dy - sy * fy };
     const cropped = sx !== 0 || sy !== 0 || sw !== iw || sh !== ih;
-    const clipOps: string[] = [];
+    let crop: ClipPath | undefined;
     if (cropped) {
       const saved = this.path, last = this.last, start = this.start;
       this.beginPath();
       this.rect(dx, dy, dw, dh);
-      clipOps.push(pathOps(this.path), "W n");
+      crop = { path: this.path, rule: "nonzero" };
       this.path = saved; this.last = last; this.start = start;
     }
-    this.ops.push(`q /${this.o.resources.gs(alpha, alpha, blend)} gs`, ...clipOps, this.matrixOp(mul(this.s.ctm, place)), `/${name} Do Q`);
+    this.emitImage(isSvg ? null : (img as object), pw, ph, data, mul(this.s.ctm, place), alpha, blend, crop);
     this.stats.images++;
   }
 
@@ -1036,5 +986,115 @@ export class PdfCanvas {
     }
     this.paintStroke(outline, this.s.strokeStyle);
     this.stats.textRuns++;
+  }
+}
+
+/** The PDF backend: content stream operators plus shared resources. */
+export class PdfCanvas extends VectorCanvas {
+  private ops: string[] = [];
+
+  constructor(protected readonly o: PdfCanvasOptions) {
+    super(o);
+  }
+
+  /** The page's content stream operators (device space). */
+  content(): string {
+    return this.ops.join("\n");
+  }
+
+  /** A colour's components in the output space (RGB, or CMYK via the
+   *  profile; pure black in black ink only when asked). */
+  private components(c: { r: number; g: number; b: number }): number[] {
+    const out = this.o.color;
+    if (!out) return [c.r, c.g, c.b];
+    if (out.blackOnly && c.r <= 0.002 && c.g <= 0.002 && c.b <= 0.002) return [0, 0, 0, 1];
+    return out.cmyk(c.r, c.g, c.b);
+  }
+
+  /** The fill (or stroke) colour operator for a colour. */
+  private colorOp(c: { r: number; g: number; b: number }, stroke: boolean): string {
+    const v = this.components(c).map(num).join(" ");
+    if (this.o.color) return `${v} ${stroke ? "K" : "k"}`;
+    return `${v} ${stroke ? "RG" : "rg"}`;
+  }
+
+  /** Shading dictionary for a gradient, in the CTM's user space. */
+  private shading(g: GradientProxy): string {
+    const stops = [...g.stops].sort((a, b) => a.offset - b.offset);
+    if (stops[0].offset > 0) stops.unshift({ offset: 0, color: stops[0].color });
+    if (stops[stops.length - 1].offset < 1) stops.push({ offset: 1, color: stops[stops.length - 1].color });
+    // CMYK through a profile is not linear in RGB: each stop-to-stop piece is
+    // split so the press colours follow the on-screen blend closely.
+    const sub = this.o.color ? 8 : 1;
+    const pts: { offset: number; c: { r: number; g: number; b: number } }[] = [];
+    for (let i = 0; i < stops.length - 1; i++) {
+      const a = this.color(stops[i].color), b = this.color(stops[i + 1].color);
+      for (let k = 0; k < sub; k++) {
+        const t = k / sub;
+        pts.push({ offset: stops[i].offset + (stops[i + 1].offset - stops[i].offset) * t, c: { r: a.r + (b.r - a.r) * t, g: a.g + (b.g - a.g) * t, b: a.b + (b.b - a.b) * t } });
+      }
+    }
+    const lastStop = this.color(stops[stops.length - 1].color);
+    pts.push({ offset: 1, c: lastStop });
+    const arr = (c: { r: number; g: number; b: number }) => `[${this.components(c).map(num).join(" ")}]`;
+    const pieces: string[] = [];
+    const bounds: string[] = [];
+    const encode: string[] = [];
+    for (let i = 0; i < pts.length - 1; i++) {
+      pieces.push(`<< /FunctionType 2 /Domain [0 1] /C0 ${arr(pts[i].c)} /C1 ${arr(pts[i + 1].c)} /N 1 >>`);
+      if (i > 0) bounds.push(num(pts[i].offset));
+      encode.push("0 1");
+    }
+    const fn = pieces.length === 1
+      ? pieces[0]
+      : `<< /FunctionType 3 /Domain [0 1] /Functions [${pieces.join(" ")}] /Bounds [${bounds.join(" ")}] /Encode [${encode.join(" ")}] >>`;
+    const a = g.args;
+    const coords = g.kind === "linear" ? `[${a.map(num).join(" ")}]` : `[${num(a[0])} ${num(a[1])} ${num(a[2])} ${num(a[3])} ${num(a[4])} ${num(a[5])}]`;
+    return `<< /ShadingType ${g.kind === "linear" ? 2 : 3} /ColorSpace /${this.o.color ? "DeviceCMYK" : "DeviceRGB"} /Coords ${coords} /Function ${fn} /Extend [true true] >>`;
+  }
+
+  private matrixOp(m: Mat): string {
+    return `${num(m.a)} ${num(m.b)} ${num(m.c)} ${num(m.d)} ${num(m.e)} ${num(m.f)} cm`;
+  }
+
+  private strokeParams(): string {
+    const k = scaleOf(this.s.ctm);
+    const cap = this.s.lineCap === "round" ? 1 : this.s.lineCap === "square" ? 2 : 0;
+    const join = this.s.lineJoin === "round" ? 1 : this.s.lineJoin === "bevel" ? 2 : 0;
+    const dash = this.s.dash.length ? `[${this.s.dash.map((d) => num(d * k)).join(" ")}] ${num(this.s.dashOffset * k)} d` : "[] 0 d";
+    return `${num(this.s.lineWidth * k)} w ${cap} J ${join} j ${num(this.s.miterLimit)} M ${dash}`;
+  }
+
+  private clipOps(clip?: ClipPath): string[] {
+    return clip ? [pathOps(clip.path), clip.rule === "evenodd" ? "W* n" : "W n"] : [];
+  }
+
+  protected emitSave(): void {
+    this.ops.push("q");
+  }
+  protected emitRestore(): void {
+    this.ops.push("Q");
+  }
+  protected emitFill(path: Seg[], rule: CanvasFillRule, c: Rgba, alpha: number, blend: string): void {
+    this.ops.push(`q /${this.o.resources.gs(alpha, alpha, blend)} gs ${this.colorOp(c, false)}`, pathOps(path), rule === "evenodd" ? "f* Q" : "f Q");
+  }
+  protected emitGradientFill(path: Seg[], rule: CanvasFillRule, g: GradientProxy, ctm: Mat, alpha: number, blend: string): void {
+    const res = this.o.resources;
+    const sh = res.addShading(this.shading(g));
+    this.ops.push(`q /${res.gs(alpha, alpha, blend)} gs`, pathOps(path), rule === "evenodd" ? "W* n" : "W n", this.matrixOp(ctm), `/${sh} sh Q`);
+  }
+  protected emitStroke(path: Seg[], c: Rgba, alpha: number, blend: string): void {
+    this.ops.push(`q /${this.o.resources.gs(alpha, alpha, blend)} gs ${this.colorOp(c, true)} ${this.strokeParams()}`, pathOps(path), "S Q");
+  }
+  protected emitClip(path: Seg[], rule: CanvasFillRule): void {
+    if (path.length) this.ops.push(...this.clipOps({ path, rule }));
+    else this.ops.push("0 0 m h W n");
+  }
+  protected emitImage(source: object | null, width: number, height: number, rgba: Uint8ClampedArray, place: Mat, alpha: number, blend: string | null, clip?: ClipPath): void {
+    const name = this.o.resources.addImage(source, width, height, rgba);
+    // PDF image space has its first row at the top of the unit square (y up).
+    const m = this.matrixOp(mul(place, { a: 1, b: 0, c: 0, d: -1, e: 0, f: 1 }));
+    if (blend === null) this.ops.push("q", ...this.clipOps(clip), `${m} /${name} Do Q`);
+    else this.ops.push(`q /${this.o.resources.gs(alpha, alpha, blend)} gs`, ...this.clipOps(clip), m, `/${name} Do Q`);
   }
 }

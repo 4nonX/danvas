@@ -1,12 +1,14 @@
-// Vector PDF export: renders pages through the regular engine into PdfCanvas
-// (pdfCanvas.ts) and assembles a PDF 1.7 file at the design's true physical
-// size (page px at the document dpi -> points). Text is outlined, so the file
-// prints identically on any machine without the fonts installed.
+// Vector exports: render pages through the regular engine into a recording
+// canvas (pdfCanvas.ts, svgCanvas.ts). The PDF export assembles a PDF 1.7
+// file at the design's true physical size (page px at the document dpi ->
+// points), the SVG export one standalone file per page. Text is outlined, so
+// both look identical on any machine without the fonts installed.
 
 import type { DesignFile } from "@hc/schema";
 import { createScene, renderScene, type CanvasLike, type Viewport } from "@hc/engine";
 import { loadFace, type FaceRequest, type LoadedFace } from "./fontSource";
 import { num, PdfCanvas, PdfResources, type ColorOut, type PdfPageStats } from "./pdfCanvas";
+import { SvgCanvas } from "./svgCanvas";
 
 export { num, type ColorOut } from "./pdfCanvas";
 
@@ -101,7 +103,10 @@ export interface DrawnPage {
 /** Draw the given pages through PdfCanvas: content operators per page plus
  *  the shared resources (images, shadings, graphics states). The vector PDF
  *  and the PostScript exports both assemble their files from this. */
-export async function drawPages(doc: DesignFile, pageIndexes: number[], opts: DrawPagesOptions = {}): Promise<{ dpi: number; pages: DrawnPage[]; resources: PdfResources; stats: PdfPageStats }> {
+/** Shared setup of every vector export: the device size of each page and
+ *  the font files its text needs (found by drawing the pages once in a
+ *  collect pass, then loaded). */
+async function preparePages(doc: DesignFile, pageIndexes: number[], assets: unknown) {
   const dpi = (doc as unknown as { dpi?: number }).dpi ?? 96;
   const docFonts = ((doc as unknown as { fonts?: { family?: string; url?: string }[] }).fonts) ?? [];
   if (typeof document !== "undefined" && document.fonts?.ready) await document.fonts.ready;
@@ -115,7 +120,7 @@ export async function drawPages(doc: DesignFile, pageIndexes: number[], opts: Dr
     const vp: Viewport = { zoom, panX: 0, panY: 0, dpr: 1, width, height };
     return { index: i, pg, zoom, width, height, vp };
   });
-  const renderOpts = { assets: opts.assets, clear: false } as Parameters<typeof renderScene>[3];
+  const renderOpts = { assets, clear: false } as Parameters<typeof renderScene>[3];
 
   // Pass 1: which font faces does the text use?
   const wanted = new Map<string, FaceRequest>();
@@ -126,6 +131,11 @@ export async function drawPages(doc: DesignFile, pageIndexes: number[], opts: Dr
   }
   const faces = new Map<string, LoadedFace | null>();
   await Promise.all([...wanted].map(async ([key, req]) => faces.set(key, await loadFace(req, docFonts))));
+  return { dpi, pages, renderOpts, faces };
+}
+
+export async function drawPages(doc: DesignFile, pageIndexes: number[], opts: DrawPagesOptions = {}): Promise<{ dpi: number; pages: DrawnPage[]; resources: PdfResources; stats: PdfPageStats }> {
+  const { dpi, pages, renderOpts, faces } = await preparePages(doc, pageIndexes, opts.assets);
 
   // Pass 2: draw.
   const resources = new PdfResources();
@@ -147,6 +157,16 @@ export async function drawPages(doc: DesignFile, pageIndexes: number[], opts: Dr
     for (const k of Object.keys(stats) as (keyof PdfPageStats)[]) stats[k] += ctx.stats[k];
   }
   return { dpi, pages: out, resources, stats };
+}
+
+/** Render one page of a design to a standalone SVG through the same engine
+ *  as the editor, so layout, text and effects match it (see svgCanvas.ts). */
+export async function exportVectorSvg(doc: DesignFile, pageIndex: number, opts: { assets?: unknown } = {}): Promise<string> {
+  const { pages, renderOpts, faces } = await preparePages(doc, [pageIndex], opts.assets);
+  const p = pages[0];
+  const ctx = new SvgCanvas({ width: p.width, height: p.height, faces });
+  renderScene(createScene(doc, p.index), ctx as unknown as CanvasLike, p.vp, renderOpts);
+  return ctx.document(p.pg.width, p.pg.height, doc.title);
 }
 
 /** Render the given pages of a design to one vector PDF. */
