@@ -1,0 +1,352 @@
+import { describe, expect, it } from "vitest";
+import {
+  bareFigure,
+  clipToBudget,
+  splitFigure,
+  undashTitle,
+  archetypes,
+  archetypeBudgets,
+  normalizeOutline,
+  normalizeNote,
+  maxNoteChars,
+  OutlineError,
+  outlineItemToSpec,
+  outlineJsonSchema,
+  deckThemes,
+  layoutDeck,
+  qualityCheck,
+  outlineSystemPrompt,
+  groundImagePrompt,
+  visualRoles,
+  type DesignOutline,
+} from "../index";
+
+const SIZE = { width: 1920, height: 1080 };
+
+const RAW = {
+  title: "Coffee Subscription Pitch",
+  theme: "warm, premium, energetic",
+  pages: [
+    { title: "BrewBox", points: ["Fresh roasts, delivered"], visualRole: "cover" },
+    { title: "The Problem", points: ["Stale grocery beans", "No discovery", "Inconvenient"], visualRole: "content" },
+    { title: "Our Numbers", points: ["10k subscribers", "92% retention"], visualRole: "data" },
+    { title: '"Best coffee I have had at home."', points: ["- a happy member"], visualRole: "quote" },
+    { title: "Join Us", points: ["Start your trial today"], visualRole: "closing" },
+  ],
+};
+
+describe("normalizeOutline", () => {
+  it("validates a well-formed outline", () => {
+    const o = normalizeOutline(RAW);
+    expect(o.title).toBe("Coffee Subscription Pitch");
+    expect(o.pages).toHaveLength(5);
+    expect(o.pages[0].visualRole).toBe("cover");
+    expect(o.pages.every((p) => p.id)).toBe(true);
+  });
+
+  it("drops empty pages, defaults role, and clamps points", () => {
+    const o = normalizeOutline({
+      title: "T",
+      pages: [
+        { title: "", points: [] },
+        { title: "Keep", points: ["a", "", "  ", "b"], visualRole: "weird" },
+        { points: ["points only"], visualRole: "data" },
+      ],
+    });
+    expect(o.pages).toHaveLength(2);
+    expect(o.pages[0].visualRole).toBe("content"); // defaulted
+    expect(o.pages[0].points).toEqual(["a", "b"]);
+  });
+
+  it("throws when no pages remain", () => {
+    expect(() => normalizeOutline({ title: "x", pages: [{ title: "", points: [] }] })).toThrow(OutlineError);
+    expect(() => normalizeOutline(42)).toThrow(OutlineError);
+  });
+
+  it("schema enumerates the visual roles", () => {
+    expect(outlineJsonSchema.properties.pages.items.properties.visualRole.enum).toEqual(visualRoles);
+  });
+});
+
+describe("outlineItemToSpec + layoutDeck", () => {
+  const outline: DesignOutline = normalizeOutline(RAW);
+  const theme = deckThemes({ count: 1 })[0];
+
+  it("maps each visual role to a spec with a heading", () => {
+    for (const item of outline.pages) {
+      const spec = outlineItemToSpec(item, theme);
+      expect(spec.blocks.some((b) => b.role === "heading")).toBe(true);
+    }
+  });
+
+  it("lays out a whole deck, one page per outline item, all quality-clean", () => {
+    const deck = layoutDeck(outline, theme, SIZE);
+    expect(deck.pages).toHaveLength(outline.pages.length);
+    for (const page of deck.pages) {
+      const report = qualityCheck({ background: page.background, nodes: page.nodes, size: SIZE });
+      const bad = report.issues.filter((i) => i.kind !== "contrast");
+      expect(bad, `${page.name}: ${JSON.stringify(bad)}`).toHaveLength(0);
+    }
+  });
+
+  it("propagates RTL into page specs", () => {
+    const deck = layoutDeck(outline, theme, SIZE, { dir: "rtl" });
+    expect(deck.pages.length).toBeGreaterThan(0);
+  });
+
+  it("applies brand fonts to generated text (FR-17)", () => {
+    const branded = deckThemes({ count: 1, fontHeading: "Poppins", fontBody: "Inter" })[0];
+    const spec = outlineItemToSpec({ id: "x", title: "Heading", points: ["a body point"], visualRole: "content" }, branded);
+    expect(spec.fonts?.heading).toBe("Poppins");
+    expect(spec.fonts?.body).toBe("Inter");
+    const deck = layoutDeck(outline, branded, SIZE);
+    const fonts = new Set<string>();
+    for (const p of deck.pages) {
+      for (const n of p.nodes) {
+        if (n.type === "text") {
+          const fam = (n as { content?: { runs?: { style?: { fontFamily?: string } }[] }[] }).content?.[0]?.runs?.[0]?.style?.fontFamily;
+          if (fam) fonts.add(fam);
+        }
+      }
+    }
+    expect(fonts.has("Poppins") || fonts.has("Inter")).toBe(true);
+  });
+
+  it("alternates content-page layouts for rhythm (FR-3)", () => {
+    const a = outlineItemToSpec({ id: "1", title: "T", points: ["p"], visualRole: "content" }, theme, { index: 0 });
+    const b = outlineItemToSpec({ id: "2", title: "T", points: ["p"], visualRole: "content" }, theme, { index: 1 });
+    expect(a.layout).not.toBe(b.layout);
+  });
+});
+
+describe("deckThemes", () => {
+  it("produces N distinct themes", () => {
+    const themes = deckThemes({ count: 3 });
+    expect(themes).toHaveLength(3);
+    const sigs = new Set(themes.map((t) => JSON.stringify(t.background)));
+    expect(sigs.size).toBe(3);
+  });
+
+  it("uses the brand palette when given", () => {
+    const themes = deckThemes({ brandPalette: ["#ff0000", "#00aa00"], count: 2 });
+    expect(themes).toHaveLength(2);
+  });
+
+  it("clamps count to a sane range", () => {
+    expect(deckThemes({ count: 99 }).length).toBeLessThanOrEqual(8);
+    expect(deckThemes({ count: 0 }).length).toBe(1);
+  });
+});
+
+describe("outlineSystemPrompt", () => {
+  it("embeds the schema and respects the page-count hint", () => {
+    const p = outlineSystemPrompt("deck", "", 8);
+    expect(p).toContain("visualRole");
+    expect(p).toContain("about 8 pages");
+  });
+});
+
+describe("groundImagePrompt", () => {
+  it("appends palette, aspect, and style grounding", () => {
+    const p = groundImagePrompt("a fox", { palette: ["#ff0000", "#00ff00"], aspect: "portrait", style: "flat illustration" });
+    expect(p).toContain("a fox");
+    expect(p).toContain("#ff0000");
+    expect(p).toContain("portrait");
+    expect(p).toContain("flat illustration");
+  });
+  it("works with no context", () => {
+    expect(groundImagePrompt("a fox", {})).toContain("a fox");
+  });
+});
+
+describe("speaker notes on outline items", () => {
+  it("keeps, trims, and flattens a note; omits the key when absent", () => {
+    const o = normalizeOutline({
+      title: "T",
+      pages: [
+        { title: "With note", visualRole: "content", note: "  Open with the customer story.\n\nPause  before the numbers. " },
+        { title: "Without note", visualRole: "content", points: ["a"] },
+      ],
+    });
+    expect(o.pages[0].note).toBe("Open with the customer story. Pause before the numbers.");
+    expect("note" in o.pages[1]).toBe(false);
+  });
+
+  it("caps an overlong note at a sentence boundary", () => {
+    const sentence = "This sentence pads the speaker note out well past the cap. ";
+    const o = normalizeOutline({
+      title: "T",
+      pages: [{ title: "P", visualRole: "content", note: sentence.repeat(20) }],
+    });
+    const note = o.pages[0].note!;
+    expect(note.length).toBeLessThanOrEqual(maxNoteChars);
+    expect(note.endsWith(".")).toBe(true); // never clipped mid-sentence
+  });
+
+  it("collapses NEL and FEFF whitespace identically to the Go mirror", () => {
+    expect(normalizeNote("A\u0085B\uFEFFC  D")).toBe("A B C D");
+    // Edge NEL/FEFF must vanish, not become a kept space (Go drops them).
+    expect(normalizeNote("\u0085Hello\uFEFF")).toBe("Hello");
+    expect(normalizeNote("\u0085")).toBe("");
+  });
+
+  it("normalizeNote truncates hard when no sentence boundary exists", () => {
+    const note = normalizeNote("x".repeat(900));
+    expect(note.length).toBe(maxNoteChars);
+  });
+
+  it("ignores non-string notes", () => {
+    const o = normalizeOutline({ title: "T", pages: [{ title: "P", visualRole: "content", note: 42 }] });
+    expect("note" in o.pages[0]).toBe(false);
+  });
+
+  it("the embedded schema requires the note", () => {
+    const item = outlineJsonSchema.properties.pages.items;
+    expect(item.required).toContain("note");
+    expect(item.properties.note.maxLength).toBe(maxNoteChars);
+  });
+
+  it("layoutDeck threads the note onto the DeckPage", () => {
+    const o = normalizeOutline({
+      title: "T",
+      pages: [{ title: "P", visualRole: "content", points: ["a"], note: "Mention the pilot results here and slow down for the ask." }],
+    });
+    const deck = layoutDeck(o, deckThemes({ count: 1 })[0], SIZE);
+    expect(deck.pages[0].note).toBe("Mention the pilot results here and slow down for the ask.");
+  });
+
+  it("the outline system prompt asks for speaker notes", () => {
+    const p = outlineSystemPrompt("deck", "");
+    expect(p).toContain("speaker note");
+    expect(p).toContain("never restate");
+  });
+});
+
+describe("archetype-aware outlines", () => {
+  const page = (extra: Record<string, unknown>) => normalizeOutline({ title: "T", pages: [{ title: "t", ...extra }] }).pages[0];
+
+  it("derives archetype and role from each other, whichever the reply named", () => {
+    expect(page({ visualRole: "quote", points: ["Less, but better."] })).toMatchObject({ archetype: "quote", visualRole: "quote", quote: { text: "Less, but better." } });
+    expect(page({ archetype: "bigNumber", stat: { value: "42%", label: "of teams" } })).toMatchObject({ archetype: "bigNumber", visualRole: "data" });
+    expect(page({ points: ["a"] })).toMatchObject({ archetype: "bullets", visualRole: "content" });
+    expect(page({ archetype: "hologram", visualRole: "sparkle", points: ["a"] })).toMatchObject({ archetype: "bullets", visualRole: "content" });
+  });
+
+  it("keeps a comparison that arrives with columns, and downgrades one that does not", () => {
+    const cols = [{ heading: "Before", points: ["slow"] }, { heading: "After", points: ["fast"] }];
+    expect(page({ visualRole: "comparison", columns: cols })).toMatchObject({ archetype: "twoColumn", visualRole: "comparison" });
+    // No columns, so not a twoColumn; the named role is kept so the layout it
+    // always had is unchanged.
+    expect(page({ visualRole: "comparison", points: ["a", "b"] })).toMatchObject({ archetype: "bullets", visualRole: "comparison" });
+  });
+
+  it("clips every field to its budget on a word boundary", () => {
+    const long = "word ".repeat(60);
+    const p = page({
+      archetype: "process", subhead: long,
+      steps: [{ label: long, detail: long }, { label: "two" }, { label: "3" }, { label: "4" }, { label: "5" }, { label: "6" }],
+      points: [long, "a", "b", "c", "d", "e", "f"],
+      image: { subject: long, treatment: "hologram" },
+    });
+    expect(Array.from(p.title).length).toBeLessThanOrEqual(archetypeBudgets.title);
+    expect(Array.from(p.subhead!).length).toBeLessThanOrEqual(archetypeBudgets.subhead);
+    expect(p.subhead!.endsWith("wor")).toBe(false);
+    expect(p.steps!.length).toBe(archetypeBudgets.steps);
+    expect(Array.from(p.steps![0].label).length).toBeLessThanOrEqual(archetypeBudgets.stepLabel);
+    expect(p.points.length).toBe(archetypeBudgets.points);
+    expect(p.image).toMatchObject({ treatment: "photo" });
+  });
+
+  it("downgrades an archetype whose payload did not survive", () => {
+    expect(page({ archetype: "bigNumber" }).archetype).toBe("bullets");
+    expect(page({ archetype: "process", steps: [{ label: "one" }] }).archetype).toBe("bullets");
+    expect(page({ archetype: "twoColumn", columns: [{ heading: "one", points: [] }] }).archetype).toBe("bullets");
+    expect(page({ archetype: "chart" }).archetype).toBe("bullets");
+    expect(page({ archetype: "imageCaption" }).archetype).toBe("statement");
+    expect(page({ archetype: "quote" }).archetype).toBe("statement");
+    // A chart keeps its form, and its values are trimmed to the categories.
+    const c = page({ archetype: "chart", chart: { kind: "bar", categories: ["Q1"], series: [{ name: "s", values: [1, 2, 3] }] } });
+    expect(c.archetype).toBe("chart");
+    expect(c.chart!.series[0].values).toEqual([1]);
+  });
+
+  it("keeps a page that has a typed payload but no title or points", () => {
+    const o = normalizeOutline({ title: "T", pages: [{ archetype: "bigNumber", stat: { value: "3.2M", label: "riders a day" }, note: "" }] });
+    expect(o.pages).toHaveLength(1);
+    expect(o.pages[0].stat).toEqual({ value: "3.2M", label: "riders a day" });
+  });
+
+  it("puts the archetype catalog and the story rules in the prompt, matching the schema", () => {
+    const prompt = outlineSystemPrompt("deck", "");
+    for (const a of archetypes) expect(prompt).toContain(`'${a}'`);
+    expect(prompt).toContain("no more than 40 percent");
+    expect(prompt).toContain("Never write 'Slide 1'");
+    expect(outlineJsonSchema.properties.pages.items.required).toContain("archetype");
+  });
+});
+
+describe("figures and headlines as a designer would set them", () => {
+  it("strips a direction arrow from a stat value and keeps signs, units and words the label owns", () => {
+    expect(bareFigure("↓67%")).toBe("67%");
+    expect(bareFigure("▲ 3.2M")).toBe("3.2M");
+    expect(bareFigure(" 312 ")).toBe("312");
+    expect(bareFigure("-11%")).toBe("-11%");
+    const page = normalizeOutline({ title: "T", pages: [{ title: "x", archetype: "kpiGrid", stats: [{ value: "↓67%", label: "a" }, { value: "→ 4", label: "b" }] }] }).pages[0];
+    expect(page.stats?.map((s) => s.value)).toEqual(["67%", "4"]);
+  });
+
+  it("keeps a figure to one token: a word left in the value moves to the unit, and a unit the model gave wins over it", () => {
+    expect(splitFigure("48 hrs", "hours")).toEqual({ value: "48", unit: "hours" });
+    expect(splitFigure("48 hrs", "")).toEqual({ value: "48", unit: "hrs" });
+    expect(splitFigure("$1.8 million", undefined)).toEqual({ value: "$1.8", unit: "million" });
+    expect(splitFigure("310k /mo", undefined)).toEqual({ value: "310k", unit: "/mo" });
+    expect(splitFigure("Top 10", undefined)).toEqual({ value: "Top 10", unit: "" });
+    expect(splitFigure("3.2M", "riders")).toEqual({ value: "3.2M", unit: "riders" });
+    expect(splitFigure("↓67%", undefined)).toEqual({ value: "67%", unit: "" });
+    // A clipped phrase never ends on a connective.
+    expect(clipToBudget("What is working vs. what is not", 24)).toBe("What is working");
+    expect(clipToBudget("Growth in the north and the south of the region", 24)).toBe("Growth in the north");
+    expect(clipToBudget("A short label", 24)).toBe("A short label");
+    // A no-break space splits like a space, as it does in the Go mirror.
+    expect(splitFigure("48\u00A0hrs", undefined)).toEqual({ value: "48", unit: "hrs" });
+    const page = normalizeOutline({ title: "T", pages: [{ title: "x", archetype: "bigNumber", stat: { value: "48 hrs", unit: "hours", label: "turnaround" } }] }).pages[0];
+    expect(page.stat).toMatchObject({ value: "48", unit: "hours" });
+  });
+
+  it("turns a dash separator in a title into a colon", () => {
+    expect(undashTitle("On-Time Delivery Rate — 2025 by Quarter")).toBe("On-Time Delivery Rate: 2025 by Quarter");
+    expect(undashTitle("Q1 – Q4")).toBe("Q1: Q4");
+    expect(undashTitle("On-time rate")).toBe("On-time rate");
+    const page = normalizeOutline({ title: "T", pages: [{ title: "Harborline — Board Update", archetype: "statement" }] }).pages[0];
+    expect(page.title).toBe("Harborline: Board Update");
+  });
+});
+
+describe("a bespoke composition", () => {
+  it("clamps cells to the grid, drops what overlaps or has nothing to show, and keeps only links between survivors", () => {
+    const page = normalizeOutline({ title: "T", pages: [{ title: "How it flows", archetype: "composition", composition: {
+      cells: [
+        { col: 0, span: 5, row: 0, rows: 3, kind: "heading", text: "Orders in", tone: "tint" },
+        { col: 7, span: 9, row: 0, rows: 3, kind: "list", points: ["Picked", "Packed", "Out the door"], tone: "deep" },
+        { col: 2, span: 4, row: 1, rows: 2, kind: "body", text: "overlaps the first" },
+        { col: 0, span: 12, row: 4, rows: 2, kind: "figure", value: "48 hrs", unit: "hours", text: "door to door" },
+        { col: 0, span: 3, row: 3, rows: 1, kind: "icon" },
+        { col: 3, span: 3, row: 3, rows: 1, kind: "nonsense", text: "x" },
+      ],
+      links: [[0, 1], [0, 2], [1, 1], [3, 0], [0, 1]],
+    } }] }).pages[0];
+    expect(page.archetype).toBe("composition");
+    const cells = page.composition!.cells;
+    expect(cells.map((c) => c.kind)).toEqual(["heading", "list", "figure"]);
+    // The list's span was clamped to the grid's edge.
+    expect(cells[1]).toMatchObject({ col: 7, span: 5, row: 0, rows: 3, tone: "deep" });
+    expect(cells[2]).toMatchObject({ value: "48", unit: "hours", text: "door to door" });
+    // Links re-indexed to the survivors, with the self-link, the dead end and the duplicate gone.
+    expect(page.composition!.links).toEqual([[0, 1], [2, 0]]);
+  });
+
+  it("falls back to bullets when no cell survives", () => {
+    const page = normalizeOutline({ title: "T", pages: [{ title: "x", archetype: "composition", points: ["a"], composition: { cells: [{ col: 0, span: 4, row: 0, rows: 1, kind: "heading" }] } }] }).pages[0];
+    expect(page.archetype).toBe("bullets");
+  });
+});

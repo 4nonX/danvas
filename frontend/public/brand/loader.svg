@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="120" height="120" style="color:#2F55D4" role="img" aria-label="Loading">
+  <!-- danvas loader: the stem draws, the bowl closes around it, the handle
+       snaps in, then everything fades and starts again. Recolor via the svg's
+       color. Under prefers-reduced-motion it rests complete. -->
+  <style>
+    .stem, .bowl { fill: none; stroke: currentColor; stroke-width: 5; stroke-linecap: round; }
+    .stem { stroke-dasharray: 32; animation: stem 2.4s ease-in-out infinite; }
+    .bowl { stroke-dasharray: 63; animation: bowl 2.4s ease-in-out infinite; transform-origin: 19px 29px; transform: rotate(-90deg); }
+    .handle { fill: currentColor; transform-origin: 38.5px 38.5px; animation: handle 2.4s ease-in-out infinite; }
+    @keyframes stem { 0% { stroke-dashoffset: 32; opacity: 1 } 25%, 80% { stroke-dashoffset: 0; opacity: 1 } 100% { stroke-dashoffset: 0; opacity: 0 } }
+    @keyframes bowl { 0%, 15% { stroke-dashoffset: 63; opacity: 1 } 50%, 80% { stroke-dashoffset: 0; opacity: 1 } 100% { stroke-dashoffset: 0; opacity: 0 } }
+    @keyframes handle { 0%, 50% { transform: scale(0); opacity: 1 } 60%, 80% { transform: scale(1); opacity: 1 } 100% { transform: scale(1); opacity: 0 } }
+    @media (prefers-reduced-motion: reduce) { .stem, .bowl, .handle { animation: none; stroke-dashoffset: 0; transform: none; } .bowl { transform: rotate(-90deg); } }
+  </style>
+  <path class="stem" d="M29 7V39"/>
+  <circle class="bowl" cx="19" cy="29" r="10"/>
+  <rect class="handle" x="35" y="35" width="7" height="7" rx="1.6"/>
+</svg>
