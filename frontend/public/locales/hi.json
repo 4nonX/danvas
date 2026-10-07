@@ -4110,5 +4110,10 @@
   "dashboard.bulk_share_copy_links": "लिंक फिर से कॉपी करें",
   "editor.restore_background": "बैकग्राउंड वापस लाएं",
   "editor.removing_background_pct": "हटाया जा रहा है… {pct}%",
-  "auth.danvas_modified_version_notice": "danvas, HyCanvas का एक अनौपचारिक, संशोधित संस्करण है और HyScaler से संबद्ध नहीं है।"
+  "auth.danvas_modified_version_notice": "danvas, HyCanvas का एक अनौपचारिक, संशोधित संस्करण है और HyScaler से संबद्ध नहीं है।",
+  "editor.place_logo": "लोगो रखें",
+  "editor.add_logo": "लोगो जोड़ें",
+  "editor.remove_logo": "लोगो हटाएं",
+  "editor.logo_added": "लोगो ब्रांड किट में जोड़ा गया।",
+  "editor.logo_removed": "लोगो हटाया गया। किट इतिहास से इसे वापस लाया जा सकता है।"
 }

@@ -4110,5 +4110,10 @@
   "dashboard.bulk_share_copy_links": "Copy links again",
   "editor.restore_background": "Restore background",
   "editor.removing_background_pct": "Removing… {pct}%",
-  "auth.danvas_modified_version_notice": "danvas is an unofficial, modified version of HyCanvas, not affiliated with HyScaler."
+  "auth.danvas_modified_version_notice": "danvas is an unofficial, modified version of HyCanvas, not affiliated with HyScaler.",
+  "editor.place_logo": "Place logo",
+  "editor.add_logo": "Add logo",
+  "editor.remove_logo": "Remove logo",
+  "editor.logo_added": "Logo added to the brand kit.",
+  "editor.logo_removed": "Logo removed. The kit history can bring it back."
 }

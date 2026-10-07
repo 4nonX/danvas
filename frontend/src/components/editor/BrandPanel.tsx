@@ -7,10 +7,11 @@
 // and shows the mapping. Brand-admins (manage-brand) get a Controls section and
 // can manage the kit contents; members consume only.
 
+import { prepareSvgFonts } from "@/lib/svgFlatten";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Palette, Type as TypeIcon, ImageIcon, Wand2, Lock, Unlock, Plus, Trash2,
-  ShieldCheck, AlertTriangle, RotateCcw, History, GitBranch, RefreshCw, Sparkles, X,
+  ShieldCheck, AlertTriangle, RotateCcw, History, GitBranch, RefreshCw, Sparkles, X, Pencil, Upload, Loader2,
 } from "lucide-react";
 import type { BrandKit, BrandKitVersion, BrandLintViolation, UploadedAsset, BrandUpdateSummary } from "@hc/sdk";
 import type { Color, Fill } from "@hc/schema";
@@ -140,6 +141,17 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
     if (!useEditor.getState().setCharStyleDeep({ fontFamily: family })) toast.toast(tr("editor.brand_select_text_first"));
   }, [toast]);
 
+  // Which logo's dark-background version is being picked (managers); NEW_LOGO
+  // while a logo is being added.
+  const [darkPickFor, setDarkPickFor] = useState<string | null>(null);
+  // Save the kit's logos (one versioned kit update, restorable from history).
+  const saveLogos = useCallback((logos: BrandKit["logos"], done?: string) => {
+    if (!kit) return;
+    void oc.updateBrandKit(kit.id, { logos })
+      .then((updated) => { useBrand.getState().setKit(updated); if (done) toast.success(done); })
+      .catch(() => toast.error(tr("editor.couldnt_save_brand_kit")));
+  }, [kit, toast]);
+
   // Logos and icons go in as editable shapes when they are SVG (so they can
   // be recolored like any vector), else as an image.
   const placeIcon = useCallback(async (assetId: string) => {
@@ -148,7 +160,7 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
     try {
       const res = await fetch(resolveAssetUrl(url), { credentials: "include" });
       const text = res.ok ? await res.text() : "";
-      if (/<svg[\s>]/i.test(text)) { useEditor.getState().addIconSvg(text); return; }
+      if (/<svg[\s>]/i.test(text)) { await prepareSvgFonts(text); useEditor.getState().addIconSvg(text); return; }
     } catch { /* fall back to placing the file as an image */ }
     useEditor.getState().addImage(resolveAssetUrl(url));
   }, [assetUrls, toast]);
@@ -435,46 +447,135 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
           </CollapsibleSection>
 
           {/* Logos (FR-1). */}
-          {kit.logos.length > 0 && (
+          {(kit.logos.length > 0 || (canManage && !!workspaceId)) && (
             <CollapsibleSection title={tr("editor.logos")} icon={ImageIcon} badge={kit.logos.length}>
-              <div className="grid grid-cols-3 gap-2">
-                {kit.logos.map((l) => (
-                  <div key={l.id} className="flex flex-col gap-1">
-                    <button
-                      onClick={() => void placeIcon(l.assetId)}
-                      title={`Place ${l.label}`}
-                      className="flex aspect-square items-center justify-center overflow-hidden rounded-lg border border-neutral-200 bg-neutral-50 hover:border-brand-300"
-                    >
-                      {assetUrls[l.assetId] ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={resolveAssetUrl(assetUrls[l.assetId])} alt={l.label} className="max-h-full max-w-full object-contain" />
-                      ) : (
-                        <span className="text-[10px] text-neutral-400">{l.label}</span>
+              <div className="grid grid-cols-2 gap-2">
+                {kit.logos.map((l) => {
+                  const dark = l.variants?.dark && assetUrls[l.variants.dark] ? l.variants.dark : null;
+                  const darkLabel = dark ? tr("editor.change_dark_logo") : tr("editor.set_dark_logo");
+                  return (
+                    // Pinned light: the tiles preview the logo on light and on dark
+                    // grounds, whatever the app theme is.
+                    <div key={l.id} className="light group/logo relative overflow-hidden rounded-lg border border-neutral-200">
+                      {canManage && (
+                        <button
+                          type="button"
+                          onClick={() => saveLogos(kit.logos.filter((x) => x.id !== l.id), tr("editor.logo_removed"))}
+                          title={`${tr("editor.remove_logo")}: ${l.label}`}
+                          aria-label={`${tr("editor.remove_logo")}: ${l.label}`}
+                          className="absolute end-1 top-1 z-10 grid h-5 w-5 place-items-center rounded-full bg-neutral-800 text-white opacity-0 transition focus:opacity-100 group-hover/logo:opacity-100"
+                        >
+                          <X size={11} />
+                        </button>
                       )}
-                    </button>
-                    {/* The version for dark grounds: generated decks draw it on every
-                        deep page, and the brand check accepts it as the logo. */}
-                    {l.variants?.dark && assetUrls[l.variants.dark] && (
                       <button
-                        onClick={() => void placeIcon(l.variants!.dark!)}
-                        title={tr("editor.logo_on_dark")}
-                        className="flex h-8 items-center justify-center overflow-hidden rounded-md border border-neutral-800 bg-neutral-900"
+                        onClick={() => void placeIcon(l.assetId)}
+                        title={`${tr("editor.place_logo")}: ${l.label}`}
+                        className="flex aspect-[3/2] w-full items-center justify-center bg-neutral-50 p-2 hover:bg-brand-50"
                       >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={resolveAssetUrl(assetUrls[l.variants.dark])} alt={`${l.label} ${tr("editor.logo_on_dark")}`} className="max-h-6 max-w-full object-contain" />
+                        {assetUrls[l.assetId] ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={resolveAssetUrl(assetUrls[l.assetId])} alt={l.label} className="max-h-full max-w-full object-contain" />
+                        ) : (
+                          <span className="truncate text-[10px] text-neutral-400">{l.label}</span>
+                        )}
                       </button>
-                    )}
-                    {canManage && workspaceId && (
-                      <AddLogoFromUploads
-                        workspaceId={workspaceId}
-                        assetUrls={assetUrls}
-                        label={l.variants?.dark ? tr("editor.change_dark_logo") : tr("editor.set_dark_logo")}
-                        onAdd={(assetId) => void oc.updateBrandKit(kit.id, { logos: kit.logos.map((x) => (x.id === l.id ? { ...x, variants: { ...(x.variants ?? {}), dark: assetId } } : x)) }).then((updated) => useBrand.getState().setKit(updated)).catch(() => toast.error(tr("editor.couldnt_save_brand_kit")))}
-                      />
-                    )}
-                  </div>
-                ))}
+                      {/* The version for dark grounds: generated decks draw it on every
+                          deep page, and the brand check accepts it as the logo. */}
+                      {dark ? (
+                        <div className="group relative border-t border-neutral-200">
+                          <button
+                            onClick={() => void placeIcon(dark)}
+                            title={`${tr("editor.place_logo")}: ${l.label} (${tr("editor.logo_on_dark")})`}
+                            className="flex h-9 w-full items-center justify-center bg-neutral-900 px-2 hover:bg-neutral-800"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={resolveAssetUrl(assetUrls[dark])} alt={`${l.label} ${tr("editor.logo_on_dark")}`} className="max-h-6 max-w-full object-contain" />
+                          </button>
+                          {canManage && workspaceId && (
+                            <button
+                              type="button"
+                              onClick={() => setDarkPickFor(darkPickFor === l.id ? null : l.id)}
+                              title={darkLabel}
+                              aria-label={darkLabel}
+                              className="absolute end-1 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-md bg-white/15 text-white opacity-0 transition hover:bg-white/30 focus:opacity-100 group-hover:opacity-100"
+                            >
+                              <Pencil size={12} />
+                            </button>
+                          )}
+                        </div>
+                      ) : canManage && workspaceId ? (
+                        <button
+                          type="button"
+                          onClick={() => setDarkPickFor(darkPickFor === l.id ? null : l.id)}
+                          title={darkLabel}
+                          aria-label={darkLabel}
+                          className={`flex h-9 w-full items-center justify-center gap-1 border-t border-dashed border-neutral-300 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600 ${darkPickFor === l.id ? "bg-neutral-100 text-neutral-600" : ""}`}
+                        >
+                          <Plus size={13} />
+                          <span className="h-3 w-3 rounded-sm bg-neutral-800" aria-hidden />
+                        </button>
+                      ) : null}
+                    </div>
+                  );
+                })}
+                {canManage && workspaceId && (
+                  <button
+                    type="button"
+                    onClick={() => setDarkPickFor(darkPickFor === NEW_LOGO ? null : NEW_LOGO)}
+                    className={`flex min-h-24 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-neutral-300 text-xs text-neutral-500 hover:border-brand-300 hover:text-brand-ink ${darkPickFor === NEW_LOGO ? "border-brand-300 text-brand-ink" : ""}`}
+                  >
+                    <Plus size={16} />
+                    {tr("editor.add_logo")}
+                  </button>
+                )}
               </div>
+              {/* Adding a logo picks from the uploads (or uploads a new file). */}
+              {canManage && workspaceId && darkPickFor === NEW_LOGO && (
+                <div className="mt-2 rounded-lg border border-neutral-200 p-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="truncate text-xs font-medium text-neutral-700">{tr("editor.add_logo")}</span>
+                    <button type="button" onClick={() => setDarkPickFor(null)} aria-label={tr("editor.close")} title={tr("editor.close")} className="grid h-6 w-6 shrink-0 place-items-center rounded-md text-neutral-500 hover:bg-neutral-100">
+                      <X size={13} />
+                    </button>
+                  </div>
+                  <UploadPicker
+                    workspaceId={workspaceId}
+                    assetUrls={assetUrls}
+                    allowUpload
+                    onPick={(assetId, filename, url) => {
+                      setDarkPickFor(null);
+                      if (url) setAssetUrls((m) => ({ ...m, [assetId]: url }));
+                      const label = filename.replace(/\.[a-z0-9]+$/i, "") || tr("editor.logo");
+                      saveLogos([...kit.logos, { id: `l-${crypto.randomUUID()}`, label, assetId }], tr("editor.logo_added"));
+                    }}
+                  />
+                </div>
+              )}
+              {/* Picking the dark version opens below the grid, at full width. */}
+              {canManage && workspaceId && darkPickFor && darkPickFor !== NEW_LOGO && kit.logos.some((x) => x.id === darkPickFor) && (
+                <div className="mt-2 rounded-lg border border-neutral-200 p-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="truncate text-xs font-medium text-neutral-700">
+                      {kit.logos.find((x) => x.id === darkPickFor)?.variants?.dark ? tr("editor.change_dark_logo") : tr("editor.set_dark_logo")}: {kit.logos.find((x) => x.id === darkPickFor)?.label}
+                    </span>
+                    <button type="button" onClick={() => setDarkPickFor(null)} aria-label={tr("editor.close")} title={tr("editor.close")} className="grid h-6 w-6 shrink-0 place-items-center rounded-md text-neutral-500 hover:bg-neutral-100">
+                      <X size={13} />
+                    </button>
+                  </div>
+                  <UploadPicker
+                    workspaceId={workspaceId}
+                    assetUrls={assetUrls}
+                    allowUpload
+                    onPick={(assetId, _name, url) => {
+                      const id = darkPickFor;
+                      setDarkPickFor(null);
+                      if (url) setAssetUrls((m) => ({ ...m, [assetId]: url }));
+                      saveLogos(kit.logos.map((x) => (x.id === id ? { ...x, variants: { ...(x.variants ?? {}), dark: assetId } } : x)));
+                    }}
+                  />
+                </div>
+              )}
             </CollapsibleSection>
           )}
 
@@ -1192,34 +1293,70 @@ function BrandIconsEditor({ kit, workspaceId, assetUrls, onChange }: { kit: Bran
   );
 }
 
+/** The workspace's uploads as a pick grid, optionally with an upload button
+ *  (the new file is uploaded to the workspace and picked right away). */
+const NEW_LOGO = "__new_logo__";
+
+function UploadPicker({ workspaceId, assetUrls, onPick, allowUpload = false }: { workspaceId: string; assetUrls: Record<string, string>; onPick: (assetId: string, filename: string, url?: string) => void; allowUpload?: boolean }) {
+  const [assets, setAssets] = useState<UploadedAsset[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const toast = useToast();
+  useEffect(() => {
+    void oc.listAssets(workspaceId).then((a) => setAssets(a as UploadedAsset[])).catch(() => setAssets([]));
+  }, [workspaceId]);
+  const upload = async (file: File) => {
+    setUploading(true);
+    try {
+      const asset = await directUploadWithProgress(workspaceId, file, { filename: file.name });
+      onPick(asset.id, file.name, asset.url);
+    } catch (e) {
+      toast.error(userMessage(e, tr("editor.upload_failed")));
+    } finally {
+      setUploading(false);
+    }
+  };
+  return (
+    <div className="mt-2 grid grid-cols-4 gap-1.5">
+      {allowUpload && (
+        <>
+          <input ref={fileRef} type="file" accept="image/svg+xml,image/png,image/jpeg,image/webp" hidden onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void upload(f); }} />
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+            title={tr("editor.upload_logo")}
+            className="flex aspect-square flex-col items-center justify-center gap-0.5 rounded border border-dashed border-neutral-300 text-[10px] text-neutral-500 hover:border-brand-300 hover:text-brand-ink disabled:opacity-50"
+          >
+            {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+            {tr("editor.upload")}
+          </button>
+        </>
+      )}
+      {assets.length === 0 && !allowUpload && <span className="col-span-4 text-[11px] text-neutral-400">{tr("editor.no_uploads")}</span>}
+      {assets.map((a) => (
+        <button
+          key={a.id}
+          onClick={() => onPick(a.id, a.filename ?? tr("editor.logo"), a.url)}
+          className="flex aspect-square items-center justify-center overflow-hidden rounded border border-neutral-200 hover:border-brand-300"
+          title={a.filename ?? "asset"}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={resolveAssetUrl(assetUrls[a.id] ?? a.url)} alt={a.filename ?? ""} className="max-h-full max-w-full object-contain" />
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function AddLogoFromUploads({ workspaceId, assetUrls, onAdd, label }: { workspaceId: string; assetUrls: Record<string, string>; onAdd: (assetId: string, label: string) => void; label?: string }) {
   const [open, setOpen] = useState(false);
-  const [assets, setAssets] = useState<UploadedAsset[]>([]);
-  useEffect(() => {
-    if (!open) return;
-    void oc.listAssets(workspaceId).then((a) => setAssets(a as UploadedAsset[])).catch(() => setAssets([]));
-  }, [open, workspaceId]);
   return (
     <div className="mb-3">
       <button onClick={() => setOpen((v) => !v)} className="flex items-center gap-1 text-xs font-medium text-brand-ink hover:underline">
         <Plus size={12} /> {label ?? tr("editor.add_logo_from_uploads")}
       </button>
-      {open && (
-        <div className="mt-2 grid grid-cols-4 gap-1.5">
-          {assets.length === 0 && <span className="col-span-4 text-[11px] text-neutral-400">{tr("editor.no_uploads")}</span>}
-          {assets.map((a) => (
-            <button
-              key={a.id}
-              onClick={() => { onAdd(a.id, a.filename ?? tr("editor.logo")); setOpen(false); }}
-              className="flex aspect-square items-center justify-center overflow-hidden rounded border border-neutral-200 hover:border-brand-300"
-              title={a.filename ?? "asset"}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={resolveAssetUrl(assetUrls[a.id] ?? a.url)} alt={a.filename ?? ""} className="max-h-full max-w-full object-contain" />
-            </button>
-          ))}
-        </div>
-      )}
+      {open && <UploadPicker workspaceId={workspaceId} assetUrls={assetUrls} onPick={(id, name) => { onAdd(id, name); setOpen(false); }} />}
     </div>
   );
 }

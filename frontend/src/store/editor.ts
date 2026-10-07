@@ -104,7 +104,7 @@ import type { MagicDesignSpec } from "@/lib/magicDesign";
 import { accentRuleRect, extractLayoutSet, fallbackLayoutFill, layoutDesign, reflowPage, slotTypeScale, variantCandidate, verifyLayoutCapacities, type AiDesignSpec, type DeckResult, type ExtractedLayoutSet, type ExtractPageLike } from "@hc/aistudio";
 import { qrModules } from "@/lib/qr";
 import { frameMaskFor } from "@/lib/maskPath";
-import { flattenSvgToNodes } from "@/lib/svgFlatten";
+import { flattenSvgToNodes, prepareSvgFonts } from "@/lib/svgFlatten";
 import { svgImageNodes, svgSourceOf } from "@/lib/svgImage";
 import { recolor } from "@/lib/selectionColors";
 import { layoutFlowchart, layoutMindMap, type DiagramSpec as WbDiagramSpec } from "@hc/whiteboard";
@@ -4403,6 +4403,7 @@ export const useEditor = create<EditorState>((set, get) => {
       const img = loc.node as unknown as Parameters<typeof svgImageNodes>[0];
       const svg = await svgSourceOf(img.source.assetId);
       if (!svg) return false;
+      await prepareSvgFonts(svg);
       // The image may have changed or gone while the file loaded.
       const now = locate(get().doc, id);
       if (!now || now.node.type !== "image") return false;

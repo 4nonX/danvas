@@ -4110,5 +4110,10 @@
   "dashboard.bulk_share_copy_links": "再次复制链接",
   "editor.restore_background": "恢复背景",
   "editor.removing_background_pct": "正在移除… {pct}%",
-  "auth.danvas_modified_version_notice": "danvas 是 HyCanvas 的非官方修改版本，与 HyScaler 无关。"
+  "auth.danvas_modified_version_notice": "danvas 是 HyCanvas 的非官方修改版本，与 HyScaler 无关。",
+  "editor.place_logo": "放置徽标",
+  "editor.add_logo": "添加徽标",
+  "editor.remove_logo": "移除徽标",
+  "editor.logo_added": "已将徽标添加到品牌套件。",
+  "editor.logo_removed": "已移除徽标。可通过套件历史记录恢复。"
 }

@@ -2,6 +2,7 @@
 // (F12), and Stock (F13). Each inserts nodes through the editor store so edits
 // are undoable. Uploads/stock images are placed via the image asset provider.
 
+import { prepareSvgFonts } from "@/lib/svgFlatten";
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type FormEvent } from "react";
 import { Square, SquareRoundCorner, Circle, Triangle, Pentagon, Hexagon, Star, Diamond, Octagon, Frame, QrCode, Type, Upload, Search, Table as TableIcon, BarChart3, LineChart, AreaChart, PieChart, Donut, ScatterChart, Radar, Wand2, ImagePlus, Settings2, Trash2, Folder, FolderPlus, Pencil, X, Tag, ChevronLeft, Link as LinkIcon, Mic, Video, MonitorUp, CircleStop, Spline, Clock, LayoutGrid, Shapes, Sparkles, Stethoscope, AlignStartVertical, Play, ChevronDown, Send, Plus, RotateCcw, FileDown, FileText, Paperclip, Layers, Copy, ArrowDown } from "lucide-react";
 import { migrate, type AssetRef, type ChartType, type Node, type Fill, type Color, type Theme } from "@hc/schema";
@@ -1273,6 +1274,7 @@ export function UploadsPanel({
       const res = await fetch(resolveAssetUrl(a.url), { credentials: "include" });
       const svg = await res.text();
       if (!svg.includes("<svg")) { toast.error(tr("editor.that_file_isnt_a_valid_svg")); return; }
+      await prepareSvgFonts(svg);
       useEditor.getState().addIconSvg(svg);
       toast.success(tr("editor.inserted_as_editable_vectors"));
     } catch {
@@ -1374,6 +1376,7 @@ export function UploadsPanel({
     if (!file) return;
     const text = await file.text();
     if (!text.includes("<svg")) { toast.error(tr("editor.that_file_isnt_a_valid_svg")); return; }
+    await prepareSvgFonts(text);
     useEditor.getState().importSvg(text);
     toast.success(tr("editor.imported_svg_as_editable_elements"));
   }

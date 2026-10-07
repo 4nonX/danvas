@@ -4110,5 +4110,10 @@
   "dashboard.bulk_share_copy_links": "リンクを再度コピー",
   "editor.restore_background": "背景を復元",
   "editor.removing_background_pct": "削除中… {pct}%",
-  "auth.danvas_modified_version_notice": "danvas は HyCanvas の非公式な改変版であり、HyScaler とは関係ありません。"
+  "auth.danvas_modified_version_notice": "danvas は HyCanvas の非公式な改変版であり、HyScaler とは関係ありません。",
+  "editor.place_logo": "ロゴを配置",
+  "editor.add_logo": "ロゴを追加",
+  "editor.remove_logo": "ロゴを削除",
+  "editor.logo_added": "ロゴをブランドキットに追加しました。",
+  "editor.logo_removed": "ロゴを削除しました。キットの履歴から復元できます。"
 }

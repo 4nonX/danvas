@@ -54,6 +54,13 @@ class FontProvider {
     } catch { /* ignore corrupt store */ }
   }
 
+  /** Whether this app can render a family at all: a workspace font, a catalog
+   *  font or a system font (used to pick the usable entry of a CSS font list). */
+  knows(family: string): boolean {
+    const key = family.toLowerCase();
+    return this.ws.has(key) || !!getFontEntry(family) || isSystemFont(family);
+  }
+
   /** Whether a family's web font is loaded and ready to render. */
   isReady(family: string | undefined): boolean {
     const key = (family ?? "").toLowerCase();

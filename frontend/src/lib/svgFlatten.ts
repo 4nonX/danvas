@@ -9,8 +9,9 @@
 // shear is folded into scale/rotation by `decompose` (rare in practice).
 
 import { svgToNodes, parseGradients } from "@hc/stock";
-import { decompose, fromTransform, identity, multiply, type Mat2D } from "@hc/engine";
-import type { Node } from "@hc/schema";
+import { decompose, fontFamilyStack, fromTransform, identity, multiply, type Mat2D } from "@hc/engine";
+import { createNode, type Node } from "@hc/schema";
+import { fonts } from "@/lib/fontProvider";
 
 const LEAF = new Set(["path", "rect", "circle", "ellipse", "line", "polygon", "polyline", "text", "image"]);
 const CONTAINER = new Set(["g", "a", "svg"]);
@@ -100,6 +101,236 @@ function inlineComputedPaint(el: Element, toRgb: ((v: string) => string) | null)
   if (decls.length) el.setAttribute("style", decls.join(";"));
 }
 
+// --- text ------------------------------------------------------------------
+// SVG text as written by design tools is positioned per span: Affinity and
+// Illustrator kern a single letter with <tspan x="..">, and the rest of the
+// word continues after it ("M<tspan x=..>A</tspan>RKT"). The flat parser turns
+// that into one string with a guessed width, which wraps and drops the
+// kerning. Here the mounted SVG is laid out by the browser already, so each
+// run that starts at its own position becomes its own text node, placed where
+// the browser put its first character and as wide as the browser measured it.
+
+const GENERIC_FAMILIES = new Set(["serif", "sans-serif", "monospace", "cursive", "fantasy", "system-ui", "ui-serif", "ui-sans-serif", "ui-monospace"]);
+
+/** The first family of a CSS font list this app can render. PostScript-style
+ *  names ("TrajanPro-Bold") are also tried as family names ("Trajan Pro"). */
+export function resolveFontFamily(list: string): string {
+  const candidates = list.split(",").map((f) => f.trim().replace(/^['"]|['"]$/g, "")).filter(Boolean);
+  const variants = (f: string) => {
+    const base = f.replace(/-(Bold|Regular|Italic|Light|Medium|Semibold|SemiBold|Black|Heavy|Thin|Book|Roman|BoldItalic)$/i, "");
+    return [f, base, base.replace(/([a-z])([A-Z])/g, "$1 $2")];
+  };
+  for (const c of candidates) {
+    if (GENERIC_FAMILIES.has(c.toLowerCase())) continue;
+    for (const v of variants(c)) if (fonts.knows(v)) return v;
+  }
+  // Nothing installed yet (the font may be uploaded later): prefer an entry
+  // that reads like a family name ("Goudy Old Style") over a PostScript name.
+  const named = candidates.find((c) => !GENERIC_FAMILIES.has(c.toLowerCase()) && /\s/.test(c));
+  if (named) return named;
+  const first = candidates.find((c) => !GENERIC_FAMILIES.has(c.toLowerCase()));
+  return first ? variants(first)[2] : "system";
+}
+
+function rgbaOf(v: string): { r: number; g: number; b: number; a: number } | null {
+  const m = /^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:[,\s/]+([\d.]+%?))?\s*\)$/i.exec(v.trim());
+  if (!m) return null;
+  const a = m[4] === undefined ? 1 : m[4].endsWith("%") ? parseFloat(m[4]) / 100 : parseFloat(m[4]);
+  return { r: +m[1] / 255, g: +m[2] / 255, b: +m[3] / 255, a };
+}
+
+/** Text nodes for a mounted <text> element, from the browser's own layout.
+ *  Null when the layout cannot be mapped (the caller then uses the flat parser). */
+function textNodesFromLayout(el: SVGTextElement, idGen: () => string, toRgb: ((v: string) => string) | null): Node[] | null {
+  const count = el.getNumberOfChars?.();
+  if (!count) return count === 0 ? [] : null;
+
+  // Every character in document order with the element that styles it.
+  type Ch = { ch: string; owner: Element; fresh: boolean };
+  let chars: Ch[] = [];
+  const visit = (node: Element, owner: Element) => {
+    for (const child of Array.from(node.childNodes)) {
+      if (child.nodeType === 3) for (const ch of child.textContent ?? "") chars.push({ ch, owner, fresh: false });
+      else if (child.nodeType === 1 && (child as Element).tagName.toLowerCase() === "tspan") visit(child as Element, child as Element);
+    }
+  };
+  visit(el, el);
+
+  // The browser addresses characters after SVG whitespace handling: without
+  // xml:space="preserve" (white-space: pre), newlines go, tabs become spaces,
+  // runs of spaces collapse and the ends are trimmed (Illustrator indents
+  // its spans, so this is the common case, not an edge case).
+  const ws = window.getComputedStyle(el).whiteSpace;
+  if (!/^(pre|pre-wrap|break-spaces)$/.test(ws)) {
+    const kept: Ch[] = [];
+    for (const c of chars) {
+      if (c.ch === "\n" || c.ch === "\r") continue;
+      const ch = c.ch === "\t" ? " " : c.ch;
+      if (ch === " " && (kept.length === 0 || kept[kept.length - 1].ch === " ")) continue;
+      kept.push({ ...c, ch });
+    }
+    while (kept.length && kept[kept.length - 1].ch === " ") kept.pop();
+    chars = kept;
+  }
+  if (chars.length !== count) return null; // indices would not line up
+
+  // Where a new run starts: at every character that has an explicit position
+  // (x / y / dx / dy, also lists of one value per letter, which Illustrator
+  // writes instead of spans), and where the style changes.
+  const listLen = (e: Element) => Math.max(0, ...["x", "y", "dx", "dy"].map((a) => (e.getAttribute(a) ?? "").trim().split(/[\s,]+/).filter(Boolean).length));
+  const consumed = new Map<Element, number>();
+  const key = (e: Element) => {
+    const cs = window.getComputedStyle(e);
+    return [cs.fontFamily, cs.fontSize, cs.fontWeight, cs.fontStyle, cs.fill, cs.letterSpacing].join("|");
+  };
+  chars.forEach((c, i) => {
+    let fresh = i === 0;
+    for (let a: Element | null = c.owner; a; a = a === el ? null : a.parentElement) {
+      const n = consumed.get(a) ?? 0;
+      if ((a !== el || i > 0) && n < listLen(a)) fresh = true;
+      consumed.set(a, n + 1);
+    }
+    if (i > 0 && c.owner !== chars[i - 1].owner && key(c.owner) !== key(chars[i - 1].owner)) fresh = true;
+    c.fresh = fresh;
+  });
+  const raw = chars.map((c) => c.ch).join("");
+
+  const runs: { start: number; end: number; owner: Element }[] = [];
+  chars.forEach((c, i) => {
+    if (c.fresh || !runs.length) runs.push({ start: i, end: i + 1, owner: c.owner });
+    else runs[runs.length - 1].end = i + 1;
+  });
+
+  const nodes: Node[] = [];
+  for (const run of runs) {
+    let a = run.start;
+    let b = run.end - 1;
+    while (a <= b && /\s/.test(raw[a])) a++;
+    while (b >= a && /\s/.test(raw[b])) b--;
+    if (a > b) continue;
+    const text = raw.slice(a, b + 1);
+    let x0: number, y0: number, width: number;
+    try {
+      const p = el.getStartPositionOfChar(a);
+      const last = el.getExtentOfChar(b);
+      x0 = p.x;
+      y0 = p.y;
+      width = Math.max(1, last.x + last.width - p.x);
+    } catch {
+      return null;
+    }
+    const cs = window.getComputedStyle(run.owner);
+    const fontSize = parseFloat(cs.fontSize) || 16;
+    const weight = parseInt(cs.fontWeight, 10) || 400;
+    const italic = /italic|oblique/i.test(cs.fontStyle);
+    const letterSpacing = parseFloat(cs.letterSpacing) || 0; // "normal" -> 0
+    const stretch = parseFloat(cs.fontStretch); // "112.5%" (semi-expanded) -> 112.5
+    const wdth = Number.isFinite(stretch) && stretch !== 100 ? stretch : undefined;
+    const fillRaw = toRgb ? toRgb(cs.fill) : cs.fill;
+    const c = rgbaOf(fillRaw) ?? { r: 0, g: 0, b: 0, a: 1 };
+    const opacity = (parseFloat(cs.fillOpacity) || 1) * (parseFloat(cs.opacity) || 1);
+    const fontStyle = `${weight >= 600 ? "Bold" : "Regular"}${italic ? " Italic" : ""}`.replace("Regular Italic", "Italic");
+    nodes.push(createNode("text", {
+      id: idGen(),
+      name: text.slice(0, 24),
+      // Line height 1: the engine draws the baseline one line below the top.
+      transform: { x: x0, y: y0 - fontSize, scaleX: 1, scaleY: 1, rotation: 0 },
+      size: { width, height: fontSize * 1.25 },
+      box: { mode: "autoWidth", width, height: fontSize * 1.25, autoFit: { enabled: false, min: 8, max: 512 }, verticalAlign: "top" },
+      content: [{
+        runs: [{ text, style: { fontFamily: resolveFontFamily(cs.fontFamily), fontStyle, fontSize, lineHeight: 1, axes: { wght: weight, ...(wdth ? { wdth } : {}) }, ...(letterSpacing ? { letterSpacing } : {}), fill: { type: "solid", color: { srgb: { ...c, a: c.a * opacity } } } } }],
+        style: { align: "left", direction: "auto" },
+      }],
+    } as Partial<Node>));
+  }
+  return nodes;
+}
+
+// --- clipped fills -----------------------------------------------------------
+// Design tools that outline text for export (Affinity, for one) often write
+// each word as a filled rectangle clipped by the letter shapes:
+//   <g clip-path="url(#c)"><rect .../></g>  with  <clipPath id="c"><path d="letters"/></clipPath>
+// Scene nodes carry no clip paths, so the rectangle would come through as a
+// solid bar. When the group paints exactly one shape that covers the whole
+// clip, the result is simply the clip's shapes in that shape's fill.
+
+/** Nodes for a clipped group of that form, or null when it is not one. */
+function clippedFillNodes(
+  group: Element,
+  root: SVGSVGElement,
+  idGen: () => string,
+  toRgb: ((v: string) => string) | null,
+  gradients: ReturnType<typeof parseGradients>,
+): Node[] | null {
+  const ref = /url\(\s*["']?#([^"')\s]+)["']?\s*\)/.exec(group.getAttribute("clip-path") ?? window.getComputedStyle(group).clipPath ?? "");
+  if (!ref) return null;
+  const clip = root.querySelector(`clipPath[id="${CSS.escape(ref[1])}"]`);
+  if (!clip || (clip.getAttribute("clipPathUnits") ?? "userSpaceOnUse") !== "userSpaceOnUse") return null;
+  const painted = Array.from(group.children).filter((c) => !["defs", "clippath", "title", "desc", "metadata"].includes(c.tagName.toLowerCase()));
+  if (painted.length !== 1 || !["rect", "path", "circle", "ellipse", "polygon"].includes(painted[0].tagName.toLowerCase())) return null;
+  const shape = painted[0] as SVGGraphicsElement;
+  const shapes = Array.from(clip.children).filter((c) => LEAF.has(c.tagName.toLowerCase()) && c.tagName.toLowerCase() !== "text" && c.tagName.toLowerCase() !== "image") as SVGGraphicsElement[];
+  if (!shapes.length) return null;
+  // The painted shape must cover every clip shape (compared in the group's
+  // user space; transforms on either side make the comparison unreliable).
+  if (shape.getAttribute("transform") || clip.getAttribute("transform") || shapes.some((c) => c.getAttribute("transform"))) return null;
+  let cover: DOMRect, bounds: { x0: number; y0: number; x1: number; y1: number };
+  try {
+    cover = shape.getBBox();
+    bounds = { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity };
+    for (const c of shapes) {
+      const b = c.getBBox();
+      bounds.x0 = Math.min(bounds.x0, b.x); bounds.y0 = Math.min(bounds.y0, b.y);
+      bounds.x1 = Math.max(bounds.x1, b.x + b.width); bounds.y1 = Math.max(bounds.y1, b.y + b.height);
+    }
+  } catch {
+    return null;
+  }
+  const eps = 0.5;
+  if (bounds.x0 < cover.x - eps || bounds.y0 < cover.y - eps || bounds.x1 > cover.x + cover.width + eps || bounds.y1 > cover.y + cover.height + eps) return null;
+  // Paint each clip shape with the covering shape's fill.
+  const cs = window.getComputedStyle(shape);
+  const fill = toRgb ? toRgb(cs.fill) : cs.fill;
+  const out: Node[] = [];
+  for (const c of shapes) {
+    const copy = c.cloneNode(true) as Element;
+    const rule = c.getAttribute("clip-rule") ?? window.getComputedStyle(c).clipRule ?? "nonzero";
+    copy.setAttribute("style", `fill:${fill};fill-rule:${rule};fill-opacity:${cs.fillOpacity};stroke:none`);
+    out.push(...svgToNodes(copy.outerHTML, idGen, { fallbackFill: true, gradients }).nodes);
+  }
+  return out;
+}
+
+/** Load every font an SVG's text asks for, so the browser lays it out (and the
+ *  converter measures it) in the real face instead of a fallback. Resolves once
+ *  each family has loaded or turned out to be unavailable, or after `timeoutMs`.
+ *  Call before converting an SVG that may contain text. */
+export async function prepareSvgFonts(svgText: string, timeoutMs = 5000): Promise<void> {
+  if (typeof document === "undefined" || !/<text[\s>]/i.test(svgText)) return;
+  const lists = new Set<string>();
+  // CSS declarations (style attributes, <style>) run to the next ; or quote;
+  // the presentation attribute is one quoted value.
+  for (const m of svgText.matchAll(/font-family\s*:\s*([^;"<>{}]+)/gi)) lists.add(m[1].replace(/&quot;|&apos;/g, "'").trim());
+  for (const m of svgText.matchAll(/font-family\s*=\s*("[^"]*"|'[^']*')/gi)) lists.add(m[1].slice(1, -1));
+  const weights = new Set<string>(["400"]);
+  for (const m of svgText.matchAll(/font-weight\s*[:=]\s*["']?(\d{3}|bold|normal)/gi)) weights.add(m[1] === "bold" ? "700" : m[1] === "normal" ? "400" : m[1]);
+  const families = [...new Set([...lists].map(resolveFontFamily))].filter((f) => f !== "system");
+  if (!families.length) return;
+  for (const f of families) fonts.ensure(f);
+  const settled = () => families.every((f) => fonts.isSettled(f));
+  await new Promise<void>((resolve) => {
+    if (settled()) return resolve();
+    const timer = setTimeout(done, timeoutMs);
+    const off = fonts.onChange(() => { if (settled()) done(); });
+    function done() { clearTimeout(timer); off(); resolve(); }
+  });
+  // Faces are registered now; make sure the weights in use are decoded too.
+  await Promise.race([
+    Promise.all(families.flatMap((f) => [...weights].map((w) => document.fonts.load(`${w} 16px "${f}"`).catch(() => [])))),
+    new Promise((r) => setTimeout(r, timeoutMs)),
+  ]);
+}
+
 /** Convert an SVG string to scene nodes with group transforms resolved. */
 export function flattenSvgToNodes(svgText: string, opts: { fallbackFill?: boolean } = {}): FlattenResult {
   const idGen = () => `svg-${crypto.randomUUID()}`;
@@ -129,6 +360,15 @@ export function flattenSvgToNodes(svgText: string, opts: { fallbackFill?: boolea
   }
   document.body.appendChild(host);
   const toRgb = makeColorNormalizer();
+  // Lay text out in the family the text nodes will use: a list the browser
+  // cannot match ("'TrajanPro-Bold'" alone) would otherwise be measured in a
+  // fallback face while the node draws the real one.
+  for (const t of Array.from(root.querySelectorAll("text, tspan"))) {
+    // The engine's own stack, fallbacks included: an unavailable font is then
+    // measured in the same fallback face the engine will draw.
+    const fam = resolveFontFamily(window.getComputedStyle(t).fontFamily);
+    (t as SVGElement).style.fontFamily = fontFamilyStack(fam === "system" ? undefined : fam);
+  }
 
   // `co` is the accumulated container opacity. CSS `opacity` does not inherit, so
   // a `<g opacity="0.5">` must be folded onto its leaves manually (each leaf's
@@ -139,10 +379,33 @@ export function flattenSvgToNodes(svgText: string, opts: { fallbackFill?: boolea
       const m = multiply(ctm, parseTransform(child.getAttribute("transform")));
       if (CONTAINER.has(tag)) {
         const go = parseFloat(window.getComputedStyle(child).opacity);
+        if (child.hasAttribute("clip-path")) {
+          const filled = clippedFillNodes(child, root as SVGSVGElement, idGen, toRgb, gradients);
+          if (filled) {
+            const gco = co * (Number.isFinite(go) ? go : 1);
+            for (const n of filled) {
+              n.transform = decompose(multiply(m, fromTransform(n.transform)));
+              if (gco < 1) n.opacity = Math.max(0, Math.min(1, (n.opacity ?? 1) * gco));
+              nodes.push(n);
+            }
+            continue;
+          }
+        }
         walk(child, m, co * (Number.isFinite(go) ? go : 1));
         continue;
       }
       if (!LEAF.has(tag)) continue; // skip defs/clipPath/gradients/etc.
+      if (tag === "text") {
+        const laid = textNodesFromLayout(child as SVGTextElement, idGen, toRgb);
+        if (laid) {
+          for (const n of laid) {
+            n.transform = decompose(multiply(m, fromTransform(n.transform)));
+            if (co < 1) n.opacity = Math.max(0, Math.min(1, (n.opacity ?? 1) * co));
+            nodes.push(n);
+          }
+          continue;
+        }
+      }
       inlineComputedPaint(child, toRgb);
       const r = svgToNodes(child.outerHTML, idGen, { fallbackFill, gradients });
       approximated = approximated || r.approximated;

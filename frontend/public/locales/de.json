@@ -4110,5 +4110,10 @@
   "dashboard.bulk_share_copy_links": "Links erneut kopieren",
   "editor.restore_background": "Hintergrund wiederherstellen",
   "editor.removing_background_pct": "Wird entfernt… {pct} %",
-  "auth.danvas_modified_version_notice": "danvas ist eine inoffizielle, veränderte Version von HyCanvas und steht in keiner Verbindung zu HyScaler."
+  "auth.danvas_modified_version_notice": "danvas ist eine inoffizielle, veränderte Version von HyCanvas und steht in keiner Verbindung zu HyScaler.",
+  "editor.place_logo": "Logo einfügen",
+  "editor.add_logo": "Logo hinzufügen",
+  "editor.remove_logo": "Logo entfernen",
+  "editor.logo_added": "Logo zum Markenkit hinzugefügt.",
+  "editor.logo_removed": "Logo entfernt. Über den Verlauf des Markenkits lässt es sich wiederherstellen."
 }
