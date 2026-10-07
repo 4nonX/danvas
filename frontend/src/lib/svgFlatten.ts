@@ -264,40 +264,44 @@ function clippedFillNodes(
 ): Node[] | null {
   const ref = /url\(\s*["']?#([^"')\s]+)["']?\s*\)/.exec(group.getAttribute("clip-path") ?? window.getComputedStyle(group).clipPath ?? "");
   if (!ref) return null;
-  const clip = root.querySelector(`clipPath[id="${CSS.escape(ref[1])}"]`);
+  const esc = typeof CSS !== "undefined" && CSS.escape ? CSS.escape(ref[1]) : ref[1].replace(/["\\]/g, "\\$&");
+  const clip = root.querySelector(`clipPath[id="${esc}"]`);
   if (!clip || (clip.getAttribute("clipPathUnits") ?? "userSpaceOnUse") !== "userSpaceOnUse") return null;
   const painted = Array.from(group.children).filter((c) => !["defs", "clippath", "title", "desc", "metadata"].includes(c.tagName.toLowerCase()));
   if (painted.length !== 1 || !["rect", "path", "circle", "ellipse", "polygon"].includes(painted[0].tagName.toLowerCase())) return null;
-  const shape = painted[0] as SVGGraphicsElement;
-  const shapes = Array.from(clip.children).filter((c) => LEAF.has(c.tagName.toLowerCase()) && c.tagName.toLowerCase() !== "text" && c.tagName.toLowerCase() !== "image") as SVGGraphicsElement[];
+  const shape = painted[0];
+  const shapes = Array.from(clip.children).filter((c) => LEAF.has(c.tagName.toLowerCase()) && c.tagName.toLowerCase() !== "text" && c.tagName.toLowerCase() !== "image");
   if (!shapes.length) return null;
-  // The painted shape must cover every clip shape (compared in the group's
-  // user space; transforms on either side make the comparison unreliable).
+  // Compared in the group's user space; transforms on either side would need
+  // the full matrix math, and exporters do not write them for this pattern.
   if (shape.getAttribute("transform") || clip.getAttribute("transform") || shapes.some((c) => c.getAttribute("transform"))) return null;
-  let cover: DOMRect, bounds: { x0: number; y0: number; x1: number; y1: number };
-  try {
-    cover = shape.getBBox();
-    bounds = { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity };
-    for (const c of shapes) {
-      const b = c.getBBox();
-      bounds.x0 = Math.min(bounds.x0, b.x); bounds.y0 = Math.min(bounds.y0, b.y);
-      bounds.x1 = Math.max(bounds.x1, b.x + b.width); bounds.y1 = Math.max(bounds.y1, b.y + b.height);
-    }
-  } catch {
-    return null;
-  }
-  const eps = 0.5;
-  if (bounds.x0 < cover.x - eps || bounds.y0 < cover.y - eps || bounds.x1 > cover.x + cover.width + eps || bounds.y1 > cover.y + cover.height + eps) return null;
-  // Paint each clip shape with the covering shape's fill.
+
+  // Each clip shape, painted with the clipped shape's fill. Taken from the
+  // computed style, else from the SVG's own style/attribute: nothing here may
+  // depend on the browser measuring or styling the mounted copy, so the result
+  // is the same on every machine (an environment that measured or styled it
+  // differently used to send these logos down the fallback, as bare bars).
+  const own = (el: Element, prop: string): string | null => {
+    const m = new RegExp(`(?:^|;)\\s*${prop}\\s*:\\s*([^;]+)`, "i").exec(el.getAttribute("style") ?? "");
+    return (m ? m[1] : el.getAttribute(prop))?.trim() || null;
+  };
   const cs = window.getComputedStyle(shape);
-  const fill = toRgb ? toRgb(cs.fill) : cs.fill;
+  const computed = (cs.fill || "").trim();
+  const rawFill = computed && computed !== "none" && !computed.startsWith("url(") ? computed : own(shape, "fill") ?? "#000000";
+  const fill = toRgb ? toRgb(rawFill) : rawFill;
+  const fillOpacity = own(shape, "fill-opacity") ?? (cs.fillOpacity || "1");
   const out: Node[] = [];
   for (const c of shapes) {
     const copy = c.cloneNode(true) as Element;
-    const rule = c.getAttribute("clip-rule") ?? window.getComputedStyle(c).clipRule ?? "nonzero";
-    copy.setAttribute("style", `fill:${fill};fill-rule:${rule};fill-opacity:${cs.fillOpacity};stroke:none`);
+    const rule = c.getAttribute("clip-rule") ?? own(c, "clip-rule") ?? "nonzero";
+    copy.setAttribute("style", `fill:${fill};fill-rule:${rule};fill-opacity:${fillOpacity};stroke:none`);
     out.push(...svgToNodes(copy.outerHTML, idGen, { fallbackFill: true, gradients }).nodes);
   }
+  // The clip shapes stand in for "the shape, cut to the clip". That is exact
+  // when the shape covers the clip, which is what exporters write for outlined
+  // text; were it smaller, the letters would show uncut, still far closer to
+  // the drawing than the bare shape.
+  if (!out.length) return null;
   return out;
 }
 
@@ -357,6 +361,13 @@ export function flattenSvgToNodes(svgText: string, opts: { fallbackFill?: boolea
   if (!root) {
     const r = svgToNodes(svgText, idGen, { fallbackFill, gradients });
     return { nodes: r.nodes, assets: r.assets, approximated: r.approximated };
+  }
+  {
+    const vb = (root.getAttribute("viewBox") ?? "").trim().split(/[\s,]+/).map(Number);
+    if (vb.length === 4 && vb[2] > 0 && vb[3] > 0) {
+      root.setAttribute("width", String(vb[2]));
+      root.setAttribute("height", String(vb[3]));
+    }
   }
   document.body.appendChild(host);
   const toRgb = makeColorNormalizer();
