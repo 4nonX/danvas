@@ -4,10 +4,10 @@
 // points), the SVG export one standalone file per page. Text is outlined, so
 // both look identical on any machine without the fonts installed.
 
-import type { DesignFile } from "@hc/schema";
+import { resolveReadingOrder, type DesignFile } from "@hc/schema";
 import { createScene, renderScene, type CanvasLike, type Viewport } from "@hc/engine";
 import { loadFace, type FaceRequest, type LoadedFace } from "./fontSource";
-import { num, PdfCanvas, PdfResources, type ColorOut, type PdfPageStats } from "./pdfCanvas";
+import { num, PdfCanvas, PdfResources, type ColorOut, type PdfPageStats, type PdfTag, type TextFont } from "./pdfCanvas";
 import { SvgCanvas } from "./svgCanvas";
 
 export { num, type ColorOut } from "./pdfCanvas";
@@ -79,6 +79,11 @@ export interface VectorPdfResult {
 export interface VectorPdfOptions {
   assets?: unknown;
   title?: string;
+  /** Tagged (accessible) PDF: structure tree in reading order, alt text,
+   *  artifacts, and a real-text layer under the outlined glyphs. */
+  tagged?: boolean;
+  /** Natural language (BCP 47) when the design does not state one. */
+  lang?: string;
 }
 
 export interface DrawPagesOptions {
@@ -87,6 +92,8 @@ export interface DrawPagesOptions {
   color?: ColorOut;
   /** Flatten transparency onto a paper-white backdrop (EPS, PDF/X-1a). */
   flatten?: boolean;
+  /** Mark up the drawing for a tagged PDF (see PdfCanvasOptions.tagged). */
+  tagged?: boolean;
 }
 
 export interface DrawnPage {
@@ -98,6 +105,9 @@ export interface DrawnPage {
   height: number;
   /** Content operators in device space (y down). */
   content: string;
+  /** Tagged mode: the page's tags in reading order (each points at its
+   *  marked content by mcid). */
+  tags?: PdfTag[];
 }
 
 /** Draw the given pages through PdfCanvas: content operators per page plus
@@ -151,12 +161,71 @@ export async function drawPages(doc: DesignFile, pageIndexes: number[], opts: Dr
       backdrop.fillStyle = "#ffffff";
       backdrop.fillRect(0, 0, p.width, p.height);
     }
-    const ctx = new PdfCanvas({ width: p.width, height: p.height, faces, resources, color: opts.color, backdrop });
-    renderScene(createScene(doc, p.index), ctx as unknown as CanvasLike, p.vp, renderOpts);
-    out.push({ index: p.index, pg: p.pg, zoom: p.zoom, width: p.width, height: p.height, content: ctx.content() });
+    const ctx = new PdfCanvas({ width: p.width, height: p.height, faces, resources, color: opts.color, backdrop, tagged: opts.tagged });
+    const hooks = opts.tagged ? { onNodeEnter: (n: Parameters<PdfCanvas["nodeEnter"]>[0]) => ctx.nodeEnter(n), onNodeExit: (n: Parameters<PdfCanvas["nodeExit"]>[0]) => ctx.nodeExit(n) } : {};
+    renderScene(createScene(doc, p.index), ctx as unknown as CanvasLike, p.vp, { ...renderOpts, ...hooks });
+    let tags: PdfTag[] | undefined;
+    if (opts.tagged) {
+      // Content is drawn in z-order, the structure is read in reading order:
+      // the tags of each top-level element, elements in the author's order.
+      const { tags: drawn, tops } = ctx.structure();
+      const rank = new Map(resolveReadingOrder(p.pg).map((n, i) => [n.id, i]));
+      const rankOf = (t: PdfTag) => rank.get(tops[t.top]) ?? Number.MAX_SAFE_INTEGER;
+      tags = [...drawn].sort((a, b) => rankOf(a) - rankOf(b) || a.mcid - b.mcid);
+    }
+    out.push({ index: p.index, pg: p.pg, zoom: p.zoom, width: p.width, height: p.height, content: ctx.content(), tags });
     for (const k of Object.keys(stats) as (keyof PdfPageStats)[]) stats[k] += ctx.stats[k];
   }
   return { dpi, pages: out, resources, stats };
+}
+
+/** A BCP 47 tag as the tagged PDF's /Lang: the design's own language
+ *  (`language`, or `meta.language` in older files), else the given fallback. */
+function docLang(doc: DesignFile, fallback?: string): string {
+  const d = doc as unknown as { language?: string; meta?: { language?: string } };
+  const ok = (t?: string) => !!t && t.length <= 35 && /^[A-Za-z]{1,8}(-[A-Za-z0-9]{1,8}){0,2}$/.test(t);
+  for (const t of [d.language, d.meta?.language, fallback]) if (ok(t)) return t!;
+  return "en-US";
+}
+
+/** Write one text-layer font (Type0 / CIDFontType2, Identity-H with glyph ids
+ *  as CIDs) and return its object number. Not embedded: text in render mode
+ *  3 is never drawn, so viewers only need the widths, which keep selection
+ *  boxes on the words, and the ToUnicode map, which gives the characters. */
+async function writeTextFont(w: PdfWriter, tf: TextFont): Promise<number> {
+  const f = tf.font;
+  const k = 1000 / f.unitsPerEm;
+  const base = (f.postscriptName ?? "").replace(/[^A-Za-z0-9+-]/g, "") || `Font${tf.name}`;
+  const gids = [...tf.glyphs.keys()].sort((a, b) => a - b);
+  const widths = gids.map((g) => `${g} [${num(tf.glyphs.get(g)!.width)}]`).join(" ");
+  const utf16 = (s: string) => {
+    let h = "";
+    for (let i = 0; i < s.length; i++) h += s.charCodeAt(i).toString(16).padStart(4, "0");
+    return h || "FFFD";
+  };
+  const hex = (g: number) => g.toString(16).padStart(4, "0");
+  const lines: string[] = [];
+  for (let i = 0; i < gids.length; i += 100) {
+    const chunk = gids.slice(i, i + 100);
+    lines.push(`${chunk.length} beginbfchar`, ...chunk.map((g) => `<${hex(g)}> <${utf16(tf.glyphs.get(g)!.unicode)}>`), "endbfchar");
+  }
+  const cmap = [
+    "/CIDInit /ProcSet findresource begin", "12 dict begin", "begincmap",
+    "/CIDSystemInfo << /Registry (Adobe) /Ordering (UCS) /Supplement 0 >> def",
+    "/CMapName /Adobe-Identity-UCS def", "/CMapType 2 def",
+    "1 begincodespacerange", "<0000> <FFFF>", "endcodespacerange",
+    ...lines, "endcmap", "CMapName currentdict /CMap defineresource pop", "end", "end",
+  ].join("\n");
+  const bb = f.bbox;
+  const toUnicode = w.alloc();
+  const descriptor = w.alloc();
+  const cid = w.alloc();
+  const type0 = w.alloc();
+  w.stream(toUnicode, "/Filter /FlateDecode", await deflate(enc.encode(cmap)));
+  w.obj(descriptor, `<< /Type /FontDescriptor /FontName /${base} /Flags 32 /FontBBox [${[bb.minX, bb.minY, bb.maxX, bb.maxY].map((v) => num(v * k)).join(" ")}] /ItalicAngle 0 /Ascent ${num(f.ascent * k)} /Descent ${num(f.descent * k)} /CapHeight ${num((f.capHeight || f.ascent) * k)} /StemV 80 >>`);
+  w.obj(cid, `<< /Type /Font /Subtype /CIDFontType2 /BaseFont /${base} /CIDSystemInfo << /Registry (Adobe) /Ordering (Identity) /Supplement 0 >> /FontDescriptor ${descriptor} 0 R /DW 1000 /W [${widths}] /CIDToGIDMap /Identity >>`);
+  w.obj(type0, `<< /Type /Font /Subtype /Type0 /BaseFont /${base} /Encoding /Identity-H /DescendantFonts [${cid} 0 R] /ToUnicode ${toUnicode} 0 R >>`);
+  return type0;
 }
 
 /** Render one page of a design to a standalone SVG through the same engine
@@ -171,7 +240,7 @@ export async function exportVectorSvg(doc: DesignFile, pageIndex: number, opts: 
 
 /** Render the given pages of a design to one vector PDF. */
 export async function exportVectorPdf(doc: DesignFile, pageIndexes: number[], opts: VectorPdfOptions = {}): Promise<VectorPdfResult> {
-  const { dpi, pages, resources, stats } = await drawPages(doc, pageIndexes, { assets: opts.assets });
+  const { dpi, pages, resources, stats } = await drawPages(doc, pageIndexes, { assets: opts.assets, tagged: opts.tagged });
   const contents = pages.map((p) => ({ content: p.content, p }));
 
   const w = new PdfWriter();
@@ -206,10 +275,23 @@ export async function exportVectorPdf(doc: DesignFile, pageIndexes: number[], op
     w.stream(id, `/Type /XObject /Subtype /Image /Width ${img.width} /Height ${img.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Interpolate true /Filter /FlateDecode${smask}`, await deflate(rgb));
     imageRefs.push(`/${img.name} ${id} 0 R`);
   }
-  w.obj(resId, `<< /ExtGState << ${resources.extGStateDict()} >> /XObject << ${imageRefs.join(" ")} >> /Shading << ${resources.shadings.map((s) => `/${s.name} ${s.dict}`).join(" ")} >> >>`);
+  // Text layer fonts: invisible (render mode 3), so only metrics and the
+  // characters are needed, not the font programs.
+  const fontRefs: string[] = [];
+  for (const tf of resources.textFonts.values()) {
+    if (tf.glyphs.size) fontRefs.push(`/${tf.name} ${await writeTextFont(w, tf)} 0 R`);
+  }
+  w.obj(resId, `<< /ExtGState << ${resources.extGStateDict()} >> /XObject << ${imageRefs.join(" ")} >> /Shading << ${resources.shadings.map((s) => `/${s.name} ${s.dict}`).join(" ")} >>${fontRefs.length ? ` /Font << ${fontRefs.join(" ")} >>` : ""} >>`);
 
   const kids: number[] = [];
-  for (const { content, p } of contents) {
+  // Structure tree (tagged): Document > one Sect per page > one element per
+  // tag; the parent tree maps each page's marked content back to them.
+  const tagged = !!opts.tagged;
+  const structRoot = tagged ? w.alloc() : 0;
+  const docElem = tagged ? w.alloc() : 0;
+  const sects: number[] = [];
+  const nums: string[] = [];
+  for (const [i, { content, p }] of contents.entries()) {
     const wPt = (p.pg.width * 72) / dpi;
     const hPt = (p.pg.height * 72) / dpi;
     const k = 72 / (dpi * p.zoom);
@@ -218,15 +300,38 @@ export async function exportVectorPdf(doc: DesignFile, pageIndexes: number[], op
     w.stream(cid, "/Filter /FlateDecode", await deflate(enc.encode(stream)));
     const pid = w.alloc();
     const box = `[0 0 ${num(wPt)} ${num(hPt)}]`;
-    w.obj(pid, `<< /Type /Page /Parent ${pagesId} 0 R /MediaBox ${box} /TrimBox ${box} /Resources ${resId} 0 R /Contents ${cid} 0 R >>`);
+    w.obj(pid, `<< /Type /Page /Parent ${pagesId} 0 R /MediaBox ${box} /TrimBox ${box} /Resources ${resId} 0 R /Contents ${cid} 0 R${tagged ? ` /StructParents ${i} /Tabs /S` : ""} >>`);
     kids.push(pid);
+    if (tagged) {
+      const sect = w.alloc();
+      sects.push(sect);
+      const byMcid: number[] = [];
+      const leaves: number[] = [];
+      for (const t of p.tags ?? []) {
+        const id = w.alloc();
+        w.obj(id, `<< /Type /StructElem /S /${t.role} /P ${sect} 0 R /Pg ${pid} 0 R /K ${t.mcid}${t.alt ? ` /Alt ${pdfString(t.alt)}` : ""} >>`);
+        leaves.push(id);
+        byMcid[t.mcid] = id;
+      }
+      const title = p.pg.name?.trim() || `${opts.title ?? doc.title ?? "Page"} ${p.index + 1}`;
+      w.obj(sect, `<< /Type /StructElem /S /Sect /P ${docElem} 0 R /Pg ${pid} 0 R /T ${pdfString(title)} /K [${leaves.map((id) => `${id} 0 R`).join(" ")}] >>`);
+      nums.push(`${i} [${Array.from(byMcid, (id) => `${id ?? 0} 0 R`).join(" ")}]`);
+    }
   }
   w.obj(pagesId, `<< /Type /Pages /Kids [${kids.map((id) => `${id} 0 R`).join(" ")}] /Count ${kids.length} >>`);
-  w.obj(catalogId, `<< /Type /Catalog /Pages ${pagesId} 0 R >>`);
+  if (tagged) {
+    const parentTree = w.alloc();
+    w.obj(parentTree, `<< /Nums [${nums.join(" ")}] >>`);
+    w.obj(structRoot, `<< /Type /StructTreeRoot /K [${docElem} 0 R] /ParentTree ${parentTree} 0 R /ParentTreeNextKey ${contents.length} >>`);
+    w.obj(docElem, `<< /Type /StructElem /S /Document /P ${structRoot} 0 R /K [${sects.map((id) => `${id} 0 R`).join(" ")}] >>`);
+    w.obj(catalogId, `<< /Type /Catalog /Pages ${pagesId} 0 R /MarkInfo << /Marked true >> /StructTreeRoot ${structRoot} 0 R /Lang ${pdfString(docLang(doc, opts.lang))} /ViewerPreferences << /DisplayDocTitle true >> >>`);
+  } else {
+    w.obj(catalogId, `<< /Type /Catalog /Pages ${pagesId} 0 R >>`);
+  }
   const d = new Date();
   const pad = (v: number) => String(v).padStart(2, "0");
   const created = `D:${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}Z`;
-  w.obj(infoId, `<< /Producer (HyCanvas) /Creator (HyCanvas vector PDF) /Title ${pdfString(opts.title ?? doc.title ?? "Design")} /CreationDate (${created}) >>`);
+  w.obj(infoId, `<< /Producer (danvas) /Creator (danvas ${opts.tagged ? "tagged" : "vector"} PDF) /Title ${pdfString(opts.title ?? doc.title ?? "Design")} /CreationDate (${created}) >>`);
 
   const first = pages[0]?.pg;
   return {

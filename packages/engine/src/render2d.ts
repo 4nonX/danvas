@@ -86,6 +86,11 @@ export interface Render2DOptions {
    *  The editor sets this to the element being cropped, whose crop overlay
    *  dims everything outside the crop frame. */
   unclipIds?: ReadonlySet<string>;
+  /** Called as each visible node starts and finishes drawing, around all of
+   *  its drawing calls (its subtree included). Recording targets use it to
+   *  tie the drawing to the element, e.g. the tagged PDF's structure tree. */
+  onNodeEnter?: (node: Node) => void;
+  onNodeExit?: (node: Node) => void;
 }
 
 /** Absolute page-space box of a node, keyed by node id. Used to resolve
@@ -2090,6 +2095,24 @@ function paint(
     if (offscreen || Math.max(b.width, b.height) * cull.zoom < 0.5) return;
   }
 
+  opts.onNodeEnter?.(node);
+  try {
+    paintVisible(ctx, sn, parentAlpha, opts, boxes, cull);
+  } finally {
+    opts.onNodeExit?.(node);
+  }
+}
+
+function paintVisible(
+  ctx: CanvasLike,
+  sn: SceneNode,
+  parentAlpha: number,
+  opts: Render2DOptions,
+  boxes: BoxMap,
+  cull: { x: number; y: number; w: number; h: number; zoom: number } | null,
+): void {
+  const node = sn.node;
+  const { width: w, height: h } = node.size;
   ctx.save();
   const m = fromTransform(node.transform);
   ctx.transform(m.a, m.b, m.c, m.d, m.e, m.f);

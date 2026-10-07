@@ -31,6 +31,9 @@ export interface DeckPlanOptions {
   /** Restrict the playthrough to these page indices, in file order (hidden
    *  pages are still skipped). Omit to plan every visible page. */
   pageIndices?: number[];
+  /** Use a page's authored dwell (`autoAdvanceMs`) as its slide time when it
+   *  has one, instead of its animations plus the hold (video export). */
+  honorAutoAdvance?: boolean;
 }
 
 /** A single slide frame: draw `pageIndex` posed at `tMs`. */
@@ -140,7 +143,8 @@ export function planDeckFrames(file: DesignFile, opts: DeckPlanOptions = {}): De
     }
 
     // The slide itself: sample its animation window, then hold.
-    const dur = slideDurationMs(file, pageIndex, holdMs);
+    const auto = opts.honorAutoAdvance ? (file.pages[pageIndex] as { autoAdvanceMs?: number } | undefined)?.autoAdvanceMs : undefined;
+    const dur = auto && auto > 0 ? auto : slideDurationMs(file, pageIndex, holdMs);
     const steps = Math.max(1, Math.round((dur / 1000) * fps));
     for (let i = 0; i < steps; i++) {
       const tMs = (i / steps) * dur;

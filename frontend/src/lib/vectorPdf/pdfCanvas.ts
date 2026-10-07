@@ -20,6 +20,7 @@
 // starts with one transform mapping device space to PDF points.
 
 import type * as fontkit from "fontkit";
+import { isDecorative, nodeAltText, type Node } from "@hc/schema";
 import { faceKeyOf, parseCanvasFont, type FaceRequest, type LoadedFace } from "./fontSource";
 
 export type Mat = { a: number; b: number; c: number; d: number; e: number; f: number };
@@ -35,7 +36,7 @@ export function mul(m: Mat, t: Mat): Mat {
     f: m.b * t.e + m.d * t.f + m.f,
   };
 }
-function apply(m: Mat, x: number, y: number): [number, number] {
+export function apply(m: Mat, x: number, y: number): [number, number] {
   return [m.a * x + m.c * y + m.e, m.b * x + m.d * y + m.f];
 }
 export function scaleOf(m: Mat): number {
@@ -197,6 +198,38 @@ export class PdfResources {
     this.shadings.push({ name, dict });
     return name;
   }
+
+  /** Fonts of the invisible text layer, one per parsed font file. */
+  textFonts = new Map<fontkit.Font, TextFont>();
+  textFont(font: fontkit.Font): TextFont {
+    let f = this.textFonts.get(font);
+    if (!f) {
+      f = { name: `F${this.textFonts.size}`, font, glyphs: new Map() };
+      this.textFonts.set(font, f);
+    }
+    return f;
+  }
+}
+
+/** A font of the text layer: which glyphs were used, with their width (1000
+ *  units per em) and the characters they stand for. */
+export interface TextFont {
+  name: string;
+  font: fontkit.Font;
+  glyphs: Map<number, { width: number; unicode: string }>;
+}
+
+/** Plain words of a text node (rasterized text describes itself with them). */
+function nodeText(node: Node): string {
+  const content = (node as unknown as { content?: { runs?: { text?: string }[] }[] }).content ?? [];
+  return content.map((p) => (p.runs ?? []).map((r) => r.text ?? "").join("")).join("\n").trim();
+}
+
+const CONTAINERS = new Set(["group", "frame", "grid", "mask"]);
+
+/** Hex of a glyph id for an Identity-H string. */
+function gidHex(gid: number): string {
+  return gid.toString(16).padStart(4, "0");
 }
 
 function makeCanvas(w: number, h: number): HTMLCanvasElement {
@@ -236,10 +269,39 @@ export interface PdfCanvasOptions extends VectorCanvasOptions {
   resources: PdfResources;
   /** Write colours as CMYK (default: DeviceRGB). */
   color?: ColorOut;
+  /** Tagged (accessible) PDF: every element's drawing is marked content tied
+   *  to the structure tree (see nodeEnter), decorations are artifacts, and
+   *  text carries an invisible real-text layer for reading, search and copy. */
+  tagged?: boolean;
 }
 
 /** A clip outline in device space. */
 export type ClipPath = { path: Seg[]; rule: CanvasFillRule };
+
+/** How one text call was laid out: the outlines plus, per font file, the
+ *  glyphs and their advances. Pen positions are in the user space of `ctm`:
+ *  glyph i of the call starts at x0 + (sum of earlier advances) * k. */
+export interface GlyphLayout {
+  path: Seg[];
+  runs: { font: fontkit.Font; run: fontkit.GlyphRun; scale: number }[];
+  x0: number;
+  base: number;
+  /** Horizontal factor matching the browser's measured width. */
+  k: number;
+  spacing: number;
+  size: number;
+  ctm: Mat;
+}
+
+/** One marked-content item of a tagged page: its id in the content stream,
+ *  its structure type, an optional description, and the top-level element
+ *  (index into the page's z-order) it belongs to. */
+export interface PdfTag {
+  mcid: number;
+  role: "P" | "Figure";
+  alt: string;
+  top: number;
+}
 
 /** Counters describing how a page was written (for tests and the UI). */
 export interface PdfPageStats {
@@ -864,8 +926,9 @@ export abstract class VectorCanvas {
   }
 
   /** Glyph outlines of `text` laid out like the canvas would draw it, as a
-   *  device-space path; null when the font file is not available. */
-  private glyphPath(text: string, x: number, y: number, maxWidth?: number): Seg[] | null {
+   *  device-space path, plus the layout that produced them; null when the
+   *  font file is not available. */
+  private glyphLayout(text: string, x: number, y: number, maxWidth?: number): GlyphLayout | null {
     const req = parseCanvasFont(this.s.font);
     if (!req || req.smallCaps) return null;
     const face = this.o.faces.get(faceKeyOf(req));
@@ -942,8 +1005,18 @@ export abstract class VectorCanvas {
         pen += p.xAdvance * l.scale + spacing;
       });
     }
-    return out;
+    return { path: out, runs: laid, x0, base, k: fit * squeeze, spacing, size: req.size, ctm: m };
   }
+
+  // --- text layer (tagged PDF) ------------------------------------------------
+  /** Whether the backend wants the text itself, besides its outlines. */
+  protected wantsText(): boolean {
+    return false;
+  }
+  /** The words of one fillText/strokeText call; `layout` null when no font
+   *  file could lay them out (the text was drawn as pixels). */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected textLayer(_text: string, _layout: GlyphLayout | null): void {}
 
   private textBox(text: string, x: number, y: number): Box {
     const mt = this.syncMeasure().measureText(text);
@@ -967,7 +1040,10 @@ export abstract class VectorCanvas {
   fillText(text: string, x: number, y: number, maxWidth?: number): void {
     if (this.o.collect) { this.collectFont(); return; }
     if (!text) return;
-    const outline = this.effectActive() || !this.vectorPaint(this.s.fillStyle) || !this.blendName() ? null : this.glyphPath(text, x, y, maxWidth);
+    const vector = !(this.effectActive() || !this.vectorPaint(this.s.fillStyle) || !this.blendName());
+    const layout = vector || this.wantsText() ? this.glyphLayout(text, x, y, maxWidth) : null;
+    if (this.wantsText()) this.textLayer(text, layout);
+    const outline = vector ? layout?.path ?? null : null;
     if (!outline) {
       this.raster(this.textBox(text, x, y), (ctx) => ctx.fillText(text, x, y, maxWidth));
       return;
@@ -979,7 +1055,10 @@ export abstract class VectorCanvas {
   strokeText(text: string, x: number, y: number, maxWidth?: number): void {
     if (this.o.collect) { this.collectFont(); return; }
     if (!text) return;
-    const outline = this.effectActive() || typeof this.s.strokeStyle !== "string" || !this.blendName() ? null : this.glyphPath(text, x, y, maxWidth);
+    const vector = !(this.effectActive() || typeof this.s.strokeStyle !== "string" || !this.blendName());
+    const layout = vector || this.wantsText() ? this.glyphLayout(text, x, y, maxWidth) : null;
+    if (this.wantsText()) this.textLayer(text, layout);
+    const outline = vector ? layout?.path ?? null : null;
     if (!outline) {
       this.raster(this.textBox(text, x, y), (ctx) => ctx.strokeText(text, x, y, maxWidth), this.s.lineWidth * scaleOf(this.s.ctm));
       return;
@@ -992,6 +1071,11 @@ export abstract class VectorCanvas {
 /** The PDF backend: content stream operators plus shared resources. */
 export class PdfCanvas extends VectorCanvas {
   private ops: string[] = [];
+  // Tagged mode: the elements being drawn (innermost last), the tags issued,
+  // and the top-level elements in drawing (z) order.
+  private marks: { node: Node; kind: "tag" | "artifact" | "none"; decorative: boolean; op?: number; tag?: PdfTag; rasterText?: boolean; seen?: Set<string> }[] = [];
+  private tags: PdfTag[] = [];
+  private tops: string[] = [];
 
   constructor(protected readonly o: PdfCanvasOptions) {
     super(o);
@@ -1000,6 +1084,109 @@ export class PdfCanvas extends VectorCanvas {
   /** The page's content stream operators (device space). */
   content(): string {
     return this.ops.join("\n");
+  }
+
+  /** Tagged mode: the page's tags (by mcid) and its top-level element ids in
+   *  z-order, for assembling the structure tree in reading order. */
+  structure(): { tags: PdfTag[]; tops: string[] } {
+    return { tags: this.tags, tops: this.tops };
+  }
+
+  /** An element starts drawing. Same rules as the server's tagged PDF:
+   *  text is a paragraph, an image a figure (described or not), other
+   *  geometry a figure only when described and otherwise an artifact;
+   *  containers are transparent, and everything under a decorative element
+   *  is artifact. */
+  nodeEnter(node: Node): void {
+    if (!this.o.tagged || this.o.collect) return;
+    if (!this.marks.length) this.tops.push(node.id);
+    const inArtifact = this.marks.some((m) => m.decorative);
+    if (inArtifact || (CONTAINERS.has(node.type) && !isDecorative(node))) {
+      this.marks.push({ node, kind: "none", decorative: false });
+      return;
+    }
+    if (isDecorative(node)) {
+      this.ops.push("/Artifact BMC");
+      this.marks.push({ node, kind: "artifact", decorative: true });
+      return;
+    }
+    const alt = nodeAltText(node) ?? "";
+    const role = node.type === "text" || node.type === "sticky" ? "P" : node.type === "image" || alt ? "Figure" : null;
+    if (!role) {
+      this.ops.push("/Artifact BMC");
+      this.marks.push({ node, kind: "artifact", decorative: false });
+      return;
+    }
+    const tag: PdfTag = { mcid: this.tags.length, role, alt, top: this.tops.length - 1 };
+    this.tags.push(tag);
+    this.marks.push({ node, kind: "tag", decorative: false, op: this.ops.length, tag });
+    this.ops.push(`/${role} <</MCID ${tag.mcid}>> BDC`);
+  }
+
+  nodeExit(node: Node): void {
+    if (!this.o.tagged || this.o.collect) return;
+    const m = this.marks.pop();
+    if (!m || m.node !== node) return;
+    if (m.kind === "tag" && m.rasterText && m.tag && m.op !== undefined) {
+      // Text drawn as pixels (no font file): a figure that says its words.
+      m.tag.role = "Figure";
+      m.tag.alt = m.tag.alt || nodeText(node);
+      this.ops[m.op] = `/Figure <</MCID ${m.tag.mcid}>> BDC`;
+    }
+    if (m.kind !== "none") this.ops.push("EMC");
+  }
+
+  /** Paint outside every element's marked content (page background, a
+   *  container's own fill) is presentational. */
+  private uncovered(): boolean {
+    return !!this.o.tagged && !this.o.collect && !this.marks.some((m) => m.kind !== "none");
+  }
+  private paintOps(...ops: string[]): void {
+    if (this.uncovered()) this.ops.push("/Artifact BMC", ...ops, "EMC");
+    else this.ops.push(...ops);
+  }
+
+  protected wantsText(): boolean {
+    return !!this.o.tagged;
+  }
+
+  protected textLayer(text: string, layout: GlyphLayout | null): void {
+    const mark = [...this.marks].reverse().find((m) => m.kind !== "none");
+    if (!mark || mark.kind !== "tag") return; // artifact or untagged: no words
+    if (!layout) {
+      if (/\S/.test(text)) mark.rasterText = true;
+      return;
+    }
+    // Effects draw the same words again (glow passes, outlines, offset
+    // copies); each word belongs in the text once.
+    const [dx, dy] = apply(layout.ctm, layout.x0, layout.base);
+    const grid = Math.max(1, layout.size * scaleOf(layout.ctm) * 0.5);
+    const key = `${text}|${Math.round(dx / grid)}|${Math.round(dy / grid)}`;
+    mark.seen ??= new Set();
+    if (mark.seen.has(key)) return;
+    mark.seen.add(key);
+
+    const res = this.o.resources;
+    const t = mul(layout.ctm, { a: layout.k, b: 0, c: 0, d: -1, e: layout.x0, f: layout.base });
+    const out: string[] = ["BT 3 Tr", `${num(t.a)} ${num(t.b)} ${num(t.c)} ${num(t.d)} ${num(t.e)} ${num(t.f)} Tm`];
+    for (const l of layout.runs) {
+      const tf = res.textFont(l.font);
+      const upm = l.font.unitsPerEm;
+      const parts: string[] = [];
+      l.run.glyphs.forEach((g, i) => {
+        const width = (g.advanceWidth * 1000) / upm;
+        if (!tf.glyphs.has(g.id)) tf.glyphs.set(g.id, { width, unicode: String.fromCodePoint(...(g.codePoints ?? [])) });
+        parts.push(`<${gidHex(g.id)}>`);
+        // The pen then moves by the glyph width; correct it to the laid-out
+        // advance (kerning, letter spacing).
+        const want = (l.run.positions[i].xAdvance * 1000) / upm + (layout.spacing * 1000) / layout.size;
+        const adj = width - want;
+        if (Math.abs(adj) > 0.01) parts.push(num(adj));
+      });
+      out.push(`/${tf.name} ${num(layout.size)} Tf [${parts.join(" ")}] TJ`);
+    }
+    out.push("ET");
+    this.ops.push(...out);
   }
 
   /** A colour's components in the output space (RGB, or CMYK via the
@@ -1076,15 +1263,15 @@ export class PdfCanvas extends VectorCanvas {
     this.ops.push("Q");
   }
   protected emitFill(path: Seg[], rule: CanvasFillRule, c: Rgba, alpha: number, blend: string): void {
-    this.ops.push(`q /${this.o.resources.gs(alpha, alpha, blend)} gs ${this.colorOp(c, false)}`, pathOps(path), rule === "evenodd" ? "f* Q" : "f Q");
+    this.paintOps(`q /${this.o.resources.gs(alpha, alpha, blend)} gs ${this.colorOp(c, false)}`, pathOps(path), rule === "evenodd" ? "f* Q" : "f Q");
   }
   protected emitGradientFill(path: Seg[], rule: CanvasFillRule, g: GradientProxy, ctm: Mat, alpha: number, blend: string): void {
     const res = this.o.resources;
     const sh = res.addShading(this.shading(g));
-    this.ops.push(`q /${res.gs(alpha, alpha, blend)} gs`, pathOps(path), rule === "evenodd" ? "W* n" : "W n", this.matrixOp(ctm), `/${sh} sh Q`);
+    this.paintOps(`q /${res.gs(alpha, alpha, blend)} gs`, pathOps(path), rule === "evenodd" ? "W* n" : "W n", this.matrixOp(ctm), `/${sh} sh Q`);
   }
   protected emitStroke(path: Seg[], c: Rgba, alpha: number, blend: string): void {
-    this.ops.push(`q /${this.o.resources.gs(alpha, alpha, blend)} gs ${this.colorOp(c, true)} ${this.strokeParams()}`, pathOps(path), "S Q");
+    this.paintOps(`q /${this.o.resources.gs(alpha, alpha, blend)} gs ${this.colorOp(c, true)} ${this.strokeParams()}`, pathOps(path), "S Q");
   }
   protected emitClip(path: Seg[], rule: CanvasFillRule): void {
     if (path.length) this.ops.push(...this.clipOps({ path, rule }));
@@ -1094,7 +1281,7 @@ export class PdfCanvas extends VectorCanvas {
     const name = this.o.resources.addImage(source, width, height, rgba);
     // PDF image space has its first row at the top of the unit square (y up).
     const m = this.matrixOp(mul(place, { a: 1, b: 0, c: 0, d: -1, e: 0, f: 1 }));
-    if (blend === null) this.ops.push("q", ...this.clipOps(clip), `${m} /${name} Do Q`);
-    else this.ops.push(`q /${this.o.resources.gs(alpha, alpha, blend)} gs`, ...this.clipOps(clip), m, `/${name} Do Q`);
+    if (blend === null) this.paintOps("q", ...this.clipOps(clip), `${m} /${name} Do Q`);
+    else this.paintOps(`q /${this.o.resources.gs(alpha, alpha, blend)} gs`, ...this.clipOps(clip), m, `/${name} Do Q`);
   }
 }

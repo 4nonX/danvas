@@ -8,6 +8,9 @@ declare module "fontkit" {
   export interface Glyph {
     id: number;
     path: { commands: PathCommand[] };
+    advanceWidth: number;
+    /** The characters this glyph stands for (several for a ligature). */
+    codePoints: number[];
   }
   export interface GlyphPosition {
     xAdvance: number;
@@ -21,6 +24,9 @@ declare module "fontkit" {
   }
   export interface Font {
     unitsPerEm: number;
+    postscriptName: string | null;
+    bbox: { minX: number; minY: number; maxX: number; maxY: number };
+    capHeight: number;
     ascent: number;
     descent: number;
     variationAxes: Record<string, { min: number; default: number; max: number }>;

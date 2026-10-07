@@ -58,6 +58,7 @@ danvas is distributed under the same license as HyCanvas, the [Elastic License 2
 - PPTX import keeps exported designs editable: picture fills with crop and transparency, freeform paths, real groups, font weights encoded in font names.
 - Bulk import of files and whole folder trees into dashboard folders.
 - Print exports: vector PDF, CMYK or RGB TIFF and EPS (PostScript Level 3) with ICC color management (Little CMS), black-only text, and workspace print profiles uploaded by admins.
+- One rendering engine for exports: SVG, vector PDF, tagged (accessible) PDF and MP4 are drawn by the same engine as the editor, so they match it exactly. The tagged PDF adds a structure tree, alt text and a real-text layer; MP4 is encoded in the browser.
 - Dashboard: folders, previews that show the page as a sheet and redraw once images and fonts load, and download and share for one design or a whole selection (every page of every design into one zip; one person's access or view links for all selected designs at once).
 
 ### Tools

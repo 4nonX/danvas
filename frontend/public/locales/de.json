@@ -470,6 +470,7 @@
   "editor.accessibility": "Barrierefreiheit",
   "editor.accessibility_check": "Barrierefreiheits-Prüfung",
   "editor.accessible_pdf_tagged": "Barrierefreies PDF (getaggt)",
+  "editor.pdf_tagged_desc": "Sieht genau aus wie das Vektor-PDF, mit markierbarem Text, dem ein Screenreader in Ihrer Lesereihenfolge folgt, dazu Alternativtexte und Seitentitel.",
   "editor.achromatopsia_mono": "Achromatopsie (mono)",
   "editor.acme_com": "acme.com",
   "editor.action_add_page": "Seite wird hinzugefügt",

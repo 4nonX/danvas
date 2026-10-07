@@ -10,7 +10,6 @@ import { rasterDimensions, encodeApng, encodeGif, designPageToLottie, deckToPptx
 import { worldAABB } from "@hc/editor";
 import { resolveAssetUrl } from "@/lib/sdk";
 import { zipFiles, type ZipEntry } from "@/lib/zip";
-import { deckToVideoFile } from "@/lib/video/deckToVideo";
 import type { BrandLintResult } from "@hc/sdk";
 import {
   createScene,
@@ -35,7 +34,8 @@ import { CodedError, userMessage } from "@/lib/errors";
 import { imageAssets } from "@/lib/assetProvider";
 import { oc } from "@/lib/sdk";
 import { useToast } from "@/components/ui/Toast";
-import { tr } from "@/lib/i18n";
+import { tr, trOr } from "@/lib/i18n";
+import { resolvedLocale } from "@/lib/locale";
 import { copyText } from "@/lib/clipboard";
 import { listProfileOptions, profileBytes, type ProfileOption } from "@/lib/print/profiles";
 import type { CmykConverter, RenderingIntent } from "@/lib/print/cms";
@@ -283,11 +283,10 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const credits = useMemo(() => (open ? (designs ?? [{ doc: useEditor.getState().doc }]).flatMap((d) => compileAttribution(d.doc)) : []), [open, rev, designs]);
   const [format, setFormat] = useState<Format>("png");
-  // Accessibility-tagged PDF (doc 28 FR-22): rendered by the Go encoder instead
-  // of rasterized here, so the text stays real text and carries a structure tree.
   // PDF flavor: "vector" (print quality: vector shapes, outlined text, images
   // at full resolution, true physical size), "image" (each page flattened to
-  // one picture at the chosen size), "tagged" (accessible, server-rendered).
+  // one picture at the chosen size), "tagged" (accessible, doc 28 FR-22: the
+  // vector PDF plus a structure tree and a real-text layer).
   const [pdfMode, setPdfMode] = useState<"vector" | "image" | "tagged">("vector");
   const taggedPdf = pdfMode === "tagged";
   const [scale, setScale] = useState(1);
@@ -473,38 +472,42 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
       emit(new Blob([md], { type: "text/markdown" }), `${safeBase}.md`);
       if (!quiet) toast.success(tr("editor.downloaded_file", { file: `${safeBase}.md` }));
     } else if (format === "mp4") {
-      // Whole-deck video export (doc 28 FR-19): convert the deck to a video
-      // project client-side (each slide a scene with its timing, animations,
-      // and transition) and render it on the server video pipeline via the
-      // inline-file override - nothing new is persisted. Slide duration comes
-      // from each page's autoAdvanceMs (default applies otherwise).
-      if (!designId) {
-        toast.error(tr("editor.save_the_design_first_video_renders_on_the_s"));
+      // Whole-deck video (doc 28 FR-19): the playthrough present mode shows
+      // (animations, transitions, slide timing), drawn frame by frame by the
+      // editor's engine and encoded in the browser, so it looks exactly like
+      // the design. Small pages are scaled up to a 1920 px long side.
+      const { encodeMp4, canEncodeMp4 } = await import("@/lib/video/encodeMp4");
+      if (!canEncodeMp4()) throw new CodedError("errors.video_render_failed", "this browser cannot encode video");
+      // Exporting only hidden pages still means "these pages".
+      const chosen = pages.length ? pages : doc.pages.map((_, i) => i);
+      const src = chosen.every((i) => doc.pages[i]?.hidden)
+        ? { ...doc, pages: doc.pages.map((p, i) => (chosen.includes(i) ? { ...p, hidden: false } : p)) }
+        : doc;
+      const fps = 30;
+      const plan = planDeckFrames(src, { fps, holdMs: 3000, maxFrames: fps * 60 * 20, pageIndices: chosen, reducedMotion: prefersReducedMotion(), honorAutoAdvance: true });
+      if (!plan.length) {
+        toast.error(tr("editor.nothing_to_animate_add_an_animation_or_a_sli"));
         return;
       }
-      const videoFile = deckToVideoFile(doc);
-      const { jobId } = await oc.startVideoExport(designId, { file: videoFile });
-      // Server render takes a while for long decks; poll up to ~5 minutes.
-      let done = false;
-      for (let i = 0; i < 150; i++) {
-        await new Promise((res) => setTimeout(res, 2000));
-        const job = await oc.getJob(jobId);
-        if (job.status === "completed") { done = true; break; }
-        // A server-provided failure detail is shown as-is; only the generic
-        // fallback carries a code for translation.
-        if (job.status === "failed") throw job.error ? new Error(job.error) : new CodedError("errors.video_render_failed", "video render failed");
-      }
-      if (!done) throw new CodedError("errors.video_render_timed_out", "video render timed out");
-      const res = await fetch(oc.videoExportDownloadUrl(designId, jobId), { credentials: "include" });
-      if (!res.ok) throw new CodedError("errors.video_download_failed", `video download failed (${res.status})`, { status: res.status });
-      emit(await res.blob(), `${safeBase}.mp4`);
+      const first = plan[0];
+      const pg = src.pages[first.kind === "slide" ? first.pageIndex : first.toIndex];
+      const long = Math.max(pg.width, pg.height);
+      const vScale = Math.min(3840 / long, Math.max(1, 1920 / long));
+      const blob = await encodeMp4({
+        width: pg.width * vScale,
+        height: pg.height * vScale,
+        fps,
+        count: plan.length,
+        frame: (i) => renderDeckFrame(src, plan[i], vScale, true),
+      });
+      emit(blob, `${safeBase}.mp4`);
       if (!quiet) toast.success(tr("editor.downloaded_file", { file: `${safeBase}.mp4` }));
-    } else if (format === "pdf" && taggedPdf && designId) {
-      // The server renders the design as last saved, so it is fetched rather
-      // than built here. Its text is real text in the author's reading order.
-      const res = await fetch(oc.taggedPdfUrl(designId), { credentials: "include" });
-      if (!res.ok) throw new CodedError("errors.tagged_pdf_export_failed", `tagged PDF export failed (${res.status})`, { status: res.status });
-      emit(await res.blob(), `${safeBase}.pdf`);
+    } else if (format === "pdf" && taggedPdf) {
+      // Drawn by the editor's engine like the vector PDF, so it looks exactly
+      // like the design; the words are real text in the author's reading order.
+      const { exportVectorPdf } = await import("@/lib/vectorPdf");
+      const out = await exportVectorPdf(doc, pages, { assets: imageAssets, title: doc.title, tagged: true, lang: resolvedLocale() });
+      emit(out.blob, `${safeBase}.pdf`);
       if (!quiet) toast.success(tr("editor.downloaded_file", { file: `${safeBase}.pdf` }));
     } else if (format === "tiff" || format === "eps") {
       // Print formats: CMYK through the chosen output profile (embedded in
@@ -826,10 +829,8 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
           </p>
         </div>
 
-        {/* Accessible PDF (doc 28 FR-22). The two PDF paths are a real
-            trade-off, so it is named rather than hidden: the tagged one is
-            readable by assistive technology but renders text in standard
-            faces, and it exports the design as last saved. */}
+        {/* Accessible PDF (doc 28 FR-22): the vector PDF plus what assistive
+            technology needs (structure, reading order, alt text, real text). */}
         {format === "pdf" && (() => {
           const dpi = doc.dpi ?? 96;
           const mm = (px: number) => ((px / dpi) * 25.4).toLocaleString(undefined, { maximumFractionDigits: 1 });
@@ -839,10 +840,8 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
             {
               id: "tagged" as const,
               label: tr("editor.accessible_pdf_tagged"),
-              desc: designId
-                ? "Real, selectable text a screen reader can follow in your reading order, with alt text and slide titles. Fonts you uploaded are embedded; web fonts fall back to standard faces. The last saved version is exported."
-                : tr("editor.save_the_design_first_to_export_an_accessibl"),
-              disabled: !designId,
+              desc: trOr("editor.pdf_tagged_desc", "Looks exactly like the vector PDF, with selectable text a screen reader follows in your reading order, plus alt text and page titles."),
+              disabled: false,
             },
           ];
           return (

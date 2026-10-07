@@ -470,6 +470,7 @@
   "editor.accessibility": "Accessibility",
   "editor.accessibility_check": "Accessibility check",
   "editor.accessible_pdf_tagged": "Accessible PDF (tagged)",
+  "editor.pdf_tagged_desc": "Looks exactly like the vector PDF, with selectable text a screen reader follows in your reading order, plus alt text and page titles.",
   "editor.achromatopsia_mono": "Achromatopsia (mono)",
   "editor.acme_com": "acme.com",
   "editor.action_add_page": "Adding a page",
