@@ -112,6 +112,9 @@ jobs:
           case "$ct" in *json*) echo "model served ($ct)";; *) echo "::error::background-removal model not served (content type: $ct)"; exit 1;; esac
           # The app itself loads.
           curl -fsSL http://127.0.0.1:8005/ | grep -qi "<html" || { echo "::error::the app page did not load"; exit 1; }
+          # It runs as the unprivileged user (PUID 1000), not root.
+          uid=$(docker compose exec -T app stat -c %u /proc/1)
+          [ "$uid" = 1000 ] || { echo "::error::the app runs as uid $uid, not 1000"; exit 1; }
           echo "deploy check passed"
 
       - name: Logs on failure
@@ -124,11 +127,26 @@ jobs:
         working-directory: deploy
         run: docker compose down -v || true
 
+      # Labels and annotations: GHCR shows the description and license of a
+      # multi-arch image from the index annotations. The license is set
+      # explicitly because GitHub does not detect Elastic-2.0.
       - uses: docker/metadata-action@v5
         id: meta
         if: env.PUBLISH == 'true'
+        env:
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
         with:
           images: ${{ steps.version.outputs.image }}
+          labels: |
+            org.opencontainers.image.title=danvas
+            org.opencontainers.image.licenses=Elastic-2.0
+            org.opencontainers.image.version=${{ steps.version.outputs.version }}
+            org.opencontainers.image.documentation=https://github.com/${{ github.repository }}/blob/main/deploy/README.md
+          annotations: |
+            org.opencontainers.image.title=danvas
+            org.opencontainers.image.licenses=Elastic-2.0
+            org.opencontainers.image.version=${{ steps.version.outputs.version }}
+            org.opencontainers.image.documentation=https://github.com/${{ github.repository }}/blob/main/deploy/README.md
           tags: |
             type=ref,event=tag
             type=semver,pattern={{version}}
@@ -156,5 +174,6 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          annotations: ${{ steps.meta.outputs.annotations }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

@@ -8,6 +8,9 @@ All notable changes to danvas are listed here, newest first. Versions follow the
 
 - Images built from source by GitHub Actions (`.github/workflows/image.yml`) for amd64 and arm64 and published as `ghcr.io/4nonx/danvas`: every release (tags `v0.1.6`, `0.1.6`, `0.1`, `latest`; the tag must match the `VERSION` file) and every push to main (`main`, `sha-<commit>`, reporting `v<VERSION>+<commit>`). Pull requests are built and checked without publishing.
 - Deploy check before publishing: each image is started through `deploy/compose.yaml` with Postgres and must report its version on `/healthz`, serve the background-removal model and load the app.
+- The image presents itself like a packaged app: name, description, license, documentation and source links, the danvas icon and a web-UI link (OCI, Unraid and Artifact Hub labels; GHCR shows the description and license of the multi-arch image).
+- `PUID`/`PGID` (default 1000) choose the user the app runs as; `TZ` sets the time zone (tzdata is now in the image).
+- An image reference in `deploy/README.md`: tags, platforms, port, volume, user, health check, variables, a single-container `docker run`, and setup in Portainer, Unraid and Synology.
 - One-step install on any Docker host: `install.sh` works in an empty folder, fetches the install kit for the latest release, generates the secrets, pins the release in `.env` and pulls the images. Git, Python and a 10 minute build are no longer needed.
 
 ### Changed
@@ -17,6 +20,7 @@ All notable changes to danvas are listed here, newest first. Versions follow the
 - `update.sh` moves to the latest release (or the one given), pulls its image and keeps running the previous release when the pull fails.
 - The image build runs its build stages natively and cross-compiles Go, so arm64 images build without emulating the toolchain.
 - The model download is a Node script (`scripts/fetch-bg-model.mjs`), used by both Dockerfiles.
+- The app no longer runs as root inside the container. On start, files in the storage volume owned by someone else (written by earlier images as root) are handed to the app user, so existing installs keep working.
 
 ## 0.1.5 (2026-10-08)
 

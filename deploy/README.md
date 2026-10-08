@@ -45,6 +45,48 @@ cd danvas/deploy
 
 When the image of the clone's version cannot be pulled, `install.sh` builds it from the clone. Building is recorded in `.env` (`COMPOSE_FILE=compose.yaml:compose.build.yaml`), so updates keep building.
 
+### Portainer, Unraid, Synology and other dashboards
+
+Create a stack (Portainer: Stacks, Add stack; Unraid: the Docker Compose Manager plugin; Synology: Container Manager, Project) from [`compose.yaml`](compose.yaml), and give it the variables of [`.env.example`](.env.example) with the three secrets filled in (`openssl rand -hex 32` each) and `DANVAS_VERSION` set to a release. The image carries its name, description, icon and web-UI link, so dashboards show it with the danvas icon and an "open" button.
+
+## Image reference
+
+| | |
+|---|---|
+| Image | `ghcr.io/4nonx/danvas` |
+| Tags | `v0.1.6` / `0.1.6` (a release), `0.1` (newest 0.1.x), `latest` (newest release), `main` (newest state of main, for testing) |
+| Platforms | `linux/amd64`, `linux/arm64` (Raspberry Pi 4/5, Apple silicon, ARM servers) |
+| Port | `8005` (the web app, its API and the realtime connection) |
+| Volume | `/app/.data/storage`: uploads, exports, snapshots (with the default local storage) |
+| User | runs as `PUID`:`PGID` (default `1000:1000`), not root; on start, files in the storage volume that belong to someone else are handed to that user, which also covers installs from images that ran as root |
+| Health check | `GET /healthz` answers `{"status":"ok","version":"v0.1.6"}`; Docker shows the container as healthy |
+| Database | PostgreSQL (`compose.yaml` brings Postgres 16, as do all danvas setups); migrations run on every start |
+
+The variables the image itself reads (everything else is in [`.env.example`](.env.example)):
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `DATABASE_URL` | (none) | `postgresql://user:password@host:5432/danvas`; without it the first-run setup wizard starts |
+| `JWT_SECRET`, `AI_SECRET` | (none) | secrets for sign-in and stored AI keys; `openssl rand -hex 32` each |
+| `APP_URL` | | the address users open in the browser |
+| `PUID`, `PGID` | `1000` | the user and group the app runs as |
+| `TZ` | `UTC` | time zone, e.g. `Europe/Berlin` |
+| `PORT` | `8005` | the port inside the container |
+| `STORAGE_DRIVER` | `local` | `local` (the volume) or `s3` for S3-compatible object storage |
+
+With a Postgres you already run, a single container is enough:
+
+```bash
+docker run -d --name danvas --restart unless-stopped -p 8005:8005 \
+  -e DATABASE_URL=postgresql://danvas:secret@db.example.org:5432/danvas \
+  -e JWT_SECRET=$(openssl rand -hex 32) -e AI_SECRET=$(openssl rand -hex 32) \
+  -e APP_URL=http://localhost:8005 -e COOKIE_SECURE=false \
+  -v danvas-storage:/app/.data/storage \
+  ghcr.io/4nonx/danvas:latest
+```
+
+Keep the generated `JWT_SECRET` and `AI_SECRET` (`docker inspect danvas`): a new `AI_SECRET` cannot decrypt stored AI keys and MFA secrets.
+
 ## Settings
 
 Main settings in `.env`:

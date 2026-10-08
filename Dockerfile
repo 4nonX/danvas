@@ -69,30 +69,51 @@ RUN v="${VERSION:-v$(tr -d '[:space:]' < /VERSION)}" \
 FROM debian:bookworm-slim AS runtime
 WORKDIR /app
 
+# What registries and container dashboards show. The release workflow adds
+# the version, commit and build date; the icon and web-UI labels are read by
+# Unraid and Artifact Hub (Portainer and others show the title and URLs).
 LABEL org.opencontainers.image.title="danvas" \
-      org.opencontainers.image.description="Self-hostable design platform, a modified version of HyCanvas by HyScaler" \
-      org.opencontainers.image.licenses="Elastic-2.0"
+      org.opencontainers.image.description="Self-hostable design platform: presentations, video, whiteboards, docs and print exports in the browser. An unofficial, modified version of HyCanvas by HyScaler." \
+      org.opencontainers.image.licenses="Elastic-2.0" \
+      org.opencontainers.image.url="https://github.com/4nonX/danvas" \
+      org.opencontainers.image.source="https://github.com/4nonX/danvas" \
+      org.opencontainers.image.documentation="https://github.com/4nonX/danvas/blob/main/deploy/README.md" \
+      net.unraid.docker.icon="https://raw.githubusercontent.com/4nonX/danvas/main/frontend/public/icon-512.png" \
+      net.unraid.docker.webui="http://[IP]:[PORT:8005]/" \
+      io.artifacthub.package.logo-url="https://raw.githubusercontent.com/4nonX/danvas/main/frontend/public/icon-512.png" \
+      io.artifacthub.package.readme-url="https://raw.githubusercontent.com/4nonX/danvas/main/deploy/README.md" \
+      io.artifacthub.package.license="Elastic-2.0"
 
 # ffmpeg: video export. ca-certificates: outbound TLS (AI providers, SSO).
-# curl: container healthcheck against /healthz. The upgrade pulls in Debian
-# security fixes the base image tag does not carry yet (release scans fail on
-# fixed CRITICAL CVEs, e.g. perl-base).
+# curl: container healthcheck against /healthz. tzdata: TZ=Europe/Berlin and
+# friends work. The upgrade pulls in Debian security fixes the base image tag
+# does not carry yet (release scans fail on fixed CRITICAL CVEs, e.g.
+# perl-base). setpriv (util-linux, always present) drops to the app user.
 RUN apt-get update \
  && apt-get upgrade -y --no-install-recommends \
- && apt-get install -y --no-install-recommends ffmpeg ca-certificates curl \
- && rm -rf /var/lib/apt/lists/*
+ && apt-get install -y --no-install-recommends ffmpeg ca-certificates curl tzdata \
+ && rm -rf /var/lib/apt/lists/* \
+ && groupadd --gid 1000 danvas \
+ && useradd --uid 1000 --gid 1000 --home-dir /app --no-create-home --shell /usr/sbin/nologin danvas
 
 COPY --from=backend /out/hycanvas /app/hycanvas
 # The model files, with the background remover's license (AGPL-3.0; the
 # model and the ONNX runtime it lists are MIT).
 COPY --from=bgmodel /out /app/static-data
 COPY --from=frontend /app/node_modules/@imgly/background-removal/LICENSE.md /app/node_modules/@imgly/background-removal/ThirdPartyLicenses.json /app/static-data/bg-removal/
+# Runs danvas as the unprivileged user (PUID/PGID). CRs are stripped so a
+# Windows checkout cannot break the script.
+COPY docker/entrypoint.sh /usr/local/bin/danvas-entrypoint
+RUN sed -i 's/\r$//' /usr/local/bin/danvas-entrypoint && chmod 0755 /usr/local/bin/danvas-entrypoint
 
 ENV PORT=8005 \
     DB_AUTO_MIGRATE=true \
     STORAGE_DRIVER=local \
     LOCAL_STORAGE_PATH=/app/.data/storage \
-    STATIC_DATA_DIR=/app/static-data
+    STATIC_DATA_DIR=/app/static-data \
+    TZ=UTC \
+    PUID=1000 \
+    PGID=1000
 
 EXPOSE 8005
 # Persist uploads/exports/snapshots when using the local storage driver.
@@ -102,4 +123,5 @@ VOLUME ["/app/.data/storage"]
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD curl -fsS "http://localhost:${PORT}/healthz" || exit 1
 
-ENTRYPOINT ["/app/hycanvas"]
+# Arguments are passed on to the danvas binary.
+ENTRYPOINT ["danvas-entrypoint"]
