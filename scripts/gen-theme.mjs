@@ -13,6 +13,8 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { theme } from "../frontend/src/theme.config.mjs";
+// Tailwind's default palettes: the status colors dark mode re-maps.
+import tailwindColors from "tailwindcss/colors";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const GLOBALS = resolve(here, "../frontend/src/styles/globals.css");
@@ -60,6 +62,26 @@ function colorsRegion() {
   ].join("\n");
 }
 
+/** Status palettes (theme.dark.status): in dark mode the tints mix the hue's
+ *  500 shade into the page and the inks take the light end of the ramp; the
+ *  light set re-declares Tailwind's own values for the `.light` escape hatch. */
+function statusVars(dark) {
+  const s = theme.dark.status;
+  const lines = [];
+  for (const p of s.palettes) {
+    const ramp = tailwindColors[p];
+    for (const [step, pct] of Object.entries(s.tint)) {
+      lines.push(dark
+        ? `  --color-${p}-${step}: color-mix(in oklab, ${ramp[500]} ${pct}%, ${theme.dark.page});`
+        : `  --color-${p}-${step}: ${ramp[step]};`);
+    }
+    for (const [step, from] of Object.entries(s.ink)) {
+      lines.push(`  --color-${p}-${step}: ${dark ? ramp[from] : ramp[step]};`);
+    }
+  }
+  return lines.join("\n");
+}
+
 function darkRegion() {
   const d = theme.dark;
   const lightBrandTints = Object.fromEntries(Object.keys(d.brand).map((k) => [k, theme.brand[k]]));
@@ -73,6 +95,9 @@ function darkRegion() {
     scaleVars("neutral", d.neutral),
     "",
     scaleVars("brand", d.brand),
+    "",
+    "  /* Status colors: tints dark, inks light (theme.dark.status). */",
+    statusVars(true),
     "}",
     "",
     "/* Escape hatch: subtrees that must stay light even under a dark app chrome",
@@ -87,6 +112,8 @@ function darkRegion() {
     scaleVars("neutral", theme.neutral),
     "",
     scaleVars("brand", lightBrandTints),
+    "",
+    statusVars(false),
     "}",
     DARK_END,
   ].join("\n");
@@ -289,11 +316,14 @@ const haveTs = await read(TS_OUT);
 const haveGo = await read(GO_OUT);
 const haveGoBrand = await read(GO_BRAND_OUT);
 
+// Line endings do not count: a Windows checkout has the generated files with
+// CRLF, which is the same content (git stores LF).
+const differs = (a, b) => a.replace(/\r\n/g, "\n") !== b.replace(/\r\n/g, "\n");
 const stale = [];
-if (wantGlobals !== currentGlobals) stale.push("globals.css");
-if (wantTs !== haveTs) stale.push("theme.generated.ts");
-if (wantGo !== haveGo) stale.push("presence_palette_gen.go");
-if (wantGoBrand !== haveGoBrand) stale.push("brand_gen.go");
+if (differs(wantGlobals, currentGlobals)) stale.push("globals.css");
+if (differs(wantTs, haveTs)) stale.push("theme.generated.ts");
+if (differs(wantGo, haveGo)) stale.push("presence_palette_gen.go");
+if (differs(wantGoBrand, haveGoBrand)) stale.push("brand_gen.go");
 
 if (stale.length === 0) {
   console.log("gen-theme: all generated files already in sync.");
@@ -305,10 +335,10 @@ if (check) {
   process.exit(1);
 }
 
-if (wantGlobals !== currentGlobals) await writeFile(GLOBALS, wantGlobals, "utf8");
-if (wantTs !== haveTs) await writeFile(TS_OUT, wantTs, "utf8");
-if (wantGo !== haveGo) await writeFile(GO_OUT, wantGo, "utf8");
-if (wantGoBrand !== haveGoBrand) {
+if (differs(wantGlobals, currentGlobals)) await writeFile(GLOBALS, wantGlobals, "utf8");
+if (differs(wantTs, haveTs)) await writeFile(TS_OUT, wantTs, "utf8");
+if (differs(wantGo, haveGo)) await writeFile(GO_OUT, wantGo, "utf8");
+if (differs(wantGoBrand, haveGoBrand)) {
   await mkdir(dirname(GO_BRAND_OUT), { recursive: true });
   await writeFile(GO_BRAND_OUT, wantGoBrand, "utf8");
 }

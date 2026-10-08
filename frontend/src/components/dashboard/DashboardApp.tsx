@@ -299,6 +299,17 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     setRailCollapsed(collapsed);
     window.localStorage.setItem("hc-dash-rail", collapsed ? "collapsed" : "expanded");
   }
+  // The home page's template teaser starts collapsed (your own designs come
+  // first) and remembers being opened. It renders only once the templates
+  // have loaded, after hydration, so reading localStorage here is safe.
+  const [templatesOpen, setTemplatesOpen] = useState(
+    () => typeof window !== "undefined" && window.localStorage.getItem("hc-dash-templates") === "expanded",
+  );
+  function toggleTemplates() {
+    const open = !templatesOpen;
+    setTemplatesOpen(open);
+    window.localStorage.setItem("hc-dash-templates", open ? "expanded" : "collapsed");
+  }
   const [trash, setTrash] = useState<DesignRecord[]>([]);
   const [favorites, setFavorites] = useState<HomeItem[]>([]);
   // Storage usage for the rail meter (workspace + account scopes).
@@ -1289,33 +1300,35 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                         e.target.value = "";
                       }}
                     />
-                    <label className="flex items-center gap-1.5 rounded-full border border-neutral-200 py-1.5 ps-3 pe-1.5 text-[13px] text-neutral-700 transition hover:border-neutral-300 focus-within:border-brand-400">
+                    <label className="relative flex items-center gap-1.5 rounded-full border border-neutral-200 py-1.5 ps-3 pe-2.5 text-[13px] text-neutral-700 transition hover:border-neutral-300 focus-within:border-brand-400">
                       <LayoutTemplate size={13} className="shrink-0 text-neutral-400" />
                       <span className="sr-only">{tr("dashboard.output_format")}</span>
                       <select
                         value={aiFormat}
                         onChange={(e) => setAiFormat(e.target.value)}
                         disabled={busy || !activeWorkspaceId}
-                        className="max-w-[9rem] cursor-pointer truncate bg-transparent pe-1 outline-none"
+                        className="max-w-[9rem] cursor-pointer appearance-none truncate bg-transparent pe-5 outline-none disabled:cursor-default"
                       >
                         {briefFormats().map((f) => (
                           <option key={f.label} value={f.label}>{f.label}</option>
                         ))}
                       </select>
+                      <ChevronDown size={13} aria-hidden className="pointer-events-none absolute end-2.5 shrink-0 text-neutral-400" />
                     </label>
-                    <label className="flex items-center gap-1.5 rounded-full border border-neutral-200 py-1.5 ps-3 pe-1.5 text-[13px] text-neutral-700 transition hover:border-neutral-300 focus-within:border-brand-400">
+                    <label className="relative flex items-center gap-1.5 rounded-full border border-neutral-200 py-1.5 ps-3 pe-2.5 text-[13px] text-neutral-700 transition hover:border-neutral-300 focus-within:border-brand-400">
                       <Wand2 size={13} className="shrink-0 text-neutral-400" />
                       <span className="sr-only">{tr("dashboard.tone")}</span>
                       <select
                         value={aiTone}
                         onChange={(e) => setAiTone(e.target.value)}
                         disabled={busy || !activeWorkspaceId}
-                        className="max-w-[8rem] cursor-pointer truncate bg-transparent pe-1 outline-none"
+                        className="max-w-[8rem] cursor-pointer appearance-none truncate bg-transparent pe-5 outline-none disabled:cursor-default"
                       >
                         {dialTones.map((t) => (
                           <option key={t} value={t}>{trOr(`editor.dial_${t}`, t)}</option>
                         ))}
                       </select>
+                      <ChevronDown size={13} aria-hidden className="pointer-events-none absolute end-2.5 shrink-0 text-neutral-400" />
                     </label>
                     <span className="flex-1" />
                     {aiReady && (aiReady.connected ? (
@@ -1422,10 +1435,25 @@ export function DashboardApp({ view }: { view: DashboardView }) {
             )}
           </section>
 
-          {/* Templates teaser (below recents) */}
+          {/* Templates teaser (below recents), collapsible */}
           {templates.length > 0 && !query.trim() && (
             <section className="mt-10">
-              <h2 className="mb-3 text-[15px] font-semibold text-neutral-800">{tr("dashboard.start_from_a_template")}</h2>
+              <h2 className="mb-3 text-[15px] font-semibold text-neutral-800">
+                <button
+                  type="button"
+                  aria-expanded={templatesOpen}
+                  aria-controls="dashboard-template-teaser"
+                  onClick={toggleTemplates}
+                  className="flex items-center gap-1.5 rounded-lg py-0.5 pe-2 text-start hover:text-neutral-950"
+                >
+                  <ChevronDown size={16} className={`shrink-0 text-neutral-400 transition-transform ${templatesOpen ? "" : "-rotate-90 rtl:rotate-90"}`} />
+                  {tr("dashboard.start_from_a_template")}
+                  <span className="text-xs font-normal tabular-nums text-neutral-400">{templates.length}</span>
+                </button>
+              </h2>
+              {/* Collapsed renders no cards, so no thumbnails load or draw. */}
+              <div id="dashboard-template-teaser">
+              {templatesOpen && (
               <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                 {templates.map((t) => (
                   <button
@@ -1444,6 +1472,8 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                     <div className="truncate px-3 py-2.5 text-sm font-semibold text-neutral-800">{t.title}</div>
                   </button>
                 ))}
+              </div>
+              )}
               </div>
             </section>
           )}

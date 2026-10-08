@@ -13,7 +13,7 @@ const button = cva(
         primary: "oc-gradient text-white shadow-sm hover:opacity-90 active:opacity-100",
         secondary: "border border-neutral-200 bg-surface text-neutral-800 hover:bg-neutral-50",
         ghost: "text-neutral-600 hover:bg-neutral-100",
-        danger: "bg-red-600 text-white hover:bg-red-700",
+        danger: "bg-red-600 text-white hover:bg-red-700 dark:hover:bg-red-500",
       },
       size: {
         sm: "h-8 px-3 text-sm",

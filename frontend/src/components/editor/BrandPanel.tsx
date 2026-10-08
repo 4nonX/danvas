@@ -688,7 +688,7 @@ function BrandUpdateBanner({
       )}
       {canManage ? (
         <div className="flex gap-2">
-          <button onClick={() => void onApply()} className="rounded-md bg-amber-600 px-2.5 py-1 font-medium text-white hover:bg-amber-700">{tr("editor.apply_update")}</button>
+          <button onClick={() => void onApply()} className="rounded-md bg-amber-600 px-2.5 py-1 font-medium text-white hover:bg-amber-700 dark:hover:bg-amber-500">{tr("editor.apply_update")}</button>
           <button onClick={() => void onPin()} className="rounded-md border border-amber-300 bg-surface px-2.5 py-1 font-medium text-amber-700 hover:bg-amber-100">{tr("editor.pin_current")}</button>
         </div>
       ) : (

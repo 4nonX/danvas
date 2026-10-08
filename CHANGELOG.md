@@ -2,6 +2,20 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.1.7 (2026-10-08)
+
+### Changed
+
+- The home page's "Start from a template" section is collapsible and starts collapsed, so your own designs lead the page; it remembers being opened. Collapsed, no template thumbnails are loaded.
+
+### Fixed
+
+- Dark mode: status colors (warnings, errors, success and info callouts, badges, the "Connect an AI provider" pill and about 190 more places) were light-mode tints that stood out as bright patches. The theme now maps them for the dark chrome the way it maps the grays: tints become dark, text shades light, solid colors stay. Document surfaces pinned light keep the light colors.
+- Dark mode: the open list of a native dropdown showed light text on white; every dropdown's list now uses the dark surface and text colors.
+- The format and tone dropdowns of the home page's AI prompt are styled like the rest of the prompt bar instead of as native boxes.
+- Buttons that darken on hover (the danger button and a few others) brighten instead in dark mode, where their darker shade is now light.
+- `npm run gen:theme:check` no longer reports generated files as out of sync on Windows checkouts, where they only differ in line endings.
+
 ## 0.1.6 (2026-10-08)
 
 ### Added

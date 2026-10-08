@@ -4342,7 +4342,7 @@ export function VideoSurface(props: { workspaceId?: string; designId?: string })
           </div>
         )}
         {panelError && (
-          <div className="border-b border-red-200 bg-red-50 px-3 py-1.5 text-[11px] leading-snug text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+          <div className="border-b border-red-200 bg-red-50 px-3 py-1.5 text-[11px] leading-snug text-red-700">
             {panelError}
           </div>
         )}
@@ -6446,7 +6446,7 @@ export function VideoSurface(props: { workspaceId?: string; designId?: string })
               <button
                 type="button"
                 onClick={() => void doDeleteAsset()}
-                className="rounded-md bg-red-600 px-3 py-1.5 font-medium text-white hover:bg-red-700"
+                className="rounded-md bg-red-600 px-3 py-1.5 font-medium text-white hover:bg-red-700 dark:hover:bg-red-500"
               >
                 {tr("editor.delete")}
               </button>
@@ -6523,7 +6523,7 @@ export function VideoSurface(props: { workspaceId?: string; designId?: string })
                   removeTrack(confirmDeleteTrack.id);
                   setConfirmDeleteTrack(null);
                 }}
-                className="rounded-md bg-red-600 px-3 py-1.5 font-medium text-white hover:bg-red-700"
+                className="rounded-md bg-red-600 px-3 py-1.5 font-medium text-white hover:bg-red-700 dark:hover:bg-red-500"
               >
                 {tr("editor.delete_track")}
               </button>

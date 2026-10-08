@@ -119,6 +119,18 @@ export const theme = {
       200: "#1E2B55",
     },
     brandInk: "#8DA6EE",
+    // Status colors (red, amber, green, ...): Tailwind's palettes are light
+    // ramps, so a warning callout (`bg-amber-50 border-amber-200
+    // text-amber-800`) would be a bright patch on the dark chrome. In dark
+    // mode the tints become the hue's 500 shade mixed into the page at these
+    // strengths (percent), and the inks take the light end of the same ramp
+    // (700 shows as 300, ...), so the same classes read right in both themes.
+    // 400-600 stay as they are: solid fills, dots and icons work on both.
+    status: {
+      palettes: ["red", "orange", "amber", "yellow", "lime", "green", "emerald", "teal", "cyan", "sky", "blue", "indigo", "violet", "purple", "fuchsia", "pink", "rose"],
+      tint: { 50: 12, 100: 18, 200: 32, 300: 46 },
+      ink: { 700: 300, 800: 200, 900: 100, 950: 50 },
+    },
   },
 
   // High-contrast mode for the APP CHROME only (F38 FR-4), an axis orthogonal

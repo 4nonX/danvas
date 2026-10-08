@@ -1728,7 +1728,7 @@ function Recorder({ mode, disabled, onCapture }: {
                 <span className="h-2 w-2 animate-pulse rounded-full bg-red-600" />
                 {String(Math.floor(seconds / 60)).padStart(2, "0")}:{String(seconds % 60).padStart(2, "0")}
               </span>
-              <button onClick={stop} className="ms-auto flex items-center gap-1 rounded-md bg-red-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-red-700">
+              <button onClick={stop} className="ms-auto flex items-center gap-1 rounded-md bg-red-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-red-700 dark:hover:bg-red-500">
                 <CircleStop size={14} /> {tr("editor.stop_and_save")}
               </button>
             </div>
