@@ -3091,6 +3091,8 @@
   "errors.api_invalid_body": "यह अनुरोध संसाधित नहीं हो सका। कृपया पुनः प्रयास करें।",
   "errors.api_invalid_design_type": "डिज़ाइन प्रकार deck, doc, poster या social होना चाहिए।",
   "errors.api_invalid_email_or_password": "ईमेल या पासवर्ड गलत है।",
+  "errors.api_invalid_folder_name": "यह फ़ोल्डर नाम मान्य नहीं है।",
+  "errors.api_invalid_folder_parent": "इस फ़ोल्डर को वहाँ नहीं ले जाया जा सकता।",
   "errors.api_invalid_json_body": "यह अनुरोध संसाधित नहीं हो सका। कृपया पुनः प्रयास करें।",
   "errors.api_invalid_or_expired_access_token": "कृपया साइन इन करें और पुनः प्रयास करें।",
   "errors.api_invalid_or_expired_link": "कृपया साइन इन करें और पुनः प्रयास करें।",

@@ -3091,6 +3091,8 @@
   "errors.api_invalid_body": "Cette requête n'a pas pu être traitée. Veuillez réessayer.",
   "errors.api_invalid_design_type": "Le type de design doit être deck, doc, poster ou social.",
   "errors.api_invalid_email_or_password": "Cet e-mail ou ce mot de passe est incorrect.",
+  "errors.api_invalid_folder_name": "Ce nom de dossier n'est pas valide.",
+  "errors.api_invalid_folder_parent": "Ce dossier ne peut pas être déplacé à cet endroit.",
   "errors.api_invalid_json_body": "Cette requête n'a pas pu être traitée. Veuillez réessayer.",
   "errors.api_invalid_or_expired_access_token": "Connectez-vous puis réessayez.",
   "errors.api_invalid_or_expired_link": "Connectez-vous puis réessayez.",

@@ -3091,6 +3091,8 @@
   "errors.api_invalid_body": "このリクエストを処理できませんでした。もう一度お試しください。",
   "errors.api_invalid_design_type": "デザインタイプは deck・doc・poster・social のいずれかです。",
   "errors.api_invalid_email_or_password": "メールアドレスまたはパスワードが正しくありません。",
+  "errors.api_invalid_folder_name": "このフォルダー名は無効です。",
+  "errors.api_invalid_folder_parent": "このフォルダーをそこへ移動することはできません。",
   "errors.api_invalid_json_body": "このリクエストを処理できませんでした。もう一度お試しください。",
   "errors.api_invalid_or_expired_access_token": "サインインしてからもう一度お試しください。",
   "errors.api_invalid_or_expired_link": "サインインしてからもう一度お試しください。",

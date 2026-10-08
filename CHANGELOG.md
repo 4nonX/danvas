@@ -23,6 +23,7 @@ All notable changes to danvas are listed here, newest first. Versions follow the
 ### Fixed
 
 - The top resize handles and the rotate handle of an object at the top edge of a page could not be grabbed: the page's title and tools lay over them and took the click. The handles of a selection (and of the crop tool) now sit above the page headers.
+- Renaming or moving a folder with an invalid name or target showed the generic "That request could not be processed". It now says what is wrong, in every interface language.
 
 ## 0.1.8 (2026-10-08)
 

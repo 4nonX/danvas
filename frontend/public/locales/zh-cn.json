@@ -3091,6 +3091,8 @@
   "errors.api_invalid_body": "无法处理该请求，请重试。",
   "errors.api_invalid_design_type": "设计类型必须是 deck、doc、poster 或 social。",
   "errors.api_invalid_email_or_password": "邮箱或密码不正确。",
+  "errors.api_invalid_folder_name": "该文件夹名称无效。",
+  "errors.api_invalid_folder_parent": "无法将该文件夹移到那里。",
   "errors.api_invalid_json_body": "无法处理该请求，请重试。",
   "errors.api_invalid_or_expired_access_token": "请登录后重试。",
   "errors.api_invalid_or_expired_link": "请登录后重试。",

@@ -3091,6 +3091,8 @@
   "errors.api_invalid_body": "Diese Anfrage konnte nicht verarbeitet werden. Bitte versuche es erneut.",
   "errors.api_invalid_design_type": "Der Designtyp muss deck, doc, poster oder social sein.",
   "errors.api_invalid_email_or_password": "E-Mail-Adresse oder Passwort ist falsch.",
+  "errors.api_invalid_folder_name": "Dieser Ordnername ist ungültig.",
+  "errors.api_invalid_folder_parent": "Der Ordner lässt sich nicht dorthin verschieben.",
   "errors.api_invalid_json_body": "Diese Anfrage konnte nicht verarbeitet werden. Bitte versuche es erneut.",
   "errors.api_invalid_or_expired_access_token": "Bitte melde dich an und versuche es erneut.",
   "errors.api_invalid_or_expired_link": "Bitte melde dich an und versuche es erneut.",

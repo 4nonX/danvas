@@ -3091,6 +3091,8 @@
   "errors.api_invalid_body": "No se pudo procesar la solicitud. Inténtalo de nuevo.",
   "errors.api_invalid_design_type": "El tipo de diseño debe ser deck, doc, poster o social.",
   "errors.api_invalid_email_or_password": "El correo o la contraseña no son correctos.",
+  "errors.api_invalid_folder_name": "Ese nombre de carpeta no es válido.",
+  "errors.api_invalid_folder_parent": "Esa carpeta no se puede mover ahí.",
   "errors.api_invalid_json_body": "No se pudo procesar la solicitud. Inténtalo de nuevo.",
   "errors.api_invalid_or_expired_access_token": "Inicia sesión e inténtalo de nuevo.",
   "errors.api_invalid_or_expired_link": "Inicia sesión e inténtalo de nuevo.",

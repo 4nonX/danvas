@@ -77,7 +77,7 @@ func updateDesignFolderHandler(h *home.Service) http.HandlerFunc {
 		var name *string
 		if v, ok := raw["name"]; ok {
 			if err := json.Unmarshal(v, &name); err != nil {
-				problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "invalid name", "invalid_body")
+				problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "invalid name", "invalid_folder_name")
 				return
 			}
 		}
@@ -85,7 +85,7 @@ func updateDesignFolderHandler(h *home.Service) http.HandlerFunc {
 		v, move := raw["parentId"]
 		if move {
 			if err := json.Unmarshal(v, &parent); err != nil {
-				problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "invalid parentId", "invalid_body")
+				problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "invalid parentId", "invalid_folder_parent")
 				return
 			}
 		}
