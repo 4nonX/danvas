@@ -4,7 +4,8 @@
 #   pull request     build + deploy check, nothing published
 #   push to main     build + deploy check, published as :main and :sha-<commit>
 #   tag v0.1.6       build + deploy check, published as :v0.1.6, :0.1.6, :0.1
-#                    and :latest (the tag must match the VERSION file)
+#                    and :latest (the tag must match the VERSION file), then
+#                    the GitHub release, its notes taken from CHANGELOG.md
 #   manual run       any branch or tag; published only when asked to
 #
 # The deploy check starts the freshly built image the way installs run it
@@ -37,7 +38,8 @@ on:
         default: false
 
 permissions:
-  contents: read
+  # contents: write creates the GitHub release of a version tag.
+  contents: write
   packages: write
 
 concurrency:
@@ -60,6 +62,9 @@ jobs:
           v="v$(tr -d '[:space:]' < VERSION)"
           if [ "$GITHUB_REF_TYPE" = tag ]; then
             [ "$GITHUB_REF_NAME" = "$v" ] || { echo "::error::tag $GITHUB_REF_NAME does not match VERSION ($v)"; exit 1; }
+            # The release notes come from the version's CHANGELOG section:
+            # checked now rather than after the build.
+            grep -q "^## ${v#v} " CHANGELOG.md || { echo "::error::CHANGELOG.md has no section for ${v#v}"; exit 1; }
             version="$v"
           else
             # Builds between releases say which commit they are.
@@ -192,3 +197,27 @@ jobs:
           annotations: ${{ steps.meta.outputs.annotations }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # The GitHub release of a version tag, once its images are published, so
+      # tag, images and release page always match (install.sh and update.sh
+      # find the latest release through it). Notes: the version's CHANGELOG
+      # section. A release that already exists (made by hand, or by an earlier
+      # attempt) is left as it is.
+      - name: GitHub release
+        if: github.event_name == 'push' && github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          v="${TAG#v}"
+          if gh release view "$TAG" >/dev/null 2>&1; then echo "Release $TAG exists already."; exit 0; fi
+          awk -v h="## $v " 'index($0, h) == 1 { f = 1; next } /^## / { if (f) exit } f' CHANGELOG.md > section.md
+          {
+            printf '**Deploy or update:** `ghcr.io/%s:%s` (amd64, arm64). New installs: [`compose/`](https://github.com/%s/blob/%s/compose/README.md). Existing stacks: set `DANVAS_VERSION=%s` (or keep it empty for `latest`), pull and redeploy.\n' "${REPO,,}" "$TAG" "$REPO" "$TAG" "$TAG"
+            cat section.md
+            printf '\nFull history: [CHANGELOG.md](https://github.com/%s/blob/%s/CHANGELOG.md)\n' "$REPO" "$TAG"
+          } > notes.md
+          latest=true
+          case "$v" in *-*) latest=false ;; esac
+          gh release create "$TAG" --verify-tag --title "danvas $v" --notes-file notes.md --latest="$latest"

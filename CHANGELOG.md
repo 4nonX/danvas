@@ -2,6 +2,12 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## Unreleased
+
+### Changed
+
+- Every version tag gets its GitHub release page automatically, once its images are published, with the version's changelog section as release notes. 0.1.8 and 0.1.9 were tagged and published without one, so GitHub kept naming 0.1.7 the latest release, and `install.sh` and `update.sh`, which look the latest release up there, stayed on 0.1.7. A tag whose version has no changelog section now stops the build before it starts.
+
 ## 0.1.10 (2026-10-08)
 
 ### Fixed
