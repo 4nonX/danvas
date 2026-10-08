@@ -9,6 +9,14 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 REPO="${DANVAS_REPO:-4nonX/danvas}"
+
+# This folder is deploy/ of a danvas clone only when the parent has danvas's
+# own files. A stack folder that merely sits inside another repository (a
+# GitOps repo, say) is never treated as one: its git, Dockerfile and compose
+# files are not ours to pull, check out or build.
+in_clone() {
+  [ -f ../VERSION ] && [ -f ../Dockerfile ] && [ -f ../compose/compose.yml ] && [ -f ../scripts/fetch-bg-model.mjs ]
+}
 target="${1:-}"
 if [ -z "$target" ]; then
   target=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p' | head -n1)
@@ -16,7 +24,7 @@ if [ -z "$target" ]; then
 fi
 echo "Updating to ${target}"
 
-if [ -d ../.git ]; then git -C .. fetch --tags && git -C .. checkout "$target"; fi
+if in_clone && [ -d ../.git ]; then git -C .. fetch --tags && git -C .. checkout "$target"; fi
 
 mkdir -p backups
 stamp=$(date +%Y%m%d-%H%M%S)
@@ -30,7 +38,7 @@ previous=$(grep -E '^DANVAS_VERSION=' .env | cut -d= -f2- || true)
 set_env DANVAS_VERSION "$target"
 
 if ! grep -q '^COMPOSE_FILE=.*compose.build.yaml' .env && ! docker compose pull app; then
-  if [ ! -f ../Dockerfile ]; then
+  if ! in_clone; then
     set_env DANVAS_VERSION "$previous"
     echo "Could not pull the image for ${target}; still running ${previous:-the previous version}." >&2
     exit 1

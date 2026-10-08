@@ -2,6 +2,15 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.1.10 (2026-10-08)
+
+### Fixed
+
+- Updates show up without a hard reload. Pages, translations and icons were sent without caching instructions, so a browser could keep a page from before an update, and that page kept loading the previous version's code (a refreshed instance still showed the old interface). They are now revalidated on every load against a fingerprint of their content: unchanged files cost a tiny "not modified" reply, changed ones arrive at once. The versioned files under `/_next/` stay cached for good.
+- `update.sh` and `install.sh` no longer mistake the folder above the stack for a danvas clone. A stack kept inside another git repository (a GitOps repository, for example) had `update.sh` fetch and check out danvas release tags in that repository, and after a failed image pull build that repository's own Dockerfile and keep doing so. The scripts now treat the parent as a clone only when it has danvas's own files.
+- danvas built for Windows served a "not found" page for the home page and translation overrides: URL paths were cleaned with the operating system's path rules instead of URL rules.
+- The AI deck composer in the backend produced designs stamped with the previous file format version since 0.1.9; its bundle and test fixture are regenerated, and the fixture script works on Windows.
+
 ## 0.1.9 (2026-10-08)
 
 ### Added

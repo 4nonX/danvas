@@ -10,7 +10,7 @@
 
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const testdata = path.join(root, "backend/internal/composer/testdata");
@@ -22,7 +22,8 @@ if (typeof globalThis.structuredClone !== "function") {
   globalThis.structuredClone = (v) => JSON.parse(JSON.stringify(v));
 }
 
-const { composeDeckFile } = await import(path.join(root, "packages/aistudio/dist/index.js"));
+// A file URL: import() rejects a bare absolute path on Windows ("c:").
+const { composeDeckFile } = await import(pathToFileURL(path.join(root, "packages/aistudio/dist/index.js")).href);
 const input = JSON.parse(readFileSync(path.join(testdata, "compose-input.json"), "utf8"));
 const out = composeDeckFile(input);
 writeFileSync(path.join(testdata, "compose-expected.json"), JSON.stringify(out, null, 2) + "\n");

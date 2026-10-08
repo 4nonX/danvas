@@ -1,12 +1,16 @@
 package httpapi
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
 	"io"
 	"mime"
 	"net/http"
 	"os"
-	"path/filepath"
+	"path"
 	"strings"
+	"sync"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -75,7 +79,7 @@ func mountStaticFS(r chi.Router, root http.FileSystem, gaID string, inst Instanc
 			return
 		}
 
-		clean := filepath.Clean("/" + strings.TrimPrefix(p, "/"))
+		clean := path.Clean("/" + strings.TrimPrefix(p, "/"))
 		if clean == "/" {
 			serve("/index.html")
 			return
@@ -138,6 +142,7 @@ func serveNotFound(w http.ResponseWriter, root http.FileSystem, gaID string, ins
 	}
 	body = injectInstance(injectGA(body, gaID), inst)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Cache-Control", "no-cache")
 	w.WriteHeader(http.StatusNotFound)
 	_, _ = w.Write(body)
 	return true
@@ -193,30 +198,80 @@ func serveFile(w http.ResponseWriter, req *http.Request, root http.FileSystem, n
 	// disk); HTML pages are small and not range-requested.
 	// The instance identity (name, accent, language) is applied the same way,
 	// and the SVG favicon follows the accent.
+	// Caching: hashed Next assets under /_next are content-addressed and cached
+	// for good. Everything else (the HTML pages that name those assets, the
+	// locale files, icons) is revalidated on every load against an ETag of its
+	// content, so after an update the browser picks up the new pages at once
+	// instead of a cached page that keeps loading the previous build's assets.
+	// An unchanged file costs a 304.
+	if strings.HasPrefix(name, "/_next/") {
+		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+		http.ServeContent(w, req, info.Name(), info.ModTime(), f)
+		return
+	}
+	w.Header().Set("Cache-Control", "no-cache")
 	if inst.Accent != "" && name == "/favicon.svg" {
 		if body, rerr := io.ReadAll(f); rerr == nil {
-			w.Header().Set("Content-Type", "image/svg+xml")
-			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write(faviconColors(body, inst))
+			writeRevalidated(w, req, "image/svg+xml", faviconColors(body, inst))
 			return
 		}
 	}
 	if (gaID != "" || inst.active()) && strings.HasSuffix(name, ".html") {
 		body, rerr := io.ReadAll(f)
 		if rerr == nil {
-			body = injectInstance(injectGA(body, gaID), inst)
-			w.Header().Set("Content-Type", "text/html; charset=utf-8")
-			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write(body)
+			writeRevalidated(w, req, "text/html; charset=utf-8", injectInstance(injectGA(body, gaID), inst))
 			return
 		}
 		// Read failed: fall through to ServeContent from the still-open file.
 	}
-	// Hashed Next assets are content-addressed and safe to cache aggressively.
-	if strings.HasPrefix(name, "/_next/") {
-		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+	if tag, terr := fileETag(name, info, f); terr == nil {
+		w.Header().Set("ETag", tag) // ServeContent answers If-None-Match with it
 	}
 	http.ServeContent(w, req, info.Name(), info.ModTime(), f)
+}
+
+// etagOf is a strong ETag for a body.
+func etagOf(body []byte) string {
+	sum := sha256.Sum256(body)
+	return `"` + hex.EncodeToString(sum[:12]) + `"`
+}
+
+// fileETags caches the ETag of each served file. The embedded frontend never
+// changes while the binary runs; a PUBLIC_DIR file that is replaced gets a new
+// size or modification time, which is part of the key.
+var fileETags sync.Map
+
+// fileETag returns the ETag of an unchanged file from the cache, or hashes it
+// once and rewinds it for serving.
+func fileETag(name string, info os.FileInfo, f http.File) (string, error) {
+	key := fmt.Sprintf("%s|%d|%d", name, info.Size(), info.ModTime().UnixNano())
+	if v, ok := fileETags.Load(key); ok {
+		return v.(string), nil
+	}
+	h := sha256.New()
+	if _, err := io.Copy(h, f); err != nil {
+		return "", err
+	}
+	if _, err := f.Seek(0, io.SeekStart); err != nil {
+		return "", err
+	}
+	tag := `"` + hex.EncodeToString(h.Sum(nil)[:12]) + `"`
+	fileETags.Store(key, tag)
+	return tag, nil
+}
+
+// writeRevalidated writes a body generated at serve time (instance identity,
+// analytics) with its ETag, answering 304 when the browser's copy is current.
+func writeRevalidated(w http.ResponseWriter, req *http.Request, contentType string, body []byte) {
+	tag := etagOf(body)
+	w.Header().Set("ETag", tag)
+	if inm := req.Header.Get("If-None-Match"); inm != "" && (inm == "*" || strings.Contains(inm, tag)) {
+		w.WriteHeader(http.StatusNotModified)
+		return
+	}
+	w.Header().Set("Content-Type", contentType)
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(body)
 }
 
 // sanitizeGAID keeps only the characters a Google Analytics measurement id can
@@ -279,7 +334,7 @@ type localesOverlay struct {
 const localesPrefix = "/locales/"
 
 func (o localesOverlay) Open(name string) (http.File, error) {
-	clean := filepath.Clean("/" + strings.TrimPrefix(name, "/"))
+	clean := path.Clean("/" + strings.TrimPrefix(name, "/"))
 	if o.dir != nil && strings.HasPrefix(clean, localesPrefix) && strings.HasSuffix(clean, ".json") {
 		rel := strings.TrimPrefix(clean, localesPrefix)
 		// Clean already removed any "..", so rel cannot escape the directory.

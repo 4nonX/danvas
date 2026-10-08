@@ -20998,7 +20998,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
       exports.enabledTextEffects = enabledTextEffects;
       exports.isKnownNodeType = isKnownNodeType;
       var zod_1 = (init_zod(), __toCommonJS(zod_exports));
-      exports.currentSchemaVersion = 26;
+      exports.currentSchemaVersion = 27;
       exports.maxNestingDepth = 32;
       exports.UnitSchema = zod_1.z.enum(["px", "mm", "in", "pt"]);
       var unit = zod_1.z.number();
@@ -21293,6 +21293,9 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
         effects: zod_1.z.array(exports.EffectSchema).optional(),
         constraints: exports.ConstraintsSchema.optional(),
         locked: zod_1.z.boolean().optional(),
+        // `level` is any string on purpose (see v27): a future level must not fail
+        // validation of the whole file on this client.
+        templateLock: zod_1.z.object({ level: zod_1.z.string(), workspaceId: zod_1.z.string() }).passthrough().optional(),
         hidden: zod_1.z.boolean().optional(),
         name: zod_1.z.string().optional(),
         link: exports.ElementLinkSchema.optional(),
@@ -22514,7 +22517,11 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
         // omitting it means the regular row/column lattice, which is how every
         // existing grid already lays out. No node needs transforming, so this only
         // stamps the version so newer readers know the key may be present.
-        25: (file2) => __spreadProps(__spreadValues({}, file2), { schemaVersion: 26 })
+        25: (file2) => __spreadProps(__spreadValues({}, file2), { schemaVersion: 26 }),
+        // v26 -> v27: template locks. `templateLock` is optional on every node;
+        // omitting it means unprotected, which is every existing node. Stamps the
+        // version only.
+        26: (file2) => __spreadProps(__spreadValues({}, file2), { schemaVersion: 27 })
       };
       var MigrationError = class extends Error {
         constructor(message, from2, to) {

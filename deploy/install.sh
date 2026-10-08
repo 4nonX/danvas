@@ -15,6 +15,14 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 REPO="${DANVAS_REPO:-4nonX/danvas}"
+
+# This folder is deploy/ of a danvas clone only when the parent has danvas's
+# own files. A stack folder that merely sits inside another repository (a
+# GitOps repo, say) is never treated as one: its git, Dockerfile and compose
+# files are not ours to pull, check out or build.
+in_clone() {
+  [ -f ../VERSION ] && [ -f ../Dockerfile ] && [ -f ../compose/compose.yml ] && [ -f ../scripts/fetch-bg-model.mjs ]
+}
 BUILD=false
 [ "${1:-}" = "--build" ] && BUILD=true
 
@@ -29,7 +37,7 @@ command -v curl >/dev/null || { echo "curl is missing." >&2; exit 1; }
 command -v openssl >/dev/null || { echo "openssl is missing." >&2; exit 1; }
 
 # A clone runs its own version; a standalone folder runs the latest release.
-if [ -f ../VERSION ] && [ -f ../Dockerfile ]; then
+if in_clone; then
   DANVAS_VERSION="v$(tr -d '[:space:]' < ../VERSION)"
 else
   [ "$BUILD" = true ] && { echo "--build needs a clone of the repository." >&2; exit 1; }
@@ -70,7 +78,7 @@ mkdir -p data/storage data/pgdata
 
 if ! grep -q '^COMPOSE_FILE=.*compose.build.yaml' .env && ! docker compose pull; then
   # In a clone the image can always be built from source instead.
-  [ -f ../Dockerfile ] || { echo "Could not pull the image for ${DANVAS_VERSION}." >&2; exit 1; }
+  in_clone || { echo "Could not pull the image for ${DANVAS_VERSION}." >&2; exit 1; }
   echo "The image for ${DANVAS_VERSION} could not be pulled; building it from this clone instead."
   set_env COMPOSE_FILE compose.yaml:compose.build.yaml
 fi

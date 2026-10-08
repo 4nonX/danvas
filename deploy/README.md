@@ -129,6 +129,8 @@ The database is dumped to `backups/` first; then the new image is pulled (or, wh
 
 The newest state of `main` is published as well (`DANVAS_VERSION=main`, then `docker compose pull && docker compose up -d`); it is built and checked the same way as a release but has not been released, so use it for testing, not for an instance you depend on.
 
+The stack folder may live inside another git repository, such as a GitOps repository: `update.sh` only switches tags and builds from source in a clone of danvas itself, never in a repository around the stack.
+
 Installs from before the published images built the image on the host and mirrored the model into `data/static-data`. `./update.sh` moves them to the published image; `data/static-data` is no longer used and can be deleted.
 
 ## What to back up
