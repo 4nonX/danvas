@@ -265,7 +265,7 @@ export function ColorField({
           {/* Hex, R, G, B (+ alpha %) */}
           <div className="mt-3 flex items-end gap-1.5">
             <EyeDropperButton onPick={(h) => setHex(h)} />
-            <NumBox label="Hex" wide value={hex} onCommit={setHex} />
+            <NumBox label={tr("editor.hex")} wide value={hex} onCommit={setHex} />
             {(["r", "g", "b"] as const).map((k) => (
               <NumBox key={k} label={k.toUpperCase()} value={String(Math.round(value.srgb[k] * 255))} onCommit={(t) => { const n = Number(t); if (Number.isFinite(n)) setChannel(k, Math.max(0, Math.min(255, n))); }} />
             ))}

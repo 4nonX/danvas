@@ -143,6 +143,19 @@ describe("vectorize trace matrix", () => {
     expect(score).toBeGreaterThan(0.98);
   });
 
+  it("curved loop with a single corner is not dropped", async () => {
+    // Polar teardrop: one sharp tip at (140, 100), curved everywhere else, so
+    // the whole edge is one run that starts and ends at the same corner.
+    const drop = (x: number, y: number) => Math.hypot(x - 60, y - 100) <= 80 / (1 + 2 * Math.abs(Math.sin(Math.atan2(y - 100, x - 60) / 2)));
+    for (const scale of [2, 4]) {
+      const { res, score } = await check(200, 200, [RED], (x, y) => (drop(x, y) ? 0 : -1), scale);
+      expect(res.layers[0].contours).toHaveLength(1);
+      const tip = res.layers[0].contours[0].filter((a) => a.corner);
+      expect(tip.some((a) => Math.hypot(a.x - 140, a.y - 100) < 2)).toBe(true);
+      expect(score).toBeGreaterThan(0.97);
+    }
+  });
+
   it("acute triangle keeps its point", async () => {
     // Apex angle ~25 degrees.
     const tri = (x: number, y: number) => y >= 20 && y <= 180 && Math.abs(x - 100) <= (y - 20) * 0.22;

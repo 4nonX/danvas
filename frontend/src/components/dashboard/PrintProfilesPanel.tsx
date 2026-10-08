@@ -175,7 +175,8 @@ export function PrintProfilesPanel({ workspaceId, canEdit }: { workspaceId: stri
           </li>
         ))}
         <li className="flex flex-wrap items-center gap-2 rounded-xl border border-dashed border-neutral-200 px-3 py-2 text-sm">
-          <span className="font-medium text-neutral-600">PSO Uncoated ISO12647 (FOGRA47)</span>
+          {/* i18n-ignore: the profile's registered name, identical in every language. */}
+          <span className="font-medium text-neutral-600">{"PSO Uncoated ISO12647 (FOGRA47)"}</span>
           <span className="rounded bg-neutral-100 px-1.5 py-0.5 text-[11px] text-neutral-500">{tr("dashboard.built_in")}</span>
           {profiles !== null && profiles.length === 0 && (
             <span className="rounded bg-brand-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-ink">{tr("dashboard.default")}</span>

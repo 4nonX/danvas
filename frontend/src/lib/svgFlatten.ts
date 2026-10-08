@@ -125,7 +125,7 @@ export function resolveFontFamily(list: string): string {
     for (const v of variants(c)) if (fonts.knows(v)) return v;
   }
   // Nothing installed yet (the font may be uploaded later): prefer an entry
-  // that reads like a family name ("Goudy Old Style") over a PostScript name.
+  // that reads like a family name (Goudy Old Style) over a PostScript name.
   const named = candidates.find((c) => !GENERIC_FAMILIES.has(c.toLowerCase()) && /\s/.test(c));
   if (named) return named;
   const first = candidates.find((c) => !GENERIC_FAMILIES.has(c.toLowerCase()));
@@ -229,6 +229,7 @@ function textNodesFromLayout(el: SVGTextElement, idGen: () => string, toRgb: ((v
     const fillRaw = toRgb ? toRgb(cs.fill) : cs.fill;
     const c = rgbaOf(fillRaw) ?? { r: 0, g: 0, b: 0, a: 1 };
     const opacity = (parseFloat(cs.fillOpacity) || 1) * (parseFloat(cs.opacity) || 1);
+    // i18n-ignore: font style values the design file stores, never labels.
     const fontStyle = `${weight >= 600 ? "Bold" : "Regular"}${italic ? " Italic" : ""}`.replace("Regular Italic", "Italic");
     nodes.push(createNode("text", {
       id: idGen(),

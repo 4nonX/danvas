@@ -9,6 +9,8 @@ import { createScene, renderScene, type CanvasLike, type Viewport } from "@hc/en
 import { loadFace, type FaceRequest, type LoadedFace } from "./fontSource";
 import { num, PdfCanvas, PdfResources, type ColorOut, type PdfPageStats, type PdfTag, type TextFont } from "./pdfCanvas";
 import { SvgCanvas } from "./svgCanvas";
+import { tr } from "@/lib/i18n";
+import { resolveAssetUrl } from "@/lib/sdk";
 
 export { num, type ColorOut } from "./pdfCanvas";
 
@@ -141,11 +143,21 @@ async function preparePages(doc: DesignFile, pageIndexes: number[], assets: unkn
   }
   const faces = new Map<string, LoadedFace | null>();
   await Promise.all([...wanted].map(async ([key, req]) => faces.set(key, await loadFace(req, docFonts))));
-  return { dpi, pages, renderOpts, faces };
+  // SVG assets by the absolute URL their image element loads.
+  const vectorSources = new Set<string>();
+  for (const a of (doc as unknown as { assets?: { url?: string; mime?: string; kind?: string }[] }).assets ?? []) {
+    if (!a.url || (a.kind !== "svg" && !/^image\/svg/i.test(a.mime ?? ""))) continue;
+    try {
+      vectorSources.add(new URL(resolveAssetUrl(a.url), typeof location === "undefined" ? undefined : location.href).href);
+    } catch {
+      /* not a URL: nothing loads it as an image either */
+    }
+  }
+  return { dpi, pages, renderOpts, faces, vectorSources };
 }
 
 export async function drawPages(doc: DesignFile, pageIndexes: number[], opts: DrawPagesOptions = {}): Promise<{ dpi: number; pages: DrawnPage[]; resources: PdfResources; stats: PdfPageStats }> {
-  const { dpi, pages, renderOpts, faces } = await preparePages(doc, pageIndexes, opts.assets);
+  const { dpi, pages, renderOpts, faces, vectorSources } = await preparePages(doc, pageIndexes, opts.assets);
 
   // Pass 2: draw.
   const resources = new PdfResources();
@@ -161,7 +173,7 @@ export async function drawPages(doc: DesignFile, pageIndexes: number[], opts: Dr
       backdrop.fillStyle = "#ffffff";
       backdrop.fillRect(0, 0, p.width, p.height);
     }
-    const ctx = new PdfCanvas({ width: p.width, height: p.height, faces, resources, color: opts.color, backdrop, tagged: opts.tagged });
+    const ctx = new PdfCanvas({ width: p.width, height: p.height, faces, vectorSources, resources, color: opts.color, backdrop, tagged: opts.tagged });
     const hooks = opts.tagged ? { onNodeEnter: (n: Parameters<PdfCanvas["nodeEnter"]>[0]) => ctx.nodeEnter(n), onNodeExit: (n: Parameters<PdfCanvas["nodeExit"]>[0]) => ctx.nodeExit(n) } : {};
     renderScene(createScene(doc, p.index), ctx as unknown as CanvasLike, p.vp, { ...renderOpts, ...hooks });
     let tags: PdfTag[] | undefined;
@@ -214,6 +226,7 @@ async function writeTextFont(w: PdfWriter, tf: TextFont): Promise<number> {
     "/CIDSystemInfo << /Registry (Adobe) /Ordering (UCS) /Supplement 0 >> def",
     "/CMapName /Adobe-Identity-UCS def", "/CMapType 2 def",
     "1 begincodespacerange", "<0000> <FFFF>", "endcodespacerange",
+    // i18n-ignore: PostScript CMap program.
     ...lines, "endcmap", "CMapName currentdict /CMap defineresource pop", "end", "end",
   ].join("\n");
   const bb = f.bbox;
@@ -231,9 +244,9 @@ async function writeTextFont(w: PdfWriter, tf: TextFont): Promise<number> {
 /** Render one page of a design to a standalone SVG through the same engine
  *  as the editor, so layout, text and effects match it (see svgCanvas.ts). */
 export async function exportVectorSvg(doc: DesignFile, pageIndex: number, opts: { assets?: unknown } = {}): Promise<string> {
-  const { pages, renderOpts, faces } = await preparePages(doc, [pageIndex], opts.assets);
+  const { pages, renderOpts, faces, vectorSources } = await preparePages(doc, [pageIndex], opts.assets);
   const p = pages[0];
-  const ctx = new SvgCanvas({ width: p.width, height: p.height, faces });
+  const ctx = new SvgCanvas({ width: p.width, height: p.height, faces, vectorSources });
   renderScene(createScene(doc, p.index), ctx as unknown as CanvasLike, p.vp, renderOpts);
   return ctx.document(p.pg.width, p.pg.height, doc.title);
 }
@@ -313,7 +326,8 @@ export async function exportVectorPdf(doc: DesignFile, pageIndexes: number[], op
         leaves.push(id);
         byMcid[t.mcid] = id;
       }
-      const title = p.pg.name?.trim() || `${opts.title ?? doc.title ?? "Page"} ${p.index + 1}`;
+      const base = opts.title || doc.title;
+      const title = p.pg.name?.trim() || (base ? `${base} ${p.index + 1}` : tr("editor.page_n", { n: p.index + 1 }));
       w.obj(sect, `<< /Type /StructElem /S /Sect /P ${docElem} 0 R /Pg ${pid} 0 R /T ${pdfString(title)} /K [${leaves.map((id) => `${id} 0 R`).join(" ")}] >>`);
       nums.push(`${i} [${Array.from(byMcid, (id) => `${id ?? 0} 0 R`).join(" ")}]`);
     }
@@ -331,7 +345,7 @@ export async function exportVectorPdf(doc: DesignFile, pageIndexes: number[], op
   const d = new Date();
   const pad = (v: number) => String(v).padStart(2, "0");
   const created = `D:${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}Z`;
-  w.obj(infoId, `<< /Producer (danvas) /Creator (danvas ${opts.tagged ? "tagged" : "vector"} PDF) /Title ${pdfString(opts.title ?? doc.title ?? "Design")} /CreationDate (${created}) >>`);
+  w.obj(infoId, `<< /Producer (danvas) /Creator (danvas ${opts.tagged ? "tagged" : "vector"} PDF) /Title ${pdfString(opts.title || doc.title || "Design")} /CreationDate (${created}) >>`); // i18n-ignore: file metadata
 
   const first = pages[0]?.pg;
   return {

@@ -34,7 +34,7 @@ import { CodedError, userMessage } from "@/lib/errors";
 import { imageAssets } from "@/lib/assetProvider";
 import { oc } from "@/lib/sdk";
 import { useToast } from "@/components/ui/Toast";
-import { tr, trOr } from "@/lib/i18n";
+import { tr } from "@/lib/i18n";
 import { resolvedLocale } from "@/lib/locale";
 import { copyText } from "@/lib/clipboard";
 import { listProfileOptions, profileBytes, type ProfileOption } from "@/lib/print/profiles";
@@ -251,7 +251,9 @@ function download(blob: Blob, filename: string) {
   a.href = url;
   a.download = filename;
   a.click();
-  URL.revokeObjectURL(url);
+  // Revoked later: some browsers start reading the blob only after click()
+  // returns, and a revoked URL cancels the download.
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -575,8 +577,10 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
         // PNG, not JPEG: lossless, so text edges stay clean.
         pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, w, h);
       }
-      if (pdf) emit(pdf.output("blob"), `${safeBase}.pdf`);
-      if (!quiet) toast.success(tr("editor.downloaded_file", { file: `${safeBase}.pdf` }));
+      if (pdf) {
+        emit(pdf.output("blob"), `${safeBase}.pdf`);
+        if (!quiet) toast.success(tr("editor.downloaded_file", { file: `${safeBase}.pdf` }));
+      }
     } else if (format === "apng") {
       // Animated PNG. A multi-page deck exports its whole playthrough,
       // transitions included, via the pure deck planner + compositor (doc 28
@@ -795,7 +799,7 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
                             // The chip shows only the acronym, so the
                             // description rides on the accessible name:
                             // arrowing through the group otherwise announces
-                            // "PNG, JPG, SVG" with no way to tell them apart.
+                            // only the bare acronyms, with no way to tell them apart.
                             // The acronym leads so the visible text is still
                             // the start of the name (WCAG 2.5.3).
                             aria-label={`${f.acronym}. ${f.badge ? `${f.badge}. ` : ""}${f.desc}`}
@@ -840,7 +844,7 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
             {
               id: "tagged" as const,
               label: tr("editor.accessible_pdf_tagged"),
-              desc: trOr("editor.pdf_tagged_desc", "Looks exactly like the vector PDF, with selectable text a screen reader follows in your reading order, plus alt text and page titles."),
+              desc: tr("editor.pdf_tagged_desc"),
               disabled: false,
             },
           ];

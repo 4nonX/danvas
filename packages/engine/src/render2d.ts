@@ -115,6 +115,23 @@ export function blendToComposite(mode: BlendMode): string {
   return mode === "normal" ? "source-over" : mode;
 }
 
+/** Device pixels per unit of the current transform. Canvas shadows and CSS
+ *  filters are measured in device pixels and ignore the transform, so effect
+ *  lengths (authored in page units) are scaled by this to look the same at
+ *  every zoom, pixel ratio and export resolution. */
+export function deviceScale(ctx: CanvasLike): number {
+  const m = ctx.getTransform?.();
+  if (!m) return 1;
+  const k = Math.sqrt(Math.abs(m.a * m.d - m.b * m.c));
+  return Number.isFinite(k) && k > 0 ? k : 1;
+}
+
+/** A CSS filter string with every px length multiplied by `k`. */
+export function scaleFilterLengths(filter: string, k: number): string {
+  if (k === 1) return filter;
+  return filter.replace(/(-?(?:\d+\.?\d*|\.\d+))px/g, (_, v: string) => `${Number(v) * k}px`);
+}
+
 function placeholderBox(
   ctx: CanvasLike,
   w: number,
@@ -997,6 +1014,7 @@ function drawNodeContent(ctx: CanvasLike, node: Node, assets?: AssetProvider, bo
               else if (eNeon) { sctx.shadowColor = flatColor(eNeon.color); sctx.shadowBlur = Math.max(4, fs * 0.5 * Math.max(0.2, eNeon.intensity || 1)); sctx.shadowOffsetX = 0; sctx.shadowOffsetY = 0; }
               else if (eShadow) { sctx.shadowColor = flatColorAlpha(eShadow.color, eShadow.opacity ?? 1); sctx.shadowBlur = Math.max(0, eShadow.blur); sctx.shadowOffsetX = eShadow.dx; sctx.shadowOffsetY = eShadow.dy; }
               else if (eLift) { const k = Math.max(0.1, eLift.intensity || 0.5); sctx.shadowColor = `rgba(0,0,0,${0.35 * k})`; sctx.shadowBlur = fs * 0.3 * k + 2; sctx.shadowOffsetX = 0; sctx.shadowOffsetY = fs * 0.06; }
+              if (eGlow || eNeon || eShadow || eLift) { const k = deviceScale(ctx); sctx.shadowBlur *= k; sctx.shadowOffsetX *= k; sctx.shadowOffsetY *= k; }
             }
             if (fillVisible && ctx.fillText) {
               ctx.fillStyle = segCss;
@@ -1124,6 +1142,7 @@ function drawNodeContent(ctx: CanvasLike, node: Node, assets?: AssetProvider, bo
               else if (eNeon) { sctx.shadowColor = flatColor(eNeon.color); sctx.shadowBlur = Math.max(4, fs * 0.5 * Math.max(0.2, eNeon.intensity || 1)); sctx.shadowOffsetX = 0; sctx.shadowOffsetY = 0; }
               else if (eShadow) { sctx.shadowColor = flatColorAlpha(eShadow.color, eShadow.opacity ?? 1); sctx.shadowBlur = Math.max(0, eShadow.blur); sctx.shadowOffsetX = eShadow.dx; sctx.shadowOffsetY = eShadow.dy; }
               else if (eLift) { const k = Math.max(0.1, eLift.intensity || 0.5); sctx.shadowColor = `rgba(0,0,0,${0.35 * k})`; sctx.shadowBlur = fs * 0.3 * k + 2; sctx.shadowOffsetX = 0; sctx.shadowOffsetY = fs * 0.06; }
+              if (eGlow || eNeon || eShadow || eLift) { const k = deviceScale(ctx); sctx.shadowBlur *= k; sctx.shadowOffsetX *= k; sctx.shadowOffsetY *= k; }
             }
             if (fillVisible) {
               ctx.fillStyle = css;
@@ -1299,10 +1318,11 @@ function drawNodeContent(ctx: CanvasLike, node: Node, assets?: AssetProvider, bo
       // Soft drop shadow under the card.
       const canShadow = "shadowColor" in ctx;
       if (canShadow) {
+        const k = deviceScale(ctx);
         ctx.shadowColor = "rgba(15, 23, 42, 0.20)";
-        ctx.shadowBlur = Math.min(18, Math.max(6, w * 0.06));
+        ctx.shadowBlur = Math.min(18, Math.max(6, w * 0.06)) * k;
         ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = Math.min(10, Math.max(3, h * 0.035));
+        ctx.shadowOffsetY = Math.min(10, Math.max(3, h * 0.035)) * k;
       }
       ctx.fillStyle = cardFill;
       ctx.beginPath();
@@ -2151,7 +2171,7 @@ function paintVisible(
   // content only; reset before children so they are not double-filtered (FR-5).
   const supportsFilter = "filter" in ctx;
   const filter = effectsFilter(node.effects);
-  if (supportsFilter && filter !== "none") ctx.filter = filter;
+  if (supportsFilter && filter !== "none") ctx.filter = scaleFilterLengths(filter, deviceScale(ctx));
 
   try {
     // The connector's local origin is its accumulated world translate; paint()

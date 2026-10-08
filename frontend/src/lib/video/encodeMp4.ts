@@ -3,6 +3,7 @@
 // video export looks exactly like the editor and present mode, with no server
 // renderer involved. Loaded on demand (dynamic import) by the export dialog.
 
+import { CodedError } from "@/lib/errors";
 import { BufferTarget, CanvasSource, Mp4OutputFormat, Output, QUALITY_HIGH, getFirstEncodableVideoCodec } from "mediabunny";
 
 export interface Mp4Options {
@@ -28,7 +29,7 @@ export async function encodeMp4(opts: Mp4Options): Promise<Blob> {
   // H.264 plays everywhere; the others are fallbacks for browsers that cannot
   // encode it (they still play in browsers and VLC).
   const codec = await getFirstEncodableVideoCodec(["avc", "hevc", "vp9", "av1"], { width, height });
-  if (!codec) throw new Error("This browser cannot encode video.");
+  if (!codec) throw new CodedError("errors.video_render_failed", "this browser cannot encode video");
 
   const canvas = document.createElement("canvas");
   canvas.width = width;
@@ -47,7 +48,11 @@ export async function encodeMp4(opts: Mp4Options): Promise<Blob> {
     if (f) {
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, width, height);
-      ctx.drawImage(f, 0, 0, width, height);
+      // A page of another shape (mixed page sizes in one deck) fits inside the
+      // frame, centred, instead of being stretched to it.
+      const k = Math.min(width / f.width, height / f.height);
+      const dw = f.width * k, dh = f.height * k;
+      ctx.drawImage(f, (width - dw) / 2, (height - dh) / 2, dw, dh);
     }
     await source.add(i * dt, dt);
     opts.onProgress?.(i + 1, opts.count);
@@ -55,6 +60,6 @@ export async function encodeMp4(opts: Mp4Options): Promise<Blob> {
   source.close();
   await output.finalize();
   const buf = (output.target as BufferTarget).buffer;
-  if (!buf) throw new Error("video encoding produced no data");
+  if (!buf) throw new CodedError("errors.video_render_failed", "video encoding produced no data");
   return new Blob([buf], { type: "video/mp4" });
 }

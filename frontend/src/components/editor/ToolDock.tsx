@@ -39,7 +39,7 @@ const active = "bg-brand-50 text-brand-ink";
  *  canvas commits an open pen draft on Enter, so the dock sends exactly that. */
 function switchTool(t: DockTool) {
   const st = useEditor.getState();
-  if (st.tool === "pen" && t !== "pen") window.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
+  if (st.tool === "pen" && t !== "pen") window.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" })); // i18n-ignore: a DOM key name
   st.setTool(t);
 }
 

@@ -254,6 +254,10 @@ export interface VectorCanvasOptions {
   height: number;
   /** Parsed fonts by face key; missing faces rasterize their text. */
   faces: Map<string, LoadedFace | null>;
+  /** Absolute URLs of images whose source is SVG (from the design's asset
+   *  list: uploads are served without a file extension), drawn at the size
+   *  they cover on the page instead of their small intrinsic pixel size. */
+  vectorSources?: Set<string>;
   /** Collect pass: record the font faces text needs, draw nothing. */
   collect?: Map<string, FaceRequest>;
   /** Flatten transparency (for formats without it, e.g. EPS): a full-page
@@ -591,7 +595,7 @@ export abstract class VectorCanvas {
   /** Fill a device-space path with the current fill style (vector). */
   private paintFill(path: Seg[], rule: CanvasFillRule, style: unknown): void {
     if (!path.length) return;
-    const blend = this.blendName() ?? "Normal";
+    const blend = this.blendName() ?? "Normal"; // i18n-ignore: PDF operators and names
     if (typeof style === "string") {
       const c = this.color(style);
       const alpha = c.a * this.s.globalAlpha;
@@ -615,7 +619,7 @@ export abstract class VectorCanvas {
 
   private paintStroke(path: Seg[], style: unknown): void {
     if (!path.length) return;
-    const blend = this.blendName() ?? "Normal";
+    const blend = this.blendName() ?? "Normal"; // i18n-ignore: PDF operators and names
     if (typeof style === "string") {
       const c = this.color(style);
       const alpha = c.a * this.s.globalAlpha;
@@ -665,7 +669,9 @@ export abstract class VectorCanvas {
       m = Math.max(m, (nums[0] ?? 0) + (nums[1] ?? 0) + (nums[2] ?? 0) * 3);
     }
     const shadow = this.color(this.s.shadowColor).a > 0 ? this.s.shadowBlur * 2 + Math.abs(this.s.shadowOffsetX) + Math.abs(this.s.shadowOffsetY) : 0;
-    return Math.max(m * scaleOf(this.s.ctm), shadow) + 2;
+    // Filter lengths arrive in device px (the engine scales them by the
+    // transform), like the shadow settings.
+    return Math.max(m, shadow) + 2;
   }
 
   /** Set a real canvas up with the full drawing state: clip, alpha,
@@ -761,7 +767,7 @@ export abstract class VectorCanvas {
     let any = false;
     for (let i = 3; i < data.length; i += 4) if (data[i]) { any = true; break; }
     if (!any) return;
-    this.emitImage(null, w, h, data, { a: w, b: 0, c: 0, d: h, e: x0, f: y0 }, 1, this.blendName() ?? "Normal");
+    this.emitImage(null, w, h, data, { a: w, b: 0, c: 0, d: h, e: x0, f: y0 }, 1, this.blendName() ?? "Normal"); // i18n-ignore: PDF operators and names
     this.stats.rasterPatches++;
   }
 
@@ -866,7 +872,7 @@ export abstract class VectorCanvas {
     }
     // Vector sources (SVG) have no meaningful pixel size: draw them at the
     // size they cover on the page at device resolution instead.
-    const isSvg = typeof el.src === "string" && (/^data:image\/svg/i.test(el.src) || /\.svg(\?|#|$)/i.test(el.src));
+    const isSvg = typeof el.src === "string" && (/^data:image\/svg/i.test(el.src) || /\.svg(\?|#|$)/i.test(el.src) || !!this.o.vectorSources?.has(el.src));
     let pw = iw, ph = ih;
     if (isSvg) {
       const k = Math.max((box.x1 - box.x0) / Math.max(1, dw), (box.y1 - box.y0) / Math.max(1, dh));
@@ -883,7 +889,7 @@ export abstract class VectorCanvas {
       else this.raster(box, (ctx) => ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh));
       return;
     }
-    const blend = this.blendName() ?? "Normal";
+    const blend = this.blendName() ?? "Normal"; // i18n-ignore: PDF operators and names
     const alpha = this.s.globalAlpha;
     if (alpha <= 0) return;
     if (this.o.backdrop) {
@@ -1168,7 +1174,7 @@ export class PdfCanvas extends VectorCanvas {
 
     const res = this.o.resources;
     const t = mul(layout.ctm, { a: layout.k, b: 0, c: 0, d: -1, e: layout.x0, f: layout.base });
-    const out: string[] = ["BT 3 Tr", `${num(t.a)} ${num(t.b)} ${num(t.c)} ${num(t.d)} ${num(t.e)} ${num(t.f)} Tm`];
+    const out: string[] = ["BT 3 Tr", `${num(t.a)} ${num(t.b)} ${num(t.c)} ${num(t.d)} ${num(t.e)} ${num(t.f)} Tm`]; // i18n-ignore: PDF operators and names
     for (const l of layout.runs) {
       const tf = res.textFont(l.font);
       const upm = l.font.unitsPerEm;
@@ -1237,7 +1243,7 @@ export class PdfCanvas extends VectorCanvas {
       : `<< /FunctionType 3 /Domain [0 1] /Functions [${pieces.join(" ")}] /Bounds [${bounds.join(" ")}] /Encode [${encode.join(" ")}] >>`;
     const a = g.args;
     const coords = g.kind === "linear" ? `[${a.map(num).join(" ")}]` : `[${num(a[0])} ${num(a[1])} ${num(a[2])} ${num(a[3])} ${num(a[4])} ${num(a[5])}]`;
-    return `<< /ShadingType ${g.kind === "linear" ? 2 : 3} /ColorSpace /${this.o.color ? "DeviceCMYK" : "DeviceRGB"} /Coords ${coords} /Function ${fn} /Extend [true true] >>`;
+    return `<< /ShadingType ${g.kind === "linear" ? 2 : 3} /ColorSpace /${this.o.color ? "DeviceCMYK" : "DeviceRGB"} /Coords ${coords} /Function ${fn} /Extend [true true] >>`; // i18n-ignore: PDF operators and names
   }
 
   private matrixOp(m: Mat): string {
@@ -1253,7 +1259,7 @@ export class PdfCanvas extends VectorCanvas {
   }
 
   private clipOps(clip?: ClipPath): string[] {
-    return clip ? [pathOps(clip.path), clip.rule === "evenodd" ? "W* n" : "W n"] : [];
+    return clip ? [pathOps(clip.path), clip.rule === "evenodd" ? "W* n" : "W n"] : []; // i18n-ignore: PDF operators and names
   }
 
   protected emitSave(): void {
@@ -1268,7 +1274,7 @@ export class PdfCanvas extends VectorCanvas {
   protected emitGradientFill(path: Seg[], rule: CanvasFillRule, g: GradientProxy, ctm: Mat, alpha: number, blend: string): void {
     const res = this.o.resources;
     const sh = res.addShading(this.shading(g));
-    this.paintOps(`q /${res.gs(alpha, alpha, blend)} gs`, pathOps(path), rule === "evenodd" ? "W* n" : "W n", this.matrixOp(ctm), `/${sh} sh Q`);
+    this.paintOps(`q /${res.gs(alpha, alpha, blend)} gs`, pathOps(path), rule === "evenodd" ? "W* n" : "W n", this.matrixOp(ctm), `/${sh} sh Q`); // i18n-ignore: PDF operators and names
   }
   protected emitStroke(path: Seg[], c: Rgba, alpha: number, blend: string): void {
     this.paintOps(`q /${this.o.resources.gs(alpha, alpha, blend)} gs ${this.colorOp(c, true)} ${this.strokeParams()}`, pathOps(path), "S Q");

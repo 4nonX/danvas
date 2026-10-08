@@ -14,9 +14,10 @@
 //   node scripts/i18n-coverage.mjs hi         report one, listing what is missing
 
 import { readFileSync, readdirSync, existsSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const ROOT = resolve(new URL("..", import.meta.url).pathname);
+const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const BASE = join(ROOT, "frontend", "src", "locales", "en.json");
 const DIR = join(ROOT, "frontend", "public", "locales");
 

@@ -27,6 +27,8 @@ danvas is distributed under the same license as HyCanvas, the [Elastic License 2
 
 ## What is different from HyCanvas
 
+The changes are summarized by area below; what changed in each release is in the [changelog](CHANGELOG.md).
+
 ### Identity and installation
 
 - Own name, logo mark, favicon and app icons, sign-in and dashboard artwork, and a cobalt color theme. Internal identifiers keep their upstream names on purpose (the Go module `hycanvas/backend`, the `@hc/*` packages, the binary, the `.hyc` design file format), so designs stay compatible and upstream changes keep merging cleanly.

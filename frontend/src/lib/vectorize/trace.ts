@@ -378,10 +378,14 @@ function rdp(pts: Pt[], eps: number): Pt[] {
     const [a, b] = stack.pop()!;
     const A = pts[a], B = pts[b];
     const dx = B.x - A.x, dy = B.y - A.y;
-    const len = Math.hypot(dx, dy) || 1;
+    const len = Math.hypot(dx, dy);
+    // A closed run (first and last point coincide, e.g. a loop with a single
+    // corner) has no chord: measure from the point itself, so the loop is
+    // split at its far side instead of collapsing to two identical points.
+    const closed = len < 1e-9;
     let md = 0, mi = -1;
     for (let i = a + 1; i < b; i++) {
-      const d = Math.abs(dy * pts[i].x - dx * pts[i].y + B.x * A.y - B.y * A.x) / len;
+      const d = closed ? Math.hypot(pts[i].x - A.x, pts[i].y - A.y) : Math.abs(dy * pts[i].x - dx * pts[i].y + B.x * A.y - B.y * A.x) / len;
       if (d > md) { md = d; mi = i; }
     }
     if (mi >= 0 && md > eps) {

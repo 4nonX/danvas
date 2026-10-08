@@ -28,11 +28,15 @@ COPY backend/ ./
 # binary (single self-contained file; no sidecar public/ at runtime).
 COPY --from=frontend /app/frontend/out ./internal/webui/public
 # Static (CGO off) so it runs on the slim runtime base. -tags embed bakes the
-# frontend in; migrations, seed catalogs, and fonts are always embedded. VERSION
-# is stamped into the binary for boot logs and the health endpoints.
-ARG VERSION=docker
-RUN CGO_ENABLED=0 go build -tags embed -trimpath \
-    -ldflags "-s -w -X main.version=${VERSION}" \
+# frontend in; migrations, seed catalogs, and fonts are always embedded. The
+# version is stamped into the binary for boot logs and the health endpoints:
+# the VERSION build arg when given (deploy/compose.yaml passes it), otherwise
+# v<VERSION file>, so every image reports the release it was built from.
+COPY VERSION /VERSION
+ARG VERSION=
+RUN v="${VERSION:-v$(tr -d '[:space:]' < /VERSION)}" \
+ && CGO_ENABLED=0 go build -tags embed -trimpath \
+    -ldflags "-s -w -X main.version=${v}" \
     -o /out/hycanvas ./cmd/api
 
 # ---------------------------------------------------------------------------

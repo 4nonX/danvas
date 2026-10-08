@@ -229,7 +229,7 @@ export function WorkspaceFontsPanel({ workspaceId, canEdit }: { workspaceId: str
             <div className="mt-1.5 flex flex-wrap gap-1">
               {faces.map((f) => (
                 <span key={f.id} className="flex items-center gap-1 rounded bg-neutral-100 px-1.5 py-0.5 text-[11px] text-neutral-600" title={f.fileName}>
-                  <span style={{ fontFamily: `'${family}', sans-serif`, fontWeight: f.weight, fontStyle: f.style }}>Aa</span>
+                                    <span style={{ fontFamily: `'${family}', sans-serif`, fontWeight: f.weight, fontStyle: f.style }}>{tr("editor.aa")}</span>
                   {styleLabel(f.weight, f.style)}
                   {canEdit && (
                     <button

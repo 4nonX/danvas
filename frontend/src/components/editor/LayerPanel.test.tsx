@@ -32,7 +32,9 @@ beforeEach(() => {
 describe("the layer panel", () => {
   it("lists the front layer first", () => {
     render(<LayerPanel />);
-    expect(rows().map((r) => r.textContent?.slice(0, 6))).toEqual(["shapeC", "shapeB", "shapeA"]);
+    // The type shows as an icon (named by its aria-label), the row text is the name.
+    expect(rows().map((r) => r.textContent?.slice(0, 1))).toEqual(["C", "B", "A"]);
+    expect(rows().every((r) => within(r).queryByLabelText("shape"))).toBe(true);
   });
 
   it("drops a layer directly in front of the row it lands on, both ways", () => {

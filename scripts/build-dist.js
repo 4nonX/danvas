@@ -30,18 +30,29 @@ function exec(command, options = {}) {
   execSync(command, { stdio: 'inherit', cwd: ROOT_DIR, ...options });
 }
 
-// gitVersion returns `git describe` (tag/commit, with -dirty), falling back to
-// the short commit, then "dev" outside a git checkout. Stamped into the binary.
-function gitVersion() {
-  for (const cmd of ['git describe --tags --always --dirty', 'git rev-parse --short HEAD']) {
-    try {
-      const out = execSync(cmd, { cwd: ROOT_DIR, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
-      if (out) return out;
-    } catch {
-      // try the next form
-    }
+function git(cmd) {
+  try {
+    return execSync(cmd, { cwd: ROOT_DIR, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+  } catch {
+    return '';
   }
-  return 'dev';
+}
+
+// releaseVersion is the version stamped into the binary: v<VERSION file>, the
+// same string the Docker image and the install kit use, with the commit as
+// build metadata when built from a git checkout (v0.1.5+40737cc, .dirty for
+// uncommitted changes). Falls back to the commit, then "dev".
+function releaseVersion() {
+  let release = '';
+  try {
+    release = fs.readFileSync(path.join(ROOT_DIR, 'VERSION'), 'utf8').trim();
+  } catch {
+    // no VERSION file: commit only
+  }
+  const commit = git('git rev-parse --short HEAD');
+  const dirty = commit && git('git status --porcelain --untracked-files=no') ? '.dirty' : '';
+  if (release) return `v${release}${commit ? `+${commit}${dirty}` : ''}`;
+  return commit ? `${commit}${dirty}` : 'dev';
 }
 
 function copyRecursive(src, dest) {
@@ -95,9 +106,9 @@ async function main() {
 
     // 5. Compile the Go backend to a single static binary (now embedding the
     //    frontend via -tags embed). CGO is disabled so it has no libc dependency
-    //    on a slim base. The git version is stamped into the binary for boot logs
+    //    on a slim base. The release version is stamped into the binary for boot logs
     //    and the health endpoints.
-    const version = gitVersion();
+    const version = releaseVersion();
     log(`Building Go backend binary (embedded frontend, version ${version})...`);
     exec(
       `go build -tags embed -trimpath -ldflags "-s -w -X main.version=${version}" -o ${path.join(DIST_DIR, BINARY_NAME)} ./cmd/api`,

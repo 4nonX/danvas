@@ -1233,7 +1233,7 @@ function BrandFontsEditor({ fonts: list, onChange }: { fonts: BrandKit["fonts"];
       ))}
       <button
         type="button"
-        onClick={() => onChange([...list, { id: `f-${crypto.randomUUID()}`, role: tr("editor.new_font_role"), fontFamily: workspaceFamilies[0] ?? list[list.length - 1]?.fontFamily ?? "Inter" }])}
+        onClick={() => onChange([...list, { id: `f-${crypto.randomUUID()}`, role: tr("editor.new_font_role"), fontFamily: workspaceFamilies[0] ?? list[list.length - 1]?.fontFamily ?? "Inter" }])} // i18n-ignore: a font family name, not UI text
         className="flex items-center justify-center gap-1 rounded-lg border border-dashed border-neutral-300 py-1.5 text-xs font-medium text-neutral-500 hover:border-brand-300 hover:text-brand-ink"
       >
         <Plus size={13} /> {tr("editor.add_font_role")}

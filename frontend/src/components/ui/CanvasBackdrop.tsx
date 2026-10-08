@@ -6,6 +6,7 @@
 // prefers-reduced-motion guard freezes the float. Render inside a
 // `relative overflow-hidden` parent; it positions absolutely to fill it.
 import { type ReactNode } from "react";
+import { tr } from "@/lib/i18n";
 
 const INK = "#10172E";
 const LINE = "#9aa3b5";
@@ -73,7 +74,7 @@ function ArtType() {
   return (
     <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
       <rect x="4" y="4" width="56" height="56" rx="12" fill="#fff" />
-      <text x="32" y="42" textAnchor="middle" fontFamily="Georgia, serif" fontSize="26" fontWeight="700" fill={INK}>Aa</text>
+      <text x="32" y="42" textAnchor="middle" fontFamily="Georgia, serif" fontSize="26" fontWeight="700" fill={INK}>{tr("editor.aa")}</text>
       <rect x="16" y="48" width="32" height="3" rx="1.5" style={brand(400)} />
     </svg>
   );

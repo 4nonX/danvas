@@ -120,10 +120,10 @@ function ImageCropOverlay({ api, id }: { api: CanvasApi; id: string }) {
   // The crop frame, relative to the ORIGINAL box top-left (starts as the box).
   const [fr, setFr] = useState<Rect>({ x: 0, y: 0, w: fw, h: fh });
 
+  // Synced after commit (not during render) for the pointer handlers below.
   const tRef = useRef(t);
-  tRef.current = t;
   const frRef = useRef(fr);
-  frRef.current = fr;
+  useLayoutEffect(() => { tRef.current = t; frRef.current = fr; });
 
   const coverScale = (f: Rect) => Math.max(f.w / natW, f.h / natH);
   /** Keep the image covering the frame (no empty strips inside the crop). */

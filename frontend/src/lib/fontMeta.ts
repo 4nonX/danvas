@@ -23,8 +23,10 @@ export async function readFontMeta(bytes: Uint8Array, fileName = ""): Promise<Fo
     if (!font) return null;
     const family = (font.getName("preferredFamily") || font.familyName || fileName.replace(/\.[^.]+$/, "")).trim();
     const sub = font.getName("preferredSubfamily") || font.subfamilyName || "";
+    // i18n-ignore: OpenType table names.
     let weight = font["OS/2"]?.usWeightClass ?? 0;
     if (!weight || weight > 1000) weight = WEIGHT_WORDS.find(([re]) => re.test(sub))?.[1] ?? 400;
+    // i18n-ignore: OpenType table names.
     const italic = !!font["OS/2"]?.fsSelection?.italic || /italic|oblique/i.test(sub) || (font.italicAngle ?? 0) !== 0;
     return { family, weight, style: italic ? "italic" : "normal" };
   } catch {

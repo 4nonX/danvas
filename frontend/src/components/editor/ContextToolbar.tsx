@@ -324,6 +324,7 @@ export function ContextToolbar({ propsOpen, onToggleProps }: { propsOpen: boolea
     const ListIcon = list === "number" ? ListOrdered : List;
     const family = cs?.fontFamily ?? "system";
     // Toggling italic keeps the weight carried in the style name ("SemiBold Italic").
+    // i18n-ignore: font style values the design file stores, never labels.
     const baseStyle = (cs?.fontStyle ?? "Regular").replace(/\s*(italic|oblique)$/i, "") || "Regular";
     const textColor = cs?.fill?.type === "solid" ? cs.fill.color : colorFromHex(cs ? runColorHex(cs) : "#111827");
     items = (
@@ -370,7 +371,8 @@ export function ContextToolbar({ propsOpen, onToggleProps }: { propsOpen: boolea
           aria-pressed={isUpper}
           className={`${ico} text-[13px] font-semibold ${isUpper ? on : ""}`}
           onClick={() => setChar({ case: isUpper ? "none" : "upper" } as Partial<CharStyle>)}
-        >aA</button>
+          // i18n-ignore: a letter-case glyph, named by the translated aria-label.
+        >{"aA"}</button>
         <button type="button" title={tr("editor.align")} aria-label={tr("editor.align")} className={ico} onClick={() => setPara({ align: aligns[(curAlign + 1) % aligns.length].a })}><AlignIcon size={16} /></button>
         <button
           type="button"

@@ -354,7 +354,7 @@ describe("pptxToDesign fidelity goldens", () => {
     expect(table.cells[1].content[0].weight).toBe(400); // absent -> regular
   });
 
-  it("a group flattens through chOff/chExt scaling on import", async () => {
+  it("a group keeps its layer and maps chOff/chExt into its own space on import", async () => {
     // A raw grpSp whose child coordinate space (chOff/chExt) differs from its
     // placed extent: the child's frame must scale into slide space.
     const slide = `<?xml version="1.0"?>
@@ -382,11 +382,19 @@ describe("pptxToDesign fidelity goldens", () => {
       { name: "ppt/slides/slide1.xml", data: new TextEncoder().encode(slide) },
     ]);
     const file = await pptxToDesign(bytes);
-    const shape = (file.pages[0].children as Node[]).find((n) => n.type === "shape")!;
+    // The group stays a real group (layer structure survives); its children
+    // are group-local, so slide position = group position + child position.
+    const group = (file.pages[0].children as Node[]).find((n) => n.type === "group") as Node & { children: Node[] };
+    expect(group).toBeTruthy();
+    expect(group.transform.x).toBeCloseTo(100, 0);
+    expect(group.transform.y).toBeCloseTo(100, 0);
+    expect(group.size.width).toBeCloseTo(200, 0);
+    const shape = group.children.find((n) => n.type === "shape")!;
     // Group: placed at (100,100)px, 200x200; child space 100x100 -> scale 2.
-    // Child at (10,20) 20x10 in child units -> (100+20, 100+40) 40x20 on the slide.
-    expect(shape.transform.x).toBeCloseTo(120, 0);
-    expect(shape.transform.y).toBeCloseTo(140, 0);
+    // Child at (10,20) 20x10 in child units -> (20, 40) 40x20 in the group,
+    // (120, 140) on the slide.
+    expect(group.transform.x + shape.transform.x).toBeCloseTo(120, 0);
+    expect(group.transform.y + shape.transform.y).toBeCloseTo(140, 0);
     expect(shape.size.width).toBeCloseTo(40, 0);
     expect(shape.size.height).toBeCloseTo(20, 0);
   });

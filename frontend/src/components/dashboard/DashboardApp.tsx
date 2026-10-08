@@ -1731,7 +1731,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
           role="toolbar"
           aria-label={tr("dashboard.selection")}
           onClick={(e) => e.stopPropagation()}
-          className="fixed bottom-6 start-1/2 z-40 flex -translate-x-1/2 items-center gap-1 rounded-2xl border border-neutral-200 bg-surface px-2 py-1.5 shadow-xl rtl:translate-x-1/2"
+          className="fixed bottom-6 left-1/2 z-40 flex -translate-x-1/2 items-center gap-1 rounded-2xl border border-neutral-200 bg-surface px-2 py-1.5 shadow-xl"
         >
           <span className="px-2 text-sm font-medium text-neutral-700">{tr("dashboard.n_selected", { n: selCount })}</span>
           <span className="mx-1 h-5 w-px bg-neutral-200" />

@@ -10,7 +10,8 @@ export interface TiffInput {
   data: Uint8Array;
   mode: "rgb" | "cmyk";
   dpi: number;
-  /** ICC profile of the data (output profile for CMYK, sRGB for RGB). */
+  /** ICC profile of the data: the output profile for CMYK. RGB is written
+   *  without one, which readers and RIPs take as sRGB (what designs are in). */
   icc?: Uint8Array;
   software?: string;
 }
@@ -79,7 +80,7 @@ export async function encodeTiff(input: TiffInput): Promise<Blob> {
     { tag: 284, type: SHORT, count: 1, value: 1 },
     { tag: 296, type: SHORT, count: 1, value: 2 }, // inches
   ];
-  const sw = ascii(input.software ?? "HyCanvas");
+  const sw = ascii(input.software ?? "danvas"); // i18n-ignore: file metadata
   entries.push({ tag: 305, type: ASCII, count: sw.length, at: put(sw) });
   entries.push({ tag: 317, type: SHORT, count: 1, value: 2 }); // horizontal predictor
   if (mode === "cmyk") entries.push({ tag: 332, type: SHORT, count: 1, value: 1 }); // InkSet: CMYK
