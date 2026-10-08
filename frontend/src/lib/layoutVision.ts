@@ -44,7 +44,7 @@ export function renderPageWithSlots(
     ctx.fillRect(0, 0, cw, ch);
     const vp: Viewport = { zoom: scale, panX: 0, panY: 0, dpr: 1, width: cw, height: ch };
     imageAssets.registerAll(file.assets ?? []);
-    renderScene(createScene(file, pageIndex), ctx as unknown as CanvasLike, vp, { assets: imageAssets });
+    renderScene(createScene(file, pageIndex), ctx as unknown as CanvasLike, vp, { assets: imageAssets, clear: false });
     // Slot overlay: outlined boxes + "id role" tags, high-contrast on anything.
     for (const ph of placeholders) {
       const x = ph.rect.x * scale;

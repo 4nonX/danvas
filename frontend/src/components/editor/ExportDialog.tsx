@@ -89,7 +89,7 @@ function renderPageCanvas(doc: import("@hc/schema").DesignFile, index: number, s
   const vp: Viewport = { zoom: scale, panX: 0, panY: 0, dpr: 1, width: w, height: h };
   // For a transparent export the page's own background fill must be skipped too,
   // not just the white canvas prefill, or the PNG comes out opaque.
-  renderScene(createScene(doc, index), ctx as unknown as CanvasLike, vp, { assets: imageAssets, skipBackground: !opaque });
+  renderScene(createScene(doc, index), ctx as unknown as CanvasLike, vp, { assets: imageAssets, clear: false, skipBackground: !opaque });
   return canvas;
 }
 

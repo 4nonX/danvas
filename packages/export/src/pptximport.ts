@@ -476,6 +476,45 @@ export async function pptxToDesign(bytes: Uint8Array, opts: { title?: string; on
     }
   }
 
+  // A slide's background as PowerPoint shows it: the slide's own <p:bg>, else
+  // its layout's, else its master's. Exporters such as Canva put the white
+  // page on the master only (`<p:bgRef idx="1001"><a:schemeClr val="bg1"/>`),
+  // so reading the slide alone left those pages without any background.
+  // A <p:bgRef> points into the theme's background fill styles with its child
+  // as the placeholder colour; it is taken as that colour (exact for the
+  // usual solid style, the closest flat approximation for a gradient or
+  // picture style).
+  const bgOfPart = (xmlRoot: ReturnType<typeof parseXml>): unknown | undefined => {
+    const bgEl = findFirst(xmlRoot, "p:bg");
+    if (!bgEl) return undefined;
+    const bgPr = childOf(bgEl, "p:bgPr");
+    if (bgPr) return fillFrom(bgPr, theme) ?? undefined;
+    const bgRef = childOf(bgEl, "p:bgRef");
+    if (bgRef) {
+      const c = firstColorChild(bgRef, theme);
+      if (c) return { type: "solid", color: { srgb: c } };
+    }
+    return undefined;
+  };
+  const inheritedBg = new Map<string, unknown | undefined>();
+  const backgroundFor = (slidePath: string, slideRoot: ReturnType<typeof parseXml>): unknown | undefined => {
+    const own = bgOfPart(slideRoot);
+    if (own !== undefined) return own;
+    const layoutPath = [...readRels(slidePath).values()].find((t) => t.includes("slideLayouts/"));
+    if (!layoutPath) return undefined;
+    if (!inheritedBg.has(layoutPath)) {
+      const layoutSrc = read(layoutPath);
+      let bg = layoutSrc ? bgOfPart(parseXml(layoutSrc)) : undefined;
+      if (bg === undefined) {
+        const masterPath = [...readRels(layoutPath).values()].find((t) => t.includes("slideMasters/"));
+        const masterSrc = masterPath ? read(masterPath) : null;
+        bg = masterSrc ? bgOfPart(parseXml(masterSrc)) : undefined;
+      }
+      inheritedBg.set(layoutPath, bg);
+    }
+    return inheritedBg.get(layoutPath);
+  };
+
   const slidePaths = findAll(pres, "p:sldId")
     .map((sl) => presRels.get(sl.attrs["r:id"] ?? ""))
     .filter((path): path is string => !!path);
@@ -507,9 +546,8 @@ export async function pptxToDesign(bytes: Uint8Array, opts: { title?: string; on
     // being walked (see p:grpSp below).
     let target: Node[] = children;
 
-    // Slide background.
-    const bgPr = findFirst(slide, "p:bgPr");
-    const bg = bgPr ? fillFrom(bgPr, theme) : undefined;
+    // Slide background (inherited from layout and master like PowerPoint).
+    const bg = backgroundFor(slidePath, slide);
 
     const emitShape = (sp: XmlElement, frame: Xfrm, base: { dx: number; dy: number; sx: number; sy: number }): void => {
       const abs = {

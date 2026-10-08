@@ -116,7 +116,7 @@ export function DesignThumb({ designId, templateId, trashed }: { designId?: stri
           ctx.fillStyle = "#ffffff";
           ctx.fillRect(sheet.x, sheet.y, sheet.w, sheet.h);
           ctx.restore();
-          renderScene(scene, ctx as unknown as CanvasLike, vp, { assets: imageAssets });
+          renderScene(scene, ctx as unknown as CanvasLike, vp, { assets: imageAssets, clear: false });
         };
         draw();
         setOk(true);

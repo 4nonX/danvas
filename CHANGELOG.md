@@ -2,6 +2,13 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.1.8 (2026-10-08)
+
+### Fixed
+
+- PowerPoint import keeps the slide background when it is defined on the slide layout or master instead of the slide itself. Canva's exports do exactly that (a theme reference to the white background colour), so their pages came in without any background.
+- Pages without a background no longer look transparent in previews and exports. The dashboard previews, page thumbnails, minimap, presenter thumbnails, print, the shared view, the slide pickers and PNG/JPG export paint a white page first, but the renderer cleared it again before drawing; a JPG of such a page could come out black. They now keep the white page.
+
 ## 0.1.7 (2026-10-08)
 
 ### Changed

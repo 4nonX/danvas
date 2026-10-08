@@ -30,7 +30,7 @@ function renderPageCanvas(doc: import("@hc/schema").DesignFile, index: number, s
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, w, h);
   const vp: Viewport = { zoom: scale, panX: 0, panY: 0, dpr: 1, width: w, height: h };
-  renderScene(createScene(doc, index), ctx as unknown as CanvasLike, vp, { assets: imageAssets });
+  renderScene(createScene(doc, index), ctx as unknown as CanvasLike, vp, { assets: imageAssets, clear: false });
   return canvas;
 }
 

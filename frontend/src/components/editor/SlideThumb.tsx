@@ -56,7 +56,7 @@ export function SlideThumb({ index, width, height }: { index: number; width: num
     ctx.fillRect(0, 0, cw, ch);
     const vp: Viewport = { zoom: scale, panX: 0, panY: 0, dpr: 1, width: cw, height: ch };
     try {
-      renderScene(createScene(doc, index), ctx as unknown as CanvasLike, vp, { assets: imageAssets });
+      renderScene(createScene(doc, index), ctx as unknown as CanvasLike, vp, { assets: imageAssets, clear: false });
     } catch {
       /* a tainted/cross-origin image can throw; the thumbnail just shows white */
     }

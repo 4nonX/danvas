@@ -46,7 +46,7 @@ function PageCanvas({ doc, index, onVisible }: { doc: DesignFile; index: number;
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     const vp: Viewport = { zoom: dpr, panX: 0, panY: 0, dpr: 1, width: canvas.width, height: canvas.height };
-    renderScene(createScene(doc, index), ctx as unknown as CanvasLike, vp, { assets: imageAssets });
+    renderScene(createScene(doc, index), ctx as unknown as CanvasLike, vp, { assets: imageAssets, clear: false });
   }, [doc, index]);
   return <canvas ref={ref} className="rounded-lg shadow-md" />;
 }

@@ -39,7 +39,7 @@ function PagePreview({ file, index }: { file: DesignFile; index: number }) {
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, cw, ch);
       try {
-        renderScene(createScene(file, index), ctx as unknown as CanvasLike, { zoom: scale, panX: 0, panY: 0, dpr: 1, width: cw, height: ch } as Viewport, { assets: imageAssets });
+        renderScene(createScene(file, index), ctx as unknown as CanvasLike, { zoom: scale, panX: 0, panY: 0, dpr: 1, width: cw, height: ch } as Viewport, { assets: imageAssets, clear: false });
       } catch {
         /* tainted image: preview stays white */
       }

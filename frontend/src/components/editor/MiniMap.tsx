@@ -93,7 +93,7 @@ export function MiniMap() {
     // is captured; unclipped (no page clip) so the full extent shows.
     const vp: Viewport = { zoom: scale, panX: bounds.x, panY: bounds.y, dpr: 1, width: mw, height: mh };
     try {
-      renderScene(createScene(doc, viewed), ctx as unknown as CanvasLike, vp, { assets: imageAssets, cull: false });
+      renderScene(createScene(doc, viewed), ctx as unknown as CanvasLike, vp, { assets: imageAssets, clear: false, cull: false });
     } catch {
       /* tainted image: leave what we have */
     }

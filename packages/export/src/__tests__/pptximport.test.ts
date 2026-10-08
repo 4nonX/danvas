@@ -512,3 +512,44 @@ describe("unzip archive-bomb guards", () => {
     expect(new TextDecoder().decode(files.get("ok.xml"))).toBe("hello world");
   });
 });
+
+// Exporters such as Canva put the page background on the slide master only, as
+// a theme reference (<p:bgRef> with schemeClr bg1). PowerPoint shows those slides
+// white; the import must too, instead of leaving the page without a background
+// (which previews and exports then showed as transparent).
+describe("pptxToDesign inherited slide background", () => {
+  async function deckWith(patch: (files: Map<string, string>) => void): Promise<DesignFile> {
+    const file = createBlankDesign({ title: "bg", width: 1280, height: 720 });
+    delete (file.pages[0] as { background?: unknown }).background;
+    const files = await unzip(await deckToPptx(file));
+    const text = new Map<string, string>();
+    for (const [name, data] of files) text.set(name, new TextDecoder().decode(data));
+    patch(text);
+    const enc = new TextEncoder();
+    return pptxToDesign(zipStore([...text].map(([name, s]) => ({ name, data: enc.encode(s) }))));
+  }
+  const MASTER = "ppt/slideMasters/slideMaster1.xml";
+  const LAYOUT = "ppt/slideLayouts/slideLayout1.xml";
+  const bgOf = (d: DesignFile) => (d.pages[0] as { background?: { type?: string; color?: { srgb?: unknown } } }).background;
+
+  it("takes the master's bgRef theme colour when slide and layout have none", async () => {
+    const d = await deckWith((f) => {
+      expect(f.get("ppt/slides/slide1.xml")).not.toContain("<p:bg>");
+      f.set(MASTER, f.get(MASTER)!.replace("<p:cSld>", `<p:cSld><p:bg><p:bgRef idx="1001"><a:schemeClr val="bg1"/></p:bgRef></p:bg>`));
+    });
+    expect(bgOf(d)).toEqual({ type: "solid", color: { srgb: { r: 1, g: 1, b: 1, a: 1 } } });
+  });
+
+  it("prefers the layout's own background over the master's", async () => {
+    const d = await deckWith((f) => {
+      f.set(MASTER, f.get(MASTER)!.replace("<p:cSld>", `<p:cSld><p:bg><p:bgRef idx="1001"><a:schemeClr val="bg1"/></p:bgRef></p:bg>`));
+      f.set(LAYOUT, f.get(LAYOUT)!.replace(`<p:cSld name="Blank">`, `<p:cSld name="Blank"><p:bg><p:bgPr><a:solidFill><a:srgbClr val="FF0000"/></a:solidFill></p:bgPr></p:bg>`));
+    });
+    expect(bgOf(d)).toEqual({ type: "solid", color: { srgb: { r: 1, g: 0, b: 0, a: 1 } } });
+  });
+
+  it("leaves a page without background when no part defines one", async () => {
+    const d = await deckWith(() => {});
+    expect(bgOf(d)).toBeUndefined();
+  });
+});
