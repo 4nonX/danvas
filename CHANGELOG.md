@@ -2,6 +2,14 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.1.9 (2026-10-08)
+
+### Added
+
+- Replace object: select an image or a vector graphic (a placed logo, icon or SVG) and choose "Replace" in the toolbar above the canvas or in the element's "..." menu. Pick a brand kit logo (dark-background versions included), a workspace upload, or a new file from your device. The replacement takes the old object's place in the layer order, keeps its opacity, blend mode, effects, animation and link, and is one undo step.
+- Sizing follows what is visible: transparent margins and solid background plates of logo files are left out. A photo replacing a photo fills the same frame; otherwise the new content gets the old content's visual weight (equal visible area, at most 1.5 times its width or height), centred on it or flush with the page or group edge it touched. Right after a replace the toolbar offers "Optical", "Fit" and "Fill" to switch.
+- All new texts are translated into every interface language.
+
 ## 0.1.8 (2026-10-08)
 
 ### Fixed

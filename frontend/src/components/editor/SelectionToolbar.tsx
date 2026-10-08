@@ -5,12 +5,14 @@
 // alongside the Gizmo; it owns no transform logic.
 
 import { useState } from "react";
-import { CopyPlus, Trash2, Lock, LockOpen, MoreHorizontal, Paintbrush, ClipboardPaste, BringToFront, SendToBack, ArrowUp, ArrowDown, Group as GroupIcon, Ungroup, Move } from "lucide-react";
+import { CopyPlus, Trash2, Lock, LockOpen, MoreHorizontal, Paintbrush, ClipboardPaste, BringToFront, SendToBack, ArrowUp, ArrowDown, Group as GroupIcon, Ungroup, Move, Replace } from "lucide-react";
 import { unionAABB, locate } from "@hc/editor";
 import { useEditor } from "@/store/editor";
 import { usePresence } from "@/store/presence";
 import type { CanvasApi } from "@/lib/useEditorCanvas";
 import { tr } from "@/lib/i18n";
+import { isReplaceable } from "@/lib/replaceObject";
+import { openReplace } from "./ReplaceObjectDialog";
 
 const PAD = 60; // keep the bar from spilling off the canvas edges
 
@@ -83,6 +85,8 @@ export function SelectionToolbar({ api }: { api: CanvasApi }) {
   const allLocked = selection.every((id) => locate(doc, id)?.node.locked);
   const canGroup = selection.length >= 2;
   const isSingleGroup = selection.length === 1 && locate(doc, selection[0])?.node.type === "group";
+  const single = selection.length === 1 ? locate(doc, selection[0])?.node : undefined;
+  const canReplace = !!single && isReplaceable(single) && !single.locked;
   const run = (fn: () => void) => () => { fn(); closeMenu(); };
 
   return (
@@ -113,9 +117,10 @@ export function SelectionToolbar({ api }: { api: CanvasApi }) {
           <MenuItem icon={ArrowUp} label={tr("editor.bring_forward")} onClick={run(() => st.orderSelection("forward"))} />
           <MenuItem icon={ArrowDown} label={tr("editor.send_backward")} onClick={run(() => st.orderSelection("backward"))} />
           <MenuItem icon={SendToBack} label={tr("editor.send_to_back")} onClick={run(() => st.orderSelection("back"))} />
-          {(canGroup || isSingleGroup) && <div className="my-1 h-px bg-neutral-100" />}
+          {(canGroup || isSingleGroup || canReplace) && <div className="my-1 h-px bg-neutral-100" />}
           {canGroup && <MenuItem icon={GroupIcon} label={tr("editor.group")} onClick={run(() => st.group())} />}
           {isSingleGroup && <MenuItem icon={Ungroup} label={tr("editor.ungroup")} onClick={run(() => st.ungroupSelection())} />}
+          {canReplace && <MenuItem icon={Replace} label={tr("editor.replace")} onClick={run(() => openReplace(selection[0]))} />}
           <div className="my-1 h-px bg-neutral-100" />
           <MenuItem icon={Move} label={tr("editor.position")} onClick={run(() => st.requestRail("position"))} />
         </div>

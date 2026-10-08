@@ -8,7 +8,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import {
   AlignCenter, AlignJustify, AlignLeft, AlignRight, Bold, Crop, FlipHorizontal2, FlipVertical2,
-  Eraser, Group, Italic, List, Loader2, PenTool, ListOrdered, Minus, MoreHorizontal, PanelRightOpen, Paintbrush, Plus, Strikethrough, Underline, Ungroup, MoveVertical,
+  Eraser, Group, Italic, List, Loader2, PenTool, Replace, ListOrdered, Minus, MoreHorizontal, PanelRightOpen, Paintbrush, Plus, Strikethrough, Underline, Ungroup, MoveVertical,
 } from "lucide-react";
 import type { CharStyle, Color, Fill, Node, ParagraphStyle, Stroke } from "@hc/schema";
 import { locate } from "@hc/editor";
@@ -28,6 +28,7 @@ import {
   pageBgOf, recentColorList, rememberColor, runColorHex,
 } from "./PropertiesPanel";
 import { useWorkspaceFontFamilies } from "@/lib/workspaceFonts";
+import { openReplace, ReplaceModeChips } from "./ReplaceObjectDialog";
 
 const btn =
   "flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-md px-2 text-sm text-neutral-700 transition hover:bg-neutral-100 disabled:opacity-40 disabled:hover:bg-transparent";
@@ -411,6 +412,8 @@ export function ContextToolbar({ propsOpen, onToggleProps }: { propsOpen: boolea
         ) : (
           <button type="button" className={btn} onClick={() => st.requestRail("vectorize")} title={tr("editor.vectorize_tooltip")}><PenTool size={15} />{tr("editor.vectorize")}</button>
         )}
+        <button type="button" disabled={locked} className={btn} onClick={() => openReplace(node.id)}><Replace size={15} />{tr("editor.replace")}</button>
+        <ReplaceModeChips />
         <button type="button" disabled={locked} className={`${btn} ${cropping === node.id ? on : ""}`} onClick={() => st.setCropping(node.id)}><Crop size={15} />{tr("editor.crop")}</button>
         {!isSvgImage && (hasMask ? (
           <button type="button" disabled={locked} className={btn} onClick={() => st.setImageAlphaMask(node.id, null, 0, 0)} title={tr("editor.restore_background")}>
@@ -496,6 +499,8 @@ export function ContextToolbar({ propsOpen, onToggleProps }: { propsOpen: boolea
       <>
         {colorsOfSelection()}
         <button type="button" className={btn} onClick={() => st.ungroupSelection()}><Ungroup size={15} />{tr("editor.ungroup")}</button>
+        <button type="button" disabled={locked} className={btn} onClick={() => openReplace(node.id)}><Replace size={15} />{tr("editor.replace")}</button>
+        <ReplaceModeChips />
         {cropBtn}
         {transparency}
         {sep}

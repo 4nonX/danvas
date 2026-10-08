@@ -30,6 +30,7 @@ import { ShareDialog } from "./ShareDialog";
 import { RequestAccessScreen } from "./RequestAccessScreen";
 import { NotFoundScreen } from "@/components/ui/NotFound";
 import { SaveAsTemplateDialog } from "./SaveAsTemplateDialog";
+import { ReplaceObjectDialog } from "./ReplaceObjectDialog";
 import { PublishDialog } from "./PublishDialog";
 import { WebsiteDialog } from "./WebsiteDialog";
 import { PrintDialog } from "./PrintDialog";
@@ -1167,6 +1168,7 @@ export function EditorApp() {
         <ShareDialog key={designId} open onClose={() => { setShareOpen(false); setShareFocusRequests(false); }} designId={designId} focusRequests={shareFocusRequests} />
       )}
       <SaveAsTemplateDialog open={templateOpen} onClose={() => setTemplateOpen(false)} designId={designId} workspaceId={workspaceId} />
+      <ReplaceObjectDialog workspaceId={workspaceId} />
       {publishOpen && <PublishDialog open onClose={() => setPublishOpen(false)} designId={designId ?? undefined} workspaceId={workspaceId ?? undefined} />}
       {websiteOpen && <WebsiteDialog open onClose={() => setWebsiteOpen(false)} designId={designId ?? undefined} workspaceId={workspaceId ?? undefined} />}
       {printOpen && <PrintDialog open onClose={() => setPrintOpen(false)} />}

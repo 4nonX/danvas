@@ -1048,6 +1048,11 @@ interface EditorState {
   cropBox(id: string, rect: { x: number; y: number; width: number; height: number }): void;
   /** Replace an image node's source with a new URL (resets crop), undoable. */
   setImageSource(id: string, url: string): void;
+  /** Replace a node by another at the same place in the layer order (Replace
+   *  object, lib/replaceObject.ts), adding the assets it draws. One undo step;
+   *  selects the new node. False when the node cannot be replaced (locked,
+   *  edited by someone else, or the subject of a mask). */
+  replaceNode(id: string, next: Node, assets: AssetRef[]): boolean;
   /** Attach or clear an image's alpha mask (v20), undoable. Non-destructive:
    *  the original `source` is untouched. */
   setImageAlphaMask(id: string, url: string | null, width: number, height: number): void;
@@ -6487,6 +6492,33 @@ export const useEditor = create<EditorState>((set, get) => {
           else delete node.alphaMask;
         },
       );
+    },
+    replaceNode: (id, next, assets) => {
+      const doc = get().doc;
+      const loc = locate(doc, id);
+      if (!loc || loc.node.locked || editBlocked(id) || loc.parent?.type === "mask") return false;
+      ensureDocArrays(doc);
+      const old = loc.node;
+      const siblings = loc.siblings;
+      const prevSelection = get().selection;
+      perform(
+        () => {
+          const i = siblings.indexOf(old);
+          if (i >= 0) siblings.splice(i, 1, next);
+          for (const a of assets) if (!doc.assets.some((x) => x.id === a.id)) doc.assets.push(a);
+          set({ selection: [next.id] });
+        },
+        () => {
+          const i = siblings.indexOf(next);
+          if (i >= 0) siblings.splice(i, 1, old);
+          for (const a of assets) {
+            const k = doc.assets.findIndex((x) => x.id === a.id);
+            if (k >= 0) doc.assets.splice(k, 1);
+          }
+          set({ selection: prevSelection });
+        },
+      );
+      return true;
     },
     setImageSource: (id, url) => {
       const loc = locate(get().doc, id);
