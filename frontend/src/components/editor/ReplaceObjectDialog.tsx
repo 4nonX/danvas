@@ -12,7 +12,7 @@ import { useToast } from "@/components/ui/Toast";
 import { tr } from "@/lib/i18n";
 import { directUploadWithProgress, oc, resolveAssetUrl } from "@/lib/sdk";
 import { useBrand } from "@/store/brand";
-import { useEditor } from "@/store/editor";
+import { templateLockBlocking, useEditor } from "@/store/editor";
 import {
   finishReplacement,
   measureVisible,
@@ -56,6 +56,15 @@ async function runReplace(targetId: string, src: ReplacementSource): Promise<voi
   const loc = locate(doc, targetId);
   if (!loc) throw new ReplaceError("gone");
   const old = loc.node;
+  // A template frame at the "content" level: the picture changes, the frame
+  // stays (same object, place and size), so no sizing modes either.
+  if (old.type === "image" && templateLockBlocking(targetId, "structure") && !templateLockBlocking(targetId, "content")) {
+    const before = st.undoStack.length;
+    st.setImageSource(targetId, src.url);
+    if (useEditor.getState().undoStack.length === before) throw new ReplaceError("blocked");
+    useReplace.setState({ last: null });
+    return;
+  }
   const parent = loc.parent ? { width: loc.parent.size.width, height: loc.parent.size.height } : { width: loc.page.width, height: loc.page.height };
   await whenImagesReady(old, doc.assets ?? []);
   const oldVisible = measureVisible(old, doc) ?? { box: { x: 0, y: 0, w: old.size.width, h: old.size.height }, opaque: false };

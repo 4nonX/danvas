@@ -25,6 +25,9 @@ const (
 	CapApprove     Capability = "approve"
 	CapManageRoles Capability = "manage-roles"
 	CapManageBrand Capability = "manage-brand"
+	// CapManageLocks sets and lifts template locks (node.templateLock): the
+	// objects of a template that stay fixed in every design made from it.
+	CapManageLocks Capability = "manage-locks"
 	CapDelete      Capability = "delete"
 )
 
@@ -41,8 +44,8 @@ var modeCapabilities = map[AccessMode][]Capability{
 }
 
 var builtinRoleCapabilities = map[WorkspaceRole][]Capability{
-	"owner":  {CapView, CapComment, CapEdit, CapShare, CapApprove, CapManageRoles, CapManageBrand, CapDelete},
-	"admin":  {CapView, CapComment, CapEdit, CapShare, CapApprove, CapManageRoles, CapManageBrand, CapDelete},
+	"owner":  {CapView, CapComment, CapEdit, CapShare, CapApprove, CapManageRoles, CapManageBrand, CapManageLocks, CapDelete},
+	"admin":  {CapView, CapComment, CapEdit, CapShare, CapApprove, CapManageRoles, CapManageBrand, CapManageLocks, CapDelete},
 	"member": {CapView, CapComment, CapEdit, CapShare},
 	"viewer": {CapView, CapComment},
 }

@@ -11,6 +11,7 @@ import (
 	"hycanvas/backend/internal/accounts"
 	"hycanvas/backend/internal/brand"
 	"hycanvas/backend/internal/persistence"
+	"hycanvas/backend/internal/sharing"
 )
 
 // mountSnapshots attaches the user-facing snapshot-save route (doc 04 + doc 18).
@@ -18,11 +19,31 @@ import (
 // (a non-manage-brand saver's out-of-kit colors/fonts are rejected when a lock
 // is on), which is why it lives here with both services rather than in
 // mountPersistence.
-func mountSnapshots(api chi.Router, p *persistence.Service, br *brand.Service, acct *accounts.Service) {
-	api.With(requireAuth(acct)).Post("/designs/{id}/snapshots", snapshotHandler(p, br, acct))
+func mountSnapshots(api chi.Router, p *persistence.Service, br *brand.Service, acct *accounts.Service, sh *sharing.Service) {
+	api.With(requireAuth(acct)).Post("/designs/{id}/snapshots", snapshotHandler(p, br, acct, sh))
 }
 
-func snapshotHandler(p *persistence.Service, br *brand.Service, acct *accounts.Service) http.HandlerFunc {
+// templateLockGate refuses a save that changes objects a template lock
+// protects (node.templateLock) when the saver may not lift that lock, judged
+// against the design's current file. Writes the problem and returns false on
+// a refusal. sh is nil when sharing is disabled; a design with no readable
+// current file has nothing protected yet.
+func templateLockGate(w http.ResponseWriter, r *http.Request, p *persistence.Service, sh *sharing.Service, id, ws, userID string, next persistence.DesignFile) bool {
+	if sh == nil {
+		return true
+	}
+	cur, err := p.LoadFile(r.Context(), id, ws)
+	if err != nil || cur.File == nil {
+		return true
+	}
+	if err := sh.ValidateTemplateLocks(r.Context(), id, userID, cur.File, next); err != nil {
+		problemWithCode(w, r, http.StatusConflict, "Conflict", err.Error(), "template_locked")
+		return false
+	}
+	return true
+}
+
+func snapshotHandler(p *persistence.Service, br *brand.Service, acct *accounts.Service, sh *sharing.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var body struct {
 			File  persistence.DesignFile `json:"file"`
@@ -48,6 +69,9 @@ func snapshotHandler(p *persistence.Service, br *brand.Service, acct *accounts.S
 				return
 			}
 			problemWithCode(w, r, http.StatusInternalServerError, "Internal Server Error", "brand validation failed", "brand_validation_failed")
+			return
+		}
+		if !templateLockGate(w, r, p, sh, id, ws, u.ID, body.File) {
 			return
 		}
 		// The storage layer uppercases kinds into the Postgres enum, so accept

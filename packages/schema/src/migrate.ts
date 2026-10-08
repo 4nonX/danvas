@@ -383,6 +383,10 @@ export const migrations: Record<number, Migration> = {
   // existing grid already lays out. No node needs transforming, so this only
   // stamps the version so newer readers know the key may be present.
   25: (file: AnyObj) => ({ ...file, schemaVersion: 26 }),
+  // v26 -> v27: template locks. `templateLock` is optional on every node;
+  // omitting it means unprotected, which is every existing node. Stamps the
+  // version only.
+  26: (file: AnyObj) => ({ ...file, schemaVersion: 27 }),
 };
 
 export class MigrationError extends Error {

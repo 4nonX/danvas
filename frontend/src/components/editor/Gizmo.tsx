@@ -21,7 +21,7 @@ import {
   type HandleId,
 } from "@hc/editor";
 import type { Mat2D, Rect } from "@hc/engine";
-import { useEditor } from "@/store/editor";
+import { templateLockBlocking, useEditor } from "@/store/editor";
 import { usePresence } from "@/store/presence";
 import { useBrand } from "@/store/brand";
 import type { CanvasApi } from "@/lib/useEditorCanvas";
@@ -36,7 +36,7 @@ function anyLockedByOther(ids: string[]): boolean {
   const b = useBrand.getState();
   // collab-lock by another user, brand locked region, OR a facilitator/protected
   // lock this client doesn't own (FR-16) - all block resize/rotate.
-  return ids.some((id) => p.collabLockedByOther(id) !== null || b.isLockedRegion(id) || p.protectedByOther(id));
+  return ids.some((id) => p.collabLockedByOther(id) !== null || b.isLockedRegion(id) || p.protectedByOther(id) || !!templateLockBlocking(id, "structure"));
 }
 
 const HANDLES: { id: HandleId; fx: number; fy: number }[] = [

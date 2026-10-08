@@ -8,7 +8,17 @@ All notable changes to danvas are listed here, newest first. Versions follow the
 
 - Replace object: select an image or a vector graphic (a placed logo, icon or SVG) and choose "Replace" in the toolbar above the canvas or in the element's "..." menu. Pick a brand kit logo (dark-background versions included), a workspace upload, or a new file from your device. The replacement takes the old object's place in the layer order, keeps its opacity, blend mode, effects, animation and link, and is one undo step.
 - Sizing follows what is visible: transparent margins and solid background plates of logo files are left out. A photo replacing a photo fills the same frame; otherwise the new content gets the old content's visual weight (equal visible area, at most 1.5 times its width or height), centred on it or flush with the page or group edge it touched. Right after a replace the toolbar offers "Optical", "Fit" and "Fill" to switch.
+- Template protection: objects of a design can be protected so that designs made from it keep them as they are. Choose the shield in the layers panel or "Template protection" in an element's "..." menu, then "Content only" (the text or picture may change, its position, size and design stay) or "Full" (nothing changes). A protected group protects everything in it. "Only protected objects" in the layers panel lists them.
+- The protection travels with the design: copies, designs made from it as a template and copies in personal or other workspaces keep it, and only the workspace that set it can lift it. Objects copied out with copy and paste or duplicate are free.
+- Whoever runs into a protected object gets a message saying what is protected, by which workspace, and whom to ask (that workspace's owners and admins, with their email address).
+- The protection applies to the people who may change it too, so a template is not changed by accident. They lift it for themselves in one design with "Edit template" and turn it back on with "Protect again".
+- New right "Manage template protection" (owners and admins have it; custom roles can grant it).
+- The server refuses a save or a version restore that changes protected objects for someone who may not, so the protection holds outside the editor as well.
 - All new texts are translated into every interface language.
+
+### Changed
+
+- Design file format version 27: nodes may carry `templateLock`. The step from version 26 changes nothing in existing files.
 
 ### Fixed
 

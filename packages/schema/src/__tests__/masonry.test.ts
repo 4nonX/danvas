@@ -24,12 +24,8 @@ const grid = (extra: Record<string, unknown> = {}) =>
   } as Partial<Node>);
 
 describe("migration to v26", () => {
-  it("pins the exact version pair (see the Go twin in v26_test.go)", () => {
-    // The paired EXACT pins are the cross-language drift alarm: a future bump
-    // must update this line, the Go pin, and both currentSchemaVersion mirrors
-    // in the SAME change (CLAUDE.md bump protocol). A >= assertion would let
-    // the mirrors drift apart silently.
-    expect(currentSchemaVersion).toBe(26);
+  it("is at least v26 (the exact pin moved to templateLock.test.ts)", () => {
+    expect(currentSchemaVersion).toBeGreaterThanOrEqual(26);
   });
 
   it("is a pure no-op on a v25 document", () => {

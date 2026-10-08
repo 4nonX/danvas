@@ -106,8 +106,19 @@ import { z } from "zod";
  *      an older client lay the very same cells out on its regular lattice: a
  *      different arrangement of the same images, never a loss, and `cells`
  *      stays authoritative for both so nothing has to be recomputed to open
- *      the file either way. Additive. */
-export const currentSchemaVersion = 26;
+ *      the file either way. Additive.
+ *  v27: template locks. Every node gains optional `templateLock`
+ *      ({ level, workspaceId }): the object, and everything inside it, is
+ *      protected on behalf of the workspace that set the lock, also in copies
+ *      of the design made elsewhere. `level` "content" fixes the frame (place,
+ *      size, parent) and leaves what it shows editable; "locked" fixes all of
+ *      it. `level` validates as any string, deliberately: a level added later
+ *      must never make an older client reject the file, and a reader treats a
+ *      level it does not know as "locked", the strictest. An older client
+ *      keeps the key (unknown keys survive) and simply does not enforce it;
+ *      the server still refuses a save that changes protected objects.
+ *      Additive. */
+export const currentSchemaVersion = 27;
 
 /** Maximum container nesting depth; guards traversal against stack overflow (FR-4). */
 export const maxNestingDepth = 32;
@@ -764,6 +775,14 @@ export function isKnownNodeType(type: string): type is NodeType {
   return KNOWN_NODE_TYPE_SET.has(type);
 }
 
+/** A template lock. "content": the frame stays fixed, its text or picture may
+ *  change. "locked": nothing changes. Any other level reads as "locked". Only
+ *  people who may manage locks in `workspaceId` can change or lift it. */
+export interface TemplateLock {
+  level: "locked" | "content";
+  workspaceId: string;
+}
+
 export interface NodeBase {
   id: string;
   type: NodeType;
@@ -774,6 +793,9 @@ export interface NodeBase {
   effects?: Effect[];
   constraints?: Constraints;
   locked?: boolean;
+  /** Template lock (v27): protects this node and its descendants on behalf of
+   *  `workspaceId`. See TemplateLock. */
+  templateLock?: TemplateLock;
   hidden?: boolean;
   name?: string;
   link?: ElementLink;
@@ -805,6 +827,9 @@ const nodeBaseFields = {
   effects: z.array(EffectSchema).optional(),
   constraints: ConstraintsSchema.optional(),
   locked: z.boolean().optional(),
+  // `level` is any string on purpose (see v27): a future level must not fail
+  // validation of the whole file on this client.
+  templateLock: z.object({ level: z.string(), workspaceId: z.string() }).passthrough().optional(),
   hidden: z.boolean().optional(),
   name: z.string().optional(),
   link: ElementLinkSchema.optional(),

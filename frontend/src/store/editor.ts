@@ -112,6 +112,8 @@ import { parseCsvMatrix } from "@/lib/csv";
 import { tabularToChart } from "@/lib/magicDesign";
 import { usePresence } from "@/store/presence";
 import { useBrand } from "@/store/brand";
+import { useTemplateLock } from "@/store/templateLock";
+import { effectiveLock, locksBelow, locksOnPage, lockOf, stripTemplateLocks, type EditKind, type EffectiveLock, type TemplateLockLevel } from "@/lib/templateLock";
 import { tr } from "@/lib/i18n";
 
 // True when a node carries a collaborative lock held by ANOTHER participant
@@ -133,12 +135,63 @@ function lockedRegion(id: string): boolean {
   return useBrand.getState().isLockedRegion(id);
 }
 
+// Whether the doc carries any template lock, cached per revision: most designs
+// have none, and the gates below run per node inside loops.
+let lockScan: { doc: DesignFile; rev: number; any: boolean } | null = null;
+function docHasTemplateLocks(): boolean {
+  const { doc, rev } = useEditor.getState();
+  if (lockScan?.doc === doc && lockScan.rev === rev) return lockScan.any;
+  const any = doc.pages.some((p) => locksOnPage(p).length > 0);
+  lockScan = { doc, rev, any };
+  return any;
+}
+
+// The template lock that stops this caller from an edit of `kind` on a node,
+// or null. A structural edit is also stopped by a lock INSIDE the node
+// (deleting or moving a group moves what it holds). Template locks
+// (node.templateLock) protect a template's objects on behalf of the workspace
+// that set them, for everyone, rights holders included until they switch to
+// editing the template (store/templateLock.ts).
+export function templateLockBlocking(id: string, kind: EditKind): EffectiveLock | null {
+  if (!docHasTemplateLocks()) return null;
+  const doc = useEditor.getState().doc;
+  const tl = useTemplateLock.getState();
+  const own = effectiveLock(doc, id);
+  if (tl.blocks(own, kind)) return own;
+  if (kind !== "structure") return null;
+  const node = locate(doc, id)?.node;
+  return node ? (locksBelow(node).find((e) => tl.blocks(e, "structure")) ?? null) : null;
+}
+
+// templateLockBlocking, and the caller is told why (the lock notice).
+function templateBlocked(id: string, kind: EditKind): boolean {
+  const hit = templateLockBlocking(id, kind);
+  if (hit) useTemplateLock.getState().notify(hit, kind);
+  return !!hit;
+}
+
+// A template lock on a page stops removing or replacing the page.
+function pageTemplateBlocked(page: { children: Node[] } | undefined): boolean {
+  if (!page || !docHasTemplateLocks()) return false;
+  const tl = useTemplateLock.getState();
+  const hit = locksOnPage(page).find((e) => tl.blocks(e, "structure"));
+  if (hit) tl.notify(hit, "structure");
+  return !!hit;
+}
+
 // Combined edit-block gate: a node is uneditable when collab-locked by another
-// user, a brand locked region for this caller, OR under a facilitator/protected
-// lock while this client is not the facilitator (FR-16). Used by the single-node
-// guards at every mutation entry point.
+// user, a brand locked region for this caller, under a facilitator/protected
+// lock while this client is not the facilitator (FR-16), OR protected by a
+// template lock. Used by the single-node guards at every mutation entry point.
 function editBlocked(id: string): boolean {
-  return lockedByOther(id) || lockedRegion(id) || usePresence.getState().protectedByOther(id);
+  return lockedByOther(id) || lockedRegion(id) || usePresence.getState().protectedByOther(id) || templateBlocked(id, "structure");
+}
+
+// The gate for changing WHAT a node shows (its text, its picture, the crop)
+// while its frame stays: the same as editBlocked, except that a template lock
+// at the "content" level allows it.
+function contentBlocked(id: string): boolean {
+  return lockedByOther(id) || lockedRegion(id) || usePresence.getState().protectedByOther(id) || templateBlocked(id, "content");
 }
 
 // Map a VectorPath's anchors (and handles) through an affine matrix, so a
@@ -788,6 +841,11 @@ interface EditorState {
   /** Set a single node's hidden/locked flag (no selection change), undoable. */
   setNodeHidden(id: string, hidden: boolean): void;
   setNodeLocked(id: string, locked: boolean): void;
+  /** Set (level) or lift (null) the template lock of nodes, one undo step.
+   *  Setting needs manage-locks in the design's workspace; changing or lifting
+   *  an existing lock needs it in the lock's own workspace. Returns how many
+   *  nodes changed. */
+  setTemplateLock(ids: string[], level: TemplateLockLevel | null): number;
   /** Set/replace a node's typed animation set (entrance/exit/emphasis), undoable.
    *  Pass undefined to clear all animation. Clears the legacy `animations`/`link`
    *  slots so the typed model is the single source of truth. */
@@ -2071,7 +2129,7 @@ export const useEditor = create<EditorState>((set, get) => {
       // Only top-level nodes on the source page can cross pages this way.
       const moving = ids
         .map((id) => src.children.find((n) => n.id === id))
-        .filter((n): n is Node => !!n);
+        .filter((n): n is Node => !!n && !editBlocked(n.id));
       if (!moving.length) return;
       const movingIds = moving.map((n) => n.id);
       // Convert source-page-local Y to destination-page-local Y (pages are stacked
@@ -2416,6 +2474,7 @@ export const useEditor = create<EditorState>((set, get) => {
     replacePageContent: (pageIndex, next) => {
       const page = get().doc.pages[pageIndex] as unknown as { background?: Fill; children: Node[]; notes?: string; data?: Record<string, unknown> } | undefined;
       if (!page) return false;
+      if (pageTemplateBlocked(page)) return false;
       type Content = { background?: Fill; children: Node[]; notes?: string; data?: Record<string, unknown> };
       const before: Content = { background: structuredClone(page.background), children: structuredClone(page.children), notes: page.notes, data: page.data ? structuredClone(page.data) : undefined };
       const after: Content = {
@@ -3325,6 +3384,8 @@ export const useEditor = create<EditorState>((set, get) => {
       if (doc.pages.length <= 1) return; // always keep one page
       const idx = index ?? curPageIndex();
       if (idx < 0 || idx >= doc.pages.length) return;
+      // A page holding protected template objects stays.
+      if (pageTemplateBlocked(doc.pages[idx])) return;
       const removed = structuredClone(doc.pages[idx]);
       const prevPage = get().activePage;
       const prevSel = get().selection;
@@ -4306,7 +4367,7 @@ export const useEditor = create<EditorState>((set, get) => {
       const page = doc.pages[curPageIndex()];
       const shapes = selection
         .map((id) => locate(doc, id))
-        .filter((l): l is NonNullable<typeof l> => !!l && l.node.type === "shape")
+        .filter((l): l is NonNullable<typeof l> => !!l && l.node.type === "shape" && !editBlocked(l.node.id))
         .map((l) => l.node);
       if (shapes.length < 2) return;
 
@@ -5440,7 +5501,8 @@ export const useEditor = create<EditorState>((set, get) => {
     },
     paste: (offset = 24) => {
       if (!clipboardNodes?.length) return;
-      const { nodes } = remapIds(structuredClone(clipboardNodes));
+      // A copy is the user's own object: it drops any template lock.
+      const { nodes } = remapIds(stripTemplateLocks(structuredClone(clipboardNodes)));
       if (offset) nodes.forEach((n) => { n.transform = { ...n.transform, x: n.transform.x + offset, y: n.transform.y + offset }; });
       const page = get().doc.pages[curPageIndex()];
       const ids = nodes.map((n) => n.id);
@@ -5460,7 +5522,7 @@ export const useEditor = create<EditorState>((set, get) => {
       // string type so a malformed paste can't corrupt the page.
       const safe = (incoming ?? []).filter((n): n is Node => !!n && typeof (n as { type?: unknown }).type === "string");
       if (!safe.length) return;
-      const { nodes } = remapIds(structuredClone(safe));
+      const { nodes } = remapIds(stripTemplateLocks(structuredClone(safe)));
       nodes.forEach((n) => { n.transform = { ...n.transform, x: n.transform.x + 24, y: n.transform.y + 24 }; });
       const page = get().doc.pages[curPageIndex()];
       const ids = nodes.map((n) => n.id);
@@ -5503,7 +5565,7 @@ export const useEditor = create<EditorState>((set, get) => {
         .map((id) => locate(doc, id)?.node)
         .filter((n): n is Node => !!n);
       if (!src.length) return [];
-      const { nodes } = remapIds(structuredClone(src));
+      const { nodes } = remapIds(stripTemplateLocks(structuredClone(src)));
       nodes.forEach((n) => { n.transform = { ...n.transform, x: n.transform.x + dx, y: n.transform.y + dy }; });
       const page = get().doc.pages[curPageIndex()];
       const ids = nodes.map((n) => n.id);
@@ -5597,12 +5659,40 @@ export const useEditor = create<EditorState>((set, get) => {
       );
     },
     setNodeHidden: (id, hidden) => {
+      if (templateBlocked(id, "structure")) return;
       const cmd = setHidden(get().doc, id, hidden);
       if (cmd) registerApplied(set, get, [cmd]);
     },
     setNodeLocked: (id, locked) => {
       const cmd = setLocked(get().doc, id, locked);
       if (cmd) registerApplied(set, get, [cmd]);
+    },
+    setTemplateLock: (ids, level) => {
+      const doc = get().doc;
+      const tl = useTemplateLock.getState();
+      const ws = tl.workspaceId;
+      const changes: { node: Node; before: unknown; after: unknown }[] = [];
+      for (const id of new Set(ids)) {
+        const node = locate(doc, id)?.node;
+        if (!node) continue;
+        const own = lockOf(node);
+        if (own ? !tl.mayLift(own.workspaceId) : !tl.canManage || !ws) continue;
+        if ((own && level && own.level === level) || (!own && !level)) continue;
+        // An existing lock keeps its workspace when only its level changes.
+        const after = level ? { level, workspaceId: own?.workspaceId || ws } : undefined;
+        changes.push({ node, before: structuredClone((node as { templateLock?: unknown }).templateLock), after });
+      }
+      if (!changes.length) return 0;
+      const apply = (n: Node, v: unknown) => {
+        const rec = n as { templateLock?: unknown };
+        if (v === undefined) delete rec.templateLock;
+        else rec.templateLock = structuredClone(v);
+      };
+      perform(
+        () => changes.forEach((c) => apply(c.node, c.after)),
+        () => changes.forEach((c) => apply(c.node, c.before)),
+      );
+      return changes.length;
     },
     copyStyle: () => {
       const { doc, selection } = get();
@@ -6522,25 +6612,32 @@ export const useEditor = create<EditorState>((set, get) => {
     },
     setImageSource: (id, url) => {
       const loc = locate(get().doc, id);
-      if (!loc || loc.node.type !== "image" || loc.node.locked || editBlocked(id)) return;
-      const node = loc.node as unknown as { source: { assetId: string; naturalWidth: number; naturalHeight: number }; crop?: CropRect };
+      if (!loc || loc.node.type !== "image" || loc.node.locked || contentBlocked(id)) return;
+      const node = loc.node as unknown as { source: { assetId: string; naturalWidth: number; naturalHeight: number }; crop?: CropRect; fit?: ImageFit };
       const doc = get().doc;
       ensureDocArrays(doc);
       const assetId = `asset-${crypto.randomUUID()}`;
       const ref: AssetRef = { id: assetId, kind: "image", url, mime: "image/*", checksum: "" };
       const beforeSource = { ...node.source };
       const beforeCrop = node.crop;
+      // Inside a template frame the box stays exactly as it is: the new
+      // picture fits into it instead of the box taking the picture's shape.
+      const framed = !!effectiveLock(doc, id);
+      const beforeFit = node.fit;
+      const framedFit: ImageFit | undefined = framed && node.fit !== "cover" && node.fit !== "contain" ? "contain" : node.fit;
       perform(
         () => {
           doc.assets.push(ref);
           node.source = { assetId, naturalWidth: 0, naturalHeight: 0 };
           node.crop = undefined; // a new image invalidates the old crop
+          if (framed) node.fit = framedFit;
         },
         () => {
           const ai = doc.assets.findIndex((a) => a.id === assetId);
           if (ai >= 0) doc.assets.splice(ai, 1);
           node.source = beforeSource;
           node.crop = beforeCrop;
+          if (framed) node.fit = beforeFit;
         },
       );
       // Patch the real natural size once the new image loads (keeps box width,
@@ -6559,8 +6656,9 @@ export const useEditor = create<EditorState>((set, get) => {
             const n = l.node as unknown as { source: { naturalWidth: number; naturalHeight: number }; size: { width: number; height: number } };
             n.source.naturalWidth = img.naturalWidth;
             n.source.naturalHeight = img.naturalHeight ?? n.size.height;
-            // Keep a page background's page-sized box; see addImage above.
-            if ((l.node.data as { background?: unknown } | undefined)?.background !== true) {
+            // Keep a page background's page-sized box (see addImage above),
+            // and a template frame's box.
+            if ((l.node.data as { background?: unknown } | undefined)?.background !== true && !framed) {
               const aspect = img.naturalWidth / (img.naturalHeight || img.naturalWidth);
               n.size = { width: n.size.width, height: Math.max(1, Math.round(n.size.width / aspect)) };
             }
@@ -6801,7 +6899,7 @@ export const useEditor = create<EditorState>((set, get) => {
     },
     setFrameImage: (id, url, provenance) => {
       const loc = locate(get().doc, id);
-      if (!loc || loc.node.type !== "frame" || loc.node.locked || editBlocked(id)) return;
+      if (!loc || loc.node.type !== "frame" || loc.node.locked || contentBlocked(id)) return;
       const frame = loc.node as unknown as { size: { width: number; height: number }; children: Node[]; clip?: boolean };
       const doc = get().doc;
       ensureDocArrays(doc);
@@ -6848,7 +6946,7 @@ export const useEditor = create<EditorState>((set, get) => {
       const tLoc = locate(doc, targetId);
       if (!imgLoc || !tLoc || imgLoc.node.type !== "image") return false;
       if (imgLoc.node.locked || editBlocked(imageId)) return false;
-      if (tLoc.node.locked || editBlocked(targetId)) return false;
+      if (tLoc.node.locked || (kind === "frame" ? contentBlocked(targetId) : editBlocked(targetId))) return false;
       if (kind === "frame" ? tLoc.node.type !== "frame" : tLoc.node.type !== "shape") return false;
       const img = imgLoc.node as unknown as { source: { assetId: string; naturalWidth: number; naturalHeight: number }; data?: Record<string, unknown> };
       // The asset ref already lives in doc.assets (added when the image was
@@ -7184,7 +7282,7 @@ export const useEditor = create<EditorState>((set, get) => {
 
     setText: (id, text) => {
       const loc = locate(get().doc, id);
-      if (!loc || loc.node.type !== "text" || loc.node.locked || editBlocked(id)) return;
+      if (!loc || loc.node.type !== "text" || loc.node.locked || contentBlocked(id)) return;
       const node = loc.node as unknown as {
         content: { runs: { text: string; style: unknown }[]; style: unknown }[];
       };
@@ -7242,7 +7340,8 @@ export const useEditor = create<EditorState>((set, get) => {
       const texts: TextLike[] = [];
       const walk = (nodes: TextLike[] | undefined) => {
         for (const n of nodes ?? []) {
-          if (n.type === "text" && n.content) texts.push(n);
+          // Text a template lock keeps fixed is left as it is.
+          if (n.type === "text" && n.content && !templateLockBlocking((n as unknown as { id: string }).id, "content")) texts.push(n);
           if (n.children) walk(n.children);
         }
       };
@@ -7501,7 +7600,7 @@ export const useEditor = create<EditorState>((set, get) => {
     },
     setContent: (id, content, boxHeight, boxHeightBefore) => {
       const loc = locate(get().doc, id);
-      if (!loc || loc.node.type !== "text" || loc.node.locked || editBlocked(id)) return;
+      if (!loc || loc.node.type !== "text" || loc.node.locked || contentBlocked(id)) return;
       // C28: a slide's name follows its TITLE placeholder while the user has
       // not renamed the page by hand (name empty, or still equal to the old
       // derived title); an explicit rename breaks the link for that page.
@@ -7952,7 +8051,7 @@ export const useEditor = create<EditorState>((set, get) => {
     },
     setImageFit: (id, fit) => {
       const loc = locate(get().doc, id);
-      if (!loc || loc.node.type !== "image" || loc.node.locked || editBlocked(id)) return;
+      if (!loc || loc.node.type !== "image" || loc.node.locked || contentBlocked(id)) return;
       const rec = loc.node as unknown as { fit: ImageFit };
       const before = rec.fit;
       perform(
@@ -8067,7 +8166,7 @@ export const useEditor = create<EditorState>((set, get) => {
     },
     setImageAlt: (id, alt) => {
       const loc = locate(get().doc, id);
-      if (!loc || loc.node.type !== "image" || loc.node.locked || editBlocked(id)) return;
+      if (!loc || loc.node.type !== "image" || loc.node.locked || contentBlocked(id)) return;
       const rec = loc.node as unknown as { alt?: string };
       const next = alt?.trim() ? alt.trim() : undefined;
       const before = rec.alt;
@@ -8146,7 +8245,8 @@ export const useEditor = create<EditorState>((set, get) => {
 
     setImageCrop: (id, crop, frame) => {
       const loc = locate(get().doc, id);
-      if (!loc || editBlocked(id)) return;
+      // A crop that also reshapes the frame is a structural edit.
+      if (!loc || (frame ? editBlocked(id) : contentBlocked(id))) return;
       // A background image is locked by design (it must not catch canvas
       // drags), but the crop overlay is exactly how it is adjusted: pan/zoom
       // within the page box. Only the static lock is bypassed for it;
@@ -8372,7 +8472,7 @@ export const useEditor = create<EditorState>((set, get) => {
     ungroupSelection: () => {
       const { doc, selection } = get();
       const groupId = selection.find((id) => locate(doc, id)?.node.type === "group");
-      if (!groupId) return;
+      if (!groupId || editBlocked(groupId)) return;
       const loc = locate(doc, groupId);
       if (!loc) return;
       // Snapshot the exact group node BEFORE dissolving it, so undo restores the

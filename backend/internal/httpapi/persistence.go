@@ -34,7 +34,7 @@ func mountPersistence(api chi.Router, p *persistence.Service, acct *accounts.Ser
 	api.With(requireAuth(acct)).Get("/designs/{id}/versions/{vid}/diff", diffHandler(p, acct, sh))
 	api.With(requireAuth(acct)).Get("/designs/{id}/updates", updateLogHandler(p, acct, sh))
 	api.With(requireAuth(acct)).Post("/designs/{id}/updates/checkpoint", checkpointUpdateLogHandler(p, acct))
-	api.With(requireAuth(acct)).Post("/designs/{id}/versions/{vid}/restore", restoreVersionHandler(p, acct, br))
+	api.With(requireAuth(acct)).Post("/designs/{id}/versions/{vid}/restore", restoreVersionHandler(p, acct, br, sh))
 	api.With(requireAuth(acct)).Get("/designs/{id}/branches", branchesHandler(p, acct, sh))
 	api.With(requireAuth(acct)).Post("/designs/{id}/versions/{vid}/branch", branchHandler(p, acct))
 	api.With(requireAuth(acct)).Get("/designs/{id}/crdt-branches", listCrdtBranchesHandler(p, acct, sh))
@@ -334,7 +334,7 @@ func checkpointUpdateLogHandler(p *persistence.Service, acct *accounts.Service) 
 	}
 }
 
-func restoreVersionHandler(p *persistence.Service, acct *accounts.Service, br *brand.Service) http.HandlerFunc {
+func restoreVersionHandler(p *persistence.Service, acct *accounts.Service, br *brand.Service, sh *sharing.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 		ws, err := authorizeDesign(r, p, acct, id, "member")
@@ -360,6 +360,18 @@ func restoreVersionHandler(p *persistence.Service, acct *accounts.Service, br *b
 					return
 				}
 				problemWithCode(w, r, http.StatusInternalServerError, "Internal Server Error", "brand validation failed", "brand_validation_failed")
+				return
+			}
+		}
+		// Restoring a version from before a template lock existed would drop
+		// what the lock protects: the same template gate as a save.
+		if sh != nil {
+			file, ferr := p.VersionFile(r.Context(), id, ws, vid)
+			if ferr != nil {
+				persistenceProblem(w, r, ferr)
+				return
+			}
+			if !templateLockGate(w, r, p, sh, id, ws, u.ID, file) {
 				return
 			}
 		}

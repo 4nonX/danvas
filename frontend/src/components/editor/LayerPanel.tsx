@@ -9,9 +9,11 @@
 // alone move the selection.
 
 import { useState } from "react";
-import { Eye, EyeOff, Lock, Unlock, GripVertical, Copy, Trash2, ArrowUp, ArrowDown, ChevronRight, ChevronDown, Type, Image as ImageIcon, Group as GroupIcon, Square, PenTool, Frame, Minus, Table2, BarChart3, Layers as LayersIcon } from "lucide-react";
+import { Eye, EyeOff, Lock, Unlock, Shield, ShieldCheck, GripVertical, Copy, Trash2, ArrowUp, ArrowDown, ChevronRight, ChevronDown, Type, Image as ImageIcon, Group as GroupIcon, Square, PenTool, Frame, Minus, Table2, BarChart3, Layers as LayersIcon } from "lucide-react";
 import type { Node } from "@hc/schema";
 import { useEditor } from "@/store/editor";
+import { useTemplateLock } from "@/store/templateLock";
+import { effectiveLock, lockOf, locksBelow } from "@/lib/templateLock";
 import { layerDropIndex } from "@/lib/layerOrder";
 import { tr } from "@/lib/i18n";
 
@@ -55,12 +57,16 @@ function childrenOf(node: Node): Node[] | null {
   return Array.isArray(kids) ? (kids as Node[]) : null;
 }
 
-/** Front-first rows, groups expanded where asked. */
-function buildRows(siblings: Node[], depth: number, expanded: Set<string>, out: Row[] = []): Row[] {
+/** Front-first rows, groups expanded where asked. `protectedOnly` keeps the
+ *  template-protected layers and the groups that lead to them (opened). */
+function buildRows(siblings: Node[], depth: number, expanded: Set<string>, out: Row[] = [], protectedOnly = false, inLock = false): Row[] {
   for (const node of [...siblings].reverse()) {
     const kids = childrenOf(node);
+    const locked = inLock || !!lockOf(node);
+    const leadsToLock = !locked && locksBelow(node).length > 0;
+    if (protectedOnly && !locked && !leadsToLock) continue;
     out.push({ node, depth, siblings, container: !!kids });
-    if (kids && expanded.has(node.id)) buildRows(kids, depth + 1, expanded, out);
+    if (kids && (expanded.has(node.id) || (protectedOnly && leadsToLock))) buildRows(kids, depth + 1, expanded, out, protectedOnly, locked);
   }
   return out;
 }
@@ -74,10 +80,13 @@ export function LayerPanel() {
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
+  const protectedOnly = useTemplateLock((s) => s.protectedOnly);
+  const canManageLocks = useTemplateLock((s) => s.canManage);
 
   const page = doc.pages[Math.min(activePage, doc.pages.length - 1)];
   const children = page?.children ?? [];
-  const ordered = buildRows(children, 0, expanded);
+  const anyProtected = children.some((n) => !!lockOf(n) || locksBelow(n).length > 0);
+  const ordered = buildRows(children, 0, expanded, [], protectedOnly && anyProtected);
   const rowOf = (id: string) => ordered.find((r) => r.node.id === id);
 
   const toggleExpanded = (id: string) =>
@@ -118,8 +127,28 @@ export function LayerPanel() {
     useEditor.getState().reorderLayer(id, from + dir);
   };
 
+  /** The template protection card for a row (the whole selection when the row
+   *  is part of it). */
+  const openProtection = (id: string) => {
+    const ids = selection.includes(id) ? selection : [id];
+    if (!selection.includes(id)) useEditor.getState().select([id]);
+    useTemplateLock.getState().openFor(ids, effectiveLock(doc, id));
+  };
+
   return (
     <div className="flex h-full flex-col">
+      {(anyProtected || protectedOnly) && (
+        <label className="flex items-center gap-2 border-b border-neutral-100 px-3 py-1.5 text-xs text-neutral-600">
+          <input
+            type="checkbox"
+            checked={protectedOnly}
+            onChange={(e) => useTemplateLock.getState().setProtectedOnly(e.target.checked)}
+            className="accent-brand-600"
+          />
+          <ShieldCheck size={13} className="text-neutral-400" />
+          {tr("editor.template_lock_protected_only")}
+        </label>
+      )}
       <div role="tree" aria-label={tr("editor.layers")} aria-multiselectable className="flex-1 overflow-auto py-1">
         {ordered.length === 0 && (
           <div className="px-3 py-3 text-sm text-neutral-400">
@@ -238,6 +267,27 @@ export function LayerPanel() {
                   {node.locked && <Lock size={13} />}
                 </span>
               )}
+              {/* Template protection stays visible and clickable: it explains
+                  itself, and rights holders change it from the card. */}
+              {(() => {
+                const own = lockOf(node);
+                const inherited = !own && !!effectiveLock(doc, node.id);
+                if (!own && !inherited) return null;
+                const what = inherited ? tr("editor.template_lock_inherited_short") : own?.level === "content" ? tr("editor.template_lock_level_content") : tr("editor.template_lock_level_locked");
+                const Icon = own?.level === "content" ? Shield : ShieldCheck;
+                return (
+                  <button
+                    type="button"
+                    title={`${tr("editor.template_lock_title")}: ${what}`}
+                    aria-label={`${tr("editor.template_lock_title")}: ${what}`}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={() => openProtection(node.id)}
+                    className={`shrink-0 ${inherited ? "text-neutral-300" : "text-brand-ink"} hover:text-neutral-700 group-hover:invisible group-focus-within:invisible`}
+                  >
+                    <Icon size={14} />
+                  </button>
+                );
+              })()}
               <div className={`absolute inset-y-0 end-0 flex items-center gap-1.5 pe-2 ps-6 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100 ${selected ? "bg-gradient-to-l from-brand-50 from-70% to-transparent" : "bg-gradient-to-l from-neutral-50 from-70% to-transparent"}`}>
               {/* One step forward or back, on the row: the reason most people
                   open this panel, and dragging a row one slot is fiddly. */}
@@ -285,6 +335,18 @@ export function LayerPanel() {
               >
                 {node.locked ? <Lock size={15} /> : <Unlock size={15} />}
               </button>
+              {(canManageLocks || !!effectiveLock(doc, node.id)) && (
+                <button
+                  type="button"
+                  title={tr("editor.template_lock_menu")}
+                  aria-label={tr("editor.template_lock_menu")}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={() => openProtection(node.id)}
+                  className={`shrink-0 hover:text-neutral-700 ${lockOf(node) ? "text-brand-ink" : "text-neutral-400"}`}
+                >
+                  {lockOf(node)?.level === "content" ? <Shield size={14} /> : lockOf(node) ? <ShieldCheck size={14} /> : <Shield size={14} />}
+                </button>
+              )}
               <button
                 type="button"
                 title={tr("editor.duplicate")}

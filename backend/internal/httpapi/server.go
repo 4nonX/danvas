@@ -190,6 +190,9 @@ func NewRouter(d Deps) http.Handler {
 		}
 		if d.Accounts != nil && d.Sharing != nil {
 			mountSharing(api, d.Sharing, d.Accounts)
+			if d.Persistence != nil {
+				mountTemplateLocks(api, d.Persistence, d.Sharing, d.Accounts)
+			}
 		}
 		if d.Accounts != nil && d.Approvals != nil {
 			mountApprovals(api, d.Approvals, d.Accounts)
@@ -207,7 +210,7 @@ func NewRouter(d Deps) http.Handler {
 			mountBrand(api, d.Brand, d.Accounts)
 		}
 		if d.Accounts != nil && d.Brand != nil && d.Persistence != nil {
-			mountSnapshots(api, d.Persistence, d.Brand, d.Accounts)
+			mountSnapshots(api, d.Persistence, d.Brand, d.Accounts, d.Sharing)
 		}
 		if d.Accounts != nil && d.AIStudio != nil && d.Persistence != nil && d.Jobs != nil {
 			mountAIStudio(api, d.AIStudio, d.Accounts, d.Persistence, d.Jobs)

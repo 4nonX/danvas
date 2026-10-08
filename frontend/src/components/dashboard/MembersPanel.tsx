@@ -42,6 +42,8 @@ const capabilities = (): { id: Capability; label: string }[] => [
   { id: "share", label: tr("dashboard.share") },
   { id: "approve", label: tr("dashboard.approve") },
   { id: "manage-brand", label: tr("dashboard.manage_brand") },
+  // "manage-locks" is newer than some @hc/sdk builds' Capability union.
+  { id: "manage-locks" as Capability, label: tr("dashboard.manage_locks") },
   { id: "manage-roles", label: tr("dashboard.manage_roles") },
   { id: "delete", label: tr("dashboard.delete") },
 ];

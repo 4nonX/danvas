@@ -31,6 +31,8 @@ import { RequestAccessScreen } from "./RequestAccessScreen";
 import { NotFoundScreen } from "@/components/ui/NotFound";
 import { SaveAsTemplateDialog } from "./SaveAsTemplateDialog";
 import { ReplaceObjectDialog } from "./ReplaceObjectDialog";
+import { TemplateLockCard } from "./TemplateLockCard";
+import { useTemplateLock } from "@/store/templateLock";
 import { PublishDialog } from "./PublishDialog";
 import { WebsiteDialog } from "./WebsiteDialog";
 import { PrintDialog } from "./PrintDialog";
@@ -605,6 +607,8 @@ export function EditorApp() {
         // active kit + the caller's manage-brand flag for the Brand panel and
         // the locked pickers (FR-4). Best-effort; falls back to no-brand.
         useBrand.getState().setDesign(id, rec.workspaceId);
+        // Template locks: who may lift them here, and whom a blocked user asks.
+        useTemplateLock.getState().setDesign(id, rec.workspaceId);
         // The workspace font library, so its families render and show in the pickers.
         void loadWorkspaceFonts(rec.workspaceId);
       } catch (e) {
@@ -914,8 +918,11 @@ export function EditorApp() {
       useEditor.getState().markClean();
       setSavedAt(new Date().toLocaleTimeString());
       toast.success(tr("editor.saved"));
-    } catch {
-      if (mounted.current) toast.error(tr("editor.save_failed"));
+    } catch (e) {
+      // A save that changed protected template objects says so; anything
+      // else stays the generic failure.
+      const refused = e instanceof ApiError && (e.body as { code?: string } | null)?.code === "template_locked";
+      if (mounted.current) toast.error(refused ? tr("errors.api_template_locked") : tr("editor.save_failed"));
     } finally {
       useEditor.getState().setManualSaving(false); // always clear, even if unmounted
       if (mounted.current) setSaving(false);
@@ -1169,6 +1176,7 @@ export function EditorApp() {
       )}
       <SaveAsTemplateDialog open={templateOpen} onClose={() => setTemplateOpen(false)} designId={designId} workspaceId={workspaceId} />
       <ReplaceObjectDialog workspaceId={workspaceId} />
+      <TemplateLockCard />
       {publishOpen && <PublishDialog open onClose={() => setPublishOpen(false)} designId={designId ?? undefined} workspaceId={workspaceId ?? undefined} />}
       {websiteOpen && <WebsiteDialog open onClose={() => setWebsiteOpen(false)} designId={designId ?? undefined} workspaceId={workspaceId ?? undefined} />}
       {printOpen && <PrintDialog open onClose={() => setPrintOpen(false)} />}

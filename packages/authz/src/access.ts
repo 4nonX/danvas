@@ -27,6 +27,8 @@ export type Capability =
   | "approve"
   | "manage-roles"
   | "manage-brand"
+  /** Set and lift template locks (node.templateLock). */
+  | "manage-locks"
   | "delete";
 
 /** Higher rank = more access. Used to take the highest of competing sources. */
@@ -48,8 +50,8 @@ const MODE_CAPABILITIES: Record<AccessMode, Capability[]> = {
  *  and admin can manage roles and delete; members edit and share; viewers only
  *  view and comment. These seed every workspace and are immutable. */
 export const builtinRoleCapabilities: Record<WorkspaceRole, Capability[]> = {
-  owner: ["view", "comment", "edit", "share", "approve", "manage-roles", "manage-brand", "delete"],
-  admin: ["view", "comment", "edit", "share", "approve", "manage-roles", "manage-brand", "delete"],
+  owner: ["view", "comment", "edit", "share", "approve", "manage-roles", "manage-brand", "manage-locks", "delete"],
+  admin: ["view", "comment", "edit", "share", "approve", "manage-roles", "manage-brand", "manage-locks", "delete"],
   member: ["view", "comment", "edit", "share"],
   viewer: ["view", "comment"],
 };

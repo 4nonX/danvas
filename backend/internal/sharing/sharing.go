@@ -84,7 +84,8 @@ var accessModes = map[authz.AccessMode]bool{authz.ModeView: true, authz.ModeComm
 
 var capabilitySet = map[authz.Capability]bool{
 	authz.CapView: true, authz.CapComment: true, authz.CapEdit: true, authz.CapShare: true,
-	authz.CapApprove: true, authz.CapManageRoles: true, authz.CapManageBrand: true, authz.CapDelete: true,
+	authz.CapApprove: true, authz.CapManageRoles: true, authz.CapManageBrand: true, authz.CapManageLocks: true,
+	authz.CapDelete: true,
 }
 
 // Service is the sharing module.

@@ -5,7 +5,7 @@
 // alongside the Gizmo; it owns no transform logic.
 
 import { useState } from "react";
-import { CopyPlus, Trash2, Lock, LockOpen, MoreHorizontal, Paintbrush, ClipboardPaste, BringToFront, SendToBack, ArrowUp, ArrowDown, Group as GroupIcon, Ungroup, Move, Replace } from "lucide-react";
+import { CopyPlus, Trash2, Lock, LockOpen, MoreHorizontal, Paintbrush, ClipboardPaste, BringToFront, SendToBack, ArrowUp, ArrowDown, Group as GroupIcon, Ungroup, Move, Replace, Shield } from "lucide-react";
 import { unionAABB, locate } from "@hc/editor";
 import { useEditor } from "@/store/editor";
 import { usePresence } from "@/store/presence";
@@ -13,6 +13,8 @@ import type { CanvasApi } from "@/lib/useEditorCanvas";
 import { tr } from "@/lib/i18n";
 import { isReplaceable } from "@/lib/replaceObject";
 import { openReplace } from "./ReplaceObjectDialog";
+import { useTemplateLock } from "@/store/templateLock";
+import { effectiveLock } from "@/lib/templateLock";
 
 const PAD = 60; // keep the bar from spilling off the canvas edges
 
@@ -123,6 +125,13 @@ export function SelectionToolbar({ api }: { api: CanvasApi }) {
           {canReplace && <MenuItem icon={Replace} label={tr("editor.replace")} onClick={run(() => openReplace(selection[0]))} />}
           <div className="my-1 h-px bg-neutral-100" />
           <MenuItem icon={Move} label={tr("editor.position")} onClick={run(() => st.requestRail("position"))} />
+          {(useTemplateLock.getState().canManage || selection.some((id) => effectiveLock(doc, id))) && (
+            <MenuItem
+              icon={Shield}
+              label={tr("editor.template_lock_menu")}
+              onClick={run(() => useTemplateLock.getState().openFor(selection, selection.map((id) => effectiveLock(doc, id)).find((e) => !!e) ?? null))}
+            />
+          )}
         </div>
       )}
     </div>

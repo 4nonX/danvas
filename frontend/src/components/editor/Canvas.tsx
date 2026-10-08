@@ -27,7 +27,7 @@ import { useCallbackRef } from "@/lib/useCallbackRef";
 import { rulerTicks } from "@/lib/rulerTicks";
 import { overlay } from "@/lib/theme.generated";
 import { useEditorCanvas, type CanvasApi } from "@/lib/useEditorCanvas";
-import { useEditor, ocClipPrefix } from "@/store/editor";
+import { useEditor, ocClipPrefix, templateLockBlocking } from "@/store/editor";
 import { commandForEvent } from "@/lib/shortcuts";
 import { Gizmo } from "./Gizmo";
 import { SelectionToolbar } from "./SelectionToolbar";
@@ -44,6 +44,7 @@ import { getRealtimeClient } from "@/lib/useRealtime";
 import { serverNow } from "@/lib/realtime";
 import { usePresence } from "@/store/presence";
 import { useBrand } from "@/store/brand";
+import { useTemplateLock } from "@/store/templateLock";
 import { useComments } from "@/store/comments";
 import { designSurfaceDir } from "@/lib/locale";
 import { tr } from "@/lib/i18n";
@@ -871,6 +872,7 @@ function ConnectorDragLayer({
     !selNode.locked &&
     !usePresence.getState().collabLockedByOther(selId) &&
     !useBrand.getState().isLockedRegion(selId) &&
+    !templateLockBlocking(selId, "structure") &&
     !usePresence.getState().protectedByOther(selId);
 
   // Keep rendering during a drag even if the selection box updates.
@@ -1255,7 +1257,7 @@ export function Canvas() {
     const id = selection[0];
     const n = locate(useEditor.getState().doc, id)?.node;
     if (n?.type !== "path") return false;
-    if (n.locked || usePresence.getState().collabLockedByOther(id) || useBrand.getState().isLockedRegion(id) || usePresence.getState().protectedByOther(id)) return false;
+    if (n.locked || usePresence.getState().collabLockedByOther(id) || useBrand.getState().isLockedRegion(id) || templateLockBlocking(id, "structure") || usePresence.getState().protectedByOther(id)) return false;
     if (!usePresence.getState().canEdit() || useEditor.getState().readonlyPreview()) return false;
     return true;
   })();
@@ -1367,6 +1369,12 @@ export function Canvas() {
     // Collab-locked by another user or a brand locked region for this caller:
     // no edit/crop entry.
     if (usePresence.getState().collabLockedByOther(hit.id) || useBrand.getState().isLockedRegion(hit.id) || usePresence.getState().protectedByOther(hit.id)) return;
+    // A template lock that keeps even the content fixed: say why nothing opens.
+    const contentLock = templateLockBlocking(hit.id, "content");
+    if (contentLock) {
+      useTemplateLock.getState().notify(contentLock, "content");
+      return;
+    }
     // Statically locked: same, EXCEPT the page background image, which is
     // locked by design yet stays adjustable - double-click opens the crop
     // overlay to pan/zoom it within the page, like a shape's image fill.
@@ -1408,11 +1416,11 @@ export function Canvas() {
     // Collab/brand/facilitator-locked nodes cannot receive the image (the
     // store rejects the edit), so they are not offered as targets either -
     // the drop falls through to placing a new image instead.
-    const blocked = (id: string) =>
-      usePresence.getState().collabLockedByOther(id) || useBrand.getState().isLockedRegion(id) || usePresence.getState().protectedByOther(id);
+    const blocked = (id: string, kind: "structure" | "content" = "structure") =>
+      usePresence.getState().collabLockedByOther(id) || useBrand.getState().isLockedRegion(id) || usePresence.getState().protectedByOther(id) || !!templateLockBlocking(id, kind);
     const hit = api.scene()?.hitTest(page);
     if (!hit) return null;
-    if (hit.type === "frame") return blocked(hit.id) ? null : { id: hit.id, kind: "frame" };
+    if (hit.type === "frame") return blocked(hit.id, "content") ? null : { id: hit.id, kind: "frame" };
     const loc = locate(useEditor.getState().doc, hit.id);
     if (loc?.parent?.type === "frame") return blocked(loc.parent.id) ? null : { id: loc.parent.id, kind: "frame" };
     if (hit.type === "shape") return blocked(hit.id) ? null : { id: hit.id, kind: "shape" };
@@ -1724,7 +1732,7 @@ export function Canvas() {
         store.select([next]);
         const loc = locate(store.doc, next);
         const before = new Map<string, Transform>();
-        if (loc && !loc.node.locked && !usePresence.getState().collabLockedByOther(next) && !useBrand.getState().isLockedRegion(next) && !usePresence.getState().protectedByOther(next)) {
+        if (loc && !loc.node.locked && !usePresence.getState().collabLockedByOther(next) && !useBrand.getState().isLockedRegion(next) && !templateLockBlocking(next, "structure") && !usePresence.getState().protectedByOther(next)) {
           before.set(next, { ...loc.node.transform });
         }
         gesture.current = { type: "move", startX: page.x, startY: page.y, before };
@@ -1747,7 +1755,7 @@ export function Canvas() {
           const loc = locate(useEditor.getState().doc, id);
           // A duplicate of a locked node is itself locked (verbatim clone):
           // exclude it from the drag set like the plain move path does.
-          if (loc && !loc.node.locked && !usePresence.getState().collabLockedByOther(id) && !useBrand.getState().isLockedRegion(id) && !usePresence.getState().protectedByOther(id)) {
+          if (loc && !loc.node.locked && !usePresence.getState().collabLockedByOther(id) && !useBrand.getState().isLockedRegion(id) && !templateLockBlocking(id, "structure") && !usePresence.getState().protectedByOther(id)) {
             dup.set(id, { ...loc.node.transform });
           }
         }
@@ -1759,12 +1767,20 @@ export function Canvas() {
       else if (!store.selection.includes(selId)) store.select([selId]);
       const ids = useEditor.getState().selection;
       const before = new Map<string, Transform>();
+      let templateNotified = false;
       for (const id of ids) {
         const loc = locate(store.doc, id);
         // Exclude statically-locked nodes, collab-locked-by-others,
         // and brand locked regions for this caller from the
         // move set; selection/marquee still work normally.
         if (loc && !loc.node.locked && !usePresence.getState().collabLockedByOther(id) && !useBrand.getState().isLockedRegion(id) && !usePresence.getState().protectedByOther(id)) {
+          // A template-protected object stays put; the first one says why.
+          const tlock = templateLockBlocking(id, "structure");
+          if (tlock) {
+            if (!templateNotified) useTemplateLock.getState().notify(tlock, "structure");
+            templateNotified = true;
+            continue;
+          }
           before.set(id, { ...loc.node.transform });
         }
       }
@@ -2483,6 +2499,7 @@ export function Canvas() {
           !node.locked &&
           !usePresence.getState().collabLockedByOther(id) &&
           !useBrand.getState().isLockedRegion(id) &&
+          !templateLockBlocking(id, "content") &&
           !usePresence.getState().protectedByOther(id);
         if (reachable && node.type === "text") {
           e.preventDefault();

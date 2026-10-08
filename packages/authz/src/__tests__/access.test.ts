@@ -119,6 +119,20 @@ describe("capability sets", () => {
   });
 });
 
+describe("manage-locks capability", () => {
+  it("grants manage-locks to owner and admin, not member/viewer", () => {
+    expect(hasCapability(resolveDesignAccess({ workspaceRole: "owner" }), "manage-locks")).toBe(true);
+    expect(hasCapability(resolveDesignAccess({ workspaceRole: "admin" }), "manage-locks")).toBe(true);
+    expect(hasCapability(resolveDesignAccess({ workspaceRole: "member" }), "manage-locks")).toBe(false);
+    expect(hasCapability(resolveDesignAccess({ workspaceRole: "viewer" }), "manage-locks")).toBe(false);
+  });
+
+  it("can be granted to a member through a custom role", () => {
+    const templates: CustomRole = { id: "rt", name: "Templates", capabilities: ["manage-locks"] };
+    expect(hasCapability(resolveDesignAccess({ workspaceRole: "member", customRoles: [templates] }), "manage-locks")).toBe(true);
+  });
+});
+
 describe("manage-brand capability", () => {
   it("grants manage-brand to owner and admin, not member/viewer", () => {
     expect(hasCapability(resolveDesignAccess({ workspaceRole: "owner" }), "manage-brand")).toBe(true);
