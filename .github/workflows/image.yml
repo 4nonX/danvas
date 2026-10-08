@@ -1,25 +1,36 @@
-# Builds the danvas image (Dockerfile) for amd64 and arm64 and publishes it to
-# the GitHub container registry, so installs pull it instead of building:
+# Builds the danvas image from source (Dockerfile), checks that it deploys,
+# and publishes it to the GitHub container registry for amd64 and arm64:
 #
-#   ghcr.io/<owner>/danvas:v0.1.6   the release, as its git tag
-#   ghcr.io/<owner>/danvas:0.1.6    the same, plain semver
-#   ghcr.io/<owner>/danvas:0.1      newest 0.1.x
-#   ghcr.io/<owner>/danvas:latest   newest release
+#   pull request     build + deploy check, nothing published
+#   push to main     build + deploy check, published as :main and :sha-<commit>
+#   tag v0.1.6       build + deploy check, published as :v0.1.6, :0.1.6, :0.1
+#                    and :latest (the tag must match the VERSION file)
+#   manual run       any branch or tag; published only when asked to
 #
-# Runs on every version tag. The tag must match the VERSION file, which is
-# also what the image reports on /healthz. A manual run builds any ref and only
-# publishes when asked to (a branch publishes as its name, e.g. :main).
+# The deploy check starts the freshly built image the way installs run it
+# (deploy/compose.yaml with its Postgres) and requires the health check to
+# answer with the expected version, the background-removal model to be served
+# by the instance, and the app to load. Only an image that passes is pushed.
 name: Container image
 
 on:
   push:
+    branches: [main]
     tags: ["v*"]
+    # Docs-only changes do not need a new image (tag pushes always build).
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
+      - ".github/ISSUE_TEMPLATE/**"
+      - ".github/pull_request_template.md"
+  pull_request:
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
+      - ".github/ISSUE_TEMPLATE/**"
+      - ".github/pull_request_template.md"
   workflow_dispatch:
     inputs:
-      ref:
-        description: Tag or branch to build
-        required: true
-        default: main
       publish:
         description: Push the image to the registry
         type: boolean
@@ -30,57 +41,119 @@ permissions:
   packages: write
 
 concurrency:
-  group: image-${{ inputs.ref || github.ref }}
-  cancel-in-progress: false
+  group: image-${{ github.ref }}
+  # A newer push to a branch or PR supersedes the running build; releases finish.
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
 jobs:
   image:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 120
+    env:
+      PUBLISH: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish) }}
     steps:
       - uses: actions/checkout@v5
-        with:
-          ref: ${{ inputs.ref || github.ref }}
 
-      - name: Check version
+      - name: Version
         id: version
         run: |
-          v="$(tr -d '[:space:]' < VERSION)"
-          ref="${{ inputs.ref || github.ref_name }}"
-          case "$ref" in
-            v[0-9]*) [ "$ref" = "v$v" ] || { echo "::error::tag $ref does not match VERSION ($v)"; exit 1; } ;;
-          esac
+          v="v$(tr -d '[:space:]' < VERSION)"
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            [ "$GITHUB_REF_NAME" = "$v" ] || { echo "::error::tag $GITHUB_REF_NAME does not match VERSION ($v)"; exit 1; }
+            version="$v"
+          else
+            # Builds between releases say which commit they are.
+            version="$v+${GITHUB_SHA::7}"
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "image=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
-          echo "Building v$v from $ref"
-
-      - uses: docker/metadata-action@v5
-        id: meta
-        with:
-          images: ${{ steps.version.outputs.image }}
-          tags: |
-            type=match,pattern=v\d+\.\d+\.\d+.*,value=${{ inputs.ref || github.ref_name }}
-            type=semver,pattern={{version}},value=${{ inputs.ref || github.ref_name }}
-            type=semver,pattern={{major}}.{{minor}},value=${{ inputs.ref || github.ref_name }}
-            type=raw,value=${{ inputs.ref }},enable=${{ github.event_name == 'workflow_dispatch' && !startsWith(inputs.ref, 'v') }}
-          flavor: |
-            latest=${{ startsWith(inputs.ref || github.ref_name, 'v') && !contains(inputs.ref || github.ref_name, '-') }}
+          echo "bg=$(node -p 'require("./package-lock.json").packages["node_modules/@imgly/background-removal"].version')" >> "$GITHUB_OUTPUT"
+          echo "Building $version"
 
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
 
+      # Build for this runner's platform and load it into Docker for the deploy
+      # check. The multi-arch build below reuses these layers from the cache.
+      - name: Build (amd64, for the deploy check)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          platforms: linux/amd64
+          build-args: VERSION=${{ steps.version.outputs.version }}
+          load: true
+          tags: danvas:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy check (install kit)
+        working-directory: deploy
+        env:
+          WANT_VERSION: ${{ steps.version.outputs.version }}
+          BG_VERSION: ${{ steps.version.outputs.bg }}
+        run: |
+          cp .env.example .env
+          for k in JWT_SECRET AI_SECRET POSTGRES_PASSWORD; do sed -i "s|^$k=$|$k=$(openssl rand -hex 32)|" .env; done
+          sed -i "s|^DANVAS_VERSION=.*|DANVAS_VERSION=ci|" .env
+          echo "DANVAS_IMAGE=danvas" >> .env
+          mkdir -p data/storage data/pgdata
+          docker compose up -d
+          h=""
+          for _ in $(seq 1 60); do
+            h=$(curl -fsS http://127.0.0.1:8005/healthz 2>/dev/null || true)
+            case "$h" in *'"status":"ok"'*) break;; esac
+            sleep 3
+          done
+          echo "healthz: $h"
+          case "$h" in *"\"version\":\"$WANT_VERSION\""*) ;; *) echo "::error::health check did not report $WANT_VERSION"; exit 1;; esac
+          # Background removal is served by the instance itself.
+          ct=$(curl -fsS -o /dev/null -w '%{content_type}' "http://127.0.0.1:8005/static-data/bg-removal/$BG_VERSION/resources.json")
+          case "$ct" in *json*) echo "model served ($ct)";; *) echo "::error::background-removal model not served (content type: $ct)"; exit 1;; esac
+          # The app itself loads.
+          curl -fsSL http://127.0.0.1:8005/ | grep -qi "<html" || { echo "::error::the app page did not load"; exit 1; }
+          echo "deploy check passed"
+
+      - name: Logs on failure
+        if: failure()
+        working-directory: deploy
+        run: docker compose logs --no-color --tail 200 || true
+
+      - name: Tear down
+        if: always()
+        working-directory: deploy
+        run: docker compose down -v || true
+
+      - uses: docker/metadata-action@v5
+        id: meta
+        if: env.PUBLISH == 'true'
+        with:
+          images: ${{ steps.version.outputs.image }}
+          tags: |
+            type=ref,event=tag
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=ref,event=branch
+            type=sha,prefix=sha-,enable={{is_default_branch}}
+          flavor: |
+            latest=${{ startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-') }}
+
       - uses: docker/login-action@v3
-        if: github.event_name == 'push' || inputs.publish
+        if: env.PUBLISH == 'true'
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: docker/build-push-action@v6
+      - name: Build and publish (amd64, arm64)
+        if: env.PUBLISH == 'true'
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: Dockerfile
           platforms: linux/amd64,linux/arm64
-          push: ${{ github.event_name == 'push' || inputs.publish }}
+          build-args: VERSION=${{ steps.version.outputs.version }}
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha

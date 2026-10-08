@@ -6,7 +6,8 @@ All notable changes to danvas are listed here, newest first. Versions follow the
 
 ### Added
 
-- Published images: every release is built for amd64 and arm64 and published as `ghcr.io/4nonx/danvas` (tags `v0.1.6`, `0.1.6`, `0.1`, `latest`) by `.github/workflows/image.yml`. A release tag must match the `VERSION` file.
+- Images built from source by GitHub Actions (`.github/workflows/image.yml`) for amd64 and arm64 and published as `ghcr.io/4nonx/danvas`: every release (tags `v0.1.6`, `0.1.6`, `0.1`, `latest`; the tag must match the `VERSION` file) and every push to main (`main`, `sha-<commit>`, reporting `v<VERSION>+<commit>`). Pull requests are built and checked without publishing.
+- Deploy check before publishing: each image is started through `deploy/compose.yaml` with Postgres and must report its version on `/healthz`, serve the background-removal model and load the app.
 - One-step install on any Docker host: `install.sh` works in an empty folder, fetches the install kit for the latest release, generates the secrets, pins the release in `.env` and pulls the images. Git, Python and a 10 minute build are no longer needed.
 
 ### Changed
