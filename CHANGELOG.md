@@ -6,6 +6,8 @@ All notable changes to danvas are listed here, newest first. Versions follow the
 
 ### Changed
 
+- The "Verify your email" banner on the home page only appears when the instance can send email; without an email server the link could never arrive, so it only nagged. When it does appear, dismissing it is remembered. The sign-in configuration (`/api/v1/auth/providers`) reports `emailDelivery` for this.
+- The interface font, Plus Jakarta Sans, ships with the app (npm package `@fontsource-variable/plus-jakarta-sans`) instead of being downloaded from Google Fonts during the build. Builds no longer depend on Google: a failed font download had made a release build fail at random, and offline builds from source now work.
 - Every version tag gets its GitHub release page automatically, once its images are published, with the version's changelog section as release notes. 0.1.8 and 0.1.9 were tagged and published without one, so GitHub kept naming 0.1.7 the latest release, and `install.sh` and `update.sh`, which look the latest release up there, stayed on 0.1.7. A tag whose version has no changelog section now stops the build before it starts.
 
 ## 0.1.10 (2026-10-08)

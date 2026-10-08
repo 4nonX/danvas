@@ -2,8 +2,12 @@
 // verified. It offers a one-click "resend" that re-sends the
 // verification link through the backend. Self-contained so it can sit at the
 // top of the dashboard without threading state through it.
+//
+// Only shown when the instance can send email: without SMTP the link never
+// reaches anyone, so the banner could only nag. Dismissing it is remembered
+// for that user in this browser.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MailWarning, X } from "lucide-react";
 import { oc } from "@/lib/sdk";
 import { useAuth } from "@/store/auth";
@@ -13,10 +17,39 @@ import { tr } from "@/lib/i18n";
 export function VerifyEmailBanner() {
   const user = useAuth((s) => s.user);
   const toast = useToast();
-  const [dismissed, setDismissed] = useState(false);
   const [busy, setBusy] = useState(false);
+  // null until the instance config has loaded, so the banner never flashes.
+  // A server before 0.2.0 does not say (undefined): shown, as it used to be.
+  const [canEmail, setCanEmail] = useState<boolean | null>(null);
+  const dismissKey = user ? `hc-verify-email-dismissed:${user.id}` : "";
+  const [dismissed, setDismissed] = useState(() => {
+    try {
+      return !!dismissKey && window.localStorage.getItem(dismissKey) === "1";
+    } catch {
+      return false;
+    }
+  });
 
-  if (!user || user.emailVerified || dismissed) return null;
+  const unverified = !!user && !user.emailVerified;
+  useEffect(() => {
+    if (!unverified) return;
+    let cancelled = false;
+    void oc.authConfig()
+      .then((c) => { if (!cancelled) setCanEmail(c.emailDelivery !== false); })
+      .catch(() => { if (!cancelled) setCanEmail(false); });
+    return () => { cancelled = true; };
+  }, [unverified]);
+
+  function dismiss() {
+    setDismissed(true);
+    try {
+      window.localStorage.setItem(dismissKey, "1");
+    } catch {
+      /* private mode: dismissed for this visit only */
+    }
+  }
+
+  if (!user || user.emailVerified || dismissed || !canEmail) return null;
 
   async function resend() {
     if (!user) return;
@@ -45,7 +78,7 @@ export function VerifyEmailBanner() {
         {busy ? tr("auth.sending") : tr("auth.resend_email")}
       </button>
       <button
-        onClick={() => setDismissed(true)}
+        onClick={dismiss}
         className="text-amber-500 hover:text-amber-700"
         aria-label={tr("auth.dismiss")}
       >

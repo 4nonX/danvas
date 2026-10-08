@@ -15,6 +15,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@fontsource-variable/plus-jakarta-sans": "5.3.0",
     "@hc/a11y": "*",
     "@hc/aistudio": "*",
     "@hc/audio": "*",

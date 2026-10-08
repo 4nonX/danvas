@@ -9,7 +9,8 @@
    surfaces, the identity gradient, and the `.dark` overrides below are
    GENERATED from the single source src/theme.config.mjs by
    scripts/gen-theme.mjs (npm run gen:theme); edit colors there, not here.
-   The brand font is injected by next/font as --font-sans.
+   The brand font, Plus Jakarta Sans, ships with the app (the
+   @fontsource-variable package imported in pages/_app.tsx) as --font-sans.
 
    This @theme block is intentionally NOT `inline`: utilities must reference
    the CSS variables (bg-brand-50 -> var(--color-brand-50)) so the `.dark`
@@ -64,7 +65,7 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-brand), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans Variable", ui-sans-serif, system-ui, sans-serif;
 }
 
 :root {

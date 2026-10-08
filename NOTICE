@@ -16,8 +16,12 @@ license. Notable runtime and build dependencies include (non-exhaustive):
 - npm dependencies listed in package-lock.json and each workspace's
   package.json (e.g. Next.js, React, Yjs, Zustand, pdf.js, Zod) - see their
   respective repositories for license terms.
-- Fonts are loaded at runtime from Google Fonts; none are redistributed in this
-  repository.
+- Fonts used in designs are loaded at runtime from Google Fonts; none are
+  redistributed in this repository.
+- The interface font, Plus Jakarta Sans (Copyright 2020 The Plus Jakarta Sans
+  Project Authors, SIL Open Font License 1.1), is bundled with the app from the
+  npm package @fontsource-variable/plus-jakarta-sans, whose license text ships
+  in that package.
 
 Bundled demo content:
 

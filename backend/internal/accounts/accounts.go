@@ -313,6 +313,13 @@ func NewService(db DBTX, jwtSecret string) *Service {
 	return &Service{db: db, jwtSecret: jwtSecret, aiSecret: jwtSecret, smtp: smtpFromEnv()}
 }
 
+// EmailDelivery reports whether this instance can send email (SMTP is
+// configured). Without it, links go to the dev outbox and never reach anyone,
+// so the UI does not offer what needs them, such as resending a verification.
+func (s *Service) EmailDelivery() bool {
+	return s != nil && s.smtp != nil
+}
+
 // WithNotifier wires the in-app notifier (the engagement emitter). Nil-safe;
 // returns the service. Set once at boot, before serving.
 func (s *Service) WithNotifier(n Notifier) *Service {

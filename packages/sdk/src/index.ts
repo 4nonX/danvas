@@ -1308,9 +1308,11 @@ export class HyCanvasClient {
   }
   /** The instance's auth configuration: the SSO providers plus which sign-in
    *  methods and account-creation paths are enabled (AUTH_*_ENABLED). The sign-in
-   *  page renders only the methods the policy allows. */
-  authConfig(): Promise<{ providers: { id: string; label: string }[]; policy: AuthPolicy; captcha: CaptchaSettings | null }> {
-    return this.request<{ providers: { id: string; label: string }[]; policy: AuthPolicy; captcha: CaptchaSettings | null }>(
+   *  page renders only the methods the policy allows. `emailDelivery` says
+   *  whether the instance can send email at all (SMTP configured); servers
+   *  before 0.2.0 leave it out. */
+  authConfig(): Promise<{ providers: { id: string; label: string }[]; policy: AuthPolicy; captcha: CaptchaSettings | null; emailDelivery?: boolean }> {
+    return this.request<{ providers: { id: string; label: string }[]; policy: AuthPolicy; captcha: CaptchaSettings | null; emailDelivery?: boolean }>(
       "GET",
       "/v1/auth/providers",
     );

@@ -24,7 +24,7 @@ const oidcStateCookie = "oc_oidc"
 func mountOIDC(api chi.Router, svc *oidc.Service, acct *accounts.Service, secure bool, policy config.AuthPolicy, cap config.CaptchaConfig) {
 	// The providers endpoint doubles as the auth-config endpoint the login page
 	// reads, so it always mounts and reports the full policy plus captcha config.
-	api.Get("/auth/providers", oidcProvidersHandler(svc, policy, cap))
+	api.Get("/auth/providers", oidcProvidersHandler(svc, policy, cap, acct.EmailDelivery()))
 	// The sign-in flow is available when either OIDC toggle is on; the
 	// login-vs-signup split is enforced inside the callback.
 	oidcOn := policy.OidcLogin || policy.OidcSignup
@@ -60,8 +60,9 @@ func frontendURL() string {
 
 // oidcProvidersHandler is also the auth-config endpoint the sign-in page reads:
 // it returns the SSO provider list plus the full method policy, so the UI shows
-// exactly the methods this instance allows.
-func oidcProvidersHandler(svc *oidc.Service, policy config.AuthPolicy, cap config.CaptchaConfig) http.HandlerFunc {
+// exactly the methods this instance allows. emailDelivery says whether the
+// instance can send email at all (SMTP configured).
+func oidcProvidersHandler(svc *oidc.Service, policy config.AuthPolicy, cap config.CaptchaConfig, emailDelivery bool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// captcha is null when disabled; otherwise it carries the provider and the
 		// public site key the widget needs. The secret key never leaves the server.
@@ -79,7 +80,8 @@ func oidcProvidersHandler(svc *oidc.Service, policy config.AuthPolicy, cap confi
 				"oidcLogin":       policy.OidcLogin,
 				"oidcSignup":      policy.OidcSignup,
 			},
-			"captcha": captchaBlock,
+			"captcha":       captchaBlock,
+			"emailDelivery": emailDelivery,
 		})
 	}
 }
