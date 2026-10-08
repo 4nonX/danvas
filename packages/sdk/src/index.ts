@@ -871,6 +871,45 @@ export interface UploadedAsset {
 
 /** A dashboard design folder. */
 /** One face of a workspace font family (without its bytes). */
+/** Import from Canva (doc 41): the workspace's Canva integration. The client
+ *  secret is write-only; `redirectUri` and `scopes` are what to register in
+ *  Canva's developer portal. */
+export interface CanvaIntegration {
+  configured: boolean;
+  clientId: string;
+  scopes: string[];
+  redirectUri: string;
+}
+/** The caller's own Canva connection in a workspace. */
+export interface CanvaConnection {
+  configured: boolean;
+  connected: boolean;
+  displayName?: string;
+}
+/** One entry of a Canva folder. */
+export interface CanvaItem {
+  type: "folder" | "design";
+  id: string;
+  name: string;
+  pageCount?: number;
+  thumbnail?: string;
+  updatedAt?: number;
+}
+export interface CanvaFolderPage {
+  items: CanvaItem[];
+  continuation?: string;
+}
+/** A started Canva export: PPTX (editable) or PNG (one image per page). */
+export interface CanvaExport {
+  jobId: string;
+  format: "pptx" | "png";
+}
+export interface CanvaExportStatus {
+  status: "in_progress" | "success" | "failed";
+  files: number;
+  error?: string;
+}
+
 export interface WorkspaceFont {
   id: string;
   workspaceId: string;
@@ -2350,6 +2389,54 @@ export class HyCanvasClient {
   async workspaceFontFile(id: string): Promise<Uint8Array> {
     const res = await this.requestRaw("GET", `/v1/workspace-fonts/${id}/file`);
     return new Uint8Array(await res.arrayBuffer());
+  }
+
+  // --- Import from Canva (doc 41) -----------------------------------
+  getCanvaIntegration(workspaceId: string): Promise<CanvaIntegration> {
+    return this.request("GET", `/v1/workspaces/${workspaceId}/canva/integration`);
+  }
+  /** Store the integration (admins). The secret may be omitted to keep the
+   *  stored one, except when the Client ID changes. */
+  setCanvaIntegration(workspaceId: string, input: { clientId: string; clientSecret?: string }): Promise<CanvaIntegration> {
+    return this.request("PUT", `/v1/workspaces/${workspaceId}/canva/integration`, input);
+  }
+  deleteCanvaIntegration(workspaceId: string): Promise<void> {
+    return this.request("DELETE", `/v1/workspaces/${workspaceId}/canva/integration`);
+  }
+  getCanvaConnection(workspaceId: string): Promise<CanvaConnection> {
+    return this.request("GET", `/v1/workspaces/${workspaceId}/canva/connection`);
+  }
+  /** Start connecting the caller's Canva account: navigate to the returned
+   *  URL; Canva sends the browser back to `returnTo` with `?canva=connected`. */
+  connectCanva(workspaceId: string, returnTo: string): Promise<{ authorizeUrl: string }> {
+    return this.request("POST", `/v1/workspaces/${workspaceId}/canva/connect`, { returnTo });
+  }
+  disconnectCanva(workspaceId: string): Promise<void> {
+    return this.request("DELETE", `/v1/workspaces/${workspaceId}/canva/connection`);
+  }
+  /** One page of a Canva folder ("root" is the top of the user's projects). */
+  listCanvaFolder(workspaceId: string, folderId: string, continuation?: string): Promise<CanvaFolderPage> {
+    const q = continuation ? `?continuation=${encodeURIComponent(continuation)}` : "";
+    return this.request("GET", `/v1/workspaces/${workspaceId}/canva/folders/${encodeURIComponent(folderId)}/items${q}`);
+  }
+  startCanvaExport(workspaceId: string, designId: string): Promise<CanvaExport> {
+    return this.request("POST", `/v1/workspaces/${workspaceId}/canva/designs/${encodeURIComponent(designId)}/export`);
+  }
+  getCanvaExport(workspaceId: string, jobId: string): Promise<CanvaExportStatus> {
+    return this.request("GET", `/v1/workspaces/${workspaceId}/canva/exports/${encodeURIComponent(jobId)}`);
+  }
+  /** The index-th file of a finished export, fetched through the server. */
+  async canvaExportFile(workspaceId: string, jobId: string, index: number): Promise<Blob> {
+    const res = await this.requestRaw("GET", `/v1/workspaces/${workspaceId}/canva/exports/${encodeURIComponent(jobId)}/files/${index}`);
+    return res.blob();
+  }
+  /** Canva design id to danvas design id, for imports still present. */
+  async canvaImported(workspaceId: string): Promise<Record<string, string>> {
+    const r = await this.request<{ imported: Record<string, string> }>("GET", `/v1/workspaces/${workspaceId}/canva/imports`);
+    return r.imported ?? {};
+  }
+  recordCanvaImport(workspaceId: string, canvaDesignId: string, designId: string): Promise<void> {
+    return this.request("POST", `/v1/workspaces/${workspaceId}/canva/imports`, { canvaDesignId, designId });
   }
 
   // Asset folders.

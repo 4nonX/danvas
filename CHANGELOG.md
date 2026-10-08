@@ -2,6 +2,14 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## Unreleased
+
+### Added
+
+- Import from Canva: in Projects, "Import from Canva" lists a connected Canva account's folders and designs; tick single designs, whole folders or everything, and they arrive in the open folder with their folder tree. Designs come over editable through Canva's PowerPoint export where Canva offers it for every page, otherwise as one image per page. Exports are paced under Canva's limits (a pause when Canva asks to slow down, a stop at its daily limit), and running the import again skips what is already imported, so a large library is brought over across several runs.
+- Each workspace registers its own Canva integration (Client ID and secret, stored encrypted with `AI_SECRET`) under Members, Canva import, which shows the redirect URL and scopes to enter in Canva's developer portal. Every member connects their own Canva account (OAuth with PKCE; tokens encrypted, never sent to the browser). Setup in [docs/dashboard.md](docs/dashboard.md#import-from-canva).
+- Database: four new tables (`canva_integrations`, `canva_connections`, `canva_oauth_states`, `canva_imports`), added by migration on start. Nothing existing changes; the design file format is unchanged.
+
 ## 0.2.0 (2026-10-08)
 
 ### Changed

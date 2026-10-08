@@ -59,6 +59,7 @@ The changes are summarized by area below; what changed in each release is in the
 
 - PPTX import keeps exported designs editable: picture fills with crop and transparency, freeform paths, real groups, font weights encoded in font names.
 - Bulk import of files and whole folder trees into dashboard folders.
+- Import from Canva through Canva's API: pick designs and whole folders in a Canva account and they arrive with their folder tree, editable through PowerPoint export where Canva allows it, as page images otherwise; paced under Canva's limits and resumable ([setup](docs/dashboard.md#import-from-canva)).
 - Print exports: vector PDF, CMYK or RGB TIFF and EPS (PostScript Level 3) with ICC color management (Little CMS), black-only text, and workspace print profiles uploaded by admins.
 - One rendering engine for exports: SVG, vector PDF, tagged (accessible) PDF and MP4 are drawn by the same engine as the editor, so they match it exactly. The tagged PDF adds a structure tree, alt text and a real-text layer; MP4 is encoded in the browser.
 - Dashboard: folders, previews that show the page as a sheet and redraw once images and fonts load, and download and share for one design or a whole selection (every page of every design into one zip; one person's access or view links for all selected designs at once).

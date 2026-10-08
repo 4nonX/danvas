@@ -44,7 +44,7 @@ import {
   List,
   Users,
   Moon,
-  Sun, Sparkles, Wand2, Paperclip, Loader2, X, Folder as FolderIcon, FolderPlus, FolderInput, Check, Download, Share2 } from "lucide-react";
+  Sun, Sparkles, Wand2, Paperclip, Loader2, X, Folder as FolderIcon, FolderPlus, FolderInput, Check, Download, Share2, Link2 } from "lucide-react";
 import { createBlankDesign } from "@hc/schema";
 import { hycAccept, downloadHycFile, importedTitle, parseHycFile, readFileText } from "@/lib/hycFile";
 import { dialTones } from "@hc/aistudio";
@@ -70,6 +70,7 @@ import { BulkShareDialog } from "./BulkShareDialog";
 import { ExportDialog, type ExportTarget } from "@/components/editor/ExportDialog";
 import { ShareDialog } from "@/components/editor/ShareDialog";
 import { loadDesignsForExport } from "@/lib/loadDesignForExport";
+import { CanvaImportDialog } from "./CanvaImport";
 import { BulkImportDialog, entriesFromDrop, entriesFromInput, hasOsFiles, type ImportEntry } from "./BulkImport";
 import { childrenMap, DropZone, folderPath, FolderPathBar, FolderTile, MoveToFolderDialog, RailFolder, setDragItems, subtreeIds, type DragItems } from "./Folders";
 import { confirmAction, promptText } from "@/lib/promptDialog";
@@ -79,6 +80,7 @@ import { ApiKeysPanel } from "./ApiKeysPanel";
 import { WorkspaceAiPanel } from "./WorkspaceAiPanel";
 import { PrintProfilesPanel } from "./PrintProfilesPanel";
 import { WorkspaceFontsPanel } from "./WorkspaceFontsPanel";
+import { WorkspaceCanvaPanel } from "./WorkspaceCanvaPanel";
 import { loadWorkspaceFonts } from "@/lib/workspaceFonts";
 import { TemplateFromPptxDialog } from "./TemplateFromPptxDialog";
 import { VerifyEmailBanner } from "@/components/auth/VerifyEmailBanner";
@@ -331,6 +333,24 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   const [osDrop, setOsDrop] = useState(false);
   const bulkFilesRef = useRef<HTMLInputElement>(null);
   const bulkFolderRef = useRef<HTMLInputElement>(null);
+  // Import from Canva (doc 41). Canva's consent screen sends the browser back
+  // with ?canva=connected (open the dialog again), failed or declined.
+  const [canvaPicked, setCanvaPicked] = useState(false);
+  const canvaFlag = router.isReady && typeof router.query.canva === "string" ? router.query.canva : null;
+  const canvaOpen = canvaPicked || canvaFlag === "connected";
+  const clearCanvaFlag = useCallback(() => {
+    const rest = Object.fromEntries(Object.entries(router.query).filter(([k]) => k !== "canva"));
+    void router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true });
+  }, [router]);
+  useEffect(() => {
+    if (canvaFlag !== "failed" && canvaFlag !== "declined") return;
+    toast.error(canvaFlag === "declined" ? tr("dashboard.canva_connect_declined") : tr("dashboard.canva_connect_failed"));
+    clearCanvaFlag();
+  }, [canvaFlag, toast, clearCanvaFlag]);
+  const closeCanva = () => {
+    setCanvaPicked(false);
+    if (canvaFlag) clearCanvaFlag();
+  };
   const startBulk = (entries: ImportEntry[]) => {
     if (!entries.length) {
       toast.error(tr("dashboard.no_importable_files"));
@@ -1118,6 +1138,9 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                   <Button variant="secondary" size="sm" onClick={() => bulkFolderRef.current?.click()} disabled={!activeWorkspaceId} title={tr("dashboard.import_folder_hint")}>
                     <FolderInput size={15} /> {tr("dashboard.import_folder")}
                   </Button>
+                  <Button variant="secondary" size="sm" onClick={() => setCanvaPicked(true)} disabled={!activeWorkspaceId} title={tr("dashboard.import_from_canva_hint")}>
+                    <Link2 size={15} /> {tr("dashboard.import_from_canva")}
+                  </Button>
                   <input ref={bulkFilesRef} type="file" multiple accept={designImportAccept} hidden onChange={(e) => { startBulk(entriesFromInput(e.target.files)); e.target.value = ""; }} />
                   <input
                     ref={(el) => { bulkFolderRef.current = el; if (el) el.setAttribute("webkitdirectory", ""); }}
@@ -1684,6 +1707,14 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                   canEdit={activeWs?.role === "owner" || activeWs?.role === "admin"}
                 />
               )}
+              {/* Import from Canva: the admin registers the workspace's Canva
+                  integration; each member's own connection shows here too. */}
+              {activeWorkspaceId && (
+                <WorkspaceCanvaPanel
+                  workspaceId={activeWorkspaceId}
+                  canEdit={activeWs?.role === "owner" || activeWs?.role === "admin"}
+                />
+              )}
               {activeWorkspaceId && (
                 <PrintProfilesPanel
                   workspaceId={activeWorkspaceId}
@@ -1804,6 +1835,23 @@ export function DashboardApp({ view }: { view: DashboardView }) {
           errorMessage={(e) => importErrorMessage(e, tr("dashboard.could_not_import_the_file"))}
           onClose={() => {
             setBulkEntries(null);
+            void load(query).then(setItems);
+            reloadFolders();
+          }}
+        />
+      )}
+
+      {canvaOpen && activeWorkspaceId && (
+        <CanvaImportDialog
+          workspaceId={activeWorkspaceId}
+          targetFolderId={currentFolder}
+          folders={folders}
+          isAdmin={activeWs?.role === "owner" || activeWs?.role === "admin"}
+          onChanged={reloadFolders}
+          onOpenSettings={() => { closeCanva(); gotoView("members"); }}
+          errorMessage={(e) => importErrorMessage(e, tr("dashboard.canva_import_failed"))}
+          onClose={() => {
+            closeCanva();
             void load(query).then(setItems);
             reloadFolders();
           }}

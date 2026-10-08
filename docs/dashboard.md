@@ -51,6 +51,23 @@ A bar turns red as it approaches its limit. When a limit is reached, uploads are
 
 Sharing a single design with specific people or via link happens from the **Share** button inside the editor; see [the editor guide](editor.md#sharing-and-permissions).
 
+## Import from Canva
+
+**Import from Canva** (in Projects, next to Import files and Import folder) brings designs over from a Canva account, folder tree included, into the folder that is open.
+
+**Set it up once per workspace (admin).** Canva only sends people back to addresses registered on an integration, so each danvas instance uses its own:
+
+1. In Canva's developer portal (canva.com/developers/integrations), create a public integration. It can stay in draft; draft integrations work for your own team without Canva's review. The Canva account needs multi-factor authentication turned on.
+2. In danvas, open **Members**: the **Canva import** section shows the **Redirect URL** and the **Scopes** (`folder:read design:content:read profile:read`). Add the redirect URL to the integration's authentication settings and enable those scopes. The redirect URL is built from the address you opened danvas with, so open danvas under its public address (behind a reverse proxy, the proxy must pass `X-Forwarded-Proto` and `X-Forwarded-Host`). Canva expects HTTPS addresses, except local ones for testing.
+3. Paste the integration's **Client ID** and **Client secret** and save. The secret is stored encrypted (with `AI_SECRET`) and never shown again.
+
+**Import (any member).** Choose **Import from Canva**, connect your own Canva account once, then tick what to bring over: single designs, whole folders (everything below them comes too), or everything. A ticked folder becomes a folder of the same name with its sub-folders mirrored; a ticked design goes straight into the open folder. Folders that already exist with the same name are reused.
+
+- Each design arrives editable through PowerPoint export when Canva offers it for all pages. Otherwise it arrives as one image per page (looks exactly right, not editable); video designs arrive as still pages. The summary says how many came as images.
+- Canva limits exports per person: about 20 per minute and 500 per day. The import paces itself, pauses for a minute when Canva asks it to slow down, and stops at the daily limit. Keep the tab open while it runs.
+- Running the same import again skips what is already here, so an interrupted or day-limited import continues where it stopped. A design you deleted (moved to the trash) comes back on the next run.
+- Disconnect your Canva account under Members, Canva import. Not imported: Canva uploads (your image and video library), brand templates, comments and version history.
+
 ## My tasks
 
 Comments converted to tasks (from the editor's comment panel) land in **My tasks** when assigned to you, with status (Open, In progress, Done) and optional due dates.
