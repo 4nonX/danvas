@@ -313,18 +313,21 @@ function SelectionGizmo({ api, ids }: { api: CanvasApi; ids: string[] }) {
       <div className="pointer-events-none absolute border-2 border-[color:var(--color-selection)]" style={{ left: tl.x, top: tl.y, width: br.x - tl.x, height: br.y - tl.y }} />
       {/* A fully locked selection keeps its outline (so the lock is visible and
           the toolbar offers Unlock) but no transform handles. */}
+      {/* Handles sit above the page headers (PageOverlays, z-20): objects at the
+          top edge of a page put their top handles and the rotate handle right
+          under a page's title and tools, which used to take those clicks. */}
       {!ids.every((id) => locate(doc, id)?.node.locked) && (
         <>
           <div
             onPointerDown={(e) => begin(e, "rotate", 0.5, 0)}
-            className="absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[color:var(--color-selection)] bg-surface"
+            className="absolute z-30 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[color:var(--color-selection)] bg-surface"
             style={{ left: sx(0.5), top: sy(0) - 26, cursor: ROTATE_CURSOR }}
           />
           {handles.map((h) => (
             <div
               key={`${h.fx},${h.fy}`}
               onPointerDown={(e) => begin(e, "resize", h.fx, h.fy)}
-              className="absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-sm border border-[color:var(--color-selection)] bg-surface"
+              className="absolute z-30 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-sm border border-[color:var(--color-selection)] bg-surface"
               style={{ left: sx(h.fx), top: sy(h.fy), cursor: h.cursor }}
             />
           ))}
@@ -951,14 +954,14 @@ export function Gizmo({ api }: { api: CanvasApi }) {
               <div
                 key={hd.id}
                 onPointerDown={(e) => beginResize(e, hd.id)}
-                className="absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-sm border border-[color:var(--color-selection)] bg-surface"
+                className="absolute z-30 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-sm border border-[color:var(--color-selection)] bg-surface"
                 style={{ left: p.x, top: p.y, cursor: resizeCursor(hd.fx, hd.fy, exAxis) }}
               />
             );
           })}
           <div
             onPointerDown={(e) => beginResize(e, "rotate")}
-            className="absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[color:var(--color-selection)] bg-surface"
+            className="absolute z-30 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[color:var(--color-selection)] bg-surface"
             style={{ left: rotPos.x, top: rotPos.y, cursor: ROTATE_CURSOR }}
           />
         </>

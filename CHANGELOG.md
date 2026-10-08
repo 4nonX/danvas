@@ -10,6 +10,10 @@ All notable changes to danvas are listed here, newest first. Versions follow the
 - Sizing follows what is visible: transparent margins and solid background plates of logo files are left out. A photo replacing a photo fills the same frame; otherwise the new content gets the old content's visual weight (equal visible area, at most 1.5 times its width or height), centred on it or flush with the page or group edge it touched. Right after a replace the toolbar offers "Optical", "Fit" and "Fill" to switch.
 - All new texts are translated into every interface language.
 
+### Fixed
+
+- The top resize handles and the rotate handle of an object at the top edge of a page could not be grabbed: the page's title and tools lay over them and took the click. The handles of a selection (and of the crop tool) now sit above the page headers.
+
 ## 0.1.8 (2026-10-08)
 
 ### Fixed

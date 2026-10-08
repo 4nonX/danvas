@@ -248,7 +248,7 @@ function ImageCropOverlay({ api, id }: { api: CanvasApi; id: string }) {
 
   const iw = natW * t.scale;
   const ih = natH * t.scale;
-  const handle = "pointer-events-auto absolute z-20 border border-neutral-400 bg-white shadow-sm";
+  const handle = "pointer-events-auto absolute z-30 border border-neutral-400 bg-white shadow-sm";
 
   return (
     <>
@@ -298,7 +298,7 @@ function ImageCropOverlay({ api, id }: { api: CanvasApi; id: string }) {
         </div>
       </div>
       {/* Frame handles: drag to trim the visible area. */}
-      <div className="pointer-events-none absolute z-20" style={{ left: ftl.x + fr.x, top: ftl.y + fr.y, width: fr.w, height: fr.h }}>
+      <div className="pointer-events-none absolute z-30" style={{ left: ftl.x + fr.x, top: ftl.y + fr.y, width: fr.w, height: fr.h }}>
         {FRAME_HANDLES.map((h) => (
           <div
             key={h.edge}
@@ -444,7 +444,7 @@ function BoxCropOverlay({ api, id }: { api: CanvasApi; id: string }) {
     [toScreen(fr.x + fr.w * t, fr.y), toScreen(fr.x + fr.w * t, fr.y + fr.h)],
     [toScreen(fr.x, fr.y + fr.h * t), toScreen(fr.x + fr.w, fr.y + fr.h * t)],
   ]);
-  const handle = "pointer-events-auto absolute z-20 border border-neutral-400 bg-white shadow-sm";
+  const handle = "pointer-events-auto absolute z-30 border border-neutral-400 bg-white shadow-sm";
   const pct = (v: string) => parseFloat(v) / 100;
 
   return (
