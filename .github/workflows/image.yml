@@ -70,6 +70,21 @@ jobs:
           echo "bg=$(node -p 'require("./package-lock.json").packages["node_modules/@imgly/background-removal"].version')" >> "$GITHUB_OUTPUT"
           echo "Building $version"
 
+      # compose/compose.yml (the stack to paste into Dockge, Arcane, ...),
+      # docker-compose.yml and deploy/compose.yaml are the same file, and the
+      # two .env templates too. Without the three secrets the stack must refuse
+      # to start and say what is missing.
+      - name: Compose files
+        run: |
+          for f in docker-compose.yml deploy/compose.yaml; do
+            cmp compose/compose.yml "$f" || { echo "::error::$f differs from compose/compose.yml"; exit 1; }
+          done
+          cmp compose/.env.example deploy/.env.example || { echo "::error::deploy/.env.example differs from compose/.env.example"; exit 1; }
+          tmp=$(mktemp -d) && cp docker-compose.yml "$tmp/"
+          if out=$(cd "$tmp" && docker compose config -q 2>&1); then echo "::error::the stack starts without secrets"; exit 1; fi
+          echo "$out"
+          case "$out" in *"in .env (openssl rand -hex 32)"*) ;; *) echo "::error::no clear message for the missing secrets"; exit 1;; esac
+
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
 

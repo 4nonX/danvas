@@ -2,10 +2,11 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
-## Unreleased
+## 0.1.6 (2026-10-08)
 
 ### Added
 
+- A ready-to-deploy stack in [`compose/`](compose/README.md): `compose.yml` and an example `.env`, to paste into Dockge, Arcane or Portainer or to run with `docker compose up -d`. Fill in three secrets and deploy; a missing secret stops the deploy with a message naming it. The same file is `docker-compose.yml` at the repository root (so `docker compose up -d` works in a clone) and `deploy/compose.yaml`; CI keeps all copies identical.
 - Images built from source by GitHub Actions (`.github/workflows/image.yml`) for amd64 and arm64 and published as `ghcr.io/4nonx/danvas`: every release (tags `v0.1.6`, `0.1.6`, `0.1`, `latest`; the tag must match the `VERSION` file) and every push to main (`main`, `sha-<commit>`, reporting `v<VERSION>+<commit>`). Pull requests are built and checked without publishing.
 - Deploy check before publishing: each image is started through `deploy/compose.yaml` with Postgres and must report its version on `/healthz`, serve the background-removal model and load the app.
 - The image presents itself like a packaged app: name, description, license, documentation and source links, the danvas icon and a web-UI link (OCI, Unraid and Artifact Hub labels; GHCR shows the description and license of the multi-arch image).
@@ -17,6 +18,7 @@ All notable changes to danvas are listed here, newest first. Versions follow the
 
 - The background-removal model ships inside the image (checked against the vendor's SHA-256 at build time) and is served by the instance, so a pulled image removes backgrounds without the vendor's CDN, like the install kit's mirror did. `data/static-data` is no longer used.
 - `deploy/compose.yaml` pulls the published image; building from a clone is the `compose.build.yaml` override (`install.sh --build`), and `install.sh` falls back to it when the image cannot be pulled.
+- The compose file passes the main settings explicitly (with the template's defaults), so stacks work in tools that keep variables without writing a `.env` file; optional extras still come from `.env`. It needs Docker Compose 2.24 or newer, which `install.sh` checks.
 - `update.sh` moves to the latest release (or the one given), pulls its image and keeps running the previous release when the pull fails.
 - The image build runs its build stages natively and cross-compiles Go, so arm64 images build without emulating the toolchain.
 - The model download is a Node script (`scripts/fetch-bg-model.mjs`), used by both Dockerfiles.

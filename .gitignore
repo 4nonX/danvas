@@ -10,6 +10,9 @@ packages/*/dist/
 
 # Local filesystem storage (used when no S3 is configured)
 .data/
+# Data of a stack run from docker-compose.yml or compose/compose.yml in a clone
+/data/
+/compose/data/
 
 # Environment variables
 .env

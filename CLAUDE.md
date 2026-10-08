@@ -97,7 +97,7 @@ Run from the repo root. After cloning, copy `.env.example` to `.env`, then `npm 
 
 - `npm install` - install the frontend + shared packages.
 - `npm run build:packages` - build the `@hc/*` libraries (needed before the first `npm run dev`).
-- `docker compose up --build` - run the whole product (UI + API + realtime) with Postgres.
+- `docker compose up -d` - run the whole product (UI + API + realtime) with Postgres from the published image (`docker-compose.yml`, the same file as `compose/compose.yml` and `deploy/compose.yaml`; settings and secrets in `.env`, see `compose/.env.example`). `docker compose -f docker-compose.prod.yml up --build -d` builds your working tree instead.
 - `npm run dev` - run the Go backend (:8005) and the frontend (:3000) with hot reload.
 - `npm run build` - build packages, the Go binary, and the frontend.
 - `npm run db:migrate` - apply SQL migrations (Go migrator); the server also migrates on boot.

@@ -20,6 +20,11 @@ BUILD=false
 
 command -v docker >/dev/null || { echo "Docker is missing." >&2; exit 1; }
 docker compose version >/dev/null || { echo "Docker Compose (v2) is missing." >&2; exit 1; }
+# compose.yaml reads .env as an optional env_file, which needs Compose 2.24+.
+cv=$(docker compose version --short 2>/dev/null | sed 's/^v//')
+case "$cv" in
+  1.*|2.[0-9].*|2.1[0-9].*|2.2[0-3].*) echo "Docker Compose ${cv} is too old; 2.24 or newer is needed." >&2; exit 1 ;;
+esac
 command -v curl >/dev/null || { echo "curl is missing." >&2; exit 1; }
 command -v openssl >/dev/null || { echo "openssl is missing." >&2; exit 1; }
 

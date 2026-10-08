@@ -70,14 +70,16 @@ The changes are summarized by area below; what changed in each release is in the
 
 ## Running danvas
 
-On any Docker host, in an empty folder:
+The stack to deploy is in [`compose/`](compose/README.md): one compose file and an example `.env`. Paste them into Dockge, Arcane or Portainer, fill in three secrets, deploy. It uses the published image (`ghcr.io/4nonx/danvas`, amd64 and arm64).
+
+Or, on any Docker host, in an empty folder:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/4nonX/danvas/main/deploy/install.sh -o install.sh
 bash install.sh
 ```
 
-This pulls the published image (`ghcr.io/4nonx/danvas`, amd64 and arm64), generates the secrets and starts danvas with its database. Settings, HTTPS, updates and building from source: [`deploy/README.md`](deploy/README.md).
+This downloads the same stack, generates the secrets and starts danvas with its database. Settings, HTTPS, updates and building from source: [`deploy/README.md`](deploy/README.md).
 
 For development:
 

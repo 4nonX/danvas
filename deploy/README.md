@@ -45,9 +45,9 @@ cd danvas/deploy
 
 When the image of the clone's version cannot be pulled, `install.sh` builds it from the clone. Building is recorded in `.env` (`COMPOSE_FILE=compose.yaml:compose.build.yaml`), so updates keep building.
 
-### Portainer, Unraid, Synology and other dashboards
+### Dockge, Arcane, Portainer, Unraid, Synology
 
-Create a stack (Portainer: Stacks, Add stack; Unraid: the Docker Compose Manager plugin; Synology: Container Manager, Project) from [`compose.yaml`](compose.yaml), and give it the variables of [`.env.example`](.env.example) with the three secrets filled in (`openssl rand -hex 32` each) and `DANVAS_VERSION` set to a release. The image carries its name, description, icon and web-UI link, so dashboards show it with the danvas icon and an "open" button.
+The stack is self-contained: [`compose/compose.yml`](../compose/compose.yml) and [`compose/.env.example`](../compose/.env.example) (identical to `compose.yaml` and `.env.example` here). Step-by-step for Dockge, Arcane and Portainer: [`compose/README.md`](../compose/README.md). Unraid (Docker Compose Manager plugin) and Synology (Container Manager, Project) work the same way. The image carries its name, description, icon and web-UI link, so dashboards show it with the danvas icon and an "open" button.
 
 ## Image reference
 

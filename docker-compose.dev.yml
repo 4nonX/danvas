@@ -5,8 +5,8 @@
 # Runs Postgres plus one app container that serves the Go backend on :8005 and
 # the Next.js dev server on :3000, both with live reload against your working
 # tree (bind-mounted). Open http://localhost:3000 (the UI calls the API on
-# :8005). For the production single-image build, use docker-compose.yml /
-# docker-compose.prod.yml instead.
+# :8005). For the published image use docker-compose.yml (compose/compose.yml);
+# to build the production image from this tree, docker-compose.prod.yml.
 services:
   db:
     image: postgres:16-alpine
