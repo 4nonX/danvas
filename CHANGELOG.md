@@ -1,8 +1,8 @@
 # Changelog
 
-All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
+All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. No part of a version goes past 9: after 0.1.9 comes 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
-## 0.1.10 (2026-10-08)
+## 0.2.0 (2026-10-08)
 
 ### Fixed
 
