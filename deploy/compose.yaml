@@ -1,6 +1,11 @@
-# danvas: run on any Docker host. Builds the image from this repository (no
-# registry access needed). Setup and updates: deploy/README.md, install.sh,
-# update.sh.
+# danvas: run on any Docker host from the published image
+# (ghcr.io/4nonx/danvas, amd64 and arm64). Setup and updates: README.md here;
+# install.sh and update.sh do every step for you.
+#
+# The version to run is DANVAS_VERSION in .env (a release tag such as v0.1.6).
+# To build the image from a clone of the repository instead, add the build
+# override: COMPOSE_FILE=compose.yaml:compose.build.yaml in .env
+# (install.sh --build sets it).
 name: danvas
 
 services:
@@ -22,12 +27,7 @@ services:
       start_period: 60s
 
   app:
-    build:
-      context: ..
-      dockerfile: Dockerfile
-      args:
-        VERSION: ${DANVAS_VERSION:-local}
-    image: danvas-local:${DANVAS_VERSION:-local}
+    image: ${DANVAS_IMAGE:-ghcr.io/4nonx/danvas}:${DANVAS_VERSION:-latest}
     restart: unless-stopped
     depends_on:
       db:
@@ -45,7 +45,6 @@ services:
       REDIS_URL: ""
       STORAGE_DRIVER: local
       LOCAL_STORAGE_PATH: /app/.data/storage
-      STATIC_DATA_DIR: /app/static-data
+    # The background-removal model ships inside the image (STATIC_DATA_DIR).
     volumes:
       - ./data/storage:/app/.data/storage
-      - ./data/static-data:/app/static-data:ro

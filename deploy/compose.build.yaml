@@ -1,0 +1,9 @@
+# Build override: builds the app image from this clone of the repository
+# instead of pulling it. Enable it with COMPOSE_FILE=compose.yaml:compose.build.yaml
+# in .env (install.sh --build does that), then `docker compose build app`.
+services:
+  app:
+    image: danvas-local:${DANVAS_VERSION:-local}
+    build:
+      context: ..
+      dockerfile: Dockerfile

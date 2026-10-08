@@ -2,6 +2,21 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## Unreleased
+
+### Added
+
+- Published images: every release is built for amd64 and arm64 and published as `ghcr.io/4nonx/danvas` (tags `v0.1.6`, `0.1.6`, `0.1`, `latest`) by `.github/workflows/image.yml`. A release tag must match the `VERSION` file.
+- One-step install on any Docker host: `install.sh` works in an empty folder, fetches the install kit for the latest release, generates the secrets, pins the release in `.env` and pulls the images. Git, Python and a 10 minute build are no longer needed.
+
+### Changed
+
+- The background-removal model ships inside the image (checked against the vendor's SHA-256 at build time) and is served by the instance, so a pulled image removes backgrounds without the vendor's CDN, like the install kit's mirror did. `data/static-data` is no longer used.
+- `deploy/compose.yaml` pulls the published image; building from a clone is the `compose.build.yaml` override (`install.sh --build`), and `install.sh` falls back to it when the image cannot be pulled.
+- `update.sh` moves to the latest release (or the one given), pulls its image and keeps running the previous release when the pull fails.
+- The image build runs its build stages natively and cross-compiles Go, so arm64 images build without emulating the toolchain.
+- The model download is a Node script (`scripts/fetch-bg-model.mjs`), used by both Dockerfiles.
+
 ## 0.1.5 (2026-10-08)
 
 ### Fixed

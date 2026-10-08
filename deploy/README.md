@@ -1,27 +1,57 @@
 # Installing danvas
 
-This folder holds everything needed to run danvas on any Linux host with Docker, for example a home server. The image is built on the host from this repository, so no container registry is involved.
+danvas runs on any Linux host with Docker, for example a home server. Every release is published as a ready-made image for amd64 and arm64 at `ghcr.io/4nonx/danvas`, so an install pulls it in a minute instead of building it. The image is complete: the background remover's model ships inside it and is served by your instance, so it works without any third-party CDN, also on hosts without internet access.
 
 ## Requirements
 
-- Docker with Compose v2, `git`, `python3`, `openssl`, `curl`
-- about 4 GB of RAM for the build, 2 GB of disk plus room for uploads
+- Docker with Compose v2, `curl`, `openssl`
+- 1 GB of RAM, 2 GB of disk plus room for uploads
 
 ## Setup
 
+In an empty folder:
+
 ```bash
-git clone https://github.com/<you>/danvas.git
-cd danvas/deploy
-cp .env.example .env    # optional: adjust first, otherwise install.sh does it
-./install.sh
+mkdir danvas && cd danvas
+curl -fsSL https://raw.githubusercontent.com/4nonX/danvas/main/deploy/install.sh -o install.sh
+bash install.sh
 ```
 
-`install.sh` generates the secrets in `.env` (`JWT_SECRET`, `AI_SECRET`, `POSTGRES_PASSWORD`), creates `data/`, mirrors the background-removal model (about 120 MB, every file checked against its SHA-256), builds the image (around 10 minutes the first time) and starts everything. Then open `APP_URL` in the browser and create an account; every account gets its own workspace, and you invite others from there. Without email delivery, set `AUTH_PASSWORD_SIGNUP_ENABLED=false` afterwards and run `docker compose up -d`, so strangers cannot sign up.
+`install.sh` looks up the latest release, fetches `compose.yaml`, `.env.example` and `update.sh` for it, creates `.env` with generated secrets (`JWT_SECRET`, `AI_SECRET`, `POSTGRES_PASSWORD`), pins the release in `.env` (`DANVAS_VERSION`), pulls the images and starts everything. Then open `APP_URL` in the browser and create an account; every account gets its own workspace, and you invite others from there. Without email delivery, set `AUTH_PASSWORD_SIGNUP_ENABLED=false` afterwards and run `docker compose up -d`, so strangers cannot sign up.
+
+### Without the script
+
+The same by hand, with the release you want:
+
+```bash
+mkdir danvas && cd danvas
+v=v0.1.6
+curl -fsSLO https://raw.githubusercontent.com/4nonX/danvas/$v/deploy/compose.yaml
+curl -fsSL https://raw.githubusercontent.com/4nonX/danvas/$v/deploy/.env.example -o .env
+for k in JWT_SECRET AI_SECRET POSTGRES_PASSWORD; do sed -i "s|^$k=$|$k=$(openssl rand -hex 32)|" .env; done
+sed -i "s|^DANVAS_VERSION=.*|DANVAS_VERSION=$v|" .env
+mkdir -p data/storage data/pgdata
+docker compose up -d
+```
+
+### From a clone of the repository
+
+```bash
+git clone https://github.com/4nonX/danvas.git
+cd danvas/deploy
+./install.sh            # pulls the image of the clone's version
+./install.sh --build    # builds it from the clone instead (about 10 minutes, 4 GB of RAM)
+```
+
+When the image of the clone's version cannot be pulled, `install.sh` builds it from the clone. Building is recorded in `.env` (`COMPOSE_FILE=compose.yaml:compose.build.yaml`), so updates keep building.
+
+## Settings
 
 Main settings in `.env`:
 
 | Setting | Meaning |
 |---|---|
+| `DANVAS_VERSION` | the release to run, e.g. `v0.1.6` (set by `install.sh` and `update.sh`) |
 | `APP_URL` | the address in the browser, e.g. `https://canvas.example.org` |
 | `COOKIE_SECURE` | `true` behind HTTPS, `false` for plain http (otherwise sign-in fails) |
 | `BIND_ADDR`, `APP_PORT` | default `127.0.0.1:8005` for a reverse proxy; `0.0.0.0` for direct LAN access |
@@ -49,11 +79,13 @@ Then set `APP_URL=https://canvas.example.org` and `COOKIE_SECURE=true` in `.env`
 ## Updates
 
 ```bash
-./update.sh            # current state of main
-./update.sh v1.0.0     # a specific version (git tag)
+./update.sh            # the latest release
+./update.sh v0.1.7     # a specific release
 ```
 
-The database is dumped to `backups/` first; then the image is rebuilt, the container recreated and the new version checked. Migrations run automatically on start.
+The database is dumped to `backups/` first; then the new image is pulled (or, when building, the clone is switched to the release tag and the image rebuilt), the container recreated and the new version checked. Migrations run automatically on start. If the new image cannot be pulled, nothing changes and the instance keeps running the previous release. Release notes: [CHANGELOG.md](../CHANGELOG.md).
+
+Installs from before the published images built the image on the host and mirrored the model into `data/static-data`. `./update.sh` moves them to the published image; `data/static-data` is no longer used and can be deleted.
 
 ## What to back up
 
@@ -61,8 +93,6 @@ The database is dumped to `backups/` first; then the image is rebuilt, the conta
 - `data/storage`: uploaded images, logos, masks
 - `.env`: the secrets (without `AI_SECRET`, stored AI keys and MFA secrets cannot be decrypted)
 
-`data/static-data` (the model files) can be restored at any time with `./fetch-bg-model.sh`.
-
 ## License
 
-danvas is a modified version of HyCanvas by HyScaler, under the Elastic License 2.0: using and changing it for your own purposes is allowed, offering it to third parties as a hosted or managed service is not. See the repository [README](../README.md) and [LICENSE](../LICENSE). The background remover (`@imgly/background-removal`) is AGPL-3.0.
+danvas is a modified version of HyCanvas by HyScaler, under the Elastic License 2.0: using and changing it for your own purposes is allowed, offering it to third parties as a hosted or managed service is not. See the repository [README](../README.md) and [LICENSE](../LICENSE). The background remover (`@imgly/background-removal`) is AGPL-3.0; its model (ISNET) and the ONNX runtime it uses are MIT. The image carries their license texts in `/app/static-data/bg-removal/`.

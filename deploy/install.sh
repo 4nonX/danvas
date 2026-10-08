@@ -1,15 +1,44 @@
 #!/usr/bin/env bash
-# First-time setup of a danvas instance on this host:
-#   1. create .env from .env.example and generate the secrets
-#   2. create the data folders, mirror the background-removal model
-#   3. build the image, start everything, wait for the health check
+# First-time setup of a danvas instance on this host. Works in deploy/ of a
+# clone of the repository, or on its own in an empty folder:
+#
+#   curl -fsSL https://raw.githubusercontent.com/4nonX/danvas/main/deploy/install.sh -o install.sh
+#   bash install.sh
+#
+#   1. pick the version (the latest release; in a clone, the clone's VERSION)
+#   2. fetch compose.yaml, .env.example and update.sh when missing
+#   3. create .env and generate the secrets
+#   4. pull the image (or build it: install.sh --build, in a clone), start
+#      everything, wait for the health check
 # Then: review APP_URL and friends in .env, create an account in the browser.
 set -euo pipefail
 cd "$(dirname "$0")"
 
+REPO="${DANVAS_REPO:-4nonX/danvas}"
+BUILD=false
+[ "${1:-}" = "--build" ] && BUILD=true
+
 command -v docker >/dev/null || { echo "Docker is missing." >&2; exit 1; }
 docker compose version >/dev/null || { echo "Docker Compose (v2) is missing." >&2; exit 1; }
-command -v python3 >/dev/null || { echo "python3 is missing (needed for the model download)." >&2; exit 1; }
+command -v curl >/dev/null || { echo "curl is missing." >&2; exit 1; }
+command -v openssl >/dev/null || { echo "openssl is missing." >&2; exit 1; }
+
+# A clone runs its own version; a standalone folder runs the latest release.
+if [ -f ../VERSION ] && [ -f ../Dockerfile ]; then
+  DANVAS_VERSION="v$(tr -d '[:space:]' < ../VERSION)"
+else
+  [ "$BUILD" = true ] && { echo "--build needs a clone of the repository." >&2; exit 1; }
+  DANVAS_VERSION=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p' | head -n1)
+  [ -n "$DANVAS_VERSION" ] || { echo "Could not look up the latest release of ${REPO}." >&2; exit 1; }
+  for f in compose.yaml .env.example update.sh; do
+    if [ ! -f "$f" ]; then
+      curl -fsSL "https://raw.githubusercontent.com/${REPO}/${DANVAS_VERSION}/deploy/${f}" -o "$f"
+      echo "Fetched ${f} (${DANVAS_VERSION})."
+    fi
+  done
+  chmod +x update.sh
+fi
+echo "danvas ${DANVAS_VERSION}"
 
 if [ ! -f .env ]; then
   cp .env.example .env
@@ -24,14 +53,26 @@ for key in JWT_SECRET AI_SECRET POSTGRES_PASSWORD; do
   fi
 done
 
-mkdir -p data/storage data/static-data data/pgdata
-./fetch-bg-model.sh
+set_env() {
+  if grep -q "^$1=" .env; then sed -i "s|^$1=.*|$1=$2|" .env; else echo "$1=$2" >> .env; fi
+}
+# The version is pinned in .env: compose.yaml pulls exactly this release, also
+# for a later manual "docker compose up -d".
+set_env DANVAS_VERSION "$DANVAS_VERSION"
+if [ "$BUILD" = true ]; then set_env COMPOSE_FILE compose.yaml:compose.build.yaml; fi
 
-# Record the version in .env: compose.yaml names the image after it, also for
-# a later manual "docker compose up".
-DANVAS_VERSION="v$(tr -d '[:space:]' < ../VERSION)"
-if grep -q '^DANVAS_VERSION=' .env; then sed -i "s|^DANVAS_VERSION=.*|DANVAS_VERSION=${DANVAS_VERSION}|" .env; else echo "DANVAS_VERSION=${DANVAS_VERSION}" >> .env; fi
-docker compose build app
+mkdir -p data/storage data/pgdata
+
+if ! grep -q '^COMPOSE_FILE=.*compose.build.yaml' .env && ! docker compose pull; then
+  # In a clone the image can always be built from source instead.
+  [ -f ../Dockerfile ] || { echo "Could not pull the image for ${DANVAS_VERSION}." >&2; exit 1; }
+  echo "The image for ${DANVAS_VERSION} could not be pulled; building it from this clone instead."
+  set_env COMPOSE_FILE compose.yaml:compose.build.yaml
+fi
+if grep -q '^COMPOSE_FILE=.*compose.build.yaml' .env; then
+  docker compose pull db
+  docker compose build app
+fi
 docker compose up -d
 
 port=$(grep -E '^APP_PORT=' .env | cut -d= -f2); port=${port:-8005}

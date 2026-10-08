@@ -6,6 +6,15 @@
 #
 #   docker buildx build -f Dockerfile.release --platform linux/amd64,linux/arm64 .
 
+# The background-removal model, served from the image like in Dockerfile
+# (verified against the vendor's SHA-256; cached until its version changes).
+FROM --platform=$BUILDPLATFORM node:24-bookworm-slim AS bgmodel
+WORKDIR /app
+COPY package-lock.json ./
+COPY frontend/src/lib/imageFilters.ts frontend/src/lib/imageFilters.ts
+COPY scripts/fetch-bg-model.mjs scripts/fetch-bg-model.mjs
+RUN node scripts/fetch-bg-model.mjs /out
+
 FROM debian:bookworm-slim
 WORKDIR /app
 
@@ -18,11 +27,13 @@ RUN apt-get update \
 # TARGETARCH is set by buildx per platform (amd64 / arm64).
 ARG TARGETARCH
 COPY binaries/${TARGETARCH}/hycanvas /app/hycanvas
+COPY --from=bgmodel /out /app/static-data
 
 ENV PORT=8005 \
     DB_AUTO_MIGRATE=true \
     STORAGE_DRIVER=local \
-    LOCAL_STORAGE_PATH=/app/.data/storage
+    LOCAL_STORAGE_PATH=/app/.data/storage \
+    STATIC_DATA_DIR=/app/static-data
 
 EXPOSE 8005
 # Persist uploads/exports/snapshots when using the local storage driver.

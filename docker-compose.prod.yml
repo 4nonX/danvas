@@ -6,7 +6,7 @@
 # embedded), runs Postgres, applies migrations on boot, and serves the whole
 # product at http://localhost:8005 with a container healthcheck and restart
 # policy. Use this when you want to run YOUR source rather than the published
-# image; `docker-compose.yml` is the default and pulls the published image
+# image; deploy/compose.yaml is the default install and pulls the published image
 # instead. JWT_SECRET is REQUIRED - set it in .env (e.g. `openssl rand -hex 32`).
 #
 # Database: bundled by default; for a managed Postgres set EXTERNAL_DATABASE_URL

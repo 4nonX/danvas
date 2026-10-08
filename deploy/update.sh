@@ -1,29 +1,50 @@
 #!/usr/bin/env bash
-# Update to the current state of the repository: back up the database,
-# rebuild, recreate the container, check that the new version answers.
-#   ./update.sh          pulls main (fast-forward only)
-#   ./update.sh v1.0.0   switches to that tag
+# Update this instance: back up the database, switch to the new release, pull
+# (or, with the build override, rebuild) the image, recreate the app and check
+# that the new version answers. Migrations run automatically on start.
+#   ./update.sh          the latest release
+#   ./update.sh v0.1.7   that release
+# In a clone of the repository the clone is switched to the release tag too.
 set -euo pipefail
 cd "$(dirname "$0")"
 
-if [ $# -ge 1 ]; then git -C .. fetch --tags && git -C .. checkout "$1"; else git -C .. pull --ff-only; fi
+REPO="${DANVAS_REPO:-4nonX/danvas}"
+target="${1:-}"
+if [ -z "$target" ]; then
+  target=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p' | head -n1)
+  [ -n "$target" ] || { echo "Could not look up the latest release of ${REPO}." >&2; exit 1; }
+fi
+echo "Updating to ${target}"
+
+if [ -d ../.git ]; then git -C .. fetch --tags && git -C .. checkout "$target"; fi
 
 mkdir -p backups
 stamp=$(date +%Y%m%d-%H%M%S)
 docker compose exec -T db pg_dump -U danvas -d danvas -Fc > "backups/danvas-$stamp.dump"
-echo "Database backup: deploy/backups/danvas-$stamp.dump"
+echo "Database backup: backups/danvas-$stamp.dump"
 
-./fetch-bg-model.sh
+set_env() {
+  if grep -q "^$1=" .env; then sed -i "s|^$1=.*|$1=$2|" .env; else echo "$1=$2" >> .env; fi
+}
+previous=$(grep -E '^DANVAS_VERSION=' .env | cut -d= -f2- || true)
+set_env DANVAS_VERSION "$target"
 
-DANVAS_VERSION="v$(tr -d '[:space:]' < ../VERSION)"
-if grep -q '^DANVAS_VERSION=' .env; then sed -i "s|^DANVAS_VERSION=.*|DANVAS_VERSION=${DANVAS_VERSION}|" .env; else echo "DANVAS_VERSION=${DANVAS_VERSION}" >> .env; fi
-docker compose build app
-docker compose up -d --force-recreate app
+if ! grep -q '^COMPOSE_FILE=.*compose.build.yaml' .env && ! docker compose pull app; then
+  if [ ! -f ../Dockerfile ]; then
+    set_env DANVAS_VERSION "$previous"
+    echo "Could not pull the image for ${target}; still running ${previous:-the previous version}." >&2
+    exit 1
+  fi
+  echo "The image for ${target} could not be pulled; building it from this clone instead."
+  set_env COMPOSE_FILE compose.yaml:compose.build.yaml
+fi
+if grep -q '^COMPOSE_FILE=.*compose.build.yaml' .env; then docker compose build app; fi
+docker compose up -d
 
 port=$(grep -E '^APP_PORT=' .env | cut -d= -f2); port=${port:-8005}
 for _ in $(seq 1 60); do
   v=$(curl -fsS "http://127.0.0.1:${port}/healthz" 2>/dev/null || true)
-  case "$v" in *"$DANVAS_VERSION"*) echo "running: $v"; exit 0;; esac
+  case "$v" in *"\"${target}\""*) echo "running: $v"; exit 0;; esac
   sleep 3
 done
 echo "The new version does not answer. Logs: docker compose logs app; backup: backups/danvas-$stamp.dump" >&2

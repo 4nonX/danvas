@@ -70,7 +70,14 @@ The changes are summarized by area below; what changed in each release is in the
 
 ## Running danvas
 
-On a server, follow [`deploy/README.md`](deploy/README.md): clone, run `deploy/install.sh`, open the browser.
+On any Docker host, in an empty folder:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/4nonX/danvas/main/deploy/install.sh -o install.sh
+bash install.sh
+```
+
+This pulls the published image (`ghcr.io/4nonx/danvas`, amd64 and arm64), generates the secrets and starts danvas with its database. Settings, HTTPS, updates and building from source: [`deploy/README.md`](deploy/README.md).
 
 For development:
 
