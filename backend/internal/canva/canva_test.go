@@ -29,6 +29,9 @@ func TestSafeReturnTo(t *testing.T) {
 		"//evil.example/x":     "/dashboard/",
 		"https://evil.example": "/dashboard/",
 		"/a\\b":                "/dashboard/",
+		"/\t/evil.example":     "/dashboard/",
+		"/\x00x":               "/dashboard/",
+		"/x\x7f":               "/dashboard/",
 		"":                     "/dashboard/",
 	} {
 		if got := SafeReturnTo(in); got != want {

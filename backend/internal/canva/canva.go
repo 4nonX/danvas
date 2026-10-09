@@ -296,10 +296,17 @@ func (s *Service) StartConnect(ctx context.Context, workspaceID, userID, redirec
 }
 
 // SafeReturnTo keeps a return path inside the app: a single leading slash, no
-// scheme, no protocol-relative "//host".
+// scheme, no protocol-relative "//host". Backslashes and control characters are
+// refused outright: browsers drop tabs and newlines from a URL, so "/<tab>/host"
+// would arrive as "//host".
 func SafeReturnTo(p string) string {
-	if !strings.HasPrefix(p, "/") || strings.HasPrefix(p, "//") || strings.ContainsAny(p, "\\\r\n") || len(p) > 300 {
+	if !strings.HasPrefix(p, "/") || strings.HasPrefix(p, "//") || len(p) > 300 {
 		return "/dashboard/"
+	}
+	for _, r := range p {
+		if r == '\\' || r < 0x20 || r == 0x7f {
+			return "/dashboard/"
+		}
 	}
 	return p
 }
