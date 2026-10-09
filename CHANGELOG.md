@@ -2,6 +2,14 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.2.4 (2026-10-09)
+
+### Changed
+
+- The middle handles of an image move its frame over the picture instead of scaling it: drag the left handle in and less of the picture's left shows, while the picture keeps its size and its place on the page; drag out again to show more, up to the edge of the image file. A frame that was much larger than what it shows is trimmed this way without the crop tool. One undo step per drag; Escape abandons it.
+- Hold Shift on a middle handle to scale picture and frame together, as the middle handles did before. The corner handles still always scale. The middle handles no longer distort an image.
+- Images that leave empty space in their frame (fit "contain" or "none") scale proportionally from their middle handles, as before, without distorting.
+
 ## 0.2.3 (2026-10-09)
 
 ### Added

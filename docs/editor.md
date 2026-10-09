@@ -59,6 +59,7 @@ The active page's stacking order, front-most on top: two-way selection sync, sho
 ## The canvas
 
 - Drag to move; handles resize and rotate; alignment guides snap elements to each other and the page. Hold Alt while dragging to duplicate; hold Alt while hovering to measure distances.
+- On an image, the middle handles move the frame over the picture: the picture keeps its size and place, and the frame shows more or less of it, out to the edge of the image file. Hold Shift to scale picture and frame together instead; the corner handles always do.
 - The selection toolbar floats above whatever you select: group/ungroup, duplicate, lock, bring to front, send to back, delete.
 - Rulers with drag-out guides, a layout grid, and snapping all toggle from the top bar.
 - The zoom control (bottom right) has presets, fit-page, and zoom-to-selection; a minimap appears when content extends beyond the viewport, and clicking or dragging it pans.

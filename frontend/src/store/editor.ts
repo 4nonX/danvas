@@ -954,7 +954,7 @@ interface EditorState {
   pushApplied(cmds: EditCommand[]): void;
   /** Record an already-applied transform/size/box/content change as one undo step
    *  (e.g. a text resize that also reflowed the box and scaled fonts). */
-  pushNodeSnapshot(id: string, before: { transform: Transform; size: { width: number; height: number }; box?: unknown; content?: unknown; points?: unknown; children?: unknown }): void;
+  pushNodeSnapshot(id: string, before: { transform: Transform; size: { width: number; height: number }; box?: unknown; content?: unknown; points?: unknown; children?: unknown; image?: { crop?: CropRect; fit: ImageFit } }): void;
   addNode(type: Exclude<NodeType, "model3d">, init?: Partial<Node>): void;
   /** Place an image node from a URL, registering it as a design asset. */
   /** Add an image; `at` (page point) centers it there (e.g. a drag-drop), else viewport-centered.
@@ -5745,23 +5745,32 @@ export const useEditor = create<EditorState>((set, get) => {
       if (pr) for (const c of cmds) if (c.kind === "insert" && c.node) pr.mine.add(c.node.id);
     },
     pushNodeSnapshot: (id, before) => {
-      type Snap = { transform: Transform; size: { width: number; height: number }; box?: unknown; content?: unknown; points?: unknown; children?: unknown };
+      // `image` carries an image's crop + fit (edge handles crop the frame).
+      // A crop of undefined means the whole file, so it is restored as absent.
+      type ImageState = { crop?: CropRect; fit: ImageFit };
+      type Snap = { transform: Transform; size: { width: number; height: number }; box?: unknown; content?: unknown; points?: unknown; children?: unknown; image?: ImageState };
       const apply = (snap: Snap) => {
         const l = locate(get().doc, id);
         if (!l) return;
-        const n = l.node as unknown as Snap;
+        const n = l.node as unknown as Snap & { crop?: CropRect; fit?: ImageFit };
         n.transform = { ...snap.transform };
         n.size = { ...snap.size };
         if (snap.box !== undefined) n.box = structuredClone(snap.box);
         if (snap.content !== undefined) n.content = structuredClone(snap.content);
         if (snap.points !== undefined) n.points = structuredClone(snap.points);
         if (snap.children !== undefined) n.children = structuredClone(snap.children);
+        if (snap.image !== undefined) {
+          n.fit = snap.image.fit;
+          if (snap.image.crop) n.crop = { ...snap.image.crop };
+          else delete n.crop;
+        }
       };
       const l = locate(get().doc, id);
       if (!l) return;
-      const cur = l.node as unknown as Snap;
-      const after: Snap = { transform: { ...cur.transform }, size: { ...cur.size }, box: cur.box !== undefined ? structuredClone(cur.box) : undefined, content: cur.content !== undefined ? structuredClone(cur.content) : undefined, points: cur.points !== undefined ? structuredClone(cur.points) : undefined, children: before.children !== undefined ? structuredClone(cur.children) : undefined };
-      const b: Snap = { transform: { ...before.transform }, size: { ...before.size }, box: before.box !== undefined ? structuredClone(before.box) : undefined, content: before.content !== undefined ? structuredClone(before.content) : undefined, points: before.points !== undefined ? structuredClone(before.points) : undefined, children: before.children !== undefined ? structuredClone(before.children) : undefined };
+      const cur = l.node as unknown as Snap & { crop?: CropRect; fit: ImageFit };
+      const imageOf = (s: { crop?: CropRect; fit: ImageFit }): ImageState => ({ fit: s.fit, ...(s.crop ? { crop: { ...s.crop } } : {}) });
+      const after: Snap = { transform: { ...cur.transform }, size: { ...cur.size }, box: cur.box !== undefined ? structuredClone(cur.box) : undefined, content: cur.content !== undefined ? structuredClone(cur.content) : undefined, points: cur.points !== undefined ? structuredClone(cur.points) : undefined, children: before.children !== undefined ? structuredClone(cur.children) : undefined, image: before.image !== undefined ? imageOf(cur) : undefined };
+      const b: Snap = { transform: { ...before.transform }, size: { ...before.size }, box: before.box !== undefined ? structuredClone(before.box) : undefined, content: before.content !== undefined ? structuredClone(before.content) : undefined, points: before.points !== undefined ? structuredClone(before.points) : undefined, children: before.children !== undefined ? structuredClone(before.children) : undefined, image: before.image !== undefined ? imageOf(before.image) : undefined };
       // Same invariant as perform(): while a CRDT undo manager is bound the
       // local stacks stay EMPTY - replaying a stale snapshot against a later
       // collaborative state would clobber peer edits.

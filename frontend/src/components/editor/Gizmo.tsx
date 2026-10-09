@@ -4,8 +4,9 @@
 // Handles drive @hc/editor transform ops; one drag = one undo step.
 
 import { useRef, useState } from "react";
-import type { Size, TextNode, Transform } from "@hc/schema";
+import type { CropRect, ImageFit, ImageNode, Size, TextNode, Transform } from "@hc/schema";
 import { measuredTextHeight, minContentWidth } from "@/lib/textFit";
+import { edgeCrop, edgeCropStart, isEdgeHandle, type EdgeCropStart } from "@/lib/imageEdgeCrop";
 import { relayGridCells, scaleFrameImageChildren } from "@/store/editor";
 import { overlay } from "@/lib/theme.generated";
 import {
@@ -392,6 +393,10 @@ export function Gizmo({ api }: { api: CanvasApi }) {
     startMinH?: number; // natural content height at the start font + width
     startPoints?: { x: number; y: number }[]; // line polyline snapshot, scaled with the box on resize
     startChildren?: unknown; // photo-grid cell snapshot, re-laid with the box on resize
+    // An image's crop + fit at the start, and how its edges crop the frame
+    // (null when its fit leaves empty space or its size is not known yet).
+    startImage?: { crop?: CropRect; fit: ImageFit };
+    edgeCrop?: EdgeCropStart | null;
   } | null>(null);
   // Equal-size match during a resize: the sibling width/height the dragged
   // dimension has snapped to (null = no match on that axis). The state drives
@@ -472,6 +477,15 @@ export function Gizmo({ api }: { api: CanvasApi }) {
       startMinH: loc!.node.type === "text" ? measuredTextHeight(loc!.node as unknown as TextNode) : undefined,
       startPoints: loc!.node.type === "line" ? structuredClone((loc!.node as unknown as { points: { x: number; y: number }[] }).points) : undefined,
       startChildren: loc!.node.type === "grid" || loc!.node.type === "frame" ? structuredClone((loc!.node as unknown as { children: unknown }).children) : undefined,
+      ...(loc!.node.type === "image" && handle !== "rotate"
+        ? (() => {
+            const img = loc!.node as unknown as ImageNode;
+            return {
+              startImage: { fit: img.fit, ...(img.crop ? { crop: { ...img.crop } } : {}) },
+              edgeCrop: isEdgeHandle(handle) ? edgeCropStart(img) : null,
+            };
+          })()
+        : {}),
     };
     useEditor.getState().setTransforming(true);
     window.addEventListener("pointermove", onMove);
@@ -510,6 +524,12 @@ export function Gizmo({ api }: { api: CanvasApi }) {
       }
       if ((node.type === "grid" || node.type === "frame") && d.startChildren !== undefined) {
         (node as unknown as { children: unknown }).children = structuredClone(d.startChildren);
+      }
+      if (node.type === "image" && d.startImage) {
+        const img = node as unknown as ImageNode;
+        img.fit = d.startImage.fit;
+        if (d.startImage.crop) img.crop = { ...d.startImage.crop };
+        else delete img.crop;
       }
       store.tick();
     }
@@ -553,7 +573,33 @@ export function Gizmo({ api }: { api: CanvasApi }) {
       // Dragging a CORNER of a text box scales the font; edges just
       // resize the box and reflow. Corners are aspect-locked for text/image/group.
       const isTextCorner = node.type === "text" && CORNERS.has(d.handle as string);
-      const aspect = node.type === "image" || node.type === "group" || isTextCorner ? !e.shiftKey : e.shiftKey;
+      // An image's edge handle moves its frame over the picture: the picture
+      // keeps its size and place, the frame shows more or less of it (up to
+      // the image file's edge). Shift keeps the old proportional scaling.
+      if (node.type === "image" && d.edgeCrop && isEdgeHandle(d.handle) && !e.shiftKey && !e.altKey) {
+        const free = resizeNode({ ...node, transform: d.startTransform, size: d.startSize }, d.handle, pd.dx, pd.dy, { aspect: false });
+        const horizontal = d.handle === "e" || d.handle === "w";
+        // A drag through the opposite edge flips the box in resizeNode; read
+        // it as "as small as it goes" instead of mirroring the picture.
+        const flippedX = Math.sign(free.transform.scaleX) !== Math.sign(d.startTransform.scaleX);
+        const flippedY = Math.sign(free.transform.scaleY) !== Math.sign(d.startTransform.scaleY);
+        const wanted = horizontal ? (flippedX ? 0 : free.size.width) : (flippedY ? 0 : free.size.height);
+        const r = edgeCrop(d.edgeCrop, d.handle, wanted);
+        const img = node as unknown as ImageNode;
+        node.transform = r.transform;
+        node.size = r.size;
+        img.crop = r.crop;
+        img.fit = d.edgeCrop.fit;
+        store.setSnapGuides(null);
+        updateSizeMatch(null, null);
+        updateSpacingMatch(null);
+        store.tick();
+        return;
+      }
+      // An image's edge handle scales proportionally when it does not crop
+      // (Shift held, or a fit that leaves empty space): it never distorts.
+      const imageEdge = node.type === "image" && isEdgeHandle(d.handle);
+      const aspect = imageEdge ? true : node.type === "image" || node.type === "group" || isTextCorner ? !e.shiftKey : e.shiftKey;
       const r = resizeNode(
         { ...node, transform: d.startTransform, size: d.startSize },
         d.handle,
@@ -802,6 +848,11 @@ export function Gizmo({ api }: { api: CanvasApi }) {
     }
     if ((node.type === "grid" || node.type === "frame") && d.handle !== "rotate") {
       store.pushNodeSnapshot(d.id, { transform: d.startTransform, size: d.startSize, children: d.startChildren });
+      return;
+    }
+    // An image's crop may have changed with its frame (edge handles).
+    if (node.type === "image" && d.startImage && d.handle !== "rotate") {
+      store.pushNodeSnapshot(d.id, { transform: d.startTransform, size: d.startSize, image: d.startImage });
       return;
     }
     const cmd: EditCommand = {
