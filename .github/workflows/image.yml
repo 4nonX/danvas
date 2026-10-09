@@ -72,7 +72,7 @@ jobs:
           --health-timeout 5s
           --health-retries 20
     env:
-      DATABASE_URL: postgresql://danvas:danvas@127.0.0.1:5432/danvas_test?sslmode=disable
+      DATABASE_URL: postgresql://danvas:danvas@127.0.0.1:5432/danvas_test
       JWT_SECRET: ci-only-not-a-secret
     steps:
       - uses: actions/checkout@v7
