@@ -2,6 +2,21 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## Unreleased
+
+### Security
+
+- Template protection can no longer be bypassed by a crafted save. A save is judged at the stored file's version: the incoming file is migrated first, so labelling it with an older version or none no longer skips the comparison. Objects added to, removed from or reordered inside a protected group count as a change. A save may add or change a lock on an existing object only for the design's own workspace, and only by someone who may manage its locks; new objects (a duplicated page, an applied template, reused slides) may carry another workspace's locks only when that workspace already protects something in the design, publishes templates, or counts the saver as a member. A lock for a workspace that does not exist is refused.
+- Checkpoints of the collaboration history are checked like saves on designs with template locks: the full state is folded into a design file and judged against the stored one, and a checkpoint that cannot be checked is refused. Live edits relayed between collaborators are not yet checked; a forbidden live change still cannot be saved by someone who may not lift the lock.
+- From upstream HyCanvas (2026-10-08): five regular expressions that a hostile string from a model or an uploaded file could make very slow (deck outlines, kit rendering, SVG transforms) no longer re-scan the string from every position.
+- From upstream HyCanvas (2026-10-08): dependency security updates. Next.js 16.3.3 to 16.3.8 (past the remote code execution fix in its image response in 16.3.6), eslint-config-next to match, and patched versions of brace-expansion, dompurify, sharp, source-map-js, shell-quote and fast-uri. `npm audit` reports nothing for the application's dependencies.
+- Import from Canva: the return path after connecting refuses every control character, not only line breaks (a tab could turn "/<tab>/host" into "//host" in a browser).
+
+### Changed
+
+- The CI workflow runs the tests before it builds an image: package, frontend and Go tests (the Go database tests against Postgres with all migrations), the type check, lint and the generated-file checks. A commit whose tests fail is neither built nor published. It also checks that `package.json` carries the version in `VERSION` (it said 0.1.0 until now).
+- `NOTICE` is HyScaler's file again, word for word. danvas's additions (the bundled interface font, the vectorizer model, the colour engine and profile) moved to `NOTICE.danvas`; since 0.2.0 one of HyScaler's lines had been reworded.
+
 ## 0.2.1 (2026-10-09)
 
 ### Added

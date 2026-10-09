@@ -16,12 +16,8 @@ license. Notable runtime and build dependencies include (non-exhaustive):
 - npm dependencies listed in package-lock.json and each workspace's
   package.json (e.g. Next.js, React, Yjs, Zustand, pdf.js, Zod) - see their
   respective repositories for license terms.
-- Fonts used in designs are loaded at runtime from Google Fonts; none are
-  redistributed in this repository.
-- The interface font, Plus Jakarta Sans (Copyright 2020 The Plus Jakarta Sans
-  Project Authors, SIL Open Font License 1.1), is bundled with the app from the
-  npm package @fontsource-variable/plus-jakarta-sans, whose license text ships
-  in that package.
+- Fonts are loaded at runtime from Google Fonts; none are redistributed in this
+  repository.
 
 Bundled demo content:
 
@@ -30,23 +26,6 @@ Bundled demo content:
   are NOT HyCanvas-owned assets; replace them with your own licensed media before
   production use. Icon entries are generated vectors and are covered by the
   project license.
-
-Bundled models, colour engine and colour profiles:
-
-- frontend/public/models/realesr-animevideov3.onnx is the Real-ESRGAN
-  realesr-animevideov3 model (Copyright (c) 2021, Xintao Wang, BSD-3-Clause,
-  github.com/xinntao/Real-ESRGAN), converted to ONNX (tools/esr-convert). Its
-  license text ships next to it as realesr-animevideov3.LICENSE.txt. It runs
-  in the browser via onnxruntime-web (MIT) for Vectorize's Enhance step.
-- frontend/public/vendor/lcms-wasm/ is lcms-wasm 1.0.5 (Copyright (c) 2024
-  Matt DesLauriers, MIT), Little CMS (Copyright (c) Marti Maria Saguer, MIT)
-  compiled to WebAssembly, used for CMYK colour conversion in print exports.
-  Its license text ships next to it.
-- frontend/public/icc/PSO_Uncoated_ISO12647_eci.icc is the PSO Uncoated
-  ISO12647 profile of the European Color Initiative (www.eci.org), shipped
-  unaltered; its own copyright tag permits use, embedding, exchange and
-  sharing without restriction (see README.txt next to it). Other ECI profiles
-  (e.g. PSO Coated v3) are not redistributed; workspaces upload them.
 
 Run a dependency license report (for example `npm ls --all` plus a license
 scanner, and `go-licenses` for the Go module) to produce a full third-party

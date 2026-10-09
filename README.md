@@ -8,7 +8,7 @@ If you are looking for the original product, its documentation or its support, g
 
 - **HyCanvas** is a product of HyScaler, the trading name of NetTantra Technologies (India) Private Limited. HyScaler is a registered trademark of that company. See [NOTICE](NOTICE) and [COMMERCIAL.md](COMMERCIAL.md), both unchanged from the original.
 - danvas is based on the HyCanvas `development` branch as of commit [`437fe70`](https://github.com/hyscaler/HyCanvas/commit/437fe7096a21b9ab0846934842b89ef48289d41b) (2026-10-01). The upstream history is not included in this repository; the original project and its full history are at [hyscaler/HyCanvas](https://github.com/hyscaler/HyCanvas).
-- Third-party components added by danvas, each with its license file next to it and listed in [NOTICE](NOTICE):
+- Third-party components added by danvas, each with its license file next to it and listed in [NOTICE.danvas](NOTICE.danvas) (HyScaler's own [NOTICE](NOTICE) is kept word for word):
   - the Real-ESRGAN `realesr-animevideov3` model by Xintao Wang (BSD-3-Clause), converted to ONNX, run with onnxruntime-web (MIT);
   - Little CMS by Marti Maria Saguer (MIT), compiled to WebAssembly as lcms-wasm by Matt DesLauriers (MIT);
   - the PSO Uncoated ISO12647 color profile of the European Color Initiative (redistributable, shipped unaltered).
@@ -20,7 +20,7 @@ danvas is distributed under the same license as HyCanvas, the [Elastic License 2
 
 - You may use, copy, modify and redistribute it, including running it in production for yourself, your team or your organization.
 - You may **not** provide it to third parties as a hosted or managed service. That right is reserved by HyScaler and requires a commercial license from them ([COMMERCIAL.md](COMMERCIAL.md)).
-- You may not remove or alter the licensing, copyright or other notices of the licensor. danvas keeps them: the `LICENSE`, `NOTICE`, `COMMERCIAL.md`, `THIRD_PARTY.md` and `CLA.md` files are unchanged, and the sign-in page still shows HyScaler's copyright line, preceded by a note that danvas is a modified version.
+- You may not remove or alter the licensing, copyright or other notices of the licensor. danvas keeps them: the `LICENSE`, `NOTICE`, `COMMERCIAL.md`, `THIRD_PARTY.md` and `CLA.md` files are unchanged (danvas's own notices are in `NOTICE.danvas`), and the sign-in page still shows HyScaler's copyright line, preceded by a note that danvas is a modified version.
 - The license grants no trademark rights. "HyCanvas" and "HyScaler" are used here only to say where the software comes from. danvas has its own name, logo, icons, artwork and colors, and turns HyCanvas's own brand kit (with HyScaler's logos) off by default.
 
 **This repository contains modified versions of the HyCanvas software.** The modifications are listed in the next section.
