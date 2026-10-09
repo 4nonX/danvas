@@ -290,6 +290,12 @@ export interface TemplateSummary {
   format: { width: number; height: number; unit: string };
   /** Pages in the template; a presentation kit has one per layout. */
   pageCount?: number;
+  /** The caller may delete it (its creator, or an owner or admin of its
+   *  workspace). Never set on built-in templates. */
+  canDelete?: boolean;
+  /** Deleting it leaves its workspace without any template (template
+   *  protection then treats the workspace as no longer publishing). */
+  lastInWorkspace?: boolean;
 }
 
 export type TemplateVisibility = "private" | "workspace" | "public";
@@ -1900,6 +1906,11 @@ export class HyCanvasClient {
   }
   createTemplateCollection(workspaceId: string, name: string): Promise<TemplateCollectionSummary> {
     return this.request("POST", "/v1/templates/collections", { workspaceId, name });
+  }
+  /** Delete a stored template (its creator, or an owner or admin of its
+   *  workspace). Designs made from it are untouched. */
+  deleteTemplate(id: string): Promise<void> {
+    return this.request("DELETE", `/v1/templates/${encodeURIComponent(id)}`);
   }
   deleteTemplateCollection(id: string): Promise<void> {
     return this.request("DELETE", `/v1/templates/collections/${id}`);

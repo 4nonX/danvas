@@ -171,6 +171,25 @@ func (s *Service) createCollection(ctx context.Context, workspaceID, name string
 	return c, err
 }
 
+func (s *Service) deleteRow(ctx context.Context, id string) error {
+	tag, err := s.db.Exec(ctx, `DELETE FROM "templates" WHERE id = $1`, id)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+// countWorkspaceTemplates counts every template of a workspace, private ones
+// included (they count as publishing for template protection).
+func (s *Service) countWorkspaceTemplates(ctx context.Context, workspaceID string) (int, error) {
+	var n int
+	err := s.db.QueryRow(ctx, `SELECT count(*) FROM "templates" WHERE "workspace_id" = $1`, workspaceID).Scan(&n)
+	return n, err
+}
+
 func (s *Service) deleteCollection(ctx context.Context, id string) error {
 	_, err := s.db.Exec(ctx, `DELETE FROM "template_collections" WHERE id = $1`, id)
 	return err

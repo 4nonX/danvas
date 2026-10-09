@@ -2,6 +2,14 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.2.3 (2026-10-09)
+
+### Added
+
+- Templates can be deleted: in Templates, the trash button on a template's card, after a confirmation. Allowed for the person who created the template and for owners and admins of its workspace; built-in templates cannot be deleted. Designs already made from the template stay as they are. When it is the workspace's last template, the confirmation says what that means for template protection (people outside the workspace can then no longer add its protected objects to a design that has none yet).
+- API: `DELETE /api/v1/templates/{id}`; template listings carry `canDelete` and `lastInWorkspace` for the caller.
+- All new texts are translated into every interface language.
+
 ## 0.2.2 (2026-10-09)
 
 ### Security

@@ -778,6 +778,26 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     }
   }
 
+  /** Delete a template after a confirmation. Designs made from it stay; the
+   *  last template of a workspace gets a note on template protection. */
+  async function deleteTemplate(t: TemplateSummary) {
+    const message = tr("dashboard.delete_template_message", { name: t.title });
+    const ok = await confirmAction({
+      title: tr("dashboard.delete_template"),
+      message: t.lastInWorkspace ? `${message}\n\n${tr("dashboard.delete_template_last_hint")}` : message,
+      confirmText: tr("dashboard.delete_template"),
+      danger: true,
+    });
+    if (!ok) return;
+    try {
+      await oc.deleteTemplate(t.id);
+      setTemplates((prev) => prev.filter((x) => x.id !== t.id));
+      toast.success(tr("dashboard.template_deleted"));
+    } catch (e) {
+      toast.error(userMessage(e, tr("dashboard.could_not_delete_template")));
+    }
+  }
+
   // Download a template as a portable .hyc file.
   async function downloadTemplateHyc(t: TemplateSummary) {
     try {
@@ -1594,14 +1614,27 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                         </div>
                         <div className="truncate px-3 py-2.5 text-sm font-semibold text-neutral-800">{t.title}</div>
                       </button>
-                      <button
-                        onClick={() => void downloadTemplateHyc(t)}
-                        title={tr("dashboard.download_as_hyc_file")}
-                        aria-label={`Download "${t.title}" as .hyc file`}
-                        className="absolute end-2 top-2 rounded-lg border border-neutral-200 bg-surface p-1.5 text-neutral-600 opacity-0 shadow-sm transition hover:text-brand-ink focus-visible:opacity-100 group-hover:opacity-100"
-                      >
-                        <FileDown size={14} />
-                      </button>
+                      <div className="absolute end-2 top-2 flex gap-1.5 opacity-0 transition focus-within:opacity-100 group-hover:opacity-100">
+                        <button
+                          onClick={() => void downloadTemplateHyc(t)}
+                          title={tr("dashboard.download_as_hyc_file")}
+                          aria-label={`Download "${t.title}" as .hyc file`}
+                          className="rounded-lg border border-neutral-200 bg-surface p-1.5 text-neutral-600 shadow-sm transition hover:text-brand-ink"
+                        >
+                          <FileDown size={14} />
+                        </button>
+                        {t.canDelete && (
+                          <button
+                            onClick={() => void deleteTemplate(t)}
+                            disabled={busy}
+                            title={tr("dashboard.delete_template")}
+                            aria-label={`${tr("dashboard.delete_template")}: ${t.title}`}
+                            className="rounded-lg border border-neutral-200 bg-surface p-1.5 text-neutral-600 shadow-sm transition hover:text-red-600 disabled:opacity-50"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
+                      </div>
                     </li>
                   ))}
                 </ul>

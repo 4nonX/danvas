@@ -24,6 +24,7 @@ func mountTemplates(api chi.Router, tm *templates.Service, acct *accounts.Servic
 		r.Post("/templates/collections", templatesCreateCollectionHandler(tm))
 		r.Delete("/templates/collections/{id}", templatesDeleteCollectionHandler(tm))
 		r.Get("/templates/{id}", templatesGetHandler(tm))
+		r.Delete("/templates/{id}", templatesDeleteHandler(tm))
 		r.Get("/templates/{id}/file", templatesFileHandler(tm))
 		r.Get("/templates/{id}/fillable-fields", templatesFillableHandler(tm))
 		r.Post("/templates/{id}/apply", templatesApplyHandler(tm))
@@ -183,6 +184,19 @@ func templatesDeleteCollectionHandler(tm *templates.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		u := userFrom(r.Context())
 		if err := tm.DeleteCollection(r.Context(), u.ID, chi.URLParam(r, "id")); err != nil {
+			templatesProblem(w, r, err)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+	}
+}
+
+// templatesDeleteHandler deletes a stored template (its creator, or an owner or
+// admin of its workspace). Designs made from it are untouched.
+func templatesDeleteHandler(tm *templates.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		u := userFrom(r.Context())
+		if err := tm.Delete(r.Context(), u.ID, chi.URLParam(r, "id")); err != nil {
 			templatesProblem(w, r, err)
 			return
 		}

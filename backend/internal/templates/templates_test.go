@@ -212,4 +212,59 @@ func TestTemplates_DB(t *testing.T) {
 	if err := svc.DeleteCollection(ctx, owner.ID, col.ID); err != nil {
 		t.Fatalf("DeleteCollection: %v", err)
 	}
+
+	// Delete: a plain member who did not create the template may not; an
+	// admin of its workspace may; the creator may delete their own.
+	member, _, _, _ := acct.Signup(ctx, "tpl-member+"+uuid.NewString()+"@example.com", "a-strong-password", "Member")
+	admin, _, _, _ := acct.Signup(ctx, "tpl-admin+"+uuid.NewString()+"@example.com", "a-strong-password", "Admin")
+	for _, m := range []struct{ id, role string }{{member.ID, "MEMBER"}, {admin.ID, "ADMIN"}} {
+		if _, err := tx.Exec(ctx, `INSERT INTO "workspace_members" (id,"workspace_id","user_id",role,status,"joined_at","updated_at") VALUES ($1,$2,$3,$4,'ACTIVE',now(),now())`,
+			uuid.NewString(), ws.ID, m.id, m.role); err != nil {
+			t.Fatalf("add member: %v", err)
+		}
+	}
+	flags := func(userID string) map[string][2]bool {
+		l, err := svc.List(ctx, userID, TemplateQuery{}, ws.ID, "")
+		if err != nil {
+			t.Fatalf("List: %v", err)
+		}
+		out := map[string][2]bool{}
+		for _, x := range l {
+			out[x.ID] = [2]bool{x.CanDelete, x.LastInWorkspace}
+		}
+		return out
+	}
+	if f := flags(member.ID); f[wsTmpl.ID][0] {
+		t.Fatalf("a plain member must not see canDelete on someone else's template")
+	}
+	if f := flags(admin.ID); !f[wsTmpl.ID][0] || f[wsTmpl.ID][1] {
+		t.Fatalf("admin should see canDelete, and it is not the last template (the private one counts): %v", f[wsTmpl.ID])
+	}
+	if err := svc.Delete(ctx, member.ID, wsTmpl.ID); err != ErrForbidden {
+		t.Fatalf("member delete should be forbidden, got %v", err)
+	}
+	if err := svc.Delete(ctx, other.ID, wsTmpl.ID); err != ErrNotFound {
+		t.Fatalf("a non-member should get not found, got %v", err)
+	}
+	if err := svc.Delete(ctx, admin.ID, wsTmpl.ID); err != nil {
+		t.Fatalf("admin delete: %v", err)
+	}
+	if _, err := svc.Get(ctx, owner.ID, wsTmpl.ID); err != ErrNotFound {
+		t.Fatalf("deleted template should be gone, got %v", err)
+	}
+	// The private template is now the workspace's last one.
+	if f := flags(owner.ID); !f[saved.ID][0] || !f[saved.ID][1] {
+		t.Fatalf("creator should see canDelete and lastInWorkspace on the last template: %v", f[saved.ID])
+	}
+	if err := svc.Delete(ctx, owner.ID, saved.ID); err != nil {
+		t.Fatalf("creator delete: %v", err)
+	}
+	if err := svc.Delete(ctx, owner.ID, saved.ID); err != ErrNotFound {
+		t.Fatalf("deleting twice should be not found, got %v", err)
+	}
+	if len(seedEntries) > 0 {
+		if err := svc.Delete(ctx, owner.ID, seedEntries[0].toTemplate().ID); err != ErrForbidden {
+			t.Fatalf("built-in template delete should be forbidden, got %v", err)
+		}
+	}
 }

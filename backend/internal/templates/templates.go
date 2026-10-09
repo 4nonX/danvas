@@ -57,6 +57,13 @@ type Template struct {
 	Version        int             `json:"version"`
 	CreatedAt      string          `json:"createdAt"`
 	UpdatedAt      string          `json:"updatedAt"`
+	// CanDelete: the caller may delete this template (its creator, or an owner
+	// or admin of its workspace). Built-in templates are never deletable.
+	CanDelete bool `json:"canDelete,omitempty"`
+	// LastInWorkspace: deleting it leaves its workspace without any template,
+	// which ends that workspace's "publishes templates" standing for template
+	// protection. Set only together with CanDelete.
+	LastInWorkspace bool `json:"lastInWorkspace,omitempty"`
 }
 
 // TemplateQuery is the search query.
@@ -212,11 +219,15 @@ func (s *Service) List(ctx context.Context, userID string, q TemplateQuery, work
 	// then restore their true visibility in the response.
 	var pool []Template
 	trueVis := map[string]string{}
+	deletable := s.deletableFlags(ctx, userID, rows)
 	for _, r := range rows {
 		t := rowToTemplate(r)
 		trueVis[t.ID] = t.Visibility
 		t.Visibility = "public"
 		t.WorkspaceID = nil
+		if d, ok := deletable[t.ID]; ok {
+			t.CanDelete, t.LastInWorkspace = true, d
+		}
 		pool = append(pool, t)
 	}
 	if collectionID == "" && !s.noBuiltins {
@@ -403,6 +414,72 @@ func (s *Service) SaveAsTemplate(ctx context.Context, userID string, in SaveInpu
 		return Template{}, err
 	}
 	return rowToTemplate(row), nil
+}
+
+// --- delete --------------------------------------------------------------
+
+// mayDelete reports whether a user may delete a stored template: its creator,
+// or an owner or admin of the workspace it belongs to.
+func (s *Service) mayDelete(ctx context.Context, userID string, row TemplateRow, adminOf map[string]bool) bool {
+	if row.OwnerID == userID {
+		return true
+	}
+	if row.WorkspaceID == nil {
+		return false
+	}
+	ws := *row.WorkspaceID
+	ok, seen := adminOf[ws]
+	if !seen {
+		ok = s.access.AssertMember(ctx, userID, ws, "admin") == nil
+		adminOf[ws] = ok
+	}
+	return ok
+}
+
+// deletableFlags maps each row the caller may delete to whether it is the last
+// template of its workspace.
+func (s *Service) deletableFlags(ctx context.Context, userID string, rows []TemplateRow) map[string]bool {
+	out := map[string]bool{}
+	adminOf := map[string]bool{}
+	counts := map[string]int{}
+	for _, r := range rows {
+		if !s.mayDelete(ctx, userID, r, adminOf) {
+			continue
+		}
+		last := false
+		if r.WorkspaceID != nil {
+			ws := *r.WorkspaceID
+			n, seen := counts[ws]
+			if !seen {
+				n, _ = s.countWorkspaceTemplates(ctx, ws)
+				counts[ws] = n
+			}
+			last = n == 1
+		}
+		out[r.ID] = last
+	}
+	return out
+}
+
+// Delete removes a stored template. The template is a self-contained copy:
+// its source design and every design made from it are untouched. Built-in
+// templates cannot be deleted; a template the caller cannot see reads as not
+// found, one they can see but may not delete as forbidden.
+func (s *Service) Delete(ctx context.Context, userID, id string) error {
+	if _, ok := findSeed(id); ok {
+		return ErrForbidden
+	}
+	row, err := s.getRow(ctx, id)
+	if err != nil {
+		return err
+	}
+	if !s.canSee(ctx, userID, row) {
+		return ErrNotFound
+	}
+	if !s.mayDelete(ctx, userID, row, map[string]bool{}) {
+		return ErrForbidden
+	}
+	return s.deleteRow(ctx, id)
 }
 
 // --- collections (FR-3) --------------------------------------------------
