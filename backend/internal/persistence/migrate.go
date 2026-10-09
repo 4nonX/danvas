@@ -8,7 +8,10 @@
 // transform the node tree.
 package persistence
 
-import "math"
+import (
+	"encoding/json"
+	"math"
+)
 
 // JSON accessors over the opaque DesignFile node maps.
 func asObj(v any) map[string]any { m, _ := v.(map[string]any); return m }
@@ -16,6 +19,22 @@ func asArr(v any) []any          { a, _ := v.([]any); return a }
 func asStr(v any) string         { s, _ := v.(string); return s }
 func asNum(v any) float64        { f, _ := v.(float64); return f }
 func asBool(v any) bool          { b, _ := v.(bool); return b }
+
+// MigratedCopy forward-migrates a deep copy of a file to the current schema
+// version, leaving the input untouched. Checks at the write boundary use it to
+// judge an incoming file at the same version as the stored one (which LoadFile
+// returns migrated), so relabelling a file's version changes nothing.
+func MigratedCopy(file DesignFile) (DesignFile, error) {
+	raw, err := json.Marshal(file)
+	if err != nil {
+		return nil, err
+	}
+	var c DesignFile
+	if err := json.Unmarshal(raw, &c); err != nil {
+		return nil, err
+	}
+	return migrateFile(c), nil
+}
 
 // migrateFile forward-migrates a parsed DesignFile to the current schema version
 // and repairs page dimensions. The schema bump is skipped when already current,

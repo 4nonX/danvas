@@ -3176,6 +3176,7 @@
   "errors.api_start_mfa_enrollment_first": "Primeiro inicie a configuração em duas etapas.",
   "errors.api_stock_asset_not_found": "Não encontrado.",
   "errors.api_storage_is_not_configured": "O armazenamento de arquivos não está configurado neste servidor.",
+  "errors.api_template_lock_unverifiable": "Não foi possível verificar essas alterações em relação aos objetos protegidos do design, então elas não foram salvas. Recarregue o design e tente novamente.",
   "errors.api_template_locked": "Não salvo: objetos protegidos do modelo foram alterados. Desfaça a última alteração ou fale com quem gerencia o modelo.",
   "errors.api_template_not_found": "Não encontrado.",
   "errors.api_template_without_style": "Este modelo não tem sistema de layouts nem tema para gerar.",

@@ -3176,6 +3176,7 @@
   "errors.api_start_mfa_enrollment_first": "Starte zuerst die Zwei-Faktor-Einrichtung.",
   "errors.api_stock_asset_not_found": "Das wurde nicht gefunden.",
   "errors.api_storage_is_not_configured": "Der Dateispeicher ist auf diesem Server nicht konfiguriert.",
+  "errors.api_template_lock_unverifiable": "Diese Änderungen ließen sich nicht gegen die geschützten Objekte des Designs prüfen und wurden daher nicht gespeichert. Lade das Design neu und versuche es erneut.",
   "errors.api_template_locked": "Nicht gespeichert: Geschützte Vorlagenobjekte wurden geändert. Machen Sie die letzte Änderung rückgängig oder wenden Sie sich an die Verwaltung der Vorlage.",
   "errors.api_template_not_found": "Das wurde nicht gefunden.",
   "errors.api_template_without_style": "Diese Vorlage enthält kein Layoutsystem und kein Design zum Generieren.",

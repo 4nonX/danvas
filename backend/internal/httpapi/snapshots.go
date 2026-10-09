@@ -3,6 +3,7 @@ package httpapi
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -36,7 +37,15 @@ func templateLockGate(w http.ResponseWriter, r *http.Request, p *persistence.Ser
 	if err != nil || cur.File == nil {
 		return true
 	}
-	if err := sh.ValidateTemplateLocks(r.Context(), id, userID, cur.File, next); err != nil {
+	// Judge the incoming file at the stored file's (current) version: LoadFile
+	// returns it migrated, and a save labelled with an older version must not
+	// be compared any less closely.
+	migrated, err := persistence.MigratedCopy(next)
+	if err != nil {
+		persistenceProblem(w, r, fmt.Errorf("%w: %v", persistence.ErrInvalidFile, err))
+		return false
+	}
+	if err := sh.ValidateTemplateLocks(r.Context(), id, userID, cur.File, migrated); err != nil {
 		problemWithCode(w, r, http.StatusConflict, "Conflict", err.Error(), "template_locked")
 		return false
 	}

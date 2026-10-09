@@ -13,8 +13,10 @@ import (
 	"hycanvas/backend/internal/accounts"
 	"hycanvas/backend/internal/authz"
 	"hycanvas/backend/internal/brand"
+	"hycanvas/backend/internal/crdt"
 	"hycanvas/backend/internal/persistence"
 	"hycanvas/backend/internal/sharing"
+	"hycanvas/backend/internal/templatelock"
 )
 
 // mountPersistence attaches the design save/load lifecycle (doc 04), each route
@@ -33,7 +35,7 @@ func mountPersistence(api chi.Router, p *persistence.Service, acct *accounts.Ser
 	api.With(requireAuth(acct)).Get("/designs/{id}/versions/{vid}/file", versionFileHandler(p, acct, sh))
 	api.With(requireAuth(acct)).Get("/designs/{id}/versions/{vid}/diff", diffHandler(p, acct, sh))
 	api.With(requireAuth(acct)).Get("/designs/{id}/updates", updateLogHandler(p, acct, sh))
-	api.With(requireAuth(acct)).Post("/designs/{id}/updates/checkpoint", checkpointUpdateLogHandler(p, acct))
+	api.With(requireAuth(acct)).Post("/designs/{id}/updates/checkpoint", checkpointUpdateLogHandler(p, acct, sh))
 	api.With(requireAuth(acct)).Post("/designs/{id}/versions/{vid}/restore", restoreVersionHandler(p, acct, br, sh))
 	api.With(requireAuth(acct)).Get("/designs/{id}/branches", branchesHandler(p, acct, sh))
 	api.With(requireAuth(acct)).Post("/designs/{id}/versions/{vid}/branch", branchHandler(p, acct))
@@ -290,7 +292,12 @@ func updateLogHandler(p *persistence.Service, acct *accounts.Service, sh *sharin
 // a checkpoint and compacts the log (FR-11). The body is a base64 y-protocols
 // update frame (the same format the realtime hub journals), produced from the
 // live Y.Doc via encodeStateAsUpdate.
-func checkpointUpdateLogHandler(p *persistence.Service, acct *accounts.Service) http.HandlerFunc {
+//
+// A checkpoint replaces the design's history with a full state, so on a design
+// that carries template locks it passes the same template gate as a save: the
+// update is folded into a design file (the same fold as the history view) and
+// judged against the stored file. One that cannot be folded is refused there.
+func checkpointUpdateLogHandler(p *persistence.Service, acct *accounts.Service, sh *sharing.Service) http.HandlerFunc {
 	const maxCheckpointBytes = 20 << 20 // mirror the realtime update size cap
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
@@ -325,6 +332,28 @@ func checkpointUpdateLogHandler(p *persistence.Service, acct *accounts.Service) 
 		if branch != "" && !p.BranchBelongsToDesign(r.Context(), id, branch) {
 			problemWithCode(w, r, http.StatusNotFound, "Not Found", "unknown branch", "unknown_branch")
 			return
+		}
+		if sh != nil {
+			ws, err := p.GetWorkspaceID(r.Context(), id)
+			if err != nil {
+				persistenceProblem(w, r, err)
+				return
+			}
+			if cur, err := p.LoadFile(r.Context(), id, ws); err == nil && len(templatelock.Workspaces(cur.File)) > 0 {
+				var file persistence.DesignFile
+				folded, ferr := crdt.FoldUpdatesContext(r.Context(), [][]byte{raw})
+				if ferr == nil {
+					ferr = json.Unmarshal(folded, &file)
+				}
+				if ferr != nil || file == nil {
+					slog.Warn("checkpoint not foldable on a protected design", "design", id, "err", ferr)
+					problemWithCode(w, r, http.StatusConflict, "Conflict", "the checkpoint could not be checked against the design's template protection", "template_lock_unverifiable")
+					return
+				}
+				if !templateLockGate(w, r, p, sh, id, ws, u.ID, file) {
+					return
+				}
+			}
 		}
 		if err := p.AppendCheckpoint(r.Context(), id, branch, raw, u.ID); err != nil {
 			persistenceProblem(w, r, err)

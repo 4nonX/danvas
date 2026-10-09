@@ -35,10 +35,19 @@ func (s *Service) CanLiftTemplateLocks(ctx context.Context, designID, userID, wo
 }
 
 // ValidateTemplateLocks refuses a save that changes protected objects relative
-// to the design's previous file (see package templatelock for the rule).
-// Returns ErrTemplateLocked with a short summary on a violation.
+// to the design's previous file, or adds locks the saver may not set (see
+// package templatelock for the rule). Both files must be at the same schema
+// version. Returns ErrTemplateLocked with a short summary on a violation.
 func (s *Service) ValidateTemplateLocks(ctx context.Context, designID, userID string, prev, next map[string]any) error {
-	v := templatelock.Check(prev, next, func(ws string) bool { return s.CanLiftTemplateLocks(ctx, designID, userID, ws) })
+	designWS, err := s.workspaceOf(ctx, designID)
+	if err != nil {
+		return err
+	}
+	v := templatelock.Check(prev, next, templatelock.Policy{
+		DesignWorkspace: designWS,
+		MayLift:         func(ws string) bool { return s.CanLiftTemplateLocks(ctx, designID, userID, ws) },
+		MayCarry:        func(ws string) bool { return s.mayCarryTemplateLocks(ctx, userID, ws) },
+	})
 	if len(v) == 0 {
 		return nil
 	}
@@ -54,6 +63,20 @@ func (s *Service) ValidateTemplateLocks(ctx context.Context, designID, userID st
 		summary += fmt.Sprintf(" (+%d more)", len(v)-5)
 	}
 	return fmt.Errorf("%w: protected template objects changed: %s", ErrTemplateLocked, summary)
+}
+
+// mayCarryTemplateLocks reports whether objects a save adds may carry template
+// locks of another workspace: one that exists and that the saver belongs to
+// (slides reused from its designs) or that publishes templates (an applied
+// template). A workspace that does not exist, or one the saver has no tie to
+// and that publishes nothing, would make objects nobody can unlock.
+func (s *Service) mayCarryTemplateLocks(ctx context.Context, userID, workspaceID string) bool {
+	if s.membershipRole(ctx, userID, workspaceID) != "" {
+		return true
+	}
+	var publishes bool
+	err := s.db.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM "workspaces" w JOIN "templates" t ON t."workspace_id" = w.id WHERE w.id::text = $1)`, workspaceID).Scan(&publishes)
+	return err == nil && publishes
 }
 
 // IsActiveMember reports whether a user is an active member of a workspace.

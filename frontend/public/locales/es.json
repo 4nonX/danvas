@@ -3176,6 +3176,7 @@
   "errors.api_start_mfa_enrollment_first": "Primero inicia la configuración en dos pasos.",
   "errors.api_stock_asset_not_found": "No se ha encontrado.",
   "errors.api_storage_is_not_configured": "El almacenamiento de archivos no está configurado en este servidor.",
+  "errors.api_template_lock_unverifiable": "No se pudieron comprobar estos cambios frente a los objetos protegidos del diseño, así que no se guardaron. Vuelve a cargar el diseño e inténtalo de nuevo.",
   "errors.api_template_locked": "No se guardó: se cambiaron objetos protegidos de la plantilla. Deshaz el último cambio o consulta a quien gestiona la plantilla.",
   "errors.api_template_not_found": "No se ha encontrado.",
   "errors.api_template_without_style": "Esta plantilla no tiene sistema de diseños ni tema para generar.",

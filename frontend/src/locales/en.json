@@ -3391,6 +3391,7 @@
   "errors.api_start_mfa_enrollment_first": "Start two-factor setup first.",
   "errors.api_stock_asset_not_found": "That could not be found.",
   "errors.api_storage_is_not_configured": "File storage is not configured on this server.",
+  "errors.api_template_lock_unverifiable": "These changes could not be checked against the design's protected objects, so they were not saved. Reload the design and try again.",
   "errors.api_template_locked": "Not saved: protected template objects were changed. Undo the last change, or ask whoever manages the template.",
   "errors.api_template_not_found": "That could not be found.",
   "errors.api_template_without_style": "This template carries no layout system or theme to generate with.",

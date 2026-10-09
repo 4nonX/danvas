@@ -3176,6 +3176,7 @@
   "errors.api_start_mfa_enrollment_first": "请先开始两步验证设置。",
   "errors.api_stock_asset_not_found": "未找到。",
   "errors.api_storage_is_not_configured": "此服务器未配置文件存储。",
+  "errors.api_template_lock_unverifiable": "无法根据设计中受保护的对象检查这些更改，因此未保存。请重新加载设计后重试。",
   "errors.api_template_locked": "未保存：模板中受保护的对象被更改。请撤销上一次更改，或联系模板的管理者。",
   "errors.api_template_not_found": "未找到。",
   "errors.api_template_without_style": "此模板没有可用于生成的布局系统或主题。",

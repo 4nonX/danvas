@@ -3176,6 +3176,7 @@
   "errors.api_start_mfa_enrollment_first": "Commencez d'abord la configuration à deux facteurs.",
   "errors.api_stock_asset_not_found": "Introuvable.",
   "errors.api_storage_is_not_configured": "Le stockage de fichiers n'est pas configuré sur ce serveur.",
+  "errors.api_template_lock_unverifiable": "Ces modifications n'ont pas pu être vérifiées par rapport aux objets protégés du design et n'ont donc pas été enregistrées. Rechargez le design et réessayez.",
   "errors.api_template_locked": "Non enregistré : des objets protégés du modèle ont été modifiés. Annulez la dernière modification ou adressez-vous à la personne qui gère le modèle.",
   "errors.api_template_not_found": "Introuvable.",
   "errors.api_template_without_style": "Ce modèle ne contient ni système de mises en page ni thème pour générer.",

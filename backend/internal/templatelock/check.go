@@ -11,9 +11,17 @@
 //
 // The rule is deliberately narrow. It compares only what a template protects,
 // against the design's previous file, by node id, and only for nodes whose lock
-// the saver may not lift. Anything it cannot judge with certainty (a schema
-// version change between the two files) is checked for presence and lock alone,
-// so a legitimate save is never refused over a field a migration rewrote.
+// the saver may not lift. Both files must be at the same schema version (the
+// caller migrates them first): a version difference is never a reason to look
+// less closely, or relabelling a file would switch the check off.
+//
+// Locks a save adds are judged too, or any editor could protect objects for a
+// workspace nobody can act for. On an object that already existed, a lock may
+// only be added or changed for the design's own workspace by someone who may
+// manage its locks. Objects new in the save (a duplicated page, an applied
+// template, reused slides) may carry the design's own locks, and another
+// workspace's only when Policy.MayCarry allows it.
+//
 // The DesignFile is opaque JSON here, like everywhere at the write boundary.
 package templatelock
 
@@ -34,7 +42,22 @@ type Lock struct {
 type Violation struct {
 	NodeID      string
 	WorkspaceID string
-	Reason      string // "removed" | "unlocked" | "moved" | "changed"
+	Reason      string // "removed" | "unlocked" | "moved" | "changed" | "locked"
+}
+
+// Policy is what a save is judged against besides the two files.
+type Policy struct {
+	// DesignWorkspace is the design's own workspace; a lock without a
+	// workspace belongs to it.
+	DesignWorkspace string
+	// MayLift reports whether the saver may set, change or lift locks of a
+	// workspace. Asked at most once per workspace.
+	MayLift func(workspaceID string) bool
+	// MayCarry reports whether objects new in this save may carry locks of
+	// another workspace (one that does not already protect something in the
+	// design): it exists and, typically, the saver belongs to it or it
+	// publishes templates. Asked at most once per workspace.
+	MayCarry func(workspaceID string) bool
 }
 
 // Of reads a node's own template lock. An unknown level reads as "locked", the
@@ -78,32 +101,51 @@ type entry struct {
 	parent string
 }
 
-// Check returns the protected nodes `next` changed relative to `prev`. `may`
-// reports whether the saver may lift locks of a workspace; it is asked once per
-// workspace. Locks added by the save are never violations: a lock only ever
-// restricts, so a design created from a template carries its locks freely.
-func Check(prev, next map[string]any, may func(workspaceID string) bool) []Violation {
+// Check returns the protected nodes `next` changed relative to `prev`, and the
+// locks `next` adds or changes that the saver may not set. A save with no
+// previous file (a new design, made from a template or not) has nothing to
+// judge.
+func Check(prev, next map[string]any, pol Policy) []Violation {
 	if prev == nil || next == nil {
 		return nil
 	}
-	allowed := map[string]bool{}
-	mayLift := func(ws string) bool {
-		v, ok := allowed[ws]
-		if !ok {
-			v = may(ws)
-			allowed[ws] = v
+	own := func(ws string) string {
+		if ws == "" {
+			return pol.DesignWorkspace
 		}
-		return v
+		return ws
 	}
+	memo := func(f func(string) bool) func(string) bool {
+		seen := map[string]bool{}
+		return func(ws string) bool {
+			v, ok := seen[ws]
+			if !ok {
+				v = f != nil && f(ws)
+				seen[ws] = v
+			}
+			return v
+		}
+	}
+	mayLift := memo(pol.MayLift)
+	mayCarry := memo(pol.MayCarry)
 	idx := map[string]entry{}
 	walk(next, func(n map[string]any, parent string, _ *Lock) {
 		if id, _ := n["id"].(string); id != "" {
 			idx[id] = entry{n, parent}
 		}
 	})
-	sameVersion := num(prev["schemaVersion"]) == num(next["schemaVersion"])
 
 	var out []Violation
+	prevIdx := map[string]map[string]any{}
+	prevLocks := map[string]bool{} // workspaces that already protect something
+	walk(prev, func(n map[string]any, _ string, _ *Lock) {
+		if id, _ := n["id"].(string); id != "" {
+			prevIdx[id] = n
+		}
+		if l, ok := Of(n); ok {
+			prevLocks[own(l.WorkspaceID)] = true
+		}
+	})
 	walk(prev, func(n map[string]any, parent string, eff *Lock) {
 		id, _ := n["id"].(string)
 		if eff == nil || id == "" || mayLift(eff.WorkspaceID) {
@@ -128,7 +170,12 @@ func Check(prev, next map[string]any, may func(workspaceID string) bool) []Viola
 			bad("moved")
 			return
 		}
-		if !sameVersion {
+		// A protected container keeps its children: none added, removed or
+		// reordered. At content level a frame's single `child` (its picture)
+		// may still be replaced.
+		if !equal(childIDs(n, "children"), childIDs(got.node, "children")) ||
+			(eff.Level != LevelContent && !equal(childIDs(n, "child"), childIDs(got.node, "child"))) {
+			bad("changed")
 			return
 		}
 		if !equal(n["transform"], got.node["transform"]) || !equal(n["type"], got.node["type"]) {
@@ -158,6 +205,47 @@ func Check(prev, next map[string]any, may func(workspaceID string) bool) []Viola
 			}
 		}
 	})
+
+	// Locks the save adds or changes.
+	walk(next, func(n map[string]any, _ string, _ *Lock) {
+		l, ok := Of(n)
+		id, _ := n["id"].(string)
+		if !ok || id == "" {
+			return
+		}
+		ws := own(l.WorkspaceID)
+		before, existed := prevIdx[id]
+		if existed {
+			if pl, had := Of(before); had && pl == l {
+				return // unchanged
+			}
+			if ws != pol.DesignWorkspace || !mayLift(ws) {
+				out = append(out, Violation{NodeID: id, WorkspaceID: ws, Reason: "locked"})
+			}
+			return
+		}
+		if ws == pol.DesignWorkspace || prevLocks[ws] || mayCarry(ws) {
+			return
+		}
+		out = append(out, Violation{NodeID: id, WorkspaceID: ws, Reason: "locked"})
+	})
+	return out
+}
+
+// childIDs lists the ids under a node's `children` array or its single
+// `child`, in order (nil when it has none).
+func childIDs(n map[string]any, key string) []any {
+	var out []any
+	switch v := n[key].(type) {
+	case []any:
+		for _, c := range v {
+			if m, ok := c.(map[string]any); ok {
+				out = append(out, m["id"])
+			}
+		}
+	case map[string]any:
+		out = append(out, v["id"])
+	}
 	return out
 }
 
@@ -200,8 +288,6 @@ func walk(file map[string]any, visit func(n map[string]any, parent string, eff *
 		rec(kids, "page:"+pid, nil)
 	}
 }
-
-func num(v any) float64 { f, _ := v.(float64); return f }
 
 // equal compares decoded JSON, numbers within a rounding tolerance (a value
 // that only went through another float formatting is the same value).

@@ -3176,6 +3176,7 @@
   "errors.api_start_mfa_enrollment_first": "先に二段階認証の設定を開始してください。",
   "errors.api_stock_asset_not_found": "見つかりませんでした。",
   "errors.api_storage_is_not_configured": "このサーバーではファイルストレージが設定されていません。",
+  "errors.api_template_lock_unverifiable": "これらの変更をデザインの保護されたオブジェクトと照合できなかったため、保存されませんでした。デザインを再読み込みして、もう一度お試しください。",
   "errors.api_template_locked": "保存されませんでした: テンプレートの保護されたオブジェクトが変更されました。最後の変更を元に戻すか、テンプレートの管理者に問い合わせてください。",
   "errors.api_template_not_found": "見つかりませんでした。",
   "errors.api_template_without_style": "このテンプレートには生成に使えるレイアウトシステムもテーマもありません。",
