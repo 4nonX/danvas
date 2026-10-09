@@ -7,7 +7,7 @@ If you are looking for the original product, its documentation or its support, g
 ## Credit
 
 - **HyCanvas** is a product of HyScaler, the trading name of NetTantra Technologies (India) Private Limited. HyScaler is a registered trademark of that company. See [NOTICE](NOTICE) and [COMMERCIAL.md](COMMERCIAL.md), both unchanged from the original.
-- danvas is based on the HyCanvas `development` branch as of commit [`437fe70`](https://github.com/hyscaler/HyCanvas/commit/437fe7096a21b9ab0846934842b89ef48289d41b) (2026-10-01). The upstream history is not included in this repository; the original project and its full history are at [hyscaler/HyCanvas](https://github.com/hyscaler/HyCanvas).
+- danvas is based on the HyCanvas `development` branch as of commit [`437fe70`](https://github.com/hyscaler/HyCanvas/commit/437fe7096a21b9ab0846934842b89ef48289d41b) (2026-10-01). The repository's history includes upstream's `development` branch (linked after 0.2.2 by a merge that changed no file), so upstream changes come in with a normal merge: `git remote add upstream https://github.com/hyscaler/HyCanvas.git`, then `git fetch upstream` and `git merge upstream/development`. The original project is at [hyscaler/HyCanvas](https://github.com/hyscaler/HyCanvas).
 - Third-party components added by danvas, each with its license file next to it and listed in [NOTICE.danvas](NOTICE.danvas) (HyScaler's own [NOTICE](NOTICE) is kept word for word):
   - the Real-ESRGAN `realesr-animevideov3` model by Xintao Wang (BSD-3-Clause), converted to ONNX, run with onnxruntime-web (MIT);
   - Little CMS by Marti Maria Saguer (MIT), compiled to WebAssembly as lcms-wasm by Matt DesLauriers (MIT);
