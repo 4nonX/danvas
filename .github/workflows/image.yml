@@ -1,5 +1,6 @@
-# Builds the danvas image from source (Dockerfile), checks that it deploys,
-# and publishes it to the GitHub container registry for amd64 and arm64:
+# Runs the tests, builds the danvas image from source (Dockerfile), checks
+# that it deploys, and publishes it to the GitHub container registry for amd64
+# and arm64:
 #
 #   pull request     build + deploy check, nothing published
 #   push to main     build + deploy check, published as :main and :sha-<commit>
@@ -48,7 +49,69 @@ concurrency:
   cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
 jobs:
+  # The test suites and checks gate the image: nothing is built or published
+  # from a commit whose tests fail. It covers what upstream HyCanvas's CI
+  # workflow runs (package and frontend tests, frontend lint, go vet, go test)
+  # and adds the type check, the generated-file checks and the backend's
+  # database tests, against a Postgres service with every migration applied.
+  # The frontend and the Go binary are compiled by the image build below.
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: danvas
+          POSTGRES_PASSWORD: danvas
+          POSTGRES_DB: danvas_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U danvas"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgresql://danvas:danvas@127.0.0.1:5432/danvas_test?sslmode=disable
+      JWT_SECRET: ci-only-not-a-secret
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+
+      - name: Install
+        run: npm ci --no-audit --no-fund
+      - name: Build packages
+        run: npm run build:packages
+      - name: Package tests
+        run: npm run test:packages
+      - name: Frontend tests
+        run: npm run test:frontend
+      - name: Type check
+        run: npx tsc --noEmit -p frontend/tsconfig.json
+      - name: Lint and generated files
+        run: |
+          npm run lint:frontend
+          npm run gen:theme:check
+          npm run lint:theme
+          node scripts/i18n-coverage.mjs
+      - name: Backend vet
+        working-directory: backend
+        run: go vet ./...
+      - name: Backend tests
+        working-directory: backend
+        run: |
+          go run ./cmd/migrate
+          go test ./...
+
   image:
+    needs: test
     runs-on: ubuntu-latest
     timeout-minutes: 120
     env:
@@ -60,6 +123,11 @@ jobs:
         id: version
         run: |
           v="v$(tr -d '[:space:]' < VERSION)"
+          # package.json (and its lockfile) carry the same version as VERSION.
+          for f in package.json package-lock.json; do
+            pv="v$(node -p "require('./$f').version")"
+            [ "$pv" = "$v" ] || { echo "::error::$f says $pv, VERSION says $v"; exit 1; }
+          done
           if [ "$GITHUB_REF_TYPE" = tag ]; then
             [ "$GITHUB_REF_NAME" = "$v" ] || { echo "::error::tag $GITHUB_REF_NAME does not match VERSION ($v)"; exit 1; }
             # The release notes come from the version's CHANGELOG section:
