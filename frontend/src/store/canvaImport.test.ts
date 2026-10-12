@@ -1,109 +1,132 @@
-// The Canva import run lives in the app-level store, not in its dialog: it
-// must run to the end with no UI open, allow only one run at a time, stop
-// after the current design when asked, and stay visible until dismissed.
+// The Canva imports run on the server; the app-level store starts, stops and
+// dismisses them, polls their state (often while one is going, rarely
+// otherwise) and tells open views when designs arrived in their workspace.
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { CanvaImportRun } from "@hc/sdk";
 
 const oc = {
-  canvaImported: vi.fn(),
-  startCanvaExport: vi.fn(),
-  getCanvaExport: vi.fn(),
-  canvaExportFile: vi.fn(),
-  createDesign: vi.fn(),
-  moveToFolder: vi.fn(),
-  recordCanvaImport: vi.fn(),
-  createDesignFolder: vi.fn(),
-  listCanvaFolder: vi.fn(),
+  startCanvaImport: vi.fn(),
+  listCanvaImports: vi.fn(),
+  stopCanvaImport: vi.fn(),
+  dismissCanvaImport: vi.fn(),
 };
 vi.mock("@/lib/sdk", () => ({ oc }));
 vi.mock("@/lib/i18n", () => ({ tr: (k: string) => k }));
-vi.mock("@/lib/importDesignFile", () => ({ designFromFile: vi.fn() }));
-vi.mock("@/lib/canvaImport", async (orig) => ({
-  ...(await orig<typeof import("@/lib/canvaImport")>()),
-  imagePagesDesign: vi.fn(async (title: string) => ({ title, pages: [] })),
-}));
 
-const { useCanvaImport, canvaImportActive } = await import("./canvaImport");
+const { useCanvaImport, canvaImportActive, pollCanvaImports, ACTIVE_POLL_MS, IDLE_POLL_MS } = await import("./canvaImport");
 
-const design = (id: string, name: string) => ({ item: { type: "design" as const, id, name }, ancestors: [] as string[] });
-const start = (ids: [string, string][]) =>
-  useCanvaImport.getState().start({
-    workspaceId: "ws1",
-    targetFolderId: null,
-    folders: [],
-    picks: ids.map(([id, name]) => design(id, name)),
-    errorMessage: (e) => String(e),
-  });
-const finished = () => vi.waitFor(() => expect(useCanvaImport.getState().run?.done).toBe(true), { timeout: 5000 });
-
-beforeEach(() => {
-  useCanvaImport.setState({ run: null, detailsOpen: false, changes: 0 });
-  for (const f of Object.values(oc)) f.mockReset();
-  oc.canvaImported.mockResolvedValue({ d2: "already-here" });
-  oc.startCanvaExport.mockResolvedValue({ jobId: "job", format: "png" });
-  oc.getCanvaExport.mockResolvedValue({ status: "success", files: 1 });
-  oc.canvaExportFile.mockResolvedValue(new Blob(["x"]));
-  oc.createDesign.mockResolvedValue({ id: "new" });
-  oc.recordCanvaImport.mockResolvedValue(undefined);
+const run = (p: Partial<CanvaImportRun>): CanvaImportRun => ({
+  id: "r1",
+  workspaceId: "ws1",
+  targetFolderId: null,
+  status: "running",
+  stopRequested: false,
+  total: 2,
+  imported: 0,
+  skipped: 0,
+  failed: 0,
+  asImages: 0,
+  current: "",
+  waiting: false,
+  failures: [],
+  createdAt: "2026-10-12T10:00:00Z",
+  ...p,
 });
 
-describe("Canva import run", () => {
-  it("runs to the end with its dialog closed", async () => {
-    start([["d1", "Flyer"], ["d2", "Poster"]]);
-    expect(useCanvaImport.getState().detailsOpen).toBe(true);
-    useCanvaImport.getState().setDetailsOpen(false); // "continue in the background"
+beforeEach(() => {
+  useCanvaImport.setState({ runs: [], detailsOpen: null, changes: 0, changedWorkspaceIds: [] });
+  for (const f of Object.values(oc)) f.mockReset();
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+});
+
+describe("Canva import store", () => {
+  it("starts a run on the server with the picks and opens its progress", async () => {
+    oc.startCanvaImport.mockResolvedValue(run({ status: "queued", total: null }));
+    await useCanvaImport.getState().start({
+      workspaceId: "ws1",
+      targetFolderId: "f1",
+      picks: [{ item: { type: "design", id: "D1", name: "Flyer" }, ancestors: ["root"] }],
+    });
+    expect(oc.startCanvaImport).toHaveBeenCalledWith("ws1", {
+      picks: [{ type: "design", id: "D1", name: "Flyer", ancestors: ["root"] }],
+      targetFolderId: "f1",
+      untitled: "dashboard.untitled",
+    });
+    expect(useCanvaImport.getState().detailsOpen).toBe("r1");
     expect(canvaImportActive()).toBe(true);
-    await finished();
-    const run = useCanvaImport.getState().run!;
-    expect(run.results.map((r) => [r.name, r.status])).toEqual([["Flyer", "imported"], ["Poster", "skipped"]]);
-    expect(run.stopped).toBe(false);
-    expect(oc.createDesign).toHaveBeenCalledTimes(1);
-    expect(oc.recordCanvaImport).toHaveBeenCalledWith("ws1", "d1", "new");
-    expect(useCanvaImport.getState().changes).toBeGreaterThan(0);
-    expect(useCanvaImport.getState().detailsOpen).toBe(false);
   });
 
-  it("starts only one run at a time", async () => {
-    start([["d1", "Flyer"]]);
-    start([["d3", "Other"]]);
-    await finished();
-    expect(oc.startCanvaExport).toHaveBeenCalledTimes(1);
-    expect(oc.startCanvaExport).toHaveBeenCalledWith("ws1", "d1");
+  it("passes a refusal on to the dialog", async () => {
+    oc.startCanvaImport.mockRejectedValue(new Error("canva_not_connected"));
+    await expect(useCanvaImport.getState().start({ workspaceId: "ws1", targetFolderId: null, picks: [] })).rejects.toThrow();
+    expect(useCanvaImport.getState().runs).toEqual([]);
   });
 
-  it("stops after the design it is on", async () => {
-    let release!: () => void;
-    oc.startCanvaExport.mockImplementationOnce(() => new Promise((r) => { release = () => r({ jobId: "job", format: "png" }); }));
-    start([["d1", "Flyer"], ["d3", "Card"]]);
-    await vi.waitFor(() => expect(oc.startCanvaExport).toHaveBeenCalledTimes(1));
-    useCanvaImport.getState().stop();
-    release();
-    await finished();
-    const run = useCanvaImport.getState().run!;
-    expect(run.stopped).toBe(true);
-    expect(oc.startCanvaExport).toHaveBeenCalledTimes(1);
-    expect(run.results.map((r) => r.name)).toEqual(["Flyer"]);
+  it("signals the workspace when designs arrive or a run ends", async () => {
+    useCanvaImport.setState({ runs: [run({})] });
+    oc.listCanvaImports.mockResolvedValueOnce([run({})]);
+    await useCanvaImport.getState().refresh();
+    expect(useCanvaImport.getState().changes).toBe(0);
+
+    oc.listCanvaImports.mockResolvedValueOnce([run({ imported: 1 })]);
+    await useCanvaImport.getState().refresh();
+    expect(useCanvaImport.getState().changes).toBe(1);
+    expect(useCanvaImport.getState().changedWorkspaceIds).toEqual(["ws1"]);
+
+    oc.listCanvaImports.mockResolvedValueOnce([run({ imported: 1, status: "done" })]);
+    await useCanvaImport.getState().refresh();
+    expect(useCanvaImport.getState().changes).toBe(2);
+    expect(canvaImportActive()).toBe(false);
   });
 
-  it("stays until dismissed, and only a finished run can be dismissed", async () => {
-    let release!: () => void;
-    oc.startCanvaExport.mockImplementationOnce(() => new Promise((r) => { release = () => r({ jobId: "job", format: "png" }); }));
-    start([["d1", "Flyer"]]);
-    await vi.waitFor(() => expect(oc.startCanvaExport).toHaveBeenCalledTimes(1));
-    useCanvaImport.getState().dismiss();
-    expect(useCanvaImport.getState().run).not.toBeNull();
-    release();
-    await finished();
-    useCanvaImport.getState().dismiss();
-    expect(useCanvaImport.getState().run).toBeNull();
+  it("stops and dismisses through the server", async () => {
+    useCanvaImport.setState({ runs: [run({})], detailsOpen: "r1" });
+    oc.stopCanvaImport.mockResolvedValue(run({ stopRequested: true }));
+    await useCanvaImport.getState().stop("r1");
+    expect(useCanvaImport.getState().runs[0].stopRequested).toBe(true);
+
+    useCanvaImport.setState({ runs: [run({ status: "stopped" })] });
+    oc.dismissCanvaImport.mockResolvedValue(undefined);
+    await useCanvaImport.getState().dismiss("r1");
+    expect(oc.dismissCanvaImport).toHaveBeenCalledWith("r1");
+    expect(useCanvaImport.getState().runs).toEqual([]);
+    expect(useCanvaImport.getState().detailsOpen).toBeNull();
   });
 
-  it("records a failed design and carries on", async () => {
-    oc.getCanvaExport.mockResolvedValueOnce({ status: "failed", files: 0, error: "boom" });
-    start([["d1", "Flyer"], ["d3", "Card"]]);
-    await finished();
-    const run = useCanvaImport.getState().run!;
-    expect(run.results.map((r) => r.status)).toEqual(["failed", "imported"]);
-    expect(run.halted).toBeNull();
+  it("polls often while a run is going and rarely otherwise, until stopped", async () => {
+    vi.useFakeTimers();
+    oc.listCanvaImports.mockResolvedValue([run({})]);
+    const stop = pollCanvaImports();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(oc.listCanvaImports).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(ACTIVE_POLL_MS);
+    expect(oc.listCanvaImports).toHaveBeenCalledTimes(2);
+
+    oc.listCanvaImports.mockResolvedValue([run({ status: "done" })]);
+    await vi.advanceTimersByTimeAsync(ACTIVE_POLL_MS);
+    expect(oc.listCanvaImports).toHaveBeenCalledTimes(3);
+    await vi.advanceTimersByTimeAsync(ACTIVE_POLL_MS);
+    expect(oc.listCanvaImports).toHaveBeenCalledTimes(3);
+    await vi.advanceTimersByTimeAsync(IDLE_POLL_MS);
+    expect(oc.listCanvaImports).toHaveBeenCalledTimes(4);
+
+    stop();
+    expect(useCanvaImport.getState().runs).toEqual([]);
+    await vi.advanceTimersByTimeAsync(IDLE_POLL_MS * 2);
+    expect(oc.listCanvaImports).toHaveBeenCalledTimes(4);
+  });
+
+  it("keeps polling after a failed poll", async () => {
+    vi.useFakeTimers();
+    oc.listCanvaImports.mockRejectedValueOnce(new Error("offline")).mockResolvedValue([]);
+    const stop = pollCanvaImports();
+    await vi.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(IDLE_POLL_MS);
+    expect(oc.listCanvaImports).toHaveBeenCalledTimes(2);
+    stop();
   });
 });

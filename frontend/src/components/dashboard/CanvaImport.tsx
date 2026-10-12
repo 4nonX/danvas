@@ -2,29 +2,28 @@
 // folders in the user's Canva library and bring them into the open dashboard
 // folder, folder tree included.
 //
-// Starting the import hands it to the app-level run (store/canvaImport.ts),
-// which keeps going after this dialog closes; its progress shows on every
-// page (CanvaImportProgress). While a run is going, this dialog opens that
-// run's progress instead of a new selection.
+// Starting the import queues it on the server (store/canvaImport.ts), which
+// runs it with this dialog, the tab or the browser closed; its progress shows
+// on every page (CanvaImportProgress). A run started while another is going
+// waits for it.
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronRight, Folder, Link2, Loader2, Settings } from "lucide-react";
-import type { CanvaConnection, CanvaItem, DesignFolder } from "@hc/sdk";
+import type { CanvaConnection, CanvaItem } from "@hc/sdk";
 import { oc } from "@/lib/sdk";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import type { CanvaPick } from "@/lib/canvaImport";
-import { canvaImportActive, useCanvaImport } from "@/store/canvaImport";
+import { useCanvaImport } from "@/store/canvaImport";
 import { tr } from "@/lib/i18n";
 
 const ROOT: CanvaItem = { type: "folder", id: "root", name: "" };
 
 export function CanvaImportDialog({
-  workspaceId, targetFolderId, folders, isAdmin, onClose, onOpenSettings, errorMessage: errorMessageProp,
+  workspaceId, targetFolderId, isAdmin, onClose, onOpenSettings, errorMessage: errorMessageProp,
 }: {
   workspaceId: string;
   targetFolderId: string | null;
-  folders: DesignFolder[];
   isAdmin: boolean;
   onClose: () => void;
   onOpenSettings: () => void;
@@ -38,15 +37,8 @@ export function CanvaImportDialog({
   const [conn, setConn] = useState<CanvaConnection | null>(null);
   const [connError, setConnError] = useState<string | null>(null);
   const [picks, setPicks] = useState<Map<string, CanvaPick>>(new Map());
-  // A run already going: show its progress instead of a new selection.
-  const busy = useCanvaImport((s) => !!s.run && !s.run.done);
-  const closeRef = useRef(onClose);
-  useEffect(() => { closeRef.current = onClose; });
-  useEffect(() => {
-    if (!busy) return;
-    useCanvaImport.getState().setDetailsOpen(true);
-    closeRef.current();
-  }, [busy]);
+  const [starting, setStarting] = useState(false);
+  const [startError, setStartError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -76,12 +68,16 @@ export function CanvaImportDialog({
     });
   }, []);
 
-  if (busy) return null;
-
-  function startImport() {
-    if (canvaImportActive()) return;
-    useCanvaImport.getState().start({ workspaceId, targetFolderId, folders, picks: [...picks.values()], errorMessage });
-    onClose();
+  async function startImport() {
+    setStarting(true);
+    setStartError(null);
+    try {
+      await useCanvaImport.getState().start({ workspaceId, targetFolderId, picks: [...picks.values()] });
+      onClose();
+    } catch (e) {
+      setStartError(errorMessage(e));
+      setStarting(false);
+    }
   }
 
   const title = tr("dashboard.import_from_canva");
@@ -138,13 +134,16 @@ export function CanvaImportDialog({
       <div className="oc-scroll max-h-[50vh] overflow-y-auto rounded-xl border border-neutral-200 p-1">
         <CanvaFolderList workspaceId={workspaceId} folderId="root" ancestors={["root"]} picks={picks} onToggle={toggle} errorMessage={errorMessage} />
       </div>
-      <p className="mt-3 text-xs text-neutral-500">{tr("dashboard.canva_run_hint")}</p>
+      <p className="mt-3 text-xs text-neutral-500">{tr("dashboard.canva_server_run_hint")}</p>
+      {startError && <p className="mt-2 text-xs text-red-700">{startError}</p>}
       <div className="mt-4 flex items-center justify-end gap-2">
         <span className="me-auto text-xs text-neutral-500">
           {everything ? tr("dashboard.canva_everything_selected") : tr("dashboard.canva_n_selected", { count: picks.size })}
         </span>
         <Button variant="secondary" onClick={onClose}>{tr("dashboard.cancel")}</Button>
-        <Button disabled={picks.size === 0} onClick={startImport}>{tr("dashboard.canva_import_selected")}</Button>
+        <Button disabled={picks.size === 0 || starting} onClick={() => void startImport()}>
+          {starting && <Loader2 size={15} className="animate-spin" />} {tr("dashboard.canva_import_selected")}
+        </Button>
       </div>
     </Modal>
   );

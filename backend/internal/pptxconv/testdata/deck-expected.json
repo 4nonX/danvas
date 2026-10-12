@@ -1,0 +1,121 @@
+{
+  "format": "hycanvas.design",
+  "schemaVersion": 27,
+  "id": "U",
+  "title": "Fixture",
+  "unit": "px",
+  "dpi": 96,
+  "pages": [
+    {
+      "id": "pptx-slide-1",
+      "width": 960,
+      "height": 540,
+      "children": [
+        {
+          "id": "pptx-text-1",
+          "transform": {
+            "x": 60,
+            "y": 40,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0
+          },
+          "size": {
+            "width": 600,
+            "height": 80
+          },
+          "opacity": 1,
+          "blendMode": "normal",
+          "type": "text",
+          "box": {
+            "mode": "fixed",
+            "width": 600,
+            "height": 80,
+            "autoFit": {
+              "enabled": false,
+              "min": 6,
+              "max": 512
+            },
+            "verticalAlign": "top"
+          },
+          "content": [
+            {
+              "runs": [
+                {
+                  "text": "Übersicht: Größe, Maße & Öl",
+                  "style": {
+                    "fontFamily": "Inter",
+                    "fontStyle": "Regular",
+                    "fontSize": 36,
+                    "fill": {
+                      "type": "solid",
+                      "color": {
+                        "srgb": {
+                          "r": 0.07,
+                          "g": 0.09,
+                          "b": 0.13,
+                          "a": 1
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
+              "style": {
+                "align": "left",
+                "direction": "auto"
+              }
+            }
+          ],
+          "name": "text"
+        },
+        {
+          "id": "pptx-shape-2",
+          "transform": {
+            "x": 300.0000097830231,
+            "y": 219.99999721459704,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 17
+          },
+          "size": {
+            "width": 240,
+            "height": 120
+          },
+          "opacity": 1,
+          "blendMode": "normal",
+          "type": "shape",
+          "shape": "rect",
+          "fills": [
+            {
+              "type": "solid",
+              "color": {
+                "srgb": {
+                  "r": 0,
+                  "g": 0,
+                  "b": 0,
+                  "a": 1
+                }
+              }
+            }
+          ],
+          "name": "shape"
+        }
+      ],
+      "background": {
+        "type": "solid",
+        "color": {
+          "srgb": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 1
+          }
+        }
+      }
+    }
+  ],
+  "assets": [],
+  "fonts": [],
+  "meta": {}
+}

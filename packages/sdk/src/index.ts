@@ -915,6 +915,46 @@ export interface CanvaExportStatus {
   files: number;
   error?: string;
 }
+/** A ticked entry of the import dialog: a design or a folder ("root" = the
+ *  whole library), with the ids of the folders above it. */
+export interface CanvaImportPick {
+  type: "folder" | "design";
+  id: string;
+  name: string;
+  ancestors: string[];
+}
+/** A design a server-side import could not bring in. `code`: export_failed
+ *  (`detail` is Canva's code), export_timed_out, no_export, too_large,
+ *  convert_failed or error. */
+export interface CanvaImportFailure {
+  name: string;
+  code: string;
+  detail?: string;
+}
+/** An import the server runs for its owner. `status`: queued, running, paused
+ *  (Canva's daily limit, resumes at `resumeAt`), done, stopped or halted
+ *  (`halted`: rate_limit, access_lost, not_connected or error). */
+export interface CanvaImportRun {
+  id: string;
+  workspaceId: string;
+  targetFolderId: string | null;
+  status: "queued" | "running" | "paused" | "done" | "stopped" | "halted";
+  stopRequested: boolean;
+  resumeAt?: string;
+  total: number | null;
+  imported: number;
+  skipped: number;
+  failed: number;
+  asImages: number;
+  current: string;
+  waiting: boolean;
+  halted?: string;
+  haltedDetail?: string;
+  failures: CanvaImportFailure[];
+  createdAt: string;
+  startedAt?: string;
+  finishedAt?: string;
+}
 
 export interface WorkspaceFont {
   id: string;
@@ -2448,6 +2488,25 @@ export class HyCanvasClient {
   }
   recordCanvaImport(workspaceId: string, canvaDesignId: string, designId: string): Promise<void> {
     return this.request("POST", `/v1/workspaces/${workspaceId}/canva/imports`, { canvaDesignId, designId });
+  }
+  /** Queue a server-side import of `picks` into a folder (null = the
+   *  workspace root). `untitled` names untitled designs and folders. */
+  startCanvaImport(
+    workspaceId: string,
+    input: { picks: CanvaImportPick[]; targetFolderId: string | null; untitled: string },
+  ): Promise<CanvaImportRun> {
+    return this.request("POST", `/v1/workspaces/${workspaceId}/canva/runs`, input);
+  }
+  /** The caller's imports that are not dismissed, in every workspace. */
+  async listCanvaImports(): Promise<CanvaImportRun[]> {
+    const r = await this.request<{ runs: CanvaImportRun[] }>("GET", `/v1/canva/runs`);
+    return r.runs;
+  }
+  stopCanvaImport(runId: string): Promise<CanvaImportRun> {
+    return this.request("POST", `/v1/canva/runs/${encodeURIComponent(runId)}/stop`);
+  }
+  dismissCanvaImport(runId: string): Promise<void> {
+    return this.request("POST", `/v1/canva/runs/${encodeURIComponent(runId)}/dismiss`);
   }
 
   // Asset folders.

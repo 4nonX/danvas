@@ -19,11 +19,13 @@ These shape everything below; they are Canva's rules, not choices.
 - **FR-3** The import dialog shows the user's Canva library as a tree: folders and designs, loaded lazily, with thumbnails. Any mix can be ticked: single designs, whole folders (with everything below), or everything.
 - **FR-4** The import goes into the dashboard folder that is open. A ticked folder becomes a danvas folder of the same name, its sub-folders likewise, all the way down; a ticked design goes straight into the target. Existing folders of the same name are reused, as in the bulk import.
 - **FR-5** Each design is exported as PPTX when Canva offers PPTX for all of its pages, and imported through the PPTX importer (editable). Otherwise it is exported as PNG, one image per page, and becomes a design whose pages each hold that image (looks exact, not editable); the run reports how many arrived this way. Video designs take the PNG route and arrive as still pages. A design with neither format fails with its reason.
-- **FR-6** Exports are paced to stay under Canva's limits (at most 14 started per minute, which keeps a run under 75 per 5 minutes). A 429 from Canva waits a minute (Canva's limits are per-minute windows) and retries; the daily limit stops the run with a message that it can continue the next day.
+- **FR-6** Exports are paced to stay under Canva's limits (at most 14 started per minute, which keeps a run under 75 per 5 minutes). A 429 from Canva waits for its `Retry-After` (a minute when it names none) and retries, at most six times in a row per call, then the run halts with the advice to continue later; the daily limit pauses the run until Canva's `Retry-After` (an hour when it names none), after which it continues by itself.
 - **FR-7** Every imported design is recorded (Canva design id to danvas design id, per workspace). A re-run skips designs already imported, unless their danvas copy was deleted, so an interrupted or day-limited import is continued by running it again.
-- **FR-8** Progress shows per design: imported, skipped, or failed with the reason; the run can be stopped. It runs in the browser tab, which must stay open.
+- **FR-8** The server runs the import (`internal/canvaimport`), so it goes on with the dialog, the tab or the browser closed, and after a server restart (a run left running is queued again and skips what it already imported). Its owner sees the run's progress on every page and device: how many designs were imported, skipped and failed, the failed ones with the reason, and why a run halted. The owner can stop a run (after the design it is on) and dismiss an ended one. Each owner's runs execute one at a time, in the order started; at most four runs execute at once on an instance.
+- **FR-8a** The server converts the exports with the same importers the browser uses for file imports: `@hc/export`'s PPTX importer and the image pages builder, bundled for goja (`scripts/build-pptx-convert.mjs`, `backend/internal/pptxconv`) with decompression, UTF-8 decoding and base64 done natively in Go. One export is at most 256 MiB, unpacked entries at most 256 MiB each and 512 MiB together, and one conversion at most two minutes.
+- **FR-8b** A run re-checks before each design that its owner may still add designs to the workspace, and halts when not; a disconnected Canva account halts it too.
 - **FR-9** Every Canva call goes through the backend (client credentials and tokens never reach the browser). Download URLs are fetched only from Canva's own HTTPS hosts.
-- **FR-10** Rate limit handling is client-side: the browser cannot read Canva's `Retry-After` (the API error carries no headers), so it waits a minute, at most six times in a row per call. A 429 counts as the daily limit when Canva's message mentions it; otherwise six throttles in a row end the run with the same advice to continue later.
+- **FR-10** A 429 counts as the daily limit when Canva's message mentions it.
 
 ## Acceptance
 
@@ -32,6 +34,7 @@ These shape everything below; they are Canva's rules, not choices.
 - **AC-3** Run the same selection again: nothing is imported twice. Delete one imported design and run again: only that one comes back.
 - **AC-4** A design without PPTX export (for example a multi-page non-presentation) arrives as image pages.
 - **AC-5** A forced 429 pauses and resumes the run without failing designs.
+- **AC-6** Start an import, close the browser, sign in on another device: the run's progress shows there and the designs keep arriving. Restart the server during a run: it continues without importing anything twice.
 
 ## Non-goals
 
@@ -42,4 +45,6 @@ These shape everything below; they are Canva's rules, not choices.
 
 ## Data
 
-Additive SQL only: `canva_integrations` (per workspace), `canva_connections` (per workspace and user), `canva_oauth_states` (short-lived, PKCE verifier and `state`), `canva_imports` (the mapping of FR-7). No design-file schema change.
+Additive SQL only: `canva_integrations` (per workspace), `canva_connections` (per workspace and user), `canva_oauth_states` (short-lived, PKCE verifier and `state`), `canva_imports` (the mapping of FR-7), `canva_import_runs` (the runs of FR-8, their selection and progress) and `canva_import_run_designs` (the designs each run imported, so a resumed run counts them once). No design-file schema change.
+
+API: `POST /api/v1/workspaces/{id}/canva/runs` (start), `GET /api/v1/canva/runs` (the caller's runs that are not dismissed), `POST /api/v1/canva/runs/{runId}/stop`, `POST /api/v1/canva/runs/{runId}/dismiss`. The browser-side calls (list a folder, start and poll an export, download a file, record an import) stay for API clients.

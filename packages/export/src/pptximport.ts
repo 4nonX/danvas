@@ -18,6 +18,7 @@
 import type { DesignFile, Node } from "@hc/schema";
 import { createBlankDesign, createNode } from "@hc/schema";
 import { unzip } from "./unzip";
+import { bytesToDataUrl } from "./base64";
 import { parseXml, findFirst, findAll, childOf, childrenOf, type XmlElement } from "./xml";
 
 const PX_PER_EMU = 1 / 9525;
@@ -526,15 +527,6 @@ export async function pptxToDesign(bytes: Uint8Array, opts: { title?: string; on
   let nodeSeq = 0;
   const nid = (kind: string) => `pptx-${kind}-${++nodeSeq}`;
 
-  const bytesToDataUrl = (data: Uint8Array, mime: string): string => {
-    let bin = "";
-    const CHUNK = 0x8000;
-    for (let i = 0; i < data.length; i += CHUNK) {
-      bin += String.fromCharCode(...data.subarray(i, i + CHUNK));
-    }
-    // btoa exists in browser and node 16+.
-    return `data:${mime};base64,${btoa(bin)}`;
-  };
 
   for (const slidePath of slidePaths) {
     const src = read(slidePath);

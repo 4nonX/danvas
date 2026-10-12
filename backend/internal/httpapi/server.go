@@ -25,6 +25,7 @@ import (
 	"hycanvas/backend/internal/brand"
 	"hycanvas/backend/internal/bulkcreate"
 	"hycanvas/backend/internal/canva"
+	"hycanvas/backend/internal/canvaimport"
 	"hycanvas/backend/internal/captcha"
 	"hycanvas/backend/internal/comments"
 	"hycanvas/backend/internal/convert"
@@ -66,6 +67,7 @@ type Deps struct {
 	Brand         *brand.Service
 	AI            *ai.Service
 	Canva         *canva.Service // import from Canva (doc 41); nil = off
+	CanvaImport   *canvaimport.Service
 	AIStudio      *aistudio.Service
 	Uploads       *uploads.Service
 	Realtime      *realtime.Hub
@@ -228,6 +230,9 @@ func NewRouter(d Deps) http.Handler {
 		}
 		if d.Accounts != nil && d.Canva != nil {
 			mountCanva(api, d.Canva, d.Accounts)
+			if d.CanvaImport != nil {
+				mountCanvaImport(api, d.CanvaImport, d.Accounts)
+			}
 		}
 		if d.Accounts != nil {
 			mountExtractURL(api, d.Accounts)

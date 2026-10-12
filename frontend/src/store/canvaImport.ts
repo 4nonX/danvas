@@ -1,220 +1,141 @@
-// The Canva import run, kept at the app level so it outlives the dialog that
-// started it: the dialog can be closed and the user keeps working (other
-// dashboard views, the editor, settings) while designs arrive. A progress
-// indicator shows the run on every page (CanvaImportProgress).
+// The caller's Canva imports, kept at the app level so their progress shows on
+// every page (CanvaImportProgress).
 //
-// The run itself is unchanged from the dialog it came out of: one design at a
+// The server runs the imports (backend/internal/canvaimport): one design at a
 // time, Canva exports it (PPTX when every page supports it, else PNG pages),
-// the browser downloads it through the server and converts it with the same
-// importers as a file import, then the design is created, moved into its
-// folder and recorded, so a later run skips it. Exports are paced under
-// Canva's limits; a rate limit waits and carries on, the daily limit stops
-// the run. It runs in this tab: closing or reloading the tab stops it (the
-// browser asks first), and running it again continues where it stopped.
+// the server converts it with the same importers as a file import, creates it
+// in its folder and records it, so a later run skips it. A run goes on with
+// the tab or the browser closed and after a server restart; the daily limit
+// pauses it until Canva allows more. This store only starts, stops and
+// dismisses runs and polls their state: often while one is going, rarely
+// otherwise, so a run started on another device shows up here too.
 
 import { create } from "zustand";
-import type { DesignFolder } from "@hc/sdk";
-import { ApiError } from "@hc/sdk";
+import type { CanvaImportRun } from "@hc/sdk";
 import { oc } from "@/lib/sdk";
-import { designFromFile } from "@/lib/importDesignFile";
-import { ExportPacer, imagePagesDesign, planImport, type CanvaPick } from "@/lib/canvaImport";
+import { toImportPicks, type CanvaPick } from "@/lib/canvaImport";
 import { tr } from "@/lib/i18n";
 
-const RATE_WAIT_MS = 60_000;
-const POLL_MS = 2_000;
-const EXPORT_TIMEOUT_MS = 15 * 60_000;
-/** Rate limits in a row on one call before the run gives up on Canva. */
-const MAX_RATE_RETRIES = 6;
+/** Polling while a run is going, and while none is. */
+export const ACTIVE_POLL_MS = 3_000;
+export const IDLE_POLL_MS = 60_000;
 
-export type CanvaImportResult = { name: string; status: "imported" | "skipped" | "failed"; detail?: string };
-
-export interface CanvaImportRunState {
-  workspaceId: string;
-  /** Designs in the plan, null while the folders are still being read. */
-  total: number | null;
-  results: CanvaImportResult[];
-  /** What the run is on right now (a design path, or "reading folders"). */
-  current: string;
-  /** Waiting out a Canva rate limit. */
-  waiting: boolean;
-  done: boolean;
-  /** Why the run ended early (daily limit, an error); empty when stopped by the user. */
-  halted: string | null;
-  /** The user stopped it. */
-  stopped: boolean;
+export function runActive(r: CanvaImportRun): boolean {
+  return r.status === "queued" || r.status === "running" || r.status === "paused";
 }
 
 export interface CanvaImportStart {
   workspaceId: string;
   targetFolderId: string | null;
-  folders: DesignFolder[];
   picks: CanvaPick[];
-  errorMessage: (e: unknown) => string;
 }
 
 interface CanvaImportState {
-  run: CanvaImportRunState | null;
-  /** The progress dialog is open (else the small indicator shows). */
-  detailsOpen: boolean;
-  /** Bumped whenever the run created folders or designs, so open views refresh. */
+  /** The caller's runs that are not dismissed, oldest first. */
+  runs: CanvaImportRun[];
+  /** The run whose progress dialog is open (else the small indicators show). */
+  detailsOpen: string | null;
+  /** Bumped whenever runs imported designs, so open views refresh. */
   changes: number;
-  start(opts: CanvaImportStart): void;
-  stop(): void;
-  /** Forget a finished run (hides the indicator). */
-  dismiss(): void;
-  setDetailsOpen(open: boolean): void;
+  /** The workspaces the last bump was for. */
+  changedWorkspaceIds: string[];
+  /** Queue a run on the server and open its progress. Throws when the server refuses. */
+  start(opts: CanvaImportStart): Promise<void>;
+  stop(id: string): Promise<void>;
+  /** Hide an ended run. */
+  dismiss(id: string): Promise<void>;
+  setDetailsOpen(id: string | null): void;
+  /** Fetch the runs now. */
+  refresh(): Promise<void>;
 }
 
-const codeOf = (e: unknown) => (e instanceof ApiError ? (e.body as { code?: string } | null)?.code : undefined);
-
-class StopRun extends Error {}
-
-let stopFlag = false;
-
-/** Whether a run is still going (not finished). */
+/** Whether any of the caller's runs is still going. */
 export function canvaImportActive(): boolean {
-  const r = useCanvaImport.getState().run;
-  return !!r && !r.done;
+  return useCanvaImport.getState().runs.some(runActive);
 }
 
 export const useCanvaImport = create<CanvaImportState>((set, get) => {
-  const patch = (p: Partial<CanvaImportRunState>) => set((s) => (s.run ? { run: { ...s.run, ...p } } : {}));
-  const addResult = (r: CanvaImportResult) => set((s) => (s.run ? { run: { ...s.run, results: [...s.run.results, r] } } : {}));
-  const changed = () => set((s) => ({ changes: s.changes + 1 }));
-
-  async function execute(o: CanvaImportStart): Promise<void> {
-    const { workspaceId, targetFolderId, folders, picks, errorMessage } = o;
-    const stopped = () => stopFlag;
-    const sleep = (ms: number) => new Promise<void>((r) => {
-      const until = Date.now() + ms;
-      const tick = () => (stopFlag || Date.now() >= until ? r() : setTimeout(tick, 250));
-      tick();
-    });
-    // A Canva call that waits out rate limits; the daily limit ends the run.
-    const canva = async <T,>(call: () => Promise<T>): Promise<T> => {
-      for (let attempt = 0; ; attempt++) {
-        try {
-          const out = await call();
-          patch({ waiting: false });
-          return out;
-        } catch (e) {
-          const code = codeOf(e);
-          if (code === "canva_daily_limit") throw new StopRun(tr("dashboard.canva_daily_limit_reached"));
-          if (code !== "canva_rate_limited") throw e;
-          if (attempt >= MAX_RATE_RETRIES) throw new StopRun(tr("dashboard.canva_rate_limit_persistent"));
-          patch({ waiting: true });
-          await sleep(RATE_WAIT_MS);
-          if (stopFlag) throw new StopRun("");
-        }
-      }
-    };
-
-    try {
-      patch({ current: tr("dashboard.canva_reading_folders") });
-      const p = await planImport(picks, (id, c) => canva(() => oc.listCanvaFolder(workspaceId, id, c)), {
-        stopped,
-        untitled: { design: tr("dashboard.untitled"), folder: tr("dashboard.untitled") },
-        onFolder: (name) => patch({ current: name ? tr("dashboard.canva_reading_folder", { name }) : tr("dashboard.canva_reading_folders") }),
-      });
-      patch({ total: p.designs.length });
-      if (stopFlag) return;
-
-      // Mirror the folders (existing ones of the same name are reused).
-      const folderIds = new Map<string, string>();
-      for (const f of folders) folderIds.set(`${f.parentId ?? ""}/${f.name.toLowerCase()}`, f.id);
-      const ensureFolder = async (path: string[]): Promise<string | null> => {
-        let parent = targetFolderId;
-        for (const name of path) {
-          const key = `${parent ?? ""}/${name.toLowerCase()}`;
-          let id = folderIds.get(key);
-          if (!id) {
-            id = (await oc.createDesignFolder(workspaceId, { name, parentId: parent })).id;
-            folderIds.set(key, id);
-            changed();
-          }
-          parent = id;
-        }
-        return parent;
-      };
-      for (const path of p.folders) {
-        if (stopFlag) return;
-        await ensureFolder(path);
-      }
-
-      const imported = await oc.canvaImported(workspaceId).catch(() => ({} as Record<string, string>));
-      const pacer = new ExportPacer();
-      for (const d of p.designs) {
-        if (stopFlag) break;
-        const label = [...d.path, d.title].join(" / ");
-        if (imported[d.id]) {
-          addResult({ name: label, status: "skipped" });
-          continue;
-        }
-        patch({ current: label });
-        try {
-          await pacer.wait(stopped);
-          if (stopFlag) break;
-          const exp = await canva(() => oc.startCanvaExport(workspaceId, d.id));
-          const deadline = Date.now() + EXPORT_TIMEOUT_MS;
-          let st = await canva(() => oc.getCanvaExport(workspaceId, exp.jobId));
-          while (st.status === "in_progress") {
-            if (Date.now() > deadline) throw new Error(tr("dashboard.canva_export_timed_out"));
-            await sleep(POLL_MS);
-            if (stopFlag) throw new StopRun("");
-            st = await canva(() => oc.getCanvaExport(workspaceId, exp.jobId));
-          }
-          if (st.status !== "success" || st.files === 0) throw new Error(tr("dashboard.canva_export_failed", { reason: st.error ?? st.status }));
-          const blobs: Blob[] = [];
-          for (let i = 0; i < st.files; i++) blobs.push(await canva(() => oc.canvaExportFile(workspaceId, exp.jobId, i)));
-          const file = exp.format === "pptx"
-            ? { ...(await designFromFile(new File([blobs[0]], `${d.title}.pptx`, { type: "application/vnd.openxmlformats-officedocument.presentationml.presentation" }))).file, title: d.title }
-            : await imagePagesDesign(d.title, blobs);
-          const folderId = await ensureFolder(d.path);
-          const rec = await oc.createDesign({ workspaceId, title: d.title, from: file });
-          if (folderId) await oc.moveToFolder(workspaceId, { designIds: [rec.id], folderId });
-          await oc.recordCanvaImport(workspaceId, d.id, rec.id).catch(() => undefined);
-          addResult({ name: label, status: "imported", detail: exp.format === "png" ? tr("dashboard.canva_as_images") : undefined });
-          changed();
-        } catch (e) {
-          if (e instanceof StopRun) throw e;
-          addResult({ name: label, status: "failed", detail: errorMessage(e) });
-        }
-      }
-    } catch (e) {
-      if (e instanceof StopRun) {
-        if (e.message) patch({ halted: e.message });
-      } else {
-        patch({ halted: errorMessage(e) });
-      }
-    } finally {
-      patch({ waiting: false, current: "", done: true, stopped: stopFlag });
-      changed();
+  // Replace the runs, noting the workspaces where designs arrived.
+  const apply = (runs: CanvaImportRun[]) => {
+    const before = new Map(get().runs.map((r) => [r.id, r]));
+    const changed = new Set<string>();
+    for (const r of runs) {
+      const was = before.get(r.id);
+      if (was ? was.imported !== r.imported || runActive(was) !== runActive(r) : r.imported > 0) changed.add(r.workspaceId);
     }
-  }
+    const open = get().detailsOpen;
+    set((s) => ({
+      runs,
+      detailsOpen: open && runs.some((r) => r.id === open) ? open : null,
+      ...(changed.size ? { changes: s.changes + 1, changedWorkspaceIds: [...changed] } : {}),
+    }));
+  };
+  const upsert = (run: CanvaImportRun) => {
+    const runs = get().runs;
+    apply(runs.some((r) => r.id === run.id) ? runs.map((r) => (r.id === run.id ? run : r)) : [...runs, run]);
+  };
 
   return {
-    run: null,
-    detailsOpen: false,
+    runs: [],
+    detailsOpen: null,
     changes: 0,
-    start: (o) => {
-      if (canvaImportActive()) return; // one run at a time
-      stopFlag = false;
-      set({
-        run: { workspaceId: o.workspaceId, total: null, results: [], current: tr("dashboard.canva_reading_folders"), waiting: false, done: false, halted: null, stopped: false },
-        detailsOpen: true,
-      });
-      void execute(o);
+    changedWorkspaceIds: [],
+    start: async ({ workspaceId, targetFolderId, picks }) => {
+      const run = await oc.startCanvaImport(workspaceId, { picks: toImportPicks(picks), targetFolderId, untitled: tr("dashboard.untitled") });
+      upsert(run);
+      set({ detailsOpen: run.id });
+      schedule(0);
     },
-    stop: () => {
-      if (!canvaImportActive()) return;
-      stopFlag = true;
-      patch({ stopped: true });
+    stop: async (id) => {
+      upsert(await oc.stopCanvaImport(id));
     },
-    dismiss: () => {
-      if (canvaImportActive()) return;
-      set({ run: null, detailsOpen: false });
+    dismiss: async (id) => {
+      await oc.dismissCanvaImport(id);
+      apply(get().runs.filter((r) => r.id !== id));
     },
-    setDetailsOpen: (open) => set({ detailsOpen: open && !!get().run }),
+    setDetailsOpen: (id) => set({ detailsOpen: id && get().runs.some((r) => r.id === id) ? id : null }),
+    refresh: async () => {
+      apply(await oc.listCanvaImports());
+    },
   };
 });
 
+// --- polling -----------------------------------------------------------------
+
+let timer: ReturnType<typeof setTimeout> | null = null;
+let polling = false;
+
+function schedule(ms: number) {
+  if (!polling) return;
+  if (timer) clearTimeout(timer);
+  timer = setTimeout(() => void tick(), ms);
+}
+
+async function tick() {
+  timer = null;
+  try {
+    await useCanvaImport.getState().refresh();
+  } catch {
+    // Offline or signed out for a moment: try again later.
+  }
+  schedule(canvaImportActive() ? ACTIVE_POLL_MS : IDLE_POLL_MS);
+}
+
+/** Poll the caller's runs until the returned function is called (while
+ *  signed in). Also refreshes when the tab comes back into view. */
+export function pollCanvaImports(): () => void {
+  polling = true;
+  schedule(0);
+  const doc = typeof document !== "undefined" ? document : null;
+  const onVisible = () => {
+    if (doc?.visibilityState === "visible") schedule(0);
+  };
+  doc?.addEventListener("visibilitychange", onVisible);
+  return () => {
+    polling = false;
+    if (timer) clearTimeout(timer);
+    timer = null;
+    doc?.removeEventListener("visibilitychange", onVisible);
+    useCanvaImport.setState({ runs: [], detailsOpen: null });
+  };
+}

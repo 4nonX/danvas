@@ -19,4 +19,6 @@ export * from "./zipstore";
 export * from "./unzip";
 export * from "./xml";
 export * from "./pptximport";
+export * from "./imagepages";
+export * from "./base64";
 export * from "./odpimport";

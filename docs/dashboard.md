@@ -64,9 +64,10 @@ Sharing a single design with specific people or via link happens from the **Shar
 **Import (any member).** Choose **Import from Canva**, connect your own Canva account once, then tick what to bring over: single designs, whole folders (everything below them comes too), or everything. A ticked folder becomes a folder of the same name with its sub-folders mirrored; a ticked design goes straight into the open folder. Folders that already exist with the same name are reused.
 
 - Each design arrives editable through PowerPoint export when Canva offers it for all pages. Otherwise it arrives as one image per page (looks exactly right, not editable); video designs arrive as still pages. The summary says how many came as images.
-- Canva limits exports per person: about 20 per minute and 500 per day. The import paces itself, pauses for a minute when Canva asks it to slow down, and stops at the daily limit.
-- The import runs in the background: close its window and keep working anywhere in danvas (other folders, the editor, settings) while designs arrive. Its progress shows at the bottom right; click it to see the details or to stop the run. It runs in the browser tab, so keep danvas open in that tab until it finishes (the browser asks before closing or reloading it). While one import runs, "Import from Canva" shows its progress instead of starting another.
-- Running the same import again skips what is already here, so an interrupted or day-limited import continues where it stopped. A design you deleted (moved to the trash) comes back on the next run.
+- The import runs on the server: close its window, the tab or the browser, and it carries on. Its progress shows at the bottom right on every page and on every device you are signed in on; click it to see the details or to stop the run (it stops after the design it is on). A server restart does not lose it: it continues where it was.
+- Canva limits exports per person: about 20 per minute and 500 per day. The import paces itself, waits when Canva asks it to slow down, and pauses at the daily limit; the progress says when it continues, and it does so by itself.
+- Starting another import while one runs queues it: it begins when the first one ends. Each person's imports run one at a time.
+- Running the same import again skips what is already here, so an import that was stopped, or that ended early (for example because the Canva account was disconnected), continues where it stopped. Failed designs are tried again. A design you deleted (moved to the trash) comes back on the next run.
 - Disconnect your Canva account under Members, Canva import. Not imported: Canva uploads (your image and video library), brand templates, comments and version history.
 
 ## My tasks

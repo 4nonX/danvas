@@ -32,6 +32,7 @@ import (
 	"hycanvas/backend/internal/brand"
 	"hycanvas/backend/internal/bulkcreate"
 	"hycanvas/backend/internal/canva"
+	"hycanvas/backend/internal/canvaimport"
 	"hycanvas/backend/internal/captcha"
 	"hycanvas/backend/internal/comments"
 	"hycanvas/backend/internal/convert"
@@ -297,6 +298,10 @@ func main() {
 	aiSvc := ai.NewService(pool, aiSecret, os.Getenv("NODE_ENV") != "production")
 	// Import from Canva: its secrets use the same key material as the AI keys.
 	canvaSvc := canva.NewService(pool, aiSecret)
+	// Canva imports run on the server (they go on with the browser closed);
+	// runs a restart interrupted are taken up again.
+	canvaImportSvc := canvaimport.NewService(pool, canvaSvc, homeSvc, persist, acct, logger)
+	go canvaImportSvc.Run(rtCtx)
 	// AI Creative Studio (F39): server-side orchestration on top of the AI proxy
 	// (schema validation + retry) plus persisted assistant sessions/provenance.
 	aiStudioSvc := aistudio.NewService(pool, aiSvc)
@@ -423,6 +428,7 @@ func main() {
 			Brand:         brandSvc,
 			AI:            aiSvc,
 			Canva:         canvaSvc,
+			CanvaImport:   canvaImportSvc,
 			AIStudio:      aiStudioSvc,
 			Uploads:       uploadsSvc,
 			Realtime:      rtHub,

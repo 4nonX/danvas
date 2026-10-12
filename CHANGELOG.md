@@ -2,6 +2,22 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.3.0 (2026-10-12)
+
+### Changed
+
+- Import from Canva runs on the server. Once started, the dialog, the tab and even the browser can be closed: the import carries on, and its progress shows at the bottom right on every page and on every device you are signed in on. Stop it from there (it stops after the design it is on), or dismiss it when it has ended.
+- Canva's daily export limit no longer ends the import: it pauses, the progress says when it continues, and it continues by itself.
+- A server restart does not lose an import: it continues where it was, without importing anything twice.
+- Starting another import while one runs queues it; it begins when the first one ends.
+- The import checks before each design that you may still add designs to the workspace, and stops with a reason when you may not, or when your Canva account was disconnected.
+- All new texts are translated into every interface language.
+
+### Technical
+
+- New tables `canva_import_runs` and `canva_import_run_designs` (additive; a rollback to 0.2.5 leaves them unused). The server converts Canva's exports with the same PPTX and image page importers as the browser, bundled for the Go backend (`backend/internal/pptxconv`, built by `npm run gen:pptx-convert`).
+- API: `POST /api/v1/workspaces/{id}/canva/runs`, `GET /api/v1/canva/runs`, `POST /api/v1/canva/runs/{runId}/stop` and `.../dismiss`.
+
 ## 0.2.5 (2026-10-12)
 
 ### Changed

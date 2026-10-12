@@ -1,0 +1,90 @@
+{
+  "format": "hycanvas.design",
+  "schemaVersion": 27,
+  "id": "U",
+  "title": "Pages",
+  "unit": "px",
+  "dpi": 96,
+  "pages": [
+    {
+      "id": "canva-page-1",
+      "width": 4,
+      "height": 3,
+      "children": [
+        {
+          "id": "canva-image-1",
+          "transform": {
+            "x": 0,
+            "y": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0
+          },
+          "size": {
+            "width": 4,
+            "height": 3
+          },
+          "opacity": 1,
+          "blendMode": "normal",
+          "type": "image",
+          "source": {
+            "assetId": "canva-page-1",
+            "naturalWidth": 4,
+            "naturalHeight": 3
+          },
+          "fit": "stretch",
+          "name": "Page 1"
+        }
+      ]
+    },
+    {
+      "id": "canva-page-2",
+      "width": 2,
+      "height": 5,
+      "children": [
+        {
+          "id": "canva-image-2",
+          "transform": {
+            "x": 0,
+            "y": 0,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0
+          },
+          "size": {
+            "width": 2,
+            "height": 5
+          },
+          "opacity": 1,
+          "blendMode": "normal",
+          "type": "image",
+          "source": {
+            "assetId": "canva-page-2",
+            "naturalWidth": 2,
+            "naturalHeight": 5
+          },
+          "fit": "stretch",
+          "name": "Page 2"
+        }
+      ]
+    }
+  ],
+  "assets": [
+    {
+      "id": "canva-page-1",
+      "kind": "image",
+      "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAADCAIAAAA7ljmRAAAAEElEQVR4nGP4z8AARww4OQD1MQv1NXv7ggAAAABJRU5ErkJggg==",
+      "mime": "image/png",
+      "checksum": ""
+    },
+    {
+      "id": "canva-page-2",
+      "kind": "image",
+      "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAAFCAIAAADg0arLAAAAD0lEQVR4nGNgYPgPRrgpAKR+CfedJKeRAAAAAElFTkSuQmCC",
+      "mime": "image/png",
+      "checksum": ""
+    }
+  ],
+  "fonts": [],
+  "meta": {}
+}
