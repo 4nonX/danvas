@@ -41,7 +41,8 @@ The changes are summarized by area below; what changed in each release is in the
 ### Editor
 
 - Reworked editor layout: a contextual toolbar above the canvas, a creation dock at the bottom, File and View menus in the header, reworked properties and selection panels, a Position panel, and entering groups by double-click.
-- Crop for every element: edge and corner handles on images, and clipping crops for shapes, text, groups, scaled and rotated elements.
+- Crop for every element: edge and corner handles on images, and clipping crops for shapes, text, groups, scaled and rotated elements. The middle handles of an image move its frame over the picture (the picture keeps its size and place); Shift scales picture and frame together.
+- Replace object: swap an element for another one in place, sized by its visible content.
 - Moving an image over a plain shape no longer swallows it into the shape's fill; only frames take a moved image.
 - Vectorize: traces raster images into editable vector shapes, with accurate straight edges, kept thin lines and an optional learned 4x upscaling step (Real-ESRGAN, in the browser) before tracing.
 - SVG images can be turned into editable shapes in place ("Make editable"), keeping their exact position, fit and crop.
@@ -49,6 +50,11 @@ The changes are summarized by area below; what changed in each release is in the
 - Color picker: an eyedropper that works in every browser (falls back to sampling the canvas), opacity that applies to fills and group colors, centered popovers, and the same picker in every sidebar color field.
 - Group color swatches: recolor every use of a color inside a group or selection at once.
 - Copy and paste style works on groups and carries text colors.
+
+### Templates
+
+- Template protection: objects of a template can be protected ("content only" or "fully") for every copy made from it, also in other workspaces. Only people who may manage template protection in the workspace that set it can lift it, and the server checks every save and collaboration checkpoint against the stored design.
+- Templates can be deleted by the person who created them and by owners and admins of their workspace.
 
 ### Brand kits and fonts
 
@@ -59,10 +65,10 @@ The changes are summarized by area below; what changed in each release is in the
 
 - PPTX import keeps exported designs editable: picture fills with crop and transparency, freeform paths, real groups, font weights encoded in font names.
 - Bulk import of files and whole folder trees into dashboard folders.
-- Import from Canva through Canva's API: pick designs and whole folders in a Canva account and they arrive with their folder tree, editable through PowerPoint export where Canva allows it, as page images otherwise; paced under Canva's limits and resumable ([setup](docs/dashboard.md#import-from-canva)).
+- Import from Canva through Canva's API: pick designs and whole folders in a Canva account and they arrive with their folder tree, editable through PowerPoint export where Canva allows it, as page images otherwise ([setup](docs/dashboard.md#import-from-canva)). The server runs the import: it carries on with the browser closed and after a restart, paces itself under Canva's limits, pauses at Canva's daily limit and continues by itself, and skips what is already there. Its owner follows it in the dashboard's sidebar and under Import from Canva, where the recent imports and their failed designs stay available.
 - Print exports: vector PDF, CMYK or RGB TIFF and EPS (PostScript Level 3) with ICC color management (Little CMS), black-only text, and workspace print profiles uploaded by admins.
 - One rendering engine for exports: SVG, vector PDF, tagged (accessible) PDF and MP4 are drawn by the same engine as the editor, so they match it exactly. The tagged PDF adds a structure tree, alt text and a real-text layer; MP4 is encoded in the browser.
-- Dashboard: folders, previews that show the page as a sheet and redraw once images and fonts load, and download and share for one design or a whole selection (every page of every design into one zip; one person's access or view links for all selected designs at once).
+- Dashboard: folders (as a tree in the sidebar that opens and closes), previews that show the page as a sheet and redraw once images and fonts load, and download and share for one design or a whole selection (every page of every design into one zip; one person's access or view links for all selected designs at once).
 
 ### Tools
 
