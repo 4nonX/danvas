@@ -71,6 +71,7 @@ import { ExportDialog, type ExportTarget } from "@/components/editor/ExportDialo
 import { ShareDialog } from "@/components/editor/ShareDialog";
 import { loadDesignsForExport } from "@/lib/loadDesignForExport";
 import { CanvaImportDialog } from "./CanvaImport";
+import { useCanvaImport } from "@/store/canvaImport";
 import { BulkImportDialog, entriesFromDrop, entriesFromInput, hasOsFiles, type ImportEntry } from "./BulkImport";
 import { childrenMap, DropZone, folderPath, FolderPathBar, FolderTile, MoveToFolderDialog, RailFolder, setDragItems, subtreeIds, type DragItems } from "./Folders";
 import { confirmAction, promptText } from "@/lib/promptDialog";
@@ -437,6 +438,19 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     if (!activeWorkspaceId) return [] as HomeItem[];
     return q.trim() ? oc.search(activeWorkspaceId, q.trim()) : oc.home(activeWorkspaceId, "recent");
   }, [activeWorkspaceId]);
+
+  // A Canva import running in the background (it outlives its dialog) adds
+  // folders and designs as it goes: refresh the view when it does, for the
+  // workspace it imports into.
+  useEffect(
+    () =>
+      useCanvaImport.subscribe((s, prev) => {
+        if (s.changes === prev.changes || s.run?.workspaceId !== activeWorkspaceId) return;
+        setFoldersRev((v) => v + 1);
+        void load(query).then(setItems);
+      }),
+    [activeWorkspaceId, load, query],
+  );
 
   // A default brand kit that restricts templates keeps everyone but a brand
   // manager (owner or admin) on the workspace's own gallery; the built-ins
@@ -1880,7 +1894,6 @@ export function DashboardApp({ view }: { view: DashboardView }) {
           targetFolderId={currentFolder}
           folders={folders}
           isAdmin={activeWs?.role === "owner" || activeWs?.role === "admin"}
-          onChanged={reloadFolders}
           onOpenSettings={() => { closeCanva(); gotoView("members"); }}
           errorMessage={(e) => importErrorMessage(e, tr("dashboard.canva_import_failed"))}
           onClose={() => {

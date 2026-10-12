@@ -2,6 +2,15 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.2.5 (2026-10-12)
+
+### Changed
+
+- Import from Canva runs in the background: once started, its window can be closed and you keep working anywhere in danvas (other folders, the editor, settings) while designs arrive. A small progress indicator at the bottom right shows how far it is, or that it is waiting for Canva; click it to open the details again or stop the run. When it finishes, the indicator shows how many designs came in, were skipped or failed, until you dismiss it.
+- The run still happens in the browser tab: the browser now asks before you close or reload the tab while it runs. Running the import again still continues where it stopped.
+- While an import runs, "Import from Canva" opens its progress instead of a second selection.
+- All new texts are translated into every interface language.
+
 ## 0.2.4 (2026-10-09)
 
 ### Changed
