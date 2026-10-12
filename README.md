@@ -68,7 +68,7 @@ The changes are summarized by area below; what changed in each release is in the
 - Import from Canva through Canva's API: pick designs and whole folders in a Canva account and they arrive with their folder tree, editable through PowerPoint export where Canva allows it, as page images otherwise ([setup](docs/dashboard.md#import-from-canva)). The server runs the import: it carries on with the browser closed and after a restart, paces itself under Canva's limits, pauses at Canva's daily limit and continues by itself, and skips what is already there. Its owner follows it in the dashboard's sidebar and under Import from Canva, where the recent imports and their failed designs stay available.
 - Print exports: vector PDF, CMYK or RGB TIFF and EPS (PostScript Level 3) with ICC color management (Little CMS), black-only text, and workspace print profiles uploaded by admins.
 - One rendering engine for exports: SVG, vector PDF, tagged (accessible) PDF and MP4 are drawn by the same engine as the editor, so they match it exactly. The tagged PDF adds a structure tree, alt text and a real-text layer; MP4 is encoded in the browser.
-- Dashboard: folders (as a tree in the sidebar that opens and closes), previews that show the page as a sheet and redraw once images and fonts load, and download and share for one design or a whole selection (every page of every design into one zip; one person's access or view links for all selected designs at once).
+- Dashboard: folders (as a tree in the sidebar that opens and closes and lists each folder's designs), one Import menu for files, folders and Canva, previews that show the page as a sheet and redraw once images and fonts load, and download and share for one design or a whole selection (every page of every design into one zip; one person's access or view links for all selected designs at once).
 
 ### Tools
 
@@ -97,7 +97,7 @@ npm run build:packages
 docker compose -f docker-compose.dev.yml up --build -d   # Postgres, backend (:8005), frontend (:3000)
 ```
 
-The upstream documentation in [`docs/`](docs/README.md) describes the architecture, the file format and the features danvas inherits; it is HyScaler's text and speaks of HyCanvas. Repository conventions are in [CLAUDE.md](CLAUDE.md).
+The upstream documentation in [`docs/`](docs/README.md) describes the architecture, the file format and the features danvas inherits; it is HyScaler's text and speaks of HyCanvas. What danvas adds, and how to use it, is in [`docs/danvas.md`](docs/danvas.md). Repository conventions are in [CLAUDE.md](CLAUDE.md).
 
 ## Contributing, security
 

@@ -4,6 +4,7 @@ Everything in HyCanvas is free: no tiers, no paywalls, no watermarks. These page
 
 ## User guides
 
+- [What danvas adds](danvas.md), the additions of this modified version and how to use them: folders and imports, template protection, replace object, vectorizing, print export, workspace fonts.
 - [Getting started](getting-started.md), from first sign-in to your first design.
 - [The dashboard](dashboard.md), workspaces, templates, members, roles, storage, dark mode, and settings.
 - [The editor](editor.md), the full tour: panels, properties, shortcuts, AI, sharing, collaboration, version history, present mode, and export.
