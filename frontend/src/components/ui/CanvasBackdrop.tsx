@@ -227,8 +227,10 @@ export function HeroArt() {
 }
 
 /** Bottom backdrop for the dashboard left rail: a soft brand glow rising from
- *  the floor with a small cluster of primitives. Absolutely positioned and
- *  pointer-events-none; the rail it lives in must be `relative`. */
+ *  the floor with a small cluster of primitives behind the rail's bottom
+ *  block. Nothing floats higher up, where it would sit among the navigation
+ *  entries. Absolutely positioned and pointer-events-none; the rail it lives
+ *  in must be `relative`. */
 export function RailArt() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-3/5 overflow-hidden dark:opacity-40">
@@ -242,12 +244,6 @@ export function RailArt() {
           WebkitMaskImage: "linear-gradient(to top, black 30%, transparent 92%)",
         }}
       />
-      <Float className="left-12 bottom-40" delay={0.3} duration={6.5}>
-        <ArtSpark />
-      </Float>
-      <Float className="right-14 bottom-44" delay={0.7} duration={7.5}>
-        <ArtSpark step={300} />
-      </Float>
       <Float className="left-3 bottom-16 -rotate-6" delay={0.6} duration={9} shadow>
         <ArtSwatches />
       </Float>

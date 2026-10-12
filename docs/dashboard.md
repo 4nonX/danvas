@@ -7,7 +7,7 @@ The dashboard is the home surface after signing in: it holds your designs, the t
 ## Layout
 
 - **Top bar**: one search box across your designs and the template library, the **Create** button, notifications, and your account menu.
-- **Left sidebar**: the workspace switcher, the section rail, and your storage meters. The panel icon next to the logo collapses the sidebar to icons; HyCanvas remembers your choice.
+- **Left sidebar**: the workspace switcher, the section rail with your folders as a tree below Projects (the arrow next to Projects hides the folder list, the arrow of a folder its sub-folders; remembered per workspace), and your storage meters. The panel icon next to the logo collapses the sidebar to icons; HyCanvas remembers your choice.
 - **Main area**: quick-start format tiles (including **Import .hyc**, which opens a HyCanvas design file as a new design) and your recent designs, switchable between grid and list views and sortable by last edited.
 
 ## Workspaces

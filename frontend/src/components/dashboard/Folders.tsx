@@ -114,12 +114,14 @@ export function FolderTile({
 }) {
   const drop = useDropTarget(onDropItems);
   // Counts as icon + number: short at any tile width and in any language.
-  const count = folder.designCount || subfolders ? (
+  // The design count always shows (0 for an empty folder), so every tile reads
+  // the same way; sub-folders only when there are any.
+  const count = (
     <span className="flex items-center gap-2.5">
-      {folder.designCount > 0 && <span className="flex items-center gap-1" title={tr("dashboard.n_designs", { n: folder.designCount })}><LayoutTemplate size={11} />{folder.designCount}</span>}
+      <span className="flex items-center gap-1" title={tr("dashboard.n_designs", { n: folder.designCount })}><LayoutTemplate size={11} />{folder.designCount}</span>
       {subfolders > 0 && <span className="flex items-center gap-1" title={tr("dashboard.n_folders", { n: subfolders })}><FolderIcon size={11} />{subfolders}</span>}
     </span>
-  ) : tr("dashboard.empty");
+  );
   return (
     <li
       {...drop.props}
@@ -206,21 +208,96 @@ export function FolderPathBar({ path, onNavigate, onDropItems }: { path: DesignF
 }
 
 /** A folder in the rail under "Projects": navigate or drop onto it. */
-export function RailFolder({ folder, active, onClick, onDropItems }: { folder: DesignFolder; active: boolean; onClick: () => void; onDropItems: (items: DragItems) => void }) {
+/** The sidebar's folder tree below Projects: every level, indented, a folder
+ *  with sub-folders opens and closes by its chevron. The path to the open
+ *  folder is always shown. Each row takes dropped designs and folders. */
+export function RailFolderTree({
+  folders, current, expanded, onToggle, onOpen, onDropItems,
+}: {
+  folders: DesignFolder[];
+  /** The folder that is open in the main view. */
+  current: string | null;
+  /** The folders the user opened in the tree. */
+  expanded: Set<string>;
+  onToggle: (id: string) => void;
+  onOpen: (id: string) => void;
+  onDropItems: (items: DragItems, target: string) => void;
+}) {
+  const kids = childrenMap(folders);
+  // The way to the open folder shows without the user having opened it. They
+  // can still close a folder on that way; that holds until they move on.
+  const onPath = new Set(folderPath(folders, current).map((f) => f.id));
+  onPath.delete(current ?? "");
+  const [closed, setClosed] = useState<{ at: string | null; ids: Set<string> }>({ at: current, ids: new Set() });
+  const closedNow = closed.at === current ? closed.ids : new Set<string>();
+  const isOpen = (id: string) => !closedNow.has(id) && (expanded.has(id) || onPath.has(id));
+  const toggle = (id: string) => {
+    const ids = new Set(closedNow);
+    if (isOpen(id)) {
+      if (expanded.has(id)) onToggle(id);
+      if (onPath.has(id)) ids.add(id);
+    } else {
+      ids.delete(id);
+      if (!expanded.has(id)) onToggle(id);
+    }
+    setClosed({ at: current, ids });
+  };
+  const rows = (parent: string, depth: number): ReactNode[] =>
+    (kids.get(parent) ?? []).flatMap((f) => {
+      const children = kids.get(f.id) ?? [];
+      const open = children.length > 0 && isOpen(f.id);
+      return [
+        <RailFolder
+          key={f.id}
+          folder={f}
+          depth={depth}
+          active={f.id === current}
+          expandable={children.length > 0}
+          open={open}
+          onToggle={() => toggle(f.id)}
+          onClick={() => onOpen(f.id)}
+          onDropItems={(it) => onDropItems(it, f.id)}
+        />,
+        ...(open ? rows(f.id, depth + 1) : []),
+      ];
+    });
+  return <>{rows("", 0)}</>;
+}
+
+function RailFolder({
+  folder, depth, active, expandable, open, onToggle, onClick, onDropItems,
+}: {
+  folder: DesignFolder;
+  depth: number;
+  active: boolean;
+  expandable: boolean;
+  open: boolean;
+  onToggle: () => void;
+  onClick: () => void;
+  onDropItems: (items: DragItems) => void;
+}) {
   const drop = useDropTarget(onDropItems);
   return (
-    <button
-      type="button"
+    <div
       {...drop.props}
-      onClick={onClick}
-      title={folder.name}
-      className={`flex items-center gap-2 rounded-lg py-1.5 ps-9 pe-3 text-start text-[13px] transition ${
+      className={`flex items-center rounded-lg text-[13px] transition ${
         drop.over ? "bg-brand-100 text-brand-ink" : active ? "bg-brand-50 font-medium text-brand-ink" : "text-neutral-600 hover:bg-neutral-100"
       }`}
+      style={{ paddingInlineStart: 14 + depth * 14 }}
     >
-      <FolderIcon size={14} className="shrink-0 text-neutral-400" />
-      <span className="truncate">{folder.name}</span>
-    </button>
+      <button
+        type="button"
+        onClick={onToggle}
+        disabled={!expandable}
+        aria-label={open ? tr("dashboard.collapse") : tr("dashboard.expand")}
+        aria-expanded={expandable ? open : undefined}
+        className="grid h-7 w-5 shrink-0 place-items-center rounded text-neutral-400 hover:text-neutral-700 disabled:invisible"
+      ><ChevronRight size={13} className={`transition-transform rtl:-scale-x-100 ${open ? "rotate-90 rtl:rotate-90" : ""}`} /></button>
+      <button type="button" onClick={onClick} title={folder.name} className="flex min-w-0 flex-1 items-center gap-2 py-1.5 pe-3 text-start">
+        {open ? <FolderOpen size={14} className="shrink-0 text-neutral-400" /> : <FolderIcon size={14} className="shrink-0 text-neutral-400" />}
+        <span className="truncate">{folder.name}</span>
+      </button>
+    </div>
   );
 }
 

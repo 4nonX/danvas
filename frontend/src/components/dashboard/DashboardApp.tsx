@@ -3,7 +3,7 @@
 // previews and hover menus. Rename/delete/create use modals + toasts (no native
 // dialogs). Projects organizes designs into nested folders (Folders.tsx).
 
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/router";
 import {
   Home as HomeIcon,
@@ -74,7 +74,7 @@ import { CanvaImportDialog } from "./CanvaImport";
 import { runActive, useCanvaImport } from "@/store/canvaImport";
 import { CanvaImportDetailsHost, CanvaImportRail } from "./CanvaImportStatus";
 import { BulkImportDialog, entriesFromDrop, entriesFromInput, hasOsFiles, type ImportEntry } from "./BulkImport";
-import { childrenMap, DropZone, folderPath, FolderPathBar, FolderTile, MoveToFolderDialog, RailFolder, setDragItems, subtreeIds, type DragItems } from "./Folders";
+import { childrenMap, DropZone, folderPath, FolderPathBar, FolderTile, MoveToFolderDialog, RailFolderTree, setDragItems, subtreeIds, type DragItems } from "./Folders";
 import { confirmAction, promptText } from "@/lib/promptDialog";
 import { BulkCreateModal } from "./BulkCreateModal";
 import { MembersPanel } from "./MembersPanel";
@@ -299,6 +299,33 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   const [railCollapsed, setRailCollapsed] = useState(
     () => typeof window !== "undefined" && window.localStorage.getItem("hc-dash-rail") === "collapsed",
   );
+  // The rail's folder tree: whether it shows at all, and which folders the
+  // user opened in it (per workspace), both remembered across visits.
+  const [railFoldersOpen, setRailFoldersOpen] = useState(
+    () => typeof window === "undefined" || window.localStorage.getItem("hc-dash-rail-folders") !== "closed",
+  );
+  const [railTree, setRailTree] = useState<Record<string, string[]>>(() => {
+    try {
+      return typeof window === "undefined" ? {} : (JSON.parse(window.localStorage.getItem("hc-dash-rail-tree") ?? "{}") as Record<string, string[]>);
+    } catch {
+      return {};
+    }
+  });
+  const railExpanded = useMemo(() => new Set(railTree[activeWorkspaceId ?? ""] ?? []), [railTree, activeWorkspaceId]);
+  function toggleRailFolders() {
+    const open = !railFoldersOpen;
+    setRailFoldersOpen(open);
+    window.localStorage.setItem("hc-dash-rail-folders", open ? "open" : "closed");
+  }
+  function toggleRailFolder(id: string) {
+    if (!activeWorkspaceId) return;
+    const next = new Set(railExpanded);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    const tree = { ...railTree, [activeWorkspaceId]: [...next] };
+    setRailTree(tree);
+    window.localStorage.setItem("hc-dash-rail-tree", JSON.stringify(tree));
+  }
   function toggleRail(collapsed: boolean) {
     setRailCollapsed(collapsed);
     window.localStorage.setItem("hc-dash-rail", collapsed ? "collapsed" : "expanded");
@@ -1022,7 +1049,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
       {/* Left rail: fixed to the viewport; only the main column scrolls.
           Collapsible to an icon-only strip (remembered in localStorage). */}
       <aside
-        className={`oc-panel-dots relative flex shrink-0 flex-col overflow-y-auto border-e border-neutral-200 bg-surface transition-[width] duration-200 ${
+        className={`oc-panel-dots relative flex shrink-0 flex-col overflow-hidden border-e border-neutral-200 bg-surface transition-[width] duration-200 ${
           railCollapsed ? "w-[4.5rem] p-3" : "w-64 p-3"
         }`}
       >
@@ -1075,20 +1102,32 @@ export function DashboardApp({ view }: { view: DashboardView }) {
           </>
         )}
 
-        <nav className="mt-5 flex flex-col gap-1 text-sm">
+        {/* Only the navigation scrolls (a long folder tree), so the logo, the
+            workspace switcher and the bottom of the rail stay in place. */}
+        <nav className="oc-scroll relative z-10 -mx-1 mt-5 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-1 text-sm">
           <RailItem icon={HomeIcon} label={tr("dashboard.home")} active={view === "home"} collapsed={railCollapsed} onClick={() => gotoView("home")} />
-          <DropZone onDropItems={(it) => void moveItems(it, null)} className="flex flex-col">
+          <DropZone onDropItems={(it) => void moveItems(it, null)} className="relative flex flex-col">
             <RailItem icon={FolderIcon} label={tr("dashboard.projects")} active={view === "projects" && !currentFolder} collapsed={railCollapsed} onClick={() => gotoFolder(null)} />
+            {!railCollapsed && folders.length > 0 && (
+              <button
+                type="button"
+                onClick={toggleRailFolders}
+                aria-label={railFoldersOpen ? tr("dashboard.collapse") : tr("dashboard.expand")}
+                aria-expanded={railFoldersOpen}
+                className="absolute end-1.5 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-md text-neutral-400 hover:bg-neutral-500/10 hover:text-neutral-700"
+              ><ChevronDown size={15} className={`transition-transform ${railFoldersOpen ? "" : "-rotate-90 rtl:rotate-90"}`} /></button>
+            )}
           </DropZone>
-          {!railCollapsed && (childrenMap(folders).get("") ?? []).slice(0, 12).map((f) => (
-            <RailFolder
-              key={f.id}
-              folder={f}
-              active={!!currentFolder && folderPath(folders, currentFolder)[0]?.id === f.id}
-              onClick={() => gotoFolder(f.id)}
-              onDropItems={(it) => void moveItems(it, f.id)}
+          {!railCollapsed && railFoldersOpen && (
+            <RailFolderTree
+              folders={folders}
+              current={view === "projects" ? currentFolder : null}
+              expanded={railExpanded}
+              onToggle={toggleRailFolder}
+              onOpen={gotoFolder}
+              onDropItems={(it, target) => void moveItems(it, target)}
             />
-          ))}
+          )}
           <RailItem icon={Star} label={tr("dashboard.favorites")} active={view === "favorites"} collapsed={railCollapsed} onClick={() => gotoView("favorites")} />
           <RailItem icon={CheckSquare} label={tr("dashboard.my_tasks")} active={view === "tasks"} collapsed={railCollapsed} onClick={() => gotoView("tasks")} />
           <RailItem icon={LayoutTemplate} label={tr("dashboard.templates")} active={view === "templates"} collapsed={railCollapsed} onClick={() => gotoView("templates")} />
@@ -1098,7 +1137,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
 
         {/* Pinned to the rail's bottom corner: the caller's Canva imports
             (while there are any) and the storage meter. */}
-        <div className="relative z-10 mt-auto flex flex-col gap-2 pt-4">
+        <div className="relative z-10 flex shrink-0 flex-col gap-2 pt-4">
           <CanvaImportRail collapsed={railCollapsed} />
           {!railCollapsed && storageUsage && <RailStorage usage={storageUsage} />}
         </div>

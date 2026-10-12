@@ -2,6 +2,15 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.3.2 (2026-10-12)
+
+### Changed
+
+- The dashboard's sidebar shows the folders as a tree. The arrow next to Projects hides or shows the whole folder list; a folder with sub-folders has its own arrow, and its sub-folders appear indented below it. The way to the folder that is open shows by itself. What you opened and closed is remembered per workspace. Every row takes designs and folders dropped on it.
+- The sidebar no longer stops at 12 folders: all of them are listed. Only the navigation scrolls, so the logo, the workspace switcher, the Canva import line and the storage meter stay in place.
+- The two decorative marks that floated among the sidebar's entries are gone.
+- Folder tiles always show their number of designs, 0 for an empty folder, instead of the word "Empty" on some and counts on others.
+
 ## 0.3.1 (2026-10-12)
 
 ### Changed
