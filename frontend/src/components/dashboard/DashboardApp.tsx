@@ -1123,6 +1123,9 @@ export function DashboardApp({ view }: { view: DashboardView }) {
           {!railCollapsed && railFoldersOpen && (
             <RailFolderTree
               folders={folders}
+              designs={query.trim() ? null : items}
+              onOpenDesign={(id) => void open(id)}
+              onDragDesign={(e, id) => setDragItems(e, dragPayload("designs", id))}
               current={view === "projects" ? currentFolder : null}
               expanded={railExpanded}
               onToggle={toggleRailFolder}

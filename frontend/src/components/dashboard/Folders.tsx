@@ -208,13 +208,22 @@ export function FolderPathBar({ path, onNavigate, onDropItems }: { path: DesignF
 }
 
 /** A folder in the rail under "Projects": navigate or drop onto it. */
-/** The sidebar's folder tree below Projects: every level, indented, a folder
- *  with sub-folders opens and closes by its chevron. The path to the open
- *  folder is always shown. Each row takes dropped designs and folders. */
+/** How many designs of one folder the tree lists before it points to the
+ *  folder itself. */
+const RAIL_DESIGNS = 50;
+
+/** The sidebar's tree below Projects: every folder level, indented, and under
+ *  an opened folder its sub-folders and then its designs, like a file
+ *  manager. A folder with anything in it opens and closes by its chevron.
+ *  The path to the open folder is always shown. Each folder row takes dropped
+ *  designs and folders; a design row opens the design and can be dragged. */
 export function RailFolderTree({
-  folders, current, expanded, onToggle, onOpen, onDropItems,
+  folders, designs, current, expanded, onToggle, onOpen, onDropItems, onOpenDesign, onDragDesign,
 }: {
   folders: DesignFolder[];
+  /** The workspace's designs, or null when they are not all at hand (a
+   *  search is showing): the tree then lists folders only. */
+  designs: { id: string; title: string; folderId?: string | null }[] | null;
   /** The folder that is open in the main view. */
   current: string | null;
   /** The folders the user opened in the tree. */
@@ -222,8 +231,15 @@ export function RailFolderTree({
   onToggle: (id: string) => void;
   onOpen: (id: string) => void;
   onDropItems: (items: DragItems, target: string) => void;
+  onOpenDesign: (id: string) => void;
+  onDragDesign: (e: DragEvent, id: string) => void;
 }) {
   const kids = childrenMap(folders);
+  const inFolder = new Map<string, { id: string; title: string }[]>();
+  for (const d of designs ?? []) {
+    if (d.folderId) inFolder.set(d.folderId, [...(inFolder.get(d.folderId) ?? []), d]);
+  }
+  for (const list of inFolder.values()) list.sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true }));
   // The way to the open folder shows without the user having opened it. They
   // can still close a folder on that way; that holds until they move on.
   const onPath = new Set(folderPath(folders, current).map((f) => f.id));
@@ -245,20 +261,31 @@ export function RailFolderTree({
   const rows = (parent: string, depth: number): ReactNode[] =>
     (kids.get(parent) ?? []).flatMap((f) => {
       const children = kids.get(f.id) ?? [];
-      const open = children.length > 0 && isOpen(f.id);
+      const own = inFolder.get(f.id) ?? [];
+      const expandable = children.length > 0 || own.length > 0;
+      const open = expandable && isOpen(f.id);
       return [
         <RailFolder
           key={f.id}
           folder={f}
           depth={depth}
           active={f.id === current}
-          expandable={children.length > 0}
+          expandable={expandable}
           open={open}
           onToggle={() => toggle(f.id)}
           onClick={() => onOpen(f.id)}
           onDropItems={(it) => onDropItems(it, f.id)}
         />,
         ...(open ? rows(f.id, depth + 1) : []),
+        ...(open
+          ? own.slice(0, RAIL_DESIGNS).map((d) => (
+              <RailDesign key={d.id} title={d.title} depth={depth + 1} onClick={() => onOpenDesign(d.id)} onDragStart={(e) => onDragDesign(e, d.id)} />
+            ))
+          : []),
+        // A long folder: the rest is one click away, in the folder itself.
+        ...(open && own.length > RAIL_DESIGNS
+          ? [<RailMore key={`${f.id}-more`} count={own.length - RAIL_DESIGNS} depth={depth + 1} folder={f.name} onClick={() => onOpen(f.id)} />]
+          : []),
       ];
     });
   return <>{rows("", 0)}</>;
@@ -285,19 +312,54 @@ function RailFolder({
       }`}
       style={{ paddingInlineStart: 14 + depth * 14 }}
     >
-      <button
-        type="button"
-        onClick={onToggle}
-        disabled={!expandable}
-        aria-label={open ? tr("dashboard.collapse") : tr("dashboard.expand")}
-        aria-expanded={expandable ? open : undefined}
-        className="grid h-7 w-5 shrink-0 place-items-center rounded text-neutral-400 hover:text-neutral-700 disabled:invisible"
-      ><ChevronRight size={13} className={`transition-transform rtl:-scale-x-100 ${open ? "rotate-90 rtl:rotate-90" : ""}`} /></button>
+      {expandable ? (
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-label={open ? tr("dashboard.collapse") : tr("dashboard.expand")}
+          aria-expanded={open}
+          className="grid h-7 w-5 shrink-0 place-items-center rounded text-neutral-400 hover:text-neutral-700"
+        ><ChevronRight size={13} className={`transition-transform rtl:-scale-x-100 ${open ? "rotate-90 rtl:rotate-90" : ""}`} /></button>
+      ) : (
+        // An empty folder has nothing to unfold; a click here opens it too.
+        <button type="button" tabIndex={-1} aria-hidden onClick={onClick} className="h-7 w-5 shrink-0" />
+      )}
       <button type="button" onClick={onClick} title={folder.name} className="flex min-w-0 flex-1 items-center gap-2 py-1.5 pe-3 text-start">
         {open ? <FolderOpen size={14} className="shrink-0 text-neutral-400" /> : <FolderIcon size={14} className="shrink-0 text-neutral-400" />}
         <span className="truncate">{folder.name}</span>
       </button>
     </div>
+  );
+}
+
+/** A design in the sidebar's tree, below its folder. */
+function RailDesign({ title, depth, onClick, onDragStart }: { title: string; depth: number; onClick: () => void; onDragStart: (e: DragEvent) => void }) {
+  return (
+    <button
+      type="button"
+      draggable
+      onDragStart={onDragStart}
+      onClick={onClick}
+      title={title}
+      className="flex items-center gap-2 rounded-lg py-1 pe-3 text-start text-[12.5px] text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-700"
+      style={{ paddingInlineStart: 14 + depth * 14 + 20 }}
+    >
+      <LayoutTemplate size={13} className="shrink-0 text-neutral-400" />
+      <span className="truncate">{title}</span>
+    </button>
+  );
+}
+
+/** "+N": the designs of a long folder the tree does not list. */
+function RailMore({ count, depth, folder, onClick }: { count: number; depth: number; folder: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={folder}
+      className="rounded-lg py-1 pe-3 text-start text-[12px] text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-700"
+      style={{ paddingInlineStart: 14 + depth * 14 + 20 + 21 }}
+    >+{count}</button>
   );
 }
 

@@ -2,6 +2,13 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.3.4 (2026-10-12)
+
+### Changed
+
+- The sidebar's folder tree also shows the designs: open a folder by its arrow and its sub-folders and then its designs are listed below it, like in a file manager. Click a design to open it, or drag it onto another folder to move it. A folder with many designs lists the first 50 and then "+N", which opens the folder. While a search is showing, the tree lists folders only.
+- Every folder with anything in it now has an arrow, not only those with sub-folders. On an empty folder, a click on the space where the arrow would be opens the folder instead of doing nothing.
+
 ## 0.3.3 (2026-10-12)
 
 ### Changed
