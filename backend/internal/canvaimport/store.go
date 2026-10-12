@@ -70,6 +70,7 @@ type Run struct {
 	Halted         string     `json:"halted,omitempty"`
 	HaltedDetail   string     `json:"haltedDetail,omitempty"`
 	Failures       []Failure  `json:"failures"`
+	Dismissed      bool       `json:"dismissed"`
 	CreatedAt      time.Time  `json:"createdAt"`
 	StartedAt      *time.Time `json:"startedAt,omitempty"`
 	FinishedAt     *time.Time `json:"finishedAt,omitempty"`
@@ -96,7 +97,9 @@ type progress struct {
 type store interface {
 	create(ctx context.Context, r Run) (Run, error)
 	get(ctx context.Context, id string) (Run, error)
-	listForUser(ctx context.Context, userID string) ([]Run, error)
+	// listForUser lists the owner's runs: those not dismissed, oldest first,
+	// or with all the most recent ones, dismissed too, newest first.
+	listForUser(ctx context.Context, userID string, all bool) ([]Run, error)
 	// requeue puts runs left "running" by a previous process back in line.
 	requeue(ctx context.Context) error
 	// claim marks up to n startable runs running and returns them: queued, or
@@ -125,7 +128,7 @@ var ErrNotFound = errors.New("import run not found")
 
 const runCols = `id::text, "workspace_id"::text, "user_id"::text, "target_folder_id"::text, picks, untitled, status,
 	"stop_requested", "resume_at", total, imported, skipped, failed, "as_images", "current", waiting,
-	halted, "halted_detail", failures, "created_at", "started_at", "finished_at"`
+	halted, "halted_detail", failures, dismissed, "created_at", "started_at", "finished_at"`
 
 func scanRun(row pgx.Row) (Run, error) {
 	var (
@@ -135,7 +138,7 @@ func scanRun(row pgx.Row) (Run, error) {
 	)
 	err := row.Scan(&r.ID, &r.WorkspaceID, &r.UserID, &r.TargetFolderID, &picks, &r.Untitled, &r.Status,
 		&r.StopRequested, &r.ResumeAt, &r.Total, &r.Imported, &r.Skipped, &r.Failed, &r.AsImages, &r.Current, &r.Waiting,
-		&halted, &haltedDetail, &failures, &r.CreatedAt, &r.StartedAt, &r.FinishedAt)
+		&halted, &haltedDetail, &failures, &r.Dismissed, &r.CreatedAt, &r.StartedAt, &r.FinishedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return Run{}, ErrNotFound
 	}
@@ -186,9 +189,12 @@ func (s sqlStore) get(ctx context.Context, id string) (Run, error) {
 	return scanRun(s.db.QueryRow(ctx, `SELECT `+runCols+` FROM "canva_import_runs" WHERE id = $1`, id))
 }
 
-func (s sqlStore) listForUser(ctx context.Context, userID string) ([]Run, error) {
-	rows, err := s.db.Query(ctx, `SELECT `+runCols+` FROM "canva_import_runs"
-		WHERE "user_id" = $1 AND NOT dismissed ORDER BY "created_at" LIMIT 20`, userID)
+func (s sqlStore) listForUser(ctx context.Context, userID string, all bool) ([]Run, error) {
+	q := `SELECT ` + runCols + ` FROM "canva_import_runs" WHERE "user_id" = $1 AND NOT dismissed ORDER BY "created_at" LIMIT 20`
+	if all {
+		q = `SELECT ` + runCols + ` FROM "canva_import_runs" WHERE "user_id" = $1 ORDER BY "created_at" DESC LIMIT 20`
+	}
+	rows, err := s.db.Query(ctx, q, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -228,7 +234,7 @@ func (s sqlStore) claim(ctx context.Context, n int, now time.Time) ([]Run, error
 // runColsR is runCols qualified with the alias r (UPDATE ... FROM needs it).
 const runColsR = `r.id::text, r."workspace_id"::text, r."user_id"::text, r."target_folder_id"::text, r.picks, r.untitled, r.status,
 	r."stop_requested", r."resume_at", r.total, r.imported, r.skipped, r.failed, r."as_images", r."current", r.waiting,
-	r.halted, r."halted_detail", r.failures, r."created_at", r."started_at", r."finished_at"`
+	r.halted, r."halted_detail", r.failures, r.dismissed, r."created_at", r."started_at", r."finished_at"`
 
 func (s sqlStore) saveProgress(ctx context.Context, id string, p progress) error {
 	failures, err := json.Marshal(p.Failures)

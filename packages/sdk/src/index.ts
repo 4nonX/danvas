@@ -954,6 +954,8 @@ export interface CanvaImportRun {
   halted?: string;
   haltedDetail?: string;
   failures: CanvaImportFailure[];
+  /** Its owner hid it from the progress view; it stays among the recent runs. */
+  dismissed: boolean;
   createdAt: string;
   startedAt?: string;
   finishedAt?: string;
@@ -2500,9 +2502,10 @@ export class HyCanvasClient {
   ): Promise<CanvaImportRun> {
     return this.request("POST", `/v1/workspaces/${workspaceId}/canva/runs`, input);
   }
-  /** The caller's imports that are not dismissed, in every workspace. */
-  async listCanvaImports(): Promise<CanvaImportRun[]> {
-    const r = await this.request<{ runs: CanvaImportRun[] }>("GET", `/v1/canva/runs`);
+  /** The caller's imports in every workspace: those not dismissed, oldest
+   *  first, or with `all` the most recent ones, dismissed too, newest first. */
+  async listCanvaImports(all = false): Promise<CanvaImportRun[]> {
+    const r = await this.request<{ runs: CanvaImportRun[] }>("GET", `/v1/canva/runs${all ? "?all=1" : ""}`);
     return r.runs;
   }
   stopCanvaImport(runId: string): Promise<CanvaImportRun> {

@@ -1,5 +1,5 @@
-// The caller's Canva imports, kept at the app level so their progress shows on
-// every page (CanvaImportProgress).
+// The caller's Canva imports: their progress shows in the dashboard's sidebar
+// and under "Import from Canva" (components/dashboard/CanvaImportStatus).
 //
 // The server runs the imports (backend/internal/canvaimport): one design at a
 // time, Canva exports it (PPTX when every page supports it, else PNG pages),
@@ -30,10 +30,13 @@ export interface CanvaImportStart {
   picks: CanvaPick[];
 }
 
-interface CanvaImportState {
+export interface CanvaImportState {
   /** The caller's runs that are not dismissed, oldest first. */
   runs: CanvaImportRun[];
-  /** The run whose progress dialog is open (else the small indicators show). */
+  /** The caller's most recent runs, dismissed ones too, newest first (loaded
+   *  on demand by `loadRecent`). */
+  recent: CanvaImportRun[];
+  /** The run whose progress dialog is open. */
   detailsOpen: string | null;
   /** Bumped whenever runs imported designs, so open views refresh. */
   changes: number;
@@ -42,11 +45,18 @@ interface CanvaImportState {
   /** Queue a run on the server and open its progress. Throws when the server refuses. */
   start(opts: CanvaImportStart): Promise<void>;
   stop(id: string): Promise<void>;
-  /** Hide an ended run. */
+  /** Hide an ended run from the sidebar; it stays among the recent runs. */
   dismiss(id: string): Promise<void>;
+  loadRecent(): Promise<void>;
   setDetailsOpen(id: string | null): void;
   /** Fetch the runs now. */
   refresh(): Promise<void>;
+}
+
+/** The run whose details are open: a current one, or one of the recent runs. */
+export function detailsRun(s: Pick<CanvaImportState, "runs" | "recent" | "detailsOpen">): CanvaImportRun | undefined {
+  if (!s.detailsOpen) return undefined;
+  return s.runs.find((r) => r.id === s.detailsOpen) ?? s.recent.find((r) => r.id === s.detailsOpen);
 }
 
 /** Whether any of the caller's runs is still going. */
@@ -63,10 +73,11 @@ export const useCanvaImport = create<CanvaImportState>((set, get) => {
       const was = before.get(r.id);
       if (was ? was.imported !== r.imported || runActive(was) !== runActive(r) : r.imported > 0) changed.add(r.workspaceId);
     }
-    const open = get().detailsOpen;
+    // Keep the recent runs in step, so an open details dialog follows along.
+    const fresh = new Map(runs.map((r) => [r.id, r]));
     set((s) => ({
       runs,
-      detailsOpen: open && runs.some((r) => r.id === open) ? open : null,
+      recent: s.recent.map((r) => fresh.get(r.id) ?? r),
       ...(changed.size ? { changes: s.changes + 1, changedWorkspaceIds: [...changed] } : {}),
     }));
   };
@@ -77,6 +88,7 @@ export const useCanvaImport = create<CanvaImportState>((set, get) => {
 
   return {
     runs: [],
+    recent: [],
     detailsOpen: null,
     changes: 0,
     changedWorkspaceIds: [],
@@ -91,9 +103,16 @@ export const useCanvaImport = create<CanvaImportState>((set, get) => {
     },
     dismiss: async (id) => {
       await oc.dismissCanvaImport(id);
+      set((s) => ({
+        recent: s.recent.map((r) => (r.id === id ? { ...r, dismissed: true } : r)),
+        detailsOpen: s.detailsOpen === id ? null : s.detailsOpen,
+      }));
       apply(get().runs.filter((r) => r.id !== id));
     },
-    setDetailsOpen: (id) => set({ detailsOpen: id && get().runs.some((r) => r.id === id) ? id : null }),
+    loadRecent: async () => {
+      set({ recent: await oc.listCanvaImports(true) });
+    },
+    setDetailsOpen: (id) => set({ detailsOpen: id }),
     refresh: async () => {
       apply(await oc.listCanvaImports());
     },
@@ -136,6 +155,6 @@ export function pollCanvaImports(): () => void {
     if (timer) clearTimeout(timer);
     timer = null;
     doc?.removeEventListener("visibilitychange", onVisible);
-    useCanvaImport.setState({ runs: [], detailsOpen: null });
+    useCanvaImport.setState({ runs: [], recent: [], detailsOpen: null });
   };
 }

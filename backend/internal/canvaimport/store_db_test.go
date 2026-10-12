@@ -148,11 +148,16 @@ func TestStore_DB(t *testing.T) {
 	// Dismiss hides ended runs only.
 	_ = st.dismiss(ctx, a.ID)
 	_ = st.dismiss(ctx, c.ID) // still running: stays
-	mine, _ := st.listForUser(ctx, u1.ID)
+	mine, _ := st.listForUser(ctx, u1.ID, false)
 	if len(mine) != 1 || mine[0].ID != b.ID {
 		t.Fatalf("listed %+v", mine)
 	}
-	theirs, _ := st.listForUser(ctx, u2.ID)
+	// The recent runs keep a dismissed one, newest first.
+	recent, _ := st.listForUser(ctx, u1.ID, true)
+	if len(recent) != 2 || recent[0].ID != b.ID || recent[1].ID != a.ID || !recent[1].Dismissed || recent[0].Dismissed || recent[1].Halted != HaltAccessLost {
+		t.Fatalf("recent %+v", recent)
+	}
+	theirs, _ := st.listForUser(ctx, u2.ID, false)
 	if len(theirs) != 2 {
 		t.Fatalf("listed %+v", theirs)
 	}

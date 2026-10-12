@@ -71,7 +71,8 @@ import { ExportDialog, type ExportTarget } from "@/components/editor/ExportDialo
 import { ShareDialog } from "@/components/editor/ShareDialog";
 import { loadDesignsForExport } from "@/lib/loadDesignForExport";
 import { CanvaImportDialog } from "./CanvaImport";
-import { useCanvaImport } from "@/store/canvaImport";
+import { runActive, useCanvaImport } from "@/store/canvaImport";
+import { CanvaImportDetailsHost, CanvaImportRail } from "./CanvaImportStatus";
 import { BulkImportDialog, entriesFromDrop, entriesFromInput, hasOsFiles, type ImportEntry } from "./BulkImport";
 import { childrenMap, DropZone, folderPath, FolderPathBar, FolderTile, MoveToFolderDialog, RailFolder, setDragItems, subtreeIds, type DragItems } from "./Folders";
 import { confirmAction, promptText } from "@/lib/promptDialog";
@@ -339,6 +340,8 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   const [canvaPicked, setCanvaPicked] = useState(false);
   const canvaFlag = router.isReady && typeof router.query.canva === "string" ? router.query.canva : null;
   const canvaOpen = canvaPicked || canvaFlag === "connected";
+  // One of the caller's Canva imports is going: the import button says so.
+  const canvaBusy = useCanvaImport((s) => s.runs.some(runActive));
   const clearCanvaFlag = useCallback(() => {
     const rest = Object.fromEntries(Object.entries(router.query).filter(([k]) => k !== "canva"));
     void router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true });
@@ -1093,12 +1096,12 @@ export function DashboardApp({ view }: { view: DashboardView }) {
           <RailItem icon={Trash2} label={tr("dashboard.trash")} active={view === "trash"} collapsed={railCollapsed} onClick={() => gotoView("trash")} />
         </nav>
 
-        {/* Storage meter pinned to the rail's bottom corner. */}
-        {!railCollapsed && storageUsage && (
-          <div className="relative z-10 mt-auto pt-4">
-            <RailStorage usage={storageUsage} />
-          </div>
-        )}
+        {/* Pinned to the rail's bottom corner: the caller's Canva imports
+            (while there are any) and the storage meter. */}
+        <div className="relative z-10 mt-auto flex flex-col gap-2 pt-4">
+          <CanvaImportRail collapsed={railCollapsed} />
+          {!railCollapsed && storageUsage && <RailStorage usage={storageUsage} />}
+        </div>
         {!railCollapsed && <RailArt />}
       </aside>
 
@@ -1173,6 +1176,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                   </Button>
                   <Button variant="secondary" size="sm" onClick={() => setCanvaPicked(true)} disabled={!activeWorkspaceId} title={tr("dashboard.import_from_canva_hint")}>
                     <Link2 size={15} /> {tr("dashboard.import_from_canva")}
+                    {canvaBusy && <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-brand-600" />}
                   </Button>
                   <input ref={bulkFilesRef} type="file" multiple accept={designImportAccept} hidden onChange={(e) => { startBulk(entriesFromInput(e.target.files)); e.target.value = ""; }} />
                   <input
@@ -1887,6 +1891,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
         />
       )}
 
+      <CanvaImportDetailsHost />
       {canvaOpen && activeWorkspaceId && (
         <CanvaImportDialog
           workspaceId={activeWorkspaceId}

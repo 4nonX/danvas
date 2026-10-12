@@ -1,6 +1,7 @@
-// The Canva imports run on the server; the app-level store starts, stops and
-// dismisses them, polls their state (often while one is going, rarely
-// otherwise) and tells open views when designs arrived in their workspace.
+// The Canva imports run on the server; the store starts, stops and dismisses
+// them, polls their state (often while one is going, rarely otherwise), tells
+// open views when designs arrived in their workspace, and keeps the recent
+// runs, where a dismissed one can still be looked up.
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { CanvaImportRun } from "@hc/sdk";
@@ -14,7 +15,7 @@ const oc = {
 vi.mock("@/lib/sdk", () => ({ oc }));
 vi.mock("@/lib/i18n", () => ({ tr: (k: string) => k }));
 
-const { useCanvaImport, canvaImportActive, pollCanvaImports, ACTIVE_POLL_MS, IDLE_POLL_MS } = await import("./canvaImport");
+const { useCanvaImport, canvaImportActive, detailsRun, pollCanvaImports, ACTIVE_POLL_MS, IDLE_POLL_MS } = await import("./canvaImport");
 
 const run = (p: Partial<CanvaImportRun>): CanvaImportRun => ({
   id: "r1",
@@ -30,12 +31,13 @@ const run = (p: Partial<CanvaImportRun>): CanvaImportRun => ({
   current: "",
   waiting: false,
   failures: [],
+  dismissed: false,
   createdAt: "2026-10-12T10:00:00Z",
   ...p,
 });
 
 beforeEach(() => {
-  useCanvaImport.setState({ runs: [], detailsOpen: null, changes: 0, changedWorkspaceIds: [] });
+  useCanvaImport.setState({ runs: [], recent: [], detailsOpen: null, changes: 0, changedWorkspaceIds: [] });
   for (const f of Object.values(oc)) f.mockReset();
 });
 
@@ -95,6 +97,30 @@ describe("Canva import store", () => {
     expect(oc.dismissCanvaImport).toHaveBeenCalledWith("r1");
     expect(useCanvaImport.getState().runs).toEqual([]);
     expect(useCanvaImport.getState().detailsOpen).toBeNull();
+  });
+
+  it("keeps a dismissed run among the recent ones, with its details", async () => {
+    const ended = run({ status: "done", imported: 2, failed: 1, failures: [{ name: "Flyer", code: "no_export", detail: "pdf" }] });
+    useCanvaImport.setState({ runs: [ended] });
+    oc.listCanvaImports.mockResolvedValue([ended]);
+    await useCanvaImport.getState().loadRecent();
+    expect(oc.listCanvaImports).toHaveBeenCalledWith(true);
+
+    oc.dismissCanvaImport.mockResolvedValue(undefined);
+    await useCanvaImport.getState().dismiss("r1");
+    expect(useCanvaImport.getState().runs).toEqual([]);
+    expect(useCanvaImport.getState().recent[0].dismissed).toBe(true);
+
+    useCanvaImport.getState().setDetailsOpen("r1");
+    expect(detailsRun(useCanvaImport.getState())?.failures[0].detail).toBe("pdf");
+  });
+
+  it("updates an open recent run from the polls", async () => {
+    useCanvaImport.setState({ runs: [run({})], recent: [run({})], detailsOpen: "r1" });
+    oc.listCanvaImports.mockResolvedValueOnce([run({ imported: 2 })]);
+    await useCanvaImport.getState().refresh();
+    expect(useCanvaImport.getState().recent[0].imported).toBe(2);
+    expect(detailsRun(useCanvaImport.getState())?.imported).toBe(2);
   });
 
   it("polls often while a run is going and rarely otherwise, until stopped", async () => {

@@ -68,11 +68,16 @@ func canvaRunStartHandler(svc *canvaimport.Service, acct *accounts.Service) http
 	}
 }
 
-// canvaRunsHandler lists the caller's runs that are not dismissed, in every
-// workspace.
+// canvaRunsHandler lists the caller's runs in every workspace: those not
+// dismissed, oldest first, or with ?all=1 the most recent ones, dismissed
+// too, newest first.
 func canvaRunsHandler(svc *canvaimport.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		runs, err := svc.Mine(r.Context(), userFrom(r.Context()).ID)
+		list := svc.Mine
+		if r.URL.Query().Get("all") == "1" {
+			list = svc.Recent
+		}
+		runs, err := list(r.Context(), userFrom(r.Context()).ID)
 		if err != nil {
 			canvaRunProblem(w, r, err)
 			return

@@ -7,7 +7,6 @@ import { installRandomUuidPolyfill } from "@/lib/randomUuidPolyfill";
 import { useEffect } from "react";
 import type { AppProps } from "next/app";
 import { ToastProvider } from "@/components/ui/Toast";
-import { CanvaImportProgress } from "@/components/dashboard/CanvaImportProgress";
 import { watchSystemTheme } from "@/lib/theme";
 import { applyLocale, getLocalePreference, setLocalePreference } from "@/lib/locale";
 import { initI18n, loadCatalog, useI18nVersion } from "@/lib/i18n";
@@ -49,9 +48,6 @@ export default function App({ Component, pageProps }: AppProps) {
     <div className="font-sans">
       <ToastProvider>
         <Component key={i18nVersion} {...pageProps} />
-        {/* A Canva import keeps running while the user moves around the
-            app; its progress shows on every page. */}
-        <CanvaImportProgress />
       </ToastProvider>
     </div>
   );

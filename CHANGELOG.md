@@ -7,7 +7,10 @@ All notable changes to danvas are listed here, newest first. Versions follow the
 ### Changed
 
 - Import from Canva: the progress counts what is left to import ("12 of 340 designs to import"). Designs of the selection that are already in danvas no longer inflate that number; they are counted as "Already imported" as soon as the folders are read.
+- Import from Canva: the floating progress panel is gone, so an import no longer covers anything while you work, least of all in the editor. While one of your imports is going, the dashboard's sidebar shows a line for it above the storage meter and the Import from Canva button carries a dot; click the line for the details or to stop it. As before, only you see your own imports.
+- Import from Canva lists your running and recent imports at its top (the last 20), also those dismissed from the sidebar, so an import and its failed designs can always be looked up again.
 - A design Canva offers neither as a full PowerPoint nor as images now says which formats Canva does offer for it (for example `pdf, pptx [1,3]`), in the list of failed designs and in the server log. As before, it is tried again on every later run.
+- API: `GET /api/v1/canva/runs?all=1` returns the caller's 20 most recent imports, dismissed ones too; runs carry `dismissed`.
 - All new texts are translated into every interface language.
 
 ## 0.3.0 (2026-10-12)

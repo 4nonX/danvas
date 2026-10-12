@@ -4,8 +4,9 @@
 //
 // Starting the import queues it on the server (store/canvaImport.ts), which
 // runs it with this dialog, the tab or the browser closed; its progress shows
-// on every page (CanvaImportProgress). A run started while another is going
-// waits for it.
+// in the dashboard's sidebar and, with the recent runs, at the top of this
+// dialog (CanvaImportStatus). A run started while another is going waits for
+// it.
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronRight, Folder, Link2, Loader2, Settings } from "lucide-react";
@@ -15,6 +16,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import type { CanvaPick } from "@/lib/canvaImport";
 import { useCanvaImport } from "@/store/canvaImport";
+import { CanvaRecentImports } from "./CanvaImportStatus";
 import { tr } from "@/lib/i18n";
 
 const ROOT: CanvaItem = { type: "folder", id: "root", name: "" };
@@ -127,6 +129,7 @@ export function CanvaImportDialog({
         {" · "}
         {tr("dashboard.canva_pick_hint")}
       </p>
+      <CanvaRecentImports onOpen={(id) => { useCanvaImport.getState().setDetailsOpen(id); onClose(); }} />
       <label className="mb-2 flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-neutral-800 hover:bg-neutral-50">
         <input type="checkbox" checked={everything} onChange={() => toggle({ item: ROOT, ancestors: [] })} className="h-4 w-4 accent-brand-600" />
         {tr("dashboard.canva_everything")}

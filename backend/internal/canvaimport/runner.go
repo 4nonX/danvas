@@ -191,7 +191,13 @@ func (s *Service) Start(ctx context.Context, ws, userID string, targetFolderID *
 
 // Mine lists the caller's runs that are not dismissed, oldest first.
 func (s *Service) Mine(ctx context.Context, userID string) ([]Run, error) {
-	return s.store.listForUser(ctx, userID)
+	return s.store.listForUser(ctx, userID, false)
+}
+
+// Recent lists the caller's most recent runs, dismissed ones too, newest
+// first: where an import and its failures can be looked up afterwards.
+func (s *Service) Recent(ctx context.Context, userID string) ([]Run, error) {
+	return s.store.listForUser(ctx, userID, true)
 }
 
 func (s *Service) own(ctx context.Context, userID, id string) (Run, error) {

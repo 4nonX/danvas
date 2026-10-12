@@ -55,7 +55,7 @@ func (m *memStore) get(_ context.Context, id string) (Run, error) {
 	return *r, nil
 }
 
-func (m *memStore) listForUser(_ context.Context, userID string) ([]Run, error) {
+func (m *memStore) listForUser(_ context.Context, userID string, _ bool) ([]Run, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	out := []Run{}
