@@ -12,13 +12,19 @@ import { tr } from "@/lib/i18n";
 import { useAuth } from "@/store/auth";
 import { pollCanvaImports, runActive, useCanvaImport } from "@/store/canvaImport";
 
+// Progress counts what is left to import: designs already in danvas (the
+// run's "skipped", known as soon as the folders are read) are not part of it.
+function toImport(run: CanvaImportRun): number {
+  return Math.max(0, (run.total ?? 0) - run.skipped);
+}
+
 function processed(run: CanvaImportRun): number {
-  return run.imported + run.skipped + run.failed;
+  return Math.min(toImport(run), run.imported + run.failed);
 }
 
 function percent(run: CanvaImportRun): number {
-  if (run.total) return Math.min(100, Math.round((processed(run) / run.total) * 100));
-  return runActive(run) ? 0 : 100;
+  if (run.total !== null && toImport(run) > 0) return Math.round((processed(run) / toImport(run)) * 100);
+  return runActive(run) && run.total === null ? 0 : 100;
 }
 
 function when(iso: string): string {
@@ -46,7 +52,7 @@ function failureMessage(f: CanvaImportFailure): string {
     case "export_timed_out":
       return tr("dashboard.canva_export_timed_out");
     case "no_export":
-      return tr("errors.api_canva_no_export");
+      return f.detail ? tr("dashboard.canva_fail_no_export_offered", { formats: f.detail }) : tr("errors.api_canva_no_export");
     case "too_large":
       return tr("dashboard.canva_fail_too_large");
     case "convert_failed":
@@ -78,7 +84,7 @@ function statusLine(run: CanvaImportRun): string {
 
 function progressLine(run: CanvaImportRun): string {
   if (run.total === null) return runActive(run) ? statusLine(run) : tr("dashboard.canva_import_summary", { imported: run.imported, skipped: run.skipped, failed: run.failed });
-  return tr("dashboard.canva_n_of_m_designs", { n: processed(run), m: run.total });
+  return tr("dashboard.canva_n_of_m_to_import", { n: processed(run), m: toImport(run) });
 }
 
 export function CanvaImportProgress() {
@@ -149,7 +155,7 @@ function CanvaImportDetails({ run }: { run: CanvaImportRun }) {
   return (
     <Modal open onClose={close} title={tr("dashboard.import_from_canva")} width="w-[34rem]">
       <div className="mb-2 flex items-center justify-between text-sm text-neutral-600">
-        <span>{run.total !== null ? tr("dashboard.canva_n_of_m_designs", { n: processed(run), m: run.total }) : statusLine(run)}</span>
+        <span>{run.total !== null ? tr("dashboard.canva_n_of_m_to_import", { n: processed(run), m: toImport(run) }) : statusLine(run)}</span>
         <span className="tabular-nums text-neutral-400">{pct}%</span>
       </div>
       <div className="h-2 overflow-hidden rounded-full bg-neutral-100">

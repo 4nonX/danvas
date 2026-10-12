@@ -33,7 +33,7 @@ const (
 const (
 	FailExportFailed  = "export_failed" // Canva's export failed; Detail is Canva's code
 	FailExportTimeout = "export_timed_out"
-	FailNoExport      = "no_export" // Canva offers no export for it
+	FailNoExport      = "no_export" // no full PPTX or PNG export; Detail lists what Canva offers
 	FailTooLarge      = "too_large"
 	FailConvert       = "convert_failed" // the export could not be turned into a design
 	FailOther         = "error"

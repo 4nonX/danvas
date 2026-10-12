@@ -2,6 +2,14 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.3.1 (2026-10-12)
+
+### Changed
+
+- Import from Canva: the progress counts what is left to import ("12 of 340 designs to import"). Designs of the selection that are already in danvas no longer inflate that number; they are counted as "Already imported" as soon as the folders are read.
+- A design Canva offers neither as a full PowerPoint nor as images now says which formats Canva does offer for it (for example `pdf, pptx [1,3]`), in the list of failed designs and in the server log. As before, it is tried again on every later run.
+- All new texts are translated into every interface language.
+
 ## 0.3.0 (2026-10-12)
 
 ### Changed

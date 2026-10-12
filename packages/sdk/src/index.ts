@@ -924,8 +924,8 @@ export interface CanvaImportPick {
   ancestors: string[];
 }
 /** A design a server-side import could not bring in. `code`: export_failed
- *  (`detail` is Canva's code), export_timed_out, no_export, too_large,
- *  convert_failed or error. */
+ *  (`detail` is Canva's code), export_timed_out, no_export (`detail` lists the
+ *  formats Canva does offer), too_large, convert_failed or error. */
 export interface CanvaImportFailure {
   name: string;
   code: string;
@@ -933,7 +933,10 @@ export interface CanvaImportFailure {
 }
 /** An import the server runs for its owner. `status`: queued, running, paused
  *  (Canva's daily limit, resumes at `resumeAt`), done, stopped or halted
- *  (`halted`: rate_limit, access_lost, not_connected or error). */
+ *  (`halted`: rate_limit, access_lost, not_connected or error). `total` is
+ *  every design of the selection; `skipped` of them were already imported
+ *  (known once the folders are read), so `total - skipped` are to import and
+ *  `imported + failed` of those are dealt with. */
 export interface CanvaImportRun {
   id: string;
   workspaceId: string;

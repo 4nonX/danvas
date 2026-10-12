@@ -469,6 +469,14 @@ func (x *execution) run() (string, *halt) {
 	if err != nil {
 		return "", asHalt(err)
 	}
+	// What is already in danvas (from earlier runs, not this one) is counted
+	// up front, so the progress shows how much is left to import.
+	for _, d := range plan.Designs {
+		if imported[d.ID] != "" && !mine[d.ID] {
+			x.p.Skipped++
+		}
+	}
+	x.save()
 	pace := newPacer(exportsPerWindow, exportWindow, x.s.now, x.s.sleep)
 	for _, d := range plan.Designs {
 		if x.stopped() {
@@ -476,9 +484,6 @@ func (x *execution) run() (string, *halt) {
 		}
 		label := strings.Join(append(append([]string(nil), d.Path...), d.Title), " / ")
 		if imported[d.ID] != "" {
-			if !mine[d.ID] {
-				x.p.Skipped++
-			}
 			continue
 		}
 		// The owner may have lost access to the workspace while this ran.
@@ -538,7 +543,14 @@ func (x *execution) importOne(d PlannedDesign) (bool, error) {
 	exp, err := canvaCall(x, func() (canva.Export, error) { return x.s.canva.StartExport(x.ctx, ws, user, d.ID) })
 	if err != nil {
 		if errors.Is(err, canva.ErrNoExport) {
-			return false, &designFailure{code: FailNoExport}
+			// Record what Canva does offer, to tell such designs apart.
+			offered := ""
+			var ne *canva.NoExportError
+			if errors.As(err, &ne) {
+				offered = strings.Join(ne.Offered, ", ")
+			}
+			x.s.log.Info("canva import: no export format", "run", x.r.ID, "design", d.ID, "offered", offered)
+			return false, &designFailure{code: FailNoExport, detail: offered}
 		}
 		return false, err
 	}

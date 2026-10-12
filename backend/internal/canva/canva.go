@@ -24,6 +24,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -54,7 +55,8 @@ var (
 	ErrSecretRequired = errors.New("client secret required")
 	ErrBadRequest     = errors.New("invalid canva request")
 	ErrStateInvalid   = errors.New("invalid or expired connect state")
-	// ErrNoExport is a design Canva offers neither PPTX nor PNG for.
+	// ErrNoExport is a design Canva offers neither PPTX nor PNG for (returned
+	// as a *NoExportError naming what it does offer).
 	ErrNoExport = errors.New("design cannot be exported")
 	// ErrUpstream is a Canva call that failed for another reason.
 	ErrUpstream = errors.New("canva request failed")
@@ -677,9 +679,7 @@ func (s *Service) StartExport(ctx context.Context, ws, userID, designID string) 
 		return Export{}, err
 	}
 	var formats struct {
-		Formats map[string]struct {
-			PageNumbers []int `json:"page_numbers"`
-		} `json:"formats"`
+		Formats map[string]exportFormat `json:"formats"`
 	}
 	if err := s.getJSON(ctx, access, "/v1/designs/"+url.PathEscape(designID)+"/export-formats", &formats); err != nil {
 		return Export{}, err
@@ -688,7 +688,7 @@ func (s *Service) StartExport(ctx context.Context, ws, userID, designID string) 
 	if f, ok := formats.Formats["pptx"]; ok && len(f.PageNumbers) == 0 {
 		format = "pptx" // no page list: every page supports it
 	} else if _, ok := formats.Formats["png"]; !ok {
-		return Export{}, ErrNoExport
+		return Export{}, &NoExportError{Offered: offeredFormats(formats.Formats)}
 	}
 	var job struct {
 		Job struct {
@@ -703,6 +703,48 @@ func (s *Service) StartExport(ctx context.Context, ws, userID, designID string) 
 		return Export{}, ErrUpstream
 	}
 	return Export{JobID: job.Job.ID, Format: format}, nil
+}
+
+// exportFormat is one entry of a design's export formats; PageNumbers lists
+// the pages it supports when not all do.
+type exportFormat struct {
+	PageNumbers []int `json:"page_numbers"`
+}
+
+// NoExportError is a design Canva offers neither PPTX for every page nor PNG
+// for. Offered lists what it does offer, sorted, a format supported only on
+// some pages with those pages: "pdf", "pptx [1,3]". It matches ErrNoExport.
+type NoExportError struct {
+	Offered []string
+}
+
+func (e *NoExportError) Error() string {
+	return ErrNoExport.Error() + " (offered: " + strings.Join(e.Offered, ", ") + ")"
+}
+
+func (e *NoExportError) Is(target error) bool { return target == ErrNoExport }
+
+func offeredFormats(formats map[string]exportFormat) []string {
+	out := make([]string, 0, len(formats))
+	for name, f := range formats {
+		if !validID(name) || len(name) > 30 {
+			continue
+		}
+		if p := f.PageNumbers; len(p) > 0 {
+			nums := make([]string, 0, len(p))
+			for i, n := range p {
+				if i == 20 {
+					nums = append(nums, "...")
+					break
+				}
+				nums = append(nums, strconv.Itoa(n))
+			}
+			name += " [" + strings.Join(nums, ",") + "]"
+		}
+		out = append(out, name)
+	}
+	sort.Strings(out)
+	return out
 }
 
 // ExportStatus is an export job's state.

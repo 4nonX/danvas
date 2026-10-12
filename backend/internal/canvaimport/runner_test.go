@@ -170,13 +170,15 @@ type fakeCanva struct {
 	// failExport names designs whose export fails.
 	failExport map[string]bool
 	// png names designs exported as page images.
-	png     map[string]bool
-	exports int
-	polls   int
+	png map[string]bool
+	// noExport names designs Canva offers no usable format for.
+	noExport map[string]bool
+	exports  int
+	polls    int
 }
 
 func newFakeCanva() *fakeCanva {
-	return &fakeCanva{connected: true, imported: map[string]string{}, failExport: map[string]bool{}, png: map[string]bool{}}
+	return &fakeCanva{connected: true, imported: map[string]string{}, failExport: map[string]bool{}, png: map[string]bool{}, noExport: map[string]bool{}}
 }
 
 func (f *fakeCanva) Connection(context.Context, string, string) (canva.ConnectionView, error) {
@@ -194,6 +196,9 @@ func (f *fakeCanva) StartExport(_ context.Context, _, _, designID string) (canva
 		err := f.errs[0]
 		f.errs = f.errs[1:]
 		return canva.Export{}, err
+	}
+	if f.noExport[designID] {
+		return canva.Export{}, &canva.NoExportError{Offered: []string{"pdf", "pptx [1]"}}
 	}
 	f.exports++
 	format := "pptx"
@@ -294,6 +299,17 @@ func (d *fakeDesigns) Create(_ context.Context, _, title string, from persistenc
 	d.created = append(d.created, title)
 	d.authors = append(d.authors, *author)
 	return persistence.DesignRecord{ID: fmt.Sprintf("d-%d", len(d.created)), Title: title}, nil
+}
+
+// designsHook calls before ahead of every create.
+type designsHook struct {
+	Designs
+	before func()
+}
+
+func (h designsHook) Create(ctx context.Context, ws, title string, from persistence.DesignFile, author *string) (persistence.DesignRecord, error) {
+	h.before()
+	return h.Designs.Create(ctx, ws, title, from, author)
 }
 
 type fakeAccess struct{ denyAfter int }
@@ -415,6 +431,33 @@ func TestRun_SkipsImportedDesignsAndReusesFolders(t *testing.T) {
 	}
 	if g.folders.moves["d-1"] != "existing" {
 		t.Fatalf("moved %v", g.folders.moves)
+	}
+}
+
+func TestRun_CountsWhatIsAlreadyHereBeforeExporting(t *testing.T) {
+	g := newRig()
+	g.cv.imported["D1"] = "old"
+	g.cv.imported["D3"] = "old"
+	var skippedAtFirstExport = -1
+	g.s.designs = designsHook{g.designs, func() {
+		if skippedAtFirstExport < 0 {
+			r, _ := g.st.get(context.Background(), "run-1")
+			skippedAtFirstExport = r.Skipped
+		}
+	}}
+	r := g.runOnce(t, everything)
+	if r.Status != StatusDone || *r.Total != 4 || r.Skipped != 2 || r.Imported != 2 || skippedAtFirstExport != 2 {
+		t.Fatalf("run %+v skipped at first export %d", r, skippedAtFirstExport)
+	}
+}
+
+func TestRun_NoExportRecordsWhatCanvaOffers(t *testing.T) {
+	g := newRig()
+	g.cv.noExport["D4"] = true
+	r := g.runOnce(t, []Pick{{Type: "design", ID: "D4", Name: "Loose deck"}})
+	want := []Failure{{Name: "Loose deck", Code: FailNoExport, Detail: "pdf, pptx [1]"}}
+	if r.Status != StatusDone || r.Failed != 1 || !reflect.DeepEqual(r.Failures, want) {
+		t.Fatalf("run %+v", r)
 	}
 }
 
