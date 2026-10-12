@@ -199,12 +199,14 @@ export function CanvasBackdrop({ compact = false }: { compact?: boolean }) {
 }
 
 /** A tight, contained art cluster for the dashboard hero's right edge, fading
- *  into the gradient toward the headline (left). */
+ *  into the gradient toward the headline (left). Only on wide screens: next to
+ *  the rail the main column is narrower than the window, and on a smaller one
+ *  the art sat on top of the greeting's text. */
 export function HeroArt() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute inset-y-0 right-0 hidden w-[22rem] overflow-hidden md:block"
+      className="pointer-events-none absolute inset-y-0 right-0 hidden w-[22rem] overflow-hidden 2xl:block"
       style={{
         maskImage: "linear-gradient(to right, transparent 0%, black 42%)",
         WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 42%)",
@@ -244,10 +246,12 @@ export function RailArt() {
           WebkitMaskImage: "linear-gradient(to top, black 30%, transparent 92%)",
         }}
       />
-      <Float className="left-3 bottom-16 -rotate-6" delay={0.6} duration={9} shadow>
+      {/* Light cards: in dark mode they showed through the glass of the
+          import line and the storage meter as pale blobs. */}
+      <Float className="left-3 bottom-16 -rotate-6 dark:hidden" delay={0.6} duration={9} shadow>
         <ArtSwatches />
       </Float>
-      <Float className="left-1/2 bottom-2 -translate-x-1/2 rotate-2" duration={8} shadow>
+      <Float className="left-1/2 bottom-2 -translate-x-1/2 rotate-2 dark:hidden" duration={8} shadow>
         <ArtLayout />
       </Float>
     </div>

@@ -2,6 +2,17 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.3.3 (2026-10-12)
+
+### Changed
+
+- Projects: one Import button opens a menu with the three ways to import (files, a folder, from Canva), each with a line saying what it does, instead of three buttons that pushed the toolbar onto a second row. The dot for a running Canva import sits on that button and on its menu entry.
+- Design cards and rows say when a design was last edited the way people do ("5 minutes ago", "yesterday"), in your language; past a week it is the date. The exact date and time show on hover.
+- A design card's title takes up to two lines before it is cut, and the full title shows on hover.
+- Home: the labels of the "Start a design" tiles take two lines instead of being cut ("Instagram post", "Desktop wallpaper").
+- Home: the decorative artwork next to the greeting only shows on wide screens. On smaller ones it sat on top of the greeting's text.
+- Sidebar, dark mode: the entry you are on is clearly highlighted, and the light decorative shapes no longer show through the import line and the storage meter.
+
 ## 0.3.2 (2026-10-12)
 
 ### Changed

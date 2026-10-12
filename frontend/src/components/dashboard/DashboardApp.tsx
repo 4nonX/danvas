@@ -367,6 +367,8 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   const [canvaPicked, setCanvaPicked] = useState(false);
   const canvaFlag = router.isReady && typeof router.query.canva === "string" ? router.query.canva : null;
   const canvaOpen = canvaPicked || canvaFlag === "connected";
+  // The Projects toolbar's Import menu.
+  const [importMenu, setImportMenu] = useState(false);
   // One of the caller's Canva imports is going: the import button says so.
   const canvaBusy = useCanvaImport((s) => s.runs.some(runActive));
   const clearCanvaFlag = useCallback(() => {
@@ -1002,11 +1004,11 @@ export function DashboardApp({ view }: { view: DashboardView }) {
       <button onClick={() => (selCount ? toggleSel("designs", item.id) : void open(item.id))} className="block aspect-[4/3] w-full overflow-hidden rounded-t-2xl" title={tr("dashboard.open")}><DesignThumb designId={item.id} /></button>
       <div className="absolute start-2.5 top-2.5">{selectBox(item)}</div>
       <FavoriteButton starred={item.starred} onToggle={() => void toggleFavorite(item)} />
-      <div className="flex items-center justify-between gap-2 px-3 py-2.5">
+      <div className="flex items-start justify-between gap-2 px-3 py-2.5">
         <div className="min-w-0">
-          <div className="truncate text-sm font-semibold text-neutral-800">{item.title}</div>
+          <div className="line-clamp-2 break-words text-sm font-semibold leading-snug text-neutral-800" title={item.title}>{item.title}</div>
           <div className="flex min-w-0 items-center gap-1 text-xs text-neutral-400">
-            <span className="shrink-0">{df.date(item.updatedAt)}</span>
+            <span className="shrink-0" title={df.dateTime(item.updatedAt)}>{df.relative(item.updatedAt)}</span>
             {itemWhere(item) && <><span aria-hidden>·</span><FolderIcon size={11} className="shrink-0" /><span className="truncate">{itemWhere(item)}</span></>}
           </div>
         </div>
@@ -1027,7 +1029,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
       <button onClick={() => void open(item.id)} className="min-w-0 flex-1 text-start">
         <div className="truncate text-sm font-semibold text-neutral-800">{item.title}</div>
         <div className="flex min-w-0 items-center gap-1 text-xs text-neutral-400">
-          <span className="shrink-0">{df.date(item.updatedAt)}</span>
+          <span className="shrink-0" title={df.dateTime(item.updatedAt)}>{df.relative(item.updatedAt)}</span>
           {itemWhere(item) && <><span aria-hidden>·</span><FolderIcon size={11} className="shrink-0" /><span className="truncate">{itemWhere(item)}</span></>}
         </div>
       </button>
@@ -1045,7 +1047,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     );
 
   return (
-    <div className="flex h-screen overflow-hidden bg-neutral-50 text-neutral-900" onClick={() => { setMenuFor(null); setFolderMenu(null); }}>
+    <div className="flex h-screen overflow-hidden bg-neutral-50 text-neutral-900" onClick={() => { setMenuFor(null); setFolderMenu(null); setImportMenu(false); }}>
       {/* Left rail: fixed to the viewport; only the main column scrolls.
           Collapsible to an icon-only strip (remembered in localStorage). */}
       <aside
@@ -1207,16 +1209,29 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                   <Button variant="secondary" size="sm" onClick={() => void newFolderHere()} disabled={!activeWorkspaceId}>
                     <FolderPlus size={15} /> {tr("dashboard.new_folder")}
                   </Button>
-                  <Button variant="secondary" size="sm" onClick={() => bulkFilesRef.current?.click()} disabled={!activeWorkspaceId} title={tr("dashboard.import_files_hint")}>
-                    <FileUp size={15} /> {tr("dashboard.import_files")}
-                  </Button>
-                  <Button variant="secondary" size="sm" onClick={() => bulkFolderRef.current?.click()} disabled={!activeWorkspaceId} title={tr("dashboard.import_folder_hint")}>
-                    <FolderInput size={15} /> {tr("dashboard.import_folder")}
-                  </Button>
-                  <Button variant="secondary" size="sm" onClick={() => setCanvaPicked(true)} disabled={!activeWorkspaceId} title={tr("dashboard.import_from_canva_hint")}>
-                    <Link2 size={15} /> {tr("dashboard.import_from_canva")}
-                    {canvaBusy && <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-brand-600" />}
-                  </Button>
+                  {/* The three ways to import, behind one button. The dot says
+                      one of the caller's Canva imports is going. */}
+                  <div className="relative">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={(e) => { e.stopPropagation(); setMenuFor(null); setFolderMenu(null); setImportMenu((v) => !v); }}
+                      disabled={!activeWorkspaceId}
+                      aria-haspopup="menu"
+                      aria-expanded={importMenu}
+                    >
+                      <FileUp size={15} /> {tr("dashboard.bulk_import")}
+                      {canvaBusy && <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-brand-600" />}
+                      <ChevronDown size={14} className="text-neutral-400" />
+                    </Button>
+                    {importMenu && (
+                      <div role="menu" className="absolute end-0 z-30 mt-1 w-60 overflow-hidden rounded-xl border border-neutral-200 bg-surface py-1 text-sm shadow-lg" onClick={(e) => e.stopPropagation()}>
+                        <ImportMenuRow icon={FileUp} label={tr("dashboard.import_files")} hint={tr("dashboard.import_files_hint")} onClick={() => { setImportMenu(false); bulkFilesRef.current?.click(); }} />
+                        <ImportMenuRow icon={FolderInput} label={tr("dashboard.import_folder")} hint={tr("dashboard.import_folder_hint")} onClick={() => { setImportMenu(false); bulkFolderRef.current?.click(); }} />
+                        <ImportMenuRow icon={Link2} label={tr("dashboard.import_from_canva")} hint={tr("dashboard.import_from_canva_hint")} busy={canvaBusy} onClick={() => { setImportMenu(false); setCanvaPicked(true); }} />
+                      </div>
+                    )}
+                  </div>
                   <input ref={bulkFilesRef} type="file" multiple accept={designImportAccept} hidden onChange={(e) => { startBulk(entriesFromInput(e.target.files)); e.target.value = ""; }} />
                   <input
                     ref={(el) => { bulkFolderRef.current = el; if (el) el.setAttribute("webkitdirectory", ""); }}
@@ -2024,7 +2039,8 @@ function RailItem({
       aria-label={label}
       className={`flex items-center rounded-xl font-medium ${
         collapsed ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2 text-start"
-      } ${active ? "bg-brand-50 text-brand-ink" : "text-neutral-600 hover:bg-neutral-100"}`}
+      } ${active ? "bg-brand-50 text-brand-ink dark:bg-brand-500/20" : "text-neutral-600 hover:bg-neutral-100"}`}
+      aria-current={active ? "page" : undefined}
     >
       <Icon size={18} className="shrink-0" />
       {!collapsed && label}
@@ -2100,6 +2116,23 @@ function EmptyState({ message, children }: { message: string; children?: React.R
   );
 }
 
+/** A way to import, in the Projects toolbar's Import menu: what it is and,
+ *  below, what it does. */
+function ImportMenuRow({ icon: Icon, label, hint, busy, onClick }: { icon: typeof Trash2; label: string; hint: string; busy?: boolean; onClick: () => void }) {
+  return (
+    <button type="button" role="menuitem" onClick={onClick} className="flex w-full items-start gap-2.5 px-3 py-2 text-start hover:bg-neutral-50">
+      <Icon size={15} className="mt-0.5 shrink-0 text-neutral-400" />
+      <span className="min-w-0">
+        <span className="flex items-center gap-1.5 font-medium text-neutral-800">
+          {label}
+          {busy && <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-brand-600" />}
+        </span>
+        <span className="block text-xs leading-snug text-neutral-500">{hint}</span>
+      </span>
+    </button>
+  );
+}
+
 function MenuRow({ children, onClick, danger, icon: Icon }: { children: React.ReactNode; onClick: () => void; danger?: boolean; icon?: typeof Trash2 }) {
   return (
     <button onClick={onClick} className={`flex w-full items-center gap-2.5 px-3 py-1.5 text-start hover:bg-neutral-50 ${danger ? "text-red-600" : "text-neutral-700"}`}>
@@ -2119,14 +2152,14 @@ function FormatTile({ f, disabled, onClick }: { f: Format; disabled?: boolean; o
     <button
       onClick={onClick}
       disabled={disabled}
-      className="group flex w-[76px] flex-col items-center gap-1.5"
+      className="group flex w-[84px] flex-col items-center gap-1.5 self-start"
       title={f.label === "Blank" || f.label.startsWith("Import") ? f.label : `${f.label} · ${f.w}×${f.h}`}
     >
       <span className="relative grid h-14 w-full place-items-center rounded-xl border border-neutral-200 bg-surface shadow-sm transition group-hover:-translate-y-0.5 group-hover:border-brand-300 group-hover:shadow-md">
         <span className="rounded bg-brand-50 ring-1 ring-brand-100" style={{ width: boxW, height: boxH }} />
         <span className="absolute inset-0 grid place-items-center text-brand-500"><f.icon size={17} strokeWidth={1.75} /></span>
       </span>
-      <span className="w-full truncate text-center text-[11px] font-medium text-neutral-600">{f.label}</span>
+      <span className="line-clamp-2 w-full break-words text-center text-[11px] font-medium leading-tight text-neutral-600">{f.label}</span>
     </button>
   );
 }

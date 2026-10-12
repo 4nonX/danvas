@@ -77,6 +77,22 @@ export function formatDateTime(when: WhenInput, user: User | null | undefined): 
   }
 }
 
+/** How long ago, in the user's language: "5 minutes ago", "yesterday". Past a
+ *  week (and for anything in the future) the plain date says more. */
+export function formatRelative(when: WhenInput, user: User | null | undefined, now: number = Date.now()): string {
+  const ms = now - new Date(when).getTime();
+  const days = Math.floor(ms / 86_400_000);
+  if (!Number.isFinite(ms) || ms < 0 || days >= 7) return formatDate(when, user);
+  try {
+    const rtf = new Intl.RelativeTimeFormat(resolve(user).locale, { numeric: "auto" });
+    if (ms < 3_600_000) return rtf.format(-Math.floor(ms / 60_000), "minute");
+    if (ms < 86_400_000) return rtf.format(-Math.floor(ms / 3_600_000), "hour");
+    return rtf.format(-days, "day");
+  } catch {
+    return formatDate(when, user);
+  }
+}
+
 /** Hook bound to the signed-in user, so components format timestamps in that
  *  user's regional preferences without threading the user through props. */
 export function useDateFormat() {
@@ -85,6 +101,7 @@ export function useDateFormat() {
     () => ({
       date: (when: WhenInput) => formatDate(when, user),
       dateTime: (when: WhenInput) => formatDateTime(when, user),
+      relative: (when: WhenInput) => formatRelative(when, user),
       weekStartDay: weekStartDay(user?.weekStart, user?.locale),
     }),
     [user],

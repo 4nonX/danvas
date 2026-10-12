@@ -281,7 +281,7 @@ function RailFolder({
     <div
       {...drop.props}
       className={`flex items-center rounded-lg text-[13px] transition ${
-        drop.over ? "bg-brand-100 text-brand-ink" : active ? "bg-brand-50 font-medium text-brand-ink" : "text-neutral-600 hover:bg-neutral-100"
+        drop.over ? "bg-brand-100 text-brand-ink" : active ? "bg-brand-50 font-medium text-brand-ink dark:bg-brand-500/20" : "text-neutral-600 hover:bg-neutral-100"
       }`}
       style={{ paddingInlineStart: 14 + depth * 14 }}
     >

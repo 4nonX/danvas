@@ -53,7 +53,7 @@ Sharing a single design with specific people or via link happens from the **Shar
 
 ## Import from Canva
 
-**Import from Canva** (in Projects, next to Import files and Import folder) brings designs over from a Canva account, folder tree included, into the folder that is open.
+**Import from Canva** (in Projects, in the **Import** menu, with Import files and Import folder) brings designs over from a Canva account, folder tree included, into the folder that is open.
 
 **Set it up once per workspace (admin).** Canva only sends people back to addresses registered on an integration, so each danvas instance uses its own:
 
@@ -65,7 +65,7 @@ Sharing a single design with specific people or via link happens from the **Shar
 
 - Each design arrives editable through PowerPoint export when Canva offers it for all pages. Otherwise it arrives as one image per page (looks exactly right, not editable); video designs arrive as still pages. The summary says how many came as images.
 - The import runs on the server: close its window, the tab or the browser, and it carries on. A server restart does not lose it: it continues where it was.
-- Where to follow it: while one of your imports is going (or has ended and you have not dismissed it), the sidebar of the dashboard shows a line for it above the storage meter, and the **Import from Canva** button carries a dot. Click the line for the details, the failed designs, and to stop the run (it stops after the design it is on). Nothing floats over the page, and the editor shows none of it. Only you see your imports, on every device you are signed in on.
+- Where to follow it: while one of your imports is going (or has ended and you have not dismissed it), the sidebar of the dashboard shows a line for it above the storage meter, and the **Import** button in Projects carries a dot. Click the line for the details, the failed designs, and to stop the run (it stops after the design it is on). Nothing floats over the page, and the editor shows none of it. Only you see your imports, on every device you are signed in on.
 - **Import from Canva** lists your running and recent imports at the top (the last 20), also those you dismissed from the sidebar: the place to look an import and its failed designs up again.
 - Canva limits exports per person: about 20 per minute and 500 per day. The import paces itself, waits when Canva asks it to slow down, and pauses at the daily limit; the progress says when it continues, and it does so by itself.
 - The progress counts what is left to import: "12 of 340 designs to import". Designs of the selection that are already in danvas are shown separately as "Already imported" and are not part of that count.
