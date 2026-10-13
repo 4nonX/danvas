@@ -20,6 +20,14 @@ func newPacer(max int, window time.Duration, now func() time.Time, sleep func(co
 	return &pacer{max: max, window: window, now: now, sleep: sleep}
 }
 
+// release gives back the start wait last recorded, for a design that turned
+// out to need no export.
+func (p *pacer) release() {
+	if n := len(p.starts); n > 0 {
+		p.starts = p.starts[:n-1]
+	}
+}
+
 // wait returns once a start is allowed (or ctx ends), and records the start.
 func (p *pacer) wait(ctx context.Context) error {
 	for {

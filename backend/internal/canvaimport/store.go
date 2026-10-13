@@ -44,6 +44,8 @@ const maxFailures = 200
 
 // Failure is one design that could not be imported.
 type Failure struct {
+	// ID is the Canva design's id (absent on failures recorded before 0.3.5).
+	ID     string `json:"id,omitempty"`
 	Name   string `json:"name"`
 	Code   string `json:"code"`
 	Detail string `json:"detail,omitempty"`

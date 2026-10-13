@@ -74,9 +74,11 @@ const (
 	maxRateRetries = 6
 	pollEvery      = 2 * time.Second
 	exportTimeout  = 15 * time.Minute
-	// dailyRetry is when a run paused by the daily limit tries again when
-	// Canva names no time.
-	dailyRetry = time.Hour
+	// dailyPause is the least a run pauses at Canva's daily limit. The limit
+	// counts exports over 24 hours, but the Retry-After Canva sends with it is
+	// about a minute: trusting it made a run resume every few minutes, read
+	// the whole library again and be refused again, all day.
+	dailyPause = time.Hour
 	// tick is how often the worker looks for startable runs (a new run wakes
 	// it at once).
 	tick = 30 * time.Second
@@ -380,8 +382,8 @@ func canvaCall[T any](x *execution, call func() (T, error)) (T, error) {
 		case errors.As(err, &rl):
 			if rl.Daily {
 				wait := rl.RetryAfter
-				if wait <= 0 {
-					wait = dailyRetry
+				if wait < dailyPause {
+					wait = dailyPause
 				}
 				return zero, &halt{code: "daily_limit", pause: wait}
 			}
@@ -426,6 +428,14 @@ func (x *execution) run() (string, *halt) {
 		return "", asHalt(err)
 	}
 	x.p = progress{Imported: len(mine), AsImages: x.r.AsImages, Failures: []Failure{}}
+	// Designs Canva offered no export format for when this run was last at
+	// them: a resumed run does not ask again (a new run does).
+	noExport := map[string]Failure{}
+	for _, f := range x.r.Failures {
+		if f.Code == FailNoExport && f.ID != "" {
+			noExport[f.ID] = f
+		}
+	}
 
 	x.p.Current = ""
 	x.save()
@@ -478,8 +488,15 @@ func (x *execution) run() (string, *halt) {
 	// What is already in danvas (from earlier runs, not this one) is counted
 	// up front, so the progress shows how much is left to import.
 	for _, d := range plan.Designs {
-		if imported[d.ID] != "" && !mine[d.ID] {
-			x.p.Skipped++
+		if imported[d.ID] != "" {
+			if !mine[d.ID] {
+				x.p.Skipped++
+			}
+		} else if f, ok := noExport[d.ID]; ok {
+			x.p.Failed++
+			if len(x.p.Failures) < maxFailures {
+				x.p.Failures = append(x.p.Failures, f)
+			}
 		}
 	}
 	x.save()
@@ -489,7 +506,7 @@ func (x *execution) run() (string, *halt) {
 			return StatusStopped, nil
 		}
 		label := strings.Join(append(append([]string(nil), d.Path...), d.Title), " / ")
-		if imported[d.ID] != "" {
+		if _, known := noExport[d.ID]; known || imported[d.ID] != "" {
 			continue
 		}
 		// The owner may have lost access to the workspace while this ran.
@@ -510,7 +527,12 @@ func (x *execution) run() (string, *halt) {
 			if errors.Is(err, errStopped) || x.ctx.Err() != nil {
 				return StatusStopped, nil
 			}
-			x.fail(label, err)
+			var df *designFailure
+			if errors.As(err, &df) && df.code == FailNoExport {
+				// No export was started: its place in the pacing is free again.
+				pace.release()
+			}
+			x.fail(d.ID, label, err)
 			continue
 		}
 		x.p.Imported++
@@ -529,9 +551,9 @@ type designFailure struct {
 
 func (e *designFailure) Error() string { return e.code + ": " + e.detail }
 
-func (x *execution) fail(label string, err error) {
+func (x *execution) fail(designID, label string, err error) {
 	x.p.Failed++
-	f := Failure{Name: label, Code: FailOther, Detail: err.Error()}
+	f := Failure{ID: designID, Name: label, Code: FailOther, Detail: err.Error()}
 	var df *designFailure
 	if errors.As(err, &df) {
 		f.Code, f.Detail = df.code, df.detail

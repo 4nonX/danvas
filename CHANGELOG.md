@@ -2,6 +2,14 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.3.5 (2026-10-13)
+
+### Fixed
+
+- Import from Canva: at Canva's daily export limit a run now pauses for at least an hour. Canva sends a "retry after" of about a minute with that limit, and the run trusted it: every few minutes it resumed, read the whole library again, was refused again and paused again, all day, importing nothing and sending Canva hundreds of pointless requests. Nothing was imported twice and nothing was lost.
+- A resumed run no longer asks Canva again about designs it already found to have no export format. They stay in the list of failed designs and are tried again when you start a new import.
+- Designs without an export format no longer take up a place in the pacing of exports, so a run with many of them reaches the exportable designs sooner.
+
 ## 0.3.4 (2026-10-12)
 
 ### Changed

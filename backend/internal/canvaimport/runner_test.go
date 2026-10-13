@@ -173,12 +173,16 @@ type fakeCanva struct {
 	png map[string]bool
 	// noExport names designs Canva offers no usable format for.
 	noExport map[string]bool
-	exports  int
-	polls    int
+	// errsAfter is how many StartExport calls pass before errs apply.
+	errsAfter int
+	// asked counts the StartExport calls per design.
+	asked   map[string]int
+	exports int
+	polls   int
 }
 
 func newFakeCanva() *fakeCanva {
-	return &fakeCanva{connected: true, imported: map[string]string{}, failExport: map[string]bool{}, png: map[string]bool{}, noExport: map[string]bool{}}
+	return &fakeCanva{connected: true, imported: map[string]string{}, failExport: map[string]bool{}, png: map[string]bool{}, noExport: map[string]bool{}, asked: map[string]int{}}
 }
 
 func (f *fakeCanva) Connection(context.Context, string, string) (canva.ConnectionView, error) {
@@ -192,7 +196,10 @@ func (f *fakeCanva) ListFolder(ctx context.Context, _, _, id, cont string) (canv
 func (f *fakeCanva) StartExport(_ context.Context, _, _, designID string) (canva.Export, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
-	if len(f.errs) > 0 {
+	f.asked[designID]++
+	if f.errsAfter > 0 {
+		f.errsAfter--
+	} else if len(f.errs) > 0 {
 		err := f.errs[0]
 		f.errs = f.errs[1:]
 		return canva.Export{}, err
@@ -455,7 +462,7 @@ func TestRun_NoExportRecordsWhatCanvaOffers(t *testing.T) {
 	g := newRig()
 	g.cv.noExport["D4"] = true
 	r := g.runOnce(t, []Pick{{Type: "design", ID: "D4", Name: "Loose deck"}})
-	want := []Failure{{Name: "Loose deck", Code: FailNoExport, Detail: "pdf, pptx [1]"}}
+	want := []Failure{{ID: "D4", Name: "Loose deck", Code: FailNoExport, Detail: "pdf, pptx [1]"}}
 	if r.Status != StatusDone || r.Failed != 1 || !reflect.DeepEqual(r.Failures, want) {
 		t.Fatalf("run %+v", r)
 	}
@@ -470,8 +477,8 @@ func TestRun_FailedDesignsAreListedAndTheRunGoesOn(t *testing.T) {
 		t.Fatalf("run %+v", r)
 	}
 	want := []Failure{
-		{Name: "Clients / Acme / Pitch", Code: FailExportFailed, Detail: "license_required"},
-		{Name: "Clients / Brief", Code: FailConvert, Detail: "bad deck"},
+		{ID: "D1", Name: "Clients / Acme / Pitch", Code: FailExportFailed, Detail: "license_required"},
+		{ID: "D2", Name: "Clients / Brief", Code: FailConvert, Detail: "bad deck"},
 	}
 	if !reflect.DeepEqual(r.Failures, want) {
 		t.Fatalf("failures %+v", r.Failures)
@@ -513,6 +520,51 @@ func TestRun_DailyLimitPausesAndResumes(t *testing.T) {
 	r = g.resume(t, r.ID)
 	if r.Status != StatusDone || r.Imported != 4 || r.Skipped != 0 {
 		t.Fatalf("resumed %+v", r)
+	}
+}
+
+func TestRun_DailyLimitPausesAnHourAtLeast(t *testing.T) {
+	g := newRig()
+	// Canva names about a minute with its daily limit; the limit is per day.
+	g.cv.errs = []error{&canva.RateLimitError{RetryAfter: time.Minute, Daily: true}}
+	r := g.runOnce(t, []Pick{{Type: "design", ID: "D4", Name: "Loose deck"}})
+	if r.Status != StatusPaused || r.ResumeAt == nil || !r.ResumeAt.Equal(g.now.Add(time.Hour)) {
+		t.Fatalf("run %+v", r)
+	}
+}
+
+func TestRun_ResumeDoesNotAskAgainForDesignsWithoutExport(t *testing.T) {
+	g := newRig()
+	g.cv.noExport["D1"] = true
+	// D1 has no export format, then the daily limit stops the run at D2.
+	g.cv.errs = []error{&canva.RateLimitError{Daily: true}}
+	g.cv.errsAfter = 1
+	r := g.runOnce(t, everything)
+	if r.Status != StatusPaused || r.Failed != 1 || r.Imported != 0 || g.cv.asked["D1"] != 1 {
+		t.Fatalf("run %+v asked %v", r, g.cv.asked)
+	}
+	g.now = g.now.Add(2 * time.Hour)
+	r = g.resume(t, r.ID)
+	want := []Failure{{ID: "D1", Name: "Clients / Acme / Pitch", Code: FailNoExport, Detail: "pdf, pptx [1]"}}
+	if r.Status != StatusDone || r.Imported != 3 || r.Failed != 1 || !reflect.DeepEqual(r.Failures, want) || g.cv.asked["D1"] != 1 {
+		t.Fatalf("resumed %+v asked %v", r, g.cv.asked)
+	}
+}
+
+func TestPacer_ReleaseFreesTheLastStart(t *testing.T) {
+	now := time.Unix(0, 0)
+	slept := 0
+	p := newPacer(2, time.Minute, func() time.Time { return now }, func(context.Context, time.Duration) error {
+		slept++
+		now = now.Add(time.Minute)
+		return nil
+	})
+	_ = p.wait(context.Background())
+	_ = p.wait(context.Background())
+	p.release()
+	_ = p.wait(context.Background())
+	if slept != 0 {
+		t.Fatalf("slept %d times", slept)
 	}
 }
 

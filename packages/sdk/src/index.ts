@@ -927,6 +927,8 @@ export interface CanvaImportPick {
  *  (`detail` is Canva's code), export_timed_out, no_export (`detail` lists the
  *  formats Canva does offer), too_large, convert_failed or error. */
 export interface CanvaImportFailure {
+  /** The Canva design's id (absent on failures recorded before 0.3.5). */
+  id?: string;
   name: string;
   code: string;
   detail?: string;
