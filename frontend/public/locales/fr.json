@@ -3957,5 +3957,19 @@
   "ui.notice": "Avis",
   "ui.ok": "OK",
   "ui.page_not_found": "Page introuvable",
-  "ui.the_page_you_are_looking_for_does_not_exist": "La page que vous recherchez n'existe pas ou a peut-être été déplacée."
+  "ui.the_page_you_are_looking_for_does_not_exist": "La page que vous recherchez n'existe pas ou a peut-être été déplacée.",
+  "settings.ai_provider": "Fournisseur d’IA",
+  "settings.personal_ai_description": "Connectez votre propre fournisseur d’IA. Il est utilisé dans tout espace de travail sans fournisseur, et votre clé reste privée.",
+  "settings.personal_ai_precedence": "Le fournisseur propre d’un espace de travail passe toujours en premier. Les administrateurs peuvent désactiver les clés personnelles, et leurs limites d’utilisation s’appliquent quand votre clé est utilisée dans leur espace.",
+  "settings.personal_ai_load_failed": "Impossible de charger les réglages de votre fournisseur d’IA. Actualisez pour réessayer.",
+  "settings.personal_ai_usage": "Votre clé a utilisé environ {count} jetons ce mois-ci.",
+  "editor.reset_personal_provider_confirm": "Supprimer votre fournisseur d’IA personnel ? Votre clé enregistrée est supprimée, et les espaces sans fournisseur propre cessent de l’utiliser.",
+  "editor.use_your_own_ai_key_in_settings": "Ou utilisez votre propre clé d’IA dans les Réglages",
+  "editor.your_provider": "Votre fournisseur",
+  "editor.workspace_provider": "Fournisseur de l’espace de travail",
+  "dashboard.allow_personal_ai_keys": "Autoriser les clés d’IA personnelles des membres",
+  "dashboard.allow_personal_ai_keys_hint": "Quand cet espace de travail n’a pas de fournisseur propre, les membres peuvent utiliser leur propre clé depuis leurs réglages. Les limites d’utilisation et les fournisseurs bloqués s’appliquent toujours.",
+  "dashboard.generates_with_your_provider": "Génère avec votre fournisseur personnel : {provider}",
+  "dashboard.your_provider_label": "Votre clé · {provider}",
+  "dashboard.or_use_your_own_key": "ou utilisez votre propre clé"
 }

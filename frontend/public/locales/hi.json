@@ -3957,5 +3957,19 @@
   "ui.notice": "सूचना",
   "ui.ok": "ठीक है",
   "ui.page_not_found": "पृष्ठ नहीं मिला",
-  "ui.the_page_you_are_looking_for_does_not_exist": "आप जिस पृष्ठ को खोज रहे हैं वह मौजूद नहीं है या स्थानांतरित हो गया है।"
+  "ui.the_page_you_are_looking_for_does_not_exist": "आप जिस पृष्ठ को खोज रहे हैं वह मौजूद नहीं है या स्थानांतरित हो गया है।",
+  "settings.ai_provider": "AI प्रदाता",
+  "settings.personal_ai_description": "अपना AI प्रदाता जोड़ें। यह हर उस वर्कस्पेस में इस्तेमाल होता है जिसका अपना प्रदाता नहीं है, और आपकी कुंजी निजी रहती है।",
+  "settings.personal_ai_precedence": "वर्कस्पेस का अपना प्रदाता हमेशा पहले आता है। एडमिन व्यक्तिगत कुंजियाँ बंद कर सकते हैं, और उनके वर्कस्पेस में आपकी कुंजी इस्तेमाल होने पर भी उनकी उपयोग सीमाएँ लागू रहती हैं।",
+  "settings.personal_ai_load_failed": "आपकी AI प्रदाता सेटिंग्स लोड नहीं हो सकीं। फिर से कोशिश करने के लिए रीफ़्रेश करें।",
+  "settings.personal_ai_usage": "इस महीने आपकी कुंजी ने लगभग {count} टोकन इस्तेमाल किए हैं।",
+  "editor.reset_personal_provider_confirm": "अपना व्यक्तिगत AI प्रदाता हटाएँ? आपकी सहेजी गई कुंजी मिटा दी जाती है, और बिना अपने प्रदाता वाले वर्कस्पेस उसका इस्तेमाल बंद कर देते हैं।",
+  "editor.use_your_own_ai_key_in_settings": "या सेटिंग्स में अपनी AI कुंजी इस्तेमाल करें",
+  "editor.your_provider": "आपका प्रदाता",
+  "editor.workspace_provider": "वर्कस्पेस प्रदाता",
+  "dashboard.allow_personal_ai_keys": "सदस्यों की व्यक्तिगत AI कुंजियों की अनुमति दें",
+  "dashboard.allow_personal_ai_keys_hint": "जब इस वर्कस्पेस का अपना प्रदाता नहीं है, सदस्य अपनी सेटिंग्स से अपनी कुंजी इस्तेमाल कर सकते हैं। उपयोग सीमाएँ और ब्लॉक किए गए प्रदाता लागू रहते हैं।",
+  "dashboard.generates_with_your_provider": "आपके व्यक्तिगत प्रदाता से बनाता है: {provider}",
+  "dashboard.your_provider_label": "आपकी कुंजी · {provider}",
+  "dashboard.or_use_your_own_key": "या अपनी कुंजी इस्तेमाल करें"
 }

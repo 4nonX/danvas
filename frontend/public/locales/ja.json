@@ -3957,5 +3957,19 @@
   "ui.notice": "お知らせ",
   "ui.ok": "OK",
   "ui.page_not_found": "ページが見つかりません",
-  "ui.the_page_you_are_looking_for_does_not_exist": "お探しのページは存在しないか、移動した可能性があります。"
+  "ui.the_page_you_are_looking_for_does_not_exist": "お探しのページは存在しないか、移動した可能性があります。",
+  "settings.ai_provider": "AI プロバイダー",
+  "settings.personal_ai_description": "自分の AI プロバイダーを接続します。独自のプロバイダーがないワークスペースで使われ、キーはあなただけのものです。",
+  "settings.personal_ai_precedence": "ワークスペース独自のプロバイダーが常に優先されます。管理者は個人キーを無効にでき、あなたのキーがそのワークスペースで使われるときも利用上限が適用されます。",
+  "settings.personal_ai_load_failed": "AI プロバイダーの設定を読み込めませんでした。再読み込みしてもう一度お試しください。",
+  "settings.personal_ai_usage": "今月、あなたのキーは約 {count} トークンを使用しました。",
+  "editor.reset_personal_provider_confirm": "個人の AI プロバイダーを削除しますか？保存されたキーは削除され、独自のプロバイダーがないワークスペースでは使われなくなります。",
+  "editor.use_your_own_ai_key_in_settings": "または設定で自分の AI キーを使う",
+  "editor.your_provider": "あなたのプロバイダー",
+  "editor.workspace_provider": "ワークスペースのプロバイダー",
+  "dashboard.allow_personal_ai_keys": "メンバーの個人 AI キーを許可する",
+  "dashboard.allow_personal_ai_keys_hint": "このワークスペースに独自のプロバイダーがない場合、メンバーは設定から自分のキーを使えます。利用上限とブロック中のプロバイダーは引き続き適用されます。",
+  "dashboard.generates_with_your_provider": "個人のプロバイダーで生成: {provider}",
+  "dashboard.your_provider_label": "あなたのキー · {provider}",
+  "dashboard.or_use_your_own_key": "または自分のキーを使う"
 }

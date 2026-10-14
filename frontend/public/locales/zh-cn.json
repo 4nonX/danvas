@@ -3957,5 +3957,19 @@
   "ui.notice": "通知",
   "ui.ok": "确定",
   "ui.page_not_found": "页面未找到",
-  "ui.the_page_you_are_looking_for_does_not_exist": "您查找的页面不存在或可能已移动。"
+  "ui.the_page_you_are_looking_for_does_not_exist": "您查找的页面不存在或可能已移动。",
+  "settings.ai_provider": "AI 提供商",
+  "settings.personal_ai_description": "连接你自己的 AI 提供商。它会在任何没有自有提供商的工作区中使用，你的密钥只属于你。",
+  "settings.personal_ai_precedence": "工作区自己的提供商始终优先。管理员可以关闭个人密钥，你的密钥在其工作区使用时仍受其用量限制约束。",
+  "settings.personal_ai_load_failed": "无法加载你的 AI 提供商设置。请刷新后重试。",
+  "settings.personal_ai_usage": "本月你的密钥已使用约 {count} 个 token。",
+  "editor.reset_personal_provider_confirm": "要移除你的个人 AI 提供商吗？已保存的密钥会被删除，没有自有提供商的工作区将不再使用它。",
+  "editor.use_your_own_ai_key_in_settings": "或在设置中使用你自己的 AI 密钥",
+  "editor.your_provider": "你的提供商",
+  "editor.workspace_provider": "工作区提供商",
+  "dashboard.allow_personal_ai_keys": "允许成员使用个人 AI 密钥",
+  "dashboard.allow_personal_ai_keys_hint": "当此工作区没有自有提供商时，成员可以使用其设置中的个人密钥。用量限制和已屏蔽的提供商仍然适用。",
+  "dashboard.generates_with_your_provider": "使用你的个人提供商生成：{provider}",
+  "dashboard.your_provider_label": "你的密钥 · {provider}",
+  "dashboard.or_use_your_own_key": "或使用你自己的密钥"
 }

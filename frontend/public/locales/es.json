@@ -3957,5 +3957,19 @@
   "ui.notice": "Aviso",
   "ui.ok": "Aceptar",
   "ui.page_not_found": "Página no encontrada",
-  "ui.the_page_you_are_looking_for_does_not_exist": "La página que buscas no existe o puede haberse movido."
+  "ui.the_page_you_are_looking_for_does_not_exist": "La página que buscas no existe o puede haberse movido.",
+  "settings.ai_provider": "Proveedor de IA",
+  "settings.personal_ai_description": "Conecta tu propio proveedor de IA. Se usa en cualquier espacio de trabajo que no tenga proveedor propio, y tu clave sigue siendo privada.",
+  "settings.personal_ai_precedence": "El proveedor propio de un espacio de trabajo siempre tiene prioridad. Los administradores pueden desactivar las claves personales, y sus límites de uso siguen aplicándose cuando tu clave se usa en su espacio.",
+  "settings.personal_ai_load_failed": "No se pudo cargar la configuración de tu proveedor de IA. Actualiza para intentarlo de nuevo.",
+  "settings.personal_ai_usage": "Tu clave ha usado unos {count} tokens este mes.",
+  "editor.reset_personal_provider_confirm": "¿Quitar tu proveedor de IA personal? Tu clave guardada se elimina y los espacios sin proveedor propio dejan de usarla.",
+  "editor.use_your_own_ai_key_in_settings": "O usa tu propia clave de IA en Configuración",
+  "editor.your_provider": "Tu proveedor",
+  "editor.workspace_provider": "Proveedor del espacio de trabajo",
+  "dashboard.allow_personal_ai_keys": "Permitir claves de IA personales de los miembros",
+  "dashboard.allow_personal_ai_keys_hint": "Cuando este espacio de trabajo no tiene proveedor propio, los miembros pueden usar su propia clave desde su configuración. Los límites de uso y los proveedores bloqueados siguen aplicándose.",
+  "dashboard.generates_with_your_provider": "Genera con tu proveedor personal: {provider}",
+  "dashboard.your_provider_label": "Tu clave · {provider}",
+  "dashboard.or_use_your_own_key": "o usa tu propia clave"
 }

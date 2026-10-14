@@ -233,7 +233,8 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   const [briefDrop, setBriefDrop] = useState(false);
   // Stamped with the workspace it describes, so a switch invalidates it by
   // derivation rather than a reset written during render or in an effect body.
-  const [aiState, setAiState] = useState<{ ws: string; connected: boolean; label: string } | null>(null);
+  // `personal` is set when the caller's own key serves this workspace (#47).
+  const [aiState, setAiState] = useState<{ ws: string; connected: boolean; label: string; personal: boolean; personalAllowed: boolean } | null>(null);
   const aiReady = aiState && aiState.ws === activeWorkspaceId ? aiState : null;
 
   // Best-effort and non-blocking: nothing on this page waits for it, and a
@@ -243,14 +244,17 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     const ws = activeWorkspaceId;
     let cancelled = false;
     void Promise.all([
-      oc.getAiConfig(ws).catch(() => null),
+      oc.getAiEffective(ws).catch(() => null),
       aiPresetCache ? Promise.resolve(aiPresetCache) : oc.aiProviders().then((l) => { aiPresetCache = l ?? []; return aiPresetCache; }).catch(() => [] as AiProviderPreset[]),
-    ]).then(([cfg, presets]) => {
-      if (cancelled) return;
+    ]).then(([eff, presets]) => {
+      if (cancelled || !eff) return;
+      const cfg = eff.config ?? eff.imageConfig;
       setAiState({
         ws,
-        connected: !!cfg?.hasKey,
+        connected: eff.source !== "none" && !!cfg?.hasKey,
         label: presets.find((pr) => pr.id === cfg?.provider)?.label ?? cfg?.provider ?? "",
+        personal: eff.source === "personal",
+        personalAllowed: eff.personalKeysAllowed,
       });
     });
     return () => { cancelled = true; };
@@ -1065,9 +1069,12 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                     </label>
                     <span className="flex-1" />
                     {aiReady && (aiReady.connected ? (
-                      <span className="hidden items-center gap-1.5 text-[11px] text-neutral-500 sm:flex" title={tr("dashboard.this_workspace_generates_with_provider", { provider: aiReady.label })}>
+                      <span
+                        className="hidden items-center gap-1.5 text-[11px] text-neutral-500 sm:flex"
+                        title={aiReady.personal ? tr("dashboard.generates_with_your_provider", { provider: aiReady.label }) : tr("dashboard.this_workspace_generates_with_provider", { provider: aiReady.label })}
+                      >
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                        {aiReady.label}
+                        {aiReady.personal ? tr("dashboard.your_provider_label", { provider: aiReady.label }) : aiReady.label}
                       </span>
                     ) : (
                       // Not a blocker: the brief is held through provider setup
@@ -1082,6 +1089,11 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                         {tr("dashboard.connect_an_ai_provider_first")}
                       </button>
                     ))}
+                    {aiReady && !aiReady.connected && aiReady.personalAllowed && (
+                      <button type="button" onClick={() => void router.push("/settings/ai/")} className="hidden text-[11px] font-medium text-brand-ink hover:underline sm:inline">
+                        {tr("dashboard.or_use_your_own_key")}
+                      </button>
+                    )}
                     <button
                       type="submit"
                       disabled={busy || !activeWorkspaceId || !aiBrief.trim()}

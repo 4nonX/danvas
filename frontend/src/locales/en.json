@@ -3957,5 +3957,19 @@
   "ui.notice": "Notice",
   "ui.ok": "OK",
   "ui.page_not_found": "Page not found",
-  "ui.the_page_you_are_looking_for_does_not_exist": "The page you are looking for does not exist or may have moved."
+  "ui.the_page_you_are_looking_for_does_not_exist": "The page you are looking for does not exist or may have moved.",
+  "settings.ai_provider": "AI provider",
+  "settings.personal_ai_description": "Connect your own AI provider. It is used in any workspace that has no provider of its own, and your key stays private to you.",
+  "settings.personal_ai_precedence": "A workspace's own provider always comes first. Workspace admins can turn personal keys off, and their usage limits still apply when your key is used in their workspace.",
+  "settings.personal_ai_load_failed": "Couldn't load your AI provider settings. Refresh to try again.",
+  "settings.personal_ai_usage": "Your key has used about {count} tokens this month.",
+  "editor.reset_personal_provider_confirm": "Remove your personal AI provider? Your stored key is deleted, and workspaces without their own provider stop using it.",
+  "editor.use_your_own_ai_key_in_settings": "Or use your own AI key in Settings",
+  "editor.your_provider": "Your provider",
+  "editor.workspace_provider": "Workspace provider",
+  "dashboard.allow_personal_ai_keys": "Allow members' personal AI keys",
+  "dashboard.allow_personal_ai_keys_hint": "When this workspace has no provider of its own, members can use their own key from their settings. Usage limits and blocked providers still apply.",
+  "dashboard.generates_with_your_provider": "Generates with your personal provider: {provider}",
+  "dashboard.your_provider_label": "Your key · {provider}",
+  "dashboard.or_use_your_own_key": "or use your own key"
 }

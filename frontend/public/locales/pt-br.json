@@ -3957,5 +3957,19 @@
   "ui.notice": "Aviso",
   "ui.ok": "OK",
   "ui.page_not_found": "Página não encontrada",
-  "ui.the_page_you_are_looking_for_does_not_exist": "A página que você procura não existe ou pode ter sido movida."
+  "ui.the_page_you_are_looking_for_does_not_exist": "A página que você procura não existe ou pode ter sido movida.",
+  "settings.ai_provider": "Provedor de IA",
+  "settings.personal_ai_description": "Conecte seu próprio provedor de IA. Ele é usado em qualquer espaço de trabalho sem provedor próprio, e sua chave continua privada.",
+  "settings.personal_ai_precedence": "O provedor próprio de um espaço de trabalho sempre tem prioridade. Admins podem desativar chaves pessoais, e os limites de uso continuam valendo quando sua chave é usada no espaço deles.",
+  "settings.personal_ai_load_failed": "Não foi possível carregar as configurações do seu provedor de IA. Atualize para tentar de novo.",
+  "settings.personal_ai_usage": "Sua chave usou cerca de {count} tokens este mês.",
+  "editor.reset_personal_provider_confirm": "Remover seu provedor de IA pessoal? Sua chave salva é excluída, e espaços sem provedor próprio deixam de usá-la.",
+  "editor.use_your_own_ai_key_in_settings": "Ou use sua própria chave de IA nas Configurações",
+  "editor.your_provider": "Seu provedor",
+  "editor.workspace_provider": "Provedor do espaço de trabalho",
+  "dashboard.allow_personal_ai_keys": "Permitir chaves de IA pessoais dos membros",
+  "dashboard.allow_personal_ai_keys_hint": "Quando este espaço de trabalho não tem provedor próprio, os membros podem usar a própria chave nas configurações. Limites de uso e provedores bloqueados continuam valendo.",
+  "dashboard.generates_with_your_provider": "Gera com seu provedor pessoal: {provider}",
+  "dashboard.your_provider_label": "Sua chave · {provider}",
+  "dashboard.or_use_your_own_key": "ou use sua própria chave"
 }

@@ -3957,5 +3957,19 @@
   "ui.notice": "Hinweis",
   "ui.ok": "OK",
   "ui.page_not_found": "Seite nicht gefunden",
-  "ui.the_page_you_are_looking_for_does_not_exist": "Die gesuchte Seite existiert nicht oder wurde verschoben."
+  "ui.the_page_you_are_looking_for_does_not_exist": "Die gesuchte Seite existiert nicht oder wurde verschoben.",
+  "settings.ai_provider": "KI-Anbieter",
+  "settings.personal_ai_description": "Verbinde deinen eigenen KI-Anbieter. Er wird in jedem Arbeitsbereich ohne eigenen Anbieter verwendet, und dein Schlüssel bleibt privat.",
+  "settings.personal_ai_precedence": "Der eigene Anbieter eines Arbeitsbereichs hat immer Vorrang. Admins können persönliche Schlüssel deaktivieren, und ihre Nutzungslimits gelten weiterhin, wenn dein Schlüssel in ihrem Arbeitsbereich verwendet wird.",
+  "settings.personal_ai_load_failed": "Deine KI-Anbieter-Einstellungen konnten nicht geladen werden. Lade die Seite neu, um es erneut zu versuchen.",
+  "settings.personal_ai_usage": "Dein Schlüssel hat diesen Monat etwa {count} Tokens verbraucht.",
+  "editor.reset_personal_provider_confirm": "Deinen persönlichen KI-Anbieter entfernen? Dein gespeicherter Schlüssel wird gelöscht, und Arbeitsbereiche ohne eigenen Anbieter verwenden ihn nicht mehr.",
+  "editor.use_your_own_ai_key_in_settings": "Oder nutze deinen eigenen KI-Schlüssel in den Einstellungen",
+  "editor.your_provider": "Dein Anbieter",
+  "editor.workspace_provider": "Anbieter des Arbeitsbereichs",
+  "dashboard.allow_personal_ai_keys": "Persönliche KI-Schlüssel der Mitglieder erlauben",
+  "dashboard.allow_personal_ai_keys_hint": "Wenn dieser Arbeitsbereich keinen eigenen Anbieter hat, können Mitglieder ihren eigenen Schlüssel aus ihren Einstellungen verwenden. Nutzungslimits und gesperrte Anbieter gelten weiterhin.",
+  "dashboard.generates_with_your_provider": "Generiert mit deinem persönlichen Anbieter: {provider}",
+  "dashboard.your_provider_label": "Dein Schlüssel · {provider}",
+  "dashboard.or_use_your_own_key": "oder nutze deinen eigenen Schlüssel"
 }
