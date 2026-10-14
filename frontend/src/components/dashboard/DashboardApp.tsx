@@ -126,7 +126,8 @@ const DASH_BACKDROP: React.CSSProperties = {
  *  deployment, so switching workspace should not ask for it again. */
 let aiPresetCache: AiProviderPreset[] | null = null;
 
-type Format = { label: string; icon: typeof Plus; w: number; h: number; kind?: string };
+/** `plain` tiles (Blank, Import) are actions, so their tooltip omits a size. */
+type Format = { label: string; icon: typeof Plus; w: number; h: number; kind?: string; plain?: boolean };
 
 /** Canvases the brief composer can generate for. Short on purpose: these are
  *  the shapes AI generation actually composes well for, and the full format
@@ -140,9 +141,12 @@ const briefFormats = (): Format[] => [
   { label: tr("dashboard.a4_document"), icon: Plus, w: 1240, h: 1754 },
 ];
 
+// The format shelf, grouped by what the design is for. A new format joins a
+// group by adding one entry here; both the "Start a design" shelf and the
+// Create menu render from this list.
 const formatGroups = (): { title: string; items: Format[] }[] => [
   {
-    title: tr("dashboard.social"),
+    title: tr("dashboard.social_media"),
     items: [
       { label: tr("dashboard.instagram_post_2"), icon: Instagram, w: 1080, h: 1080 },
       { label: tr("dashboard.instagram_story_2"), icon: Smartphone, w: 1080, h: 1920 },
@@ -152,32 +156,38 @@ const formatGroups = (): { title: string; items: Format[] }[] => [
     ],
   },
   {
-    title: tr("dashboard.print"),
+    // Document types beyond static design (docs 28-32) carry a `kind`, written
+    // to meta.kind at creation so the editor mounts the matching surface.
+    title: tr("dashboard.documents_print"),
     items: [
       { label: tr("dashboard.poster"), icon: FileText, w: 1080, h: 1350 },
       { label: tr("dashboard.flyer"), icon: File, w: 816, h: 1056 },
       { label: tr("dashboard.business_card_2"), icon: CreditCard, w: 1050, h: 600 },
-      { label: "A4 document", icon: BookOpen, w: 1240, h: 1754 },
+      { label: tr("dashboard.a4_document"), icon: BookOpen, w: 1240, h: 1754 },
+      { label: tr("dashboard.doc"), icon: FileText, w: 816, h: 1056, kind: "doc" },
     ],
   },
   {
-    title: tr("dashboard.digital"),
+    title: tr("dashboard.presentations"),
+    items: [{ label: tr("dashboard.presentation"), icon: Presentation, w: 1920, h: 1080 }],
+  },
+  {
+    title: tr("dashboard.video"),
+    items: [{ label: tr("dashboard.video"), icon: Film, w: 1920, h: 1080, kind: "video" }],
+  },
+  {
+    title: tr("dashboard.web_digital"),
     items: [
-      { label: tr("dashboard.presentation"), icon: Presentation, w: 1920, h: 1080 },
       { label: tr("dashboard.banner"), icon: RectangleHorizontal, w: 1500, h: 500 },
       { label: tr("dashboard.desktop_wallpaper"), icon: Monitor, w: 1920, h: 1080 },
       { label: tr("dashboard.logo"), icon: ImageIcon, w: 500, h: 500 },
     ],
   },
   {
-    // Document types beyond static design (docs 28-32). `kind` is written to
-    // meta.kind at creation so the editor mounts the matching surface.
-    title: tr("dashboard.docs_data"),
+    title: tr("dashboard.workspace_productivity"),
     items: [
       { label: tr("dashboard.whiteboard"), icon: LayoutGrid, w: 1920, h: 1080, kind: "whiteboard" },
-      { label: tr("dashboard.doc"), icon: FileText, w: 816, h: 1056, kind: "doc" },
       { label: tr("dashboard.sheet"), icon: Table2, w: 1280, h: 800, kind: "sheet" },
-      { label: tr("dashboard.video"), icon: Film, w: 1920, h: 1080, kind: "video" },
     ],
   },
 ];
@@ -630,8 +640,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   }
 
   function startFormat(f: Format) {
-    if (f.label === "Blank") setSizeOpen(true);
-    else void createDesign(f.w, f.h, f.label, f.kind);
+    void createDesign(f.w, f.h, f.label, f.kind);
   }
 
   async function applyTemplate(t: TemplateSummary) {
@@ -1035,7 +1044,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
             </section>
           )}
 
-          {/* Create row: every format together in one wrap. */}
+          {/* Create row: every format, grouped by what the design is for. */}
           <section className="mb-10">
             <div className="mb-3 flex items-center gap-3">
               <h2 className="text-sm font-bold uppercase tracking-wide text-neutral-400">{tr("dashboard.start_a_design")}</h2>
@@ -1048,15 +1057,31 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                 <Plus size={14} /> {tr("dashboard.blank_custom_size")}
               </button>
             </div>
-            <div className="flex flex-wrap gap-3">
-              {[{ label: tr("dashboard.blank"), icon: Plus, w: 1080, h: 1080 } as Format, ...formatGroups().flatMap((g) => g.items)].map((f) => (
-                <FormatTile key={f.label} f={f} disabled={busy} onClick={() => startFormat(f)} />
+            {/* Groups wrap side by side, so a one-tile group (Video) shares a
+                row instead of leaving an empty band. */}
+            <div className="flex flex-wrap gap-x-10 gap-y-6">
+              {formatGroups().map((g, gi) => (
+                <div key={g.title} role="group" aria-labelledby={`fmt-group-${gi}`}>
+                  <h3 id={`fmt-group-${gi}`} className="mb-2 text-xs font-semibold text-neutral-500">{g.title}</h3>
+                  <div className="flex flex-wrap gap-3">
+                    {g.items.map((f) => (
+                      <FormatTile key={f.label} f={f} disabled={busy} onClick={() => startFormat(f)} />
+                    ))}
+                  </div>
+                </div>
               ))}
-              <FormatTile
-                f={{ label: tr("dashboard.import_hyc_pptx"), icon: FileUp, w: 1080, h: 1080 } as Format}
-                disabled={busy}
-                onClick={() => importDesignRef.current?.click()}
-              />
+              <div role="group" aria-labelledby="fmt-import-custom">
+                <h3 id="fmt-import-custom" className="mb-2 text-xs font-semibold text-neutral-500">{tr("dashboard.import_custom")}</h3>
+                <div className="flex flex-wrap gap-3">
+                  {/* Blank opens the size picker rather than guessing a canvas. */}
+                  <FormatTile f={{ label: tr("dashboard.blank"), icon: Plus, w: 1080, h: 1080, plain: true }} disabled={busy} onClick={() => setSizeOpen(true)} />
+                  <FormatTile
+                    f={{ label: tr("dashboard.import_hyc_pptx"), icon: FileUp, w: 1080, h: 1080, plain: true }}
+                    disabled={busy}
+                    onClick={() => importDesignRef.current?.click()}
+                  />
+                </div>
+              </div>
               <input
                 ref={importDesignRef}
                 type="file"
@@ -1549,7 +1574,7 @@ function FormatTile({ f, disabled, onClick }: { f: Format; disabled?: boolean; o
       onClick={onClick}
       disabled={disabled}
       className="group flex w-24 flex-col items-center gap-2"
-      title={f.label === "Blank" || f.label.startsWith("Import") ? f.label : `${f.label} · ${f.w}×${f.h}`}
+      title={f.plain ? f.label : `${f.label} · ${f.w}×${f.h}`}
     >
       <span className="relative grid h-[78px] w-full place-items-center rounded-xl border border-neutral-200 bg-surface shadow-sm transition group-hover:-translate-y-0.5 group-hover:border-brand-300 group-hover:shadow-md">
         <span className="rounded bg-brand-50 ring-1 ring-brand-100" style={{ width: boxW, height: boxH }} />
