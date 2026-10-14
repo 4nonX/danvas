@@ -27,7 +27,7 @@ import {
   isComposedSlide, slideItemOf, slideTextDump, reviseSlideSystemPrompt, reviseSlideSchema, reviseSlideItem, recomposeSlide } from "@hc/aistudio";
 import { builtinMasterAndLayouts, type SlideLayout } from "@hc/schema";
 import { shouldGroundInLayouts } from "@/lib/generationRoute";
-import { promptText } from "@/lib/promptDialog";
+import { chooseAction, promptText } from "@/lib/promptDialog";
 import { downloadHycFile } from "@/lib/hycFile";
 import { generateAltText } from "@/lib/altText";
 import { fonts } from "@/lib/fontProvider";
@@ -189,6 +189,24 @@ export function TemplatesPanel() {
 
   const apply = async (t: TemplateSummary) => {
     if (busyId) return;
+    // Never append silently over the user's head: an empty active page is
+    // simply replaced (nothing to lose), otherwise the user picks.
+    const { doc, activePage } = useEditor.getState();
+    const active = doc.pages[activePage] as (typeof doc.pages)[number] & { notes?: string };
+    const isEmpty = !!active && active.children.length === 0 && !active.notes?.trim();
+    let replaceActive = isEmpty;
+    if (active && !isEmpty) {
+      const choice = await chooseAction({
+        title: tr("editor.use_this_template"),
+        message: tr("editor.page_n_has_content_replace_or_add", { n: activePage + 1 }),
+        choices: [
+          { value: "replace", label: tr("editor.replace_page_n", { n: activePage + 1 }) },
+          { value: "add", label: tr("editor.add_as_new_page"), primary: true },
+        ],
+      });
+      if (!choice) return;
+      replaceActive = choice === "replace";
+    }
     setBusyId(t.id);
     try {
       // The template endpoint serves the stored file verbatim; a user-saved
@@ -197,7 +215,7 @@ export function TemplatesPanel() {
       const file = migrate(await oc.getTemplateFile(t.id));
       // The store refuses in read-only states (viewer/comment access, history
       // preview) and for empty templates; never claim success for a no-op.
-      if (useEditor.getState().applyTemplateFile(file, t.title)) {
+      if (useEditor.getState().applyTemplateFile(file, t.title, { replaceActive })) {
         // The store resizes differently-sized template pages to this design's
         // page size on insert; say so, so the size badge never reads as a
         // warning. A summary without format metadata (0x0) proves nothing, so
@@ -206,9 +224,11 @@ export function TemplatesPanel() {
         const th = Math.round(t.format?.height ?? 0);
         const resized = !!pageSize && tw > 0 && th > 0 && (tw !== pageSize.w || th !== pageSize.h);
         toast.success(
-          resized
-            ? tr("editor.template_added_as_a_new_page_resized_to_fit")
-            : tr("editor.template_added_as_a_new_page_undo_removes_it"),
+          replaceActive
+            ? tr("editor.template_replaced_page_n_undo_restores_it", { n: activePage + 1 })
+            : resized
+              ? tr("editor.template_added_as_a_new_page_resized_to_fit")
+              : tr("editor.template_added_as_a_new_page_undo_removes_it"),
         );
       } else {
         toast.error(tr("editor.templates_cant_be_added_in_a_read_only_view"));
@@ -236,7 +256,7 @@ export function TemplatesPanel() {
         type="button"
         onClick={() => void apply(t)}
         disabled={!!busyId}
-        title={`Add "${t.title}" (${Math.round(t.format?.width ?? 0)}x${Math.round(t.format?.height ?? 0)}) as a new page`}
+        title={`${t.title} (${Math.round(t.format?.width ?? 0)}x${Math.round(t.format?.height ?? 0)})`}
         className="block w-full text-start disabled:opacity-60"
       >
         <div className="relative aspect-[4/3] bg-neutral-100">
