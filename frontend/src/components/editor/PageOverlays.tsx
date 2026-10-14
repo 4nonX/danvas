@@ -3,7 +3,7 @@
 // duplicate, delete), plus an "Add page" button below the last page. Rendered in
 // screen space over the canvas; positions track scroll/zoom via the base viewport.
 
-import { useRef } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { ChevronUp, ChevronDown, Eye, EyeOff, Lock, LockOpen, CopyPlus, Trash2, Plus, Sparkles } from "lucide-react";
 import { pageToScreen } from "@hc/engine";
 import { useEditor } from "@/store/editor";
@@ -15,10 +15,11 @@ import { tr } from "@/lib/i18n";
 import { avoidRect, type Rect } from "@/lib/avoidRect";
 
 // The floating zoom control's box relative to the overlay, so "Add page" can
-// stay clear of it. Read on render: the overlay re-renders on every pan/zoom.
-function zoomControlBox(root: HTMLElement | null): Rect | null {
-  const zc = root?.ownerDocument.querySelector<HTMLElement>("[data-zoom-control]");
-  if (!root || !zc) return null;
+// stay clear of it. Both are anchored to the canvas viewport, so the box only
+// moves when either is resized.
+function zoomControlBox(root: HTMLElement): Rect | null {
+  const zc = root.ownerDocument.querySelector<HTMLElement>("[data-zoom-control]");
+  if (!zc) return null;
   const r = root.getBoundingClientRect();
   const c = zc.getBoundingClientRect();
   if (!c.width || !c.height) return null;
@@ -42,6 +43,7 @@ function HdrBtn({ icon: Icon, title, onClick, disabled, danger }: { icon: typeof
 
 export function PageOverlays({ api }: { api: CanvasApi }) {
   const rootRef = useRef<HTMLDivElement>(null);
+  const [zoomBox, setZoomBox] = useState<Rect | null>(null);
   useEditor((s) => s.rev);
   useEditor((s) => s.viewport);
   const activePage = useEditor((s) => s.activePage);
@@ -50,8 +52,26 @@ export function PageOverlays({ api }: { api: CanvasApi }) {
   const presenting = useEditor((s) => s.presenting);
   const doc = useEditor.getState().doc;
   const st = useEditor.getState();
+  const hidden = cropping || maskRefining || presenting;
 
-  if (cropping || maskRefining || presenting) return null;
+  useLayoutEffect(() => {
+    const root = rootRef.current;
+    if (hidden || !root) return;
+    const same = (a: Rect | null, b: Rect | null) =>
+      a === b || (!!a && !!b && a.left === b.left && a.top === b.top && a.width === b.width && a.height === b.height);
+    const measure = () => {
+      const next = zoomControlBox(root);
+      setZoomBox((prev) => (same(prev, next) ? prev : next));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(root);
+    const zc = root.ownerDocument.querySelector("[data-zoom-control]");
+    if (zc) ro.observe(zc);
+    return () => ro.disconnect();
+  }, [hidden]);
+
+  if (hidden) return null;
 
   const base = api.viewport();
   const z = base.zoom;
@@ -77,7 +97,7 @@ export function PageOverlays({ api }: { api: CanvasApi }) {
   const addLeft = pageToScreen(base, { x: 0, y: 0 }).x;
   const addWidth = Math.max(220, doc.pages[lastIdx].width * z);
   // Keep the button off the zoom control (bottom-end of the viewport).
-  const add = avoidRect({ left: addLeft, top: lastBottom + 18, width: addWidth, height: 42 }, zoomControlBox(rootRef.current));
+  const add = avoidRect({ left: addLeft, top: lastBottom + 18, width: addWidth, height: 42 }, zoomBox);
 
   return (
     <div ref={rootRef} className="pointer-events-none absolute inset-0 z-20 overflow-hidden">
