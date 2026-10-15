@@ -4,7 +4,7 @@ Guidance for working in the HyCanvas repository.
 
 ## What This Project Is
 
-HyCanvas is a free, self-hostable, AI-native design platform, built to lead on performance, AI quality, collaboration, openness, and accessibility. Everything is free: no tiers, no paywalls, no watermarks. Web-only.
+HyCanvas is a free, open-source, AI-native design platform, built to lead on performance, AI quality, collaboration, openness, and accessibility. Everything is free: no tiers, no paywalls, no watermarks. Web-only.
 
 Current state: the core product is built and runs. A single-player editor, content systems (uploads, stock, templates), accounts and workspaces, document types (presentations, video, whiteboard, docs, sheets), export, brand kits, and a bring-your-own-key AI layer all ship today. The remaining and early-stage work is tracked in `docs/roadmap/`.
 
@@ -71,7 +71,7 @@ Rules for every change:
 
 Naming:
 - Describe code by what it does, not by whose product it resembles. "Floating selection toolbar", not "<competitor>-style toolbar"; "equal-spacing guides", not "<competitor>'s pink guides". This applies to source comments, commit messages, test names, and user-facing strings.
-- HyCanvas is stated on its own terms: a full-featured, self-hostable design platform. Its positioning does not define it against another product.
+- HyCanvas is stated on its own terms: a full-featured, open-source design platform. Its positioning does not define it against another product.
 - Market context in `docs/roadmap/` (what exists, where the capability bar sits, where a gap is) is how we decide what to build, and stays. We do not set our own goals by another product's feature list.
 
 Documentation:
