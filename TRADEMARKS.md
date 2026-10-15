@@ -4,7 +4,7 @@ HyCanvas's code is open source under the [AGPL-3.0](LICENSE). Its name and logos
 
 ## The marks
 
-The HyScaler® wordmarks and the HyScaler logo are registered trademarks of HyScaler. "HyCanvas" and the HyCanvas logo are unregistered trademarks of HyScaler, used to identify its product. This policy calls them all "the marks".
+"HyCanvas" and the HyCanvas logo are trademarks of HyScaler. This policy also covers the HyScaler name and logo. Together they are "the marks".
 
 The AGPL and the commercial license grant rights in the code only. Neither grants any right to use the marks, except as this policy allows.
 
@@ -25,7 +25,7 @@ The AGPL and the commercial license grant rights in the code only. Neither grant
 
 ## Renaming a fork
 
-If you redistribute a modified version, replace the HyCanvas name and logos in the user interface, the page titles, the favicon, and the published packages and images with your own. Keep the copyright and license notices as the AGPL requires; those notices are not trademark use. You may say that your project is derived from HyCanvas.
+If you redistribute a modified version, replace the HyCanvas name and logos in the user interface, the page titles, the favicon, and the published packages and images with your own, and remove the "HyCanvas is a HyScaler product" line on the sign-in page. Keep the copyright and license notices as the AGPL requires; those notices are not trademark use. You may say that your project is derived from HyCanvas.
 
 ## Permission and questions
 
