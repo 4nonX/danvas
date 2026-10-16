@@ -62,6 +62,8 @@ The replacement takes the old object's place in the layer order and keeps its op
 
 Every element can be cropped: images by their edge and corner handles, and shapes, text, groups, scaled and rotated elements with a clipping crop.
 
+The crop frame turns independently of the element: drag the round handle above the frame, or type its angle in the crop bar (Shift snaps to 15°). The element stays where it is, so a tilted graphic can be cut to a straight rectangle and a straight one to a tilted frame. For a straight, unscaled image, "Rotate frame" in the crop bar switches to this frame.
+
 On an image, the middle handles move the frame over the picture: drag the left handle in and less of the picture's left shows, while the picture keeps its size and place. Drag out again to show more, up to the edge of the image file. Hold Shift on a middle handle to scale picture and frame together. The corner handles always scale. One undo step per drag; Escape abandons it.
 
 ### Vectorize and Make editable

@@ -86,6 +86,7 @@ import {
   applyToPoint,
   fromTransform,
   invert,
+  multiply,
   entrancePatch,
   emphasisPatch,
   exitPatch,
@@ -99,6 +100,7 @@ import {
 import { booleanOp, fitCubicBeziers, pathToPolylines, recognizeShape, shapeNodeToParametric, shapeToPath, simplifyPolyline, strokeToOutline, type BooleanOp } from "@hc/geometry";
 import { imageAssets } from "@/lib/assetProvider";
 import { measuredTextHeight } from "@/lib/textFit";
+import { conformal, frameCorners, frameRotatable, rebaseInFrame, rotatePt, transformOf, turnSign } from "@/lib/cropFrame";
 import { pageGap, pageOffsets, pageTop } from "@/lib/pageLayout";
 import type { MagicDesignSpec } from "@/lib/magicDesign";
 import { accentRuleRect, extractLayoutSet, fallbackLayoutFill, layoutDesign, reflowPage, slotTypeScale, variantCandidate, verifyLayoutCapacities, type AiDesignSpec, type DeckResult, type ExtractedLayoutSet, type ExtractPageLike } from "@hc/aistudio";
@@ -1103,7 +1105,15 @@ interface EditorState {
    *  clipping group with that box, any other element is wrapped in one that
    *  takes over its scale and rotation. Content stays where it is on the page
    *  and keeps all its data, so the crop can be widened again. One undo step. */
-  cropBox(id: string, rect: { x: number; y: number; width: number; height: number }): void;
+  /** Crop to `rect` (element coordinates). `angle` turns the frame by that
+   *  many degrees about its centre, independently of the element, which
+   *  stays where it is on the page (only on elements scaled evenly, see
+   *  frameRotatable). */
+  cropBox(id: string, rect: { x: number; y: number; width: number; height: number }, angle?: number): void;
+  /** Crop to a frame given on the page: a rectangle (before its turn) and
+   *  its own angle in degrees, independent of the element's. Works on any
+   *  element, turned, stretched, mirrored or skewed; it stays in place. */
+  cropFrame(id: string, frame: { x: number; y: number; width: number; height: number; angle: number }): void;
   /** Replace an image node's source with a new URL (resets crop), undoable. */
   setImageSource(id: string, url: string): void;
   /** Replace a node by another at the same place in the layer order (Replace
@@ -8189,31 +8199,38 @@ export const useEditor = create<EditorState>((set, get) => {
         },
       );
     },
-    cropBox: (id, rect) => {
+    cropBox: (id, rect, angle = 0) => {
       const loc = locate(get().doc, id);
       if (!loc || editBlocked(id) || loc.node.locked) return;
       if (!(rect.width > 0) || !(rect.height > 0)) return;
       const node = loc.node as Node & { clip?: boolean; children?: Node[] };
       const t = node.transform;
-      const unchanged = Math.abs(rect.x) < 1e-6 && Math.abs(rect.y) < 1e-6 && Math.abs(rect.width - node.size.width) < 1e-6 && Math.abs(rect.height - node.size.height) < 1e-6;
-      // The rect's top-left in parent space: through the element's own
+      // A turned frame must stay a rectangle on the page.
+      const turn = Number.isFinite(angle) && Math.abs(angle) > 1e-9 && frameRotatable(t) ? angle : 0;
+      const frame = { x: rect.x, y: rect.y, w: rect.width, h: rect.height };
+      const unchanged = !turn && Math.abs(rect.x) < 1e-6 && Math.abs(rect.y) < 1e-6 && Math.abs(rect.width - node.size.width) < 1e-6 && Math.abs(rect.height - node.size.height) < 1e-6;
+      // The frame's top-left in parent space: through the element's own
       // transform (translate, then rotate/skew/scale about its top-left).
       const m = fromTransform(t);
-      const origin = { x: m.a * rect.x + m.c * rect.y + m.e, y: m.b * rect.x + m.d * rect.y + m.f };
+      const tl = frameCorners(frame, turn)[0];
+      const origin = { x: m.a * tl.x + m.c * tl.y + m.e, y: m.b * tl.x + m.d * tl.y + m.f };
+      const rotation = t.rotation + turnSign(t) * turn;
       if (node.type === "group") {
         if (unchanged && node.clip) return;
         // The group's box is the crop; children shift back so they stay put.
-        const before = { x: t.x, y: t.y, w: node.size.width, h: node.size.height, clip: node.clip };
+        const before = { x: t.x, y: t.y, rotation: t.rotation, w: node.size.width, h: node.size.height, clip: node.clip };
         const kids = node.children ?? [];
+        const kidsBefore = kids.map((k) => ({ ...k.transform }));
+        const kidsAfter = kids.map((k) => rebaseInFrame(k.transform, frame, turn));
         perform(
           () => {
-            t.x = origin.x; t.y = origin.y; node.size.width = rect.width; node.size.height = rect.height; node.clip = true;
-            for (const k of kids) { k.transform.x -= rect.x; k.transform.y -= rect.y; }
+            t.x = origin.x; t.y = origin.y; t.rotation = rotation; node.size.width = rect.width; node.size.height = rect.height; node.clip = true;
+            kids.forEach((k, i) => { Object.assign(k.transform, kidsAfter[i]); });
           },
           () => {
-            t.x = before.x; t.y = before.y; node.size.width = before.w; node.size.height = before.h;
+            t.x = before.x; t.y = before.y; t.rotation = before.rotation; node.size.width = before.w; node.size.height = before.h;
             if (before.clip === undefined) delete node.clip; else node.clip = before.clip;
-            for (const k of kids) { k.transform.x += rect.x; k.transform.y += rect.y; }
+            kids.forEach((k, i) => { Object.assign(k.transform, kidsBefore[i]); });
           },
         );
         return;
@@ -8224,7 +8241,7 @@ export const useEditor = create<EditorState>((set, get) => {
       const group = createNode("group", {
         name: node.name ?? tr("editor.crop"),
         clip: true,
-        transform: { ...t, x: origin.x, y: origin.y },
+        transform: { ...t, x: origin.x, y: origin.y, rotation },
         size: { width: rect.width, height: rect.height },
         children: [],
       } as unknown as Partial<Node>) as Node & { children: Node[] };
@@ -8236,7 +8253,7 @@ export const useEditor = create<EditorState>((set, get) => {
           const i = siblings.findIndex((c) => c.id === node.id);
           if (i < 0) return;
           for (const k of Object.keys(t) as (keyof typeof t)[]) delete t[k];
-          Object.assign(t, { x: -rect.x, y: -rect.y, scaleX: 1, scaleY: 1, rotation: 0 });
+          Object.assign(t, rebaseInFrame({ x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0 }, frame, turn));
           group.children.splice(0, group.children.length, node);
           siblings.splice(i, 1, group);
           set({ selection: [group.id] });
@@ -8247,6 +8264,105 @@ export const useEditor = create<EditorState>((set, get) => {
           if (i >= 0) siblings.splice(i, 1, node);
           for (const k of Object.keys(t) as (keyof typeof t)[]) delete t[k];
           Object.assign(t, before);
+          set({ selection: prev });
+        },
+      );
+    },
+
+    cropFrame: (id, frame) => {
+      const doc = get().doc;
+      const loc = locate(doc, id);
+      const W = worldMatrix(doc, id);
+      if (!loc || !W || editBlocked(id) || loc.node.locked) return;
+      if (!(frame.width > 0) || !(frame.height > 0) || !Number.isFinite(frame.angle)) return;
+      const iW = invert(W);
+      if (!iW) return;
+      const node = loc.node as Node & { clip?: boolean; children?: Node[] };
+      const t = node.transform;
+      const deg = (Math.atan2(W.b, W.a) * 180) / Math.PI;
+      const diff = frame.angle - deg;
+      const centre = { x: frame.x + frame.width / 2, y: frame.y + frame.height / 2 };
+      const cl = { x: iW.a * centre.x + iW.c * centre.y + iW.e, y: iW.b * centre.x + iW.d * centre.y + iW.f };
+      const s1 = Math.hypot(W.a, W.b);
+      const s2 = Math.hypot(W.c, W.d);
+      const square = Math.abs(W.a * W.c + W.b * W.d) <= 1e-6 * s1 * s2;
+      // 1) The frame lies along the element's edges: a plain crop.
+      if (square && Math.abs(Math.sin((diff * Math.PI) / 180)) < 1e-9) {
+        const w = frame.width / s1, h = frame.height / s2;
+        get().cropBox(id, { x: cl.x - w / 2, y: cl.y - h / 2, width: w, height: h });
+        return;
+      }
+      // 2) An evenly scaled element under an evenly scaled parent: the frame
+      // turns in the element's own coordinates and its scale is kept.
+      const iT = invert(fromTransform(t));
+      if (!iT) return;
+      const P = multiply(W, iT);
+      if (frameRotatable(t) && conformal(P)) {
+        const sigma = W.a * W.d - W.b * W.c < 0 ? -1 : 1;
+        const sc = Math.sqrt(Math.abs(W.a * W.d - W.b * W.c));
+        const w = frame.width / sc, h = frame.height / sc;
+        get().cropBox(id, { x: cl.x - w / 2, y: cl.y - h / 2, width: w, height: h }, sigma * diff);
+        return;
+      }
+      // 3) Anything else (stretched, skewed, or under a stretched parent):
+      // the clipping group is the frame on the page, unscaled, and what is
+      // inside takes over the element's full transform, exactly.
+      const r = rotatePt({ x: -frame.width / 2, y: -frame.height / 2 }, frame.angle);
+      const Gw = fromTransform({ x: centre.x + r.x, y: centre.y + r.y, scaleX: 1, scaleY: 1, rotation: frame.angle });
+      const iGw = invert(Gw);
+      const iP = invert(P);
+      if (!iGw || !iP) return;
+      const groupT = transformOf(multiply(iP, Gw));
+      const inner = multiply(iGw, W);
+      const assign = (to: Transform, from: Transform) => {
+        for (const k of Object.keys(to) as (keyof Transform)[]) delete to[k];
+        Object.assign(to, from);
+      };
+      if (node.type === "group") {
+        const before = { t: { ...t }, w: node.size.width, h: node.size.height, clip: node.clip };
+        const kids = node.children ?? [];
+        const kidsBefore = kids.map((k) => ({ ...k.transform }));
+        const kidsAfter = kids.map((k) => transformOf(multiply(inner, fromTransform(k.transform))));
+        perform(
+          () => {
+            assign(t, groupT);
+            node.size.width = frame.width; node.size.height = frame.height; node.clip = true;
+            kids.forEach((k, i) => assign(k.transform, kidsAfter[i]));
+          },
+          () => {
+            assign(t, before.t);
+            node.size.width = before.w; node.size.height = before.h;
+            if (before.clip === undefined) delete node.clip; else node.clip = before.clip;
+            kids.forEach((k, i) => assign(k.transform, kidsBefore[i]));
+          },
+        );
+        return;
+      }
+      const group = createNode("group", {
+        name: node.name ?? tr("editor.crop"),
+        clip: true,
+        transform: groupT,
+        size: { width: frame.width, height: frame.height },
+        children: [],
+      } as unknown as Partial<Node>) as Node & { children: Node[] };
+      const { siblings } = loc;
+      const prev = get().selection;
+      const before = { ...t };
+      const after = transformOf(inner);
+      perform(
+        () => {
+          const i = siblings.findIndex((c) => c.id === node.id);
+          if (i < 0) return;
+          assign(t, after);
+          group.children.splice(0, group.children.length, node);
+          siblings.splice(i, 1, group);
+          set({ selection: [group.id] });
+          noteReplacement(node.id, group.id);
+        },
+        () => {
+          const i = siblings.findIndex((c) => c.id === group.id);
+          if (i >= 0) siblings.splice(i, 1, node);
+          assign(t, before);
           set({ selection: prev });
         },
       );

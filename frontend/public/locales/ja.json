@@ -4232,5 +4232,8 @@
   "editor.add_logo": "ロゴを追加",
   "editor.remove_logo": "ロゴを削除",
   "editor.logo_added": "ロゴをブランドキットに追加しました。",
-  "editor.logo_removed": "ロゴを削除しました。キットの履歴から復元できます。"
+  "editor.logo_removed": "ロゴを削除しました。キットの履歴から復元できます。",
+  "editor.rotate_frame": "枠を回転",
+  "editor.rotate_frame_hint": "トリミング枠だけを回転します。内容はそのままの位置に残ります。枠の上の丸いハンドルをドラッグします。Shift で 15° 刻みにスナップします。",
+  "editor.frame_angle": "枠の角度"
 }

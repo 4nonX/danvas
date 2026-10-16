@@ -4232,5 +4232,8 @@
   "editor.add_logo": "Adicionar logotipo",
   "editor.remove_logo": "Remover logotipo",
   "editor.logo_added": "Logotipo adicionado ao kit da marca.",
-  "editor.logo_removed": "Logotipo removido. O histórico do kit pode recuperá-lo."
+  "editor.logo_removed": "Logotipo removido. O histórico do kit pode recuperá-lo.",
+  "editor.rotate_frame": "Girar moldura",
+  "editor.rotate_frame_hint": "Gire a moldura de corte sozinha, o conteúdo fica onde está. Arraste a alça redonda acima da moldura; Shift encaixa em passos de 15°.",
+  "editor.frame_angle": "Ângulo da moldura"
 }

@@ -4232,5 +4232,8 @@
   "editor.add_logo": "添加徽标",
   "editor.remove_logo": "移除徽标",
   "editor.logo_added": "已将徽标添加到品牌套件。",
-  "editor.logo_removed": "已移除徽标。可通过套件历史记录恢复。"
+  "editor.logo_removed": "已移除徽标。可通过套件历史记录恢复。",
+  "editor.rotate_frame": "旋转框",
+  "editor.rotate_frame_hint": "单独旋转裁剪框，内容保持原位。拖动框上方的圆形手柄；按住 Shift 以 15° 为步进吸附。",
+  "editor.frame_angle": "框角度"
 }

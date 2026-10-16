@@ -4232,5 +4232,8 @@
   "ui.notice": "Notice",
   "ui.ok": "OK",
   "ui.page_not_found": "Page not found",
-  "ui.the_page_you_are_looking_for_does_not_exist": "The page you are looking for does not exist or may have moved."
+  "ui.the_page_you_are_looking_for_does_not_exist": "The page you are looking for does not exist or may have moved.",
+  "editor.rotate_frame": "Rotate frame",
+  "editor.rotate_frame_hint": "Turn the crop frame on its own, the content stays where it is. Drag the round handle above the frame; Shift snaps to 15°.",
+  "editor.frame_angle": "Frame angle"
 }

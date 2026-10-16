@@ -4232,5 +4232,8 @@
   "editor.add_logo": "Ajouter un logo",
   "editor.remove_logo": "Retirer le logo",
   "editor.logo_added": "Logo ajouté au kit de marque.",
-  "editor.logo_removed": "Logo retiré. L'historique du kit permet de le restaurer."
+  "editor.logo_removed": "Logo retiré. L'historique du kit permet de le restaurer.",
+  "editor.rotate_frame": "Faire pivoter le cadre",
+  "editor.rotate_frame_hint": "Faire pivoter le cadre de recadrage seul, le contenu reste en place. Faites glisser la poignée ronde au-dessus du cadre ; Maj aimante par pas de 15°.",
+  "editor.frame_angle": "Angle du cadre"
 }

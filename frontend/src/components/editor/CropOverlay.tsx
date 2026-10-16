@@ -16,7 +16,7 @@
 // is being cropped).
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Check, X } from "lucide-react";
+import { Check, RotateCw, X } from "lucide-react";
 import type { CropRect, Fill, ImageNode, ImageSource, Transform } from "@hc/schema";
 import { locate, worldMatrix } from "@hc/editor";
 import { fromTransform } from "@hc/engine";
@@ -24,6 +24,7 @@ import { useEditor } from "@/store/editor";
 import { imageAssets } from "@/lib/assetProvider";
 import type { CanvasApi } from "@/lib/useEditorCanvas";
 import { tr } from "@/lib/i18n";
+import { frameCorners, framePoint, rotatePt } from "@/lib/cropFrame";
 
 type Edge = "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw";
 type Corner = "ne" | "nw" | "se" | "sw";
@@ -48,18 +49,29 @@ const MIN_SIDE = 8;
 
 type Rect = { x: number; y: number; w: number; h: number };
 
+/** An angle in degrees in (-180, 180]. */
+function normDeg(d: number): number {
+  const r = ((d % 360) + 360) % 360;
+  return r > 180 ? r - 360 : r;
+}
+
 export function CropOverlay({ api, id }: { api: CanvasApi; id: string }) {
   const doc = useEditor((s) => s.doc);
+  // The image crop has no turnable frame: "Rotate frame" switches to the box
+  // crop, which has one.
+  const [turnFrame, setTurnFrame] = useState(false);
   const node = locate(doc, id)?.node;
   const wm = worldMatrix(doc, id);
   const imageLike = node?.type === "image" || (node?.type === "shape" && (node as unknown as { fills?: Fill[] }).fills?.[0]?.type === "image");
   // The image crop pans the source inside an axis-aligned box; a rotated or
   // scaled image crops like any other element instead of not at all.
   const axisAligned = !!wm && Math.abs(wm.a - 1) < 1e-6 && Math.abs(wm.d - 1) < 1e-6 && Math.abs(wm.b) < 1e-6 && Math.abs(wm.c) < 1e-6;
-  return imageLike && axisAligned ? <ImageCropOverlay api={api} id={id} /> : <BoxCropOverlay api={api} id={id} />;
+  return imageLike && axisAligned && !turnFrame
+    ? <ImageCropOverlay api={api} id={id} onTurnFrame={() => setTurnFrame(true)} />
+    : <BoxCropOverlay api={api} id={id} />;
 }
 
-function ImageCropOverlay({ api, id }: { api: CanvasApi; id: string }) {
+function ImageCropOverlay({ api, id, onTurnFrame }: { api: CanvasApi; id: string; onTurnFrame: () => void }) {
   // Track edits/pan/zoom so the frame stays glued to the node.
   useEditor((s) => s.rev);
   useEditor((s) => s.viewport);
@@ -316,6 +328,9 @@ function ImageCropOverlay({ api, id }: { api: CanvasApi; id: string }) {
         onPointerDown={(e) => e.stopPropagation()}
       >
         <span className="px-1 text-xs text-neutral-500">{tr("editor.crop_image")}</span>
+        <button onClick={onTurnFrame} title={tr("editor.rotate_frame_hint")} className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs text-neutral-600 hover:bg-neutral-100">
+          <RotateCw size={14} /> {tr("editor.rotate_frame")}
+        </button>
         {/* text-surface, not text-white: neutral-900 flips light in dark mode,
             so the label must flip with it to stay readable. */}
         <button onClick={apply} className="flex items-center gap-1 rounded-md bg-neutral-900 px-3 py-1.5 text-xs font-medium text-surface hover:bg-neutral-700">
@@ -331,9 +346,9 @@ function ImageCropOverlay({ api, id }: { api: CanvasApi; id: string }) {
 
 /** Crop for every element the image crop cannot show (groups, vectors, text,
  *  rotated or scaled images, ...): the frame becomes the box of a clipping
- *  group (store.cropBox). Everything here is in the element's OWN coordinates
- *  and mapped to the screen through its full transform, so scale, rotation
- *  and flips need no special case. Content stays fixed on the page. */
+ *  group (store.cropFrame). The frame is a rectangle on the page with its own
+ *  angle, independent of the element's: it starts on the element's box and
+ *  can be trimmed, moved and turned freely. The element stays where it is. */
 function BoxCropOverlay({ api, id }: { api: CanvasApi; id: string }) {
   useEditor((s) => s.rev);
   useEditor((s) => s.viewport);
@@ -342,21 +357,18 @@ function BoxCropOverlay({ api, id }: { api: CanvasApi; id: string }) {
   const loc = locate(doc, id);
   const wm = worldMatrix(doc, id);
   const node = loc?.node as { size: { width: number; height: number }; children?: { transform: Transform; size: { width: number; height: number } }[] } | undefined;
-  const zoom = api.viewport().zoom;
+  const zoom = api.viewport().zoom || 1;
   const W = node?.size.width ?? 0;
   const H = node?.size.height ?? 0;
+  const det = wm ? wm.a * wm.d - wm.b * wm.c : 0;
 
-  // Element-local -> screen.
-  const o = wm ? api.toScreen({ x: wm.e, y: wm.f }) : { x: 0, y: 0 };
-  const M = wm ? { a: wm.a * zoom, b: wm.b * zoom, c: wm.c * zoom, d: wm.d * zoom } : { a: 1, b: 0, c: 0, d: 1 };
-  const det = M.a * M.d - M.b * M.c;
-  const toScreen = (x: number, y: number) => ({ x: o.x + M.a * x + M.c * y, y: o.y + M.b * x + M.d * y });
-  /** A screen-space drag delta in element-local units. */
-  const toLocal = (dx: number, dy: number) => ({ x: (M.d * dx - M.c * dy) / det, y: (-M.b * dx + M.a * dy) / det });
-  const minSide = MIN_SIDE / Math.sqrt(Math.abs(det) || 1);
+  // Element-local -> page, page -> screen.
+  const toPage = (x: number, y: number) => (wm ? { x: wm.a * x + wm.c * y + wm.e, y: wm.b * x + wm.d * y + wm.f } : { x, y });
+  const scr = (p: { x: number; y: number }) => api.toScreen(p);
+  const minSide = MIN_SIDE / zoom;
 
-  // Everything the crop may reveal (local units): the box itself plus, for a
-  // group, every child's box through its own transform.
+  // Everything the crop may reveal (element units): the box itself plus, for
+  // a group, every child's box through its own transform.
   let cx0 = 0, cy0 = 0, cx1 = W, cy1 = H;
   for (const c of node?.children ?? []) {
     const m = fromTransform(c.transform);
@@ -365,21 +377,112 @@ function BoxCropOverlay({ api, id }: { api: CanvasApi; id: string }) {
       cx0 = Math.min(cx0, x); cy0 = Math.min(cy0, y); cx1 = Math.max(cx1, x); cy1 = Math.max(cy1, y);
     }
   }
-  const content: Rect = { x: cx0, y: cy0, w: cx1 - cx0, h: cy1 - cy0 };
+  const contentPage = [[cx0, cy0], [cx1, cy0], [cx1, cy1], [cx0, cy1]].map(([x, y]) => toPage(x, y));
 
-  const [fr, setFr] = useState<Rect>({ x: 0, y: 0, w: W, h: H });
+  // The element's box on the page: its angle and side lengths.
+  const elementDeg = wm ? (Math.atan2(wm.b, wm.a) * 180) / Math.PI : 0;
+  const sx = wm ? Math.hypot(wm.a, wm.b) : 1;
+  const sy = sx ? Math.abs(det) / sx : 1;
+  const skewed = !!wm && Math.abs(wm.a * wm.c + wm.b * wm.d) > 1e-6 * sx * Math.hypot(wm.c, wm.d);
+
+  // The frame on the page: a rectangle (before its turn) and its angle.
+  const [fr, setFr] = useState<Rect>(() => {
+    const c = toPage(W / 2, H / 2);
+    return { x: c.x - (W * sx) / 2, y: c.y - (H * sy) / 2, w: W * sx, h: H * sy };
+  });
+  const [angle, setAngleState] = useState(() => normDeg(elementDeg));
+  // Done without touching the frame changes nothing (on a skewed element the
+  // starting frame only approximates its box).
+  const touched = useRef(false);
+  const setAngle = (a: number) => { touched.current = true; setAngleState(a); };
+  const setFrame = (f: Rect) => { touched.current = true; setFr(f); };
   // The latest frame for the Enter key handler (registered once).
   const frRef = useRef(fr);
-  useLayoutEffect(() => { frRef.current = fr; });
+  const angleRef = useRef(angle);
+  useLayoutEffect(() => { frRef.current = fr; angleRef.current = angle; });
+
+  // While the frame lies along the element's edges it cannot be dragged past
+  // the content (there is nothing to show there); turned, it moves freely.
+  const along = (a: number) => !skewed && Math.abs(normDeg(2 * (a - elementDeg))) < 1e-6;
+  /** Page points in the frame's axes (turned back by the frame's angle). */
+  const inAxes = (p: { x: number; y: number }, a: number) => rotatePt(p, -a);
+  const contentBounds = (a: number) => {
+    const q = contentPage.map((p) => inAxes(p, a));
+    return { l: Math.min(...q.map((p) => p.x)), r: Math.max(...q.map((p) => p.x)), t: Math.min(...q.map((p) => p.y)), b: Math.max(...q.map((p) => p.y)) };
+  };
 
   function startDrag(e: React.PointerEvent, move: (dx: number, dy: number) => void) {
     e.stopPropagation();
     e.preventDefault();
     const x0 = e.clientX;
     const y0 = e.clientY;
+    const onMove = (ev: PointerEvent) => move((ev.clientX - x0) / zoom, (ev.clientY - y0) / zoom);
+    const onUp = () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  }
+
+  // The frame's edges in its own axes, and back.
+  const edgesOf = (f: Rect, a: number) => {
+    const c = inAxes({ x: f.x + f.w / 2, y: f.y + f.h / 2 }, a);
+    return { l: c.x - f.w / 2, r: c.x + f.w / 2, t: c.y - f.h / 2, b: c.y + f.h / 2 };
+  };
+  const rectOf = (e: { l: number; r: number; t: number; b: number }, a: number): Rect => {
+    const c = rotatePt({ x: (e.l + e.r) / 2, y: (e.t + e.b) / 2 }, a);
+    const w = e.r - e.l, h = e.b - e.t;
+    return { x: c.x - w / 2, y: c.y - h / 2, w, h };
+  };
+
+  // Edge/corner: trim along the frame's own edges.
+  function onFrameHandleDown(edge: Edge, e: React.PointerEvent) {
+    const a = angle;
+    const s = edgesOf(fr, a);
+    const cb = along(a) ? contentBounds(a) : null;
+    startDrag(e, (dx, dy) => {
+      const d = inAxes({ x: dx, y: dy }, a);
+      let { l, r, t, b } = s;
+      if (edge.includes("w")) l = Math.min(r - minSide, cb ? Math.max(cb.l, l + d.x) : l + d.x);
+      if (edge.includes("e")) r = Math.max(l + minSide, cb ? Math.min(cb.r, r + d.x) : r + d.x);
+      if (edge.includes("n")) t = Math.min(b - minSide, cb ? Math.max(cb.t, t + d.y) : t + d.y);
+      if (edge.includes("s")) b = Math.max(t + minSide, cb ? Math.min(cb.b, b + d.y) : b + d.y);
+      setFrame(rectOf({ l, r, t, b }, a));
+    });
+  }
+
+  // Inside the frame: move the frame over the content.
+  function onMoveDown(e: React.PointerEvent) {
+    const a = angle;
+    const s = edgesOf(fr, a);
+    const cb = along(a) ? contentBounds(a) : null;
+    startDrag(e, (dx, dy) => {
+      const d = inAxes({ x: dx, y: dy }, a);
+      let mx = d.x, my = d.y;
+      if (cb) {
+        mx = Math.min(cb.r - s.r, Math.max(cb.l - s.l, mx));
+        my = Math.min(cb.b - s.b, Math.max(cb.t - s.t, my));
+      }
+      setFrame(rectOf({ l: s.l + mx, r: s.r + mx, t: s.t + my, b: s.b + my }, a));
+    });
+  }
+
+  // The turn handle: drag around the frame's centre; Shift snaps the angle
+  // to 15 degree steps.
+  function onTurnDown(e: React.PointerEvent) {
+    e.stopPropagation();
+    e.preventDefault();
+    const host = ((e.currentTarget as HTMLElement).offsetParent as HTMLElement | null)?.getBoundingClientRect();
+    if (!host) return;
+    const cs = scr({ x: fr.x + fr.w / 2, y: fr.y + fr.h / 2 });
+    const at = (x: number, y: number) => (Math.atan2(y - host.top - cs.y, x - host.left - cs.x) * 180) / Math.PI;
+    const a0 = at(e.clientX, e.clientY);
+    const start = angle;
     const onMove = (ev: PointerEvent) => {
-      const l = toLocal(ev.clientX - x0, ev.clientY - y0);
-      move(l.x, l.y);
+      let next = start + at(ev.clientX, ev.clientY) - a0;
+      if (ev.shiftKey) next = Math.round(next / 15) * 15;
+      setAngle(normDeg(next));
     };
     const onUp = () => {
       window.removeEventListener("pointermove", onMove);
@@ -389,34 +492,13 @@ function BoxCropOverlay({ api, id }: { api: CanvasApi; id: string }) {
     window.addEventListener("pointerup", onUp);
   }
 
-  // Edge/corner: trim, never past the content.
-  function onFrameHandleDown(edge: Edge, e: React.PointerEvent) {
-    const start = { ...fr };
-    const c = content;
-    startDrag(e, (dx, dy) => {
-      let x0 = start.x, y0 = start.y, x1 = start.x + start.w, y1 = start.y + start.h;
-      if (edge.includes("w")) x0 = Math.min(x1 - minSide, Math.max(c.x, x0 + dx));
-      if (edge.includes("e")) x1 = Math.max(x0 + minSide, Math.min(c.x + c.w, x1 + dx));
-      if (edge.includes("n")) y0 = Math.min(y1 - minSide, Math.max(c.y, y0 + dy));
-      if (edge.includes("s")) y1 = Math.max(y0 + minSide, Math.min(c.y + c.h, y1 + dy));
-      setFr({ x: x0, y: y0, w: x1 - x0, h: y1 - y0 });
-    });
-  }
-
-  // Inside the frame: move the frame over the content.
-  function onMoveDown(e: React.PointerEvent) {
-    const start = { ...fr };
-    const c = content;
-    startDrag(e, (dx, dy) => {
-      const x = Math.min(c.x + c.w - start.w, Math.max(c.x, start.x + dx));
-      const y = Math.min(c.y + c.h - start.h, Math.max(c.y, start.y + dy));
-      setFr({ ...start, x, y });
-    });
-  }
-
   function apply() {
     const f = frRef.current;
-    useEditor.getState().cropBox(id, { x: f.x, y: f.y, width: f.w, height: f.h });
+    if (!touched.current) {
+      setCropping(null);
+      return;
+    }
+    useEditor.getState().cropFrame(id, { x: f.x, y: f.y, width: f.w, height: f.h, angle: angleRef.current });
     setCropping(null);
   }
 
@@ -437,13 +519,17 @@ function BoxCropOverlay({ api, id }: { api: CanvasApi; id: string }) {
 
   if (!node || !wm || Math.abs(det) < 1e-9) return null;
 
-  const quad = (r: Rect) => [toScreen(r.x, r.y), toScreen(r.x + r.w, r.y), toScreen(r.x + r.w, r.y + r.h), toScreen(r.x, r.y + r.h)];
   const pts = (q: { x: number; y: number }[]) => q.map((p) => `${p.x},${p.y}`).join(" ");
-  const frameQ = quad(fr);
+  const frameQ = frameCorners(fr, angle).map(scr);
   const lines = [1 / 3, 2 / 3].flatMap((t) => [
-    [toScreen(fr.x + fr.w * t, fr.y), toScreen(fr.x + fr.w * t, fr.y + fr.h)],
-    [toScreen(fr.x, fr.y + fr.h * t), toScreen(fr.x + fr.w, fr.y + fr.h * t)],
+    [scr(framePoint(fr, angle, t, 0)), scr(framePoint(fr, angle, t, 1))],
+    [scr(framePoint(fr, angle, 0, t)), scr(framePoint(fr, angle, 1, t))],
   ]);
+  // The turn handle sits outside the frame, above the middle of its top edge.
+  const topMid = scr(framePoint(fr, angle, 0.5, 0));
+  const centre = scr(framePoint(fr, angle, 0.5, 0.5));
+  const away = Math.hypot(topMid.x - centre.x, topMid.y - centre.y) || 1;
+  const turnAt = { x: topMid.x + ((topMid.x - centre.x) / away) * 26, y: topMid.y + ((topMid.y - centre.y) / away) * 26 };
   const handle = "pointer-events-auto absolute z-30 border border-neutral-400 bg-white shadow-sm";
   const pct = (v: string) => parseFloat(v) / 100;
 
@@ -459,7 +545,7 @@ function BoxCropOverlay({ api, id }: { api: CanvasApi; id: string }) {
           fill="rgba(255,255,255,0.7)"
         />
         {/* The content's full extent, for orientation. */}
-        <polygon points={pts(quad(content))} fill="none" stroke="rgba(115,115,115,0.7)" strokeDasharray="4 3" />
+        <polygon points={pts(contentPage.map(scr))} fill="none" stroke="rgba(115,115,115,0.7)" strokeDasharray="4 3" />
         {lines.map(([p, q], i) => <line key={i} x1={p.x} y1={p.y} x2={q.x} y2={q.y} stroke="rgba(255,255,255,0.4)" />)}
         <polygon points={pts(frameQ)} fill="none" stroke="rgba(0,0,0,0.35)" strokeWidth={4} />
         {/* The frame: drag inside it to move it over the content. */}
@@ -471,9 +557,10 @@ function BoxCropOverlay({ api, id }: { api: CanvasApi; id: string }) {
           style={{ pointerEvents: "all", cursor: "move" }}
           onPointerDown={onMoveDown}
         />
+        <line x1={topMid.x} y1={topMid.y} x2={turnAt.x} y2={turnAt.y} stroke="white" strokeWidth={1.5} />
       </svg>
       {FRAME_HANDLES.map((h) => {
-        const p = toScreen(fr.x + fr.w * pct(h.left), fr.y + fr.h * pct(h.top));
+        const p = scr(framePoint(fr, angle, pct(h.left), pct(h.top)));
         return (
           <div
             key={h.edge}
@@ -485,10 +572,35 @@ function BoxCropOverlay({ api, id }: { api: CanvasApi; id: string }) {
         );
       })}
       <div
+        role="slider"
+        aria-label={tr("editor.rotate_frame")}
+        aria-valuenow={Math.round(angle)}
+        title={tr("editor.rotate_frame_hint")}
+        onPointerDown={onTurnDown}
+        className="pointer-events-auto absolute z-30 grid h-6 w-6 place-items-center rounded-full border border-neutral-400 bg-white text-neutral-600 shadow-sm"
+        style={{ left: turnAt.x, top: turnAt.y, cursor: "grab", transform: "translate(-50%, -50%)", touchAction: "none" }}
+      ><RotateCw size={13} /></div>
+      <div
         className="absolute left-1/2 top-3 z-30 flex -translate-x-1/2 items-center gap-2 rounded-xl border border-neutral-200 bg-surface px-2 py-1.5 shadow-lg"
         onPointerDown={(e) => e.stopPropagation()}
       >
         <span className="px-1 text-xs text-neutral-500">{tr("editor.crop")}</span>
+        <label className="flex items-center gap-1 text-xs text-neutral-500" title={tr("editor.rotate_frame_hint")}>
+          <RotateCw size={13} />
+          <input
+            type="number"
+            step={1}
+            aria-label={tr("editor.frame_angle")}
+            value={Math.round(angle * 10) / 10}
+            onChange={(e) => {
+              const v = Number(e.target.value);
+              if (Number.isFinite(v)) setAngle(normDeg(v));
+            }}
+            onKeyDown={(e) => e.stopPropagation()}
+            className="w-14 rounded-md border border-neutral-200 bg-surface px-1.5 py-1 text-right text-xs tabular-nums text-neutral-800"
+          />
+          <span>°</span>
+        </label>
         <button onClick={apply} className="flex items-center gap-1 rounded-md bg-neutral-900 px-3 py-1.5 text-xs font-medium text-surface hover:bg-neutral-700">
           <Check size={14} /> {tr("editor.done")}
         </button>

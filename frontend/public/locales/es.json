@@ -4232,5 +4232,8 @@
   "editor.add_logo": "Añadir logotipo",
   "editor.remove_logo": "Quitar logotipo",
   "editor.logo_added": "Logotipo añadido al kit de marca.",
-  "editor.logo_removed": "Logotipo quitado. El historial del kit puede recuperarlo."
+  "editor.logo_removed": "Logotipo quitado. El historial del kit puede recuperarlo.",
+  "editor.rotate_frame": "Girar marco",
+  "editor.rotate_frame_hint": "Girar el marco de recorte por sí solo, el contenido se queda donde está. Arrastre el tirador redondo sobre el marco; Mayús ajusta en pasos de 15°.",
+  "editor.frame_angle": "Ángulo del marco"
 }

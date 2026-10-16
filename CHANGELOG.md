@@ -2,6 +2,18 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.3.6 (2026-10-16)
+
+### Added
+
+- The crop frame turns independently of the element it crops. While cropping, drag the round handle above the frame, or type the frame's angle in the crop bar; Shift snaps to 15 degree steps. The element stays exactly where it is on the page: a turned leaf can be cut to a straight rectangle, a straight photo to a tilted one. Works on every element, turned, stretched, mirrored or skewed, and on groups, also inside stretched groups. The turned frame can still be trimmed at all eight handles and moved. One undo step.
+- Images that use the image crop (straight, unscaled) get a "Rotate frame" button in the crop bar that switches to the turnable frame.
+- All new texts are translated into every interface language.
+
+### Notes
+
+- No change to the design file format: a turned frame is the existing clipping group with its own angle. Where the element is stretched unevenly, what is inside the frame may carry a skew, which the format has always had.
+
 ## 0.3.5 (2026-10-13)
 
 ### Fixed

@@ -4232,5 +4232,8 @@
   "editor.add_logo": "Logo hinzufügen",
   "editor.remove_logo": "Logo entfernen",
   "editor.logo_added": "Logo zum Markenkit hinzugefügt.",
-  "editor.logo_removed": "Logo entfernt. Über den Verlauf des Markenkits lässt es sich wiederherstellen."
+  "editor.logo_removed": "Logo entfernt. Über den Verlauf des Markenkits lässt es sich wiederherstellen.",
+  "editor.rotate_frame": "Rahmen drehen",
+  "editor.rotate_frame_hint": "Den Zuschneide-Rahmen unabhängig vom Inhalt drehen, der Inhalt bleibt, wo er ist. Am runden Griff über dem Rahmen ziehen; mit Umschalt rastet er in 15°-Schritten ein.",
+  "editor.frame_angle": "Rahmenwinkel"
 }
