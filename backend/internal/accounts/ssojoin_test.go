@@ -96,6 +96,32 @@ func TestSsoJoin_DB(t *testing.T) {
 		t.Fatalf("late sign-in not added: %q", role(late, ws.ID))
 	}
 
+	// Admins change roles as usual, and a sign-in never undoes that.
+	var lateSub string
+	_ = tx.QueryRow(ctx, `SELECT "provider_subject" FROM auth_identities WHERE user_id = $1 AND provider = 'OIDC'`, late).Scan(&lateSub)
+	if err := svc.ChangeMemberRole(ctx, owner, ws.ID, late, "admin"); err != nil {
+		t.Fatalf("promote: %v", err)
+	}
+	again(late, lateSub)
+	if role(late, ws.ID) != "admin" {
+		t.Fatalf("promoted role lost at sign-in: %q", role(late, ws.ID))
+	}
+	// The new admin may change the setting and others' roles too.
+	if _, err := svc.SetSsoJoin(ctx, late, ws.ID, "member"); err != nil {
+		t.Fatalf("admin switching: %v", err)
+	}
+	other, otherSub := sso("other")
+	if err := svc.ChangeMemberRole(ctx, late, ws.ID, other, "viewer"); err != nil {
+		t.Fatalf("admin demoting: %v", err)
+	}
+	again(other, otherSub)
+	if role(other, ws.ID) != "viewer" {
+		t.Fatalf("demoted role raised at sign-in: %q", role(other, ws.ID))
+	}
+	if err := svc.ChangeMemberRole(ctx, owner, ws.ID, late, "member"); err != nil {
+		t.Fatalf("back to member: %v", err)
+	}
+
 	// Removed: not added back by the next sign-in.
 	if err := svc.RemoveMember(ctx, owner, ws.ID, early); err != nil {
 		t.Fatalf("remove: %v", err)
