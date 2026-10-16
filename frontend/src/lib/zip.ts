@@ -94,3 +94,52 @@ export function zipFiles(entries: ZipEntry[]): Blob {
 
   return new Blob([...locals, ...centrals, eocd] as BlobPart[], { type: "application/zip" });
 }
+
+/**
+ * Read a ZIP archive: stored entries as they are, deflated ones through the
+ * platform's `DecompressionStream` (so archives packed by any zip tool open
+ * too). Directories are skipped. Throws on anything that is not a ZIP or uses
+ * a method other than store or deflate (ZIP64 and encryption included).
+ */
+export async function unzipFiles(bytes: Uint8Array): Promise<ZipEntry[]> {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  // The end-of-central-directory record sits in the last 22 bytes plus at
+  // most a 64 KB comment.
+  let eocd = -1;
+  for (let i = bytes.length - 22; i >= Math.max(0, bytes.length - 22 - 0xffff); i--) {
+    if (view.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+  }
+  if (eocd < 0) throw new Error("not a zip archive");
+  const count = view.getUint16(eocd + 10, true);
+  let p = view.getUint32(eocd + 16, true);
+  const dec = new TextDecoder();
+  const out: ZipEntry[] = [];
+  for (let n = 0; n < count; n++) {
+    if (p + 46 > bytes.length || view.getUint32(p, true) !== 0x02014b50) throw new Error("broken zip directory");
+    const flags = view.getUint16(p + 8, true);
+    const method = view.getUint16(p + 10, true);
+    const compressed = view.getUint32(p + 20, true);
+    const nameLen = view.getUint16(p + 28, true);
+    const extraLen = view.getUint16(p + 30, true);
+    const commentLen = view.getUint16(p + 32, true);
+    const localAt = view.getUint32(p + 42, true);
+    const name = dec.decode(bytes.subarray(p + 46, p + 46 + nameLen));
+    p += 46 + nameLen + extraLen + commentLen;
+    if (name.endsWith("/")) continue;
+    if (flags & 1) throw new Error(`encrypted zip entry: ${name}`);
+    if (compressed === 0xffffffff || localAt === 0xffffffff) throw new Error("zip64 is not supported");
+    if (localAt + 30 > bytes.length || view.getUint32(localAt, true) !== 0x04034b50) throw new Error(`broken zip entry: ${name}`);
+    const start = localAt + 30 + view.getUint16(localAt + 26, true) + view.getUint16(localAt + 28, true);
+    const raw = bytes.subarray(start, start + compressed);
+    if (raw.length !== compressed) throw new Error(`truncated zip entry: ${name}`);
+    if (method === 0) out.push({ name, data: raw.slice() });
+    else if (method === 8) out.push({ name, data: await inflateRaw(raw) });
+    else throw new Error(`unsupported zip method ${method}: ${name}`);
+  }
+  return out;
+}
+
+async function inflateRaw(data: Uint8Array): Promise<Uint8Array> {
+  const stream = new Blob([data as BlobPart]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}

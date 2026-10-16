@@ -65,6 +65,7 @@ The changes are summarized by area below; what changed in each release is in the
 
 - A workspace font library: upload font files once, use them in every font picker, embedded in vector exports.
 - Brand kits with any number of named font roles, an icon collection, and colors and fonts that apply into groups.
+- Brand kits export to and import from a `.brandkit.zip` that carries the logos, images and font files; a name that is already taken asks whether to replace the kit or import under another name. The format is documented in [docs/brand-kit-format.md](docs/brand-kit-format.md).
 
 ### Import and export
 

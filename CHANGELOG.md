@@ -2,6 +2,22 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.4.0 (2026-10-16)
+
+### Added
+
+- Brand kits export to a file and import from one. In the Brand panel, managers choose **Export** to save the kit as a `.brandkit.zip` with its colors (print values and spot colors included), fonts and the workspace font files they use, logos with their dark and light versions, icon, photo and graphics collections, voice and controls. **Import** loads such a file into the workspace: it uploads the logos, images and fonts and creates the kit. When a kit of the same name exists, the import shows both side by side and asks whether to replace it (its earlier state stays in the version history) or to keep both under another name.
+- The file format is documented in `docs/brand-kit-format.md`, with an example and the steps to write a kit by hand. A bare `brandkit.json` without files imports too.
+- All new texts are translated into every interface language.
+
+### Changed
+
+- Brand panel: the dark-background version of a logo is shown at the same size as the light one, instead of in a narrow strip below it.
+
+### Notes
+
+- No schema or database change: export and import use the existing brand kit, upload and workspace font interfaces.
+
 ## 0.3.9 (2026-10-16)
 
 ### Fixed

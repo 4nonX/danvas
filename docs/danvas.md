@@ -98,7 +98,8 @@ The model works on a 1024 pixel copy of the photo. Its edge is then fitted to th
 
 - **Workspace fonts**: under **Members**, **Upload fonts** adds font files to the workspace once. They then appear in every font picker and are embedded in vector exports.
 - **Brand kits** take any number of named font roles and an icon collection; their colors and fonts apply into groups.
-- **Logos**: managers add logos to a kit from uploads or a new upload, remove them, and add or change each logo's dark-background version.
+- **Logos**: managers add logos to a kit from uploads or a new upload, remove them, and add or change each logo's dark-background version. Each logo tile shows the light and the dark version at the same size.
+- **Export and import**: managers save a kit as a `.brandkit.zip` (colors, fonts with their files, logos, collections, voice and controls) and import one into any workspace. When the name is taken, the import shows both kits and asks whether to replace the existing one (its earlier state stays in the version history) or to import under another name. The file format, and how to write one by hand, is in [Brand kit files](brand-kit-format.md).
 
 ## Export
 

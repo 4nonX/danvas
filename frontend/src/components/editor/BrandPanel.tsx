@@ -18,6 +18,7 @@ import type { Color, Fill } from "@hc/schema";
 import { extractPalette, toHex, type Bitmap } from "@hc/color";
 import { locate } from "@hc/editor";
 import { PanelShell, CollapsibleSection } from "./EditorPanels";
+import { BrandKitTransfer } from "./BrandKitTransfer";
 import { collectPageColors, collectSelectionColors } from "@/lib/pageColors";
 import { useEditor, type ReskinResult, type ReskinOverrides, type BrandFixTarget } from "@/store/editor";
 import { useBrand, brandHexColors, brandFontFamilies } from "@/store/brand";
@@ -307,6 +308,22 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
         </div>
       )}
 
+      {/* Export the kit as a file, or import one (managers). */}
+      {canManage && workspaceId && !loading && (
+        <div className="mb-4">
+          <BrandKitTransfer
+            workspaceId={workspaceId}
+            kit={kit}
+            kits={kits}
+            onImported={async (k, replaced) => {
+              setKits(await oc.listBrandKits(workspaceId).catch(() => [...kits.filter((x) => x.id !== k.id), k]));
+              if (replaced && kit?.id === k.id) await refresh();
+              else if (!kit) { useBrand.getState().setKit(k); await useBrand.getState().assign(k.id); }
+            }}
+          />
+        </div>
+      )}
+
       {!kit && !loading && (
         <p className="text-sm text-neutral-500">
           No brand kit is set for this design.
@@ -455,7 +472,8 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
                   const darkLabel = dark ? tr("editor.change_dark_logo") : tr("editor.set_dark_logo");
                   return (
                     // Pinned light: the tiles preview the logo on light and on dark
-                    // grounds, whatever the app theme is.
+                    // grounds, whatever the app theme is. Both halves are the same
+                    // size, so the two versions read as equals.
                     <div key={l.id} className="light group/logo relative overflow-hidden rounded-lg border border-neutral-200">
                       {canManage && (
                         <button
@@ -487,10 +505,10 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
                           <button
                             onClick={() => void placeIcon(dark)}
                             title={`${tr("editor.place_logo")}: ${l.label} (${tr("editor.logo_on_dark")})`}
-                            className="flex h-9 w-full items-center justify-center bg-neutral-900 px-2 hover:bg-neutral-800"
+                            className="flex aspect-[3/2] w-full items-center justify-center bg-neutral-900 p-2 hover:bg-neutral-800"
                           >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={resolveAssetUrl(assetUrls[dark])} alt={`${l.label} ${tr("editor.logo_on_dark")}`} className="max-h-6 max-w-full object-contain" />
+                            <img src={resolveAssetUrl(assetUrls[dark])} alt={`${l.label} ${tr("editor.logo_on_dark")}`} className="max-h-full max-w-full object-contain" />
                           </button>
                           {canManage && workspaceId && (
                             <button
@@ -510,7 +528,7 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
                           onClick={() => setDarkPickFor(darkPickFor === l.id ? null : l.id)}
                           title={darkLabel}
                           aria-label={darkLabel}
-                          className={`flex h-9 w-full items-center justify-center gap-1 border-t border-dashed border-neutral-300 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600 ${darkPickFor === l.id ? "bg-neutral-100 text-neutral-600" : ""}`}
+                          className={`flex aspect-[3/2] w-full items-center justify-center gap-1 border-t border-dashed border-neutral-300 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600 ${darkPickFor === l.id ? "bg-neutral-100 text-neutral-600" : ""}`}
                         >
                           <Plus size={13} />
                           <span className="h-3 w-3 rounded-sm bg-neutral-800" aria-hidden />
