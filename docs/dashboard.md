@@ -49,6 +49,8 @@ A bar turns red as it approaches its limit. When a limit is reached, uploads are
 - **Roles**: Owner and Admin manage everything; Member can view, comment, edit, and share; Viewer can view and comment. Personal workspaces cannot be invited into.
 - **Custom roles**: named capability sets (view, comment, edit, share, approve, manage roles, manage brand, delete) that admins define here and assign per design from the editor's Share dialog.
 
+An invitation to someone who has become a member in the meantime is marked as such and offers **Apply role** (the invited role, if higher, and the invitation is withdrawn).
+
 A team workspace can also take in everyone who signs in through single sign-on, at the member or viewer role: tick **Add everyone who signs in with single sign-on** under Members (owners and admins). People you remove are not added back automatically.
 
 Sharing a single design with specific people or via link happens from the **Share** button inside the editor; see [the editor guide](editor.md#sharing-and-permissions).

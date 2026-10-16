@@ -7,7 +7,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Trash2, Mail, Clock, Crown, Shield, Plus, ChevronDown, Users, UserPlus, Pencil, AlertTriangle, LogIn } from "lucide-react";
-import type { Capability, CustomRoleView, WorkspaceInvitation, WorkspaceMemberView, WorkspaceRole } from "@hc/sdk";
+import { ApiError, type Capability, type CustomRoleView, type WorkspaceInvitation, type WorkspaceMemberView, type WorkspaceRole } from "@hc/sdk";
 import { oc } from "@/lib/sdk";
 import { useToast } from "@/components/ui/Toast";
 import { Button } from "@/components/ui/Button";
@@ -57,13 +57,16 @@ function initials(nameOrEmail: string): string {
 
 function relativeExpiry(iso: string): string {
   const ms = new Date(iso).getTime() - Date.now();
-  if (Number.isNaN(ms) || ms <= 0) return "expired";
+  if (Number.isNaN(ms) || ms <= 0) return tr("dashboard.expiry_expired");
   const days = Math.round(ms / 86_400_000);
-  if (days >= 1) return `in ${days} day${days === 1 ? "" : "s"}`;
+  if (days >= 1) return tr("dashboard.expiry_in_days", { count: days });
   const hours = Math.round(ms / 3_600_000);
-  if (hours >= 1) return `in ${hours} hour${hours === 1 ? "" : "s"}`;
-  return "soon";
+  if (hours >= 1) return tr("dashboard.expiry_in_hours", { count: hours });
+  return tr("dashboard.expiry_soon");
 }
+
+/** The API's problem code of a failed request, if any. */
+const problemCode = (e: unknown) => (e instanceof ApiError ? (e.body as { code?: string } | null)?.code : undefined);
 
 // Small section header: an icon, an uppercase label, an optional count, and an
 // optional trailing action (e.g. "New role").
@@ -185,7 +188,7 @@ export function MembersPanel({
     setDeleting(true);
     try {
       await oc.deleteWorkspace(workspaceId);
-      toast.success(`Deleted "${workspaceName}".`);
+      toast.success(tr("dashboard.workspace_deleted", { name: workspaceName }));
       onExit?.();
     } catch {
       toast.error(tr("dashboard.could_not_delete_the_workspace"));
@@ -238,10 +241,13 @@ export function MembersPanel({
     try {
       await oc.invite(workspaceId, { email: addr, role });
       if (!isResend) setEmail("");
-      toast.success(isResend ? `Invitation resent to ${addr}.` : `Invitation sent to ${addr}.`);
+      toast.success(isResend ? tr("dashboard.invitation_resent", { email: addr }) : tr("dashboard.invitation_sent", { email: addr }));
       await reload();
-    } catch {
-      toast.error(tr("dashboard.could_not_send_the_invitation"));
+    } catch (e) {
+      // Someone who is already a member needs no invitation: their role is
+      // changed in the list.
+      if (problemCode(e) === "already_workspace_member") toast.error(tr("dashboard.invite_already_member", { email: addr }));
+      else toast.error(tr("dashboard.could_not_send_the_invitation"));
     } finally {
       setBusy(false);
     }
@@ -251,7 +257,7 @@ export function MembersPanel({
     if (!workspaceId || role === m.role) return;
     try {
       await oc.changeMemberRole(workspaceId, m.userId, role);
-      toast.success(`${m.name || m.email} is now a ${roleLabel()[role].toLowerCase()}.`);
+      toast.success(tr("dashboard.member_role_changed", { name: m.name || m.email, role: roleLabel()[role] }));
       await reload();
     } catch {
       toast.error(tr("dashboard.could_not_change_the_role"));
@@ -263,7 +269,7 @@ export function MembersPanel({
     const self = m.userId === myUserId;
     try {
       await oc.removeMember(workspaceId, m.userId);
-      toast.success(self ? tr("dashboard.you_left_the_workspace") : `Removed ${m.name || m.email}.`);
+      toast.success(self ? tr("dashboard.you_left_the_workspace") : tr("dashboard.member_removed", { name: m.name || m.email }));
       if (self) {
         onExit?.();
         return;
@@ -271,6 +277,24 @@ export function MembersPanel({
       await reload();
     } catch {
       toast.error(self ? tr("dashboard.could_not_leave_a_workspace_needs_an_owner") : tr("dashboard.could_not_remove_this_member"));
+    }
+  }
+
+  // An invitation to someone who has become a member since (for example by
+  // signing in through SSO): give them the invited role, and the invitation
+  // is no longer needed.
+  async function applyInvitedRole(inv: WorkspaceInvitation, m: WorkspaceMemberView) {
+    if (!workspaceId) return;
+    setBusy(true);
+    try {
+      if (roleRank[inv.role] > roleRank[m.role]) await oc.changeMemberRole(workspaceId, m.userId, inv.role);
+      await oc.revokeInvitation(workspaceId, inv.id);
+      toast.success(tr("dashboard.member_role_changed", { name: m.name || m.email, role: roleLabel()[roleRank[inv.role] > roleRank[m.role] ? inv.role : m.role] }));
+      await reload();
+    } catch {
+      toast.error(tr("dashboard.could_not_change_the_role"));
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -340,8 +364,7 @@ export function MembersPanel({
                 </Button>
               </div>
               <p className="mt-2 text-xs text-neutral-500">
-                <span className="font-medium text-neutral-600">{roleLabel()[inviteRole]}:</span> {roleDesc()[inviteRole]} They&apos;ll
-                get an email with a link to join.
+                <span className="font-medium text-neutral-600">{roleLabel()[inviteRole]}:</span> {roleDesc()[inviteRole]} {tr("dashboard.invite_email_hint")}
               </p>
             </section>
           )}
@@ -375,7 +398,7 @@ export function MembersPanel({
                             value={m.role}
                             roles={assignableRoles(m)}
                             onChange={(r) => void changeRole(m, r)}
-                            ariaLabel={`Role for ${m.name || m.email}`}
+                            ariaLabel={tr("dashboard.role_for", { name: m.name || m.email })}
                             size="sm"
                           />
                         </div>
@@ -393,7 +416,7 @@ export function MembersPanel({
                       ) : manageable ? (
                         <button
                           onClick={() => void removeMember(m)}
-                          aria-label={`Remove ${m.name || m.email}`}
+                          aria-label={tr("dashboard.remove_member_named", { name: m.name || m.email })}
                           className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-neutral-400 transition-colors hover:bg-red-50 hover:text-red-600"
                           title={tr("dashboard.remove_member")}
                         >
@@ -414,7 +437,9 @@ export function MembersPanel({
             <section>
               <SectionHeader icon={Clock} label={tr("dashboard.pending_invitations")} count={invites.length} />
               <ul className="divide-y divide-neutral-100 overflow-hidden rounded-xl border border-neutral-200">
-                {invites.map((inv) => (
+                {invites.map((inv) => {
+                  const member = members.find((x) => x.email.toLowerCase() === inv.email.toLowerCase());
+                  return (
                   <li key={inv.id} className="flex items-center gap-3 px-3.5 py-3 transition-colors hover:bg-neutral-50/70">
                     <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-100">
                       <Clock size={16} />
@@ -422,16 +447,28 @@ export function MembersPanel({
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-sm font-medium text-neutral-800">{inv.email}</div>
                       <div className="truncate text-xs text-neutral-500">
-                        {tr("dashboard.invited_as_role_expires", { role: roleLabel()[inv.role], expiry: relativeExpiry(inv.expiresAt) })}
+                        {member
+                          ? tr("dashboard.invite_to_member", { role: roleLabel()[member.role], invited: roleLabel()[inv.role] })
+                          : tr("dashboard.invited_as_role_expires", { role: roleLabel()[inv.role], expiry: relativeExpiry(inv.expiresAt) })}
                       </div>
                     </div>
-                    <button
-                      onClick={() => void sendInvite(inv.email, inv.role, true)}
-                      disabled={busy}
-                      className="shrink-0 rounded-lg px-2.5 py-1 text-xs font-medium text-brand-ink transition-colors hover:bg-brand-50 disabled:opacity-50"
-                    >
-                      {tr("dashboard.resend")}
-                    </button>
+                    {member ? (
+                      <button
+                        onClick={() => void applyInvitedRole(inv, member)}
+                        disabled={busy}
+                        className="shrink-0 rounded-lg px-2.5 py-1 text-xs font-medium text-brand-ink transition-colors hover:bg-brand-50 disabled:opacity-50"
+                      >
+                        {tr("dashboard.apply_invited_role")}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => void sendInvite(inv.email, inv.role, true)}
+                        disabled={busy}
+                        className="shrink-0 rounded-lg px-2.5 py-1 text-xs font-medium text-brand-ink transition-colors hover:bg-brand-50 disabled:opacity-50"
+                      >
+                        {tr("dashboard.resend")}
+                      </button>
+                    )}
                     <button
                       onClick={() => void revoke(inv)}
                       className="shrink-0 rounded-lg px-2.5 py-1 text-xs font-medium text-neutral-500 transition-colors hover:bg-red-50 hover:text-red-600"
@@ -439,7 +476,8 @@ export function MembersPanel({
                       {tr("dashboard.revoke")}
                     </button>
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             </section>
           )}
@@ -458,8 +496,7 @@ export function MembersPanel({
               <div className="rounded-xl border border-red-200 bg-red-50/40 p-4">
                 <p className="text-sm font-semibold text-neutral-800">{tr("dashboard.delete_this_workspace")}</p>
                 <p className="mt-1 text-xs text-neutral-600">
-                  {tr("dashboard.permanently_deletes")} <span className="font-semibold">{workspaceName}</span> and everything in it:
-                  all designs, members, brand kits, custom roles, and uploads. This cannot be undone.
+                  {tr("dashboard.permanently_deletes")} <span className="font-semibold">{workspaceName}</span> {tr("dashboard.delete_workspace_contents")}
                 </p>
                 {!confirmingDelete ? (
                   <Button variant="danger" size="sm" className="mt-3" onClick={() => setConfirmingDelete(true)}>
@@ -693,7 +730,7 @@ function CustomRolesSection({ workspaceId }: { workspaceId: string }) {
                 </div>
                 <button
                   onClick={() => startEdit(r)}
-                  aria-label={`Edit role ${r.name}`}
+                  aria-label={tr("dashboard.edit_role_named", { name: r.name })}
                   className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-700"
                   title={tr("dashboard.edit_role")}
                 >
@@ -701,7 +738,7 @@ function CustomRolesSection({ workspaceId }: { workspaceId: string }) {
                 </button>
                 <button
                   onClick={() => void remove(r)}
-                  aria-label={`Delete role ${r.name}`}
+                  aria-label={tr("dashboard.delete_role_named", { name: r.name })}
                   className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-neutral-400 transition-colors hover:bg-red-50 hover:text-red-600"
                   title={tr("dashboard.delete_role")}
                 >

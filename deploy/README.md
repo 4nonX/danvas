@@ -103,6 +103,7 @@ Main settings in `.env`:
 | `BUILTIN_TEMPLATES` | `off` hides the built-in starter templates |
 | `BRAND_STARTER_KIT` | `hycanvas` seeds HyCanvas's own brand kit into new workspaces (off by default) |
 | `OIDC_*` | optional single sign-on (Authentik, Keycloak, Google, ...) |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM`, `SMTP_FROM_NAME` | optional email delivery for invitations, shares, password resets and sign-in links. Without `SMTP_HOST` nothing is sent. Port 465 uses implicit TLS, otherwise STARTTLS; a login is only sent over an encrypted connection. With Gmail or Google Workspace: `smtp.gmail.com`, port 587, the mailbox address and an app password; `SMTP_FROM` may be one of that mailbox's addresses set up under "Send mail as". |
 
 Changes to `.env` take effect after `docker compose up -d`.
 

@@ -1784,7 +1784,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
               <h2 className="mb-4 px-2 text-xl font-semibold text-neutral-900">{tr("dashboard.members")}</h2>
               <MembersPanel
                 workspaceId={activeWorkspaceId}
-                workspaceName={activeWs?.name ?? "this workspace"}
+                workspaceName={activeWs?.name ?? tr("dashboard.this_workspace")}
                 workspaceKind={activeWs?.kind ?? "personal"}
                 myRole={(activeWs?.role ?? "viewer") as WorkspaceRole}
                 myUserId={user?.id ?? ""}

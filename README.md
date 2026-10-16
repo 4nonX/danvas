@@ -41,7 +41,7 @@ The changes are summarized by area below; what changed in each release is in the
 ### Editor
 
 - Reworked editor layout: a contextual toolbar above the canvas, a creation dock at the bottom, File and View menus in the header, reworked properties and selection panels, a Position panel, and entering groups by double-click.
-- Crop for every element: edge and corner handles on images, and clipping crops for shapes, text, groups, scaled and rotated elements. The middle handles of an image move its frame over the picture (the picture keeps its size and place); Shift scales picture and frame together.
+- Crop for every element: edge and corner handles on images, and clipping crops for shapes, text, groups, scaled and rotated elements. The crop frame turns independently of the element (a handle above it, or its angle typed in), so a tilted graphic can be cut to a straight rectangle; the element stays in place. The middle handles of an image move its frame over the picture (the picture keeps its size and place); Shift scales picture and frame together.
 - Replace object: swap an element for another one in place, sized by its visible content.
 - Moving an image over a plain shape no longer swallows it into the shape's fill; only frames take a moved image.
 - Vectorize: traces raster images into editable vector shapes, with accurate straight edges, kept thin lines and an optional learned 4x upscaling step (Real-ESRGAN, in the browser) before tracing.
@@ -55,6 +55,11 @@ The changes are summarized by area below; what changed in each release is in the
 
 - Template protection: objects of a template can be protected ("content only" or "fully") for every copy made from it, also in other workspaces. Only people who may manage template protection in the workspace that set it can lift it, and the server checks every save and collaboration checkpoint against the stored design.
 - Templates can be deleted by the person who created them and by owners and admins of their workspace.
+
+### Workspaces and members
+
+- A team workspace can take in everyone who signs in with single sign-on, at the member or viewer role, now and at every later sign-in. Higher roles are never lowered, and people removed are not added back unless invited.
+- Pending invitations to people who are members by now offer to apply the invited role instead of sending the invitation again.
 
 ### Brand kits and fonts
 

@@ -2,6 +2,17 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.3.8 (2026-10-16)
+
+### Fixed
+
+- Members: sending an invitation again to someone who has become a member in the meantime (for example by signing in through single sign-on) said only that the email could not be sent. It now says that the person is already a member and that their role is changed in the list.
+
+### Changed
+
+- Members: a pending invitation to someone who is a member by now says so ("Already a member as Member; invited as Admin") and offers **Apply role** instead of Resend: it gives them the invited role, if higher, and withdraws the invitation.
+- Members: the remaining English texts of the page are translated (the hint below the invitation field, expiry times such as "in 3 days", the delete warning, confirmations and the labels for screen readers).
+
 ## 0.3.7 (2026-10-16)
 
 ### Added
