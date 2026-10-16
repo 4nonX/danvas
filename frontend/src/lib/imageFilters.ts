@@ -4,6 +4,7 @@
 // ops to its CSS-filter path (see @hc/engine effectsFilter / adjustmentOpToFilters).
 import { resolveAssetUrl } from "@/lib/sdk";
 import { CodedError } from "./errors";
+import { refineMatte } from "./matteRefine";
 
 /** One adjustment op: a named scalar the engine maps to a CSS filter. */
 export interface AdjOp {
@@ -238,6 +239,26 @@ function blobToDataUrl(blob: Blob): Promise<string> {
   });
 }
 
+/** The cutout's alpha (every fourth byte of `px`) refined against `guide`,
+ *  drawn at the cutout's size. */
+async function refineAgainst(guide: Blob, px: Uint8ClampedArray, w: number, h: number): Promise<Uint8ClampedArray> {
+  const bmp = await createImageBitmap(guide);
+  try {
+    const c = document.createElement("canvas");
+    c.width = w;
+    c.height = h;
+    const g = c.getContext("2d", { willReadFrequently: true });
+    if (!g) throw new Error("canvas unavailable");
+    g.drawImage(bmp, 0, 0, w, h);
+    const photo = g.getImageData(0, 0, w, h).data;
+    const alpha = new Uint8ClampedArray(w * h);
+    for (let i = 0, j = 3; i < alpha.length; i++, j += 4) alpha[i] = px[j];
+    return refineMatte(photo, alpha, w, h);
+  } finally {
+    bmp.close();
+  }
+}
+
 /**
  * Derive a grayscale alpha mask from a cutout produced by `removeBackground`.
  *
@@ -251,6 +272,7 @@ function blobToDataUrl(blob: Blob): Promise<string> {
  */
 export async function alphaMaskFromCutout(
   cutoutDataUrl: string,
+  guide?: Blob,
 ): Promise<{ dataUrl: string; width: number; height: number }> {
   if (typeof window === "undefined") {
     throw new CodedError("errors.bg_removal_browser_only", "Background removal runs in the browser only.");
@@ -271,6 +293,17 @@ export async function alphaMaskFromCutout(
   ctx.drawImage(img, 0, 0);
   const data = ctx.getImageData(0, 0, w, h);
   const px = data.data;
+  // With the original photo at hand, fit the matte's edge to the photo's own
+  // edges (the model saw a 1024 px copy, so its edge is soft on a large
+  // photo). On any failure the model's matte stays as it is.
+  if (guide) {
+    try {
+      const refined = await refineAgainst(guide, px, w, h);
+      for (let i = 0, j = 3; i < refined.length; i++, j += 4) px[j] = refined[i];
+    } catch (err) {
+      console.warn("[background removal] edge refinement skipped", err);
+    }
+  }
   for (let i = 0; i < px.length; i += 4) {
     // Alpha becomes luminance; the mask itself is fully opaque. A grayscale
     // mask is what a brush can paint into, and it survives formats that drop

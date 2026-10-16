@@ -85,6 +85,8 @@ On an image, the middle handles move the frame over the picture: drag the left h
 
 **Remove background** is a toolbar button with live progress. It is non-destructive: the original stays and a mask is stored, so **Restore background** brings it back. The model runs in the browser and is served by the instance itself, not by a third party.
 
+The model works on a 1024 pixel copy of the photo. Its edge is then fitted to the full-size original, so hair and outlines stay sharp on large photos, and the cut-out is drawn at the photo's full resolution in exports and at close zoom.
+
 ### Color
 
 - The eyedropper works in every browser (it falls back to sampling the canvas).

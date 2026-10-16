@@ -37,8 +37,8 @@ export async function removeImageBackground(id: string, workspaceId: string | nu
     }
     const { dataUrl } = await removeBackground(blob, (f) => useBgRemoval.setState({ progress: f }));
     // Non-destructive: the original stays in `source`; only the alpha travels,
-    // as a mask asset beside it.
-    const mask = await alphaMaskFromCutout(dataUrl);
+    // as a mask asset beside it. Its edge is fitted to the photo's own edges.
+    const mask = await alphaMaskFromCutout(dataUrl, blob);
     // A real uploaded asset, never a data URL (which would bloat the document,
     // every snapshot and every collaborator's load). The data URL remains the
     // fallback without a workspace or when the upload fails.

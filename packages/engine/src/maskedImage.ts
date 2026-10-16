@@ -19,9 +19,25 @@ interface Entry {
 
 const CACHE: Entry[] = [];
 const CACHE_MAX = 12;
-/** Cap the working buffer, as duotone does: a mask is smoothed by scaling, so
- *  a gigapixel source gains nothing from a gigapixel mask pass. */
-const MAX_DIM = 2048;
+/** The most pixels one composite may have (about 8000 x 6000): enough for the
+ *  photos people place, and a bound on memory for anything larger. */
+const MAX_PIXELS = 48_000_000;
+/** The most pixels all cached composites together may hold (about 380 MB of
+ *  RGBA); the least recently used are dropped past it. */
+const CACHE_PIXELS = 96_000_000;
+
+/**
+ * The scale a masked image is composited at for one draw, from how many
+ * device pixels each source pixel covers there: 1 (full size) when the image
+ * is shown at or above its own resolution, else the next power of two above
+ * what is needed (1/2, 1/4, ...), so a zoom or a preview reuses a few cached
+ * sizes and never draws below what the screen or the export shows.
+ */
+export function maskLevel(devicePxPerSourcePx: number): number {
+  const k = devicePxPerSourcePx;
+  if (!Number.isFinite(k) || k >= 1) return 1;
+  return Math.max(1 / 16, 2 ** Math.ceil(Math.log2(Math.max(k, 1e-6))));
+}
 
 function makeCanvas(w: number, h: number): (HTMLCanvasElement | OffscreenCanvas) | null {
   if (typeof OffscreenCanvas !== "undefined") return new OffscreenCanvas(w, h);
@@ -53,6 +69,7 @@ export function maskedCanvas(
   mask: CanvasImageSource,
   naturalWidth: number,
   naturalHeight: number,
+  level = 1,
 ): (HTMLCanvasElement | OffscreenCanvas) | null {
   const hit = CACHE.find((e) => e.key === key);
   if (hit) {
@@ -63,9 +80,13 @@ export function maskedCanvas(
     return hit.canvas;
   }
 
-  const scale = Math.min(1, MAX_DIM / Math.max(naturalWidth, naturalHeight, 1));
-  const w = Math.max(1, Math.round(naturalWidth * scale));
-  const h = Math.max(1, Math.round(naturalHeight * scale));
+  // The requested level, never past the source's own size, and within the
+  // pixel cap.
+  const nw = Math.max(1, naturalWidth), nh = Math.max(1, naturalHeight);
+  const scale = Math.min(1, Math.max(level, 1 / 16), Math.sqrt(MAX_PIXELS / (nw * nh)));
+  // Rounded down below full size, so the cap holds exactly.
+  const w = scale < 1 ? Math.max(1, Math.floor(nw * scale)) : Math.round(nw);
+  const h = scale < 1 ? Math.max(1, Math.floor(nh * scale)) : Math.round(nh);
 
   const out = makeCanvas(w, h);
   if (!out) return null;
@@ -109,7 +130,17 @@ export function maskedCanvas(
   }
 
   CACHE.unshift({ key, canvas: out });
-  if (CACHE.length > CACHE_MAX) CACHE.length = CACHE_MAX;
+  // Drop the least recently used past the count or the pixel budget (the
+  // newest entry always stays).
+  let pixels = 0;
+  for (let i = 0; i < CACHE.length; i++) {
+    const c = CACHE[i].canvas as { width?: number; height?: number };
+    pixels += (c.width ?? 0) * (c.height ?? 0);
+    if (i > 0 && (i >= CACHE_MAX || pixels > CACHE_PIXELS)) {
+      CACHE.length = i;
+      break;
+    }
+  }
   return out;
 }
 

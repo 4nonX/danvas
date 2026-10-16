@@ -26,7 +26,7 @@ import { fitRect } from "./image";
 import { booleanGeometry } from "./booleanGeom";
 import { buildClipFromPathData } from "./pathclip";
 import { layerContext, makeLayerCanvas, needsIsolation } from "./layer";
-import { maskedCanvas } from "./maskedImage";
+import { maskedCanvas, maskLevel } from "./maskedImage";
 import { autoFitNode, layoutText, isTabRun, tabRunWidth, type MeasureFn } from "@hc/text";
 import { cellLineHeight, wrapCellLines } from "./tablewrap";
 import { colorToCss } from "./color";
@@ -397,31 +397,43 @@ function drawImageNode(ctx: CanvasLike, node: ImageNode, w: number, h: number, a
       // background. Applied BEFORE crop/fit so the mask is in source-pixel
       // space, which is how it was authored; masking after the fit would make
       // the mask slide whenever the node was resized.
+      const crop = node.crop ?? { x: 0, y: 0, width: 1, height: 1 };
+      const fr = fitRect(srcW * crop.width, srcH * crop.height, w, h, node.fit, node.focalPoint);
+      let sx = (crop.x + fr.source.x * crop.width) * srcW;
+      let sy = (crop.y + fr.source.y * crop.height) * srcH;
+      let sw = fr.source.width * crop.width * srcW;
+      let sh = fr.source.height * crop.height * srcH;
       const maskRef = (node as unknown as { alphaMask?: { assetId: string } }).alphaMask;
       if (maskRef && assets?.status(maskRef.assetId) === "ready") {
         const maskImg = assets.image(maskRef.assetId);
         if (maskImg) {
+          // Masked at the resolution this draw needs (device pixels per
+          // source pixel, from the current transform): full size for an
+          // export or a close zoom, less for a small preview. Without a
+          // transform (a vector backend) it is the full size.
+          const t = ctx.getTransform?.();
+          const devicePx = t ? fr.dest.width * Math.hypot(t.a, t.b) : Infinity;
+          const level = maskLevel(sw > 0 ? devicePx / sw : 1);
           const masked = maskedCanvas(
-            `${assetId}:${maskRef.assetId}:${srcW}x${srcH}`,
+            `${assetId}:${maskRef.assetId}:${srcW}x${srcH}@${level}`,
             img as CanvasImageSource,
             maskImg as CanvasImageSource,
             srcW,
             srcH,
+            level,
           );
           if (masked) {
             img = masked;
             const mw = (masked as { width?: number }).width;
             const mh = (masked as { height?: number }).height;
-            if (mw && mh) { srcW = mw; srcH = mh; }
+            if (mw && mh) {
+              // The source rectangle in the composite's own pixels.
+              const fx = mw / srcW, fy = mh / srcH;
+              sx *= fx; sw *= fx; sy *= fy; sh *= fy;
+            }
           }
         }
       }
-      const crop = node.crop ?? { x: 0, y: 0, width: 1, height: 1 };
-      const fr = fitRect(srcW * crop.width, srcH * crop.height, w, h, node.fit, node.focalPoint);
-      const sx = (crop.x + fr.source.x * crop.width) * srcW;
-      const sy = (crop.y + fr.source.y * crop.height) * srcH;
-      const sw = fr.source.width * crop.width * srcW;
-      const sh = fr.source.height * crop.height * srcH;
       ctx.drawImage(img, sx, sy, sw, sh, fr.dest.x, fr.dest.y, fr.dest.width, fr.dest.height);
       return;
     }

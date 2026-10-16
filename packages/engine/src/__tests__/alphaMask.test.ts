@@ -126,3 +126,54 @@ describe("the composite cache under repeated refinement", () => {
     expect(after).not.toBe(before);
   });
 });
+
+describe("masked images keep their resolution", () => {
+  // A stand-in canvas: records its size, and its 2D context does just enough
+  // for the composite (pixel buffers sized to the canvas).
+  class FakeCanvas {
+    constructor(public width: number, public height: number) {}
+    getContext() {
+      const w = this.width, h = this.height;
+      return {
+        drawImage: () => {},
+        getImageData: () => ({ data: new Uint8ClampedArray(Math.min(w * h, 4096) * 4) }),
+        putImageData: () => {},
+        globalCompositeOperation: "source-over",
+      };
+    }
+  }
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    clearMaskCache();
+  });
+
+  it("composites a large photo at its full size, not capped at 2048", () => {
+    vi.stubGlobal("OffscreenCanvas", FakeCanvas);
+    const src = { width: 6000, height: 4000 } as unknown as CanvasImageSource;
+    const out = maskedCanvas("big", src, src, 6000, 4000) as unknown as FakeCanvas;
+    expect([out.width, out.height]).toEqual([6000, 4000]);
+  });
+
+  it("composites at a lower level for a small preview, and caps the pixel count", () => {
+    vi.stubGlobal("OffscreenCanvas", FakeCanvas);
+    const src = { width: 6000, height: 4000 } as unknown as CanvasImageSource;
+    const quarter = maskedCanvas("q", src, src, 6000, 4000, 0.25) as unknown as FakeCanvas;
+    expect([quarter.width, quarter.height]).toEqual([1500, 1000]);
+    const huge = maskedCanvas("h", src, src, 20000, 12000) as unknown as FakeCanvas;
+    expect(huge.width * huge.height).toBeLessThanOrEqual(48_000_000);
+  });
+});
+
+describe("maskLevel", () => {
+  it("is full size at or above the source's own resolution, else the next power of two above the need", async () => {
+    const { maskLevel } = await import("../index");
+    expect(maskLevel(1)).toBe(1);
+    expect(maskLevel(3)).toBe(1);
+    expect(maskLevel(Infinity)).toBe(1);
+    expect(maskLevel(0.6)).toBe(1);
+    expect(maskLevel(0.5)).toBe(0.5);
+    expect(maskLevel(0.3)).toBe(0.5);
+    expect(maskLevel(0.2)).toBe(0.25);
+    expect(maskLevel(0.001)).toBe(1 / 16);
+  });
+});

@@ -2,6 +2,20 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.3.9 (2026-10-16)
+
+### Fixed
+
+- Images with a removed background no longer lose resolution: the cut-out image was drawn from a copy at most 2048 pixels wide, so large photos turned soft. It is now drawn at the photo's full size wherever it is shown that large (an export, a close zoom), and at a lower size only for small previews. This applies to images already cut out, without doing it again.
+
+### Changed
+
+- Remove background fits the edge of the cut-out to the photo's own edges. The model works on a 1024 pixel copy of the photo, so on a large photo its edge came out blurred; the edge is now sharpened against the full-size original (a guided filter). It takes about a second more on a 24 megapixel photo. Images cut out before keep their edge until the background is removed again.
+
+### Notes
+
+- No schema or database change.
+
 ## 0.3.8 (2026-10-16)
 
 ### Fixed
