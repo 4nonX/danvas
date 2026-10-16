@@ -4235,5 +4235,13 @@
   "editor.logo_removed": "Logo entfernt. Über den Verlauf des Markenkits lässt es sich wiederherstellen.",
   "editor.rotate_frame": "Rahmen drehen",
   "editor.rotate_frame_hint": "Den Zuschneide-Rahmen unabhängig vom Inhalt drehen, der Inhalt bleibt, wo er ist. Am runden Griff über dem Rahmen ziehen; mit Umschalt rastet er in 15°-Schritten ein.",
-  "editor.frame_angle": "Rahmenwinkel"
+  "editor.frame_angle": "Rahmenwinkel",
+  "dashboard.sso_join_title": "Alle, die sich per SSO anmelden",
+  "dashboard.sso_join_toggle": "Alle aufnehmen, die sich per Single Sign-on anmelden",
+  "dashboard.sso_join_role": "Ihre Rolle",
+  "dashboard.sso_join_hint": "Wer sich per Single Sign-on anmeldet, wird automatisch Mitglied dieses Arbeitsbereichs, jetzt und bei jeder späteren Anmeldung. Höhere Rollen werden nicht herabgesetzt, und Personen, die Sie entfernen, werden nicht wieder aufgenommen (eine Einladung holt sie zurück).",
+  "dashboard.sso_join_added.one": "{count} Person aufgenommen",
+  "dashboard.sso_join_added.other": "{count} Personen aufgenommen",
+  "dashboard.sso_join_off": "Ausgeschaltet. Wer schon Mitglied ist, bleibt es.",
+  "dashboard.could_not_change_sso_join": "Die Einstellung konnte nicht geändert werden"
 }

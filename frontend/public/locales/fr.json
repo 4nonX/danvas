@@ -4235,5 +4235,13 @@
   "editor.logo_removed": "Logo retiré. L'historique du kit permet de le restaurer.",
   "editor.rotate_frame": "Faire pivoter le cadre",
   "editor.rotate_frame_hint": "Faire pivoter le cadre de recadrage seul, le contenu reste en place. Faites glisser la poignée ronde au-dessus du cadre ; Maj aimante par pas de 15°.",
-  "editor.frame_angle": "Angle du cadre"
+  "editor.frame_angle": "Angle du cadre",
+  "dashboard.sso_join_title": "Toute personne connectée par SSO",
+  "dashboard.sso_join_toggle": "Ajouter toute personne qui se connecte par authentification unique",
+  "dashboard.sso_join_role": "Leur rôle",
+  "dashboard.sso_join_hint": "Toute personne qui se connecte par authentification unique rejoint automatiquement cet espace de travail, maintenant et à chaque connexion. Aucun rôle plus élevé n'est abaissé, et les personnes que vous retirez ne sont pas réajoutées (une invitation les fait revenir).",
+  "dashboard.sso_join_added.one": "{count} personne ajoutée",
+  "dashboard.sso_join_added.other": "{count} personnes ajoutées",
+  "dashboard.sso_join_off": "Désactivé. Les membres actuels le restent.",
+  "dashboard.could_not_change_sso_join": "Impossible de modifier ce réglage"
 }

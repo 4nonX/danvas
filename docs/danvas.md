@@ -34,6 +34,10 @@ You can also drop files onto the Projects view.
 
 Tick several designs (and folders) and the bar at the bottom offers download and share for all of them at once: every page of every design into one zip, or one person's access or view links for all selected designs.
 
+### Everyone through single sign-on
+
+On an instance that signs people in through an identity provider (OIDC), a team workspace can take in everyone who signs in that way: under **Members**, an owner or admin ticks **Add everyone who signs in with single sign-on** and picks the role (member or viewer). Everyone who already has an SSO account joins at once; anyone signing in through SSO later joins at sign-in. Higher roles stay as they are. Someone you remove is not added back automatically; inviting them again brings them back. Switching it off keeps everyone who is already in.
+
 ### Templates
 
 - **Delete a template**: in Templates, the trash button on a template's card, after a confirmation. Allowed for the person who created the template and for owners and admins of its workspace. Built-in templates cannot be deleted. Designs already made from the template stay as they are.

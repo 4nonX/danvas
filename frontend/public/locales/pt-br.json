@@ -4235,5 +4235,13 @@
   "editor.logo_removed": "Logotipo removido. O histórico do kit pode recuperá-lo.",
   "editor.rotate_frame": "Girar moldura",
   "editor.rotate_frame_hint": "Gire a moldura de corte sozinha, o conteúdo fica onde está. Arraste a alça redonda acima da moldura; Shift encaixa em passos de 15°.",
-  "editor.frame_angle": "Ângulo da moldura"
+  "editor.frame_angle": "Ângulo da moldura",
+  "dashboard.sso_join_title": "Todos que entram com SSO",
+  "dashboard.sso_join_toggle": "Adicionar todos que entram com login único",
+  "dashboard.sso_join_role": "Função deles",
+  "dashboard.sso_join_hint": "Quem entra com login único passa a fazer parte deste espaço de trabalho automaticamente, agora e a cada login seguinte. Nenhuma função mais alta é rebaixada, e as pessoas que você remover não são adicionadas de novo (um convite as traz de volta).",
+  "dashboard.sso_join_added.one": "{count} pessoa adicionada",
+  "dashboard.sso_join_added.other": "{count} pessoas adicionadas",
+  "dashboard.sso_join_off": "Desativado. Quem já é membro continua sendo.",
+  "dashboard.could_not_change_sso_join": "Não foi possível alterar a configuração"
 }

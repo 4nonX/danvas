@@ -4235,5 +4235,13 @@
   "editor.logo_removed": "लोगो हटाया गया। किट इतिहास से इसे वापस लाया जा सकता है।",
   "editor.rotate_frame": "फ़्रेम घुमाएँ",
   "editor.rotate_frame_hint": "क्रॉप फ़्रेम को अलग से घुमाएँ, सामग्री अपनी जगह रहती है। फ़्रेम के ऊपर गोल हैंडल खींचें; Shift 15° के चरणों में रोकता है।",
-  "editor.frame_angle": "फ़्रेम का कोण"
+  "editor.frame_angle": "फ़्रेम का कोण",
+  "dashboard.sso_join_title": "SSO से साइन इन करने वाले सभी",
+  "dashboard.sso_join_toggle": "सिंगल साइन-ऑन से साइन इन करने वाले सभी को जोड़ें",
+  "dashboard.sso_join_role": "उनकी भूमिका",
+  "dashboard.sso_join_hint": "जो भी सिंगल साइन-ऑन से साइन इन करता है, वह अपने आप इस वर्कस्पेस का सदस्य बन जाता है, अभी और हर अगली बार। किसी की ऊँची भूमिका कम नहीं की जाती, और जिन्हें आप हटाते हैं उन्हें फिर से नहीं जोड़ा जाता (आमंत्रण से वे वापस आ सकते हैं)।",
+  "dashboard.sso_join_added.one": "{count} व्यक्ति जोड़ा गया",
+  "dashboard.sso_join_added.other": "{count} लोग जोड़े गए",
+  "dashboard.sso_join_off": "बंद किया गया। जो पहले से सदस्य हैं, वे बने रहते हैं।",
+  "dashboard.could_not_change_sso_join": "सेटिंग बदली नहीं जा सकी"
 }

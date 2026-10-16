@@ -4235,5 +4235,13 @@
   "ui.the_page_you_are_looking_for_does_not_exist": "The page you are looking for does not exist or may have moved.",
   "editor.rotate_frame": "Rotate frame",
   "editor.rotate_frame_hint": "Turn the crop frame on its own, the content stays where it is. Drag the round handle above the frame; Shift snaps to 15°.",
-  "editor.frame_angle": "Frame angle"
+  "editor.frame_angle": "Frame angle",
+  "dashboard.sso_join_title": "Everyone who signs in with SSO",
+  "dashboard.sso_join_toggle": "Add everyone who signs in with single sign-on",
+  "dashboard.sso_join_role": "Their role",
+  "dashboard.sso_join_hint": "Everyone who signs in through single sign-on joins this workspace automatically, now and at every later sign-in. Nobody's higher role is lowered, and people you remove are not added back (an invitation brings them back).",
+  "dashboard.sso_join_added.one": "{count} person added",
+  "dashboard.sso_join_added.other": "{count} people added",
+  "dashboard.sso_join_off": "Turned off. Everyone already in stays a member.",
+  "dashboard.could_not_change_sso_join": "Could not change the setting"
 }

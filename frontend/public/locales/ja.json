@@ -4235,5 +4235,13 @@
   "editor.logo_removed": "ロゴを削除しました。キットの履歴から復元できます。",
   "editor.rotate_frame": "枠を回転",
   "editor.rotate_frame_hint": "トリミング枠だけを回転します。内容はそのままの位置に残ります。枠の上の丸いハンドルをドラッグします。Shift で 15° 刻みにスナップします。",
-  "editor.frame_angle": "枠の角度"
+  "editor.frame_angle": "枠の角度",
+  "dashboard.sso_join_title": "SSO でサインインする全員",
+  "dashboard.sso_join_toggle": "シングルサインオンでサインインする全員を追加",
+  "dashboard.sso_join_role": "付与するロール",
+  "dashboard.sso_join_hint": "シングルサインオンでサインインした人は、今もこれ以降のサインインでも自動的にこのワークスペースに参加します。上位のロールが下げられることはなく、削除した人が再び追加されることもありません(招待すると戻せます)。",
+  "dashboard.sso_join_added.one": "{count} 人を追加しました",
+  "dashboard.sso_join_added.other": "{count} 人を追加しました",
+  "dashboard.sso_join_off": "オフにしました。すでにメンバーの人はそのままです。",
+  "dashboard.could_not_change_sso_join": "設定を変更できませんでした"
 }

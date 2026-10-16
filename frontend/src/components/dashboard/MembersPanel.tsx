@@ -6,7 +6,7 @@
 // hidden.
 
 import { useCallback, useEffect, useState } from "react";
-import { Trash2, Mail, Clock, Crown, Shield, Plus, ChevronDown, Users, UserPlus, Pencil, AlertTriangle } from "lucide-react";
+import { Trash2, Mail, Clock, Crown, Shield, Plus, ChevronDown, Users, UserPlus, Pencil, AlertTriangle, LogIn } from "lucide-react";
 import type { Capability, CustomRoleView, WorkspaceInvitation, WorkspaceMemberView, WorkspaceRole } from "@hc/sdk";
 import { oc } from "@/lib/sdk";
 import { useToast } from "@/components/ui/Toast";
@@ -346,6 +346,9 @@ export function MembersPanel({
             </section>
           )}
 
+          {/* Everyone signing in through SSO joins (admins/owners only). */}
+          {canManage && workspaceId && <SsoJoinSection workspaceId={workspaceId} onChanged={() => void reload()} />}
+
           {/* Roster. */}
           <section>
             <SectionHeader icon={Users} label={tr("dashboard.people_with_access")} count={members.length} />
@@ -495,6 +498,77 @@ export function MembersPanel({
 }
 
 // Placeholder rows while the roster loads.
+/** A workspace that takes in everyone signing in through single sign-on, at
+ *  a fixed role (member or viewer). Switching it on adds everyone who already
+ *  has an SSO account; the server never lowers a higher role, and people
+ *  removed from the workspace are not added back. */
+function SsoJoinSection({ workspaceId, onChanged }: { workspaceId: string; onChanged: () => void }) {
+  const toast = useToast();
+  const [role, setRole] = useState<"" | "member" | "viewer" | null>(null);
+  const [pick, setPick] = useState<"member" | "viewer">("member");
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    oc.getSsoJoin(workspaceId).then(
+      (j) => {
+        if (cancelled) return;
+        setRole(j.role);
+        if (j.role) setPick(j.role);
+      },
+      () => { if (!cancelled) setRole(""); },
+    );
+    return () => { cancelled = true; };
+  }, [workspaceId]);
+
+  async function apply(next: "" | "member" | "viewer") {
+    setBusy(true);
+    try {
+      const r = await oc.setSsoJoin(workspaceId, next);
+      setRole(r.role);
+      if (r.role && r.added > 0) toast.success(tr("dashboard.sso_join_added", { count: r.added }));
+      if (!r.role) toast.success(tr("dashboard.sso_join_off"));
+      onChanged();
+    } catch {
+      toast.error(tr("dashboard.could_not_change_sso_join"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (role === null) return null;
+  const on = role !== "";
+  return (
+    <section>
+      <SectionHeader icon={LogIn} label={tr("dashboard.sso_join_title")} />
+      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-neutral-200 bg-surface p-3">
+        <label className="flex min-w-0 flex-1 items-center gap-2.5 text-sm text-neutral-800">
+          <input
+            type="checkbox"
+            checked={on}
+            disabled={busy}
+            onChange={() => void apply(on ? "" : pick)}
+            className="h-4 w-4 shrink-0 accent-brand-600"
+          />
+          {tr("dashboard.sso_join_toggle")}
+        </label>
+        <div className="w-36 shrink-0">
+          <RoleSelect
+            value={pick}
+            roles={["member", "viewer"]}
+            onChange={(r) => {
+              const next = r === "viewer" ? "viewer" : "member";
+              setPick(next);
+              if (on && next !== role) void apply(next);
+            }}
+            ariaLabel={tr("dashboard.sso_join_role")}
+          />
+        </div>
+      </div>
+      <p className="mt-2 text-xs text-neutral-500">{tr("dashboard.sso_join_hint")}</p>
+    </section>
+  );
+}
+
 function SkeletonList() {
   return (
     <ul className="divide-y divide-neutral-100 overflow-hidden rounded-xl border border-neutral-200">

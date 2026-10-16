@@ -24,6 +24,8 @@ func mountMembers(api chi.Router, acct *accounts.Service) {
 	api.With(requireAuth(acct)).Post("/workspaces/{id}/invitations", inviteHandler(acct))
 	api.With(requireAuth(acct)).Get("/workspaces/{id}/invitations", listInvitationsHandler(acct))
 	api.With(requireAuth(acct)).Delete("/workspaces/{id}/invitations/{invitationId}", revokeInvitationHandler(acct))
+	api.With(requireAuth(acct)).Get("/workspaces/{id}/sso-join", getSsoJoinHandler(acct))
+	api.With(requireAuth(acct)).Put("/workspaces/{id}/sso-join", setSsoJoinHandler(acct))
 	api.With(requireAuth(acct)).Post("/invitations/{token}/accept", acceptInvitationHandler(acct))
 	// In-app accept/decline (the invitee's own view; reached from the bell).
 	api.With(requireAuth(acct)).Get("/invitations/mine", myInvitationsHandler(acct))
@@ -49,6 +51,40 @@ func membersProblem(w http.ResponseWriter, r *http.Request, err error) {
 		problemWithCode(w, r, http.StatusForbidden, "Forbidden", "this invitation was sent to a different email address", "invite_email_mismatch")
 	default:
 		problemWithCode(w, r, http.StatusInternalServerError, "Internal Server Error", "request failed", "request_failed")
+	}
+}
+
+// getSsoJoinHandler reports whether the workspace takes in everyone signing in
+// through SSO, and at which role.
+func getSsoJoinHandler(acct *accounts.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		j, err := acct.GetSsoJoin(r.Context(), userFrom(r.Context()).ID, chi.URLParam(r, "id"))
+		if err != nil {
+			membersProblem(w, r, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, j)
+	}
+}
+
+// setSsoJoinHandler switches it ({"role":"member"|"viewer"} or {"role":""} for
+// off) and reports how many people it added at once.
+func setSsoJoinHandler(acct *accounts.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			Role string `json:"role"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "invalid body", "invalid_body")
+			return
+		}
+		added, err := acct.SetSsoJoin(r.Context(), userFrom(r.Context()).ID, chi.URLParam(r, "id"), body.Role)
+		if err != nil {
+			membersProblem(w, r, err)
+			return
+		}
+		j, _ := acct.GetSsoJoin(r.Context(), userFrom(r.Context()).ID, chi.URLParam(r, "id"))
+		writeJSON(w, http.StatusOK, map[string]any{"role": j.Role, "added": added})
 	}
 }
 

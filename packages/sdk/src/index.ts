@@ -1470,6 +1470,16 @@ export class HyCanvasClient {
   themes(): Promise<{ id: string; name: string; style: string; colors: string[]; fontHeading: string; fontBody: string }[]> {
     return this.request("GET", "/v1/themes");
   }
+  /** Whether the workspace takes in everyone signing in through SSO, and at
+   *  which role ("" = off). */
+  getSsoJoin(workspaceId: string): Promise<{ role: "" | "member" | "viewer" }> {
+    return this.request("GET", `/v1/workspaces/${workspaceId}/sso-join`);
+  }
+  /** Switch it (owners and admins; "" = off). Switching on adds everyone who
+   *  already signs in through SSO; `added` says how many. */
+  setSsoJoin(workspaceId: string, role: "" | "member" | "viewer"): Promise<{ role: "" | "member" | "viewer"; added: number }> {
+    return this.request("PUT", `/v1/workspaces/${workspaceId}/sso-join`, { role });
+  }
   invite(workspaceId: string, input: { email: string; role?: WorkspaceRole }): Promise<{ invitation: WorkspaceInvitation; token: string }> {
     return this.request("POST", `/v1/workspaces/${workspaceId}/invitations`, input);
   }

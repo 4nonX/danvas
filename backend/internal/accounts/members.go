@@ -347,6 +347,7 @@ func (s *Service) activateInvitation(ctx context.Context, callerID string, inv i
 	if err := tx.Commit(ctx); err != nil {
 		return Membership{}, err
 	}
+	s.liftSsoJoinExclusion(ctx, inv.workspaceID, callerID)
 	now := iso(time.Now())
 	return Membership{
 		ID: memberID, WorkspaceID: inv.workspaceID, UserID: callerID,
@@ -607,7 +608,12 @@ func (s *Service) RemoveMember(ctx context.Context, callerID, workspaceID, targe
 	if ct.RowsAffected() == 0 {
 		return ErrNotFound
 	}
-	return tx.Commit(ctx)
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
+	// Removed (or left): not added back by an SSO sign-in.
+	s.excludeFromSsoJoin(ctx, workspaceID, targetUserID)
+	return nil
 }
 
 // InvitationsForUser returns invitations sent to and pending/accepted by a

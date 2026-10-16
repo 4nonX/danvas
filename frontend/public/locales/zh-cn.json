@@ -4235,5 +4235,13 @@
   "editor.logo_removed": "已移除徽标。可通过套件历史记录恢复。",
   "editor.rotate_frame": "旋转框",
   "editor.rotate_frame_hint": "单独旋转裁剪框，内容保持原位。拖动框上方的圆形手柄；按住 Shift 以 15° 为步进吸附。",
-  "editor.frame_angle": "框角度"
+  "editor.frame_angle": "框角度",
+  "dashboard.sso_join_title": "所有通过 SSO 登录的人",
+  "dashboard.sso_join_toggle": "添加所有通过单点登录登录的人",
+  "dashboard.sso_join_role": "他们的角色",
+  "dashboard.sso_join_hint": "通过单点登录登录的人会自动加入此工作区，现在以及之后每次登录时都是如此。不会降低任何人的更高角色，被你移除的人也不会被重新加入（发送邀请可让他们回来）。",
+  "dashboard.sso_join_added.one": "已添加 {count} 人",
+  "dashboard.sso_join_added.other": "已添加 {count} 人",
+  "dashboard.sso_join_off": "已关闭。现有成员保持不变。",
+  "dashboard.could_not_change_sso_join": "无法更改此设置"
 }

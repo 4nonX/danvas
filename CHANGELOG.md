@@ -2,6 +2,18 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.3.7 (2026-10-16)
+
+### Added
+
+- A team workspace can take in everyone who signs in with single sign-on. Under Members, owners and admins switch on "Add everyone who signs in with single sign-on" and pick the role (member or viewer). Everyone who already has an SSO account joins at once, and everyone signing in through SSO later joins at sign-in. Nobody's higher role is lowered; people removed from the workspace (or who leave it) are not added back, and an accepted invitation brings them back. Switching it off keeps everyone who is already in.
+- API: `GET` and `PUT /api/v1/workspaces/{id}/sso-join` (`{"role": "member" | "viewer" | ""}`; the answer to `PUT` says how many people were added).
+- All new texts are translated into every interface language.
+
+### Notes
+
+- New tables `workspace_sso_join` and `workspace_sso_join_exclusions` (additive; a rollback leaves them unused and keeps the memberships already made).
+
 ## 0.3.6 (2026-10-16)
 
 ### Added

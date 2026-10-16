@@ -4235,5 +4235,13 @@
   "editor.logo_removed": "Logotipo quitado. El historial del kit puede recuperarlo.",
   "editor.rotate_frame": "Girar marco",
   "editor.rotate_frame_hint": "Girar el marco de recorte por sí solo, el contenido se queda donde está. Arrastre el tirador redondo sobre el marco; Mayús ajusta en pasos de 15°.",
-  "editor.frame_angle": "Ángulo del marco"
+  "editor.frame_angle": "Ángulo del marco",
+  "dashboard.sso_join_title": "Todos los que inician sesión con SSO",
+  "dashboard.sso_join_toggle": "Añadir a todos los que inician sesión con inicio de sesión único",
+  "dashboard.sso_join_role": "Su rol",
+  "dashboard.sso_join_hint": "Quien inicia sesión con inicio de sesión único se une automáticamente a este espacio de trabajo, ahora y en cada inicio de sesión posterior. Ningún rol superior se reduce, y las personas que quite no se vuelven a añadir (una invitación las trae de vuelta).",
+  "dashboard.sso_join_added.one": "{count} persona añadida",
+  "dashboard.sso_join_added.other": "{count} personas añadidas",
+  "dashboard.sso_join_off": "Desactivado. Quien ya es miembro lo sigue siendo.",
+  "dashboard.could_not_change_sso_join": "No se pudo cambiar el ajuste"
 }
