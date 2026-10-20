@@ -71,7 +71,7 @@ The active page's stacking order, front-most on top: two-way selection sync, sho
 
 Contextual to the selection:
 
-- **Nothing selected**: page size with presets and **Magic Resize** (switch format in place, or generate re-flowed copies for a whole social set), page background, the page transition, and present options (hide slide, speaker notes, auto-advance).
+- **Nothing selected**: page size with presets and **Magic Resize** (switch format in place, or generate re-flowed copies for a whole social set), page background, **Print** (the page's bleed and crop marks, see [Bleed and crop marks](danvas.md#bleed-and-crop-marks)), the page transition, and present options (hide slide, speaker notes, auto-advance).
 - **Elements**: position/size/rotation, shape swapping, use-as-image-frame, fills (solid, gradient, image, pattern, with harmony-based color suggestions), stroke, corner radius, opacity, and one-click effects (shadow, lift, hollow, splice, glow, neon).
 - **Text**: size, line height, letter spacing, decoration, alignment, paragraph spacing, text backgrounds, and text effects.
 - **Images**: filter presets (Clarendon, Noir, Sepia, and more), grouped Light/Color/Detail adjustments with auto-enhance, crop, replace, remove background, rasterize.
@@ -131,8 +131,9 @@ The download icon (or `Cmd+E`) opens Export:
 
 ![The export dialog](images/export-dialog.png)
 
-- **Formats**: PNG (with transparency), JPG (quality slider), PDF (multi-page), SVG, animated PNG, animated GIF, and Lottie JSON for animated pages.
+- **Formats**: PNG (with transparency), JPG (quality slider), PDF (multi-page: vector, flattened image, or tagged and accessible), SVG, TIFF and EPS for print (CMYK through an ICC profile, or RGB), animated PNG, animated GIF, MP4, PPTX, Markdown, and Lottie JSON for animated pages.
 - **Size**: 0.5x to 3x multipliers with live pixel dimensions; multi-page exports can combine into a zip; export all pages, the current page, or a per-page selection.
+- **Bleed and crop marks**: for PNG, JPG, SVG, PDF, TIFF and EPS, the exported pages' bleed and crop marks are switched on or off for the export and can be edited right there (the same settings as the page panel's **Print** section). See [Bleed and crop marks](danvas.md#bleed-and-crop-marks).
 - Brand kit export policies can warn or block on violations, and a Credits block compiles attribution for stock that requires it.
 
 Also in the overflow menu:

@@ -46,7 +46,7 @@ The changes are summarized by area below; what changed in each release is in the
 - Moving an image over a plain shape no longer swallows it into the shape's fill; only frames take a moved image.
 - Vectorize: traces raster images into editable vector shapes, with accurate straight edges, kept thin lines and an optional learned 4x upscaling step (Real-ESRGAN, in the browser) before tracing.
 - SVG images can be turned into editable shapes in place ("Make editable"), keeping their exact position, fit and crop.
-- Background removal is a toolbar button with live progress, non-destructive (the original stays, a mask is stored) and restorable.
+- Background removal is a toolbar button with live progress, non-destructive (the original stays, a mask is stored) and restorable. The cut-out keeps the photo's full resolution, and its edge is fitted to the photo's own edges, so large photos stay sharp.
 - Color picker: an eyedropper that works in every browser (falls back to sampling the canvas), opacity that applies to fills and group colors, centered popovers, and the same picker in every sidebar color field.
 - Group color swatches: recolor every use of a color inside a group or selection at once.
 - Copy and paste style works on groups and carries text colors.
@@ -74,7 +74,7 @@ The changes are summarized by area below; what changed in each release is in the
 - Designs and folders copy or move to another workspace, with the uploads and workspace fonts they use, from their menu or for a whole selection.
 - Import from Canva through Canva's API: pick designs and whole folders in a Canva account and they arrive with their folder tree, editable through PowerPoint export where Canva allows it, as page images otherwise ([setup](docs/dashboard.md#import-from-canva)). The server runs the import: it carries on with the browser closed and after a restart, paces itself under Canva's limits, pauses at Canva's daily limit and continues by itself, and skips what is already there. Its owner follows it in the dashboard's sidebar and under Import from Canva, where the recent imports and their failed designs stay available.
 - Print exports: vector PDF, CMYK or RGB TIFF and EPS (PostScript Level 3) with ICC color management (Little CMS), black-only text, and workspace print profiles uploaded by admins.
-- Bleed and crop marks per page: the bleed shows in the editor, and print exports carry it with TrimBox and BleedBox, plus crop marks in a chosen line type, color and weight.
+- Bleed and crop marks per page, set in the page panel or the download menu and switched on or off separately: the bleed shows in the editor, and every image and print export (PNG, JPG, SVG, PDF, TIFF, EPS) can carry it, PDFs with TrimBox and BleedBox, plus crop marks in a chosen line type, color and weight.
 - One rendering engine for exports: SVG, vector PDF, tagged (accessible) PDF and MP4 are drawn by the same engine as the editor, so they match it exactly. The tagged PDF adds a structure tree, alt text and a real-text layer; MP4 is encoded in the browser.
 - Dashboard: folders (as a tree in the sidebar that opens and closes and lists each folder's designs), one Import menu for files, folders and Canva, previews that show the page as a sheet and redraw once images and fonts load, and download and share for one design or a whole selection (every page of every design into one zip; one person's access or view links for all selected designs at once).
 

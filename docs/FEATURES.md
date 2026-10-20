@@ -21,6 +21,7 @@ A living checklist of what ships today versus what is planned. Shipped items are
 - [x] Stock (bundled catalog + live Openverse photos, licensing/attribution, faceted filters: category/style/orientation, colorful-first browse order)
 - [x] Templates (categories, save-as-template, workspace collections, locked regions)
 - [x] Brand kits (colors/fonts/logos/voice, brand lock with off/warn/block policy, auto-fix, re-skin)
+- [x] Brand kit export and import as a `.brandkit.zip` (documented format), replace-or-rename on a name clash
 
 ### Document types
 - [x] Presentations (present mode: 9 transitions incl. Magic Move, laser/pen/spotlight, autopilot, presenter HUD, rehearsal timer)
@@ -74,6 +75,8 @@ A living checklist of what ships today versus what is planned. Shipped items are
 
 ### Export and publishing
 - [x] Export: PNG/JPG/PDF/SVG/APNG/GIF/Lottie, size multipliers, page selection, zip
+- [x] Print exports: vector PDF, CMYK/RGB TIFF and EPS with ICC profiles
+- [x] Bleed and crop marks per page (line type, color, weight, length, gap), for every image and print format; PDF TrimBox/BleedBox
 - [x] Print (OS dialog at print resolution)
 - [x] Website generator (static HTML, SEO, nav, file export), local generation only
 - [x] Social publish planner, local/mock only
@@ -82,6 +85,7 @@ A living checklist of what ships today versus what is planned. Shipped items are
 - [x] Roles (owner/admin/member/viewer) + custom roles; invitations
 - [x] Cookie sessions, MFA (TOTP), OIDC SSO
 - [x] Per-workspace + per-user storage quotas with UI meters
+- [x] Copy or move designs and folders to another workspace, uploads and library fonts included
 - [x] Notifications (email + web-push preferences)
 - [x] Dark mode (system/light/dark), app-wide reduced motion
 - [x] Design accessibility checker (contrast/alt-text/reading-order/tap-target)
