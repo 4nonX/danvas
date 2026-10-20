@@ -100,7 +100,7 @@
   "app.you_upvoted_this": "आपने इसे अपवोट किया",
   "app.your_name_optional": "आपका नाम (वैकल्पिक)",
   "app.your_title": "आपका शीर्षक",
-  "auth.2026_hyscaler_hycanvas_is_a_hyscaler_product": "© 2026 HyScaler. HyCanvas एक HyScaler® उत्पाद है।",
+  "auth.copyright_hyscaler": "© 2026 HyScaler.",
   "auth.account_creation_is_disabled_on_this_instanc": "इस इंस्टेंस पर खाता बनाना बंद है।",
   "auth.ai_magic": "AI जादू",
   "auth.already_have_an_account": "पहले से खाता है?",

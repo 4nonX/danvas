@@ -454,10 +454,11 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
 
         <p className="relative z-10 text-sm text-white/60">
           {tr("auth.your_designs_your_data_open_format_full_expo")}
-          {/* Modification notice, then the licensor's notice, which must
-              stay unaltered. */}
+          {/* Modification notice, then the licensor's copyright notice. The
+              trademark policy (TRADEMARKS.md) asks a renamed fork to drop the
+              "HyCanvas is a HyScaler product" line and keep the copyright. */}
           <span className="mt-1 block text-xs text-white/50">{tr("auth.danvas_modified_version_notice")}</span>
-          <span className="block text-xs text-white/40">{tr("auth.2026_hyscaler_hycanvas_is_a_hyscaler_product")}</span>
+          <span className="block text-xs text-white/40">{tr("auth.copyright_hyscaler")}</span>
         </p>
       </div>
 

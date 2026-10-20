@@ -9,6 +9,7 @@ All notable changes to danvas are listed here, newest first. Versions follow the
 - **danvas is now licensed under the GNU Affero General Public License v3 (`AGPL-3.0-only`)**, as HyCanvas is from v0.3.17 onwards. You may use, modify, self-host and redistribute it for any purpose; whoever uses a modified version over a network must be offered its source. danvas releases up to and including 0.4.8 remain available under the Elastic License 2.0. HyScaler's `LICENSE`, `NOTICE`, `COMMERCIAL.md`, `CLA.md` and the new `TRADEMARKS.md` come over unchanged.
 - The sign-in page links to the source code of the running version (its release tag), on every screen size. An operator running their own modified build points the link at their code with the new setting `INSTANCE_SOURCE_URL`.
 - The image carries the license and notices in `/app` and is labelled `AGPL-3.0-only`.
+- Following HyCanvas's new trademark policy (`TRADEMARKS.md`) for a renamed fork, the sign-in page keeps HyScaler's copyright notice ("© 2026 HyScaler.") but no longer says "HyCanvas is a HyScaler product". The note that danvas is an unofficial, modified version of HyCanvas stays.
 
 ### From HyCanvas
 

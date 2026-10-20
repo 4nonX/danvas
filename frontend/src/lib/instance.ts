@@ -20,8 +20,8 @@ export function instanceConfig(): InstanceConfig {
 const PRODUCT = "danvas";
 
 /** Interface text with the instance name instead of the product name. The
- *  licensor's notices ("© HyScaler. HyCanvas is a HyScaler product.") must stay
- *  unaltered, so texts naming HyScaler are kept. */
+ *  licensor's notices ("© 2026 HyScaler.") must stay unaltered, so texts
+ *  naming HyScaler are kept. */
 export function withInstanceName(text: string): string {
   const name = instanceConfig().name;
   if (!name || !text.includes(PRODUCT) || text.includes("HyScaler")) return text;
