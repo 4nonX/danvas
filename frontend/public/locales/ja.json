@@ -4358,5 +4358,13 @@
   "editor.die_line_desc": "仕上がり線に沿った断裁・抜き型の線を独自の特色で、オーバープリント・専用レイヤーで出力します。印刷はされず、印刷所が断裁に使います。",
   "editor.die_line_name": "名前",
   "editor.die_line_radius_mm": "角丸 mm",
-  "editor.die_line_default_name": "CutContour"
+  "editor.die_line_default_name": "CutContour",
+  "editor.hyc_format": "danvas ファイル (.hyc)",
+  "editor.hyc_format_desc": "デザインそのものをオープンなファイル形式で、全ページ保存します。保管、別のインスタンスへの移行、再インポートに。",
+  "editor.export_check_title": "エディターの表示どおりに書き出されない部分があります",
+  "editor.export_issue_font": "フォント「{subject}」はここで利用できないため、代替フォントで描画されます（{where}）。",
+  "editor.export_issue_font_outline": "フォント「{subject}」にはベクター書き出し用のフォントファイルがありません。そのテキストは画像になり、ファイル内で編集できません（{where}）。",
+  "editor.export_issue_image": "画像「{subject}」を読み込めなかったため、書き出しに含まれません（{where}）。",
+  "editor.export_issue_image_resolution": "画像「{subject}」は配置サイズで {ppi} dpi しかなく、印刷するとぼやけます。{min} dpi 以上を推奨します（{where}）。",
+  "editor.export_issue_page": "{page}ページ: {elements}"
 }

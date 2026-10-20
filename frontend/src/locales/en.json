@@ -4358,5 +4358,13 @@
   "editor.die_line_desc": "A cut or punch contour along the trim in a spot colour of its own, overprinting and on its own layer. It is not printed; the press uses it to cut.",
   "editor.die_line_name": "Name",
   "editor.die_line_radius_mm": "Radius mm",
-  "editor.die_line_default_name": "CutContour"
+  "editor.die_line_default_name": "CutContour",
+  "editor.hyc_format": "danvas file (.hyc)",
+  "editor.hyc_format_desc": "The design itself in the open file format, every page: to keep, move to another instance, or import again.",
+  "editor.export_check_title": "Not everything exports as it looks in the editor",
+  "editor.export_issue_font": "Font “{subject}” is not available here and is drawn in a fallback font ({where}).",
+  "editor.export_issue_font_outline": "Font “{subject}” has no font file for vector export: that text becomes a picture and cannot be edited in the file ({where}).",
+  "editor.export_issue_image": "Image “{subject}” did not load and is missing from the export ({where}).",
+  "editor.export_issue_image_resolution": "Image “{subject}” is placed at only {ppi} dpi and will look soft in print; {min} dpi or more is recommended ({where}).",
+  "editor.export_issue_page": "p. {page}: {elements}"
 }

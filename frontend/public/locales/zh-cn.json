@@ -4358,5 +4358,13 @@
   "editor.die_line_desc": "沿成品尺寸的裁切或模切轮廓，使用独立的专色，叠印并放在单独图层中。不会被印刷；印刷厂据此裁切。",
   "editor.die_line_name": "名称",
   "editor.die_line_radius_mm": "圆角 mm",
-  "editor.die_line_default_name": "CutContour"
+  "editor.die_line_default_name": "CutContour",
+  "editor.hyc_format": "danvas 文件 (.hyc)",
+  "editor.hyc_format_desc": "以开放文件格式保存设计本身（所有页面）：用于保存、迁移到其他实例或重新导入。",
+  "editor.export_check_title": "部分内容的导出效果与编辑器中不同",
+  "editor.export_issue_font": "字体“{subject}”在此不可用，将使用替代字体绘制（{where}）。",
+  "editor.export_issue_font_outline": "字体“{subject}”没有可用于矢量导出的字体文件：该文本将变为图片，无法在文件中编辑（{where}）。",
+  "editor.export_issue_image": "图片“{subject}”未能加载，导出中将缺失（{where}）。",
+  "editor.export_issue_image_resolution": "图片“{subject}”在当前尺寸下只有 {ppi} dpi，打印会模糊；建议至少 {min} dpi（{where}）。",
+  "editor.export_issue_page": "第 {page} 页：{elements}"
 }

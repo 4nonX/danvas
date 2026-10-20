@@ -8,6 +8,7 @@
 
 import type { DesignFile, Node } from "@hc/schema";
 import { getFontEntry, fontCssUrl, isSystemFont } from "@hc/text";
+import { weightFromFontStyle } from "@hc/engine";
 
 const CUSTOM_FONTS_KEY = "oc-custom-fonts";
 
@@ -27,12 +28,27 @@ function isAllowedFontCssHref(href: string): boolean {
   }
 }
 
+/** A face of a family a design draws with: weight and slant. */
+export interface FaceWant {
+  weight: number;
+  italic: boolean;
+}
+
 /** One face of a workspace font family. */
 export interface WorkspaceFace {
   id: string;
   family: string;
   weight: number;
   style: "normal" | "italic";
+}
+
+export type RunFont = { fontFamily?: string; fontStyle?: string; axes?: Record<string, number> };
+
+/** The face a text run draws with, matched the way canvasFontString names it. */
+export function faceOf(style: RunFont): FaceWant {
+  const weight = style.axes?.wght ?? weightFromFontStyle(style.fontStyle);
+  const italic = (style.axes?.ital ?? 0) >= 0.5 || (style.axes?.slnt ?? 0) < 0 || /italic|oblique/i.test(style.fontStyle ?? "");
+  return { weight, italic };
 }
 
 class FontProvider {
@@ -42,6 +58,14 @@ class FontProvider {
   private wsFetch: ((id: string) => Promise<Uint8Array>) | null = null;
   private loaded = new Set<string>();
   private loading = new Set<string>();
+  // Catalog faces beyond the first: the stylesheet names every face, but the
+  // browser fetches one only when asked, and canvas text drawn before then
+  // uses the fallback. Keyed `family|weight|italic`.
+  private sheetReady = new Set<string>();
+  private wanted = new Map<string, Map<string, FaceWant>>();
+  private faceLoading = new Set<string>();
+  private faceDone = new Set<string>();
+  private faceMissing = new Set<string>();
   private subs = new Set<() => void>();
   // Uploaded fonts (FR-6): key (lowercased family) -> { family, src (data URL) }.
   private custom = new Map<string, { family: string; src: string }>();
@@ -72,7 +96,24 @@ class FontProvider {
    *  unknown, or whose file failed, will never become ready, so waiting for
    *  it (exports outside the editor) must not block. */
   isSettled(family: string | undefined): boolean {
-    return this.isReady(family) || !this.loading.has((family ?? "").toLowerCase());
+    const key = (family ?? "").toLowerCase();
+    if (!this.isReady(family) && this.loading.has(key)) return false;
+    for (const k of this.faceLoading) if (k.startsWith(`${key}|`)) return false;
+    return true;
+  }
+
+  /** Whether the canvas draws a face with its own font: "failed" when the
+   *  family is unknown here or its file did not load, so a fallback font
+   *  draws it (unless the family happens to be installed on this device). */
+  faceState(family: string | undefined, face: FaceWant): "ready" | "loading" | "failed" {
+    if (isSystemFont(family)) return "ready";
+    const key = family!.toLowerCase();
+    if (this.loading.has(key)) return "loading";
+    if (!this.loaded.has(key)) return "failed";
+    if (this.ws.has(key) || this.custom.has(key)) return "ready";
+    const k = `${key}|${face.weight}|${face.italic ? 1 : 0}`;
+    if (this.faceLoading.has(k)) return "loading";
+    return this.faceMissing.has(k) ? "failed" : "ready";
   }
 
   /** Install the workspace's font library (replaces the previous one). */
@@ -112,15 +153,16 @@ class FontProvider {
     return p;
   }
 
-  /** The file of the workspace face closest to a weight/style (for exports
-   *  that embed glyph outlines); null when the family is not a workspace one. */
-  async workspaceFaceBytes(family: string, weight: number, italic: boolean): Promise<Uint8Array | null> {
+  /** The workspace face closest to a weight/style and its file (for exports
+   *  that embed glyph outlines); null when the family is not a workspace one.
+   *  The face's own weight and style say what the browser has to synthesize. */
+  async workspaceFace(family: string, weight: number, italic: boolean): Promise<{ bytes: Uint8Array; weight: number; italic: boolean } | null> {
     const faces = this.ws.get(family.toLowerCase());
     if (!faces?.length) return null;
     const styled = faces.filter((f) => (f.style === "italic") === italic);
     const pool = styled.length ? styled : faces;
     const best = pool.reduce((a, b) => (Math.abs(b.weight - weight) < Math.abs(a.weight - weight) ? b : a));
-    return this.faceBytes(best.id);
+    return { bytes: await this.faceBytes(best.id), weight: best.weight, italic: best.style === "italic" };
   }
 
   private loadWorkspaceFamily(key: string): void {
@@ -155,6 +197,9 @@ class FontProvider {
     if (typeof document === "undefined" || typeof FontFace === "undefined") return false;
     const key = family.toLowerCase();
     if (this.loaded.has(key) && this.custom.has(key)) return true; // already registered
+    // Loading until the file is in, so isSettled (exports outside the editor)
+    // waits for it instead of drawing the fallback font.
+    this.loading.add(key);
     try {
       const face = new FontFace(family, `url(${src})`);
       await face.load();
@@ -162,10 +207,12 @@ class FontProvider {
       this.loaded.add(key);
       this.custom.set(key, { family, src });
       if (persist) this.persistCustom();
-      this.notify();
       return true;
     } catch {
       return false;
+    } finally {
+      this.loading.delete(key);
+      this.notify();
     }
   }
 
@@ -174,8 +221,27 @@ class FontProvider {
     try { window.localStorage.setItem(CUSTOM_FONTS_KEY, JSON.stringify([...this.custom.values()])); } catch { /* quota: skip persistence */ }
   }
 
-  /** Ensure a family is loading/loaded; repaints subscribers when it arrives. */
-  ensure(family: string | undefined): void {
+  /** Fetch the wanted faces of a catalog family whose stylesheet is in. */
+  private loadFaces(key: string, family: string): void {
+    for (const [id, f] of this.wanted.get(key) ?? []) {
+      const k = `${key}|${id}`;
+      if (this.faceDone.has(k) || this.faceLoading.has(k)) continue;
+      this.faceLoading.add(k);
+      void document.fonts
+        .load(`${f.italic ? "italic " : ""}${f.weight} 16px "${family}"`)
+        .then((got) => got.length > 0, () => false)
+        .then((ok) => {
+          if (!ok) this.faceMissing.add(k);
+          this.faceLoading.delete(k);
+          this.faceDone.add(k);
+          this.notify();
+        });
+    }
+  }
+
+  /** Ensure a family is loading/loaded; repaints subscribers when it arrives.
+   *  `face` names a weight/slant the text uses, fetched as well. */
+  ensure(family: string | undefined, face?: FaceWant): void {
     const wsKey = (family ?? "").toLowerCase();
     if (this.ws.has(wsKey)) {
       if (!this.loaded.has(wsKey) && !this.loading.has(wsKey)) this.loadWorkspaceFamily(wsKey);
@@ -183,6 +249,12 @@ class FontProvider {
     }
     if (isSystemFont(family) || typeof document === "undefined") return;
     const key = family!.toLowerCase();
+    if (face) {
+      const faces = this.wanted.get(key) ?? new Map<string, FaceWant>();
+      faces.set(`${face.weight}|${face.italic ? 1 : 0}`, face);
+      this.wanted.set(key, faces);
+    }
+    if (this.sheetReady.has(key)) this.loadFaces(key, family!);
     if (this.loaded.has(key) || this.loading.has(key)) return;
     const entry = getFontEntry(family!);
     if (!entry) return;
@@ -199,6 +271,8 @@ class FontProvider {
         .then(() => {
           this.loading.delete(key);
           this.loaded.add(key);
+          this.sheetReady.add(key);
+          this.loadFaces(key, family!);
           this.notify();
         })
         .catch(() => {
@@ -249,8 +323,8 @@ class FontProvider {
     const walk = (nodes: Node[]) => {
       for (const n of nodes) {
         if (n.type === "text") {
-          for (const para of (n as unknown as { content: { runs: { style: { fontFamily?: string } }[] }[] }).content) {
-            for (const run of para.runs) this.ensure(run.style.fontFamily);
+          for (const para of (n as unknown as { content: { runs: { style: RunFont }[] }[] }).content) {
+            for (const run of para.runs) this.ensure(run.style.fontFamily, faceOf(run.style));
           }
         }
         const kids = (n as unknown as { children?: Node[] }).children;

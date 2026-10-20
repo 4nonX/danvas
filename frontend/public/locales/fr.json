@@ -4358,5 +4358,13 @@
   "editor.die_line_desc": "Un contour de coupe ou de découpe le long du format fini dans une couleur d'accompagnement à part, en surimpression et sur son propre calque. Il n'est pas imprimé ; l'imprimeur découpe dessus.",
   "editor.die_line_name": "Nom",
   "editor.die_line_radius_mm": "Rayon mm",
-  "editor.die_line_default_name": "CutContour"
+  "editor.die_line_default_name": "CutContour",
+  "editor.hyc_format": "Fichier danvas (.hyc)",
+  "editor.hyc_format_desc": "Le design lui-même au format de fichier ouvert, toutes les pages : à conserver, à transférer vers une autre instance ou à réimporter.",
+  "editor.export_check_title": "Tout n’est pas exporté comme dans l’éditeur",
+  "editor.export_issue_font": "La police « {subject} » n’est pas disponible ici et est remplacée par une police de secours ({where}).",
+  "editor.export_issue_font_outline": "La police « {subject} » n’a pas de fichier pour l’export vectoriel : ce texte devient une image non modifiable dans le fichier ({where}).",
+  "editor.export_issue_image": "L’image « {subject} » n’a pas pu être chargée et manque dans l’export ({where}).",
+  "editor.export_issue_image_resolution": "L’image « {subject} » n’a que {ppi} dpi à sa taille et sera floue à l’impression ; {min} dpi ou plus sont recommandés ({where}).",
+  "editor.export_issue_page": "p. {page} : {elements}"
 }

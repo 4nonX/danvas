@@ -1,6 +1,6 @@
 {
   "name": "hycanvas",
-  "version": "0.4.6",
+  "version": "0.4.7",
   "license": "Elastic-2.0",
   "private": true,
   "description": "danvas - a self-hostable design platform, based on HyCanvas by HyScaler",
@@ -44,6 +44,7 @@
     "bench:paint": "node scripts/bench-paint.mjs",
     "gen:ai-tools": "node scripts/gen-ai-tools.mjs",
     "test:frontend": "npm run test -w frontend",
+    "test:export": "node tests/export/run.mjs",
     "gen:compose-fixture": "node scripts/gen-compose-fixture.mjs",
     "gen:kit-looks": "node scripts/gen-kit-looks.mjs",
     "gen:kit-packset": "node scripts/gen-kit-packset.mjs",
@@ -55,6 +56,7 @@
   "devDependencies": {
     "concurrently": "^9.1.0",
     "dotenv-cli": "^8.0.0",
+    "esbuild": "^0.28.2",
     "puppeteer-core": "^25.5.0",
     "shx": "^0.3.4"
   },

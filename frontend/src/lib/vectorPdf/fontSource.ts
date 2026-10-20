@@ -24,6 +24,18 @@ export interface FaceRequest {
 /** The files that together draw one requested face. */
 export interface LoadedFace {
   subsets: fontkit.Font[];
+  /** The browser makes the face bolder or slanted itself, because the font
+   *  it matched has no such face: the export has to do the same. */
+  synthBold?: boolean;
+  synthItalic?: boolean;
+}
+
+/** CSS font matching synthesizes bold when bold is asked for (600 and up)
+ *  and the matched face is lighter, and an oblique when italic is asked for
+ *  and the face is upright. `faceWeight` and `faceItalic` are the face's
+ *  descriptors as registered with the browser, not the file's contents. */
+export function synthesis(req: FaceRequest, faceWeight: number, faceItalic: boolean): Pick<LoadedFace, "synthBold" | "synthItalic"> {
+  return { synthBold: req.weight >= 600 && faceWeight < 600, synthItalic: req.italic && !faceItalic };
 }
 
 const fileCache = new Map<string, Promise<fontkit.Font | null>>();
@@ -110,17 +122,19 @@ async function loadWebFace(req: FaceRequest): Promise<LoadedFace | null> {
   const dist = (f: CssFace) => (req.weight < f.weightMin ? f.weightMin - req.weight : req.weight > f.weightMax ? req.weight - f.weightMax : 0);
   const best = Math.min(...pool.map(dist));
   const chosen = pool.filter((f) => dist(f) === best);
-  const target = chosen[0].weightMin === chosen[0].weightMax ? chosen[0].weightMin : req.weight;
+  const target = Math.min(chosen[0].weightMax, Math.max(chosen[0].weightMin, req.weight));
   const files = await Promise.all([...new Set(chosen.filter((f) => f.weightMin === chosen[0].weightMin).map((f) => f.url))].map(loadFile));
   const subsets = files.filter((f): f is fontkit.Font => !!f).map((f) => vary(f, { ...req, weight: target }));
-  return subsets.length ? { subsets } : null;
+  return subsets.length ? { subsets, ...synthesis(req, target, chosen[0].italic) } : null;
 }
 
 async function loadCustomFace(req: FaceRequest, docFonts: { family?: string; url?: string }[]): Promise<LoadedFace | null> {
   const src = fontProvider.customSource(req.family) ?? docFonts.find((f) => f.family?.toLowerCase() === req.family.toLowerCase())?.url;
   if (!src) return null;
   const font = await loadFile(src);
-  return font ? { subsets: [vary(font, req)] } : null;
+  // Registered without descriptors (FontFace defaults: weight 400, upright),
+  // so the browser draws the file as it is and synthesizes bold and italic.
+  return font ? { subsets: [font], ...synthesis(req, 400, false) } : null;
 }
 
 // Parsed per file: the provider hands out one byte array per face.
@@ -128,8 +142,9 @@ const wsFileCache = new WeakMap<Uint8Array, fontkit.Font | null>();
 
 /** A workspace font family's file (the face nearest the request). */
 async function loadWorkspaceFace(req: FaceRequest): Promise<LoadedFace | null> {
-  const bytes = await fontProvider.workspaceFaceBytes(req.family, req.weight, req.italic);
-  if (!bytes) return null;
+  const face = await fontProvider.workspaceFace(req.family, req.weight, req.italic);
+  if (!face) return null;
+  const { bytes } = face;
   let font = wsFileCache.get(bytes);
   if (font === undefined) {
     try {
@@ -140,7 +155,9 @@ async function loadWorkspaceFace(req: FaceRequest): Promise<LoadedFace | null> {
     }
     wsFileCache.set(bytes, font);
   }
-  return font ? { subsets: [vary(font, req)] } : null;
+  // The face is registered with its own weight, so a variable file is drawn
+  // at that weight, and the browser synthesizes what is missing.
+  return font ? { subsets: [vary(font, { ...req, weight: face.weight })], ...synthesis(req, face.weight, face.italic) } : null;
 }
 
 /** Load the font files for a face; null when the family has no font file the

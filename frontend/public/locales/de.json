@@ -4358,5 +4358,13 @@
   "editor.die_line_desc": "Eine Schneide- oder Stanzlinie entlang des Endformats in einer eigenen Sonderfarbe, überdruckend und auf eigener Ebene. Sie wird nicht gedruckt; die Druckerei schneidet danach.",
   "editor.die_line_name": "Name",
   "editor.die_line_radius_mm": "Radius mm",
-  "editor.die_line_default_name": "Stanze"
+  "editor.die_line_default_name": "Stanze",
+  "editor.hyc_format": "danvas-Datei (.hyc)",
+  "editor.hyc_format_desc": "Das Design selbst im offenen Dateiformat, alle Seiten: zum Aufbewahren, für eine andere Instanz oder zum erneuten Import.",
+  "editor.export_check_title": "Nicht alles wird so exportiert, wie es im Editor aussieht",
+  "editor.export_issue_font": "Schrift „{subject}“ ist hier nicht verfügbar und wird mit einer Ersatzschrift gezeichnet ({where}).",
+  "editor.export_issue_font_outline": "Für die Schrift „{subject}“ gibt es keine Schriftdatei für den Vektorexport: Der Text wird zum Bild und ist in der Datei nicht bearbeitbar ({where}).",
+  "editor.export_issue_image": "Bild „{subject}“ konnte nicht geladen werden und fehlt im Export ({where}).",
+  "editor.export_issue_image_resolution": "Bild „{subject}“ hat an seiner Stelle nur {ppi} dpi und wirkt im Druck unscharf; empfohlen sind mindestens {min} dpi ({where}).",
+  "editor.export_issue_page": "S. {page}: {elements}"
 }

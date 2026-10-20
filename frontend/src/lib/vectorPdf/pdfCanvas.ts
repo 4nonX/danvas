@@ -346,7 +346,28 @@ export interface GlyphLayout {
   spacing: number;
   size: number;
   ctm: Mat;
+  /** Synthesized bold: the outline also stroked this wide (user units), as
+   *  the browser emboldens a face the font does not have. 0 for none. */
+  embolden: number;
 }
+
+/** Whether text is rasterized by FreeType (Chrome on Linux and Android). */
+function freetypeText(): boolean {
+  return typeof navigator !== "undefined" && /Linux/.test(navigator.userAgent);
+}
+
+/** The width the browser adds to synthesize bold, so the file matches the
+ *  editor it is exported from. Measured in Chrome: with FreeType 1/24 of the
+ *  size; elsewhere (Skia's own emboldening, Windows and macOS) 1/24 at 9 px
+ *  and below, 1/32 at 36 px and above, linear in between. */
+export function emboldenWidth(size: number, freetype = freetypeText()): number {
+  if (freetype) return size / 24;
+  const t = Math.min(1, Math.max(0, (size - 9) / 27));
+  return size * (1 / 24 + t * (1 / 32 - 1 / 24));
+}
+
+/** The slant of a synthesized oblique (Skia's skew: x moves a quarter of y). */
+const SYNTH_SKEW = 0.25;
 
 /** One marked-content item of a tagged page: its id in the content stream,
  *  its structure type, an optional description, and the top-level element
@@ -1037,13 +1058,18 @@ export abstract class VectorCanvas {
     const out: Seg[] = [];
     const m = this.s.ctm;
     let pen = 0;
+    // FreeType grows an emboldened glyph to the right and up only (its left
+    // and bottom edges stay); the stroke grows it evenly, so move it by half.
+    const embolden = face.synthBold ? emboldenWidth(req.size) : 0;
+    const boldShift = embolden && freetypeText() ? embolden / 2 : 0;
     for (const l of laid) {
       l.run.glyphs.forEach((g, i) => {
         const p = l.run.positions[i];
         const gx = x0 + (pen + p.xOffset * l.scale) * fit * squeeze;
         const gy = base - p.yOffset * l.scale;
         const sxk = l.scale * squeeze;
-        const tx = (fx: number, fy: number) => apply(m, gx + fx * sxk, gy - fy * l.scale);
+        const skew = face.synthItalic ? SYNTH_SKEW : 0;
+        const tx = (fx: number, fy: number) => apply(m, gx + boldShift + (fx + skew * fy) * sxk, gy - boldShift - fy * l.scale);
         for (const c of g.path.commands) {
           const a = c.args;
           if (c.command === "moveTo") { const [px, py] = tx(a[0], a[1]); out.push({ op: "M", x: px, y: py }); }
@@ -1062,7 +1088,7 @@ export abstract class VectorCanvas {
         pen += p.xAdvance * l.scale + spacing;
       });
     }
-    return { path: out, runs: laid, x0, base, k: fit * squeeze, spacing, size: req.size, ctm: m };
+    return { path: out, runs: laid, x0, base, k: fit * squeeze, spacing, size: req.size, ctm: m, embolden };
   }
 
   // --- text layer (tagged PDF) ------------------------------------------------
@@ -1100,12 +1126,26 @@ export abstract class VectorCanvas {
     const vector = !(this.effectActive() || !this.vectorPaint(this.s.fillStyle) || !this.blendName());
     const layout = vector || this.wantsText() ? this.glyphLayout(text, x, y, maxWidth) : null;
     if (this.wantsText()) this.textLayer(text, layout);
-    const outline = vector ? layout?.path ?? null : null;
+    let outline = vector ? layout?.path ?? null : null;
+    // Synthesized bold is the outline filled and stroked in the same colour;
+    // only an opaque plain colour looks the same that way (a translucent one
+    // would be darker where they overlap), so anything else is drawn as pixels.
+    const bold = outline && layout ? layout.embolden : 0;
+    if (bold && !(typeof this.s.fillStyle === "string" && this.color(this.s.fillStyle).a * this.s.globalAlpha >= 0.999 && this.blendName() === "Normal")) outline = null; // i18n-ignore: PDF operators and names
     if (!outline) {
-      this.raster(this.textBox(text, x, y), (ctx) => ctx.fillText(text, x, y, maxWidth));
+      this.raster(this.textBox(text, x, y), (ctx) => ctx.fillText(text, x, y, maxWidth), bold * scaleOf(this.s.ctm));
       return;
     }
     this.paintFill(outline, "nonzero", this.s.fillStyle);
+    if (bold) {
+      this.save();
+      this.lineWidth = bold;
+      this.lineJoin = "miter";
+      this.miterLimit = 4;
+      this.setLineDash([]);
+      this.paintStroke(outline, this.s.fillStyle);
+      this.restore();
+    }
     this.stats.textRuns++;
   }
 
@@ -1115,7 +1155,8 @@ export abstract class VectorCanvas {
     const vector = !(this.effectActive() || typeof this.s.strokeStyle !== "string" || !this.blendName());
     const layout = vector || this.wantsText() ? this.glyphLayout(text, x, y, maxWidth) : null;
     if (this.wantsText()) this.textLayer(text, layout);
-    const outline = vector ? layout?.path ?? null : null;
+    // Stroked text in a synthesized bold face: drawn as pixels (rare).
+    const outline = vector && !layout?.embolden ? layout?.path ?? null : null;
     if (!outline) {
       this.raster(this.textBox(text, x, y), (ctx) => ctx.strokeText(text, x, y, maxWidth), this.s.lineWidth * scaleOf(this.s.ctm));
       return;

@@ -119,6 +119,11 @@ All of these are drawn by the same engine as the editor, so they match what you 
 - **SVG** and **vector PDF**.
 - **Accessible PDF (tagged)**: the vector PDF plus a structure tree in reading order, alt text, and an invisible real-text layer.
 - **Print**: vector PDF, image PDF, TIFF and EPS (PostScript Level 3), each in CMYK through an ICC color profile or in RGB. For CMYK, choose a color profile and a rendering intent; workspace admins upload their own printing profiles under **Members**, **Print profiles** (**Upload .icc profile**).
+- **danvas file (.hyc)**: the design itself in the open file format, all pages, for keeping, for another instance or to import again. Also in the editor's **File** menu.
+
+The download menu checks what the chosen format would lose before the file is made, and lists it with the page and element: a font that is unknown here or did not load (a fallback font draws the text), an image that did not load, for the vector formats a font with no file to outline the text from (the text becomes a picture in the file), and for PDF, TIFF and EPS an image placed at under 150 dpi. It never blocks the download.
+
+To check every format against the editor after a change to the export, run `npm run test:export` (see [`tests/export`](../tests/export/README.md)).
 
 ### Files for print shops
 

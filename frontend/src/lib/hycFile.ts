@@ -19,11 +19,15 @@ export const hycExtension = ".hyc";
  *  (content is validated, so the name never decides). */
 export const hycAccept = ".hyc,.json,application/json";
 
+/** A design file as the bytes of a .hyc. */
+export function hycBlob(file: DesignFile): Blob {
+  return new Blob([JSON.stringify(file, null, 2)], { type: "application/json" });
+}
+
 /** Serialize a design file and hand it to the browser as `<baseName>.hyc`. */
 export function downloadHycFile(file: DesignFile, baseName: string): void {
   const safe = (baseName || "design").replace(/[^\w.-]+/g, "-").replace(/^-+|-+$/g, "") || "design";
-  const blob = new Blob([JSON.stringify(file, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
+  const url = URL.createObjectURL(hycBlob(file));
   const a = document.createElement("a");
   a.href = url;
   a.download = `${safe}${hycExtension}`;

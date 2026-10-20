@@ -4358,5 +4358,13 @@
   "editor.die_line_desc": "Um contorno de corte ou faca ao longo do formato final em uma cor especial própria, em sobreimpressão e em camada própria. Não é impresso; a gráfica corta por ele.",
   "editor.die_line_name": "Nome",
   "editor.die_line_radius_mm": "Raio mm",
-  "editor.die_line_default_name": "CutContour"
+  "editor.die_line_default_name": "CutContour",
+  "editor.hyc_format": "Arquivo danvas (.hyc)",
+  "editor.hyc_format_desc": "O próprio design no formato de arquivo aberto, todas as páginas: para guardar, levar a outra instância ou importar de novo.",
+  "editor.export_check_title": "Nem tudo será exportado como aparece no editor",
+  "editor.export_issue_font": "A fonte “{subject}” não está disponível aqui e será desenhada com uma fonte alternativa ({where}).",
+  "editor.export_issue_font_outline": "A fonte “{subject}” não tem arquivo para a exportação vetorial: esse texto vira imagem e não pode ser editado no arquivo ({where}).",
+  "editor.export_issue_image": "A imagem “{subject}” não carregou e falta na exportação ({where}).",
+  "editor.export_issue_image_resolution": "A imagem “{subject}” tem só {ppi} dpi no tamanho em que está e ficará borrada na impressão; recomenda-se {min} dpi ou mais ({where}).",
+  "editor.export_issue_page": "p. {page}: {elements}"
 }

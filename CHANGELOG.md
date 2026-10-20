@@ -2,6 +2,20 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.4.7 (2026-10-20)
+
+### Added
+
+- **danvas file (.hyc)** in the download menu, next to the other formats (until now only in the editor's File menu).
+- **Export check in the download menu**: before the file is made, the menu lists what the chosen format would lose, with page and element. A font that is unknown here or did not load (the text is drawn in a fallback font); an image that did not load; for SVG, vector PDF and EPS a font with no file to outline the text from (it becomes a picture in the file); for PDF, TIFF and EPS an image placed at under 150 dpi. The download is never blocked.
+- **Export check suite** (`npm run test:export`, `tests/export`): exports designs through every format in a real Chrome and checks the files as print software reads them: the rendering against the editor (drawn without culling), page boxes, CMYK without RGB, output intent and PDF/X-4, spot colours, black overprint on the separations, resolution in the file. Run by hand after changes to the export; it also runs over a folder of real `.hyc` files.
+
+### Fixed
+
+- Bold, semibold and italic text could come out in a fallback font in downloads from the dashboard (PNG, JPG, TIFF, image PDF): of each web font only the regular face was loaded before drawing, the others only once the canvas first asked for them. Every face a design uses is now loaded, and the export waits for all of them. The editor's download waits the same way.
+- A font uploaded into a design counted as loaded while its file was still on the way, so a dashboard download could draw that text in a fallback font.
+- Bold or italic text in a font that has no such face (an uploaded font with one file, a workspace font without a bold or italic face, a catalog font without that weight) came out regular in SVG, vector PDF and EPS, while the editor showed it bold or slanted: the browser synthesizes the missing face, the export took the nearest real one. The exports now synthesize it the same way (slanted outlines, and the outline also stroked in the text colour, as wide as the browser makes it on that system). Text in a synthesized bold that is translucent or filled with a gradient is placed as an image instead, which looks the same.
+
 ## 0.4.6 (2026-10-20)
 
 ### Fixed

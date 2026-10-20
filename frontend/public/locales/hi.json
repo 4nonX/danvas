@@ -4358,5 +4358,13 @@
   "editor.die_line_desc": "फ़िनिश्ड आकार के साथ एक कट या पंच रेखा, अपने अलग स्पॉट रंग में, ओवरप्रिंट और अपनी लेयर पर। यह छपती नहीं; प्रिंटर इसी से काटता है।",
   "editor.die_line_name": "नाम",
   "editor.die_line_radius_mm": "त्रिज्या mm",
-  "editor.die_line_default_name": "CutContour"
+  "editor.die_line_default_name": "CutContour",
+  "editor.hyc_format": "danvas फ़ाइल (.hyc)",
+  "editor.hyc_format_desc": "डिज़ाइन स्वयं, खुले फ़ाइल फ़ॉर्मेट में, सभी पेज: सहेजने, दूसरे इंस्टेंस पर ले जाने या फिर से आयात करने के लिए।",
+  "editor.export_check_title": "एक्सपोर्ट में सब कुछ एडिटर जैसा नहीं दिखेगा",
+  "editor.export_issue_font": "फ़ॉन्ट “{subject}” यहाँ उपलब्ध नहीं है और वैकल्पिक फ़ॉन्ट में दिखाया जाएगा ({where})।",
+  "editor.export_issue_font_outline": "फ़ॉन्ट “{subject}” की वेक्टर एक्सपोर्ट के लिए कोई फ़ाइल नहीं है: वह टेक्स्ट चित्र बन जाएगा और फ़ाइल में संपादित नहीं हो सकेगा ({where})।",
+  "editor.export_issue_image": "चित्र “{subject}” लोड नहीं हुआ और एक्सपोर्ट में नहीं होगा ({where})।",
+  "editor.export_issue_image_resolution": "चित्र “{subject}” अपने आकार पर केवल {ppi} dpi का है और प्रिंट में धुंधला दिखेगा; {min} dpi या अधिक की सलाह है ({where})।",
+  "editor.export_issue_page": "पृ. {page}: {elements}"
 }

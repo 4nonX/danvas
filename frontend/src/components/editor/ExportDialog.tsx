@@ -41,12 +41,15 @@ import { resolvedLocale } from "@/lib/locale";
 import { copyText } from "@/lib/clipboard";
 import { listProfileOptions, profileBytes, type ProfileOption } from "@/lib/print/profiles";
 import type { CmykConverter, RenderingIntent } from "@/lib/print/cms";
-import { clipToBleed, drawPrintMarks, initialPrintOverride, printAdditions, printSheet, pxToMm, sheetViewport, withPrintOverride, type PrintExtras, type PrintOverride, type PrintParts } from "@/lib/print/sheet";
+import { initialPrintOverride, printAdditions, printSheet, pxToMm, withPrintOverride, type PrintExtras, type PrintOverride, type PrintParts } from "@/lib/print/sheet";
 import { pageBleed } from "@hc/engine";
-import { setJpegDpi, setPngDpi } from "@/lib/print/rasterMeta";
+import { imagePdfBlob, rasterBlob, renderPageCanvas, tiffBlob } from "@/lib/exportFormats";
+import { hycBlob } from "@/lib/hycFile";
+import { exportIssues, PRINT_MIN_PPI, type ExportIssue } from "@/lib/exportIssues";
+import { whenRenderable } from "@/lib/loadDesignForExport";
 import { BleedField, BleedInput, MarkFields, MarkInputs, setPagesBleed, setPagesMarks } from "./PrintSettings";
 
-type Format = "png" | "jpg" | "pdf" | "svg" | "apng" | "gif" | "lottie" | "mp4" | "pptx" | "md" | "tiff" | "eps";
+type Format = "png" | "jpg" | "pdf" | "svg" | "apng" | "gif" | "lottie" | "mp4" | "pptx" | "md" | "hyc" | "tiff" | "eps";
 
 // `acronym` is the chip label: a file-format name, never translated. `label`
 // stays the full human name used in toasts and the selected-format line.
@@ -61,6 +64,7 @@ const formats = (): { value: Format; label: string; acronym: string; group: Form
   { value: "pdf", label: "PDF", acronym: "PDF", group: "document", suffix: "pdf", desc: tr("editor.best_for_documents_and_printing"), icon: FileText },
   { value: "pptx", label: tr("editor.powerpoint_pptx"), acronym: "PPTX", group: "document", suffix: "pptx", desc: tr("editor.editable_slides_for_powerpoint_keynote_google"), icon: FileText },
   { value: "md", label: tr("editor.markdown_outline"), acronym: "MD", group: "document", suffix: "md", desc: tr("editor.slide_structure_and_text_as_a_markdown_outline"), icon: FileText },
+  { value: "hyc", label: tr("editor.hyc_format"), acronym: "HYC", group: "document", suffix: "hyc", desc: tr("editor.hyc_format_desc"), icon: FileText },
   { value: "tiff", label: "TIFF", acronym: "TIFF", group: "print", suffix: "tif", desc: tr("editor.tiff_desc"), icon: Printer },
   { value: "eps", label: "EPS", acronym: "EPS", group: "print", suffix: "eps", desc: tr("editor.eps_desc"), icon: Printer },
   { value: "apng", label: tr("editor.animated_png"), acronym: "APNG", group: "motion", suffix: "apng", desc: tr("editor.plays_the_deck_or_page_with_transitions_loss"), icon: ImageIcon },
@@ -76,48 +80,6 @@ const formatGroups = (): { id: FormatGroup; label: string }[] => [
   { id: "motion", label: tr("editor.format_group_animation_video") },
 ];
 
-/** Render one page to an offscreen canvas at `scale`. Fills white when opaque
- *  (jpg / PDF / non-transparent png); leaves alpha otherwise. With `print`
- *  the canvas is the page's whole print sheet: its bleed and crop marks. */
-function renderPageCanvas(doc: import("@hc/schema").DesignFile, index: number, scale: number, opaque: boolean, print: PrintParts | false = false): HTMLCanvasElement | null {
-  const pg = doc.pages[index];
-  if (!pg) return null;
-  if (print && (print.bleed || print.marks)) {
-    const sheet = printSheet(pg, doc.dpi ?? 96, print);
-    const vp = sheetViewport(sheet, scale);
-    const canvas = document.createElement("canvas");
-    canvas.width = vp.width;
-    canvas.height = vp.height;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return null;
-    if (opaque) {
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, vp.width, vp.height);
-    }
-    ctx.save();
-    clipToBleed(ctx, sheet, scale);
-    renderScene(createScene(doc, index), ctx as unknown as CanvasLike, vp, { assets: imageAssets, clear: false, skipBackground: !opaque });
-    ctx.restore();
-    drawPrintMarks(ctx, sheet, scale);
-    return canvas;
-  }
-  const w = Math.max(1, Math.round(pg.width * scale));
-  const h = Math.max(1, Math.round(pg.height * scale));
-  const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return null;
-  if (opaque) {
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, w, h);
-  }
-  const vp: Viewport = { zoom: scale, panX: 0, panY: 0, dpr: 1, width: w, height: h };
-  // For a transparent export the page's own background fill must be skipped too,
-  // not just the white canvas prefill, or the PNG comes out opaque.
-  renderScene(createScene(doc, index), ctx as unknown as CanvasLike, vp, { assets: imageAssets, clear: false, skipBackground: !opaque });
-  return canvas;
-}
 
 /** Image-asset bytes for the PPTX exporter: fetch the asset URL; PowerPoint
  *  accepts png/jpeg natively, anything else transcodes to PNG via a canvas. */
@@ -296,6 +258,24 @@ const FOCUSABLE =
  *  each into one zip, a folder per design. */
 export interface ExportTarget { id: string; doc: DesignFile }
 
+/** Where an export check issue is: "p. 1: Title, Footer; p. 2: ...". */
+function issueWhere(i: ExportIssue): string {
+  const byPage = new Map<number, string[]>();
+  for (const w of i.where) byPage.set(w.page, [...(byPage.get(w.page) ?? []), w.element]);
+  return [...byPage].map(([page, els]) => {
+    const shown = els.slice(0, 3).join(", ");
+    return tr("editor.export_issue_page", { page, elements: els.length > 3 ? `${shown} +${els.length - 3}` : shown });
+  }).join("; ");
+}
+
+function issueText(i: ExportIssue): string {
+  const where = issueWhere(i);
+  if (i.kind === "font") return tr("editor.export_issue_font", { subject: i.subject, where });
+  if (i.kind === "font-outline") return tr("editor.export_issue_font_outline", { subject: i.subject, where });
+  if (i.kind === "image-resolution") return tr("editor.export_issue_image_resolution", { subject: i.subject, ppi: i.ppi ?? 0, min: PRINT_MIN_PPI, where });
+  return tr("editor.export_issue_image", { subject: i.subject, where });
+}
+
 export function ExportDialog({ open, onClose, designs }: { open: boolean; onClose: () => void; designs?: ExportTarget[] }) {
   const toast = useToast();
   const storeActivePage = useEditor((s) => s.activePage);
@@ -425,6 +405,34 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rev]);
 
+  // Export check: fonts and images the file would silently replace or leave
+  // out, and (vector formats) text that would become a picture. Shown, never
+  // blocking; recomputed when the format, the pages or the design change.
+  const [issues, setIssues] = useState<{ design: string; list: ExportIssue[] }[]>([]);
+  const rendersDesign = format !== "hyc" && format !== "md" && format !== "lottie";
+  const vectorOut = format === "svg" || format === "eps" || (format === "pdf" && pdfMode !== "image");
+  const printOut = format === "pdf" || format === "tiff" || format === "eps";
+  // The pages exported (as `pages` below, which comes after the early return).
+  const pagesKey = (selected.length ? [...selected].sort((a, b) => a - b) : [Math.min(activePage, pageCount - 1)]).join(",");
+  useEffect(() => {
+    if (!open || !rendersDesign) return;
+    let cancelled = false;
+    void (async () => {
+      const targets = bulk
+        ? designs!.map((d) => ({ design: d.doc.title || tr("editor.untitled"), doc: d.doc, pages: d.doc.pages.map((_, i) => i) }))
+        : [{ design: "", doc: designs?.[0]?.doc ?? useEditor.getState().doc, pages: pagesKey.split(",").map(Number) }];
+      const out: { design: string; list: ExportIssue[] }[] = [];
+      for (const t of targets) {
+        await whenRenderable(t.doc);
+        const list = await exportIssues(t.doc, t.pages, { vector: vectorOut, print: printOut });
+        if (list.length) out.push({ design: t.design, list });
+      }
+      if (!cancelled) setIssues(out);
+    })();
+    return () => { cancelled = true; };
+  }, [open, rendersDesign, vectorOut, printOut, pagesKey, designs, bulk, rev]);
+  const shownIssues = rendersDesign ? issues : [];
+
   // Dialog focus contract: on open, remember the opener and move focus onto the
   // panel; on close, return focus so keyboard users don't drop to <body>.
   useEffect(() => {
@@ -453,9 +461,10 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
   // The page(s) that will actually be exported, sorted; PDF always uses all
   // selected, raster/svg emit one file per selected page.
   const pages = selected.length ? [...selected].sort((a, b) => a - b) : [Math.min(activePage, pageCount - 1)];
+
   // Live pixel dimensions for the first exported page (design tools commonly show this).
   const refPage = doc.pages[pages[0]] ?? doc.pages[0];
-  const fileCount = format === "pdf" || format === "mp4" || format === "pptx" || format === "md" || isSingleAnimated ? 1 : pages.length;
+  const fileCount = format === "pdf" || format === "mp4" || format === "pptx" || format === "md" || format === "hyc" || isSingleAnimated ? 1 : pages.length;
   // Bleed and crop marks apply to every image and print format (not the
   // accessible PDF, documents or motion).
   const sheetCapable = isPrint || format === "png" || format === "jpg" || format === "svg" || (format === "pdf" && pdfMode !== "tagged");
@@ -527,7 +536,7 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
   async function exportDesign(doc: DesignFile, designId: string | null, pages: number[], emit: (blob: Blob, name: string) => void, quiet: boolean): Promise<void> {
     // From the dashboard every design gets the menu's bleed and marks.
     if (!printEditable && sheetCapable) doc = withPrintOverride(doc, override);
-    const fileCount = format === "pdf" || format === "mp4" || format === "pptx" || format === "md" || isSingleAnimated ? 1 : pages.length;
+    const fileCount = format === "pdf" || format === "mp4" || format === "pptx" || format === "md" || format === "hyc" || isSingleAnimated ? 1 : pages.length;
     const safeBase = (doc.title || "design").replace(/[^\w.-]+/g, "-").replace(/^-+|-+$/g, "") || "design";
     const nameFor = (i: number, suffix: string) => (fileCount > 1 ? `${safeBase}-${i + 1}.${suffix}` : `${safeBase}.${suffix}`);
 
@@ -542,6 +551,10 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
       });
       emit(new Blob([bytes as unknown as BlobPart], { type: "application/vnd.openxmlformats-officedocument.presentationml.presentation" }), `${safeBase}.pptx`);
       if (!quiet) toast.success(tr("editor.downloaded_file", { file: `${safeBase}.pptx` }));
+    } else if (format === "hyc") {
+      // The design itself in the open file format: every page, as stored.
+      emit(hycBlob(doc), `${safeBase}.hyc`);
+      if (!quiet) toast.success(tr("editor.downloaded_file", { file: `${safeBase}.hyc` }));
     } else if (format === "md") {
       // Markdown outline (F28 C26): deterministic structure-and-text
       // serialization, entirely client-side.
@@ -598,18 +611,8 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
             const { exportEps } = await import("@/lib/print/eps");
             blob = await exportEps(doc, i, { assets: imageAssets, title: doc.title, converter, blackOnly, overprintBlack: !!converter && blackOnly && overprintBlack, print: useSheet, extras: printExtras });
           } else {
-            const canvas = renderPageCanvas(doc, i, tiffDpi / (doc.dpi ?? 96), true, useSheet);
-            if (!canvas) continue;
-            const rgba = canvas.getContext("2d")!.getImageData(0, 0, canvas.width, canvas.height).data;
-            const n = canvas.width * canvas.height;
-            let data: Uint8Array;
-            if (converter) data = converter.pixels(rgba, n);
-            else {
-              data = new Uint8Array(n * 3);
-              for (let j = 0; j < n; j++) { data[j * 3] = rgba[j * 4]; data[j * 3 + 1] = rgba[j * 4 + 1]; data[j * 3 + 2] = rgba[j * 4 + 2]; }
-            }
-            const { encodeTiff } = await import("@/lib/print/tiff");
-            blob = await encodeTiff({ width: canvas.width, height: canvas.height, data, mode: converter ? "cmyk" : "rgb", dpi: tiffDpi, icc: converter?.icc });
+            blob = await tiffBlob(doc, i, { dpi: tiffDpi, converter, print: useSheet });
+            if (!blob) continue;
           }
           entries.push({ name: nameFor(i, fmt.suffix), data: new Uint8Array(await blob.arrayBuffer()) });
         }
@@ -643,19 +646,11 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
     } else if (format === "pdf") {
       // One picture per page at the chosen size, in CMYK through the profile
       // or RGB, with the sheet's page boxes.
-      const { exportImagePdf } = await import("@/lib/vectorPdf");
       const converter = await makeConverter();
       try {
-        const dpi = doc.dpi ?? 96;
-        const imgs = [];
-        for (const i of pages) {
-          const canvas = renderPageCanvas(doc, i, scale, true, useSheet);
-          const pg = doc.pages[i];
-          if (!canvas || !pg) continue;
-          imgs.push({ rgba: canvas.getContext("2d")!.getImageData(0, 0, canvas.width, canvas.height).data, width: canvas.width, height: canvas.height, sheet: printSheet(pg, dpi, useSheet) });
-        }
-        if (imgs.length) {
-          emit(await exportImagePdf(imgs, dpi, { title: doc.title, converter, pdfx: !!converter && pdfx }), `${safeBase}.pdf`);
+        const blob = await imagePdfBlob(doc, pages, { scale, converter, pdfx, print: useSheet, title: doc.title });
+        if (blob) {
+          emit(blob, `${safeBase}.pdf`);
           if (!quiet) toast.success(tr("editor.downloaded_file", { file: `${safeBase}.pdf` }));
         }
       } finally {
@@ -722,15 +717,7 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
         // SVG goes through the engine like the vector PDF, so it matches the
         // editor exactly (text as outlines, effects as embedded patches).
         if (vectorSvg) return new Blob([await vectorSvg(doc, i, { assets: imageAssets, print: useSheet })], { type: "image/svg+xml" });
-        const canvas = renderPageCanvas(doc, i, scale, opaque, useSheet);
-        if (!canvas) return null;
-        const type = format === "png" ? "image/png" : "image/jpeg";
-        const raw: Blob | null = await new Promise((res) => canvas.toBlob(res, type, format === "jpg" ? quality / 100 : undefined));
-        if (!raw) return null;
-        // The resolution the file states: the page's physical size kept.
-        const bytes = new Uint8Array(await raw.arrayBuffer());
-        const ppi = (doc.dpi ?? 96) * scale;
-        return new Blob([(format === "png" ? setPngDpi(bytes, ppi) : setJpegDpi(bytes, ppi)) as BlobPart], { type });
+        return rasterBlob(doc, i, { format: format === "png" ? "png" : "jpg", scale, opaque, print: useSheet, quality });
       };
       for (let k = 0; k < pages.length; k++) {
         const blob = await renderBlob(pages[k]);
@@ -766,6 +753,7 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
     setBusy(true);
     try {
       if (!bulk) {
+        await whenRenderable(doc);
         await exportDesign(doc, designId, pages, download, false);
       } else {
         // Every page of every design, one folder per design, one zip.
@@ -1266,6 +1254,17 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
               <button onClick={() => setWarnDismissed(true)} className="text-[11px] font-medium text-amber-700 hover:underline">{tr("editor.dismiss")}</button>
             </div>
             <p>{tr("editor.n_brand_violations_found_can_download", { count: gate!.violations.length })}</p>
+          </div>
+        )}
+
+        {shownIssues.length > 0 && (
+          <div className="mb-3 rounded-xl bg-amber-50 p-2.5 text-xs text-amber-800">
+            <div className="mb-1 flex items-center gap-1.5 font-semibold"><AlertTriangle size={14} /> {tr("editor.export_check_title")}</div>
+            <ul className="max-h-32 list-disc overflow-y-auto ps-4 text-[11px]">
+              {shownIssues.flatMap((g) => g.list.map((i) => (
+                <li key={`${g.design}|${i.kind}|${i.subject}`}>{g.design ? `${g.design}: ` : ""}{issueText(i)}</li>
+              )))}
+            </ul>
           </div>
         )}
 
