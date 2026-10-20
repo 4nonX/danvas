@@ -6,6 +6,7 @@
 // equivalents, so the drawing operators pass through unchanged; gradients
 // become Level 3 shadings, images compressed reusable streams.
 
+import type { PrintParts } from "./sheet";
 import type { DesignFile } from "@hc/schema";
 import { drawPages, num } from "@/lib/vectorPdf";
 import type { CmykConverter } from "./cms";
@@ -17,8 +18,8 @@ export interface EpsOptions {
   converter?: CmykConverter | null;
   /** Pure black in black ink only (CMYK). */
   blackOnly?: boolean;
-  /** Include the page's bleed and crop marks. */
-  print?: boolean;
+  /** Include the page's bleed and/or crop marks. */
+  print?: boolean | PrintParts;
 }
 
 const enc = new TextEncoder();

@@ -4309,7 +4309,8 @@
   "editor.apply_print_to_all_pages": "Apply to all pages",
   "editor.bleed_hint": "The bleed is cut away after printing. Pull backgrounds and pictures that should reach the edge out to the red line. Crop marks are drawn outside the bleed in print exports.",
   "editor.print_sheet_include": "Bleed and crop marks",
-  "editor.print_sheet_bleed_mm": "{mm} mm bleed",
-  "editor.print_sheet_crop_marks": "crop marks",
-  "editor.print_sheet_per_page": "As set on each page"
+  "editor.print_sheet_bleed_mm": "Bleed, {mm} mm",
+  "editor.print_sheet_crop_marks": "Crop marks",
+  "editor.bleed": "Bleed",
+  "editor.print_sheet_bleed_per_page": "Bleed, as set on each page"
 }

@@ -11,7 +11,7 @@ import { num, PdfCanvas, PdfResources, type ColorOut, type PdfPageStats, type Pd
 import { SvgCanvas } from "./svgCanvas";
 import { tr } from "@/lib/i18n";
 import { resolveAssetUrl } from "@/lib/sdk";
-import { clipToBleed, drawPrintMarks, pdfBoxes, printSheet, sheetViewport, type PrintSheet } from "@/lib/print/sheet";
+import { clipToBleed, drawPrintMarks, pdfBoxes, printSheet, sheetViewport, type PrintParts, type PrintSheet } from "@/lib/print/sheet";
 
 export { num, type ColorOut } from "./pdfCanvas";
 
@@ -87,8 +87,8 @@ export interface VectorPdfOptions {
   tagged?: boolean;
   /** Natural language (BCP 47) when the design does not state one. */
   lang?: string;
-  /** Include each page's bleed and crop marks (print). */
-  print?: boolean;
+  /** Include each page's bleed and/or crop marks (print). */
+  print?: boolean | PrintParts;
 }
 
 export interface DrawPagesOptions {
@@ -99,8 +99,8 @@ export interface DrawPagesOptions {
   flatten?: boolean;
   /** Mark up the drawing for a tagged PDF (see PdfCanvasOptions.tagged). */
   tagged?: boolean;
-  /** Draw each page's whole print sheet: bleed and crop marks. */
-  print?: boolean;
+  /** Draw each page's print sheet: its bleed and/or crop marks. */
+  print?: boolean | PrintParts;
 }
 
 export interface DrawnPage {
@@ -126,7 +126,7 @@ export interface DrawnPage {
 /** Shared setup of every vector export: the device size of each page and
  *  the font files its text needs (found by drawing the pages once in a
  *  collect pass, then loaded). */
-async function preparePages(doc: DesignFile, pageIndexes: number[], assets: unknown, print = false) {
+async function preparePages(doc: DesignFile, pageIndexes: number[], assets: unknown, print: boolean | PrintParts = false) {
   const dpi = (doc as unknown as { dpi?: number }).dpi ?? 96;
   const docFonts = ((doc as unknown as { fonts?: { family?: string; url?: string }[] }).fonts) ?? [];
   if (typeof document !== "undefined" && document.fonts?.ready) await document.fonts.ready;

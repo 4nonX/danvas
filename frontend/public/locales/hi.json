@@ -4309,7 +4309,8 @@
   "editor.apply_print_to_all_pages": "सभी पेजों पर लागू करें",
   "editor.bleed_hint": "ब्लीड छपाई के बाद काट दिया जाता है। जो पृष्ठभूमि और चित्र किनारे तक पहुँचने चाहिए, उन्हें लाल रेखा तक खींचें। प्रिंट निर्यात में क्रॉप मार्क ब्लीड के बाहर बनाए जाते हैं।",
   "editor.print_sheet_include": "ब्लीड और क्रॉप मार्क",
-  "editor.print_sheet_bleed_mm": "{mm} mm ब्लीड",
+  "editor.print_sheet_bleed_mm": "ब्लीड, {mm} mm",
   "editor.print_sheet_crop_marks": "क्रॉप मार्क",
-  "editor.print_sheet_per_page": "हर पेज की सेटिंग के अनुसार"
+  "editor.bleed": "ब्लीड",
+  "editor.print_sheet_bleed_per_page": "ब्लीड, हर पेज की सेटिंग के अनुसार"
 }

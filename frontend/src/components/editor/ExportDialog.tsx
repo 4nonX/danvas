@@ -39,7 +39,7 @@ import { resolvedLocale } from "@/lib/locale";
 import { copyText } from "@/lib/clipboard";
 import { listProfileOptions, profileBytes, type ProfileOption } from "@/lib/print/profiles";
 import type { CmykConverter, RenderingIntent } from "@/lib/print/cms";
-import { clipToBleed, drawPrintMarks, hasPrintAdditions, pdfBoxes, printSheet, pxToMm, resolvedMarks, sheetViewport } from "@/lib/print/sheet";
+import { clipToBleed, drawPrintMarks, pdfBoxes, printAdditions, printSheet, pxToMm, sheetViewport, type PrintParts } from "@/lib/print/sheet";
 import { pageBleed } from "@hc/engine";
 
 type Format = "png" | "jpg" | "pdf" | "svg" | "apng" | "gif" | "lottie" | "mp4" | "pptx" | "md" | "tiff" | "eps";
@@ -75,11 +75,11 @@ const formatGroups = (): { id: FormatGroup; label: string }[] => [
 /** Render one page to an offscreen canvas at `scale`. Fills white when opaque
  *  (jpg / PDF / non-transparent png); leaves alpha otherwise. With `print`
  *  the canvas is the page's whole print sheet: its bleed and crop marks. */
-function renderPageCanvas(doc: import("@hc/schema").DesignFile, index: number, scale: number, opaque: boolean, print = false): HTMLCanvasElement | null {
+function renderPageCanvas(doc: import("@hc/schema").DesignFile, index: number, scale: number, opaque: boolean, print: PrintParts | false = false): HTMLCanvasElement | null {
   const pg = doc.pages[index];
   if (!pg) return null;
-  if (print) {
-    const sheet = printSheet(pg, doc.dpi ?? 96, true);
+  if (print && (print.bleed || print.marks)) {
+    const sheet = printSheet(pg, doc.dpi ?? 96, print);
     const vp = sheetViewport(sheet, scale);
     const canvas = document.createElement("canvas");
     canvas.width = vp.width;
@@ -325,8 +325,9 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
   const [blackOnly, setBlackOnly] = useState(true);
   const [tiffDpi, setTiffDpi] = useState(300);
   // Print exports include each page's bleed and crop marks (set per page in
-  // the page panel); off exports the bare page.
-  const [withPrintSheet, setWithPrintSheet] = useState(true);
+  // the page panel), each switchable on its own; both off is the bare page.
+  const [withBleed, setWithBleed] = useState(true);
+  const [withMarks, setWithMarks] = useState(true);
   const [busy, setBusy] = useState(false);
   // Brand pre-export gate. 'block' policy with violations refuses
   // the export; 'warn' shows a dismissible warning; 'off' is invisible.
@@ -441,11 +442,15 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
   const sheetCapable = isPrint || (format === "pdf" && pdfMode !== "tagged");
   // Several designs (dashboard): any page of any of them counts, since each
   // exports whole.
-  const sheetOffered = sheetCapable && (designs && designs.length > 1
-    ? designs.some((d) => hasPrintAdditions(d.doc.pages))
-    : hasPrintAdditions(pages.map((i) => doc.pages[i]).filter(Boolean)));
+  const offered: PrintParts = sheetCapable
+    ? designs && designs.length > 1
+      ? designs.reduce<PrintParts>((acc, d) => { const a = printAdditions(d.doc.pages); return { bleed: acc.bleed || a.bleed, marks: acc.marks || a.marks }; }, { bleed: false, marks: false })
+      : printAdditions(pages.map((i) => doc.pages[i]).filter(Boolean))
+    : { bleed: false, marks: false };
+  const sheetOffered = offered.bleed || offered.marks;
   // A page without bleed or marks prints as the bare page either way.
-  const useSheet = sheetCapable && withPrintSheet;
+  const useSheet: PrintParts = { bleed: sheetCapable && withBleed, marks: sheetCapable && withMarks };
+  const anySheet = useSheet.bleed || useSheet.marks;
   const tiffSheet = printSheet(refPage, doc.dpi ?? 96, useSheet);
   const tiffDim = rasterDimensions({ width: tiffSheet.sheetWidth, height: tiffSheet.sheetHeight }, { scale: tiffDpi / (doc.dpi ?? 96) }, doc.dpi ?? 96);
 
@@ -610,7 +615,7 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
         const orient = w >= h ? "landscape" : "portrait";
         if (!pdf) pdf = new jsPDF({ unit: "pt", format: [w, h], orientation: orient });
         else pdf.addPage([w, h], orient);
-        if (useSheet) {
+        if (anySheet) {
           // Where the sheet is cut (TrimBox) and how far the artwork runs
           // past it (BleedBox), as print shops read them.
           const ctxPage = pdf.getCurrentPageInfo().pageContext as Record<string, unknown>;
@@ -1006,25 +1011,27 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
           const dpi = doc.dpi ?? 96;
           const mm = (px: number) => pxToMm(px, dpi).toLocaleString(undefined, { maximumFractionDigits: 1 });
           const b = pageBleed(refPage);
-          const marks = resolvedMarks(refPage, dpi);
-          const parts = [
-            b > 0 ? tr("editor.print_sheet_bleed_mm", { mm: mm(b) }) : null,
-            marks ? tr("editor.print_sheet_crop_marks") : null,
-          ].filter(Boolean);
-          const mixed = pages.some((i) => {
-            const p = doc.pages[i];
-            return !!p && (pageBleed(p) !== b || !!resolvedMarks(p, dpi) !== !!marks);
-          });
+          // One bleed for every exported page shows its size; differing
+          // bleeds say they follow each page.
+          const sameBleed = !(designs && designs.length > 1) && pages.every((i) => !doc.pages[i] || pageBleed(doc.pages[i]) === b);
+          const row = "flex cursor-pointer items-center justify-between gap-3 text-xs text-neutral-700";
+          const box = "h-4 w-4 shrink-0 accent-brand-600";
           return (
-            <label className="mb-3 flex cursor-pointer items-start justify-between gap-3 rounded-lg border border-neutral-200 p-2.5 text-xs">
-              <span className="text-neutral-700">
-                <span className="font-medium">{tr("editor.print_sheet_include")}</span>
-                <span className="mt-0.5 block text-[11px] leading-snug text-neutral-500">
-                  {mixed ? tr("editor.print_sheet_per_page") : parts.join(", ")}
-                </span>
-              </span>
-              <input type="checkbox" checked={withPrintSheet} onChange={(e) => setWithPrintSheet(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-brand-600" />
-            </label>
+            <div className="mb-3 flex flex-col gap-2 rounded-lg border border-neutral-200 p-2.5">
+              <span className="text-xs font-medium text-neutral-700">{tr("editor.print_sheet_include")}</span>
+              {offered.bleed && (
+                <label className={row}>
+                  <span>{sameBleed && b > 0 ? tr("editor.print_sheet_bleed_mm", { mm: mm(b) }) : tr("editor.print_sheet_bleed_per_page")}</span>
+                  <input type="checkbox" checked={withBleed} onChange={(e) => setWithBleed(e.target.checked)} className={box} />
+                </label>
+              )}
+              {offered.marks && (
+                <label className={row}>
+                  <span>{tr("editor.print_sheet_crop_marks")}</span>
+                  <input type="checkbox" checked={withMarks} onChange={(e) => setWithMarks(e.target.checked)} className={box} />
+                </label>
+              )}
+            </div>
           );
         })()}
 

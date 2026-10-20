@@ -4311,5 +4311,6 @@
   "editor.print_sheet_include": "出血和裁切标记",
   "editor.print_sheet_bleed_mm": "出血 {mm} mm",
   "editor.print_sheet_crop_marks": "裁切标记",
-  "editor.print_sheet_per_page": "按各页面的设置"
+  "editor.bleed": "出血",
+  "editor.print_sheet_bleed_per_page": "出血（按各页面的设置）"
 }

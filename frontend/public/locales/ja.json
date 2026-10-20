@@ -4311,5 +4311,6 @@
   "editor.print_sheet_include": "裁ち落としとトンボ",
   "editor.print_sheet_bleed_mm": "裁ち落とし {mm} mm",
   "editor.print_sheet_crop_marks": "トンボ",
-  "editor.print_sheet_per_page": "各ページの設定どおり"
+  "editor.bleed": "裁ち落とし",
+  "editor.print_sheet_bleed_per_page": "裁ち落とし（各ページの設定どおり）"
 }

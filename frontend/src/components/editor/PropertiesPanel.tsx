@@ -3128,6 +3128,9 @@ function PageTransitionSection({ page }: { page: Page }) {
 /** Per-slide present settings shown in the empty-selection page panel:
  *  speaker notes (FR-4), autopilot dwell (FR-14), and hide/skip (FR-1). All edits
  *  are undoable via the store. The active page in present mode reads these. */
+/** The bleed a page gets when it is switched on: the common 3 mm. */
+const BLEED_DEFAULT_MM = 3;
+
 /** Print settings of the page: the bleed (artwork that runs past the cut)
  *  and the crop marks print exports draw outside it. Each page has its own,
  *  and one click copies them to every page. */
@@ -3146,9 +3149,20 @@ function PagePrintSection({ page }: { page: Page }) {
   };
   return (
     <Section title={tr("editor.print_section")} defaultOpen={!!page.bleed || !!raw?.crop}>
-      <div className="grid grid-cols-1 gap-2">
-        <Field key={`bleed${page.id}${bleedMm}`} label={tr("editor.bleed_mm")} value={bleedMm} onCommit={(n) => st.setPagePrint({ bleed: mmToPx(Math.max(0, Math.min(50, n)), dpi) })} />
-      </div>
+      <label className="flex items-center justify-between gap-2 text-sm text-neutral-700">
+        <span>{tr("editor.bleed")}</span>
+        <input
+          type="checkbox"
+          checked={bleedMm > 0}
+          onChange={(e) => st.setPagePrint({ bleed: e.target.checked ? mmToPx(BLEED_DEFAULT_MM, dpi) : 0 })}
+          className="h-4 w-4 accent-brand-500"
+        />
+      </label>
+      {bleedMm > 0 && (
+        <div className="grid grid-cols-1 gap-2">
+          <Field key={`bleed${page.id}${bleedMm}`} label={tr("editor.bleed_mm")} value={bleedMm} onCommit={(n) => st.setPagePrint({ bleed: mmToPx(Math.max(0, Math.min(50, n)), dpi) })} />
+        </div>
+      )}
       <label className="flex items-center justify-between gap-2 text-sm text-neutral-700">
         <span>{tr("editor.crop_marks")}</span>
         <input

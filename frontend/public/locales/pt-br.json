@@ -4309,7 +4309,8 @@
   "editor.apply_print_to_all_pages": "Aplicar a todas as páginas",
   "editor.bleed_hint": "A sangria é cortada após a impressão. Estenda até a linha vermelha os fundos e imagens que devem chegar à borda. As marcas de corte são desenhadas fora da sangria nas exportações para impressão.",
   "editor.print_sheet_include": "Sangria e marcas de corte",
-  "editor.print_sheet_bleed_mm": "{mm} mm de sangria",
-  "editor.print_sheet_crop_marks": "marcas de corte",
-  "editor.print_sheet_per_page": "Conforme cada página"
+  "editor.print_sheet_bleed_mm": "Sangria, {mm} mm",
+  "editor.print_sheet_crop_marks": "Marcas de corte",
+  "editor.bleed": "Sangria",
+  "editor.print_sheet_bleed_per_page": "Sangria, conforme cada página"
 }

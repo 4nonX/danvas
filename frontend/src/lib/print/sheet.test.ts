@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { beforeAll, describe, expect, it } from "vitest";
-import { clipToBleed, drawPrintMarks, hasPrintAdditions, mmToPx, pdfBoxes, printSheet, pxToMm, resolvedMarks, sheetViewport } from "./sheet";
+import { clipToBleed, drawPrintMarks, hasPrintAdditions, printAdditions, mmToPx, pdfBoxes, printSheet, pxToMm, resolvedMarks, sheetViewport } from "./sheet";
 import { PdfCanvas, PdfResources } from "../vectorPdf/pdfCanvas";
 
 // jsdom has no canvas; the PDF recorder only needs one to normalize colours.
@@ -51,6 +51,21 @@ describe("print sheet", () => {
     expect(pxToMm(s.margin, DPI)).toBeCloseTo(8);
   });
 
+  it("includes the bleed and the marks each on their own", () => {
+    const page = { ...A6, bleed, printMarks: { crop: true } };
+    const onlyBleed = printSheet(page, DPI, { bleed: true, marks: false });
+    expect([onlyBleed.bleed, onlyBleed.margin, onlyBleed.marks.length]).toEqual([bleed, bleed, 0]);
+    const onlyMarks = printSheet(page, DPI, { bleed: false, marks: true });
+    expect(onlyMarks.bleed).toBe(0);
+    expect(onlyMarks.marks).toHaveLength(8);
+    // Without the bleed the marks start at their own offset (3 mm) and the
+    // sheet ends 3 + 5 mm past the trim.
+    expect(pxToMm(Math.abs(onlyMarks.marks[0].y1), DPI)).toBeCloseTo(3);
+    expect(pxToMm(onlyMarks.margin, DPI)).toBeCloseTo(8);
+    const b = pdfBoxes(onlyMarks, DPI);
+    expect(b.bleed).toEqual(b.trim);
+  });
+
   it("fills in defaults and draws unknown styles solid", () => {
     const m = resolvedMarks({ printMarks: { crop: true, style: "wavy" } }, DPI)!;
     expect(m.style).toBe("solid");
@@ -99,6 +114,11 @@ describe("print sheet", () => {
     const vp = sheetViewport(s, 2);
     expect([vp.panX, vp.panY]).toEqual([-bleed, -bleed]);
     expect(vp.width).toBe(Math.ceil(s.sheetWidth * 2));
+  });
+
+  it("knows which additions pages have", () => {
+    expect(printAdditions([{ bleed }, {}])).toEqual({ bleed: true, marks: false });
+    expect(printAdditions([{ printMarks: { crop: true } }])).toEqual({ bleed: false, marks: true });
   });
 
   it("knows when pages have anything to add", () => {

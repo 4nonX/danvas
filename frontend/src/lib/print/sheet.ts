@@ -61,14 +61,23 @@ export function resolvedMarks(page: Pick<Page, "printMarks">, dpi: number) {
   };
 }
 
+/** Which of a page's print additions an export includes. */
+export interface PrintParts { bleed: boolean; marks: boolean }
+
+/** `true` is both, `false` neither. */
+export const printParts = (include: boolean | Partial<PrintParts>): PrintParts =>
+  typeof include === "boolean" ? { bleed: include, marks: include } : { bleed: !!include.bleed, marks: !!include.marks };
+
 /**
- * The sheet of `page`. With `include` false (an export without print
- * additions) it is the bare trim: no bleed, no marks.
+ * The sheet of `page`, with the bleed and the crop marks each included or
+ * not. With neither (an export without print additions) it is the bare trim.
+ * Marks without the bleed start at their offset from the trim.
  */
-export function printSheet(page: Pick<Page, "width" | "height" | "bleed" | "printMarks">, dpi: number, include = true): PrintSheet {
+export function printSheet(page: Pick<Page, "width" | "height" | "bleed" | "printMarks">, dpi: number, include: boolean | Partial<PrintParts> = true): PrintSheet {
   const w = page.width, h = page.height;
-  const bleed = include ? pageBleed(page) : 0;
-  const m = include ? resolvedMarks(page, dpi) : null;
+  const parts = printParts(include);
+  const bleed = parts.bleed ? pageBleed(page) : 0;
+  const m = parts.marks ? resolvedMarks(page, dpi) : null;
   const marks: MarkLine[] = [];
   let margin = bleed;
   const pxPerPt = dpi / 72;
@@ -100,9 +109,15 @@ export function printSheet(page: Pick<Page, "width" | "height" | "bleed" | "prin
   return { width: w, height: h, bleed, margin, sheetWidth: w + 2 * margin, sheetHeight: h + 2 * margin, marks, stroke };
 }
 
+/** Which print additions any of these pages has. */
+export function printAdditions(pages: Pick<Page, "bleed" | "printMarks">[]): PrintParts {
+  return { bleed: pages.some((p) => pageBleed(p) > 0), marks: pages.some((p) => !!p.printMarks?.crop) };
+}
+
 /** Does any of these pages add something to a print export? */
 export function hasPrintAdditions(pages: Pick<Page, "bleed" | "printMarks">[]): boolean {
-  return pages.some((p) => pageBleed(p) > 0 || !!p.printMarks?.crop);
+  const a = printAdditions(pages);
+  return a.bleed || a.marks;
 }
 
 interface StrokeCtx {

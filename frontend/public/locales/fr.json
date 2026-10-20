@@ -4309,7 +4309,8 @@
   "editor.apply_print_to_all_pages": "Appliquer à toutes les pages",
   "editor.bleed_hint": "Le fond perdu est coupé après l'impression. Étendez jusqu'à la ligne rouge les fonds et images qui doivent aller jusqu'au bord. Les traits de coupe sont dessinés hors du fond perdu dans les exports pour l'impression.",
   "editor.print_sheet_include": "Fond perdu et traits de coupe",
-  "editor.print_sheet_bleed_mm": "{mm} mm de fond perdu",
-  "editor.print_sheet_crop_marks": "traits de coupe",
-  "editor.print_sheet_per_page": "Selon chaque page"
+  "editor.print_sheet_bleed_mm": "Fond perdu, {mm} mm",
+  "editor.print_sheet_crop_marks": "Traits de coupe",
+  "editor.bleed": "Fond perdu",
+  "editor.print_sheet_bleed_per_page": "Fond perdu, selon chaque page"
 }

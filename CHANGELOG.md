@@ -6,9 +6,9 @@ All notable changes to danvas are listed here, newest first. Versions follow the
 
 ### Added
 
-- Bleed and crop marks, set per page. With nothing selected, the page panel has a **Print** section: the bleed in millimetres, and crop marks with their line type (solid, dashed, dotted), color, weight, length and gap to the cut. **Apply to all pages** copies a page's settings to the whole design.
+- Bleed and crop marks, set per page and each switched on or off on its own. With nothing selected, the page panel has a **Print** section: the bleed (on/off, in millimetres), and crop marks (on/off) with their line type (solid, dashed, dotted), color, weight, length and gap to the cut. **Apply to all pages** copies a page's settings to the whole design.
 - The editor shows the bleed as a dashed red line around the page. The page background reaches into it, and content pulled past the page edge stays visible up to it instead of being cut off at the edge.
-- Print exports (vector PDF, image PDF, TIFF, EPS) include each page's bleed and crop marks, switchable in the export dialog under **Bleed and crop marks**. PDFs state the finished size as TrimBox and the bleed as BleedBox. Artwork that runs further past the page than the bleed ends at the bleed line, and crop marks always start outside the bleed, so the two never overlap. PNG, JPG, SVG and the accessible PDF stay at the bare page.
+- Print exports (vector PDF, image PDF, TIFF, EPS) include each page's bleed and crop marks. The export dialog switches the two separately, so a file can have the bleed only, the marks only, both, or neither. Marks without the bleed start at their gap from the cut, and artwork then ends at the cut. PDFs state the finished size as TrimBox and the bleed as BleedBox. Artwork that runs further past the page than the bleed ends at the bleed line, and crop marks always start outside the bleed, so the two never overlap. PNG, JPG, SVG and the accessible PDF stay at the bare page.
 - All new texts are translated into every interface language.
 
 ### Notes

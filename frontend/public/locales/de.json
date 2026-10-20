@@ -4309,7 +4309,8 @@
   "editor.apply_print_to_all_pages": "Auf alle Seiten anwenden",
   "editor.bleed_hint": "Der Beschnitt wird nach dem Druck abgeschnitten. Hintergründe und Bilder, die bis zum Rand reichen sollen, bis zur roten Linie ziehen. Schnittmarken werden im Druckexport außerhalb des Beschnitts gezeichnet.",
   "editor.print_sheet_include": "Beschnitt und Schnittmarken",
-  "editor.print_sheet_bleed_mm": "{mm} mm Beschnitt",
+  "editor.print_sheet_bleed_mm": "Beschnitt, {mm} mm",
   "editor.print_sheet_crop_marks": "Schnittmarken",
-  "editor.print_sheet_per_page": "Wie auf jeder Seite eingestellt"
+  "editor.bleed": "Beschnitt",
+  "editor.print_sheet_bleed_per_page": "Beschnitt, wie auf jeder Seite eingestellt"
 }
