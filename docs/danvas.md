@@ -18,6 +18,17 @@ The sidebar shows the folders as a tree below **Projects**:
 - What you opened is remembered per workspace. The way to the folder you are in shows by itself.
 - While a search is showing, the tree lists folders only.
 
+### Copying and moving between workspaces
+
+A design or a folder can go to another workspace, for example from your personal workspace to the team's once it is finished. In its menu choose **Copy to workspace…** or **Move to workspace…**; with several designs and folders selected (the box at a card's top left), **To workspace…** in the selection bar does the same for all of them.
+
+- Pick the workspace (any you are at least a member of) and the folder there. A copied folder arrives with its sub-folders and designs in the same structure.
+- The uploads a design uses (pictures, masks, logos, video and audio) are copied into the target workspace, so the designs there export and keep working even if the originals' uploads are deleted later. An upload used by several of the designs is copied once.
+- Workspace fonts the designs use come along when you are an admin of the target; otherwise the dialog names the ones its admins would have to add.
+- A brand kit assignment the target does not have is dropped, so the designs follow the target's default kit.
+- **Copy** leaves the originals where they are. **Move** puts them in the trash once they are copied, so they can be restored from there, and removes source folders it emptied. Version history, comments and share links stay with the originals.
+- Copying needs view access to the source, moving needs membership. The copied uploads count towards the target's storage.
+
 Design cards say when a design was last edited ("5 minutes ago", "yesterday"); the exact date and time show on hover.
 
 ### Importing

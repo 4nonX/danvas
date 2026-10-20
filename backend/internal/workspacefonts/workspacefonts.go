@@ -271,3 +271,61 @@ func (s *Service) File(ctx context.Context, userID, id string) ([]byte, string, 
 	}
 	return data, format, checksum, nil
 }
+
+// CopyFamilies brings the faces of the given families from workspace srcWS
+// into dstWS, for a design moved or copied there. Families the target already
+// has (by name) are left alone; faces already there (same file) are not added
+// twice. Adding faces needs admin in the target, as an upload does: without
+// it nothing is added. Returns the families the design uses from the source
+// library that the target still lacks.
+func (s *Service) CopyFamilies(ctx context.Context, userID, srcWS, dstWS string, families []string) ([]string, error) {
+	if len(families) == 0 || srcWS == dstWS {
+		return nil, nil
+	}
+	if err := s.member(ctx, userID, srcWS, "viewer"); err != nil {
+		return nil, err
+	}
+	if err := s.member(ctx, userID, dstWS, "member"); err != nil {
+		return nil, err
+	}
+	admin := s.member(ctx, userID, dstWS, "admin") == nil
+	lower := make([]string, 0, len(families))
+	for _, f := range families {
+		lower = append(lower, strings.ToLower(strings.TrimSpace(f)))
+	}
+	// Families of the source library the design uses that the target has
+	// under no face at all.
+	rows, err := s.db.Query(ctx, `SELECT DISTINCT "family" FROM "workspace_fonts" src
+		WHERE src."workspace_id" = $1 AND lower(src."family") = ANY($3)
+		AND NOT EXISTS (SELECT 1 FROM "workspace_fonts" d WHERE d."workspace_id" = $2 AND lower(d."family") = lower(src."family"))`,
+		srcWS, dstWS, lower)
+	if err != nil {
+		return nil, err
+	}
+	var lacking []string
+	for rows.Next() {
+		var f string
+		if err := rows.Scan(&f); err != nil {
+			rows.Close()
+			return nil, err
+		}
+		lacking = append(lacking, f)
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil || len(lacking) == 0 || !admin {
+		return lacking, err
+	}
+	low := make([]string, len(lacking))
+	for i, f := range lacking {
+		low[i] = strings.ToLower(f)
+	}
+	if _, err := s.db.Exec(ctx, `INSERT INTO "workspace_fonts"
+		("workspace_id", "family", "weight", "style", "file_name", "format", "size_bytes", "checksum", "data", "created_by_id")
+		SELECT $2, "family", "weight", "style", "file_name", "format", "size_bytes", "checksum", "data", $4
+		FROM "workspace_fonts" WHERE "workspace_id" = $1 AND lower("family") = ANY($3)
+		ON CONFLICT ("workspace_id", "checksum") DO NOTHING`,
+		srcWS, dstWS, low, nullableUUID(userID)); err != nil {
+		return lacking, err
+	}
+	return nil, nil
+}

@@ -264,6 +264,56 @@ func (s *Service) StoreBuiltin(ctx context.Context, workspaceID, ownerID, filena
 	return s.store(ctx, ownerID, workspaceID, data, name, nil, "", true)
 }
 
+// CopyToWorkspace copies an asset of workspace srcWS into dstWS as userID
+// (bytes, name and preview), for a design moved or copied between
+// workspaces. The caller checks access to the source; the target needs
+// membership, and quotas apply as for an upload.
+func (s *Service) CopyToWorkspace(ctx context.Context, userID, srcWS, assetID, dstWS string) (UploadedAsset, error) {
+	if err := s.access.AssertMember(ctx, userID, dstWS, "member"); err != nil {
+		return UploadedAsset{}, ErrForbidden
+	}
+	a, err := s.getAsset(ctx, assetID)
+	if err != nil {
+		return UploadedAsset{}, err
+	}
+	if a.WorkspaceID != srcWS {
+		return UploadedAsset{}, ErrNotFound
+	}
+	buf, err := s.storage.Get(a.StorageKey)
+	if err != nil {
+		return UploadedAsset{}, err
+	}
+	if len(buf) == 0 {
+		return UploadedAsset{}, ErrNotFound
+	}
+	thumb := ""
+	if a.Thumbnail != nil {
+		thumb = *a.Thumbnail
+	}
+	return s.store(ctx, userID, dstWS, buf, a.Filename, nil, thumb, false)
+}
+
+// InWorkspace returns which of ids are assets of workspaceID.
+func (s *Service) InWorkspace(ctx context.Context, workspaceID string, ids []string) (map[string]bool, error) {
+	out := map[string]bool{}
+	if len(ids) == 0 {
+		return out, nil
+	}
+	rows, err := s.db.Query(ctx, `SELECT id FROM "assets" WHERE "workspace_id" = $1 AND id::text = ANY($2)`, workspaceID, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		out[id] = true
+	}
+	return out, rows.Err()
+}
+
 // ImportFromURL imports an image from a remote URL with a per-hop SSRF guard
 // (literal authority + resolved-IP re-check against private ranges, FR-12).
 // Every hop, including each redirect target, is re-vetted and then fetched

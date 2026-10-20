@@ -2,6 +2,20 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.4.2 (2026-10-20)
+
+### Added
+
+- Designs and folders copy or move to another workspace. A design's and a folder's menu have **Copy to workspace…** and **Move to workspace…**, and the selection bar has **To workspace…** for several at once. The dialog picks the workspace (any the user is at least a member of) and a folder there, shows progress, and lists what could not be transferred.
+- The uploads the designs use are copied into the target workspace and the designs point at the copies, so they export there and survive the originals being deleted; an upload shared by several designs is copied once. Workspace fonts they use come along when the user is an admin of the target, otherwise the dialog names the missing families. A brand kit assignment the target does not have is dropped. Folders arrive with their sub-folders and designs.
+- Moving puts the originals in the trash once copied (restorable) and removes the source folders it emptied. Version history, comments and share links stay with the originals.
+- API: `POST /api/v1/designs/transfer` (`{designIds, folderIds, targetWorkspaceId, targetFolderId, move}`), run as a job polled through `GET /api/v1/jobs/{id}`.
+- All new texts are translated into every interface language.
+
+### Notes
+
+- No schema or database change.
+
 ## 0.4.1 (2026-10-20)
 
 ### Added

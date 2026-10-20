@@ -36,6 +36,7 @@ import (
 	"hycanvas/backend/internal/captcha"
 	"hycanvas/backend/internal/comments"
 	"hycanvas/backend/internal/convert"
+	"hycanvas/backend/internal/designtransfer"
 	"hycanvas/backend/internal/daemon"
 	"hycanvas/backend/internal/engagement"
 	"hycanvas/backend/internal/home"
@@ -310,6 +311,7 @@ func main() {
 	// grants that never completed (and their pending objects).
 	uploadsSvc := uploads.NewService(pool, store, acct)
 	uploadsSvc.StartDirectUploadJanitor(rtCtx, 15*time.Minute)
+	transferSvc := designtransfer.NewService(pool, acct, persist, uploadsSvc, fontsSvc, homeSvc)
 	// The starter brand kit: a workspace that has no kit receives HyCanvas's
 	// own, as its default, when it is created and (once) on the first boot
 	// after the upgrade for the workspaces that predate it. The default kit
@@ -440,6 +442,7 @@ func main() {
 			Jobs:          jobRegistry,
 			BulkCreate:    bulkSvc,
 			Convert:       convertSvc,
+			Transfer:      transferSvc,
 			Storage:       store,
 			AccountData:   accountDataSvc,
 			Secure:        secureCookies,

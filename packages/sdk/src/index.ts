@@ -989,6 +989,18 @@ export interface PrintProfile {
   createdAt: string;
 }
 
+/** The outcome of transferDesigns, per design. `error` is a code
+ *  ("load_failed", "quota", "forbidden", "folder_failed", "source_kept",
+ *  "failed"). */
+export interface DesignTransferResult {
+  designs: { sourceId: string; title: string; newId?: string; error?: string }[];
+  folders: number;
+  assets: number;
+  /** Workspace font families the designs use that the target lacks. */
+  missingFonts: string[];
+  moved: boolean;
+}
+
 export interface DesignFolder {
   id: string;
   workspaceId: string;
@@ -2407,6 +2419,12 @@ export class HyCanvasClient {
   /** Delete a folder; its designs and subfolders move to its parent. */
   deleteDesignFolder(id: string): Promise<void> {
     return this.request("DELETE", `/v1/folders/${id}`);
+  }
+  /** Copy (or move, `move: true`) designs and folders with their contents to
+   *  another workspace, uploads and library fonts included. Poll getJob: the
+   *  interim result is `{done, total}`, the final one a DesignTransferResult. */
+  transferDesigns(input: { designIds?: string[]; folderIds?: string[]; targetWorkspaceId: string; targetFolderId?: string | null; move?: boolean }): Promise<{ jobId: string }> {
+    return this.request("POST", `/v1/designs/transfer`, input);
   }
   /** Move designs and folders into a folder (null = root) in one step. */
   moveToFolder(workspaceId: string, input: { designIds?: string[]; folderIds?: string[]; folderId: string | null }): Promise<void> {

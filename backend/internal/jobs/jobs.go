@@ -107,6 +107,17 @@ func (r *Registry) Complete(id string, result any, blob *Blob) {
 	}
 }
 
+// Progress records an interim result on a job still running (how far a
+// long job has got), shown to the client while it polls.
+func (r *Registry) Progress(id string, result any) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if j := r.m[id]; j != nil && j.Status == StatusActive {
+		j.Result = result
+		j.UpdatedAt = time.Now()
+	}
+}
+
 // Fail marks a job failed with a message.
 func (r *Registry) Fail(id, msg string) {
 	r.mu.Lock()

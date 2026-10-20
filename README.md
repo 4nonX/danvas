@@ -71,6 +71,7 @@ The changes are summarized by area below; what changed in each release is in the
 
 - PPTX import keeps exported designs editable: picture fills with crop and transparency, freeform paths, real groups, font weights encoded in font names.
 - Bulk import of files and whole folder trees into dashboard folders.
+- Designs and folders copy or move to another workspace, with the uploads and workspace fonts they use, from their menu or for a whole selection.
 - Import from Canva through Canva's API: pick designs and whole folders in a Canva account and they arrive with their folder tree, editable through PowerPoint export where Canva allows it, as page images otherwise ([setup](docs/dashboard.md#import-from-canva)). The server runs the import: it carries on with the browser closed and after a restart, paces itself under Canva's limits, pauses at Canva's daily limit and continues by itself, and skips what is already there. Its owner follows it in the dashboard's sidebar and under Import from Canva, where the recent imports and their failed designs stay available.
 - Print exports: vector PDF, CMYK or RGB TIFF and EPS (PostScript Level 3) with ICC color management (Little CMS), black-only text, and workspace print profiles uploaded by admins.
 - Bleed and crop marks per page: the bleed shows in the editor, and print exports carry it with TrimBox and BleedBox, plus crop marks in a chosen line type, color and weight.

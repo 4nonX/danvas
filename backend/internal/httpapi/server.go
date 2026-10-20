@@ -29,6 +29,7 @@ import (
 	"hycanvas/backend/internal/captcha"
 	"hycanvas/backend/internal/comments"
 	"hycanvas/backend/internal/convert"
+	"hycanvas/backend/internal/designtransfer"
 	"hycanvas/backend/internal/engagement"
 	"hycanvas/backend/internal/home"
 	"hycanvas/backend/internal/jobs"
@@ -79,6 +80,8 @@ type Deps struct {
 	Jobs          *jobs.Registry
 	BulkCreate    *bulkcreate.Service
 	Convert       *convert.Service
+	// Transfer copies or moves designs between workspaces.
+	Transfer *designtransfer.Service
 	Storage       storage.Driver
 	AccountData   *accountdata.Service
 	Secure        bool                 // set Secure on session cookies (production / HTTPS)
@@ -188,6 +191,9 @@ func NewRouter(d Deps) http.Handler {
 		}
 		if d.Accounts != nil && d.Convert != nil && d.Jobs != nil {
 			mountConvert(api, d.Convert, d.Jobs, d.Accounts)
+		}
+		if d.Accounts != nil && d.Transfer != nil && d.Jobs != nil {
+			mountDesignTransfer(api, d.Transfer, d.Jobs, d.Accounts)
 		}
 		if d.Accounts != nil && d.Persistence != nil && d.Storage != nil && d.Jobs != nil {
 			mountExport(api, d.Persistence, d.Storage, d.Jobs, d.Accounts, d.Uploads)

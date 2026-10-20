@@ -4,7 +4,7 @@
 // only render it and report what the user did.
 
 import { useState, type DragEvent, type ReactNode } from "react";
-import { ChevronRight, Folder as FolderIcon, FolderOpen, FolderPlus, MoreHorizontal, Pencil, Trash2, FolderInput, Check, LayoutTemplate } from "lucide-react";
+import { ChevronRight, Folder as FolderIcon, FolderOpen, FolderPlus, MoreHorizontal, Pencil, Trash2, FolderInput, Check, LayoutTemplate, Copy, ArrowRightLeft } from "lucide-react";
 import type { DesignFolder } from "@hc/sdk";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
@@ -97,7 +97,7 @@ export function useDropTarget(onDrop: (items: DragItems) => void) {
 
 /** A folder in the Projects grid: open on click, drop designs/folders on it. */
 export function FolderTile({
-  folder, subfolders, selected, menuOpen, onOpen, onToggleMenu, onRename, onMove, onDelete, onDropItems, onDragStart, onToggleSelect,
+  folder, subfolders, selected, menuOpen, onOpen, onToggleMenu, onRename, onMove, onTransfer, onDelete, onDropItems, onDragStart, onToggleSelect,
 }: {
   folder: DesignFolder;
   subfolders: number;
@@ -107,6 +107,8 @@ export function FolderTile({
   onToggleMenu: () => void;
   onRename: () => void;
   onMove: () => void;
+  /** Copy or move the folder to another workspace (absent: not offered). */
+  onTransfer?: (mode: "copy" | "move") => void;
   onDelete: () => void;
   onDropItems: (items: DragItems) => void;
   onDragStart: (e: DragEvent) => void;
@@ -156,10 +158,12 @@ export function FolderTile({
           aria-expanded={menuOpen}
         ><MoreHorizontal size={16} /></button>
         {menuOpen && (
-          <div className="absolute end-0 z-30 mt-1 w-44 overflow-hidden rounded-xl border border-neutral-200 bg-surface py-1 text-sm shadow-lg" onClick={(e) => e.stopPropagation()}>
+          <div className="absolute end-0 z-30 mt-1 w-60 overflow-hidden rounded-xl border border-neutral-200 bg-surface py-1 text-sm shadow-lg" onClick={(e) => e.stopPropagation()}>
             <FolderMenuRow icon={FolderOpen} onClick={onOpen}>{tr("dashboard.open")}</FolderMenuRow>
             <FolderMenuRow icon={Pencil} onClick={onRename}>{tr("dashboard.rename")}</FolderMenuRow>
             <FolderMenuRow icon={FolderInput} onClick={onMove}>{tr("dashboard.move_to_folder")}</FolderMenuRow>
+            {onTransfer && <FolderMenuRow icon={Copy} onClick={() => onTransfer("copy")}>{tr("dashboard.copy_to_workspace")}</FolderMenuRow>}
+            {onTransfer && <FolderMenuRow icon={ArrowRightLeft} onClick={() => onTransfer("move")}>{tr("dashboard.move_to_workspace")}</FolderMenuRow>}
             <FolderMenuRow icon={Trash2} danger onClick={onDelete}>{tr("dashboard.delete_folder")}</FolderMenuRow>
           </div>
         )}

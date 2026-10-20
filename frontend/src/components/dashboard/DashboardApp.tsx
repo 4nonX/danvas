@@ -3,6 +3,7 @@
 // previews and hover menus. Rename/delete/create use modals + toasts (no native
 // dialogs). Projects organizes designs into nested folders (Folders.tsx).
 
+import { TransferDialog } from "./TransferDialog";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/router";
 import {
@@ -44,7 +45,7 @@ import {
   List,
   Users,
   Moon,
-  Sun, Sparkles, Wand2, Paperclip, Loader2, X, Folder as FolderIcon, FolderPlus, FolderInput, Check, Download, Share2, Link2 } from "lucide-react";
+  Sun, Sparkles, Wand2, Paperclip, Loader2, X, Folder as FolderIcon, FolderPlus, FolderInput, Check, Download, Share2, Link2, ArrowRightLeft } from "lucide-react";
 import { createBlankDesign } from "@hc/schema";
 import { hycAccept, downloadHycFile, importedTitle, parseHycFile, readFileText } from "@/lib/hycFile";
 import { dialTones } from "@hc/aistudio";
@@ -357,6 +358,8 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   const [folders, setFolders] = useState<DesignFolder[]>([]);
   const [folderMenu, setFolderMenu] = useState<string | null>(null);
   const [moveReq, setMoveReq] = useState<DragItems | null>(null);
+  // Copy or move to another workspace: what, and which of the two first.
+  const [transferReq, setTransferReq] = useState<{ items: DragItems; mode: "copy" | "move" } | null>(null);
   // Bulk import (Projects): files waiting to be imported, and the OS-drop hint.
   const [bulkEntries, setBulkEntries] = useState<ImportEntry[] | null>(null);
   const [osDrop, setOsDrop] = useState(false);
@@ -964,13 +967,15 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     <div className="relative">
       <IconButton size="sm" onClick={(e) => { e.stopPropagation(); setMenuFor(menuFor === item.id ? null : item.id); }} aria-label={tr("dashboard.more")}><MoreHorizontal size={16} /></IconButton>
       {menuFor === item.id && (
-        <div className="absolute end-0 z-30 mt-1 w-44 overflow-hidden rounded-xl border border-neutral-200 bg-surface py-1 text-sm shadow-lg" onClick={(e) => e.stopPropagation()}>
+        <div className="absolute end-0 z-30 mt-1 w-60 overflow-hidden rounded-xl border border-neutral-200 bg-surface py-1 text-sm shadow-lg" onClick={(e) => e.stopPropagation()}>
           <MenuRow icon={ExternalLink} onClick={() => { setMenuFor(null); void open(item.id); }}>{tr("dashboard.open")}</MenuRow>
           <MenuRow icon={Download} onClick={() => { setMenuFor(null); void downloadDesigns(withSelection(item.id)); }}>{tr("editor.download")}</MenuRow>
           <MenuRow icon={Share2} onClick={() => { setMenuFor(null); shareDesigns(withSelection(item.id)); }}>{tr("dashboard.share")}</MenuRow>
           <MenuRow icon={Copy} onClick={() => { setMenuFor(null); void duplicate(item); }}>{tr("dashboard.duplicate")}</MenuRow>
           <MenuRow icon={Pencil} onClick={() => { setMenuFor(null); setRenameTarget(item); setRenameValue(item.title); }}>{tr("dashboard.rename")}</MenuRow>
           <MenuRow icon={FolderInput} onClick={() => { setMenuFor(null); setMoveReq(dragPayload("designs", item.id)); }}>{tr("dashboard.move_to_folder")}</MenuRow>
+          <MenuRow icon={Copy} onClick={() => { setMenuFor(null); setTransferReq({ items: dragPayload("designs", item.id), mode: "copy" }); }}>{tr("dashboard.copy_to_workspace")}</MenuRow>
+          <MenuRow icon={ArrowRightLeft} onClick={() => { setMenuFor(null); setTransferReq({ items: dragPayload("designs", item.id), mode: "move" }); }}>{tr("dashboard.move_to_workspace")}</MenuRow>
           <MenuRow icon={Trash2} danger onClick={() => { setMenuFor(null); setDeleteTarget(item); }}>{tr("dashboard.delete")}</MenuRow>
         </div>
       )}
@@ -1266,6 +1271,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                               onToggleMenu={() => setFolderMenu(folderMenu === f.id ? null : f.id)}
                               onRename={() => void renameFolder(f)}
                               onMove={() => { setFolderMenu(null); setMoveReq(dragPayload("folders", f.id)); }}
+                              onTransfer={(mode) => { setFolderMenu(null); setTransferReq({ items: dragPayload("folders", f.id), mode }); }}
                               onDelete={() => void deleteFolder(f)}
                               onDropItems={(it) => void moveItems(it, f.id)}
                               onDragStart={(e) => setDragItems(e, dragPayload("folders", f.id))}
@@ -1906,6 +1912,9 @@ export function DashboardApp({ view }: { view: DashboardView }) {
           <button type="button" onClick={() => setMoveReq({ designIds: [...selDesigns], folderIds: [...selFolders] })} className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-sm text-neutral-700 transition hover:bg-neutral-100">
             <FolderInput size={15} /> {tr("dashboard.move_to_folder")}
           </button>
+          <button type="button" onClick={() => setTransferReq({ items: { designIds: [...selDesigns], folderIds: [...selFolders] }, mode: "copy" })} className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-sm text-neutral-700 transition hover:bg-neutral-100">
+            <ArrowRightLeft size={15} /> {tr("dashboard.to_workspace")}
+          </button>
           {selDesigns.size > 0 && (
             <>
               <button type="button" disabled={exportLoading} onClick={() => void downloadDesigns([...selDesigns])} className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-sm text-neutral-700 transition hover:bg-neutral-100 disabled:opacity-50">
@@ -1928,6 +1937,24 @@ export function DashboardApp({ view }: { view: DashboardView }) {
       )}
 
       {exportTargets && <ExportDialog open onClose={() => setExportTargets(null)} designs={exportTargets} />}
+      {transferReq && activeWorkspaceId && (
+        <TransferDialog
+          items={transferReq.items}
+          initialMode={transferReq.mode}
+          workspaces={workspaces}
+          currentWorkspaceId={activeWorkspaceId}
+          titleOf={titleOf}
+          onClose={() => setTransferReq(null)}
+          onDone={(moved) => {
+            if (!moved) return;
+            // The originals went to the trash: refresh this workspace's view.
+            clearSelection();
+            void load(query).then(setItems).catch(() => {});
+            reloadFolders();
+          }}
+          onOpenWorkspace={(id) => { setTransferReq(null); clearSelection(); setActiveWorkspace(id); }}
+        />
+      )}
       {shareDesignId && <ShareDialog open onClose={() => setShareDesignId(null)} designId={shareDesignId} />}
       {bulkShare && <BulkShareDialog designs={bulkShare} onClose={() => setBulkShare(null)} />}
 
