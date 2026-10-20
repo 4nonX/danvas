@@ -2,6 +2,13 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.4.4 (2026-10-20)
+
+### Fixed
+
+- Number fields took "1,5" as invalid and silently went back to the previous value, so a decimal value typed with a comma (as usual in German) could not be entered: a crop mark gap or a bleed of 1,5 mm stayed at 3 mm. A decimal comma now counts as a decimal point in every number field.
+- A crop mark gap smaller than the bleed was raised to the bleed, so marks could not come closer to the cut than the bleed. The gap now applies exactly as set; with a smaller gap the marks lie over the bleed, which is cut away with them.
+
 ## 0.4.3 (2026-10-20)
 
 ### Fixed

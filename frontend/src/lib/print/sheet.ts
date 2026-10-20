@@ -83,14 +83,15 @@ export function printSheet(page: Pick<Page, "width" | "height" | "bleed" | "prin
   const pxPerPt = dpi / 72;
   let stroke: PrintSheet["stroke"] = { color: "#000000", width: 0, dash: [], cap: "butt" };
   if (m) {
-    // A mark starts outside the bleed, so it never prints on artwork that is
-    // meant to be cut away, and runs outward along the trim line. Round dots
-    // reach half the line weight past their ends, so dotted marks keep that
-    // much inside their own span.
+    // A mark starts at its gap from the trim line, exactly as set (a gap
+    // smaller than the bleed lays the mark over the bleed, which is cut away
+    // with it), and runs outward along the trim line. Round dots reach half
+    // the line weight past their ends, so dotted marks keep that much inside
+    // their own span.
     const width = m.weightPt * pxPerPt;
     const cap = m.style === "dotted" ? width / 2 : 0;
-    const outer = Math.max(m.offset, bleed) + m.length;
-    const start = Math.max(m.offset, bleed) + cap;
+    const outer = m.offset + m.length;
+    const start = m.offset + cap;
     const end = outer - cap;
     margin = Math.max(bleed, outer);
     for (const x of [0, w]) {

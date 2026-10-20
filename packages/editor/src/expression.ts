@@ -71,7 +71,9 @@ function parse(tokens: string[]): number {
  * (callers keep the prior value). `current` anchors relative expressions.
  */
 export function evalExpression(input: string, current = 0): number | null {
-  const s = input.trim();
+  // A decimal comma ("1,5", as typed in German and most of Europe) is a
+  // decimal point; a comma is no operator here, so nothing else is lost.
+  const s = input.trim().replace(/,/g, ".");
   if (s === "") return null;
   try {
     let result: number;

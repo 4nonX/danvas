@@ -69,6 +69,10 @@ describe("expression parser (FR-12)", () => {
     expect(evalExpression("100/2")).toBe(50);
     expect(evalExpression("(1+2)*3")).toBe(9);
     expect(evalExpression("100")).toBe(100);
+    // A decimal comma counts as a decimal point.
+    expect(evalExpression("1,5")).toBe(1.5);
+    expect(evalExpression("0,25*2")).toBe(0.5);
+    expect(evalExpression("+0,5", 1)).toBe(1.5);
   });
   it("applies relative nudges from current", () => {
     expect(evalExpression("+10", 5)).toBe(15);

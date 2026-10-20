@@ -35,10 +35,9 @@ describe("print sheet", () => {
     expect(pxToMm(s.sheetHeight, DPI)).toBeCloseTo(154);
   });
 
-  it("draws eight crop marks outside the bleed, on the trim lines", () => {
-    const s = printSheet({ ...A6, bleed, printMarks: { crop: true, offset: mmToPx(1, DPI), length: mmToPx(5, DPI) } }, DPI);
+  it("draws eight crop marks on the trim lines, outside the bleed when the gap is at least the bleed", () => {
+    const s = printSheet({ ...A6, bleed, printMarks: { crop: true, offset: mmToPx(3, DPI), length: mmToPx(5, DPI) } }, DPI);
     expect(s.marks).toHaveLength(8);
-    // The offset (1 mm) is smaller than the bleed (3 mm): marks start at the bleed.
     for (const l of s.marks) {
       const onTrim = [0, A6.width].includes(l.x1) && l.x1 === l.x2 || [0, A6.height].includes(l.y1) && l.y1 === l.y2;
       expect(onTrim).toBe(true);
@@ -46,9 +45,19 @@ describe("print sheet", () => {
       const inside = (x: number, y: number) => x > -bleed + 1e-9 && x < A6.width + bleed - 1e-9 && y > -bleed + 1e-9 && y < A6.height + bleed - 1e-9;
       expect(inside(l.x1, l.y1) || inside(l.x2, l.y2)).toBe(false);
     }
-    expect(Math.abs(s.marks[0].y1)).toBeCloseTo(bleed);
-    // The sheet reaches to the end of the marks: bleed + 5 mm.
+    // The sheet reaches to the end of the marks: 3 + 5 mm.
     expect(pxToMm(s.margin, DPI)).toBeCloseTo(8);
+  });
+
+  it("starts marks at the gap as set, also inside the bleed", () => {
+    const s = printSheet({ ...A6, bleed, printMarks: { crop: true, offset: mmToPx(1.5, DPI), length: mmToPx(5, DPI) } }, DPI);
+    expect(pxToMm(Math.abs(s.marks[0].y1), DPI)).toBeCloseTo(1.5);
+    expect(pxToMm(Math.abs(s.marks[0].y2), DPI)).toBeCloseTo(6.5);
+    // The sheet reaches to the end of the marks, past the bleed.
+    expect(pxToMm(s.margin, DPI)).toBeCloseTo(6.5);
+    // A gap of zero starts the marks right at the corner.
+    const zero = printSheet({ ...A6, printMarks: { crop: true, offset: 0 } }, DPI);
+    expect(zero.marks[0].y1 + 0).toBe(0);
   });
 
   it("includes the bleed and the marks each on their own", () => {

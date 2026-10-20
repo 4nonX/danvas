@@ -2114,8 +2114,8 @@ export interface PrintMarks {
   weight?: number;
   /** Length of each mark, in design px. Default 5 mm. */
   length?: number;
-  /** Gap between the trim line and the start of a mark, in design px; a mark
-   *  never starts inside the bleed. Default 3 mm. */
+  /** Gap between the trim line and the start of a mark, in design px, as
+   *  set (it may be smaller than the bleed). Default 3 mm. */
   offset?: number;
 }
 export const PrintMarksSchema = z.object({
