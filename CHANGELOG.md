@@ -14,10 +14,6 @@ All notable changes to danvas are listed here, newest first. Versions follow the
 - PNG and JPG state their resolution in the file header, so print software opens them at the page's physical size; the size row shows the resolution and offers **300 dpi**.
 - A table in `docs/danvas.md` lists which print option each format can carry.
 
-### Fixed
-
-- A PDF/X file id was made with a browser function that only exists on HTTPS; it now works on instances served over plain HTTP too.
-
 ### Notes
 
 - Checked against a print shop's Illustrator reference file: the PDF with 1.5 mm bleed and no marks has the same sheet size to the thousandth of a point, carries the output intent and PDF/X-4 marking, and separates (Ghostscript) into cyan, magenta, yellow, black and the die line's own plate, with the registration marks on every plate and black text overprinting. No schema or database change.

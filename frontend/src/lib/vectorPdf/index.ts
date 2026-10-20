@@ -450,13 +450,8 @@ async function printFrame(w: PdfWriter, o: { converter: CmykConverter | null; pd
   let fileId: string | undefined;
   if (o.pdfx && o.converter) {
     info += " /Trapped /False /GTS_PDFXVersion (PDF/X-4)";
-    // A random UUID (getRandomValues works on plain-http instances too,
-    // randomUUID only in secure contexts).
-    const rnd = crypto.getRandomValues(new Uint8Array(16));
-    rnd[6] = (rnd[6] & 0x0f) | 0x40;
-    rnd[8] = (rnd[8] & 0x3f) | 0x80;
-    const hex = [...rnd].map((x) => x.toString(16).padStart(2, "0")).join("");
-    const uuid = `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+    // On plain-HTTP instances randomUUID comes from randomUuidPolyfill.
+    const uuid = crypto.randomUUID();
     fileId = uuid.replace(/-/g, "");
     const packet = `<?xpacket begin="\uFEFF" id="W5M0MpCehiHzreSzNTczkc9d"?>
 <x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
