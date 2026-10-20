@@ -4345,5 +4345,6 @@
   "dashboard.transfer_error_folder": "kopiert, aber nicht in den gewählten Ordner",
   "dashboard.transfer_error_source_kept": "kopiert; das Original ließ sich nicht in den Papierkorb legen",
   "dashboard.transfer_error_failed": "fehlgeschlagen",
-  "errors.api_transfer_same_workspace": "Die Designs liegen bereits in diesem Arbeitsbereich."
+  "errors.api_transfer_same_workspace": "Die Designs liegen bereits in diesem Arbeitsbereich.",
+  "editor.print_sheet_designs_hint": "Gilt für alle exportierten Designs; die Designs selbst bleiben unverändert."
 }

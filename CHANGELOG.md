@@ -2,6 +2,12 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.4.3 (2026-10-20)
+
+### Fixed
+
+- Downloading several designs from the dashboard with bleed and crop marks gave them only to the designs that had set them themselves; the others came out as the bare page. From the dashboard the download menu now holds one bleed and one set of crop marks (with all their settings) for every design exported, starting from what the first of them sets. The designs themselves are not changed. In the editor the menu still edits the pages' own settings.
+
 ## 0.4.2 (2026-10-20)
 
 ### Added

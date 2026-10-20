@@ -4345,5 +4345,6 @@
   "dashboard.transfer_error_folder": "copié, mais pas dans le dossier choisi",
   "dashboard.transfer_error_source_kept": "copié ; l'original n'a pas pu être mis à la corbeille",
   "dashboard.transfer_error_failed": "échec",
-  "errors.api_transfer_same_workspace": "Les designs sont déjà dans cet espace de travail."
+  "errors.api_transfer_same_workspace": "Les designs sont déjà dans cet espace de travail.",
+  "editor.print_sheet_designs_hint": "S'applique à tous les designs exportés ; les designs eux-mêmes ne changent pas."
 }

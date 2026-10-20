@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { beforeAll, describe, expect, it } from "vitest";
-import { clipToBleed, drawPrintMarks, hasPrintAdditions, printAdditions, mmToPx, pdfBoxes, printSheet, pxToMm, resolvedMarks, sheetViewport } from "./sheet";
+import { clipToBleed, drawPrintMarks, hasPrintAdditions, initialPrintOverride, printAdditions, withPrintOverride, mmToPx, pdfBoxes, printSheet, pxToMm, resolvedMarks, sheetViewport } from "./sheet";
 import { PdfCanvas, PdfResources } from "../vectorPdf/pdfCanvas";
 
 // jsdom has no canvas; the PDF recorder only needs one to normalize colours.
@@ -114,6 +114,30 @@ describe("print sheet", () => {
     const vp = sheetViewport(s, 2);
     expect([vp.panX, vp.panY]).toEqual([-bleed, -bleed]);
     expect(vp.width).toBe(Math.ceil(s.sheetWidth * 2));
+  });
+
+  it("applies one export-wide setting to every design, of any dpi, without changing them", () => {
+    const plain = { schemaVersion: 28, dpi: 96, pages: [{ id: "a", ...A6, children: [] }] } as never;
+    const own = { schemaVersion: 28, dpi: 300, pages: [{ id: "b", width: mmToPx(105, 300), height: mmToPx(148, 300), bleed: mmToPx(5, 300), printMarks: { crop: true, style: "dotted" }, children: [] }] } as never;
+    const start = initialPrintOverride([plain, own]);
+    // The first design that sets anything gives the starting values.
+    expect(start.bleed && start.marks).toBe(true);
+    expect(start.bleedMm).toBeCloseTo(5);
+    expect(start.style).toBe("dotted");
+    const o = { ...start, bleedMm: 3, style: "solid" };
+    for (const [doc, dpi] of [[plain, 96], [own, 300]] as const) {
+      const pg = withPrintOverride(doc, o).pages[0];
+      expect(pxToMm(pg.bleed ?? 0, dpi)).toBeCloseTo(3);
+      expect(pg.printMarks?.style).toBe("solid");
+      expect(pxToMm(printSheet(pg, dpi).margin, dpi)).toBeCloseTo(8);
+    }
+    // The originals are untouched.
+    expect((plain as { pages: { bleed?: number }[] }).pages[0].bleed).toBeUndefined();
+    expect((own as { pages: { printMarks: { style: string } }[] }).pages[0].printMarks.style).toBe("dotted");
+    // Switched off, nothing is added, and existing settings are dropped.
+    const off = withPrintOverride(own, { ...o, bleed: false, marks: false }).pages[0];
+    expect([off.bleed, off.printMarks]).toEqual([undefined, undefined]);
+    expect(initialPrintOverride([plain])).toMatchObject({ bleed: false, marks: false, bleedMm: 3 });
   });
 
   it("knows which additions pages have", () => {

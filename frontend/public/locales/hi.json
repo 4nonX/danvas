@@ -4345,5 +4345,6 @@
   "dashboard.transfer_error_folder": "कॉपी हुआ, पर चुने गए फ़ोल्डर में नहीं",
   "dashboard.transfer_error_source_kept": "कॉपी हुआ; मूल को ट्रैश में नहीं ले जाया जा सका",
   "dashboard.transfer_error_failed": "विफल",
-  "errors.api_transfer_same_workspace": "डिज़ाइन पहले से उस वर्कस्पेस में हैं।"
+  "errors.api_transfer_same_workspace": "डिज़ाइन पहले से उस वर्कस्पेस में हैं।",
+  "editor.print_sheet_designs_hint": "निर्यात किए जाने वाले सभी डिज़ाइनों पर लागू होता है; डिज़ाइन स्वयं नहीं बदलते।"
 }

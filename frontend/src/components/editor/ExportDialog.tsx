@@ -39,9 +39,9 @@ import { resolvedLocale } from "@/lib/locale";
 import { copyText } from "@/lib/clipboard";
 import { listProfileOptions, profileBytes, type ProfileOption } from "@/lib/print/profiles";
 import type { CmykConverter, RenderingIntent } from "@/lib/print/cms";
-import { clipToBleed, drawPrintMarks, pdfBoxes, printAdditions, printSheet, pxToMm, sheetViewport, type PrintParts } from "@/lib/print/sheet";
+import { clipToBleed, drawPrintMarks, initialPrintOverride, pdfBoxes, printAdditions, printSheet, pxToMm, sheetViewport, withPrintOverride, type PrintOverride, type PrintParts } from "@/lib/print/sheet";
 import { pageBleed } from "@hc/engine";
-import { BleedField, MarkFields, setPagesBleed, setPagesMarks } from "./PrintSettings";
+import { BleedField, BleedInput, MarkFields, MarkInputs, setPagesBleed, setPagesMarks } from "./PrintSettings";
 
 type Format = "png" | "jpg" | "pdf" | "svg" | "apng" | "gif" | "lottie" | "mp4" | "pptx" | "md" | "tiff" | "eps";
 
@@ -331,6 +331,10 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
   // the page panel), each switchable on its own; both off is the bare page.
   const [withBleed, setWithBleed] = useState(true);
   const [withMarks, setWithMarks] = useState(true);
+  // From the dashboard, one bleed and one set of marks apply to every design
+  // exported (the designs themselves are not changed), starting from what
+  // the first of them sets.
+  const [override, setOverride] = useState<PrintOverride>(() => initialPrintOverride((designs ?? []).map((d) => d.doc)));
   const [busy, setBusy] = useState(false);
   // Brand pre-export gate. 'block' policy with violations refuses
   // the export; 'warn' shows a dismissible warning; 'off' is invisible.
@@ -442,25 +446,22 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
   // Bleed and crop marks apply to every image and print format (not the
   // accessible PDF, documents or motion).
   const sheetCapable = isPrint || format === "png" || format === "jpg" || format === "svg" || (format === "pdf" && pdfMode !== "tagged");
-  // Several designs (dashboard): any page of any of them counts, since each
-  // exports whole.
-  const offered: PrintParts = sheetCapable
-    ? designs && designs.length > 1
-      ? designs.reduce<PrintParts>((acc, d) => { const a = printAdditions(d.doc.pages); return { bleed: acc.bleed || a.bleed, marks: acc.marks || a.marks }; }, { bleed: false, marks: false })
-      : printAdditions(pages.map((i) => doc.pages[i]).filter(Boolean))
-    : { bleed: false, marks: false };
-  const sheetOffered = offered.bleed || offered.marks;
+  // What the pages being exported set (in the editor).
+  const offered: PrintParts = sheetCapable ? printAdditions(pages.map((i) => doc.pages[i]).filter(Boolean)) : { bleed: false, marks: false };
+  // In the editor the menu edits the exported pages' settings; from the
+  // dashboard it sets one override for all the designs exported.
+  const printEditable = !designs;
   // A page without bleed or marks prints as the bare page either way.
-  const useSheet: PrintParts = { bleed: sheetCapable && withBleed, marks: sheetCapable && withMarks };
+  const useSheet: PrintParts = printEditable
+    ? { bleed: sheetCapable && withBleed, marks: sheetCapable && withMarks }
+    : { bleed: sheetCapable && override.bleed, marks: sheetCapable && override.marks };
   const anySheet = useSheet.bleed || useSheet.marks;
-  const tiffSheet = printSheet(refPage, doc.dpi ?? 96, useSheet);
+  const sizedPage = printEditable || !sheetCapable ? refPage : withPrintOverride({ ...doc, pages: [refPage] }, override).pages[0];
+  const tiffSheet = printSheet(sizedPage, doc.dpi ?? 96, useSheet);
   const tiffDim = rasterDimensions({ width: tiffSheet.sheetWidth, height: tiffSheet.sheetHeight }, { scale: tiffDpi / (doc.dpi ?? 96) }, doc.dpi ?? 96);
   // Pixel size of the first exported page at the chosen size, with its bleed
   // and marks when they are included.
   const dim = rasterDimensions({ width: tiffSheet.sheetWidth, height: tiffSheet.sheetHeight }, { scale }, doc.dpi ?? 96);
-  // In the editor the menu edits the exported pages' settings; exporting
-  // designs from the dashboard only switches what they already have.
-  const printEditable = !designs;
 
   function togglePage(i: number) {
     setSelected((prev) => (prev.includes(i) ? prev.filter((x) => x !== i) : [...prev, i]));
@@ -499,6 +500,8 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
    *  no per-design toasts, and every file goes to `emit` (no zip, no pacing),
    *  so the caller can bundle all designs. */
   async function exportDesign(doc: DesignFile, designId: string | null, pages: number[], emit: (blob: Blob, name: string) => void, quiet: boolean): Promise<void> {
+    // From the dashboard every design gets the menu's bleed and marks.
+    if (!printEditable && sheetCapable) doc = withPrintOverride(doc, override);
     const fileCount = format === "pdf" || format === "mp4" || format === "pptx" || format === "md" || isSingleAnimated ? 1 : pages.length;
     const safeBase = (doc.title || "design").replace(/[^\w.-]+/g, "-").replace(/^-+|-+$/g, "") || "design";
     const nameFor = (i: number, suffix: string) => (fileCount > 1 ? `${safeBase}-${i + 1}.${suffix}` : `${safeBase}.${suffix}`);
@@ -1016,7 +1019,27 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
 
         {/* Bleed and crop marks: the exported pages' own settings, edited
             here as in the page panel, each switchable for this export. */}
-        {sheetCapable && (printEditable || sheetOffered) && (() => {
+        {sheetCapable && !printEditable && (() => {
+          const row = "flex cursor-pointer items-center justify-between gap-3 text-xs text-neutral-700";
+          const box = "h-4 w-4 shrink-0 accent-brand-600";
+          return (
+            <div className="mb-3 flex flex-col gap-2 rounded-lg border border-neutral-200 p-2.5">
+              <span className="text-xs font-medium text-neutral-700">{tr("editor.print_sheet_include")}</span>
+              <label className={row}>
+                <span>{tr("editor.bleed")}</span>
+                <input type="checkbox" checked={override.bleed} onChange={(e) => setOverride((o) => ({ ...o, bleed: e.target.checked }))} className={box} />
+              </label>
+              {override.bleed && <BleedInput mm={override.bleedMm} onChange={(mm) => setOverride((o) => ({ ...o, bleedMm: mm }))} />}
+              <label className={row}>
+                <span>{tr("editor.print_sheet_crop_marks")}</span>
+                <input type="checkbox" checked={override.marks} onChange={(e) => setOverride((o) => ({ ...o, marks: e.target.checked }))} className={box} />
+              </label>
+              {override.marks && <MarkInputs marks={override} onChange={(patch) => setOverride((o) => ({ ...o, ...patch }))} />}
+              <p className="text-[11px] leading-snug text-neutral-400">{tr("editor.print_sheet_designs_hint")}</p>
+            </div>
+          );
+        })()}
+        {sheetCapable && printEditable && (() => {
           const dpi = doc.dpi ?? 96;
           const mm = (px: number) => pxToMm(px, dpi).toLocaleString(undefined, { maximumFractionDigits: 1 });
           const b = pageBleed(refPage);
@@ -1029,7 +1052,7 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
               <span className="text-xs font-medium text-neutral-700">{tr("editor.print_sheet_include")}</span>
               {(printEditable || offered.bleed) && (
                 <label className={row}>
-                  <span>{printEditable || bulk || b <= 0 ? tr("editor.bleed") : tr("editor.print_sheet_bleed_mm", { mm: mm(b) })}</span>
+                  <span>{printEditable || b <= 0 ? tr("editor.bleed") : tr("editor.print_sheet_bleed_mm", { mm: mm(b) })}</span>
                   <input
                     type="checkbox"
                     checked={bleedOn}

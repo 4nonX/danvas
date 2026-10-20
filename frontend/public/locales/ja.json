@@ -4345,5 +4345,6 @@
   "dashboard.transfer_error_folder": "コピーしましたが、選択したフォルダーには入っていません",
   "dashboard.transfer_error_source_kept": "コピーしました。元のデザインはゴミ箱に移せませんでした",
   "dashboard.transfer_error_failed": "失敗しました",
-  "errors.api_transfer_same_workspace": "デザインはすでにそのワークスペースにあります。"
+  "errors.api_transfer_same_workspace": "デザインはすでにそのワークスペースにあります。",
+  "editor.print_sheet_designs_hint": "書き出すすべてのデザインに適用されます。デザイン自体は変更されません。"
 }

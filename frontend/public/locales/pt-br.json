@@ -4345,5 +4345,6 @@
   "dashboard.transfer_error_folder": "copiado, mas não na pasta escolhida",
   "dashboard.transfer_error_source_kept": "copiado; o original não pôde ir para a lixeira",
   "dashboard.transfer_error_failed": "falhou",
-  "errors.api_transfer_same_workspace": "Os designs já estão nesse espaço de trabalho."
+  "errors.api_transfer_same_workspace": "Os designs já estão nesse espaço de trabalho.",
+  "editor.print_sheet_designs_hint": "Vale para todos os designs exportados; os próprios designs não mudam."
 }

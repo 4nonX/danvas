@@ -5,10 +5,10 @@
 // all of them.
 
 import { evalExpression } from "@hc/editor";
-import type { Color, PrintMarks } from "@hc/schema";
+import type { Color } from "@hc/schema";
 import { useEditor } from "@/store/editor";
 import { tr } from "@/lib/i18n";
-import { mmToPx, pxToMm, resolvedMarks } from "@/lib/print/sheet";
+import { marksMmOf, marksPatchPx, mmToPx, pxToMm } from "@/lib/print/sheet";
 import { ColorField } from "./ColorField";
 
 /** The bleed a page gets when it is switched on: the common 3 mm. */
@@ -67,30 +67,16 @@ export function setPagesMarks(indexes: number[], on: boolean) {
   useEditor.getState().setPagePrint({ printMarks: on ? { ...(raw ?? {}), crop: true } : raw ? { ...raw, crop: false } : null }, indexes);
 }
 
-/** The bleed in millimetres. */
-export function BleedField({ indexes }: { indexes: number[] }) {
-  useEditor((s) => s.rev);
-  const dpi = useEditor.getState().doc.dpi ?? 96;
-  const page = pagesAt(indexes)[0];
-  if (!page) return null;
-  return (
-    <NumField
-      label={tr("editor.bleed_mm")}
-      value={round2(pxToMm(page.bleed ?? 0, dpi))}
-      onCommit={(n) => useEditor.getState().setPagePrint({ bleed: mmToPx(Math.max(0, Math.min(50, n)), dpi) }, indexes)}
-    />
-  );
+/** Crop-mark settings in the units the fields show. */
+export interface MarksMm { style: string; color?: Color; weightPt: number; lengthMm: number; offsetMm: number }
+
+/** The bleed in millimetres, for any value (a page's, or an export's own). */
+export function BleedInput({ mm, onChange }: { mm: number; onChange: (mm: number) => void }) {
+  return <NumField label={tr("editor.bleed_mm")} value={round2(mm)} onCommit={(n) => onChange(Math.max(0, Math.min(50, n)))} />;
 }
 
-/** Line type, color, weight, length and gap of the crop marks. */
-export function MarkFields({ indexes }: { indexes: number[] }) {
-  useEditor((s) => s.rev);
-  const dpi = useEditor.getState().doc.dpi ?? 96;
-  const page = pagesAt(indexes)[0];
-  const marks = page ? resolvedMarks({ printMarks: { ...(page.printMarks ?? {}), crop: true } }, dpi) : null;
-  if (!page || !marks) return null;
-  const set = (patch: Partial<PrintMarks>) =>
-    useEditor.getState().setPagePrint({ printMarks: { ...(page.printMarks ?? { crop: true }), ...patch } }, indexes);
+/** Line type, color, weight, length and gap of crop marks, for any value. */
+export function MarkInputs({ marks, onChange }: { marks: MarksMm; onChange: (patch: Partial<MarksMm>) => void }) {
   return (
     <>
       <div className="grid grid-cols-2 gap-2">
@@ -98,7 +84,7 @@ export function MarkFields({ indexes }: { indexes: number[] }) {
           aria-label={tr("editor.crop_mark_style")}
           title={tr("editor.crop_mark_style")}
           value={marks.style}
-          onChange={(e) => set({ style: e.target.value })}
+          onChange={(e) => onChange({ style: e.target.value })}
           className={selectCls}
         >
           <option value="solid">{tr("editor.line_solid")}</option>
@@ -106,14 +92,37 @@ export function MarkFields({ indexes }: { indexes: number[] }) {
           <option value="dotted">{tr("editor.line_dotted")}</option>
         </select>
         <div className="h-8 [&_.oc-color-trigger]:h-full">
-          <ColorField value={marks.color ?? BLACK} onChange={(c) => set({ color: c })} title={tr("editor.crop_mark_color")} allowAlpha={false} />
+          <ColorField value={marks.color ?? BLACK} onChange={(c) => onChange({ color: c })} title={tr("editor.crop_mark_color")} allowAlpha={false} />
         </div>
       </div>
       <div className="grid grid-cols-2 gap-2">
-        <NumField label={tr("editor.crop_mark_weight_pt")} value={marks.weightPt} onCommit={(n) => set({ weight: Math.max(0.05, Math.min(5, n)) })} />
-        <NumField label={tr("editor.crop_mark_length_mm")} value={round2(pxToMm(marks.length, dpi))} onCommit={(n) => set({ length: mmToPx(Math.max(1, Math.min(30, n)), dpi) })} />
-        <NumField label={tr("editor.crop_mark_offset_mm")} value={round2(pxToMm(marks.offset, dpi))} onCommit={(n) => set({ offset: mmToPx(Math.max(0, Math.min(30, n)), dpi) })} />
+        <NumField label={tr("editor.crop_mark_weight_pt")} value={marks.weightPt} onCommit={(n) => onChange({ weightPt: Math.max(0.05, Math.min(5, n)) })} />
+        <NumField label={tr("editor.crop_mark_length_mm")} value={round2(marks.lengthMm)} onCommit={(n) => onChange({ lengthMm: Math.max(1, Math.min(30, n)) })} />
+        <NumField label={tr("editor.crop_mark_offset_mm")} value={round2(marks.offsetMm)} onCommit={(n) => onChange({ offsetMm: Math.max(0, Math.min(30, n)) })} />
       </div>
     </>
+  );
+}
+
+/** The bleed of the pages, in millimetres. */
+export function BleedField({ indexes }: { indexes: number[] }) {
+  useEditor((s) => s.rev);
+  const dpi = useEditor.getState().doc.dpi ?? 96;
+  const page = pagesAt(indexes)[0];
+  if (!page) return null;
+  return <BleedInput mm={pxToMm(page.bleed ?? 0, dpi)} onChange={(mm) => useEditor.getState().setPagePrint({ bleed: mmToPx(mm, dpi) }, indexes)} />;
+}
+
+/** The crop marks of the pages. */
+export function MarkFields({ indexes }: { indexes: number[] }) {
+  useEditor((s) => s.rev);
+  const dpi = useEditor.getState().doc.dpi ?? 96;
+  const page = pagesAt(indexes)[0];
+  if (!page) return null;
+  return (
+    <MarkInputs
+      marks={marksMmOf(page, dpi)}
+      onChange={(patch) => useEditor.getState().setPagePrint({ printMarks: { ...(page.printMarks ?? { crop: true }), ...marksPatchPx(patch, dpi) } }, indexes)}
+    />
   );
 }

@@ -7,7 +7,7 @@
 // the marks lie at negative coordinates and past the page's width and height,
 // which is where the engine already draws content that runs off the page.
 
-import type { Color, Page, PrintMarks } from "@hc/schema";
+import type { Color, DesignFile, Page, PrintMarks } from "@hc/schema";
 import { pageBleed } from "@hc/engine";
 
 const MM_PER_INCH = 25.4;
@@ -189,4 +189,69 @@ export function pdfBoxes(sheet: PrintSheet, dpi: number) {
   const trim = [m, m, W - m, H - m];
   const bleed = [m - b, m - b, W - m + b, H - m + b];
   return { width: W, height: H, media: [0, 0, W, H], trim, bleed };
+}
+
+/** A page's crop marks (defaults filled in) in the units the fields show. */
+export function marksMmOf(page: Pick<Page, "printMarks">, dpi: number) {
+  const m = resolvedMarks({ printMarks: { ...(page.printMarks ?? {}), crop: true } }, dpi)!;
+  return { style: m.style as string, color: m.color, weightPt: m.weightPt, lengthMm: pxToMm(m.length, dpi), offsetMm: pxToMm(m.offset, dpi) };
+}
+
+/** Field values (mm, pt) as a PrintMarks patch in page px. */
+export function marksPatchPx(p: { style?: string; color?: Color; weightPt?: number; lengthMm?: number; offsetMm?: number }, dpi: number): Partial<PrintMarks> {
+  const out: Partial<PrintMarks> = {};
+  if (p.style !== undefined) out.style = p.style;
+  if (p.color !== undefined) out.color = p.color;
+  if (p.weightPt !== undefined) out.weight = p.weightPt;
+  if (p.lengthMm !== undefined) out.length = mmToPx(p.lengthMm, dpi);
+  if (p.offsetMm !== undefined) out.offset = mmToPx(p.offsetMm, dpi);
+  return out;
+}
+
+/** One bleed and one set of crop marks for a whole export, in mm and pt so
+ *  they mean the same on designs of any dpi. */
+export interface PrintOverride {
+  bleed: boolean;
+  bleedMm: number;
+  marks: boolean;
+  style: string;
+  color?: Color;
+  weightPt: number;
+  lengthMm: number;
+  offsetMm: number;
+}
+
+/**
+ * The design with every page's bleed and crop marks set to `o` (the export
+ * from the dashboard, where one setting applies to all selected designs).
+ * Returns a copy; the design itself is not changed.
+ */
+export function withPrintOverride(doc: DesignFile, o: PrintOverride): DesignFile {
+  const dpi = doc.dpi ?? 96;
+  const marks: PrintMarks | undefined = o.marks
+    ? { crop: true, style: o.style, ...(o.color ? { color: o.color } : {}), weight: o.weightPt, length: mmToPx(o.lengthMm, dpi), offset: mmToPx(o.offsetMm, dpi) }
+    : undefined;
+  return {
+    ...doc,
+    pages: doc.pages.map((p) => {
+      const { bleed: _b, printMarks: _m, ...rest } = p;
+      void _b; void _m;
+      return { ...rest, ...(o.bleed && o.bleedMm > 0 ? { bleed: mmToPx(o.bleedMm, dpi) } : {}), ...(marks ? { printMarks: marks } : {}) };
+    }),
+  } as DesignFile;
+}
+
+/** The override a dashboard export starts from: the first page among the
+ *  designs that sets anything, else 3 mm and default marks. */
+export function initialPrintOverride(docs: DesignFile[]): PrintOverride {
+  for (const d of docs) {
+    const dpi = d.dpi ?? 96;
+    const p = d.pages.find((pg) => pageBleed(pg) > 0 || pg.printMarks?.crop);
+    if (p) {
+      const m = marksMmOf(p, dpi);
+      return { bleed: pageBleed(p) > 0, bleedMm: pageBleed(p) > 0 ? pxToMm(pageBleed(p), dpi) : 3, marks: !!p.printMarks?.crop, ...m };
+    }
+  }
+  const dpi = 96;
+  return { bleed: false, bleedMm: 3, marks: false, ...marksMmOf({}, dpi) };
 }

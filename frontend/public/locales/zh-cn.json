@@ -4345,5 +4345,6 @@
   "dashboard.transfer_error_folder": "已复制，但未放入所选文件夹",
   "dashboard.transfer_error_source_kept": "已复制；原设计无法移到回收站",
   "dashboard.transfer_error_failed": "失败",
-  "errors.api_transfer_same_workspace": "这些设计已在该工作区中。"
+  "errors.api_transfer_same_workspace": "这些设计已在该工作区中。",
+  "editor.print_sheet_designs_hint": "适用于所有导出的设计；设计本身保持不变。"
 }

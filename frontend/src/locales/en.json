@@ -4345,5 +4345,6 @@
   "dashboard.transfer_error_folder": "copied, but not into the chosen folder",
   "dashboard.transfer_error_source_kept": "copied; the original could not be moved to the trash",
   "dashboard.transfer_error_failed": "failed",
-  "errors.api_transfer_same_workspace": "The designs are already in that workspace."
+  "errors.api_transfer_same_workspace": "The designs are already in that workspace.",
+  "editor.print_sheet_designs_hint": "Applies to every design exported; the designs themselves stay as they are."
 }
