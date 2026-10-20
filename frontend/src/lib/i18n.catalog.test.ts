@@ -170,7 +170,10 @@ describe("no hard-coded user-visible strings", () => {
       found = count(out);
     }
     expect(found, `${found} hard-coded strings:\n${out}`).toBe(0);
-  });
+    // A child process scans the whole source tree (twice when it finds
+    // something): seconds on a CI runner, more as the tree grows, so the
+    // default 5 s timeout failed it with nothing wrong.
+  }, 60_000);
 
   it("never calls tr() at module scope, where it would freeze at import", () => {
     // A module-level `tr()` is evaluated once, before any catalog has loaded,
