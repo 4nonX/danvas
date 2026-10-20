@@ -4346,5 +4346,17 @@
   "dashboard.transfer_error_source_kept": "kopiert; das Original ließ sich nicht in den Papierkorb legen",
   "dashboard.transfer_error_failed": "fehlgeschlagen",
   "errors.api_transfer_same_workspace": "Die Designs liegen bereits in diesem Arbeitsbereich.",
-  "editor.print_sheet_designs_hint": "Gilt für alle exportierten Designs; die Designs selbst bleiben unverändert."
+  "editor.print_sheet_designs_hint": "Gilt für alle exportierten Designs; die Designs selbst bleiben unverändert.",
+  "editor.overprint_black": "Schwarz überdrucken",
+  "editor.overprint_black_desc": "Rein schwarze Texte und Linien drucken über das, was darunter liegt, damit bei leichtem Passerversatz keine weißen Blitzer entstehen.",
+  "editor.pdfx4": "PDF/X-4",
+  "editor.pdfx4_desc": "Kennzeichnet die Datei als PDF/X-4 mit dem Farbprofil als Ausgabebedingung, dem Standard, den Druckereien für CMYK-PDFs mit Transparenz erwarten.",
+  "editor.print_extras": "Für die Druckerei",
+  "editor.registration_marks": "Marken in Passerfarbe",
+  "editor.registration_marks_desc": "Die Schnittmarken stehen auf jeder Druckplatte (Separation „All“), wie Druckmaschinen es erwarten.",
+  "editor.die_line": "Stanzkontur",
+  "editor.die_line_desc": "Eine Schneide- oder Stanzlinie entlang des Endformats in einer eigenen Sonderfarbe, überdruckend und auf eigener Ebene. Sie wird nicht gedruckt; die Druckerei schneidet danach.",
+  "editor.die_line_name": "Name",
+  "editor.die_line_radius_mm": "Radius mm",
+  "editor.die_line_default_name": "Stanze"
 }

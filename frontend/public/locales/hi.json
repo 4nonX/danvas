@@ -4346,5 +4346,17 @@
   "dashboard.transfer_error_source_kept": "कॉपी हुआ; मूल को ट्रैश में नहीं ले जाया जा सका",
   "dashboard.transfer_error_failed": "विफल",
   "errors.api_transfer_same_workspace": "डिज़ाइन पहले से उस वर्कस्पेस में हैं।",
-  "editor.print_sheet_designs_hint": "निर्यात किए जाने वाले सभी डिज़ाइनों पर लागू होता है; डिज़ाइन स्वयं नहीं बदलते।"
+  "editor.print_sheet_designs_hint": "निर्यात किए जाने वाले सभी डिज़ाइनों पर लागू होता है; डिज़ाइन स्वयं नहीं बदलते।",
+  "editor.overprint_black": "ब्लैक ओवरप्रिंट",
+  "editor.overprint_black_desc": "केवल काले टेक्स्ट और रेखाएँ नीचे के रंग के ऊपर छपती हैं, ताकि प्लेटें थोड़ी खिसकने पर सफ़ेद किनारा न दिखे।",
+  "editor.pdfx4": "PDF/X-4",
+  "editor.pdfx4_desc": "फ़ाइल को PDF/X-4 के रूप में चिह्नित करता है, प्रोफ़ाइल को आउटपुट इंटेंट बनाकर; पारदर्शिता वाले CMYK PDF के लिए प्रिंटर यही मानक चाहते हैं।",
+  "editor.print_extras": "प्रिंटर के लिए",
+  "editor.registration_marks": "रजिस्ट्रेशन रंग में मार्क",
+  "editor.registration_marks_desc": "क्रॉप मार्क हर प्लेट पर छपते हैं (सेपरेशन “All”), जैसा प्रेस अपेक्षा करते हैं।",
+  "editor.die_line": "डाई लाइन",
+  "editor.die_line_desc": "फ़िनिश्ड आकार के साथ एक कट या पंच रेखा, अपने अलग स्पॉट रंग में, ओवरप्रिंट और अपनी लेयर पर। यह छपती नहीं; प्रिंटर इसी से काटता है।",
+  "editor.die_line_name": "नाम",
+  "editor.die_line_radius_mm": "त्रिज्या mm",
+  "editor.die_line_default_name": "CutContour"
 }

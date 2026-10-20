@@ -118,7 +118,29 @@ All of these are drawn by the same engine as the editor, so they match what you 
 
 - **SVG** and **vector PDF**.
 - **Accessible PDF (tagged)**: the vector PDF plus a structure tree in reading order, alt text, and an invisible real-text layer.
-- **Print**: vector PDF, TIFF in CMYK or RGB with the color profile embedded, and EPS (PostScript Level 3), with ICC color management and black-only text. For CMYK, choose a color profile; workspace admins upload their own printing profiles under **Members**, **Print profiles** (**Upload .icc profile**).
+- **Print**: vector PDF, image PDF, TIFF and EPS (PostScript Level 3), each in CMYK through an ICC color profile or in RGB. For CMYK, choose a color profile and a rendering intent; workspace admins upload their own printing profiles under **Members**, **Print profiles** (**Upload .icc profile**).
+
+### Files for print shops
+
+What a print shop needs depends on the format; the download menu offers each option where the format can carry it:
+
+| | Vector PDF | Image PDF | EPS | TIFF | JPG | PNG | SVG |
+|---|---|---|---|---|---|---|---|
+| Bleed and crop marks | yes | yes | yes | yes | yes | yes | yes |
+| CMYK through an ICC profile | yes | yes | yes | yes | no | no | no |
+| Profile embedded (output intent / ICC) | yes | yes | no | yes | no | no | no |
+| PDF/X-4 | yes | yes | | | | | |
+| Black in black ink only, black overprint | yes | | yes | | | | |
+| Crop marks in registration colour | yes | | yes | | | | |
+| Die line in a spot colour | yes | | yes | | | | |
+| Resolution written into the file | | | | yes | yes | yes | |
+
+- **Vector PDF** is the file print shops usually ask for: every shape, text (as outlines) and graphic stays an object of its own, so the print shop can open it in Illustrator and change a colour. With CMYK it carries the profile as its output intent and, with **PDF/X-4** on, is marked as PDF/X-4 (version, XMP metadata, trapping flag, page boxes). Transparency stays live.
+- **Black ink only** prints pure black as 100 % K instead of a four-colour black; **Overprint black** then lets it print over what is under it, so no white gap shows when the plates are slightly out of register. In EPS, which has no overprint mode, black is written as the Black separation for this.
+- **Crop marks in registration colour** put the marks on every printing plate (the separation "All"), as presses expect.
+- **Die line**: a cut or punch contour along the trim, in a spot colour of its own (named as the print shop calls it, for example "Stanze" or "CutContour", with a corner radius), overprinting, and in a PDF on its own layer. It is not printed; the print shop cuts along it. Ask the print shop whether they want it: many draw their own.
+- **JPG and PNG** cannot hold CMYK (PNG by definition, JPG not from a browser); use TIFF for a CMYK picture. Their header states the resolution (the page's physical size kept), so print software opens a 300 dpi export at the right size. **300 dpi** in the size row sets that resolution.
+- **SVG** has no CMYK, profiles or spot colours by definition.
 - **Video (MP4)**: the deck's playthrough, encoded in the browser. A browser that cannot encode video says so.
 
 Effects (shadows, glows, blurs) keep their size at every export scale.

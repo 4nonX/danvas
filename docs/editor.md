@@ -131,7 +131,7 @@ The download icon (or `Cmd+E`) opens Export:
 
 ![The export dialog](images/export-dialog.png)
 
-- **Formats**: PNG (with transparency), JPG (quality slider), PDF (multi-page: vector, flattened image, or tagged and accessible), SVG, TIFF and EPS for print (CMYK through an ICC profile, or RGB), animated PNG, animated GIF, MP4, PPTX, Markdown, and Lottie JSON for animated pages.
+- **Formats**: PNG (with transparency), JPG (quality slider), PDF (multi-page: vector, flattened image, or tagged and accessible), SVG, TIFF and EPS for print (the PDFs, TIFF and EPS in CMYK through an ICC profile, or RGB; PDF/X-4, black overprint, registration-colour marks and a die line where the format can carry them, see [Files for print shops](danvas.md#files-for-print-shops)), animated PNG, animated GIF, MP4, PPTX, Markdown, and Lottie JSON for animated pages.
 - **Size**: 0.5x to 3x multipliers with live pixel dimensions; multi-page exports can combine into a zip; export all pages, the current page, or a per-page selection.
 - **Bleed and crop marks**: for PNG, JPG, SVG, PDF, TIFF and EPS, the exported pages' bleed and crop marks are switched on or off for the export and can be edited right there (the same settings as the page panel's **Print** section). See [Bleed and crop marks](danvas.md#bleed-and-crop-marks).
 - Brand kit export policies can warn or block on violations, and a Credits block compiles attribution for stock that requires it.

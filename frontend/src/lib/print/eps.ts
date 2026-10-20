@@ -6,7 +6,7 @@
 // equivalents, so the drawing operators pass through unchanged; gradients
 // become Level 3 shadings, images compressed reusable streams.
 
-import type { PrintParts } from "./sheet";
+import type { PrintExtras, PrintParts } from "./sheet";
 import type { DesignFile } from "@hc/schema";
 import { drawPages, num } from "@/lib/vectorPdf";
 import type { CmykConverter } from "./cms";
@@ -20,6 +20,10 @@ export interface EpsOptions {
   blackOnly?: boolean;
   /** Include the page's bleed and/or crop marks. */
   print?: boolean | PrintParts;
+  /** Black-only paint overprints (CMYK). */
+  overprintBlack?: boolean;
+  /** Registration-colour marks and a die line. */
+  extras?: PrintExtras;
 }
 
 const enc = new TextEncoder();
@@ -67,7 +71,10 @@ HyCanvasDict begin
 /k {setcmykcolor} bind def /K {setcmykcolor} bind def
 /w {setlinewidth} bind def /J {setlinecap} bind def /j {setlinejoin} bind def
 /M {setmiterlimit} bind def /d {setdash} bind def
-/gs {pop} bind def
+/gs {GSD exch get exec} bind def
+/cs {CSD exch get setcolorspace} bind def /CS {CSD exch get setcolorspace} bind def
+/scn {setcolor} bind def /SCN {setcolor} bind def
+/BDC {pop pop} bind def /EMC {} bind def
 /sh {ShD exch get shfill} bind def
 /Do {ImD exch get exec} bind def
 end`;
@@ -79,7 +86,8 @@ export async function exportEps(doc: DesignFile, pageIndex: number, opts: EpsOpt
     assets: opts.assets,
     flatten: true,
     print: opts.print,
-    color: conv ? { cmyk: (r, g, b) => conv.cmyk(r, g, b), blackOnly: opts.blackOnly ?? true } : undefined,
+    color: conv ? { cmyk: (r, g, b) => conv.cmyk(r, g, b), blackOnly: opts.blackOnly ?? true, overprintBlack: !!opts.overprintBlack, overprintAsSeparation: true } : undefined,
+    extras: opts.extras,
   });
   const p = pages[0];
   // The whole sheet: bleed and crop marks when the page has them and the
@@ -115,6 +123,16 @@ export async function exportEps(doc: DesignFile, pageIndex: number, opts: EpsOpt
   }
   const usedSh = new Set([...p.content.matchAll(/\/(Sh\d+) sh/g)].map((m) => m[1]));
   const shadings = resources.shadings.filter((s) => usedSh.has(s.name)).map((s) => `/${s.name} ${s.dict}`);
+  // Graphics states: only overprint matters here (transparency is
+  // flattened). Spot colours: separations that fall back to their CMYK look.
+  const gsProcs = [...resources.extGStates].map(([key, name]) => `/${name} {${key.split("|")[3] === "1" ? "true" : "false"} setoverprint}`);
+  const spots = [...resources.spots.values()];
+  const csDefs = spots.map(({ name, spot }) => {
+    const [c, m, y, k] = spot.cmyk.map(num);
+    return `/${name} [/Separation ${psText(spot.name)} cvn /DeviceCMYK {dup ${c} mul exch dup ${m} mul exch dup ${y} mul exch ${k} mul}]`;
+  });
+  // Separations that are not process plates or "All" are custom colours.
+  const custom = spots.filter((e) => !["All", "Cyan", "Magenta", "Yellow", "Black"].includes(e.spot.name)); // i18n-ignore: separation names
 
   const d = new Date();
   const lines = [
@@ -127,6 +145,7 @@ export async function exportEps(doc: DesignFile, pageIndex: number, opts: EpsOpt
     "%%LanguageLevel: 3",
     "%%DocumentData: Clean7Bit",
     ...(conv ? ["%%DocumentProcessColors: Cyan Magenta Yellow Black"] : []),
+    ...(custom.length ? [`%%DocumentCustomColors: ${custom.map((e) => psText(e.spot.name)).join(" ")}`, ...custom.map((e) => `%%CMYKCustomColor: ${e.spot.cmyk.map(num).join(" ")} ${psText(e.spot.name)}`)] : []),
     "%%Pages: 1",
     "%%EndComments",
     "%%BeginProlog",
@@ -136,6 +155,8 @@ export async function exportEps(doc: DesignFile, pageIndex: number, opts: EpsOpt
     "save",
     "HyCanvasDict begin", // i18n-ignore: PostScript
     `/ShD << ${shadings.join("\n")} >> def`,
+    `/GSD << ${gsProcs.join("\n")} >> def`,
+    `/CSD << ${csDefs.join("\n")} >> def`,
     ...imageDefs,
     `/ImD << ${imageProcs.join("\n")} >> def`,
     `${conv ? "0 0 0 1 setcmykcolor" : "0 0 0 setrgbcolor"} 1 setlinewidth [] 0 setdash`,

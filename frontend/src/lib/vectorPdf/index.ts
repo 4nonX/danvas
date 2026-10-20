@@ -11,7 +11,8 @@ import { num, PdfCanvas, PdfResources, type ColorOut, type PdfPageStats, type Pd
 import { SvgCanvas } from "./svgCanvas";
 import { tr } from "@/lib/i18n";
 import { resolveAssetUrl } from "@/lib/sdk";
-import { clipToBleed, drawPrintMarks, pdfBoxes, printSheet, sheetViewport, type PrintParts, type PrintSheet } from "@/lib/print/sheet";
+import { clipToBleed, drawDieLine, drawPrintMarks, pdfBoxes, printSheet, sheetViewport, type PrintExtras, type PrintParts, type PrintSheet } from "@/lib/print/sheet";
+import type { CmykConverter } from "@/lib/print/cms";
 
 export { num, type ColorOut } from "./pdfCanvas";
 
@@ -39,8 +40,8 @@ class PdfWriter {
   private offsets: number[] = [];
   private length = 0;
 
-  constructor() {
-    this.push(enc.encode("%PDF-1.7\n%\xE2\xE3\xCF\xD3\n"));
+  constructor(version = "1.7") {
+    this.push(enc.encode(`%PDF-${version}\n%\xE2\xE3\xCF\xD3\n`));
   }
   private push(b: Uint8Array) {
     this.parts.push(b);
@@ -61,11 +62,12 @@ class PdfWriter {
     this.push(data);
     this.push(enc.encode("\nendstream\nendobj\n"));
   }
-  finish(rootId: number, infoId: number): Blob {
+  finish(rootId: number, infoId: number, fileId?: string): Blob {
     const xref = this.length;
     const lines = [`xref\n0 ${this.offsets.length + 1}\n0000000000 65535 f \n`];
     for (const off of this.offsets) lines.push(`${String(Math.max(0, off)).padStart(10, "0")} 00000 n \n`);
-    lines.push(`trailer\n<< /Size ${this.offsets.length + 1} /Root ${rootId} 0 R /Info ${infoId} 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
+    const id = fileId ? ` /ID [<${fileId}> <${fileId}>]` : "";
+    lines.push(`trailer\n<< /Size ${this.offsets.length + 1} /Root ${rootId} 0 R /Info ${infoId} 0 R${id} >>\nstartxref\n${xref}\n%%EOF\n`);
     this.push(enc.encode(lines.join("")));
     return new Blob(this.parts as BlobPart[], { type: "application/pdf" });
   }
@@ -89,6 +91,17 @@ export interface VectorPdfOptions {
   lang?: string;
   /** Include each page's bleed and/or crop marks (print). */
   print?: boolean | PrintParts;
+  /** Colours in CMYK through this output profile (embedded as the output
+   *  intent); RGB without. */
+  converter?: CmykConverter | null;
+  /** Pure black in black ink only (CMYK). */
+  blackOnly?: boolean;
+  /** Black-only paint overprints (CMYK). */
+  overprintBlack?: boolean;
+  /** Mark the file as PDF/X-4 (CMYK with a profile only). */
+  pdfx?: boolean;
+  /** Registration-colour marks and a die line. */
+  extras?: PrintExtras;
 }
 
 export interface DrawPagesOptions {
@@ -101,6 +114,8 @@ export interface DrawPagesOptions {
   tagged?: boolean;
   /** Draw each page's print sheet: its bleed and/or crop marks. */
   print?: boolean | PrintParts;
+  /** Registration-colour marks and a die line. */
+  extras?: PrintExtras;
 }
 
 export interface DrawnPage {
@@ -186,7 +201,8 @@ export async function drawPages(doc: DesignFile, pageIndexes: number[], opts: Dr
     clipToBleed(ctx as unknown as Parameters<typeof clipToBleed>[0], p.sheet, p.zoom);
     renderScene(createScene(doc, p.index), ctx as unknown as CanvasLike, p.vp, { ...renderOpts, ...hooks });
     ctx.restore();
-    drawPrintMarks(ctx as unknown as Parameters<typeof drawPrintMarks>[0], p.sheet, p.zoom);
+    drawPrintMarks(ctx as unknown as Parameters<typeof drawPrintMarks>[0], p.sheet, p.zoom, !!opts.extras?.registration);
+    if (opts.extras?.dieLine) drawDieLine(ctx as unknown as Parameters<typeof drawDieLine>[0], p.sheet, p.zoom, opts.extras.dieLine, dpi);
     let tags: PdfTag[] | undefined;
     if (opts.tagged) {
       // Content is drawn in z-order, the structure is read in reading order:
@@ -268,10 +284,15 @@ export async function exportVectorSvg(doc: DesignFile, pageIndex: number, opts: 
 
 /** Render the given pages of a design to one vector PDF. */
 export async function exportVectorPdf(doc: DesignFile, pageIndexes: number[], opts: VectorPdfOptions = {}): Promise<VectorPdfResult> {
-  const { dpi, pages, resources, stats } = await drawPages(doc, pageIndexes, { assets: opts.assets, tagged: opts.tagged, print: opts.print });
+  const conv = opts.converter ?? null;
+  const { dpi, pages, resources, stats } = await drawPages(doc, pageIndexes, {
+    assets: opts.assets, tagged: opts.tagged, print: opts.print, extras: opts.extras,
+    color: conv ? { cmyk: (r, g, b) => conv.cmyk(r, g, b), blackOnly: opts.blackOnly ?? true, overprintBlack: !!opts.overprintBlack } : undefined,
+  });
   const contents = pages.map((p) => ({ content: p.content, p }));
+  const pdfx = !!opts.pdfx && !!conv && !opts.tagged;
 
-  const w = new PdfWriter();
+  const w = new PdfWriter(pdfx ? "1.6" : "1.7");
   const catalogId = w.alloc();
   const pagesId = w.alloc();
   const resId = w.alloc();
@@ -300,7 +321,20 @@ export async function exportVectorPdf(doc: DesignFile, pageIndexes: number[], op
       w.stream(sid, `/Type /XObject /Subtype /Image /Width ${img.width} /Height ${img.height} /ColorSpace /DeviceGray /BitsPerComponent 8 /Filter /FlateDecode`, await deflate(alpha));
       smask = ` /SMask ${sid} 0 R`;
     }
-    w.stream(id, `/Type /XObject /Subtype /Image /Width ${img.width} /Height ${img.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Interpolate true /Filter /FlateDecode${smask}`, await deflate(rgb));
+    if (conv) {
+      // CMYK through the profile; the alpha stays in the soft mask, so the
+      // colours are converted as if opaque.
+      const opaqueRgba = new Uint8Array(n * 4);
+      for (let i = 0; i < n; i++) {
+        opaqueRgba[i * 4] = rgb[i * 3];
+        opaqueRgba[i * 4 + 1] = rgb[i * 3 + 1];
+        opaqueRgba[i * 4 + 2] = rgb[i * 3 + 2];
+        opaqueRgba[i * 4 + 3] = 255;
+      }
+      w.stream(id, `/Type /XObject /Subtype /Image /Width ${img.width} /Height ${img.height} /ColorSpace /DeviceCMYK /BitsPerComponent 8 /Interpolate true /Filter /FlateDecode${smask}`, await deflate(conv.pixels(opaqueRgba, n)));
+    } else {
+      w.stream(id, `/Type /XObject /Subtype /Image /Width ${img.width} /Height ${img.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Interpolate true /Filter /FlateDecode${smask}`, await deflate(rgb));
+    }
     imageRefs.push(`/${img.name} ${id} 0 R`);
   }
   // Text layer fonts: invisible (render mode 3), so only metrics and the
@@ -309,7 +343,15 @@ export async function exportVectorPdf(doc: DesignFile, pageIndexes: number[], op
   for (const tf of resources.textFonts.values()) {
     if (tf.glyphs.size) fontRefs.push(`/${tf.name} ${await writeTextFont(w, tf)} 0 R`);
   }
-  w.obj(resId, `<< /ExtGState << ${resources.extGStateDict()} >> /XObject << ${imageRefs.join(" ")} >> /Shading << ${resources.shadings.map((s) => `/${s.name} ${s.dict}`).join(" ")} >>${fontRefs.length ? ` /Font << ${fontRefs.join(" ")} >>` : ""} >>`);
+  // Layers (a die line): one optional content group each.
+  const layerRefs: { name: string; id: number }[] = [];
+  for (const [title, name] of resources.layers) {
+    const id = w.alloc();
+    w.obj(id, `<< /Type /OCG /Name ${pdfString(title)} >>`);
+    layerRefs.push({ name, id });
+  }
+  const spaces = resources.colorSpaceDict();
+  w.obj(resId, `<< /ExtGState << ${resources.extGStateDict()} >> /XObject << ${imageRefs.join(" ")} >> /Shading << ${resources.shadings.map((s) => `/${s.name} ${s.dict}`).join(" ")} >>${spaces ? ` /ColorSpace << ${spaces} >>` : ""}${layerRefs.length ? ` /Properties << ${layerRefs.map((l) => `/${l.name} ${l.id} 0 R`).join(" ")} >>` : ""}${fontRefs.length ? ` /Font << ${fontRefs.join(" ")} >>` : ""} >>`);
 
   const kids: number[] = [];
   // Structure tree (tagged): Document > one Sect per page > one element per
@@ -358,7 +400,17 @@ export async function exportVectorPdf(doc: DesignFile, pageIndexes: number[], op
     w.obj(docElem, `<< /Type /StructElem /S /Document /P ${structRoot} 0 R /K [${sects.map((id) => `${id} 0 R`).join(" ")}] >>`);
     w.obj(catalogId, `<< /Type /Catalog /Pages ${pagesId} 0 R /MarkInfo << /Marked true >> /StructTreeRoot ${structRoot} 0 R /Lang ${pdfString(docLang(doc, opts.lang))} /ViewerPreferences << /DisplayDocTitle true >> >>`);
   } else {
-    w.obj(catalogId, `<< /Type /Catalog /Pages ${pagesId} 0 R >>`);
+    const ocProps = layerRefs.length ? ` /OCProperties << /OCGs [${layerRefs.map((l) => `${l.id} 0 R`).join(" ")}] /D << /Order [${layerRefs.map((l) => `${l.id} 0 R`).join(" ")}] /ON [${layerRefs.map((l) => `${l.id} 0 R`).join(" ")}] >> >>` : "";
+    const frame = await printFrame(w, { converter: conv, pdfx, title: opts.title || doc.title || "Design", creator: "danvas vector PDF" }); // i18n-ignore: file metadata
+    w.obj(catalogId, `<< /Type /Catalog /Pages ${pagesId} 0 R${ocProps}${frame.catalog} >>`);
+    w.obj(infoId, frame.info);
+    const first = pages[0]?.pg;
+    return {
+      blob: w.finish(catalogId, infoId, frame.fileId),
+      widthMm: first ? (first.width / dpi) * 25.4 : 0,
+      heightMm: first ? (first.height / dpi) * 25.4 : 0,
+      stats,
+    };
   }
   const d = new Date();
   const pad = (v: number) => String(v).padStart(2, "0");
@@ -372,4 +424,101 @@ export async function exportVectorPdf(doc: DesignFile, pageIndexes: number[], op
     heightMm: first ? (first.height / dpi) * 25.4 : 0,
     stats,
   };
+}
+
+/** XML text escaped. */
+const xml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+/**
+ * What a print PDF adds to its catalog and info: the CMYK output intent with
+ * the profile embedded, and for PDF/X-4 the version keys, the XMP metadata
+ * and a file id (written to the trailer by the caller).
+ */
+async function printFrame(w: PdfWriter, o: { converter: CmykConverter | null; pdfx: boolean; title: string; creator: string }): Promise<{ catalog: string; info: string; fileId?: string }> {
+  const d = new Date();
+  const pad = (v: number) => String(v).padStart(2, "0");
+  const pdfDate = `D:${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}Z`;
+  const iso = d.toISOString().replace(/\.\d{3}Z$/, "Z");
+  let catalog = "";
+  if (o.converter) {
+    const icc = w.alloc();
+    w.stream(icc, "/N 4 /Alternate /DeviceCMYK /Filter /FlateDecode", await deflate(o.converter.icc));
+    const cond = pdfString(o.converter.description || "CMYK");
+    catalog += ` /OutputIntents [<< /Type /OutputIntent /S /GTS_PDFX /OutputConditionIdentifier (Custom) /OutputCondition ${cond} /Info ${cond} /DestOutputProfile ${icc} 0 R >>]`;
+  }
+  let info = `<< /Producer (danvas) /Creator ${pdfString(o.creator)} /Title ${pdfString(o.title)} /CreationDate (${pdfDate}) /ModDate (${pdfDate})`;
+  let fileId: string | undefined;
+  if (o.pdfx && o.converter) {
+    info += " /Trapped /False /GTS_PDFXVersion (PDF/X-4)";
+    // A random UUID (getRandomValues works on plain-http instances too,
+    // randomUUID only in secure contexts).
+    const rnd = crypto.getRandomValues(new Uint8Array(16));
+    rnd[6] = (rnd[6] & 0x0f) | 0x40;
+    rnd[8] = (rnd[8] & 0x3f) | 0x80;
+    const hex = [...rnd].map((x) => x.toString(16).padStart(2, "0")).join("");
+    const uuid = `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+    fileId = uuid.replace(/-/g, "");
+    const packet = `<?xpacket begin="\uFEFF" id="W5M0MpCehiHzreSzNTczkc9d"?>
+<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+<rdf:Description rdf:about="" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xmp="http://ns.adobe.com/xap/1.0/" xmlns:pdf="http://ns.adobe.com/pdf/1.3/" xmlns:xmpMM="http://ns.adobe.com/xap/1.0/mm/" xmlns:pdfxid="http://www.npes.org/pdfx/ns/id/">
+<dc:format>application/pdf</dc:format>
+<dc:title><rdf:Alt><rdf:li xml:lang="x-default">${xml(o.title)}</rdf:li></rdf:Alt></dc:title>
+<xmp:CreateDate>${iso}</xmp:CreateDate><xmp:ModifyDate>${iso}</xmp:ModifyDate><xmp:MetadataDate>${iso}</xmp:MetadataDate><xmp:CreatorTool>${xml(o.creator)}</xmp:CreatorTool>
+<pdf:Producer>danvas</pdf:Producer><pdf:Trapped>False</pdf:Trapped>
+<xmpMM:DocumentID>uuid:${uuid}</xmpMM:DocumentID><xmpMM:InstanceID>uuid:${uuid}</xmpMM:InstanceID><xmpMM:VersionID>1</xmpMM:VersionID><xmpMM:RenditionClass>default</xmpMM:RenditionClass>
+<pdfxid:GTS_PDFXVersion>PDF/X-4</pdfxid:GTS_PDFXVersion>
+</rdf:Description></rdf:RDF></x:xmpmeta>
+<?xpacket end="w"?>`; // i18n-ignore: file metadata
+    const meta = w.alloc();
+    w.stream(meta, "/Type /Metadata /Subtype /XML", enc.encode(packet));
+    catalog += ` /Metadata ${meta} 0 R`;
+  }
+  info += " >>";
+  return { catalog, info, fileId };
+}
+
+export interface ImagePdfPage {
+  /** The rendered sheet (opaque), and its size in device pixels. */
+  rgba: Uint8ClampedArray;
+  width: number;
+  height: number;
+  sheet: PrintSheet;
+}
+
+/**
+ * A PDF of one picture per page (the flattened image PDF), in CMYK through a
+ * profile or in RGB, with the sheet's page boxes, and optionally marked as
+ * PDF/X-4.
+ */
+export async function exportImagePdf(pages: ImagePdfPage[], dpi: number, opts: { title?: string; converter?: CmykConverter | null; pdfx?: boolean } = {}): Promise<Blob> {
+  const conv = opts.converter ?? null;
+  const pdfx = !!opts.pdfx && !!conv;
+  const w = new PdfWriter(pdfx ? "1.6" : "1.7");
+  const catalogId = w.alloc();
+  const pagesId = w.alloc();
+  const infoId = w.alloc();
+  const kids: number[] = [];
+  for (const p of pages) {
+    const n = p.width * p.height;
+    let data: Uint8Array;
+    if (conv) data = conv.pixels(p.rgba, n);
+    else {
+      data = new Uint8Array(n * 3);
+      for (let i = 0; i < n; i++) { data[i * 3] = p.rgba[i * 4]; data[i * 3 + 1] = p.rgba[i * 4 + 1]; data[i * 3 + 2] = p.rgba[i * 4 + 2]; }
+    }
+    const img = w.alloc();
+    w.stream(img, `/Type /XObject /Subtype /Image /Width ${p.width} /Height ${p.height} /ColorSpace /${conv ? "DeviceCMYK" : "DeviceRGB"} /BitsPerComponent 8 /Interpolate true /Filter /FlateDecode`, await deflate(data)); // i18n-ignore: PDF names
+    const boxes = pdfBoxes(p.sheet, dpi);
+    const cid = w.alloc();
+    w.stream(cid, "/Filter /FlateDecode", await deflate(enc.encode(`q ${num(boxes.width)} 0 0 ${num(boxes.height)} 0 0 cm /Im0 Do Q`)));
+    const pid = w.alloc();
+    const box = (r: number[]) => `[${r.map(num).join(" ")}]`;
+    w.obj(pid, `<< /Type /Page /Parent ${pagesId} 0 R /MediaBox ${box(boxes.media)} /BleedBox ${box(boxes.bleed)} /TrimBox ${box(boxes.trim)} /Resources << /XObject << /Im0 ${img} 0 R >> >> /Contents ${cid} 0 R >>`);
+    kids.push(pid);
+  }
+  w.obj(pagesId, `<< /Type /Pages /Kids [${kids.map((id) => `${id} 0 R`).join(" ")}] /Count ${kids.length} >>`);
+  const frame = await printFrame(w, { converter: conv, pdfx, title: opts.title || "Design", creator: "danvas image PDF" }); // i18n-ignore: file metadata
+  w.obj(catalogId, `<< /Type /Catalog /Pages ${pagesId} 0 R${frame.catalog} >>`);
+  w.obj(infoId, frame.info);
+  return w.finish(catalogId, infoId, frame.fileId);
 }

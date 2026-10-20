@@ -161,10 +161,14 @@ export class PdfResources {
   images: PendingImage[] = [];
   extGStates = new Map<string, string>(); // key -> name
   shadings: { name: string; dict: string }[] = [];
+  /** Spot colour spaces, by name. */
+  spots = new Map<string, { name: string; spot: SpotColor }>();
+  /** Optional content groups (layers), by title. */
+  layers = new Map<string, string>();
   private imageIds = new WeakMap<object, string>();
 
-  gs(fillAlpha: number, strokeAlpha: number, blend: string): string {
-    const key = `${num(fillAlpha)}|${num(strokeAlpha)}|${blend}`;
+  gs(fillAlpha: number, strokeAlpha: number, blend: string, overprint = false): string {
+    const key = `${num(fillAlpha)}|${num(strokeAlpha)}|${blend}|${overprint ? 1 : 0}`;
     let name = this.extGStates.get(key);
     if (!name) {
       name = `GS${this.extGStates.size}`;
@@ -176,10 +180,37 @@ export class PdfResources {
   extGStateDict(): string {
     const parts: string[] = [];
     for (const [key, name] of this.extGStates) {
-      const [ca, CA, bm] = key.split("|");
-      parts.push(`/${name} << /Type /ExtGState /ca ${ca} /CA ${CA} /BM /${bm} >>`);
+      const [ca, CA, bm, op] = key.split("|");
+      parts.push(`/${name} << /Type /ExtGState /ca ${ca} /CA ${CA} /BM /${bm}${op === "1" ? " /OP true /op true /OPM 1" : ""} >>`);
     }
     return parts.join(" ");
+  }
+
+  /** The colour space name of a spot colour. */
+  separation(spot: SpotColor): string {
+    let e = this.spots.get(spot.name);
+    if (!e) {
+      e = { name: `CS${this.spots.size}`, spot };
+      this.spots.set(spot.name, e);
+    }
+    return e.name;
+  }
+
+  /** The PDF definition of each spot colour space: a separation that falls
+   *  back to its CMYK look. */
+  colorSpaceDict(): string {
+    return [...this.spots.values()].map(({ name, spot }) =>
+      `/${name} [/Separation ${pdfName(spot.name)} /DeviceCMYK << /FunctionType 2 /Domain [0 1] /C0 [0 0 0 0] /C1 [${spot.cmyk.map(num).join(" ")}] /N 1 >>]`).join(" ");
+  }
+
+  /** The property name of a layer. */
+  layer(title: string): string {
+    let n = this.layers.get(title);
+    if (!n) {
+      n = `OC${this.layers.size}`;
+      this.layers.set(title, n);
+    }
+    return n;
   }
 
   addImage(source: object | null, width: number, height: number, rgba: Uint8ClampedArray): string {
@@ -246,6 +277,26 @@ export interface ColorOut {
   /** Pure black (text, lines, shapes) in black ink only (0/0/0/100), so it
    *  stays sharp on press instead of becoming a four-colour black. */
   blackOnly: boolean;
+  /** Black-only paint overprints what is under it (no white gap around black
+   *  text when the plates are slightly out of register). */
+  overprintBlack?: boolean;
+  /** Overprint black as the "Black" separation instead of CMYK with the
+   *  overprint mode: PostScript has no overprint mode, so zero C/M/Y would
+   *  still knock out the plates under it. */
+  overprintAsSeparation?: boolean;
+}
+
+/** A spot colour (a separation of its own): its name and how it looks in
+ *  CMYK where it is not printed as its own plate. */
+export interface SpotColor {
+  name: string;
+  cmyk: [number, number, number, number];
+  overprint?: boolean;
+}
+
+/** A PDF name with the characters PDF names may not hold escaped. */
+export function pdfName(s: string): string {
+  return "/" + [...new TextEncoder().encode(s)].map((b) => (b > 0x20 && b < 0x7f && !"#()<>[]{}/%".includes(String.fromCharCode(b)) ? String.fromCharCode(b) : "#" + b.toString(16).padStart(2, "0"))).join("");
 }
 
 export interface VectorCanvasOptions {
@@ -1082,9 +1133,40 @@ export class PdfCanvas extends VectorCanvas {
   private marks: { node: Node; kind: "tag" | "artifact" | "none"; decorative: boolean; op?: number; tag?: PdfTag; rasterText?: boolean; seen?: Set<string> }[] = [];
   private tags: PdfTag[] = [];
   private tops: string[] = [];
+  // A spot colour all paint uses until cleared (marks, a die line).
+  private spot: { cs: string; overprint: boolean } | null = null;
 
   constructor(protected readonly o: PdfCanvasOptions) {
     super(o);
+  }
+
+  /** Paint in a spot colour (full tint) until called with null. */
+  setSpot(spot: SpotColor | null): void {
+    this.spot = spot ? { cs: this.o.resources.separation(spot), overprint: !!spot.overprint } : null;
+  }
+
+  /** Mark what follows as part of a layer (optional content) until endLayer. */
+  beginLayer(title: string): void {
+    this.ops.push(`/OC /${this.o.resources.layer(title)} BDC`);
+  }
+  endLayer(): void {
+    this.ops.push("EMC");
+  }
+
+  /** The graphics state and colour operators of one paint. */
+  private paintState(c: Rgba, alpha: number, blend: string, stroke: boolean): string {
+    const res = this.o.resources;
+    if (this.spot) {
+      return `/${res.gs(alpha, alpha, blend, this.spot.overprint)} gs /${this.spot.cs} ${stroke ? "CS 1 SCN" : "cs 1 scn"}`;
+    }
+    const out = this.o.color;
+    const comps = this.components(c);
+    const overprint = !!out?.overprintBlack && comps.length === 4 && comps[0] === 0 && comps[1] === 0 && comps[2] === 0 && comps[3] === 1;
+    if (overprint && out?.overprintAsSeparation) {
+      const cs = res.separation({ name: "Black", cmyk: [0, 0, 0, 1], overprint: true }); // i18n-ignore: the process black separation
+      return `/${res.gs(alpha, alpha, blend, true)} gs /${cs} ${stroke ? "CS 1 SCN" : "cs 1 scn"}`;
+    }
+    return `/${res.gs(alpha, alpha, blend, overprint)} gs ${this.colorOp(c, stroke)}`;
   }
 
   /** The page's content stream operators (device space). */
@@ -1269,7 +1351,7 @@ export class PdfCanvas extends VectorCanvas {
     this.ops.push("Q");
   }
   protected emitFill(path: Seg[], rule: CanvasFillRule, c: Rgba, alpha: number, blend: string): void {
-    this.paintOps(`q /${this.o.resources.gs(alpha, alpha, blend)} gs ${this.colorOp(c, false)}`, pathOps(path), rule === "evenodd" ? "f* Q" : "f Q");
+    this.paintOps(`q ${this.paintState(c, alpha, blend, false)}`, pathOps(path), rule === "evenodd" ? "f* Q" : "f Q");
   }
   protected emitGradientFill(path: Seg[], rule: CanvasFillRule, g: GradientProxy, ctm: Mat, alpha: number, blend: string): void {
     const res = this.o.resources;
@@ -1277,7 +1359,7 @@ export class PdfCanvas extends VectorCanvas {
     this.paintOps(`q /${res.gs(alpha, alpha, blend)} gs`, pathOps(path), rule === "evenodd" ? "W* n" : "W n", this.matrixOp(ctm), `/${sh} sh Q`); // i18n-ignore: PDF operators and names
   }
   protected emitStroke(path: Seg[], c: Rgba, alpha: number, blend: string): void {
-    this.paintOps(`q /${this.o.resources.gs(alpha, alpha, blend)} gs ${this.colorOp(c, true)} ${this.strokeParams()}`, pathOps(path), "S Q");
+    this.paintOps(`q ${this.paintState(c, alpha, blend, true)} ${this.strokeParams()}`, pathOps(path), "S Q");
   }
   protected emitClip(path: Seg[], rule: CanvasFillRule): void {
     if (path.length) this.ops.push(...this.clipOps({ path, rule }));

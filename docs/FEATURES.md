@@ -75,7 +75,8 @@ A living checklist of what ships today versus what is planned. Shipped items are
 
 ### Export and publishing
 - [x] Export: PNG/JPG/PDF/SVG/APNG/GIF/Lottie, size multipliers, page selection, zip
-- [x] Print exports: vector PDF, CMYK/RGB TIFF and EPS with ICC profiles
+- [x] Print exports: vector PDF, image PDF, TIFF and EPS in CMYK (ICC profile) or RGB; PDF output intent and PDF/X-4
+- [x] Print-shop extras: black ink only with black overprint, registration-colour crop marks, die line as a spot colour on its own layer (vector PDF, EPS); resolution in PNG/JPG headers
 - [x] Bleed and crop marks per page (line type, color, weight, length, gap), for every image and print format; PDF TrimBox/BleedBox
 - [x] Print (OS dialog at print resolution)
 - [x] Website generator (static HTML, SEO, nav, file export), local generation only

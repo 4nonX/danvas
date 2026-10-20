@@ -137,12 +137,41 @@ interface StrokeCtx {
   globalCompositeOperation: string;
 }
 
+/** A context that can paint in a spot colour and group paint into layers
+ *  (the PDF and PostScript writers); others draw a plain colour instead. */
+interface SpotCtx {
+  setSpot?(spot: { name: string; cmyk: [number, number, number, number]; overprint?: boolean } | null): void;
+  beginLayer?(title: string): void;
+  endLayer?(): void;
+}
+
+/** Extras of a vector print file (PDF, EPS). */
+export interface PrintExtras {
+  /** Crop marks in registration colour: on every printing plate, as press
+   *  operators expect (the PDF separation "All"). */
+  registration?: boolean;
+  /** A die line (cut contour) along the trim: a spot colour of its own that
+   *  is not printed but tells the press where to cut or punch. */
+  dieLine?: DieLine;
+}
+
+export interface DieLine {
+  /** The spot colour's name, as the print shop calls it ("Stanze",
+   *  "CutContour", ...). */
+  name: string;
+  /** Corner radius in mm (0: square corners). */
+  radiusMm: number;
+}
+
 /**
  * Draw the sheet's marks on a context that was rendered with the sheet's
  * viewport (`sheetViewport`), at the given zoom (device px per page px).
+ * In registration colour where the context can paint spot colours.
  */
-export function drawPrintMarks(ctx: StrokeCtx, sheet: PrintSheet, zoom: number): void {
+export function drawPrintMarks(ctx: StrokeCtx & SpotCtx, sheet: PrintSheet, zoom: number, registration = false): void {
   if (!sheet.marks.length) return;
+  const spot = registration && typeof ctx.setSpot === "function";
+  if (spot) ctx.setSpot!({ name: "All", cmyk: [1, 1, 1, 1] }); // i18n-ignore: the registration separation
   ctx.save();
   ctx.setTransform(zoom, 0, 0, zoom, sheet.margin * zoom, sheet.margin * zoom);
   ctx.globalAlpha = 1;
@@ -158,6 +187,34 @@ export function drawPrintMarks(ctx: StrokeCtx, sheet: PrintSheet, zoom: number):
   }
   ctx.stroke();
   ctx.restore();
+  if (spot) ctx.setSpot!(null);
+}
+
+/**
+ * Draw a die line along the trim (a rounded rectangle) in its own spot
+ * colour, overprinting, on a layer named after it. Only for contexts that
+ * paint spot colours: anywhere else the line would be printed.
+ */
+export function drawDieLine(ctx: StrokeCtx & SpotCtx & { roundRect(x: number, y: number, w: number, h: number, r: number): void }, sheet: PrintSheet, zoom: number, die: DieLine, dpi: number): void {
+  if (typeof ctx.setSpot !== "function") return;
+  const w = sheet.width, h = sheet.height;
+  const r = Math.max(0, Math.min(mmToPx(die.radiusMm, dpi), w / 2, h / 2));
+  ctx.beginLayer?.(die.name);
+  ctx.setSpot({ name: die.name, cmyk: [0, 1, 0, 0], overprint: true });
+  ctx.save();
+  ctx.setTransform(zoom, 0, 0, zoom, sheet.margin * zoom, sheet.margin * zoom);
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = "source-over";
+  ctx.strokeStyle = "#ff00ff";
+  ctx.lineWidth = 0.25 * (dpi / 72);
+  ctx.lineCap = "butt";
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.roundRect(0, 0, w, h, r);
+  ctx.stroke();
+  ctx.restore();
+  ctx.setSpot(null);
+  ctx.endLayer?.();
 }
 
 /**

@@ -71,8 +71,8 @@ export function setPagesMarks(indexes: number[], on: boolean) {
 export interface MarksMm { style: string; color?: Color; weightPt: number; lengthMm: number; offsetMm: number }
 
 /** The bleed in millimetres, for any value (a page's, or an export's own). */
-export function BleedInput({ mm, onChange }: { mm: number; onChange: (mm: number) => void }) {
-  return <NumField label={tr("editor.bleed_mm")} value={round2(mm)} onCommit={(n) => onChange(Math.max(0, Math.min(50, n)))} />;
+export function BleedInput({ mm, onChange, label }: { mm: number; onChange: (mm: number) => void; label?: string }) {
+  return <NumField label={label ?? tr("editor.bleed_mm")} value={round2(mm)} onCommit={(n) => onChange(Math.max(0, Math.min(50, n)))} />;
 }
 
 /** Line type, color, weight, length and gap of crop marks, for any value. */

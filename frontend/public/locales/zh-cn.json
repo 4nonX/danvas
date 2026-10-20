@@ -4346,5 +4346,17 @@
   "dashboard.transfer_error_source_kept": "已复制；原设计无法移到回收站",
   "dashboard.transfer_error_failed": "失败",
   "errors.api_transfer_same_workspace": "这些设计已在该工作区中。",
-  "editor.print_sheet_designs_hint": "适用于所有导出的设计；设计本身保持不变。"
+  "editor.print_sheet_designs_hint": "适用于所有导出的设计；设计本身保持不变。",
+  "editor.overprint_black": "黑色叠印",
+  "editor.overprint_black_desc": "纯黑色的文字和线条叠印在下层颜色之上，套印略有偏差时也不会露白。",
+  "editor.pdfx4": "PDF/X-4",
+  "editor.pdfx4_desc": "将文件标记为 PDF/X-4，并以色彩配置文件作为输出意图，这是印刷厂对含透明效果的 CMYK PDF 的标准要求。",
+  "editor.print_extras": "印刷厂选项",
+  "editor.registration_marks": "套准色裁切标记",
+  "editor.registration_marks_desc": "裁切标记印在每一块印版上（分色 “All”），符合印刷机的要求。",
+  "editor.die_line": "模切线",
+  "editor.die_line_desc": "沿成品尺寸的裁切或模切轮廓，使用独立的专色，叠印并放在单独图层中。不会被印刷；印刷厂据此裁切。",
+  "editor.die_line_name": "名称",
+  "editor.die_line_radius_mm": "圆角 mm",
+  "editor.die_line_default_name": "CutContour"
 }

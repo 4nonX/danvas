@@ -4346,5 +4346,17 @@
   "dashboard.transfer_error_source_kept": "copié ; l'original n'a pas pu être mis à la corbeille",
   "dashboard.transfer_error_failed": "échec",
   "errors.api_transfer_same_workspace": "Les designs sont déjà dans cet espace de travail.",
-  "editor.print_sheet_designs_hint": "S'applique à tous les designs exportés ; les designs eux-mêmes ne changent pas."
+  "editor.print_sheet_designs_hint": "S'applique à tous les designs exportés ; les designs eux-mêmes ne changent pas.",
+  "editor.overprint_black": "Surimpression du noir",
+  "editor.overprint_black_desc": "Les textes et traits noirs purs s'impriment par-dessus le fond, sans liseré blanc si les plaques sont légèrement décalées.",
+  "editor.pdfx4": "PDF/X-4",
+  "editor.pdfx4_desc": "Marque le fichier comme PDF/X-4 avec le profil comme condition de sortie, la norme attendue par les imprimeurs pour les PDF CMJN avec transparence.",
+  "editor.print_extras": "Pour l'imprimeur",
+  "editor.registration_marks": "Repères en couleur de repérage",
+  "editor.registration_marks_desc": "Les traits de coupe s'impriment sur toutes les plaques (séparation « All »), comme l'attendent les presses.",
+  "editor.die_line": "Tracé de découpe",
+  "editor.die_line_desc": "Un contour de coupe ou de découpe le long du format fini dans une couleur d'accompagnement à part, en surimpression et sur son propre calque. Il n'est pas imprimé ; l'imprimeur découpe dessus.",
+  "editor.die_line_name": "Nom",
+  "editor.die_line_radius_mm": "Rayon mm",
+  "editor.die_line_default_name": "CutContour"
 }

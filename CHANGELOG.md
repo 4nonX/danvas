@@ -2,6 +2,26 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.4.5 (2026-10-20)
+
+### Added
+
+- Vector PDF in CMYK: the colours go through the chosen ICC profile (and rendering intent), images too, and the profile is embedded as the PDF's output intent. Every shape, outlined text and graphic stays an object of its own, so a print shop can open the file and change a colour. Optionally marked **PDF/X-4** (version, XMP metadata, trapping flag, page boxes), with transparency kept live.
+- Image PDF in CMYK, with the output intent and optionally PDF/X-4; it is now written by danvas itself instead of jsPDF.
+- **Black in black ink only** for the PDF as for EPS, and **overprint black**: pure black prints over what is under it (in EPS as the Black separation, since PostScript has no overprint mode).
+- **Crop marks in registration colour** (the separation "All", on every plate) in vector PDF and EPS.
+- **Die line**: a cut or punch contour along the trim in a spot colour of its own, named as the print shop calls it ("Stanze", "CutContour"), with a corner radius, overprinting and in a PDF on its own layer. Vector PDF and EPS.
+- PNG and JPG state their resolution in the file header, so print software opens them at the page's physical size; the size row shows the resolution and offers **300 dpi**.
+- A table in `docs/danvas.md` lists which print option each format can carry.
+
+### Fixed
+
+- A PDF/X file id was made with a browser function that only exists on HTTPS; it now works on instances served over plain HTTP too.
+
+### Notes
+
+- Checked against a print shop's Illustrator reference file: the PDF with 1.5 mm bleed and no marks has the same sheet size to the thousandth of a point, carries the output intent and PDF/X-4 marking, and separates (Ghostscript) into cyan, magenta, yellow, black and the die line's own plate, with the registration marks on every plate and black text overprinting. No schema or database change.
+
 ## 0.4.4 (2026-10-20)
 
 ### Fixed

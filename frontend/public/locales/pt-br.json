@@ -4346,5 +4346,17 @@
   "dashboard.transfer_error_source_kept": "copiado; o original não pôde ir para a lixeira",
   "dashboard.transfer_error_failed": "falhou",
   "errors.api_transfer_same_workspace": "Os designs já estão nesse espaço de trabalho.",
-  "editor.print_sheet_designs_hint": "Vale para todos os designs exportados; os próprios designs não mudam."
+  "editor.print_sheet_designs_hint": "Vale para todos os designs exportados; os próprios designs não mudam.",
+  "editor.overprint_black": "Sobreimprimir preto",
+  "editor.overprint_black_desc": "Textos e linhas só em preto imprimem por cima do que está embaixo, sem filetes brancos se as chapas desalinharem um pouco.",
+  "editor.pdfx4": "PDF/X-4",
+  "editor.pdfx4_desc": "Marca o arquivo como PDF/X-4 com o perfil como condição de saída, o padrão que as gráficas esperam para PDF CMYK com transparência.",
+  "editor.print_extras": "Para a gráfica",
+  "editor.registration_marks": "Marcas em cor de registro",
+  "editor.registration_marks_desc": "As marcas de corte saem em todas as chapas (separação “All”), como as impressoras esperam.",
+  "editor.die_line": "Linha de faca",
+  "editor.die_line_desc": "Um contorno de corte ou faca ao longo do formato final em uma cor especial própria, em sobreimpressão e em camada própria. Não é impresso; a gráfica corta por ele.",
+  "editor.die_line_name": "Nome",
+  "editor.die_line_radius_mm": "Raio mm",
+  "editor.die_line_default_name": "CutContour"
 }

@@ -4346,5 +4346,17 @@
   "dashboard.transfer_error_source_kept": "copiado; el original no se pudo mover a la papelera",
   "dashboard.transfer_error_failed": "falló",
   "errors.api_transfer_same_workspace": "Los diseños ya están en ese espacio de trabajo.",
-  "editor.print_sheet_designs_hint": "Se aplica a todos los diseños exportados; los diseños en sí no cambian."
+  "editor.print_sheet_designs_hint": "Se aplica a todos los diseños exportados; los diseños en sí no cambian.",
+  "editor.overprint_black": "Sobreimprimir negro",
+  "editor.overprint_black_desc": "Los textos y líneas solo en negro se imprimen encima de lo que hay debajo, para que no aparezcan filetes blancos si las planchas no coinciden del todo.",
+  "editor.pdfx4": "PDF/X-4",
+  "editor.pdfx4_desc": "Marca el archivo como PDF/X-4 con el perfil como condición de salida, el estándar que las imprentas esperan para PDF CMYK con transparencia.",
+  "editor.print_extras": "Para la imprenta",
+  "editor.registration_marks": "Marcas en color de registro",
+  "editor.registration_marks_desc": "Las marcas de corte se imprimen en todas las planchas (separación «All»), como esperan las máquinas.",
+  "editor.die_line": "Línea de troquel",
+  "editor.die_line_desc": "Un contorno de corte o troquelado a lo largo del formato final en un color directo propio, en sobreimpresión y en su propia capa. No se imprime; la imprenta corta por él.",
+  "editor.die_line_name": "Nombre",
+  "editor.die_line_radius_mm": "Radio mm",
+  "editor.die_line_default_name": "CutContour"
 }

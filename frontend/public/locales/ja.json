@@ -4346,5 +4346,17 @@
   "dashboard.transfer_error_source_kept": "コピーしました。元のデザインはゴミ箱に移せませんでした",
   "dashboard.transfer_error_failed": "失敗しました",
   "errors.api_transfer_same_workspace": "デザインはすでにそのワークスペースにあります。",
-  "editor.print_sheet_designs_hint": "書き出すすべてのデザインに適用されます。デザイン自体は変更されません。"
+  "editor.print_sheet_designs_hint": "書き出すすべてのデザインに適用されます。デザイン自体は変更されません。",
+  "editor.overprint_black": "黒のオーバープリント",
+  "editor.overprint_black_desc": "スミ（K のみ）の文字や線を下の色に重ねて印刷し、版ずれで白い隙間が出ないようにします。",
+  "editor.pdfx4": "PDF/X-4",
+  "editor.pdfx4_desc": "カラープロファイルを出力インテントとして PDF/X-4 として書き出します。透明を含む CMYK PDF で印刷所が求める規格です。",
+  "editor.print_extras": "印刷所向け",
+  "editor.registration_marks": "レジストレーションカラーのトンボ",
+  "editor.registration_marks_desc": "トンボをすべての版（分版 “All”）に出力します。印刷機が想定する形です。",
+  "editor.die_line": "抜き型ライン",
+  "editor.die_line_desc": "仕上がり線に沿った断裁・抜き型の線を独自の特色で、オーバープリント・専用レイヤーで出力します。印刷はされず、印刷所が断裁に使います。",
+  "editor.die_line_name": "名前",
+  "editor.die_line_radius_mm": "角丸 mm",
+  "editor.die_line_default_name": "CutContour"
 }

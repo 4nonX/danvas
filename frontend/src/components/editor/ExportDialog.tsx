@@ -1,7 +1,9 @@
-// Download panel. SVG export uses the pure @hc/export
-// serializer; PNG/JPG render the engine scene to a real canvas and download via
-// toBlob (the client-side fast path); PDF embeds rendered pages via jsPDF. The
-// worker/skia path and animated formats remain deferred.
+// Download panel. Every format is drawn by the engine in the browser: PNG/JPG
+// from a canvas (with the resolution written into the file), SVG and the
+// vector PDF and EPS through the vector canvases, the image PDF and TIFF from
+// rendered sheets. Print files can be CMYK through an ICC profile (PDF with
+// the profile as output intent, optionally PDF/X-4), carry bleed and crop
+// marks, registration-colour marks and a die line in a spot colour.
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { compileAttribution, attributionText } from "@hc/stock";
@@ -39,8 +41,9 @@ import { resolvedLocale } from "@/lib/locale";
 import { copyText } from "@/lib/clipboard";
 import { listProfileOptions, profileBytes, type ProfileOption } from "@/lib/print/profiles";
 import type { CmykConverter, RenderingIntent } from "@/lib/print/cms";
-import { clipToBleed, drawPrintMarks, initialPrintOverride, pdfBoxes, printAdditions, printSheet, pxToMm, sheetViewport, withPrintOverride, type PrintOverride, type PrintParts } from "@/lib/print/sheet";
+import { clipToBleed, drawPrintMarks, initialPrintOverride, printAdditions, printSheet, pxToMm, sheetViewport, withPrintOverride, type PrintExtras, type PrintOverride, type PrintParts } from "@/lib/print/sheet";
 import { pageBleed } from "@hc/engine";
+import { setJpegDpi, setPngDpi } from "@/lib/print/rasterMeta";
 import { BleedField, BleedInput, MarkFields, MarkInputs, setPagesBleed, setPagesMarks } from "./PrintSettings";
 
 type Format = "png" | "jpg" | "pdf" | "svg" | "apng" | "gif" | "lottie" | "mp4" | "pptx" | "md" | "tiff" | "eps";
@@ -327,6 +330,11 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
   const [intent, setIntent] = useState<RenderingIntent>("relative");
   const [blackOnly, setBlackOnly] = useState(true);
   const [tiffDpi, setTiffDpi] = useState(300);
+  // Print-shop options of the CMYK and vector print files.
+  const [overprintBlack, setOverprintBlack] = useState(true);
+  const [pdfx, setPdfx] = useState(true);
+  const [registration, setRegistration] = useState(true);
+  const [dieLine, setDieLine] = useState<{ on: boolean; name: string; radiusMm: number }>(() => ({ on: false, name: tr("editor.die_line_default_name"), radiusMm: 2 }));
   // Print exports include each page's bleed and crop marks (set per page in
   // the page panel), each switchable on its own; both off is the bare page.
   const [withBleed, setWithBleed] = useState(true);
@@ -350,8 +358,13 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
   const pageCount = doc.pages.length;
 
   const isPrint = format === "tiff" || format === "eps";
+  // CMYK through a profile: the print formats and the PDFs for print.
+  const cmykCapable = isPrint || (format === "pdf" && pdfMode !== "tagged");
+  // Vector print files: spot colours (registration marks, die line) and
+  // black overprint.
+  const vectorPrint = format === "eps" || (format === "pdf" && pdfMode === "vector");
   useEffect(() => {
-    if (!open || !isPrint || profiles) return;
+    if (!open || !cmykCapable || profiles) return;
     let cancelled = false;
     void listProfileOptions(workspaceId).then((list) => {
       if (cancelled) return;
@@ -359,7 +372,7 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
       setProfileId((cur) => cur ?? (list.find((p) => p.isDefault) ?? list[0])?.id ?? null);
     });
     return () => { cancelled = true; };
-  }, [open, isPrint, profiles, workspaceId]);
+  }, [open, cmykCapable, profiles, workspaceId]);
 
   // Default the page selection when the panel opens or the format changes.
   // Animated formats on a multi-page deck default to the WHOLE deck, so the
@@ -455,7 +468,10 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
   const useSheet: PrintParts = printEditable
     ? { bleed: sheetCapable && withBleed, marks: sheetCapable && withMarks }
     : { bleed: sheetCapable && override.bleed, marks: sheetCapable && override.marks };
-  const anySheet = useSheet.bleed || useSheet.marks;
+  // Spot-colour extras of the vector print files.
+  const printExtras: PrintExtras | undefined = vectorPrint
+    ? { registration: useSheet.marks && registration, dieLine: dieLine.on && dieLine.name.trim() ? { name: dieLine.name.trim(), radiusMm: dieLine.radiusMm } : undefined }
+    : undefined;
   const sizedPage = printEditable || !sheetCapable ? refPage : withPrintOverride({ ...doc, pages: [refPage] }, override).pages[0];
   const tiffSheet = printSheet(sizedPage, doc.dpi ?? 96, useSheet);
   const tiffDim = rasterDimensions({ width: tiffSheet.sheetWidth, height: tiffSheet.sheetHeight }, { scale: tiffDpi / (doc.dpi ?? 96) }, doc.dpi ?? 96);
@@ -499,6 +515,15 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
   /** Export one design's pages through `emit`. `quiet` is the bulk mode:
    *  no per-design toasts, and every file goes to `emit` (no zip, no pacing),
    *  so the caller can bundle all designs. */
+  /** The CMYK converter for the chosen profile and intent, or null for RGB.
+   *  The caller disposes it. */
+  async function makeConverter(): Promise<CmykConverter | null> {
+    if (printColor !== "cmyk") return null;
+    if (!profileId) throw new CodedError("errors.print_profile_missing", "no print profile");
+    const { createCmykConverter } = await import("@/lib/print/cms");
+    return createCmykConverter(await profileBytes(profileId), intent);
+  }
+
   async function exportDesign(doc: DesignFile, designId: string | null, pages: number[], emit: (blob: Blob, name: string) => void, quiet: boolean): Promise<void> {
     // From the dashboard every design gets the menu's bleed and marks.
     if (!printEditable && sheetCapable) doc = withPrintOverride(doc, override);
@@ -564,19 +589,14 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
     } else if (format === "tiff" || format === "eps") {
       // Print formats: CMYK through the chosen output profile (embedded in
       // the TIFF), or RGB. One file per page; several pages zip up.
-      let converter: CmykConverter | null = null;
-      if (printColor === "cmyk") {
-        if (!profileId) throw new CodedError("errors.print_profile_missing", "no print profile");
-        const { createCmykConverter } = await import("@/lib/print/cms");
-        converter = await createCmykConverter(await profileBytes(profileId), intent);
-      }
+      const converter = await makeConverter();
       try {
         const entries: ZipEntry[] = [];
         for (const i of pages) {
           let blob: Blob | null = null;
           if (format === "eps") {
             const { exportEps } = await import("@/lib/print/eps");
-            blob = await exportEps(doc, i, { assets: imageAssets, title: doc.title, converter, blackOnly, print: useSheet });
+            blob = await exportEps(doc, i, { assets: imageAssets, title: doc.title, converter, blackOnly, overprintBlack: !!converter && blackOnly && overprintBlack, print: useSheet, extras: printExtras });
           } else {
             const canvas = renderPageCanvas(doc, i, tiffDpi / (doc.dpi ?? 96), true, useSheet);
             if (!canvas) continue;
@@ -606,40 +626,40 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
         converter?.dispose();
       }
     } else if (format === "pdf" && pdfMode === "vector") {
+      // CMYK through the profile (embedded as the output intent) or RGB,
+      // optionally marked PDF/X-4; spot-colour marks and die line.
       const { exportVectorPdf } = await import("@/lib/vectorPdf");
-      const out = await exportVectorPdf(doc, pages, { assets: imageAssets, title: doc.title, print: useSheet });
-      emit(out.blob, `${safeBase}.pdf`);
+      const converter = await makeConverter();
+      try {
+        const out = await exportVectorPdf(doc, pages, {
+          assets: imageAssets, title: doc.title, print: useSheet, extras: printExtras,
+          converter, blackOnly, overprintBlack: !!converter && blackOnly && overprintBlack, pdfx: !!converter && pdfx,
+        });
+        emit(out.blob, `${safeBase}.pdf`);
+      } finally {
+        converter?.dispose();
+      }
       if (!quiet) toast.success(tr("editor.downloaded_file", { file: `${safeBase}.pdf` }));
     } else if (format === "pdf") {
-      const { jsPDF } = await import("jspdf");
-      let pdf: import("jspdf").jsPDF | undefined;
-      const dpi = doc.dpi ?? 96;
-      for (const i of pages) {
-        const canvas = renderPageCanvas(doc, i, scale, true, useSheet);
-        const pg = doc.pages[i];
-        if (!canvas || !pg) continue;
-        // True physical size: the sheet (the page, or with bleed and marks)
-        // at the document dpi, in points.
-        const boxes = pdfBoxes(printSheet(pg, dpi, useSheet), dpi);
-        const w = boxes.width;
-        const h = boxes.height;
-        const orient = w >= h ? "landscape" : "portrait";
-        if (!pdf) pdf = new jsPDF({ unit: "pt", format: [w, h], orientation: orient });
-        else pdf.addPage([w, h], orient);
-        if (anySheet) {
-          // Where the sheet is cut (TrimBox) and how far the artwork runs
-          // past it (BleedBox), as print shops read them.
-          const ctxPage = pdf.getCurrentPageInfo().pageContext as Record<string, unknown>;
-          const pdfBox = (r: number[]) => ({ bottomLeftX: r[0], bottomLeftY: r[1], topRightX: r[2], topRightY: r[3] });
-          ctxPage.trimBox = pdfBox(boxes.trim);
-          ctxPage.bleedBox = pdfBox(boxes.bleed);
+      // One picture per page at the chosen size, in CMYK through the profile
+      // or RGB, with the sheet's page boxes.
+      const { exportImagePdf } = await import("@/lib/vectorPdf");
+      const converter = await makeConverter();
+      try {
+        const dpi = doc.dpi ?? 96;
+        const imgs = [];
+        for (const i of pages) {
+          const canvas = renderPageCanvas(doc, i, scale, true, useSheet);
+          const pg = doc.pages[i];
+          if (!canvas || !pg) continue;
+          imgs.push({ rgba: canvas.getContext("2d")!.getImageData(0, 0, canvas.width, canvas.height).data, width: canvas.width, height: canvas.height, sheet: printSheet(pg, dpi, useSheet) });
         }
-        // PNG, not JPEG: lossless, so text edges stay clean.
-        pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, w, h);
-      }
-      if (pdf) {
-        emit(pdf.output("blob"), `${safeBase}.pdf`);
-        if (!quiet) toast.success(tr("editor.downloaded_file", { file: `${safeBase}.pdf` }));
+        if (imgs.length) {
+          emit(await exportImagePdf(imgs, dpi, { title: doc.title, converter, pdfx: !!converter && pdfx }), `${safeBase}.pdf`);
+          if (!quiet) toast.success(tr("editor.downloaded_file", { file: `${safeBase}.pdf` }));
+        }
+      } finally {
+        converter?.dispose();
       }
     } else if (format === "apng") {
       // Animated PNG. A multi-page deck exports its whole playthrough,
@@ -705,7 +725,12 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
         const canvas = renderPageCanvas(doc, i, scale, opaque, useSheet);
         if (!canvas) return null;
         const type = format === "png" ? "image/png" : "image/jpeg";
-        return new Promise((res) => canvas.toBlob(res, type, format === "jpg" ? quality / 100 : undefined));
+        const raw: Blob | null = await new Promise((res) => canvas.toBlob(res, type, format === "jpg" ? quality / 100 : undefined));
+        if (!raw) return null;
+        // The resolution the file states: the page's physical size kept.
+        const bytes = new Uint8Array(await raw.arrayBuffer());
+        const ppi = (doc.dpi ?? 96) * scale;
+        return new Blob([(format === "png" ? setPngDpi(bytes, ppi) : setJpegDpi(bytes, ppi)) as BlobPart], { type });
       };
       for (let k = 0; k < pages.length; k++) {
         const blob = await renderBlob(pages[k]);
@@ -935,7 +960,7 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
         })()}
 
         {/* Print formats: colour, profile, intent, black ink, resolution. */}
-        {isPrint && (
+        {cmykCapable && (
           <div className="mb-3 flex flex-col gap-2.5">
             <div>
               <span className="mb-1 block text-xs font-medium text-neutral-500">{tr("editor.print_color")}</span>
@@ -981,13 +1006,31 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
                     <option value="perceptual">{tr("editor.intent_perceptual")}</option>
                   </select>
                 </label>
-                {format === "eps" && (
+                {vectorPrint && (
                   <label className="flex cursor-pointer items-start justify-between gap-3 text-xs">
                     <span className="text-neutral-600">
                       {tr("editor.black_ink_only")}
                       <span className="mt-0.5 block text-[11px] leading-snug text-neutral-400">{tr("editor.black_ink_only_desc")}</span>
                     </span>
                     <input type="checkbox" checked={blackOnly} onChange={(e) => setBlackOnly(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-brand-600" />
+                  </label>
+                )}
+                {vectorPrint && blackOnly && (
+                  <label className="flex cursor-pointer items-start justify-between gap-3 text-xs">
+                    <span className="text-neutral-600">
+                      {tr("editor.overprint_black")}
+                      <span className="mt-0.5 block text-[11px] leading-snug text-neutral-400">{tr("editor.overprint_black_desc")}</span>
+                    </span>
+                    <input type="checkbox" checked={overprintBlack} onChange={(e) => setOverprintBlack(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-brand-600" />
+                  </label>
+                )}
+                {format === "pdf" && (
+                  <label className="flex cursor-pointer items-start justify-between gap-3 text-xs">
+                    <span className="text-neutral-600">
+                      {tr("editor.pdfx4")}
+                      <span className="mt-0.5 block text-[11px] leading-snug text-neutral-400">{tr("editor.pdfx4_desc")}</span>
+                    </span>
+                    <input type="checkbox" checked={pdfx} onChange={(e) => setPdfx(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-brand-600" />
                   </label>
                 )}
               </>
@@ -1088,15 +1131,48 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
           );
         })()}
 
+        {/* Print-shop extras of the vector print files: marks on every plate,
+            and a die line in a spot colour of its own. */}
+        {vectorPrint && (
+          <div className="mb-3 flex flex-col gap-2 rounded-lg border border-neutral-200 p-2.5">
+            <span className="text-xs font-medium text-neutral-700">{tr("editor.print_extras")}</span>
+            {useSheet.marks && (
+              <label className="flex cursor-pointer items-start justify-between gap-3 text-xs text-neutral-700">
+                <span>
+                  {tr("editor.registration_marks")}
+                  <span className="mt-0.5 block text-[11px] leading-snug text-neutral-400">{tr("editor.registration_marks_desc")}</span>
+                </span>
+                <input type="checkbox" checked={registration} onChange={(e) => setRegistration(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-brand-600" />
+              </label>
+            )}
+            <label className="flex cursor-pointer items-start justify-between gap-3 text-xs text-neutral-700">
+              <span>
+                {tr("editor.die_line")}
+                <span className="mt-0.5 block text-[11px] leading-snug text-neutral-400">{tr("editor.die_line_desc")}</span>
+              </span>
+              <input type="checkbox" checked={dieLine.on} onChange={(e) => setDieLine((d) => ({ ...d, on: e.target.checked }))} className="mt-0.5 h-4 w-4 shrink-0 accent-brand-600" />
+            </label>
+            {dieLine.on && (
+              <div className="grid grid-cols-2 gap-2">
+                <label className="flex h-8 items-center gap-1.5 rounded-md border border-neutral-200 bg-surface px-2 text-[13px] transition focus-within:border-brand-400 focus-within:ring-2 focus-within:ring-brand-100">
+                  <span className="shrink-0 text-xs font-medium text-neutral-400">{tr("editor.die_line_name")}</span>
+                  <input value={dieLine.name} maxLength={40} onChange={(e) => setDieLine((d) => ({ ...d, name: e.target.value }))} className="w-full min-w-0 bg-transparent text-neutral-800 outline-none" />
+                </label>
+                <BleedInput label={tr("editor.die_line_radius_mm")} mm={dieLine.radiusMm} onChange={(mm) => setDieLine((d) => ({ ...d, radiusMm: mm }))} />
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Size multiplier with live pixel dimensions (raster + pdf). */}
         {sizable && (
           <div className="mb-3">
             <div className="mb-1 flex items-center justify-between">
               <label id={sizeLabelId} className="text-xs font-medium text-neutral-500">{tr("editor.size")}</label>
-              <span className="text-[11px] tabular-nums text-neutral-400">{dim.width} × {dim.height} px</span>
+              <span className="text-[11px] tabular-nums text-neutral-400">{dim.width} × {dim.height} px · {Math.round((doc.dpi ?? 96) * scale)} dpi</span>
             </div>
             <div role="group" aria-labelledby={sizeLabelId} className="flex gap-1">
-              {SIZE_STEPS.map((s) => (
+              {[...SIZE_STEPS, 300 / (doc.dpi ?? 96)].map((s, i) => (
                 <button
                   key={s}
                   type="button"
@@ -1104,7 +1180,7 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
                   onClick={() => setScale(s)}
                   className={`flex-1 rounded-lg py-1.5 text-xs font-medium transition ${scale === s ? "bg-brand-600 text-white" : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"}`}
                 >
-                  {s}×
+                  {i === SIZE_STEPS.length ? "300 dpi" : `${s}×`}
                 </button>
               ))}
             </div>

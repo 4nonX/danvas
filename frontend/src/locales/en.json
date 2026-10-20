@@ -4346,5 +4346,17 @@
   "dashboard.transfer_error_source_kept": "copied; the original could not be moved to the trash",
   "dashboard.transfer_error_failed": "failed",
   "errors.api_transfer_same_workspace": "The designs are already in that workspace.",
-  "editor.print_sheet_designs_hint": "Applies to every design exported; the designs themselves stay as they are."
+  "editor.print_sheet_designs_hint": "Applies to every design exported; the designs themselves stay as they are.",
+  "editor.overprint_black": "Overprint black",
+  "editor.overprint_black_desc": "Black-only text and lines print over what is under them, so no white gap shows when the plates are slightly out of register.",
+  "editor.pdfx4": "PDF/X-4",
+  "editor.pdfx4_desc": "Marks the file as PDF/X-4 with the profile as its output intent, the standard print shops expect for CMYK PDFs with transparency.",
+  "editor.print_extras": "For the print shop",
+  "editor.registration_marks": "Marks in registration colour",
+  "editor.registration_marks_desc": "The crop marks print on every plate (the separation “All”), as presses expect.",
+  "editor.die_line": "Die line",
+  "editor.die_line_desc": "A cut or punch contour along the trim in a spot colour of its own, overprinting and on its own layer. It is not printed; the press uses it to cut.",
+  "editor.die_line_name": "Name",
+  "editor.die_line_radius_mm": "Radius mm",
+  "editor.die_line_default_name": "CutContour"
 }
