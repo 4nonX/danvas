@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html"
+	"net/url"
 	"os"
 	"regexp"
 	"strconv"
@@ -23,6 +24,10 @@ type Instance struct {
 	Name   string // INSTANCE_NAME (replaces "danvas"), at most 60 characters
 	Accent string // INSTANCE_ACCENT, "#rrggbb": the main interactive color (brand-600)
 	Locale string // INSTANCE_LOCALE, a BCP 47 tag such as "de" or "en-GB"
+	// INSTANCE_SOURCE_URL: where the sign-in page offers this instance's
+	// source code (AGPL-3.0 section 13). Set it when running a modified
+	// version; empty links to danvas's own repository at the running version.
+	Source string
 }
 
 var (
@@ -58,10 +63,19 @@ func InstanceFromEnv() (Instance, []string) {
 			problems = append(problems, "INSTANCE_LOCALE must be a language tag such as de or en-GB; ignored")
 		}
 	}
+	if v := strings.TrimSpace(os.Getenv("INSTANCE_SOURCE_URL")); v != "" {
+		if u, err := url.Parse(v); err == nil && u.Scheme == "https" && u.Host != "" && len(v) <= 300 {
+			inst.Source = v
+		} else {
+			problems = append(problems, "INSTANCE_SOURCE_URL must be an https URL; ignored")
+		}
+	}
 	return inst, problems
 }
 
-func (i Instance) active() bool { return i.Name != "" || i.Accent != "" || i.Locale != "" }
+func (i Instance) active() bool {
+	return i.Name != "" || i.Accent != "" || i.Locale != "" || i.Source != ""
+}
 
 type rgb struct{ r, g, b float64 }
 
@@ -114,6 +128,9 @@ func (i Instance) headSnippet() string {
 	}
 	if i.Locale != "" {
 		cfg["locale"] = i.Locale
+	}
+	if i.Source != "" {
+		cfg["source"] = i.Source
 	}
 	if len(cfg) > 0 {
 		js, _ := json.Marshal(cfg) // escapes <, > and & for a script context

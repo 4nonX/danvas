@@ -100,6 +100,7 @@ Main settings in `.env`:
 | `INSTANCE_NAME` | name shown in the interface instead of "danvas" |
 | `INSTANCE_ACCENT` | accent color of the interface as `#rrggbb`; the full color scale, the gradient and the favicon are derived from it |
 | `INSTANCE_LOCALE` | language for everyone who has not picked one, e.g. `de` (empty: the browser's language) |
+| `INSTANCE_SOURCE_URL` | where the sign-in page's "Source code" link points, an https URL. Set it when you run a modified version: the AGPL-3.0 requires offering your users your source (empty: the danvas repository at the running version) |
 | `BUILTIN_TEMPLATES` | `off` hides the built-in starter templates |
 | `BRAND_STARTER_KIT` | `hycanvas` seeds HyCanvas's own brand kit into new workspaces (off by default) |
 | `OIDC_*` | optional single sign-on (Authentik, Keycloak, Google, ...) |
@@ -142,4 +143,4 @@ Installs from before the published images built the image on the host and mirror
 
 ## License
 
-danvas is a modified version of HyCanvas by HyScaler, under the Elastic License 2.0: using and changing it for your own purposes is allowed, offering it to third parties as a hosted or managed service is not. See the repository [README](../README.md) and [LICENSE](../LICENSE). The background remover (`@imgly/background-removal`) is AGPL-3.0; its model (ISNET) and the ONNX runtime it uses are MIT. The image carries their license texts in `/app/static-data/bg-removal/`.
+danvas is a modified version of HyCanvas by HyScaler, under the GNU Affero General Public License v3 (`AGPL-3.0-only`): you may use, change, host and redistribute it; whoever uses a modified version over the network must be offered its source (the sign-in page links to it, see `INSTANCE_SOURCE_URL`). See the repository [README](../README.md) and [LICENSE](../LICENSE); the image carries the license and notices in `/app`. The background remover (`@imgly/background-removal`) is AGPL-3.0; its model (ISNET) and the ONNX runtime it uses are MIT. The image carries their license texts in `/app/static-data/bg-removal/`.

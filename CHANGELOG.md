@@ -2,6 +2,28 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.5.0 (2026-10-20)
+
+### License
+
+- **danvas is now licensed under the GNU Affero General Public License v3 (`AGPL-3.0-only`)**, as HyCanvas is from v0.3.17 onwards. You may use, modify, self-host and redistribute it for any purpose; whoever uses a modified version over a network must be offered its source. danvas releases up to and including 0.4.8 remain available under the Elastic License 2.0. HyScaler's `LICENSE`, `NOTICE`, `COMMERCIAL.md`, `CLA.md` and the new `TRADEMARKS.md` come over unchanged.
+- The sign-in page links to the source code of the running version (its release tag), on every screen size. An operator running their own modified build points the link at their code with the new setting `INSTANCE_SOURCE_URL`.
+- The image carries the license and notices in `/app` and is labelled `AGPL-3.0-only`.
+
+### From HyCanvas
+
+Merged HyCanvas `development` up to 2026-10-15:
+
+- **Personal AI provider**: each user can connect their own key in their settings, tested before it is saved. A workspace's own provider still takes precedence; a workspace admin can turn personal keys off. Adds three tables and one defaulted column (additive; a rollback to 0.4.8 ignores them).
+- A selected image suggests its own colours for the brand palette.
+- A template can replace the current page or be added as a new one, by choice.
+- Dashboard: search results say what matched (highlighted titles, the number of matches, matching templates) and lead the page; "Start a design" groups its formats by purpose, with Blank (opening the size picker) and Import in a group of their own.
+- Editor: "Add page" stays clear of the zoom control; `next dev` no longer rewrites `frontend/AGENTS.md`.
+
+### Kept from danvas
+
+- A duplicated design stays in its folder, design cards keep their relative date and folder, and the compact format tiles stay; reloads after deleting, importing or moving designs now keep the active search.
+
 ## 0.4.8 (2026-10-20)
 
 ### Fixed

@@ -9,7 +9,8 @@ import Link from "next/link";
 import { Sparkles, Play, Presentation, Image as ImageIcon, KeyRound } from "lucide-react";
 import { ApiError, type AuthPolicy, type CaptchaSettings } from "@hc/sdk";
 import { CaptchaWidget, type CaptchaHandle } from "./CaptchaWidget";
-import { oc, authStartUrl } from "@/lib/sdk";
+import { oc, apiOrigin, authStartUrl } from "@/lib/sdk";
+import { sourceCodeUrl } from "@/lib/instance";
 import { useAuth } from "@/store/auth";
 import { useToast } from "@/components/ui/Toast";
 import { Button } from "@/components/ui/Button";
@@ -155,6 +156,17 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   useEffect(() => {
     if (status === "authed") void router.replace(afterAuthPath);
   }, [status, router, afterAuthPath]);
+
+  // The running version, so the source link points at exactly that code.
+  const [version, setVersion] = useState<string | undefined>();
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${apiOrigin}/healthz`)
+      .then((r) => (r.ok ? (r.json() as Promise<{ version?: string }>) : null))
+      .then((h) => { if (!cancelled && h?.version) setVersion(h.version); })
+      .catch(() => { /* the link falls back to the repository */ });
+    return () => { cancelled = true; };
+  }, []);
 
   // Load the instance auth config: the SSO providers and the method policy that
   // decides which fields and buttons to show.
@@ -425,7 +437,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
 
         <div className="relative z-10">
           <span className="oc-fade-up inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold tracking-wide ring-1 ring-white/20" style={{ animationDelay: "0.05s" }}>
-            <Sparkles size={13} /> {tr("auth.100_free_self_hostable_no_watermarks")}
+            <Sparkles size={13} /> {tr("auth.100_free_open_source_no_watermarks")}
           </span>
           <h1 className="oc-fade-up mt-5 max-w-md text-[2.7rem] font-extrabold leading-[1.05]" style={{ animationDelay: "0.12s" }}>
             {tr("auth.everything_you_need_to_design_anything")}
@@ -442,8 +454,8 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
 
         <p className="relative z-10 text-sm text-white/60">
           {tr("auth.your_designs_your_data_open_format_full_expo")}
-          {/* Modification notice (Elastic License 2.0), then the licensor's
-              notice, which must stay unaltered. */}
+          {/* Modification notice, then the licensor's notice, which must
+              stay unaltered. */}
           <span className="mt-1 block text-xs text-white/50">{tr("auth.danvas_modified_version_notice")}</span>
           <span className="block text-xs text-white/40">{tr("auth.2026_hyscaler_hycanvas_is_a_hyscaler_product")}</span>
         </p>
@@ -610,6 +622,14 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
           </>
           )}
         </div>
+        {/* AGPL-3.0 section 13: everyone using this instance over the network
+            is offered its source. Outside the brand pane, which small screens
+            hide, so it shows everywhere. */}
+        <p className="absolute inset-x-0 bottom-4 z-10 text-center text-xs text-neutral-400">
+          <a href={sourceCodeUrl(version)} target="_blank" rel="noopener noreferrer" className="hover:text-neutral-600 hover:underline">
+            {tr("auth.source_code_agpl")}
+          </a>
+        </p>
       </div>
     </div>
   );

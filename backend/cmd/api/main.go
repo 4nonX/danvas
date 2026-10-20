@@ -631,14 +631,15 @@ func localesDir() string {
 }
 
 // instanceFromEnv reads the per-installation identity (INSTANCE_NAME,
-// INSTANCE_ACCENT, INSTANCE_LOCALE) and logs any value it had to ignore.
+// INSTANCE_ACCENT, INSTANCE_LOCALE, INSTANCE_SOURCE_URL) and logs any value it
+// had to ignore.
 func instanceFromEnv(logger *slog.Logger) httpapi.Instance {
 	inst, problems := httpapi.InstanceFromEnv()
 	for _, p := range problems {
 		logger.Warn("instance setting ignored", "reason", p)
 	}
-	if inst.Name != "" || inst.Accent != "" || inst.Locale != "" {
-		logger.Info("instance identity", "name", inst.Name, "accent", inst.Accent, "locale", inst.Locale)
+	if inst.Name != "" || inst.Accent != "" || inst.Locale != "" || inst.Source != "" {
+		logger.Info("instance identity", "name", inst.Name, "accent", inst.Accent, "locale", inst.Locale, "source", inst.Source)
 	}
 	return inst
 }

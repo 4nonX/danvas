@@ -47,3 +47,21 @@ func TestInstanceTitle(t *testing.T) {
 		t.Fatalf("title not renamed (or body touched): %s", out)
 	}
 }
+
+func TestInstanceSourceURL(t *testing.T) {
+	t.Setenv("INSTANCE_SOURCE_URL", "https://git.example.org/me/my-danvas")
+	inst, problems := InstanceFromEnv()
+	if inst.Source != "https://git.example.org/me/my-danvas" || len(problems) != 0 {
+		t.Fatalf("got %+v %v", inst, problems)
+	}
+	page := []byte(`<html><head></head><body></body></html>`)
+	if out := string(injectInstance(page, inst)); !strings.Contains(out, `"source":"https://git.example.org/me/my-danvas"`) {
+		t.Fatalf("source not passed to the page: %s", out)
+	}
+	for _, bad := range []string{"http://plain.example.org/src", "javascript:alert(1)", "not a url"} {
+		t.Setenv("INSTANCE_SOURCE_URL", bad)
+		if inst, problems := InstanceFromEnv(); inst.Source != "" || len(problems) != 1 {
+			t.Fatalf("%q: got %+v %v", bad, inst, problems)
+		}
+	}
+}

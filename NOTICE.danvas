@@ -1,9 +1,12 @@
 danvas
 An unofficial, modified version of HyCanvas by HyScaler, based on the
-hyscaler/HyCanvas development branch at commit 437fe70 (2026-10-01). HyCanvas,
-its NOTICE (kept unchanged in NOTICE) and its licenses (LICENSE, COMMERCIAL.md,
-THIRD_PARTY.md, CLA.md) are those of NetTantra Technologies (India) Private
-Limited. This file lists only what danvas adds.
+hyscaler/HyCanvas development branch, merged up to commit 2d57eef
+(2026-10-15). Like HyCanvas from v0.3.17 onwards, danvas is licensed under the
+GNU Affero General Public License, version 3 only (AGPL-3.0-only, see
+LICENSE). HyCanvas, its NOTICE (kept unchanged in NOTICE) and its license and
+policy files (LICENSE, COMMERCIAL.md, TRADEMARKS.md, THIRD_PARTY.md, CLA.md)
+are those of NetTantra Technologies (India) Private Limited. This file lists
+only what danvas adds.
 
 Fonts:
 

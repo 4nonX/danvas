@@ -74,7 +74,7 @@ WORKDIR /app
 # Unraid and Artifact Hub (Portainer and others show the title and URLs).
 LABEL org.opencontainers.image.title="danvas" \
       org.opencontainers.image.description="Self-hostable design platform: presentations, video, whiteboards, docs and print exports in the browser. An unofficial, modified version of HyCanvas by HyScaler." \
-      org.opencontainers.image.licenses="Elastic-2.0" \
+      org.opencontainers.image.licenses="AGPL-3.0-only" \
       org.opencontainers.image.url="https://github.com/4nonX/danvas" \
       org.opencontainers.image.source="https://github.com/4nonX/danvas" \
       org.opencontainers.image.documentation="https://github.com/4nonX/danvas/blob/main/deploy/README.md" \
@@ -82,7 +82,7 @@ LABEL org.opencontainers.image.title="danvas" \
       net.unraid.docker.webui="http://[IP]:[PORT:8005]/" \
       io.artifacthub.package.logo-url="https://raw.githubusercontent.com/4nonX/danvas/main/frontend/public/icon-512.png" \
       io.artifacthub.package.readme-url="https://raw.githubusercontent.com/4nonX/danvas/main/deploy/README.md" \
-      io.artifacthub.package.license="Elastic-2.0"
+      io.artifacthub.package.license="AGPL-3.0-only"
 
 # ffmpeg: video export. ca-certificates: outbound TLS (AI providers, SSO).
 # curl: container healthcheck against /healthz. tzdata: TZ=Europe/Berlin and
@@ -105,6 +105,8 @@ COPY --from=frontend /app/node_modules/@imgly/background-removal/LICENSE.md /app
 # Windows checkout cannot break the script.
 COPY docker/entrypoint.sh /usr/local/bin/danvas-entrypoint
 RUN sed -i 's/\r$//' /usr/local/bin/danvas-entrypoint && chmod 0755 /usr/local/bin/danvas-entrypoint
+# The license and notices travel with the binary (AGPL-3.0-only).
+COPY LICENSE NOTICE NOTICE.danvas COMMERCIAL.md TRADEMARKS.md /app/
 
 ENV PORT=8005 \
     DB_AUTO_MIGRATE=true \

@@ -217,7 +217,7 @@ jobs:
 
       # Labels and annotations: GHCR shows the description and license of a
       # multi-arch image from the index annotations. The license is set
-      # explicitly because GitHub does not detect Elastic-2.0.
+      # explicitly so it is the same on every registry.
       - uses: docker/metadata-action@v5
         id: meta
         if: env.PUBLISH == 'true'
@@ -227,12 +227,12 @@ jobs:
           images: ${{ steps.version.outputs.image }}
           labels: |
             org.opencontainers.image.title=danvas
-            org.opencontainers.image.licenses=Elastic-2.0
+            org.opencontainers.image.licenses=AGPL-3.0-only
             org.opencontainers.image.version=${{ steps.version.outputs.version }}
             org.opencontainers.image.documentation=https://github.com/${{ github.repository }}/blob/main/deploy/README.md
           annotations: |
             org.opencontainers.image.title=danvas
-            org.opencontainers.image.licenses=Elastic-2.0
+            org.opencontainers.image.licenses=AGPL-3.0-only
             org.opencontainers.image.version=${{ steps.version.outputs.version }}
             org.opencontainers.image.documentation=https://github.com/${{ github.repository }}/blob/main/deploy/README.md
           tags: |

@@ -1,7 +1,7 @@
 {
   "name": "danvas",
   "short_name": "danvas",
-  "description": "Self-hostable design tool, based on HyCanvas.",
+  "description": "Open-source, self-hostable design tool, based on HyCanvas.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#EEF2FD",

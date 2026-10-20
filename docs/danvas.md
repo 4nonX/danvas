@@ -163,6 +163,7 @@ Artwork that should reach the edge of a printed piece is printed larger and cut 
 
 - **Install and update**: the stack in [`compose/`](../compose/README.md), or `install.sh` and `update.sh` from [`deploy/`](../deploy/README.md), which also documents every setting, the image's tags and platforms, and reverse proxies.
 - **Identity without rebuilding**: `INSTANCE_NAME`, `INSTANCE_ACCENT` (one color; the scale, gradient, `theme-color` and favicon are derived from it) and `INSTANCE_LOCALE`.
+- **Source code link**: the sign-in page links to the source of the running version (the release tag), as the AGPL-3.0 requires. Running your own modified build, set `INSTANCE_SOURCE_URL` to your repository.
 - **Language**: the interface follows the browser's language unless the instance or the user sets one.
 - **Updates show without a hard reload**: pages and translations are revalidated on every load.
 - **Releases**: every version tag builds the image `ghcr.io/4nonx/danvas` for amd64 and arm64 after the tests pass, and gets a release page with its changelog section. Database migrations run on start and are additive; existing designs stay openable across updates.

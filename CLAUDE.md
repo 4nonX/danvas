@@ -4,7 +4,7 @@ Guidance for working in the danvas repository: a modified version of HyCanvas by
 
 ## What This Project Is
 
-HyCanvas is a free, self-hostable, AI-native design platform, built to lead on performance, AI quality, collaboration, openness, and accessibility. Everything is free: no tiers, no paywalls, no watermarks. Web-only.
+HyCanvas is a free, open-source, AI-native design platform, built to lead on performance, AI quality, collaboration, openness, and accessibility. Everything is free: no tiers, no paywalls, no watermarks. Web-only.
 
 Current state: the core product is built and runs. A single-player editor, content systems (uploads, stock, templates), accounts and workspaces, document types (presentations, video, whiteboard, docs, sheets), export, brand kits, and a bring-your-own-key AI layer all ship today. The remaining and early-stage work is tracked in `docs/roadmap/`.
 
@@ -23,7 +23,7 @@ For anything already shipped, the code is the source of truth; match the pattern
 - Realtime: a WebSocket relay with presence and locks ships; the full Yjs CRDT / offline-first model is on the roadmap (`docs/roadmap/16-realtime-collaboration.md`).
 - Data: Postgres (metadata), S3-compatible object storage for assets/exports, with a local-filesystem fallback when no S3 is configured.
 - Jobs: long work (export, video render, bulk create) runs through an in-process job registry, polled via `GET /api/v1/jobs/:id`.
-- AI: a provider-adapter layer supporting built-in models and bring-your-own keys/endpoints; keys are stored encrypted per workspace, never via env.
+- AI: a provider-adapter layer supporting built-in models and bring-your-own keys/endpoints; keys are stored encrypted per workspace (or per user, for a personal key used where the workspace has none), never via env.
 - Auth: cookie sessions (httpOnly access + refresh with rotation), OIDC SSO, MFA (TOTP).
 - Packaging: a single self-contained Go binary with the frontend embedded (`go:embed`, built `-tags embed`); the binary self-loads `.env`. Self-host via docker-compose.
 
@@ -71,7 +71,7 @@ Rules for every change:
 
 Naming:
 - Describe code by what it does, not by whose product it resembles. "Floating selection toolbar", not "<competitor>-style toolbar"; "equal-spacing guides", not "<competitor>'s pink guides". This applies to source comments, commit messages, test names, and user-facing strings.
-- HyCanvas is stated on its own terms: a full-featured, self-hostable design platform. Its positioning does not define it against another product.
+- HyCanvas is stated on its own terms: a full-featured, open-source design platform. Its positioning does not define it against another product.
 - Market context in `docs/roadmap/` (what exists, where the capability bar sits, where a gap is) is how we decide what to build, and stays. We do not set our own goals by another product's feature list.
 
 Documentation:

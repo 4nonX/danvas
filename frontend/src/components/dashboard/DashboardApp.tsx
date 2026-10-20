@@ -93,6 +93,7 @@ import { attachableAccept, extractAiSources, maxAiSources, type AiSource } from 
 import { stageAiSources } from "@/lib/aiRequests";
 import { tr, trOr } from "@/lib/i18n";
 import { apiCodeMessage, userMessage } from "@/lib/errors";
+import { matchParts, rankByTitle } from "@/lib/searchMatch";
 
 // Time-aware greeting for the dashboard hero band.
 function greetByHour(): string {
@@ -118,7 +119,8 @@ const DASH_BACKDROP: React.CSSProperties = {
  *  deployment, so switching workspace should not ask for it again. */
 let aiPresetCache: AiProviderPreset[] | null = null;
 
-type Format = { label: string; icon: typeof Plus; w: number; h: number; kind?: string };
+/** `plain` tiles (Blank, Import) are actions, so their tooltip omits a size. */
+type Format = { label: string; icon: typeof Plus; w: number; h: number; kind?: string; plain?: boolean };
 
 /** Canvases the brief composer can generate for. Short on purpose: these are
  *  the shapes AI generation actually composes well for, and the full format
@@ -132,9 +134,12 @@ const briefFormats = (): Format[] => [
   { label: tr("dashboard.a4_document"), icon: Plus, w: 1240, h: 1754 },
 ];
 
+// The format shelf, grouped by what the design is for. A new format joins a
+// group by adding one entry here; both the "Start a design" shelf and the
+// Create menu render from this list.
 const formatGroups = (): { title: string; items: Format[] }[] => [
   {
-    title: tr("dashboard.social"),
+    title: tr("dashboard.social_media"),
     items: [
       { label: tr("dashboard.instagram_post_2"), icon: Instagram, w: 1080, h: 1080 },
       { label: tr("dashboard.instagram_story_2"), icon: Smartphone, w: 1080, h: 1920 },
@@ -144,32 +149,38 @@ const formatGroups = (): { title: string; items: Format[] }[] => [
     ],
   },
   {
-    title: tr("dashboard.print"),
+    // Document types beyond static design (docs 28-32) carry a `kind`, written
+    // to meta.kind at creation so the editor mounts the matching surface.
+    title: tr("dashboard.documents_print"),
     items: [
       { label: tr("dashboard.poster"), icon: FileText, w: 1080, h: 1350 },
       { label: tr("dashboard.flyer"), icon: File, w: 816, h: 1056 },
       { label: tr("dashboard.business_card_2"), icon: CreditCard, w: 1050, h: 600 },
-      { label: "A4 document", icon: BookOpen, w: 1240, h: 1754 },
+      { label: tr("dashboard.a4_document"), icon: BookOpen, w: 1240, h: 1754 },
+      { label: tr("dashboard.doc"), icon: FileText, w: 816, h: 1056, kind: "doc" },
     ],
   },
   {
-    title: tr("dashboard.digital"),
+    title: tr("dashboard.presentations"),
+    items: [{ label: tr("dashboard.presentation"), icon: Presentation, w: 1920, h: 1080 }],
+  },
+  {
+    title: tr("dashboard.video"),
+    items: [{ label: tr("dashboard.video"), icon: Film, w: 1920, h: 1080, kind: "video" }],
+  },
+  {
+    title: tr("dashboard.web_digital"),
     items: [
-      { label: tr("dashboard.presentation"), icon: Presentation, w: 1920, h: 1080 },
       { label: tr("dashboard.banner"), icon: RectangleHorizontal, w: 1500, h: 500 },
       { label: tr("dashboard.desktop_wallpaper"), icon: Monitor, w: 1920, h: 1080 },
       { label: tr("dashboard.logo"), icon: ImageIcon, w: 500, h: 500 },
     ],
   },
   {
-    // Document types beyond static design (docs 28-32). `kind` is written to
-    // meta.kind at creation so the editor mounts the matching surface.
-    title: tr("dashboard.docs_data"),
+    title: tr("dashboard.workspace_productivity"),
     items: [
       { label: tr("dashboard.whiteboard"), icon: LayoutGrid, w: 1920, h: 1080, kind: "whiteboard" },
-      { label: tr("dashboard.doc"), icon: FileText, w: 816, h: 1056, kind: "doc" },
       { label: tr("dashboard.sheet"), icon: Table2, w: 1280, h: 800, kind: "sheet" },
-      { label: tr("dashboard.video"), icon: Film, w: 1920, h: 1080, kind: "video" },
     ],
   },
 ];
@@ -197,6 +208,9 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   const [items, setItems] = useState<HomeItem[]>([]);
   const [templates, setTemplates] = useState<TemplateSummary[]>([]);
   const [query, setQuery] = useState("");
+  // The query the visible results answer: set on submit, so typing alone never
+  // relabels the recents as results.
+  const [searched, setSearched] = useState("");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [menuFor, setMenuFor] = useState<string | null>(null);
@@ -213,7 +227,8 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   const [briefDrop, setBriefDrop] = useState(false);
   // Stamped with the workspace it describes, so a switch invalidates it by
   // derivation rather than a reset written during render or in an effect body.
-  const [aiState, setAiState] = useState<{ ws: string; connected: boolean; label: string } | null>(null);
+  // `personal` is set when the caller's own key serves this workspace (#47).
+  const [aiState, setAiState] = useState<{ ws: string; connected: boolean; label: string; personal: boolean; personalAllowed: boolean } | null>(null);
   const aiReady = aiState && aiState.ws === activeWorkspaceId ? aiState : null;
 
   // Best-effort and non-blocking: nothing on this page waits for it, and a
@@ -223,14 +238,17 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     const ws = activeWorkspaceId;
     let cancelled = false;
     void Promise.all([
-      oc.getAiConfig(ws).catch(() => null),
+      oc.getAiEffective(ws).catch(() => null),
       aiPresetCache ? Promise.resolve(aiPresetCache) : oc.aiProviders().then((l) => { aiPresetCache = l ?? []; return aiPresetCache; }).catch(() => [] as AiProviderPreset[]),
-    ]).then(([cfg, presets]) => {
-      if (cancelled) return;
+    ]).then(([eff, presets]) => {
+      if (cancelled || !eff) return;
+      const cfg = eff.config ?? eff.imageConfig;
       setAiState({
         ws,
-        connected: !!cfg?.hasKey,
+        connected: eff.source !== "none" && !!cfg?.hasKey,
         label: presets.find((pr) => pr.id === cfg?.provider)?.label ?? cfg?.provider ?? "",
+        personal: eff.source === "personal",
+        personalAllowed: eff.personalKeysAllowed,
       });
     });
     return () => { cancelled = true; };
@@ -481,9 +499,9 @@ export function DashboardApp({ view }: { view: DashboardView }) {
       useCanvaImport.subscribe((s, prev) => {
         if (s.changes === prev.changes || !activeWorkspaceId || !s.changedWorkspaceIds.includes(activeWorkspaceId)) return;
         setFoldersRev((v) => v + 1);
-        void load(query).then(setItems);
+        void load(searched).then(setItems);
       }),
-    [activeWorkspaceId, load, query],
+    [activeWorkspaceId, load, searched],
   );
 
   // A default brand kit that restricts templates keeps everyone but a brand
@@ -599,7 +617,8 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   // Recents sort (client-side): last edited or name. Shared by Home + Favorites.
   const bySort = (a: HomeItem, b: HomeItem) =>
     sortBy === "name" ? a.title.localeCompare(b.title) : new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-  const sortedItems = [...items].sort(bySort);
+  // Results keep the server's best-match order; only recents are re-sorted.
+  const sortedItems = searched ? items : [...items].sort(bySort);
   const sortedFavorites = [...favorites].sort(bySort);
   // A design's effective type: its document surface kind, else "design".
   const itemKind = (i: HomeItem) => (i.docKind && i.docKind !== "design" ? i.docKind : "design");
@@ -621,6 +640,9 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   const visibleItems = effectiveFilter === "all" ? sortedItems : sortedItems.filter((i) => itemKind(i) === effectiveFilter);
 
   const activeWs = workspaces.find((w) => w.id === activeWorkspaceId);
+  // Templates are searched by title on the client (the shelf is already loaded).
+  const matchingTemplates = searched ? rankByTitle(templates, searched) : [];
+  const resultCount = items.length + matchingTemplates.length;
   const firstName = user?.name?.trim().split(/\s+/)[0] || user?.email?.split("@")[0] || "there";
 
   const open = (id: string, brief?: string) =>
@@ -711,7 +733,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     try {
       await oc.deleteDesignFolder(f.id);
       // Its designs moved up a level: refresh their folder ids.
-      setItems(await load(query));
+      setItems(await load(searched));
       reloadFolders();
       if (currentFolder === f.id) gotoFolder(f.parentId);
       toast.success(tr("dashboard.folder_deleted"));
@@ -734,7 +756,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     if (!ok) return;
     const failed = (await Promise.allSettled(ids.map((id) => oc.deleteDesign(id)))).filter((r) => r.status === "rejected").length;
     clearSelection();
-    setItems(await load(query));
+    setItems(await load(searched));
     reloadFolders();
     if (failed) toast.error(tr("dashboard.could_not_delete_n", { n: failed }));
     else toast.success(tr("dashboard.moved_to_trash"));
@@ -883,7 +905,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
       const copy = await oc.createDesign({ workspaceId: activeWorkspaceId, title, from: file });
       // The copy sits next to the original.
       if (item.folderId) await oc.moveToFolder(activeWorkspaceId, { designIds: [copy.id], folderId: item.folderId }).catch(() => {});
-      setItems(await load(query));
+      setItems(await load(searched));
       toast.success(tr("dashboard.design_duplicated"));
     } catch {
       toast.error(tr("dashboard.could_not_duplicate_the_design"));
@@ -893,8 +915,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   }
 
   function startFormat(f: Format) {
-    if (f.label === "Blank") setSizeOpen(true);
-    else void createDesign(f.w, f.h, f.label, f.kind);
+    void createDesign(f.w, f.h, f.label, f.kind);
   }
 
   async function applyTemplate(t: TemplateSummary) {
@@ -909,12 +930,22 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     }
   }
 
-  async function onSearch(e: FormEvent) {
+  async function runSearch(q: string) {
+    setSearched(q.trim());
+    setLoading(true);
+    setItems(await load(q));
+    setLoading(false);
+  }
+
+  function onSearch(e: FormEvent) {
     e.preventDefault();
     gotoView("home"); // search always lands on the results in the home view
-    setLoading(true);
-    setItems(await load(query));
-    setLoading(false);
+    void runSearch(query);
+  }
+
+  function clearSearch() {
+    setQuery("");
+    if (searched) void runSearch("");
   }
 
   async function confirmRename() {
@@ -922,7 +953,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     await oc.renameDesign(renameTarget.id, renameValue.trim());
     setRenameTarget(null);
     toast.success(tr("dashboard.renamed"));
-    setItems(await load(query));
+    setItems(await load(searched));
   }
 
   async function confirmDelete() {
@@ -930,7 +961,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     await oc.deleteDesign(deleteTarget.id);
     setDeleteTarget(null);
     toast.success(tr("dashboard.moved_to_trash"));
-    setItems(await load(query));
+    setItems(await load(searched));
   }
 
   async function createWorkspace() {
@@ -944,9 +975,9 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   }
 
   // Shared recents controls (sort + grid/list) used by Home and Favorites.
-  const viewControls = () => (
+  const viewControls = (sortable = true) => (
     <div className="flex items-center gap-2">
-      <select
+      {sortable && <select
         value={sortBy}
         aria-label={tr("dashboard.sort_designs_by")}
         onChange={(e) => setSortBy(e.target.value as "recent" | "name")}
@@ -954,7 +985,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
       >
         <option value="recent">{tr("dashboard.last_edited")}</option>
         <option value="name">{tr("dashboard.name_a_z")}</option>
-      </select>
+      </select>}
       <div className="flex overflow-hidden rounded-lg border border-neutral-200">
         <button onClick={() => setViewMode("grid")} title={tr("dashboard.grid_view")} className={`grid h-8 w-8 place-items-center ${viewMode === "grid" ? "bg-brand-50 text-brand-ink" : "text-neutral-500 hover:bg-neutral-100"}`}><LayoutGrid size={15} /></button>
         <button onClick={() => setViewMode("list")} title={tr("dashboard.list_view")} className={`grid h-8 w-8 place-items-center border-s border-neutral-200 ${viewMode === "list" ? "bg-brand-50 text-brand-ink" : "text-neutral-500 hover:bg-neutral-100"}`}><List size={15} /></button>
@@ -1011,7 +1042,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
       <FavoriteButton starred={item.starred} onToggle={() => void toggleFavorite(item)} />
       <div className="flex items-start justify-between gap-2 px-3 py-2.5">
         <div className="min-w-0">
-          <div className="line-clamp-2 break-words text-sm font-semibold leading-snug text-neutral-800" title={item.title}>{item.title}</div>
+          <div className="line-clamp-2 break-words text-sm font-semibold leading-snug text-neutral-800" title={item.title}><Highlight text={item.title} q={searched} /></div>
           <div className="flex min-w-0 items-center gap-1 text-xs text-neutral-400">
             <span className="shrink-0" title={df.dateTime(item.updatedAt)}>{df.relative(item.updatedAt)}</span>
             {itemWhere(item) && <><span aria-hidden>·</span><FolderIcon size={11} className="shrink-0" /><span className="truncate">{itemWhere(item)}</span></>}
@@ -1032,7 +1063,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
       {selectBox(item)}
       <button onClick={() => void open(item.id)} className="h-10 w-14 shrink-0 overflow-hidden rounded-md border border-neutral-200 bg-neutral-100" title={tr("dashboard.open")}><DesignThumb designId={item.id} /></button>
       <button onClick={() => void open(item.id)} className="min-w-0 flex-1 text-start">
-        <div className="truncate text-sm font-semibold text-neutral-800">{item.title}</div>
+        <div className="truncate text-sm font-semibold text-neutral-800"><Highlight text={item.title} q={searched} /></div>
         <div className="flex min-w-0 items-center gap-1 text-xs text-neutral-400">
           <span className="shrink-0" title={df.dateTime(item.updatedAt)}>{df.relative(item.updatedAt)}</span>
           {itemWhere(item) && <><span aria-hidden>·</span><FolderIcon size={11} className="shrink-0" /><span className="truncate">{itemWhere(item)}</span></>}
@@ -1041,6 +1072,25 @@ export function DashboardApp({ view }: { view: DashboardView }) {
       <button onClick={() => void toggleFavorite(item)} aria-label={item.starred ? tr("dashboard.unfavorite") : tr("dashboard.favorite")} className={`grid h-8 w-8 place-items-center rounded-lg transition ${item.starred ? "text-amber-400" : "text-neutral-400 opacity-0 hover:bg-neutral-100 group-hover:opacity-100"}`}><Star size={15} fill={item.starred ? "currentColor" : "none"} /></button>
       {itemMenu(item)}
     </li>
+  );
+
+  // A template card: the teaser shelf and template search results share it.
+  const renderTemplate = (t: TemplateSummary) => (
+    <button
+      key={t.id}
+      onClick={() => void applyTemplate(t)}
+      disabled={busy}
+      title={tr("dashboard.use_this_template")}
+      className="group overflow-hidden rounded-2xl border border-neutral-200 bg-surface text-start shadow-sm transition hover:shadow-md disabled:opacity-60"
+    >
+      <div className="relative aspect-[4/3] bg-neutral-100">
+        <DesignThumb templateId={t.id} />
+        {(t.pageCount ?? 0) > 1 && (
+          <span className="absolute bottom-2 start-2 rounded-md bg-black/55 px-1.5 py-0.5 text-[11px] font-medium text-white/90">{tr("dashboard.n_slides", { count: t.pageCount })}</span>
+        )}
+      </div>
+      <div className="truncate px-3 py-2.5 text-sm font-semibold text-neutral-800"><Highlight text={t.title} q={searched} /></div>
+    </button>
   );
 
   // Render a list of designs as the current grid/list view.
@@ -1128,7 +1178,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
           {!railCollapsed && railFoldersOpen && (
             <RailFolderTree
               folders={folders}
-              designs={query.trim() ? null : items}
+              designs={searched ? null : items}
               onOpenDesign={(id) => void open(id)}
               onDragDesign={(e, id) => setDragItems(e, dragPayload("designs", id))}
               current={view === "projects" ? currentFolder : null}
@@ -1162,10 +1212,24 @@ export function DashboardApp({ view }: { view: DashboardView }) {
             <Search size={16} className="absolute start-3 top-1/2 -translate-y-1/2 text-neutral-400" />
             <input
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => (e.target.value.trim() ? setQuery(e.target.value) : clearSearch())}
+              onKeyDown={(e) => { if (e.key === "Escape" && query) clearSearch(); }}
+              type="search"
+              aria-label={tr("dashboard.search_designs_and_templates")}
               placeholder={tr("dashboard.search_designs_and_templates")}
-              className="h-9 w-full rounded-xl border border-neutral-200 bg-neutral-50 ps-9 pe-3 text-sm outline-none transition focus:border-brand-400 focus:bg-surface focus:ring-2 focus:ring-brand-100"
+              className="h-9 w-full rounded-xl border border-neutral-200 bg-neutral-50 ps-9 pe-9 text-sm [&::-webkit-search-cancel-button]:hidden outline-none transition focus:border-brand-400 focus:bg-surface focus:ring-2 focus:ring-brand-100"
             />
+            {query && (
+              <button
+                type="button"
+                onClick={clearSearch}
+                aria-label={tr("dashboard.clear_search")}
+                title={tr("dashboard.clear_search")}
+                className="absolute end-2 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-md text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"
+              >
+                <X size={14} />
+              </button>
+            )}
           </form>
           <div className="ms-auto flex items-center gap-2">
             <CreateMenu
@@ -1304,7 +1368,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
 
           {/* Flat hero: greeting + workspace + CTAs sit directly on the page's
               ambient texture (no card frame), with the shared art floating right. */}
-          {!query.trim() && (
+          {!searched && (
             <section className="relative mb-9 min-h-[8rem]">
               <HeroArt />
               <div className="relative mx-auto max-w-3xl text-center">
@@ -1455,9 +1519,12 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                     </label>
                     <span className="flex-1" />
                     {aiReady && (aiReady.connected ? (
-                      <span className="hidden items-center gap-1.5 text-[11px] text-neutral-500 sm:flex" title={tr("dashboard.this_workspace_generates_with_provider", { provider: aiReady.label })}>
+                      <span
+                        className="hidden items-center gap-1.5 text-[11px] text-neutral-500 sm:flex"
+                        title={aiReady.personal ? tr("dashboard.generates_with_your_provider", { provider: aiReady.label }) : tr("dashboard.this_workspace_generates_with_provider", { provider: aiReady.label })}
+                      >
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                        {aiReady.label}
+                        {aiReady.personal ? tr("dashboard.your_provider_label", { provider: aiReady.label }) : aiReady.label}
                       </span>
                     ) : (
                       // Not a blocker: the brief is held through provider setup
@@ -1472,6 +1539,11 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                         {tr("dashboard.connect_an_ai_provider_first")}
                       </button>
                     ))}
+                    {aiReady && !aiReady.connected && aiReady.personalAllowed && (
+                      <button type="button" onClick={() => void router.push("/settings/ai/")} className="hidden text-[11px] font-medium text-brand-ink hover:underline sm:inline">
+                        {tr("dashboard.or_use_your_own_key")}
+                      </button>
+                    )}
                     <button
                       type="submit"
                       disabled={busy || !activeWorkspaceId || !aiBrief.trim()}
@@ -1485,7 +1557,9 @@ export function DashboardApp({ view }: { view: DashboardView }) {
             </section>
           )}
 
-          {/* Create row: every format together in one wrap. */}
+          {/* Create row: every format, grouped by what the design is for.
+              Hidden while searching so the results lead the page. */}
+          {!searched && (
           <section className="mb-10">
             <div className="mb-3 flex items-center gap-3">
               <h2 className="text-[15px] font-semibold text-neutral-800">{tr("dashboard.start_a_design")}</h2>
@@ -1498,15 +1572,31 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                 <Plus size={14} /> {tr("dashboard.blank_custom_size")}
               </button>
             </div>
-            <div className="flex flex-wrap gap-2.5">
-              {[{ label: tr("dashboard.blank"), icon: Plus, w: 1080, h: 1080 } as Format, ...formatGroups().flatMap((g) => g.items)].map((f) => (
-                <FormatTile key={f.label} f={f} disabled={busy} onClick={() => startFormat(f)} />
+            {/* Groups wrap side by side, so a one-tile group (Video) shares a
+                row instead of leaving an empty band. */}
+            <div className="flex flex-wrap gap-x-10 gap-y-6">
+              {formatGroups().map((g, gi) => (
+                <div key={g.title} role="group" aria-labelledby={`fmt-group-${gi}`}>
+                  <h3 id={`fmt-group-${gi}`} className="mb-2 text-xs font-semibold text-neutral-500">{g.title}</h3>
+                  <div className="flex flex-wrap gap-3">
+                    {g.items.map((f) => (
+                      <FormatTile key={f.label} f={f} disabled={busy} onClick={() => startFormat(f)} />
+                    ))}
+                  </div>
+                </div>
               ))}
-              <FormatTile
-                f={{ label: tr("dashboard.import_hyc_pptx"), icon: FileUp, w: 1080, h: 1080 } as Format}
-                disabled={busy}
-                onClick={() => importDesignRef.current?.click()}
-              />
+              <div role="group" aria-labelledby="fmt-import-custom">
+                <h3 id="fmt-import-custom" className="mb-2 text-xs font-semibold text-neutral-500">{tr("dashboard.import_custom")}</h3>
+                <div className="flex flex-wrap gap-3">
+                  {/* Blank opens the size picker rather than guessing a canvas. */}
+                  <FormatTile f={{ label: tr("dashboard.blank"), icon: Plus, w: 1080, h: 1080, plain: true }} disabled={busy} onClick={() => setSizeOpen(true)} />
+                  <FormatTile
+                    f={{ label: tr("dashboard.import_hyc_pptx"), icon: FileUp, w: 1080, h: 1080, plain: true }}
+                    disabled={busy}
+                    onClick={() => importDesignRef.current?.click()}
+                  />
+                </div>
+              </div>
               <input
                 ref={importDesignRef}
                 type="file"
@@ -1519,15 +1609,27 @@ export function DashboardApp({ view }: { view: DashboardView }) {
               />
             </div>
           </section>
+          )}
 
           {/* Recent / results */}
           <section>
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <h2 className="text-[15px] font-semibold text-neutral-800">
-                {query.trim() ? tr("dashboard.search_results") : tr("dashboard.recent_designs")}
-              </h2>
-              {items.length > 0 && viewControls()}
-            </div>
+            {searched ? (
+              <div className="mb-4 flex flex-wrap items-center gap-3 border-b border-neutral-200 pb-3">
+                <h2 className="text-lg font-semibold text-neutral-800">{tr("dashboard.results_for", { q: searched })}</h2>
+                {!loading && <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600">{tr("dashboard.n_matches", { count: resultCount })}</span>}
+                <button type="button" onClick={clearSearch} className="text-xs font-medium text-brand-ink hover:underline">{tr("dashboard.clear_search")}</button>
+                <span className="flex-1" />
+                {items.length > 0 && viewControls(false)}
+              </div>
+            ) : (
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <h2 className="text-[15px] font-semibold text-neutral-800">{tr("dashboard.recent_designs")}</h2>
+                {items.length > 0 && viewControls()}
+              </div>
+            )}
+            {searched && items.length > 0 && matchingTemplates.length > 0 && (
+              <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-neutral-400">{tr("dashboard.designs")}</h3>
+            )}
             {typeChips.length > 1 && (
               <div className="mb-4 flex flex-wrap gap-2">
                 {typeChips.map((c) => (
@@ -1545,21 +1647,34 @@ export function DashboardApp({ view }: { view: DashboardView }) {
               <div className="grid place-items-center py-16 text-neutral-400">
                 <Spinner className="text-2xl" />
               </div>
+            ) : searched && resultCount === 0 ? (
+              <EmptyState message={tr("dashboard.no_results_for", { q: searched })}>
+                <p className="-mt-2 max-w-sm text-xs text-neutral-400">{tr("dashboard.no_results_hint")}</p>
+                <Button variant="secondary" onClick={clearSearch}>{tr("dashboard.clear_search")}</Button>
+              </EmptyState>
             ) : items.length === 0 ? (
-              <EmptyState message={query.trim() ? tr("dashboard.no_matching_designs") : tr("dashboard.no_designs_yet")}>
-                {!query.trim() && (
+              !searched && (
+                <EmptyState message={tr("dashboard.no_designs_yet")}>
                   <Button onClick={() => setSizeOpen(true)}>
                     <Plus size={18} /> {tr("dashboard.create_your_first_design")}
                   </Button>
-                )}
-              </EmptyState>
+                </EmptyState>
+              )
             ) : (
               itemsList(visibleItems)
             )}
           </section>
 
+          {/* Templates whose title matches the search. */}
+          {searched && !loading && matchingTemplates.length > 0 && (
+            <section className={items.length > 0 ? "mt-10" : ""}>
+              <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-neutral-400">{tr("dashboard.templates")}</h3>
+              <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">{matchingTemplates.map(renderTemplate)}</div>
+            </section>
+          )}
+
           {/* Templates teaser (below recents), collapsible */}
-          {templates.length > 0 && !query.trim() && (
+          {templates.length > 0 && !searched && (
             <section className="mt-10">
               <h2 className="mb-3 text-[15px] font-semibold text-neutral-800">
                 <button
@@ -1578,23 +1693,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
               <div id="dashboard-template-teaser">
               {templatesOpen && (
               <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                {templates.map((t) => (
-                  <button
-                    key={t.id}
-                    onClick={() => void applyTemplate(t)}
-                    disabled={busy}
-                    title={tr("dashboard.use_this_template")}
-                    className="group overflow-hidden rounded-2xl border border-neutral-200 bg-surface text-start shadow-sm transition hover:shadow-md disabled:opacity-60"
-                  >
-                    <div className="relative aspect-[4/3] bg-neutral-100">
-                      <DesignThumb templateId={t.id} />
-                      {(t.pageCount ?? 0) > 1 && (
-                        <span className="absolute bottom-2 start-2 rounded-md bg-black/55 px-1.5 py-0.5 text-[11px] font-medium text-white/90">{tr("dashboard.n_slides", { count: t.pageCount })}</span>
-                      )}
-                    </div>
-                    <div className="truncate px-3 py-2.5 text-sm font-semibold text-neutral-800">{t.title}</div>
-                  </button>
-                ))}
+                {templates.map(renderTemplate)}
               </div>
               )}
               </div>
@@ -1949,7 +2048,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
             if (!moved) return;
             // The originals went to the trash: refresh this workspace's view.
             clearSelection();
-            void load(query).then(setItems).catch(() => {});
+            void load(searched).then(setItems).catch(() => {});
             reloadFolders();
           }}
           onOpenWorkspace={(id) => { setTransferReq(null); clearSelection(); setActiveWorkspace(id); }}
@@ -1969,7 +2068,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
           errorMessage={(e) => importErrorMessage(e, tr("dashboard.could_not_import_the_file"))}
           onClose={() => {
             setBulkEntries(null);
-            void load(query).then(setItems);
+            void load(searched).then(setItems);
             reloadFolders();
           }}
         />
@@ -1985,7 +2084,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
           errorMessage={(e) => importErrorMessage(e, tr("dashboard.canva_import_failed"))}
           onClose={() => {
             closeCanva();
-            void load(query).then(setItems);
+            void load(searched).then(setItems);
             reloadFolders();
           }}
         />
@@ -2136,6 +2235,18 @@ function FavoriteButton({ starred, onToggle }: { starred: boolean; onToggle: () 
 // Uniform, flat empty state shared across Home / Favorites / Tasks / Trash: the
 // shared canvas art over a centered message on the ambient background (no card
 // frame), with an optional call to action.
+/** A title with every occurrence of the search query marked. */
+function Highlight({ text, q }: { text: string; q: string }) {
+  if (!q) return <>{text}</>;
+  return (
+    <>
+      {matchParts(text, q).map((p, i) =>
+        p.match ? <mark key={i} className="rounded-sm bg-brand-100 px-0.5 text-brand-ink">{p.text}</mark> : <span key={i}>{p.text}</span>,
+      )}
+    </>
+  );
+}
+
 function EmptyState({ message, children }: { message: string; children?: React.ReactNode }) {
   return (
     <div className="flex flex-col items-center gap-4 py-20 text-center">
@@ -2183,7 +2294,7 @@ function FormatTile({ f, disabled, onClick }: { f: Format; disabled?: boolean; o
       onClick={onClick}
       disabled={disabled}
       className="group flex w-[84px] flex-col items-center gap-1.5 self-start"
-      title={f.label === "Blank" || f.label.startsWith("Import") ? f.label : `${f.label} · ${f.w}×${f.h}`}
+      title={f.plain ? f.label : `${f.label} · ${f.w}×${f.h}`}
     >
       <span className="relative grid h-14 w-full place-items-center rounded-xl border border-neutral-200 bg-surface shadow-sm transition group-hover:-translate-y-0.5 group-hover:border-brand-300 group-hover:shadow-md">
         <span className="rounded bg-brand-50 ring-1 ring-brand-100" style={{ width: boxW, height: boxH }} />

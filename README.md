@@ -1,13 +1,13 @@
 # danvas
 
-**danvas is an unofficial, modified version of [HyCanvas](https://github.com/hyscaler/HyCanvas), the self-hostable design platform made by HyScaler.** It is not affiliated with, endorsed by, or supported by HyScaler. Almost everything you see here, the editor, the rendering engine, the backend, the file format, presentations, video, whiteboards, docs and sheets, is HyScaler's work. danvas adds a set of changes on top, listed below, that grew out of using HyCanvas day to day for print and brand design work.
+**danvas is an unofficial, modified version of [HyCanvas](https://github.com/hyscaler/HyCanvas), the open-source design platform made by HyScaler.** It is not affiliated with, endorsed by, or supported by HyScaler. Almost everything you see here, the editor, the rendering engine, the backend, the file format, presentations, video, whiteboards, docs and sheets, is HyScaler's work. danvas adds a set of changes on top, listed below, that grew out of using HyCanvas day to day for print and brand design work.
 
 If you are looking for the original product, its documentation or its support, go to [hyscaler/HyCanvas](https://github.com/hyscaler/HyCanvas).
 
 ## Credit
 
-- **HyCanvas** is a product of HyScaler, the trading name of NetTantra Technologies (India) Private Limited. HyScaler is a registered trademark of that company. See [NOTICE](NOTICE) and [COMMERCIAL.md](COMMERCIAL.md), both unchanged from the original.
-- danvas is based on the HyCanvas `development` branch as of commit [`437fe70`](https://github.com/hyscaler/HyCanvas/commit/437fe7096a21b9ab0846934842b89ef48289d41b) (2026-10-01). The repository's history includes upstream's `development` branch (linked after 0.2.2 by a merge that changed no file), so upstream changes come in with a normal merge: `git remote add upstream https://github.com/hyscaler/HyCanvas.git`, then `git fetch upstream` and `git merge upstream/development`. The original project is at [hyscaler/HyCanvas](https://github.com/hyscaler/HyCanvas).
+- **HyCanvas** is a product of HyScaler, the trading name of NetTantra Technologies (India) Private Limited. HyScaler is a registered trademark of that company. See [NOTICE](NOTICE), [COMMERCIAL.md](COMMERCIAL.md) and [TRADEMARKS.md](TRADEMARKS.md), all unchanged from the original.
+- danvas is based on the HyCanvas `development` branch, merged up to commit [`2d57eef`](https://github.com/hyscaler/HyCanvas/commit/2d57eef4) (2026-10-15) in danvas 0.5.0. The repository's history includes upstream's `development` branch, so upstream changes come in with a normal merge: `git remote add upstream https://github.com/hyscaler/HyCanvas.git`, then `git fetch upstream` and `git merge upstream/development`. The original project is at [hyscaler/HyCanvas](https://github.com/hyscaler/HyCanvas).
 - Third-party components added by danvas, each with its license file next to it and listed in [NOTICE.danvas](NOTICE.danvas) (HyScaler's own [NOTICE](NOTICE) is kept word for word):
   - the Real-ESRGAN `realesr-animevideov3` model by Xintao Wang (BSD-3-Clause), converted to ONNX, run with onnxruntime-web (MIT);
   - Little CMS by Marti Maria Saguer (MIT), compiled to WebAssembly as lcms-wasm by Matt DesLauriers (MIT);
@@ -16,12 +16,12 @@ If you are looking for the original product, its documentation or its support, g
 
 ## License
 
-danvas is distributed under the same license as HyCanvas, the [Elastic License 2.0](LICENSE). In short, and without replacing the license text:
+danvas is distributed under the same license as HyCanvas from v0.3.17 onwards, the [GNU Affero General Public License v3](LICENSE) (`AGPL-3.0-only`). danvas releases up to and including 0.4.8 were based on HyCanvas under the Elastic License 2.0 and remain available under those terms. In short, and without replacing the license text:
 
-- You may use, copy, modify and redistribute it, including running it in production for yourself, your team or your organization.
-- You may **not** provide it to third parties as a hosted or managed service. That right is reserved by HyScaler and requires a commercial license from them ([COMMERCIAL.md](COMMERCIAL.md)).
-- You may not remove or alter the licensing, copyright or other notices of the licensor. danvas keeps them: the `LICENSE`, `NOTICE`, `COMMERCIAL.md`, `THIRD_PARTY.md` and `CLA.md` files are unchanged (danvas's own notices are in `NOTICE.danvas`), and the sign-in page still shows HyScaler's copyright line, preceded by a note that danvas is a modified version.
-- The license grants no trademark rights. "HyCanvas" and "HyScaler" are used here only to say where the software comes from. danvas has its own name, logo, icons, artwork and colors, and turns HyCanvas's own brand kit (with HyScaler's logos) off by default.
+- You may use, copy, modify, self-host and redistribute it, for any purpose.
+- If you distribute danvas, or let people use a modified version of it over a network, you must offer them the complete source of your version under the same license. danvas does this itself: its sign-in page links to this repository.
+- The notices stay: HyScaler's `LICENSE`, `NOTICE`, `COMMERCIAL.md`, `TRADEMARKS.md`, `THIRD_PARTY.md` and `CLA.md` are unchanged, danvas's own notices are in `NOTICE.danvas`, and the image carries them in `/app`. The sign-in page still shows HyScaler's copyright line, preceded by a note that danvas is a modified version.
+- The license grants no trademark rights ([TRADEMARKS.md](TRADEMARKS.md)). "HyCanvas" and "HyScaler" are used here only to say where the software comes from. danvas has its own name, logo, icons, artwork and colors, and turns HyCanvas's own brand kit (with HyScaler's logos) off by default.
 
 **This repository contains modified versions of the HyCanvas software.** The modifications are listed in the next section.
 
@@ -33,6 +33,7 @@ The changes are summarized by area below; what changed in each release is in the
 
 - Own name, logo mark, favicon and app icons, sign-in and dashboard artwork, and a cobalt color theme. Internal identifiers keep their upstream names on purpose (the Go module `hycanvas/backend`, the `@hc/*` packages, the binary, the `.hyc` design file format), so designs stay compatible and upstream changes keep merging cleanly.
 - Per-instance identity without rebuilding: `INSTANCE_NAME`, `INSTANCE_ACCENT` (a full color scale, the gradient, `theme-color` and the favicon are derived from one color) and `INSTANCE_LOCALE`, applied by the server to every page.
+- The sign-in page links to the source code of the running version, as the AGPL-3.0 asks of a modified version served over a network; an operator of their own modified build points it at their code with `INSTANCE_SOURCE_URL`.
 - The interface follows the browser's language unless the instance or the user sets one.
 - An installation kit in [`deploy/`](deploy/README.md): a compose file that builds from source, a documented `.env` template, `install.sh`, `update.sh` (database backup, rebuild, version check) and a model mirror script.
 - `STATIC_DATA_DIR` serves large client assets (the background-removal model) from the instance instead of a third-party CDN.
