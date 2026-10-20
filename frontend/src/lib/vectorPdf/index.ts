@@ -254,12 +254,16 @@ async function writeTextFont(w: PdfWriter, tf: TextFont): Promise<number> {
 
 /** Render one page of a design to a standalone SVG through the same engine
  *  as the editor, so layout, text and effects match it (see svgCanvas.ts). */
-export async function exportVectorSvg(doc: DesignFile, pageIndex: number, opts: { assets?: unknown } = {}): Promise<string> {
-  const { pages, renderOpts, faces, vectorSources } = await preparePages(doc, [pageIndex], opts.assets);
+export async function exportVectorSvg(doc: DesignFile, pageIndex: number, opts: { assets?: unknown; print?: boolean | PrintParts } = {}): Promise<string> {
+  const { pages, renderOpts, faces, vectorSources } = await preparePages(doc, [pageIndex], opts.assets, opts.print);
   const p = pages[0];
   const ctx = new SvgCanvas({ width: p.width, height: p.height, faces, vectorSources });
+  ctx.save();
+  clipToBleed(ctx as unknown as Parameters<typeof clipToBleed>[0], p.sheet, p.zoom);
   renderScene(createScene(doc, p.index), ctx as unknown as CanvasLike, p.vp, renderOpts);
-  return ctx.document(p.pg.width, p.pg.height, doc.title);
+  ctx.restore();
+  drawPrintMarks(ctx as unknown as Parameters<typeof drawPrintMarks>[0], p.sheet, p.zoom);
+  return ctx.document(p.sheet.sheetWidth, p.sheet.sheetHeight, doc.title);
 }
 
 /** Render the given pages of a design to one vector PDF. */

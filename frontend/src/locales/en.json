@@ -4312,5 +4312,5 @@
   "editor.print_sheet_bleed_mm": "Bleed, {mm} mm",
   "editor.print_sheet_crop_marks": "Crop marks",
   "editor.bleed": "Bleed",
-  "editor.print_sheet_bleed_per_page": "Bleed, as set on each page"
+  "editor.print_sheet_pages_hint": "Shown for the first of the {count} pages; a change applies to all of them."
 }

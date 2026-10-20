@@ -4312,5 +4312,5 @@
   "editor.print_sheet_bleed_mm": "Sangrado, {mm} mm",
   "editor.print_sheet_crop_marks": "Marcas de corte",
   "editor.bleed": "Sangrado",
-  "editor.print_sheet_bleed_per_page": "Sangrado, según cada página"
+  "editor.print_sheet_pages_hint": "Se muestra la primera de las {count} páginas; un cambio se aplica a todas."
 }

@@ -8,10 +8,10 @@ import type {
   BlendMode, CharStyle, ChartNode, ChartStyle, Color, DataBinding, DesignFile, Easing, Effect, ElementLink, EmphasisPreset,
   EntrancePreset, ExitPreset, Fill, GradientFill, GradientStop, ImageFit, ImageMotion, ImageNode,
   Interaction, InteractionAction, Keyframe, KeyframeTrack, Node, NodeAnimation, Page, ParagraphStyle,
-  PrintMarks, TableConditionalRule, TableNode, TextEffect, Theme,
+  TableConditionalRule, TableNode, TextEffect, Theme,
 } from "@hc/schema";
 import { themeFromPalette } from "@hc/schema";
-import { mmToPx, pxToMm, resolvedMarks } from "@/lib/print/sheet";
+import { BleedField, MarkFields, setPagesBleed, setPagesMarks } from "./PrintSettings";
 import { deriveThemeSlots, extractLayoutSet, repairThemeSlots, themeIdFor, themeSlotNames, type ExtractedLayoutSet, type ExtractPageLike } from "@hc/aistudio";
 import { refineExtractedLayoutSet } from "@/lib/layoutVision";
 import { generateAltText, generateChartAltText } from "@/lib/altText";
@@ -3128,78 +3128,31 @@ function PageTransitionSection({ page }: { page: Page }) {
 /** Per-slide present settings shown in the empty-selection page panel:
  *  speaker notes (FR-4), autopilot dwell (FR-14), and hide/skip (FR-1). All edits
  *  are undoable via the store. The active page in present mode reads these. */
-/** The bleed a page gets when it is switched on: the common 3 mm. */
-const BLEED_DEFAULT_MM = 3;
-
 /** Print settings of the page: the bleed (artwork that runs past the cut)
  *  and the crop marks print exports draw outside it. Each page has its own,
- *  and one click copies them to every page. */
+ *  and one click copies them to every page. The download menu shows the same
+ *  fields for the pages it exports. */
 function PagePrintSection({ page }: { page: Page }) {
   const st = useEditor.getState();
-  const dpi = useEditor.getState().doc.dpi ?? 96;
-  const bleedMm = Math.round(pxToMm(page.bleed ?? 0, dpi) * 100) / 100;
-  const raw: PrintMarks | undefined = page.printMarks;
-  const marks = resolvedMarks(page, dpi);
-  const pageCount = useEditor.getState().doc.pages.length;
-  const mm = (px: number) => Math.round(pxToMm(px, dpi) * 100) / 100;
-  // Every change keeps what the page already set and fills in the rest.
-  const setMarks = (patch: Partial<PrintMarks>) => {
-    const base: PrintMarks = raw ?? { crop: true };
-    st.setPagePrint({ printMarks: { ...base, ...patch } });
-  };
+  const doc = useEditor.getState().doc;
+  const index = Math.max(0, doc.pages.indexOf(page));
+  const hasBleed = (page.bleed ?? 0) > 0;
+  const hasMarks = !!page.printMarks?.crop;
   return (
-    <Section title={tr("editor.print_section")} defaultOpen={!!page.bleed || !!raw?.crop}>
+    <Section title={tr("editor.print_section")} defaultOpen={hasBleed || hasMarks}>
       <label className="flex items-center justify-between gap-2 text-sm text-neutral-700">
         <span>{tr("editor.bleed")}</span>
-        <input
-          type="checkbox"
-          checked={bleedMm > 0}
-          onChange={(e) => st.setPagePrint({ bleed: e.target.checked ? mmToPx(BLEED_DEFAULT_MM, dpi) : 0 })}
-          className="h-4 w-4 accent-brand-500"
-        />
+        <input type="checkbox" checked={hasBleed} onChange={(e) => setPagesBleed([index], e.target.checked)} className="h-4 w-4 accent-brand-500" />
       </label>
-      {bleedMm > 0 && (
-        <div className="grid grid-cols-1 gap-2">
-          <Field key={`bleed${page.id}${bleedMm}`} label={tr("editor.bleed_mm")} value={bleedMm} onCommit={(n) => st.setPagePrint({ bleed: mmToPx(Math.max(0, Math.min(50, n)), dpi) })} />
-        </div>
-      )}
+      {hasBleed && <BleedField indexes={[index]} />}
       <label className="flex items-center justify-between gap-2 text-sm text-neutral-700">
         <span>{tr("editor.crop_marks")}</span>
-        <input
-          type="checkbox"
-          checked={!!marks}
-          onChange={(e) => (e.target.checked ? setMarks({ crop: true }) : st.setPagePrint({ printMarks: raw ? { ...raw, crop: false } : null }))}
-          className="h-4 w-4 accent-brand-500"
-        />
+        <input type="checkbox" checked={hasMarks} onChange={(e) => setPagesMarks([index], e.target.checked)} className="h-4 w-4 accent-brand-500" />
       </label>
-      {marks && (
-        <>
-          <div className="grid grid-cols-2 gap-2">
-            <select
-              aria-label={tr("editor.crop_mark_style")}
-              title={tr("editor.crop_mark_style")}
-              value={marks.style}
-              onChange={(e) => setMarks({ style: e.target.value })}
-              className={selectCls}
-            >
-              <option value="solid">{tr("editor.line_solid")}</option>
-              <option value="dashed">{tr("editor.line_dashed")}</option>
-              <option value="dotted">{tr("editor.line_dotted")}</option>
-            </select>
-            <div className="h-8 [&_.oc-color-trigger]:h-full">
-              <ColorField value={marks.color ?? colorFromHex("#000000")} onChange={(c) => setMarks({ color: c })} title={tr("editor.crop_mark_color")} allowAlpha={false} />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <Field key={`mw${page.id}${marks.weightPt}`} label={tr("editor.crop_mark_weight_pt")} value={marks.weightPt} onCommit={(n) => setMarks({ weight: Math.max(0.05, Math.min(5, n)) })} />
-            <Field key={`ml${page.id}${marks.length}`} label={tr("editor.crop_mark_length_mm")} value={mm(marks.length)} onCommit={(n) => setMarks({ length: mmToPx(Math.max(1, Math.min(30, n)), dpi) })} />
-            <Field key={`mo${page.id}${marks.offset}`} label={tr("editor.crop_mark_offset_mm")} value={mm(marks.offset)} onCommit={(n) => setMarks({ offset: mmToPx(Math.max(0, Math.min(30, n)), dpi) })} />
-          </div>
-        </>
-      )}
-      {pageCount > 1 && (
+      {hasMarks && <MarkFields indexes={[index]} />}
+      {doc.pages.length > 1 && (
         <button
-          onClick={() => st.setPagePrint({ bleed: page.bleed ?? 0, printMarks: raw ?? null }, true)}
+          onClick={() => st.setPagePrint({ bleed: page.bleed ?? 0, printMarks: page.printMarks ?? null }, true)}
           className="w-full rounded-md border border-neutral-200 px-2 py-1 text-[11px] font-medium text-neutral-700 transition hover:bg-neutral-50"
         >
           {tr("editor.apply_print_to_all_pages")}

@@ -4312,5 +4312,5 @@
   "editor.print_sheet_bleed_mm": "Sangria, {mm} mm",
   "editor.print_sheet_crop_marks": "Marcas de corte",
   "editor.bleed": "Sangria",
-  "editor.print_sheet_bleed_per_page": "Sangria, conforme cada página"
+  "editor.print_sheet_pages_hint": "Mostrado para a primeira das {count} páginas; uma alteração vale para todas."
 }

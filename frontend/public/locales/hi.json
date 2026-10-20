@@ -4312,5 +4312,5 @@
   "editor.print_sheet_bleed_mm": "ब्लीड, {mm} mm",
   "editor.print_sheet_crop_marks": "क्रॉप मार्क",
   "editor.bleed": "ब्लीड",
-  "editor.print_sheet_bleed_per_page": "ब्लीड, हर पेज की सेटिंग के अनुसार"
+  "editor.print_sheet_pages_hint": "{count} पेजों में से पहले पेज की सेटिंग दिखाई गई है; बदलाव सभी पर लागू होता है।"
 }

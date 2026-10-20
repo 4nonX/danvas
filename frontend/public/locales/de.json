@@ -4312,5 +4312,5 @@
   "editor.print_sheet_bleed_mm": "Beschnitt, {mm} mm",
   "editor.print_sheet_crop_marks": "Schnittmarken",
   "editor.bleed": "Beschnitt",
-  "editor.print_sheet_bleed_per_page": "Beschnitt, wie auf jeder Seite eingestellt"
+  "editor.print_sheet_pages_hint": "Angezeigt für die erste der {count} Seiten; eine Änderung gilt für alle."
 }

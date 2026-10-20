@@ -4312,5 +4312,5 @@
   "editor.print_sheet_bleed_mm": "出血 {mm} mm",
   "editor.print_sheet_crop_marks": "裁切标记",
   "editor.bleed": "出血",
-  "editor.print_sheet_bleed_per_page": "出血（按各页面的设置）"
+  "editor.print_sheet_pages_hint": "显示的是 {count} 个页面中第一页的设置；更改会应用到所有页面。"
 }

@@ -4312,5 +4312,5 @@
   "editor.print_sheet_bleed_mm": "Fond perdu, {mm} mm",
   "editor.print_sheet_crop_marks": "Traits de coupe",
   "editor.bleed": "Fond perdu",
-  "editor.print_sheet_bleed_per_page": "Fond perdu, selon chaque page"
+  "editor.print_sheet_pages_hint": "Valeurs de la première des {count} pages ; une modification s'applique à toutes."
 }
