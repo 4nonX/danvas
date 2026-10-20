@@ -84,7 +84,39 @@ function strokeBleed(node: Node): number {
 }
 
 function localBox(node: Node): Rect {
-  return { x: 0, y: 0, width: node.size.width, height: node.size.height };
+  const box = { x: 0, y: 0, width: node.size.width, height: node.size.height };
+  // A path draws its points where they are, not within its size: one whose
+  // geometry lies outside 0..size (paths from some SVG imports keep the
+  // drawing's own coordinates) would otherwise be culled where it is visible.
+  // Its box takes in every point and handle.
+  return node.type === "path" ? unionRect(box, pathGeometryBox(node as PathLike)) : box;
+}
+
+type Pt = { x: number; y: number };
+type PathLike = { segments?: (Pt & { cIn?: Pt; cOut?: Pt })[]; contours?: { segments?: (Pt & { cIn?: Pt; cOut?: Pt })[] }[] };
+
+/** The box around a path's points and handles (null when it has none). */
+function pathGeometryBox(node: PathLike): Rect | null {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  const add = (p?: Pt) => {
+    if (!p || !Number.isFinite(p.x) || !Number.isFinite(p.y)) return;
+    if (p.x < x0) x0 = p.x;
+    if (p.y < y0) y0 = p.y;
+    if (p.x > x1) x1 = p.x;
+    if (p.y > y1) y1 = p.y;
+  };
+  const list = (segs?: (Pt & { cIn?: Pt; cOut?: Pt })[]) => {
+    for (const s of segs ?? []) { add(s); add(s.cIn); add(s.cOut); }
+  };
+  list(node.segments);
+  for (const c of node.contours ?? []) list(c.segments);
+  return x0 <= x1 ? { x: x0, y: y0, width: x1 - x0, height: y1 - y0 } : null;
+}
+
+function unionRect(a: Rect, b: Rect | null): Rect {
+  if (!b) return a;
+  const x = Math.min(a.x, b.x), y = Math.min(a.y, b.y);
+  return { x, y, width: Math.max(a.x + a.width, b.x + b.width) - x, height: Math.max(a.y + a.height, b.y + b.height) - y };
 }
 
 /** Page-space AABB of a node under `world`, grown by its (transformed) bleed. */

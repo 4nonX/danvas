@@ -2,6 +2,12 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.4.6 (2026-10-20)
+
+### Fixed
+
+- Parts of a design could be missing in the editor and in every export: a path whose points lie outside its own size (as paths from some imported SVG logos do, keeping the drawing's coordinates) was culled as off-screen whenever its size box lay outside the visible area, even though its drawing was in view. In one logo the middle word disappeared this way. A path's box now takes in its points and handles; paths whose points lie within their size keep exactly the box they had.
+
 ## 0.4.5 (2026-10-20)
 
 ### Added
