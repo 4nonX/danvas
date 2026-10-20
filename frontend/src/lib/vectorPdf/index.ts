@@ -11,7 +11,7 @@ import { num, PdfCanvas, PdfResources, type ColorOut, type PdfPageStats, type Pd
 import { SvgCanvas } from "./svgCanvas";
 import { tr } from "@/lib/i18n";
 import { resolveAssetUrl } from "@/lib/sdk";
-import { drawPrintMarks, pdfBoxes, printSheet, sheetViewport, type PrintSheet } from "@/lib/print/sheet";
+import { clipToBleed, drawPrintMarks, pdfBoxes, printSheet, sheetViewport, type PrintSheet } from "@/lib/print/sheet";
 
 export { num, type ColorOut } from "./pdfCanvas";
 
@@ -182,7 +182,10 @@ export async function drawPages(doc: DesignFile, pageIndexes: number[], opts: Dr
     }
     const ctx = new PdfCanvas({ width: p.width, height: p.height, faces, vectorSources, resources, color: opts.color, backdrop, tagged: opts.tagged });
     const hooks = opts.tagged ? { onNodeEnter: (n: Parameters<PdfCanvas["nodeEnter"]>[0]) => ctx.nodeEnter(n), onNodeExit: (n: Parameters<PdfCanvas["nodeExit"]>[0]) => ctx.nodeExit(n) } : {};
+    ctx.save();
+    clipToBleed(ctx as unknown as Parameters<typeof clipToBleed>[0], p.sheet, p.zoom);
     renderScene(createScene(doc, p.index), ctx as unknown as CanvasLike, p.vp, { ...renderOpts, ...hooks });
+    ctx.restore();
     drawPrintMarks(ctx as unknown as Parameters<typeof drawPrintMarks>[0], p.sheet, p.zoom);
     let tags: PdfTag[] | undefined;
     if (opts.tagged) {

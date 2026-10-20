@@ -117,7 +117,7 @@ Effects (shadows, glows, blurs) keep their size at every export scale.
 Artwork that should reach the edge of a printed piece is printed larger and cut back, so no white edge is left when the cut is slightly off. Each page sets this for itself:
 
 - With nothing selected, the page panel's **Print** section sets the page's **bleed** in millimetres (3 mm is common; ask your print shop). The editor shows the bleed as a dashed red line around the page: the page background reaches out to it, and pictures and shapes pulled past the page edge stay visible up to it.
-- **Crop marks** are switched on per page, with their line type (solid, dashed or dotted), color, weight in points, length and gap to the cut in millimetres. A mark never starts inside the bleed, so it is never printed on artwork.
+- **Crop marks** are switched on per page, with their line type (solid, dashed or dotted), color, weight in points, length and gap to the cut in millimetres. A mark never starts inside the bleed, and artwork that runs further past the page than the bleed is cut at the bleed line, so marks are never printed on artwork.
 - **Apply to all pages** copies the page's bleed and marks to every page of the design.
 - Print exports (vector PDF, image PDF, TIFF and EPS) include each page's bleed and marks, as long as **Bleed and crop marks** is on in the export dialog. In a PDF the finished size is the TrimBox and the bleed the BleedBox, as print shops expect; the page itself is large enough for the marks. Off exports the bare page. PNG, JPG, SVG and the accessible PDF always export the bare page.
 

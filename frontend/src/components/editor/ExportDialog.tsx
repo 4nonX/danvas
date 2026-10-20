@@ -39,7 +39,7 @@ import { resolvedLocale } from "@/lib/locale";
 import { copyText } from "@/lib/clipboard";
 import { listProfileOptions, profileBytes, type ProfileOption } from "@/lib/print/profiles";
 import type { CmykConverter, RenderingIntent } from "@/lib/print/cms";
-import { drawPrintMarks, hasPrintAdditions, pdfBoxes, printSheet, pxToMm, resolvedMarks, sheetViewport } from "@/lib/print/sheet";
+import { clipToBleed, drawPrintMarks, hasPrintAdditions, pdfBoxes, printSheet, pxToMm, resolvedMarks, sheetViewport } from "@/lib/print/sheet";
 import { pageBleed } from "@hc/engine";
 
 type Format = "png" | "jpg" | "pdf" | "svg" | "apng" | "gif" | "lottie" | "mp4" | "pptx" | "md" | "tiff" | "eps";
@@ -88,7 +88,10 @@ function renderPageCanvas(doc: import("@hc/schema").DesignFile, index: number, s
     if (!ctx) return null;
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, vp.width, vp.height);
+    ctx.save();
+    clipToBleed(ctx, sheet, scale);
     renderScene(createScene(doc, index), ctx as unknown as CanvasLike, vp, { assets: imageAssets, clear: false });
+    ctx.restore();
     drawPrintMarks(ctx, sheet, scale);
     return canvas;
   }
@@ -436,7 +439,11 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
   // Bleed and crop marks apply to print PDFs, TIFF and EPS, when the pages
   // to export have any.
   const sheetCapable = isPrint || (format === "pdf" && pdfMode !== "tagged");
-  const sheetOffered = sheetCapable && hasPrintAdditions(pages.map((i) => doc.pages[i]).filter(Boolean));
+  // Several designs (dashboard): any page of any of them counts, since each
+  // exports whole.
+  const sheetOffered = sheetCapable && (designs && designs.length > 1
+    ? designs.some((d) => hasPrintAdditions(d.doc.pages))
+    : hasPrintAdditions(pages.map((i) => doc.pages[i]).filter(Boolean)));
   // A page without bleed or marks prints as the bare page either way.
   const useSheet = sheetCapable && withPrintSheet;
   const tiffSheet = printSheet(refPage, doc.dpi ?? 96, useSheet);

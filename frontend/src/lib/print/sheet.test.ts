@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { beforeAll, describe, expect, it } from "vitest";
-import { drawPrintMarks, hasPrintAdditions, mmToPx, pdfBoxes, printSheet, pxToMm, resolvedMarks, sheetViewport } from "./sheet";
+import { clipToBleed, drawPrintMarks, hasPrintAdditions, mmToPx, pdfBoxes, printSheet, pxToMm, resolvedMarks, sheetViewport } from "./sheet";
 import { PdfCanvas, PdfResources } from "../vectorPdf/pdfCanvas";
 
 // jsdom has no canvas; the PDF recorder only needs one to normalize colours.
@@ -61,6 +61,18 @@ describe("print sheet", () => {
     expect(resolvedMarks({}, DPI)).toBeNull();
   });
 
+  it("keeps round dots out of the bleed", () => {
+    const weight = 2;
+    const s = printSheet({ ...A6, bleed, printMarks: { crop: true, style: "dotted", weight } }, DPI);
+    const half = (weight * DPI) / 72 / 2;
+    for (const l of s.marks) {
+      const near = Math.min(Math.abs(l.x1 - 0), Math.abs(l.x1 - A6.width), Math.abs(l.y1 - 0), Math.abs(l.y1 - A6.height));
+      const fromTrim = l.x1 === l.x2 ? Math.min(Math.abs(l.y1), Math.abs(l.y1 - A6.height)) : Math.min(Math.abs(l.x1), Math.abs(l.x1 - A6.width));
+      expect(near).toBe(0);
+      expect(fromTrim).toBeCloseTo(bleed + half);
+    }
+  });
+
   it("dashes and dots the line, in the chosen color and weight", () => {
     const dashed = printSheet({ ...A6, printMarks: { crop: true, style: "dashed", weight: 0.5, color: { srgb: { r: 1, g: 0, b: 0, a: 1 } } } }, DPI);
     expect(dashed.stroke.color).toBe("#ff0000");
@@ -93,6 +105,22 @@ describe("print sheet", () => {
     expect(hasPrintAdditions([{}, { bleed: 0 }])).toBe(false);
     expect(hasPrintAdditions([{}, { bleed }])).toBe(true);
     expect(hasPrintAdditions([{ printMarks: { crop: true } }])).toBe(true);
+  });
+
+  it("cuts artwork at the bleed line when the sheet has room for marks", () => {
+    const calls: string[] = [];
+    const ctx = new Proxy({} as Record<string, unknown>, {
+      get: (t, k) => (k in t ? t[k as string] : (...a: number[]) => { calls.push(`${String(k)}(${a.map((v) => Math.round(v * 100) / 100).join(",")})`); }),
+      set: (t, k, v) => { t[k as string] = v; return true; },
+    });
+    clipToBleed(ctx as never, printSheet({ ...A6, bleed, printMarks: { crop: true } }, DPI), 1);
+    const r = (v: number) => Math.round(v * 100) / 100;
+    expect(calls).toContain(`rect(${r(-bleed)},${r(-bleed)},${r(A6.width + 2 * bleed)},${r(A6.height + 2 * bleed)})`);
+    expect(calls).toContain("clip()");
+    // Without marks the file's own edge is the bleed line: no clip needed.
+    calls.length = 0;
+    clipToBleed(ctx as never, printSheet({ ...A6, bleed }, DPI), 1);
+    expect(calls).toEqual([]);
   });
 
   it("writes the marks into a PDF page as one dashed stroke", () => {

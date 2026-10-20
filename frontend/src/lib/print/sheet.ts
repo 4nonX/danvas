@@ -75,17 +75,21 @@ export function printSheet(page: Pick<Page, "width" | "height" | "bleed" | "prin
   let stroke: PrintSheet["stroke"] = { color: "#000000", width: 0, dash: [], cap: "butt" };
   if (m) {
     // A mark starts outside the bleed, so it never prints on artwork that is
-    // meant to be cut away, and runs outward along the trim line.
-    const start = Math.max(m.offset, bleed);
-    const end = start + m.length;
-    margin = Math.max(bleed, end);
+    // meant to be cut away, and runs outward along the trim line. Round dots
+    // reach half the line weight past their ends, so dotted marks keep that
+    // much inside their own span.
+    const width = m.weightPt * pxPerPt;
+    const cap = m.style === "dotted" ? width / 2 : 0;
+    const outer = Math.max(m.offset, bleed) + m.length;
+    const start = Math.max(m.offset, bleed) + cap;
+    const end = outer - cap;
+    margin = Math.max(bleed, outer);
     for (const x of [0, w]) {
       marks.push({ x1: x, y1: -start, x2: x, y2: -end }, { x1: x, y1: h + start, x2: x, y2: h + end });
     }
     for (const y of [0, h]) {
       marks.push({ x1: -start, y1: y, x2: -end, y2: y }, { x1: w + start, y1: y, x2: w + end, y2: y });
     }
-    const width = m.weightPt * pxPerPt;
     stroke = {
       color: cssOf(m.color),
       width,
@@ -138,6 +142,21 @@ export function drawPrintMarks(ctx: StrokeCtx, sheet: PrintSheet, zoom: number):
   }
   ctx.stroke();
   ctx.restore();
+}
+
+/**
+ * Clip what follows to the bleed box, so artwork that runs further past the
+ * page than the bleed ends at the bleed line instead of running into the
+ * marks. Nothing to do for a bare page, whose edge the file itself cuts.
+ * Wrap it and the drawing in save()/restore().
+ */
+export function clipToBleed(ctx: StrokeCtx & { rect(x: number, y: number, w: number, h: number): void; clip(): void }, sheet: PrintSheet, zoom: number): void {
+  if (sheet.margin <= sheet.bleed) return;
+  const b = sheet.bleed;
+  ctx.setTransform(zoom, 0, 0, zoom, sheet.margin * zoom, sheet.margin * zoom);
+  ctx.beginPath();
+  ctx.rect(-b, -b, sheet.width + 2 * b, sheet.height + 2 * b);
+  ctx.clip();
 }
 
 /** The viewport that renders the whole sheet at `zoom`. */
