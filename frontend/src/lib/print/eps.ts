@@ -54,9 +54,17 @@ export function ascii85(data: Uint8Array): string {
   return out.join("\n");
 }
 
-/** PostScript string literal (PDF-style hex for anything non-ASCII). */
-function psText(s: string): string {
-  return /^[\x20-\x7e]*$/.test(s) && !/[()\\]/.test(s) ? `(${s})` : `(${s.replace(/[^\x20-\x7e]|[()\\]/g, "?")})`;
+/** PostScript string literal (also the DSC comments' text syntax): the
+ *  UTF-8 bytes, parentheses and backslash escaped, anything outside printable
+ *  ASCII as an octal escape. A spot colour's separation name so carries the
+ *  same bytes as in the PDF ("Prägung" stays "Prägung", not "Pr?gung"). */
+export function psText(s: string): string {
+  let out = "";
+  for (const b of new TextEncoder().encode(s)) {
+    const c = String.fromCharCode(b);
+    out += c === "(" || c === ")" || c === "\\" ? `\\${c}` : b >= 0x20 && b < 0x7f ? c : `\\${b.toString(8).padStart(3, "0")}`;
+  }
+  return `(${out})`;
 }
 
 // PDF content operators as PostScript procedures.

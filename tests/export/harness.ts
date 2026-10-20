@@ -164,10 +164,10 @@ async function exportAll(fx: Fixture, printCase: boolean, only?: Output["format"
     const both: PrintParts = { bleed: true, marks: true };
     await exportsFor("sheet", both);
     const conv = await cmyk();
-    const extras: PrintExtras = { registration: true, dieLine: { name: "Stanze", radiusMm: 2 } };
+    const extras: PrintExtras = { registration: true, dieLine: { name: "Prägung (Stanze)", radiusMm: 2 } };
     const ref = variant("sheet", both);
-    await add("sheet/pdf-vector-cmyk", "pdf-vector", "pdf", (await exportVectorPdf(doc, [0], { assets, title: fx.name, print: both, converter: conv, blackOnly: true, overprintBlack: true, pdfx: true, extras })).blob, ref, { pdfx: true, separations: ["All", "Stanze"], overprintBlack: true }, true);
-    await add("sheet/eps-cmyk", "eps", "eps", await exportEps(doc, 0, { assets, title: fx.name, print: both, converter: conv, blackOnly: true, overprintBlack: true, extras }), ref, { separations: ["Stanze"], overprintBlack: true }, true);
+    await add("sheet/pdf-vector-cmyk", "pdf-vector", "pdf", (await exportVectorPdf(doc, [0], { assets, title: fx.name, print: both, converter: conv, blackOnly: true, overprintBlack: true, pdfx: true, extras })).blob, ref, { pdfx: true, separations: ["All", "Prägung (Stanze)"], overprintBlack: true }, true);
+    await add("sheet/eps-cmyk", "eps", "eps", await exportEps(doc, 0, { assets, title: fx.name, print: both, converter: conv, blackOnly: true, overprintBlack: true, extras }), ref, { separations: ["Prägung (Stanze)"], overprintBlack: true }, true);
     await add("sheet/pdf-image-cmyk", "pdf-image", "pdf", await imagePdfBlob(doc, [0], { scale: SCALE, converter: conv, pdfx: true, print: both, title: fx.name }), ref, { pdfx: true }, true);
     await add("sheet/tiff-cmyk", "tiff", "tif", await tiffBlob(doc, 0, { dpi: dpi * SCALE, converter: conv, print: both }), ref, { dpi: dpi * SCALE }, true);
     // The print shop's request: the bleed only, no marks.

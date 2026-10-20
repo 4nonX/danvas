@@ -5,6 +5,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { readDpi, setJpegDpi, setPngDpi } from "./rasterMeta";
 import { PdfCanvas, PdfResources, pdfName } from "../vectorPdf/pdfCanvas";
 import { drawDieLine, drawPrintMarks, mmToPx, printSheet } from "./sheet";
+import { psText } from "./eps";
 
 // jsdom has no canvas; the PDF recorder only needs one to normalize colours.
 beforeAll(() => {
@@ -51,6 +52,15 @@ describe("spot colours, overprint and layers in PDF", () => {
   it("names spot colours safely", () => {
     expect(pdfName("Stanze")).toBe("/Stanze");
     expect(pdfName("Cut Contour")).toBe("/Cut#20Contour");
+  });
+
+  it("keeps a spot colour's name byte for byte in EPS, as in the PDF", () => {
+    // Umlauts and parentheses were once replaced by "?", so a separation
+    // "Prägung" reached the print shop as "Pr?gung".
+    expect(psText("Stanze")).toBe("(Stanze)");
+    expect(psText("Prägung (Stanze)")).toBe("(Pr\\303\\244gung \\(Stanze\\))");
+    expect(psText("A\\B")).toBe("(A\\\\B)");
+    expect(pdfName("Prägung")).toBe("/Pr#c3#a4gung");
   });
 
   it("defines separations and overprinting graphics states", () => {

@@ -29,7 +29,7 @@ import puppeteer from "puppeteer-core";
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { inflateSync } from "node:zlib";
 
@@ -139,6 +139,12 @@ function pdfBoxes(file) {
   return { media: box("MediaBox"), trim: box("TrimBox"), bleed: box("BleedBox"), version: v ? v[1] : "" };
 }
 
+/** A PDF name token's text: #xx escapes are bytes, the bytes UTF-8. */
+const pdfNameText = (t) => Buffer.from(t.replace(/#([0-9a-fA-F]{2})/g, (_, h) => String.fromCharCode(parseInt(h, 16))), "latin1").toString("utf8");
+/** The PostScript string literals in a line (DSC text), decoded to text:
+ *  \( \) \\ and octal escapes are bytes, the bytes UTF-8. */
+const psStrings = (line) => [...line.matchAll(/\(((?:\\.|[^\\)])*)\)/g)].map((x) =>
+  Buffer.from(x[1].replace(/\\([0-7]{1,3}|.)/g, (_, e) => (/^[0-7]/.test(e) ? String.fromCharCode(parseInt(e, 8)) : e)), "latin1").toString("utf8"));
 const near = (a, b, tol = 0.06) => a.length === b.length && a.every((x, i) => Math.abs(x - b[i]) <= tol);
 
 // ---------------------------------------------------------------- per file
@@ -167,7 +173,8 @@ function check(o, refFile, ink, pageBg) {
       if (b.version !== "1.6") problems.push(`PDF/X-4 wants PDF 1.6, file is ${b.version}`);
       if (!/\/Trapped \/False/.test(s) || !/\/ID \[</.test(s)) problems.push("PDF/X-4 trapping flag or file id missing");
     }
-    for (const sep of e.separations ?? []) if (!new RegExp(`/Separation /${sep}\\b`).test(s)) problems.push(`spot colour ${sep} missing`);
+    const named = [...s.matchAll(/\/Separation \/([^\s/[\]<>()]+)/g)].map((x) => pdfNameText(x[1]));
+    for (const sep of e.separations ?? []) if (!named.includes(sep)) problems.push(`spot colour ${sep} missing (named ${named.join(", ") || "none"})`);
     if (e.overprintBlack && !s.includes("/OP true")) problems.push("black does not overprint");
   }
   if (o.ext === "eps") {
@@ -175,7 +182,9 @@ function check(o, refFile, ink, pageBg) {
     const m = /%%HiResBoundingBox: 0 0 ([\d.]+) ([\d.]+)/.exec(s);
     if (!m || !near([+m[1], +m[2]], e.sheetPt)) problems.push(`BoundingBox ${m ? m.slice(1) : "missing"} != sheet ${e.sheetPt.map((x) => x.toFixed(2))}`);
     if (o.cmyk && !s.includes("%%DocumentProcessColors: Cyan Magenta Yellow Black")) problems.push("CMYK EPS without process colours");
-    for (const sep of (e.separations ?? []).filter((x) => x !== "All")) if (!s.includes(`%%DocumentCustomColors: (${sep})`)) problems.push(`spot colour ${sep} missing`);
+    const line = /%%DocumentCustomColors: (.*)/.exec(s)?.[1] ?? "";
+    const named = psStrings(line);
+    for (const sep of (e.separations ?? []).filter((x) => x !== "All")) if (!named.includes(sep)) problems.push(`spot colour ${sep} missing (named ${named.join(", ") || "none"})`);
   }
   if (e.dpi && ["png", "jpg", "tif"].includes(o.ext)) {
     const r = text(IM === "magick" ? "magick" : "identify", [...(IM === "magick" ? ["identify"] : []), "-units", "PixelsPerInch", "-format", "%x", `${file}[0]`]).trim();
@@ -211,6 +220,11 @@ function check(o, refFile, ink, pageBg) {
     const c = plate("Cyan"), k = plate("Black");
     if (!(k > 0.9)) problems.push(`black bar not on the black plate (${k.toFixed(2)})`);
     if (!(c > 0.2)) problems.push(`black bar knocks out the cyan under it (${c.toFixed(2)})`);
+    // The plates Ghostscript made, by the names it read from the file: a
+    // spot colour must arrive under its own name, umlauts and all.
+    const base = basename(sep).replace(/\.tif$/, "");
+    const plates = readdirSync(dirname(sep)).filter((f) => f.startsWith(base + "(") && f.endsWith(").tif")).map((f) => Buffer.from(f.slice(base.length + 1, -5).replace(/%([0-9A-F]{2})/g, (_, h) => String.fromCharCode(parseInt(h, 16))), "latin1").toString("utf8")); // Ghostscript writes non-ASCII bytes as %XX
+    for (const name of (e.separations ?? []).filter((x) => x !== "All")) if (!plates.includes(name)) problems.push(`no plate named ${name} (plates: ${plates.join(", ")})`);
   }
   return { id: o.id, problems, worst: cmp.worst };
 }
