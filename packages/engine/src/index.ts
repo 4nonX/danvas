@@ -35,7 +35,7 @@ export { maskedCanvas, maskLevel, clearMaskCache, maskingAvailable } from "./mas
 export { createScene, effectBleed } from "./scene";
 export { SpatialIndex } from "./spatial";
 export { pointInLocalShape } from "./hit";
-export { renderScene, bumpTextLayout, blendToComposite, type Render2DOptions } from "./render2d";
+export { renderScene, pageBleed, bumpTextLayout, blendToComposite, type Render2DOptions } from "./render2d";
 export { benchmarkRender, createNullContext, type BenchResult, type BenchOptions } from "./bench";
 export { poseDesignAt, pageAnimationDuration, sequenceStarts, revealEntranceText } from "./pose";
 export {

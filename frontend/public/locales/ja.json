@@ -4294,5 +4294,22 @@
   "errors.brandkit_file_invalid": "有効なブランドキットファイルではありません: {detail}",
   "errors.brandkit_not_a_kit_file": "このファイルはブランドキットファイルではありません。",
   "errors.brandkit_newer_format": "このブランドキットファイルは新しいバージョン (形式 {version}) で作成されています。インポートするには更新してください。",
-  "errors.brandkit_file_missing": "ブランドキットファイルに {file} がありません。"
+  "errors.brandkit_file_missing": "ブランドキットファイルに {file} がありません。",
+  "editor.print_section": "印刷",
+  "editor.bleed_mm": "裁ち落とし mm",
+  "editor.crop_marks": "トンボ",
+  "editor.crop_mark_style": "線の種類",
+  "editor.crop_mark_color": "トンボの色",
+  "editor.crop_mark_weight_pt": "太さ pt",
+  "editor.crop_mark_length_mm": "長さ mm",
+  "editor.crop_mark_offset_mm": "間隔 mm",
+  "editor.line_solid": "実線",
+  "editor.line_dashed": "破線",
+  "editor.line_dotted": "点線",
+  "editor.apply_print_to_all_pages": "すべてのページに適用",
+  "editor.bleed_hint": "裁ち落としは印刷後に切り落とされます。端まで届かせたい背景や画像は赤い線まで広げてください。トンボは印刷用の書き出しで裁ち落としの外側に描かれます。",
+  "editor.print_sheet_include": "裁ち落としとトンボ",
+  "editor.print_sheet_bleed_mm": "裁ち落とし {mm} mm",
+  "editor.print_sheet_crop_marks": "トンボ",
+  "editor.print_sheet_per_page": "各ページの設定どおり"
 }

@@ -81,6 +81,7 @@
   --color-guide-conflict: #f43f5e;
   --color-pen-preview: #2444AE;
   --color-ruler: #9ca3af;
+  --color-bleed: #ef4444;
   /* THEME:root:end */
 
   /* Non-token chrome details that flip with the theme (static, hand-edited). */

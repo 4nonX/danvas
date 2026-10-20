@@ -40,6 +40,7 @@ export const overlay = {
   guideConflict: "#f43f5e",
   penPreview: "#2444AE",
   ruler: "#9ca3af",
+  bleed: "#ef4444",
 } as const;
 
 /** Collaborator presence palette (assigned by a stable hash; shared with the

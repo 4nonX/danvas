@@ -387,6 +387,10 @@ export const migrations: Record<number, Migration> = {
   // omitting it means unprotected, which is every existing node. Stamps the
   // version only.
   26: (file: AnyObj) => ({ ...file, schemaVersion: 27 }),
+  // v27 -> v28: print marks. `printMarks` is optional on Page and `bleed`
+  // gets a defined unit (design px); no existing page has marks, and no
+  // client ever wrote `bleed`, so nothing is rewritten. Stamps the version.
+  27: (file: AnyObj) => ({ ...file, schemaVersion: 28 }),
 };
 
 export class MigrationError extends Error {

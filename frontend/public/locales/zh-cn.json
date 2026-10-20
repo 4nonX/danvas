@@ -4294,5 +4294,22 @@
   "errors.brandkit_file_invalid": "这不是有效的品牌套件文件：{detail}",
   "errors.brandkit_not_a_kit_file": "此文件不是品牌套件文件。",
   "errors.brandkit_newer_format": "此品牌套件文件由更新的版本创建（格式 {version}）。请更新后再导入。",
-  "errors.brandkit_file_missing": "品牌套件文件中缺少 {file}。"
+  "errors.brandkit_file_missing": "品牌套件文件中缺少 {file}。",
+  "editor.print_section": "印刷",
+  "editor.bleed_mm": "出血 mm",
+  "editor.crop_marks": "裁切标记",
+  "editor.crop_mark_style": "线型",
+  "editor.crop_mark_color": "标记颜色",
+  "editor.crop_mark_weight_pt": "粗细 pt",
+  "editor.crop_mark_length_mm": "长度 mm",
+  "editor.crop_mark_offset_mm": "间距 mm",
+  "editor.line_solid": "实线",
+  "editor.line_dashed": "虚线",
+  "editor.line_dotted": "点线",
+  "editor.apply_print_to_all_pages": "应用到所有页面",
+  "editor.bleed_hint": "出血部分会在印刷后被裁掉。需要延伸到边缘的背景和图片请拉到红线处。印刷导出时，裁切标记绘制在出血区域之外。",
+  "editor.print_sheet_include": "出血和裁切标记",
+  "editor.print_sheet_bleed_mm": "出血 {mm} mm",
+  "editor.print_sheet_crop_marks": "裁切标记",
+  "editor.print_sheet_per_page": "按各页面的设置"
 }

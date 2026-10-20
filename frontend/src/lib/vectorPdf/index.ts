@@ -11,6 +11,7 @@ import { num, PdfCanvas, PdfResources, type ColorOut, type PdfPageStats, type Pd
 import { SvgCanvas } from "./svgCanvas";
 import { tr } from "@/lib/i18n";
 import { resolveAssetUrl } from "@/lib/sdk";
+import { drawPrintMarks, pdfBoxes, printSheet, sheetViewport, type PrintSheet } from "@/lib/print/sheet";
 
 export { num, type ColorOut } from "./pdfCanvas";
 
@@ -86,6 +87,8 @@ export interface VectorPdfOptions {
   tagged?: boolean;
   /** Natural language (BCP 47) when the design does not state one. */
   lang?: string;
+  /** Include each page's bleed and crop marks (print). */
+  print?: boolean;
 }
 
 export interface DrawPagesOptions {
@@ -96,6 +99,8 @@ export interface DrawPagesOptions {
   flatten?: boolean;
   /** Mark up the drawing for a tagged PDF (see PdfCanvasOptions.tagged). */
   tagged?: boolean;
+  /** Draw each page's whole print sheet: bleed and crop marks. */
+  print?: boolean;
 }
 
 export interface DrawnPage {
@@ -105,6 +110,9 @@ export interface DrawnPage {
   zoom: number;
   width: number;
   height: number;
+  /** The printed sheet the device size covers (the bare page without the
+   *  print option). */
+  sheet: PrintSheet;
   /** Content operators in device space (y down). */
   content: string;
   /** Tagged mode: the page's tags in reading order (each points at its
@@ -118,19 +126,18 @@ export interface DrawnPage {
 /** Shared setup of every vector export: the device size of each page and
  *  the font files its text needs (found by drawing the pages once in a
  *  collect pass, then loaded). */
-async function preparePages(doc: DesignFile, pageIndexes: number[], assets: unknown) {
+async function preparePages(doc: DesignFile, pageIndexes: number[], assets: unknown, print = false) {
   const dpi = (doc as unknown as { dpi?: number }).dpi ?? 96;
   const docFonts = ((doc as unknown as { fonts?: { family?: string; url?: string }[] }).fonts) ?? [];
   if (typeof document !== "undefined" && document.fonts?.ready) await document.fonts.ready;
 
   const pages = pageIndexes.map((i) => {
     const pg = doc.pages[i];
+    const sheet = printSheet(pg, dpi, print);
     let zoom = PATCH_DPI / dpi;
-    zoom = Math.min(zoom, Math.sqrt(MAX_DEVICE_PIXELS / Math.max(1, pg.width * pg.height)));
-    const width = Math.ceil(pg.width * zoom);
-    const height = Math.ceil(pg.height * zoom);
-    const vp: Viewport = { zoom, panX: 0, panY: 0, dpr: 1, width, height };
-    return { index: i, pg, zoom, width, height, vp };
+    zoom = Math.min(zoom, Math.sqrt(MAX_DEVICE_PIXELS / Math.max(1, sheet.sheetWidth * sheet.sheetHeight)));
+    const vp: Viewport = sheetViewport(sheet, zoom);
+    return { index: i, pg, zoom, width: vp.width, height: vp.height, vp, sheet };
   });
   const renderOpts = { assets, clear: false } as Parameters<typeof renderScene>[3];
 
@@ -157,7 +164,7 @@ async function preparePages(doc: DesignFile, pageIndexes: number[], assets: unkn
 }
 
 export async function drawPages(doc: DesignFile, pageIndexes: number[], opts: DrawPagesOptions = {}): Promise<{ dpi: number; pages: DrawnPage[]; resources: PdfResources; stats: PdfPageStats }> {
-  const { dpi, pages, renderOpts, faces, vectorSources } = await preparePages(doc, pageIndexes, opts.assets);
+  const { dpi, pages, renderOpts, faces, vectorSources } = await preparePages(doc, pageIndexes, opts.assets, opts.print);
 
   // Pass 2: draw.
   const resources = new PdfResources();
@@ -176,6 +183,7 @@ export async function drawPages(doc: DesignFile, pageIndexes: number[], opts: Dr
     const ctx = new PdfCanvas({ width: p.width, height: p.height, faces, vectorSources, resources, color: opts.color, backdrop, tagged: opts.tagged });
     const hooks = opts.tagged ? { onNodeEnter: (n: Parameters<PdfCanvas["nodeEnter"]>[0]) => ctx.nodeEnter(n), onNodeExit: (n: Parameters<PdfCanvas["nodeExit"]>[0]) => ctx.nodeExit(n) } : {};
     renderScene(createScene(doc, p.index), ctx as unknown as CanvasLike, p.vp, { ...renderOpts, ...hooks });
+    drawPrintMarks(ctx as unknown as Parameters<typeof drawPrintMarks>[0], p.sheet, p.zoom);
     let tags: PdfTag[] | undefined;
     if (opts.tagged) {
       // Content is drawn in z-order, the structure is read in reading order:
@@ -185,7 +193,7 @@ export async function drawPages(doc: DesignFile, pageIndexes: number[], opts: Dr
       const rankOf = (t: PdfTag) => rank.get(tops[t.top]) ?? Number.MAX_SAFE_INTEGER;
       tags = [...drawn].sort((a, b) => rankOf(a) - rankOf(b) || a.mcid - b.mcid);
     }
-    out.push({ index: p.index, pg: p.pg, zoom: p.zoom, width: p.width, height: p.height, content: ctx.content(), tags });
+    out.push({ index: p.index, pg: p.pg, zoom: p.zoom, width: p.width, height: p.height, sheet: p.sheet, content: ctx.content(), tags });
     for (const k of Object.keys(stats) as (keyof PdfPageStats)[]) stats[k] += ctx.stats[k];
   }
   return { dpi, pages: out, resources, stats };
@@ -253,7 +261,7 @@ export async function exportVectorSvg(doc: DesignFile, pageIndex: number, opts: 
 
 /** Render the given pages of a design to one vector PDF. */
 export async function exportVectorPdf(doc: DesignFile, pageIndexes: number[], opts: VectorPdfOptions = {}): Promise<VectorPdfResult> {
-  const { dpi, pages, resources, stats } = await drawPages(doc, pageIndexes, { assets: opts.assets, tagged: opts.tagged });
+  const { dpi, pages, resources, stats } = await drawPages(doc, pageIndexes, { assets: opts.assets, tagged: opts.tagged, print: opts.print });
   const contents = pages.map((p) => ({ content: p.content, p }));
 
   const w = new PdfWriter();
@@ -305,15 +313,18 @@ export async function exportVectorPdf(doc: DesignFile, pageIndexes: number[], op
   const sects: number[] = [];
   const nums: string[] = [];
   for (const [i, { content, p }] of contents.entries()) {
-    const wPt = (p.pg.width * 72) / dpi;
-    const hPt = (p.pg.height * 72) / dpi;
+    // The sheet: the page (TrimBox, where it is cut), its bleed (BleedBox)
+    // and the room for crop marks (MediaBox). Without print additions all
+    // three are the page.
+    const boxes = pdfBoxes(p.sheet, dpi);
+    const hPt = boxes.height;
     const k = 72 / (dpi * p.zoom);
     const stream = `${num(k)} 0 0 ${num(-k)} 0 ${num(hPt)} cm\n${content}`;
     const cid = w.alloc();
     w.stream(cid, "/Filter /FlateDecode", await deflate(enc.encode(stream)));
     const pid = w.alloc();
-    const box = `[0 0 ${num(wPt)} ${num(hPt)}]`;
-    w.obj(pid, `<< /Type /Page /Parent ${pagesId} 0 R /MediaBox ${box} /TrimBox ${box} /Resources ${resId} 0 R /Contents ${cid} 0 R${tagged ? ` /StructParents ${i} /Tabs /S` : ""} >>`);
+    const box = (r: number[]) => `[${r.map(num).join(" ")}]`;
+    w.obj(pid, `<< /Type /Page /Parent ${pagesId} 0 R /MediaBox ${box(boxes.media)} /BleedBox ${box(boxes.bleed)} /TrimBox ${box(boxes.trim)} /Resources ${resId} 0 R /Contents ${cid} 0 R${tagged ? ` /StructParents ${i} /Tabs /S` : ""} >>`);
     kids.push(pid);
     if (tagged) {
       const sect = w.alloc();

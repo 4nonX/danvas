@@ -2,6 +2,20 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.4.1 (2026-10-20)
+
+### Added
+
+- Bleed and crop marks, set per page. With nothing selected, the page panel has a **Print** section: the bleed in millimetres, and crop marks with their line type (solid, dashed, dotted), color, weight, length and gap to the cut. **Apply to all pages** copies a page's settings to the whole design.
+- The editor shows the bleed as a dashed red line around the page. The page background reaches into it, and content pulled past the page edge stays visible up to it instead of being cut off at the edge.
+- Print exports (vector PDF, image PDF, TIFF, EPS) include each page's bleed and crop marks, switchable in the export dialog under **Bleed and crop marks**. PDFs state the finished size as TrimBox and the bleed as BleedBox. Crop marks always start outside the bleed. PNG, JPG, SVG and the accessible PDF stay at the bare page.
+- All new texts are translated into every interface language.
+
+### Notes
+
+- Schema v28 (additive): a page gains optional `printMarks`, and the existing `bleed` is defined as the bleed on every side in design px. Existing designs keep their version and open unchanged. Designs created on 0.4.1 carry v28; going back to 0.4.0 still opens every design, but 0.4.0 refuses to save designs created on 0.4.1.
+- The server's embedded composer and PowerPoint converter bundles are rebuilt for v28.
+
 ## 0.4.0 (2026-10-16)
 
 ### Added

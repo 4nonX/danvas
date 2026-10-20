@@ -4294,5 +4294,22 @@
   "errors.brandkit_file_invalid": "Das ist keine gültige Brand-Kit-Datei: {detail}",
   "errors.brandkit_not_a_kit_file": "Diese Datei ist keine Brand-Kit-Datei.",
   "errors.brandkit_newer_format": "Diese Brand-Kit-Datei stammt aus einer neueren Version (Format {version}). Bitte aktualisieren, um sie zu importieren.",
-  "errors.brandkit_file_missing": "In der Brand-Kit-Datei fehlt {file}."
+  "errors.brandkit_file_missing": "In der Brand-Kit-Datei fehlt {file}.",
+  "editor.print_section": "Druck",
+  "editor.bleed_mm": "Beschnitt mm",
+  "editor.crop_marks": "Schnittmarken",
+  "editor.crop_mark_style": "Linientyp",
+  "editor.crop_mark_color": "Farbe der Marken",
+  "editor.crop_mark_weight_pt": "Stärke pt",
+  "editor.crop_mark_length_mm": "Länge mm",
+  "editor.crop_mark_offset_mm": "Abstand mm",
+  "editor.line_solid": "Durchgezogen",
+  "editor.line_dashed": "Gestrichelt",
+  "editor.line_dotted": "Gepunktet",
+  "editor.apply_print_to_all_pages": "Auf alle Seiten anwenden",
+  "editor.bleed_hint": "Der Beschnitt wird nach dem Druck abgeschnitten. Hintergründe und Bilder, die bis zum Rand reichen sollen, bis zur roten Linie ziehen. Schnittmarken werden im Druckexport außerhalb des Beschnitts gezeichnet.",
+  "editor.print_sheet_include": "Beschnitt und Schnittmarken",
+  "editor.print_sheet_bleed_mm": "{mm} mm Beschnitt",
+  "editor.print_sheet_crop_marks": "Schnittmarken",
+  "editor.print_sheet_per_page": "Wie auf jeder Seite eingestellt"
 }

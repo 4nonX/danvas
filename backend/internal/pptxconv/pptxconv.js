@@ -20911,12 +20911,12 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
       Object.defineProperty(exports, "__esModule", { value: true });
       exports.TextFlowSchema = exports.TextBoxSchema = exports.ParagraphSchema = exports.ParagraphStyleSchema = exports.RunSchema = exports.CharStyleSchema = exports.TextRunSchema = exports.NodeBaseSchema = exports.knownNodeTypes = exports.ColorSwatchSchema = exports.FontRefSchema = exports.AssetRefSchema = exports.GuideSchema = exports.VectorPathSchema = exports.SubPathSchema = exports.VectorAnchorSchema = exports.ImageMotionSchema = exports.PageTransitionSchema = exports.InteractionSchema = exports.InteractionActionSchema = exports.NodeAnimationSchema = exports.KeyframeTrackSchema = exports.KeyframeSchema = exports.EmphasisPresetSchema = exports.ExitPresetSchema = exports.EntrancePresetSchema = exports.EasingSchema = exports.ElementLinkSchema = exports.CornerRadiusSchema = exports.EffectSchema = exports.AdjustmentOpSchema = exports.StrokeSchema = exports.FillSchema = exports.PatternFillSchema = exports.GradientFillSchema = exports.SolidFillSchema = exports.MeshPointSchema = exports.GradientStopSchema = exports.BlendModeSchema = exports.ConstraintsSchema = exports.SizeSchema = exports.TransformSchema = exports.ImageFillSchema = exports.ImageSourceSchema = exports.ClipPathSchema = exports.CropRectSchema = exports.ColorSchema = exports.UnitSchema = exports.maxNestingDepth = exports.currentSchemaVersion = void 0;
       exports.SlideSectionSchema = exports.ThemeSchema = exports.SlideLayoutSchema = exports.SlideMasterSchema = exports.PlaceholderSchema = exports.PlaceholderRoleSchema = exports.NodeSchema = exports.KnownNodeSchema = exports.knownNodeSchemas = exports.UnknownNodeSchema = exports.StampNodeSchema = exports.DiagramCodeNodeSchema = exports.BoardViewNodeSchema = exports.MindMapNodeSchema = exports.InkNodeSchema = exports.StickyNodeSchema = exports.BooleanNodeSchema = exports.MaskNodeSchema = exports.ConnectorNodeSchema = exports.QRNodeSchema = exports.EmbedNodeSchema = exports.ChartNodeSchema = exports.ChartStyleSchema = exports.ChartTypeSchema = exports.ChartSeriesSchema = exports.TableNodeSchema = exports.TableConditionalRuleSchema = exports.DataBindingSchema = exports.TableBorderStyleSchema = exports.TableHeaderStyleSchema = exports.TableCellSchema = exports.AudioNodeSchema = exports.VideoNodeSchema = exports.GridNodeSchema = exports.GridCellSchema = exports.FrameNodeSchema = exports.FrameHeaderSchema = exports.AutoLayoutSchema = exports.GroupNodeSchema = exports.StickerNodeSchema = exports.IconNodeSchema = exports.PathNodeSchema = exports.PathContourSchema = exports.PathSegmentSchema = exports.LineNodeSchema = exports.ShapeNodeSchema = exports.ImageNodeSchema = exports.ImageAlphaMaskSchema = exports.TextNodeSchema = exports.TextEffectSchema = void 0;
-      exports.DesignFileSchema = exports.PageSchema = void 0;
+      exports.DesignFileSchema = exports.PageSchema = exports.PrintMarksSchema = void 0;
       exports.enabledEffects = enabledEffects;
       exports.enabledTextEffects = enabledTextEffects;
       exports.isKnownNodeType = isKnownNodeType;
       var zod_1 = (init_zod(), __toCommonJS(zod_exports));
-      exports.currentSchemaVersion = 27;
+      exports.currentSchemaVersion = 28;
       exports.maxNestingDepth = 32;
       exports.UnitSchema = zod_1.z.enum(["px", "mm", "in", "pt"]);
       var unit = zod_1.z.number();
@@ -21779,6 +21779,14 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
         color: zod_1.z.string().optional(),
         collapsed: zod_1.z.boolean().optional()
       });
+      exports.PrintMarksSchema = zod_1.z.object({
+        crop: zod_1.z.boolean().optional(),
+        style: zod_1.z.string().optional(),
+        color: exports.ColorSchema.optional(),
+        weight: zod_1.z.number().optional(),
+        length: zod_1.z.number().optional(),
+        offset: zod_1.z.number().optional()
+      });
       exports.PageSchema = zod_1.z.object({
         id: zod_1.z.string(),
         name: zod_1.z.string().optional(),
@@ -21786,6 +21794,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
         height: unit,
         background: exports.FillSchema.optional(),
         bleed: zod_1.z.number().optional(),
+        printMarks: exports.PrintMarksSchema.optional(),
         children: zod_1.z.array(exports.NodeSchema),
         guides: zod_1.z.array(exports.GuideSchema).optional(),
         notes: zod_1.z.string().optional(),
@@ -22439,7 +22448,11 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
         // v26 -> v27: template locks. `templateLock` is optional on every node;
         // omitting it means unprotected, which is every existing node. Stamps the
         // version only.
-        26: (file2) => __spreadProps(__spreadValues({}, file2), { schemaVersion: 27 })
+        26: (file2) => __spreadProps(__spreadValues({}, file2), { schemaVersion: 27 }),
+        // v27 -> v28: print marks. `printMarks` is optional on Page and `bleed`
+        // gets a defined unit (design px); no existing page has marks, and no
+        // client ever wrote `bleed`, so nothing is rewritten. Stamps the version.
+        27: (file2) => __spreadProps(__spreadValues({}, file2), { schemaVersion: 28 })
       };
       var MigrationError = class extends Error {
         constructor(message, from2, to) {

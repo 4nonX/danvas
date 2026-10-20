@@ -2276,6 +2276,12 @@ function buildBoxMap(sn: SceneNode, out: BoxMap): void {
   if (sn.children) for (const c of sn.children) buildBoxMap(c, out);
 }
 
+/** A page's print bleed on every side, in page px (0 when none). */
+export function pageBleed(page: { bleed?: number }): number {
+  const b = page.bleed;
+  return typeof b === "number" && Number.isFinite(b) && b > 0 ? b : 0;
+}
+
 /** Render a scene to a 2D context at the given viewport. */
 export function renderScene(
   scene: Scene,
@@ -2297,9 +2303,12 @@ export function renderScene(
   if ("filter" in ctx) ctx.filter = "none";
 
   const page = scene.file.pages.find((p) => p.id === scene.activePageId) ?? scene.file.pages[0];
+  // The page's print bleed: the background reaches into it, and the page
+  // clip below takes it in, so artwork that runs off the edge shows up to it.
+  const bleed = pageBleed(page);
   if (!opts.skipBackground && page.background) {
     ctx.fillStyle = resolveFill(ctx, page.background, page.width, page.height);
-    ctx.fillRect(0, 0, page.width, page.height);
+    ctx.fillRect(-bleed, -bleed, page.width + 2 * bleed, page.height + 2 * bleed);
   }
   // Background-only pass (two-pass stacked render): the caller draws every page's
   // background first, then a second pass draws all content on top, so content is
@@ -2331,7 +2340,7 @@ export function renderScene(
     const fade = opts.fadeIds;
     const pw = page.width, ph = page.height;
     const OUT = 1e6; // outer bound for the "outside the page" inverse clip
-    const clipToRect = () => { ctx.beginPath(); ctx.rect(0, 0, pw, ph); ctx.clip(); };
+    const clipToRect = () => { ctx.beginPath(); ctx.rect(-bleed, -bleed, pw + 2 * bleed, ph + 2 * bleed); ctx.clip(); };
     for (const child of kids) {
       const n = child.node;
       if (!opts.clipToPage) {
@@ -2349,7 +2358,7 @@ export function renderScene(
           ctx.save();
           ctx.beginPath();
           ctx.rect(-OUT, -OUT, OUT * 2, OUT * 2);
-          ctx.rect(0, 0, pw, ph);
+          ctx.rect(-bleed, -bleed, pw + 2 * bleed, ph + 2 * bleed);
           ctx.clip("evenodd"); // everything except the page rect
           paint(ctx, child, OVERFLOW_REVEAL_ALPHA, opts, boxes, cull);
           ctx.restore();
@@ -2367,7 +2376,7 @@ export function renderScene(
       // mis-placed and could hide a real overflow).
       const axisAligned = (t?.rotation ?? 0) === 0 && (t?.scaleX ?? 1) > 0 && (t?.scaleY ?? 1) > 0;
       const inBounds = !isContainer(n) && axisAligned && !!b &&
-        b.x >= 0 && b.y >= 0 && b.x + b.width <= pw && b.y + b.height <= ph;
+        b.x >= -bleed && b.y >= -bleed && b.x + b.width <= pw + bleed && b.y + b.height <= ph + bleed;
       if (inBounds) {
         paint(ctx, child, 1, opts, boxes, cull);
       } else {

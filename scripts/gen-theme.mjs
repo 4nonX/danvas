@@ -176,6 +176,7 @@ function rootRegion() {
     `  --color-guide-conflict: ${o.guideConflict};`,
     `  --color-pen-preview: ${o.penPreview};`,
     `  --color-ruler: ${o.ruler};`,
+    `  --color-bleed: ${o.bleed};`,
     `  ${ROOT_END}`,
   ].join("\n");
 }
@@ -226,6 +227,7 @@ function tsModule() {
     `  guideConflict: "${o.guideConflict}",`,
     `  penPreview: "${o.penPreview}",`,
     `  ruler: "${o.ruler}",`,
+    `  bleed: "${o.bleed}",`,
     "} as const;",
     "",
     "/** Collaborator presence palette (assigned by a stable hash; shared with the",

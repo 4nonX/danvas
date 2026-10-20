@@ -4294,5 +4294,22 @@
   "errors.brandkit_file_invalid": "यह मान्य ब्रांड किट फ़ाइल नहीं है: {detail}",
   "errors.brandkit_not_a_kit_file": "यह फ़ाइल ब्रांड किट फ़ाइल नहीं है।",
   "errors.brandkit_newer_format": "यह ब्रांड किट फ़ाइल नए संस्करण (प्रारूप {version}) से बनी है। आयात करने के लिए अपडेट करें।",
-  "errors.brandkit_file_missing": "ब्रांड किट फ़ाइल में {file} नहीं है।"
+  "errors.brandkit_file_missing": "ब्रांड किट फ़ाइल में {file} नहीं है।",
+  "editor.print_section": "प्रिंट",
+  "editor.bleed_mm": "ब्लीड mm",
+  "editor.crop_marks": "क्रॉप मार्क",
+  "editor.crop_mark_style": "रेखा का प्रकार",
+  "editor.crop_mark_color": "मार्क का रंग",
+  "editor.crop_mark_weight_pt": "मोटाई pt",
+  "editor.crop_mark_length_mm": "लंबाई mm",
+  "editor.crop_mark_offset_mm": "दूरी mm",
+  "editor.line_solid": "ठोस",
+  "editor.line_dashed": "डैश वाली",
+  "editor.line_dotted": "बिंदीदार",
+  "editor.apply_print_to_all_pages": "सभी पेजों पर लागू करें",
+  "editor.bleed_hint": "ब्लीड छपाई के बाद काट दिया जाता है। जो पृष्ठभूमि और चित्र किनारे तक पहुँचने चाहिए, उन्हें लाल रेखा तक खींचें। प्रिंट निर्यात में क्रॉप मार्क ब्लीड के बाहर बनाए जाते हैं।",
+  "editor.print_sheet_include": "ब्लीड और क्रॉप मार्क",
+  "editor.print_sheet_bleed_mm": "{mm} mm ब्लीड",
+  "editor.print_sheet_crop_marks": "क्रॉप मार्क",
+  "editor.print_sheet_per_page": "हर पेज की सेटिंग के अनुसार"
 }

@@ -4294,5 +4294,22 @@
   "errors.brandkit_file_invalid": "Este não é um arquivo de kit de marca válido: {detail}",
   "errors.brandkit_not_a_kit_file": "Este arquivo não é um arquivo de kit de marca.",
   "errors.brandkit_newer_format": "Este arquivo de kit de marca foi feito por uma versão mais nova (formato {version}). Atualize para importá-lo.",
-  "errors.brandkit_file_missing": "Falta {file} no arquivo de kit de marca."
+  "errors.brandkit_file_missing": "Falta {file} no arquivo de kit de marca.",
+  "editor.print_section": "Impressão",
+  "editor.bleed_mm": "Sangria mm",
+  "editor.crop_marks": "Marcas de corte",
+  "editor.crop_mark_style": "Tipo de linha",
+  "editor.crop_mark_color": "Cor das marcas",
+  "editor.crop_mark_weight_pt": "Espessura pt",
+  "editor.crop_mark_length_mm": "Comprimento mm",
+  "editor.crop_mark_offset_mm": "Distância mm",
+  "editor.line_solid": "Contínua",
+  "editor.line_dashed": "Tracejada",
+  "editor.line_dotted": "Pontilhada",
+  "editor.apply_print_to_all_pages": "Aplicar a todas as páginas",
+  "editor.bleed_hint": "A sangria é cortada após a impressão. Estenda até a linha vermelha os fundos e imagens que devem chegar à borda. As marcas de corte são desenhadas fora da sangria nas exportações para impressão.",
+  "editor.print_sheet_include": "Sangria e marcas de corte",
+  "editor.print_sheet_bleed_mm": "{mm} mm de sangria",
+  "editor.print_sheet_crop_marks": "marcas de corte",
+  "editor.print_sheet_per_page": "Conforme cada página"
 }

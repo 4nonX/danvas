@@ -189,6 +189,8 @@ export const theme = {
     guideConflict: "#f43f5e",
     penPreview: "#2444AE",
     ruler: "#9ca3af",
+    // The print bleed line around the page (where the sheet is cut past).
+    bleed: "#ef4444",
   },
 
   // Collaborator presence palette (assigned per user by a stable hash). Shared

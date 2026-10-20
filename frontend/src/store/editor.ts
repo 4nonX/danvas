@@ -46,6 +46,7 @@ import {
   type Transform,
   type SlideSection,
   type FontRef,
+  type PrintMarks,
   moveInReadingOrder,
   repairCornerRadius,
   roundedCorners,
@@ -542,6 +543,9 @@ interface EditorState {
   setPageSize(width: number, height: number): void;
   /** Set (or clear) the active page's background fill, undoable. */
   setPageBackground(fill: Fill | undefined): void;
+  /** Set the print bleed (page px, 0 clears it) and/or the crop marks (null
+   *  clears them) of the active page, or of every page. One undo step. */
+  setPagePrint(patch: { bleed?: number; printMarks?: PrintMarks | null }, allPages?: boolean): void;
   /** Slide layouts (doc 28 FR-3/FR-4, materialization model): capture the
    *  ACTIVE page as a named reusable layout (background + text placeholders).
    *  Ensures a default master exists. Returns the new layout id. */
@@ -3264,6 +3268,32 @@ export const useEditor = create<EditorState>((set, get) => {
       perform(
         () => { page.background = fill; },
         () => { page.background = before; },
+      );
+    },
+    setPagePrint: (patch, allPages) => {
+      const all = get().doc.pages as unknown as { bleed?: number; printMarks?: PrintMarks }[];
+      const targets = allPages ? all : [all[curPageIndex()]].filter(Boolean);
+      if (!targets.length) return;
+      const before = targets.map((p) => ({ bleed: p.bleed, printMarks: p.printMarks }));
+      const restore = (p: { bleed?: number; printMarks?: PrintMarks }, v: { bleed?: number; printMarks?: PrintMarks }) => {
+        // Absent keys stay absent, so a page that never had print settings
+        // round-trips unchanged.
+        if (v.bleed === undefined) delete p.bleed; else p.bleed = v.bleed;
+        if (v.printMarks === undefined) delete p.printMarks; else p.printMarks = v.printMarks;
+      };
+      perform(
+        () => {
+          for (const p of targets) {
+            if (patch.bleed !== undefined) {
+              const b = Number.isFinite(patch.bleed) ? Math.max(0, patch.bleed) : 0;
+              if (b > 0) p.bleed = b; else delete p.bleed;
+            }
+            if (patch.printMarks !== undefined) {
+              if (patch.printMarks) p.printMarks = { ...patch.printMarks }; else delete p.printMarks;
+            }
+          }
+        },
+        () => { targets.forEach((p, i) => restore(p, before[i])); },
       );
     },
     addSection: (pageIndex, name) => {

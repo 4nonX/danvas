@@ -8,7 +8,7 @@ import type { CharStyle, Color, Node as SchemaNode, Page, Paragraph, ParagraphSt
 import { isDecorative, resolveReadingOrder } from "@hc/schema";
 import { locate, moveTransform, marqueeSelect, parentSpaceDelta, worldMatrix, worldAABB, unionAABB, snap, spacingSnap, type SpacingGuide, type EditCommand } from "@hc/editor";
 import { fitStickyFontScale, routeConnector } from "@hc/whiteboard";
-import { fontFamilyStack, weightFromFontStyle, type Rect } from "@hc/engine";
+import { fontFamilyStack, pageBleed, weightFromFontStyle, type Rect } from "@hc/engine";
 import { measuredTextHeight } from "@/lib/textFit";
 // The inline editor's DOM <-> model round trip lives in its own module so the
 // parsing/caret logic is unit-tested; the overlay here only orchestrates it.
@@ -2734,6 +2734,9 @@ export function Canvas() {
   const pageFrame = apg
     ? { left: pageTL.x, top: pageTL.y, width: apg.width * viewport.zoom, height: apg.height * viewport.zoom }
     : null;
+  // The print bleed around the page: the paper reaches out to it, and a line
+  // marks it, so artwork can be pulled past the cut.
+  const bleedPx = apg ? pageBleed(apg) * viewport.zoom : 0;
 
   const ctxItem = (
     icon: React.ReactNode,
@@ -2789,10 +2792,10 @@ export function Canvas() {
         <div
           className="pointer-events-none absolute"
           style={{
-            left: pageFrame.left,
-            top: pageFrame.top,
-            width: pageFrame.width,
-            height: pageFrame.height,
+            left: pageFrame.left - bleedPx,
+            top: pageFrame.top - bleedPx,
+            width: pageFrame.width + 2 * bleedPx,
+            height: pageFrame.height + 2 * bleedPx,
             background: "#fff",
             boxShadow: "0 10px 40px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.10)",
           }}
@@ -2863,6 +2866,20 @@ export function Canvas() {
             width: pageFrame.width,
             height: pageFrame.height,
             boxShadow: "0 0 0 1px rgba(0,0,0,0.18)",
+          }}
+        />
+      )}
+      {/* Print bleed line: where artwork that runs off the page ends. */}
+      {pageFrame && bleedPx > 0 && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute z-[1]"
+          style={{
+            left: pageFrame.left - bleedPx,
+            top: pageFrame.top - bleedPx,
+            width: pageFrame.width + 2 * bleedPx,
+            height: pageFrame.height + 2 * bleedPx,
+            border: `1px dashed ${overlay.bleed}`,
           }}
         />
       )}

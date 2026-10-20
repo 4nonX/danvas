@@ -17,6 +17,8 @@ export interface EpsOptions {
   converter?: CmykConverter | null;
   /** Pure black in black ink only (CMYK). */
   blackOnly?: boolean;
+  /** Include the page's bleed and crop marks. */
+  print?: boolean;
 }
 
 const enc = new TextEncoder();
@@ -75,11 +77,14 @@ export async function exportEps(doc: DesignFile, pageIndex: number, opts: EpsOpt
   const { dpi, pages, resources } = await drawPages(doc, [pageIndex], {
     assets: opts.assets,
     flatten: true,
+    print: opts.print,
     color: conv ? { cmyk: (r, g, b) => conv.cmyk(r, g, b), blackOnly: opts.blackOnly ?? true } : undefined,
   });
   const p = pages[0];
-  const wPt = (p.pg.width * 72) / dpi;
-  const hPt = (p.pg.height * 72) / dpi;
+  // The whole sheet: bleed and crop marks when the page has them and the
+  // export asks for them.
+  const wPt = (p.sheet.sheetWidth * 72) / dpi;
+  const hPt = (p.sheet.sheetHeight * 72) / dpi;
   const k = 72 / (dpi * p.zoom);
 
   // Images used by the page: reusable compressed streams, drawn by name.

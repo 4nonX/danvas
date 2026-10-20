@@ -117,8 +117,15 @@ import { z } from "zod";
  *      level it does not know as "locked", the strictest. An older client
  *      keeps the key (unknown keys survive) and simply does not enforce it;
  *      the server still refuses a save that changes protected objects.
- *      Additive. */
-export const currentSchemaVersion = 27;
+ *      Additive.
+ *  v28: print marks. Page gains optional `printMarks` (crop marks for the
+ *      printed sheet: on/off, line style, color, weight, length, offset), and
+ *      the long-standing `bleed` is defined as the bleed on every side of the
+ *      page, in design px. `style` validates as any string so a style added
+ *      later never makes an older client reject the file; a reader draws a
+ *      style it does not know as solid. An older client keeps the key and
+ *      simply exports without marks. Additive. */
+export const currentSchemaVersion = 28;
 
 /** Maximum container nesting depth; guards traversal against stack overflow (FR-4). */
 export const maxNestingDepth = 32;
@@ -2094,13 +2101,44 @@ export const SlideSectionSchema = z.object({
 // Section 6.1: page and file
 // ---------------------------------------------------------------------------
 
+/** Crop marks for a printed page (v28). Lengths in design px, like the page;
+ *  the line weight in points, as printers state it. */
+export interface PrintMarks {
+  /** Draw corner crop marks at the trim lines. */
+  crop?: boolean;
+  /** "solid" (default), "dashed" or "dotted"; any other value draws solid. */
+  style?: string;
+  /** Default black. */
+  color?: Color;
+  /** Line weight in points. Default 0.25. */
+  weight?: number;
+  /** Length of each mark, in design px. Default 5 mm. */
+  length?: number;
+  /** Gap between the trim line and the start of a mark, in design px; a mark
+   *  never starts inside the bleed. Default 3 mm. */
+  offset?: number;
+}
+export const PrintMarksSchema = z.object({
+  crop: z.boolean().optional(),
+  style: z.string().optional(),
+  color: ColorSchema.optional(),
+  weight: z.number().optional(),
+  length: z.number().optional(),
+  offset: z.number().optional(),
+});
+
 export interface Page {
   id: string;
   name?: string;
   width: number;
   height: number;
   background?: Fill;
+  /** Print bleed on every side of the page, in design px (v28 defines the
+   *  unit; it was unused before). The page background and content reach
+   *  into it, and print exports can include it. */
   bleed?: number;
+  /** Crop marks drawn outside the bleed in print exports (v28). */
+  printMarks?: PrintMarks;
   children: Node[];
   guides?: Guide[];
   notes?: string;
@@ -2130,6 +2168,7 @@ export const PageSchema = z.object({
   height: unit,
   background: FillSchema.optional(),
   bleed: z.number().optional(),
+  printMarks: PrintMarksSchema.optional(),
   children: z.array(NodeSchema),
   guides: z.array(GuideSchema).optional(),
   notes: z.string().optional(),

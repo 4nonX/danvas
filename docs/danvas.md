@@ -112,6 +112,15 @@ All of these are drawn by the same engine as the editor, so they match what you 
 
 Effects (shadows, glows, blurs) keep their size at every export scale.
 
+### Bleed and crop marks
+
+Artwork that should reach the edge of a printed piece is printed larger and cut back, so no white edge is left when the cut is slightly off. Each page sets this for itself:
+
+- With nothing selected, the page panel's **Print** section sets the page's **bleed** in millimetres (3 mm is common; ask your print shop). The editor shows the bleed as a dashed red line around the page: the page background reaches out to it, and pictures and shapes pulled past the page edge stay visible up to it.
+- **Crop marks** are switched on per page, with their line type (solid, dashed or dotted), color, weight in points, length and gap to the cut in millimetres. A mark never starts inside the bleed, so it is never printed on artwork.
+- **Apply to all pages** copies the page's bleed and marks to every page of the design.
+- Print exports (vector PDF, image PDF, TIFF and EPS) include each page's bleed and marks, as long as **Bleed and crop marks** is on in the export dialog. In a PDF the finished size is the TrimBox and the bleed the BleedBox, as print shops expect; the page itself is large enough for the marks. Off exports the bare page. PNG, JPG, SVG and the accessible PDF always export the bare page.
+
 ## Running an instance
 
 - **Install and update**: the stack in [`compose/`](../compose/README.md), or `install.sh` and `update.sh` from [`deploy/`](../deploy/README.md), which also documents every setting, the image's tags and platforms, and reverse proxies.
