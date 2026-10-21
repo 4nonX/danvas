@@ -82,5 +82,17 @@
   "editor.output_eps_no_process": "Process colours not declared.",
   "editor.output_spot": "Spot colour “{name}” present.",
   "editor.output_spot_missing": "Spot colour “{name}” is missing.",
-  "editor.output_spot_unexpected": "Further spot colours: {names}."
+  "editor.output_spot_unexpected": "Further spot colours: {names}.",
+  "editor.print_ink": "Print colour",
+  "editor.unit_mm": "Millimetres (mm)",
+  "editor.unit_cm": "Centimetres (cm)",
+  "editor.print_color_spot": "Spot colour",
+  "editor.print_cmyk_hint": "Print files (vector PDF, EPS) carry exactly these values, not converted through the colour profile.",
+  "editor.spot_color_name_first": "Enter the name the print shop uses for the colour.",
+  "settings.color_profiles": "Colour profiles",
+  "settings.my_print_profiles": "My colour profiles",
+  "settings.my_print_profiles_hint": "ICC profiles of your own, for CMYK print files and for showing exact print colours on screen. Only you see them, in every workspace. Profiles for everyone in a workspace are added by its admins under Members › Print profiles.",
+  "editor.design_color_profile": "Colour profile of the design",
+  "editor.design_color_profile_hint": "Exact CMYK and spot colours are shown on screen as they print with this profile; the download menu starts with it.",
+  "editor.print_profile_upload_tip": "For coated paper, upload your print shop's profile (e.g. PSO Coated v3) under Settings › Colour profiles, or ask a workspace admin to add it for everyone."
 }

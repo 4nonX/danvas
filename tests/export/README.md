@@ -25,6 +25,7 @@ Needs Chrome or Chromium (found at the usual paths, or set `CHROME_PATH`), Poppl
 | Sheet | PDF MediaBox, TrimBox and BleedBox; EPS bounding box; pixel size. |
 | Colour | No RGB operators or images in a CMYK file; output intent; PDF/X-4 in info and XMP with PDF 1.6, trapping flag and file id; the spot colours asked for. |
 | Overprint | Ghostscript separations: black text sits on the black plate and the cyan under it stays. |
+| Prepress | The prepress fixture (a 50 x 100 mm label set up in mm, exact CMYK and an HKS spot colour): its CMYK PDF and EPS state the finished size and the 1.5 mm bleed to 0.01 mm, Ghostscript's plates carry the CMYK values as set (within 1 %), and the spot colour has a plate of its own. |
 | Proof and output check | The download menu's own checks on the print files: its proof's ink per plate (`lib/print/proof`) is within 3 percentage points of the plates Ghostscript separates from the CMYK PDF, and its file check (`lib/print/fileCheck`) finds nothing wrong with the CMYK PDF and EPS. |
 | Resolution | The dpi PNG, JPEG and TIFF state. |
 
@@ -32,6 +33,6 @@ Over real designs (`--designs`) one kind of difference is not an export fault: a
 
 ## Fixtures
 
-`fixtures.ts` builds them in code. Each covers something that has gone wrong before or that print shops rely on: shapes, strokes, gradients and transparency; paths drawn outside their own size (a logo word vanished through culling); text in an embedded font (the repository's Liberation Sans); placed images with and without transparency; a rotated clipped group; and a 50 x 100 mm label with 1.5 mm bleed whose artwork runs past the page.
+`fixtures.ts` builds them in code. Each covers something that has gone wrong before or that print shops rely on: shapes, strokes, gradients and transparency; paths drawn outside their own size (a logo word vanished through culling); text in an embedded font (the repository's Liberation Sans); placed images with and without transparency; a rotated clipped group; a 50 x 100 mm label with 1.5 mm bleed whose artwork runs past the page; and the same label set up in mm for prepress, with exact CMYK colours and an HKS spot colour.
 
 When a bug in an export is fixed, add a fixture or an expectation that would have caught it.

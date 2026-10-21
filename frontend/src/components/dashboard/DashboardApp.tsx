@@ -77,6 +77,8 @@ import { CanvaImportDialog } from "./CanvaImport";
 import { runActive, useCanvaImport } from "@/store/canvaImport";
 import { CanvaImportDetailsHost, CanvaImportRail } from "./CanvaImportStatus";
 import { BulkImportDialog, entriesFromDrop, entriesFromInput, hasOsFiles, type ImportEntry } from "./BulkImport";
+import { fromUnit, MEASURE_UNITS, parseLength, unitInputText, type MeasureUnit } from "@/lib/units";
+import { PRINT_FORMATS } from "@/lib/printFormats";
 import { childrenMap, DropZone, folderPath, FolderPathBar, FolderTile, MoveToFolderDialog, RailFolderTree, setDragItems, subtreeIds, type DragItems } from "./Folders";
 import { confirmAction, promptText } from "@/lib/promptDialog";
 import { BulkCreateModal } from "./BulkCreateModal";
@@ -195,7 +197,6 @@ const sizePresets = (): { label: string; w: number; h: number }[] => [
   { label: tr("dashboard.facebook_post"), w: 1200, h: 630 },
   { label: tr("dashboard.linkedin_post"), w: 1200, h: 627 },
   { label: tr("dashboard.poster"), w: 1080, h: 1350 },
-  { label: "A4 Document", w: 1240, h: 1754 },
   { label: tr("dashboard.logo"), w: 500, h: 500 },
   { label: tr("dashboard.business_card"), w: 1050, h: 600 },
 ];
@@ -302,8 +303,10 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     void createDesign(fmt.w, fmt.h, undefined, fmt.kind, brief);
   }
   const [bulkOpen, setBulkOpen] = useState(false);
-  const [customW, setCustomW] = useState(1080);
-  const [customH, setCustomH] = useState(1080);
+  // The custom size, as typed, in `customUnit` (mm for a print piece).
+  const [customW, setCustomW] = useState("1080");
+  const [customH, setCustomH] = useState("1080");
+  const [customUnit, setCustomUnit] = useState<MeasureUnit>("px");
   const [wsName, setWsName] = useState("");
   // The active section comes from the URL (one static page per view; see
   // pages/dashboard/[[...view]].tsx). Every section renders that same page
@@ -893,12 +896,13 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     }
   }
 
-  async function createDesign(width = 1080, height = 1080, label = tr("dashboard.untitled_design"), kind?: string, brief?: string) {
+  async function createDesign(width = 1080, height = 1080, label = tr("dashboard.untitled_design"), kind?: string, brief?: string, measureUnit?: MeasureUnit) {
     if (!activeWorkspaceId) return;
     setSizeOpen(false);
     setBusy(true);
     try {
-      const from = createBlankDesign({ title: label, width, height });
+      // width/height are design px (exact: a size given in mm stays that size).
+      const from = createBlankDesign({ title: label, width, height, measureUnit });
       // Document types (docs 28-32) carry their surface marker in meta.kind; a
       // plain design leaves it unset (treated as "design").
       if (kind) from.meta.kind = kind;
@@ -1947,6 +1951,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
               )}
               {activeWorkspaceId && (
                 <PrintProfilesPanel
+                  scope="workspace"
                   workspaceId={activeWorkspaceId}
                   canEdit={activeWs?.role === "owner" || activeWs?.role === "admin"}
                 />
@@ -2007,17 +2012,58 @@ export function DashboardApp({ view }: { view: DashboardView }) {
           })}
         </div>
         <div className="mt-4 border-t border-neutral-100 pt-4">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-400">{tr("dashboard.custom_size_px")}</p>
-          <div className="flex items-end gap-2">
-            <div className="min-w-0 flex-1">
-              <Input label={tr("dashboard.width")} type="number" className="w-full" value={customW} onChange={(e) => setCustomW(Math.max(1, Number(e.target.value) || 0))} />
-            </div>
-            <span className="pb-3 text-neutral-400">×</span>
-            <div className="min-w-0 flex-1">
-              <Input label={tr("dashboard.height")} type="number" className="w-full" value={customH} onChange={(e) => setCustomH(Math.max(1, Number(e.target.value) || 0))} />
-            </div>
-            <Button className="shrink-0" onClick={() => void createDesign(customW, customH, `Custom ${customW}×${customH}`)}>{tr("dashboard.create")}</Button>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-400">{tr("dashboard.print_formats")}</p>
+          <div className="grid grid-cols-2 gap-2">
+            {PRINT_FORMATS.map((f) => (
+              <button
+                key={f.id}
+                onClick={() => void createDesign(fromUnit(f.mm[0], "mm", 96), fromUnit(f.mm[1], "mm", 96), f.label(), undefined, undefined, "mm")}
+                className="flex items-center justify-between gap-2 rounded-lg border border-neutral-200 px-3 py-2 text-start transition-colors hover:border-brand-300 hover:bg-brand-50"
+              >
+                <span className="truncate text-sm font-medium text-neutral-800">{f.label()}</span>
+                <span className="shrink-0 text-xs text-neutral-400">{f.mm[0].toLocaleString()} × {f.mm[1].toLocaleString()} mm</span>
+              </button>
+            ))}
           </div>
+        </div>
+        <div className="mt-4 border-t border-neutral-100 pt-4">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-400">{tr("dashboard.custom_size")}</p>
+          {(() => {
+            // Typed in the chosen unit; the design gets that unit and the
+            // exact size (50 x 100 mm stays 50 x 100 mm).
+            const w = parseLength(customW, customUnit, 96, 0);
+            const h = parseLength(customH, customUnit, 96, 0);
+            const ok = w !== null && h !== null && w >= 1 && h >= 1;
+            const setUnit = (u: MeasureUnit) => {
+              if (w !== null) setCustomW(unitInputText(w, u, 96));
+              if (h !== null) setCustomH(unitInputText(h, u, 96));
+              setCustomUnit(u);
+            };
+            return (
+              <div className="flex items-end gap-2">
+                <div className="min-w-0 flex-1">
+                  <Input label={tr("dashboard.width")} inputMode="decimal" className="w-full" value={customW} onChange={(e) => setCustomW(e.target.value)} />
+                </div>
+                <span className="pb-3 text-neutral-400">×</span>
+                <div className="min-w-0 flex-1">
+                  <Input label={tr("dashboard.height")} inputMode="decimal" className="w-full" value={customH} onChange={(e) => setCustomH(e.target.value)} />
+                </div>
+                <select
+                  aria-label={tr("editor.measure_unit")}
+                  value={customUnit}
+                  onChange={(e) => setUnit(e.target.value as MeasureUnit)}
+                  className="mb-0.5 h-10 shrink-0 rounded-lg border border-neutral-200 bg-surface px-2 text-sm outline-none focus:border-brand-400"
+                >
+                  {MEASURE_UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
+                </select>
+                <Button
+                  className="shrink-0"
+                  disabled={!ok}
+                  onClick={() => ok && void createDesign(w, h, `${customW} × ${customH} ${customUnit}`, undefined, undefined, customUnit)}
+                >{tr("dashboard.create")}</Button>
+              </div>
+            );
+          })()}
         </div>
       </Modal>
 

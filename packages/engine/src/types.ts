@@ -165,6 +165,19 @@ export interface CanvasLike {
   shadowBlur?: number;
   shadowOffsetX?: number;
   shadowOffsetY?: number;
+  /** Print exports only (capability-probed): told, for every colour the
+   *  renderer turns into a CSS string, the print colour that string stands
+   *  for (explicit CMYK or a spot colour), or null for none. The context
+   *  takes the latest note for a string when it is assigned as a fill,
+   *  stroke or gradient stop, and writes those values instead of converting
+   *  the sRGB. Screen contexts leave it out. */
+  notePrintColor?(css: string, print: PrintColor | null): void;
+}
+
+/** A colour's print values, from `Color.cmyk` or `Color.spot` (0..1 each). */
+export interface PrintColor {
+  cmyk?: [number, number, number, number];
+  spot?: { name: string; cmyk: [number, number, number, number] };
 }
 
 export interface CanvasGradientLike {

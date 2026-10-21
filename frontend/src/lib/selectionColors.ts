@@ -66,6 +66,8 @@ export function recolor(nodes: Node[], fromHex: string, to: Color): (() => void)
   if (!hits.length) return null;
   const before = hits.map((s) => s.get());
   const alphaChanged = Math.abs((to.srgb.a ?? 1) - (before[0].srgb.a ?? 1)) > 1e-3;
-  hits.forEach((s, i) => s.set({ srgb: { ...to.srgb, a: alphaChanged ? (to.srgb.a ?? 1) : (before[i].srgb.a ?? 1) } }));
+  // The new colour's print values (exact CMYK, a spot colour) come along.
+  const print = { ...(to.cmyk ? { cmyk: { ...to.cmyk } } : {}), ...(to.spot ? { spot: structuredClone(to.spot) } : {}) };
+  hits.forEach((s, i) => s.set({ ...print, srgb: { ...to.srgb, a: alphaChanged ? (to.srgb.a ?? 1) : (before[i].srgb.a ?? 1) } }));
   return () => hits.forEach((s, i) => s.set(before[i]));
 }

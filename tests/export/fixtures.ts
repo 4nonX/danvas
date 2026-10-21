@@ -13,6 +13,10 @@ export interface Fixture {
   doc: Record<string, unknown>;
   /** Regions of the page that must not be blank in any export. */
   ink: { x: number; y: number; w: number; h: number; what: string }[];
+  /** Exact print values (the prepress case): the finished size and bleed in
+   *  mm the CMYK files must state, the plate values (percent) at points of
+   *  the page (mm from its top left), and the spot colours as plates. */
+  prepress?: { trimMm: [number, number]; bleedMm: number; plates: { atMm: [number, number]; what: string; expect: Record<string, number> }[]; spots: string[] };
 }
 
 const MM = 96 / 25.4;
@@ -26,7 +30,7 @@ const textNode = (id: string, x: number, y: number, w: number, h: number, text: 
   content: [{ style: { align: "left", direction: "auto" }, runs: [{ text, style: { fontFamily: "Export Check Sans", fontStyle, fontSize: size, fill: { type: "solid", color } } }] }],
 });
 const base = (id: string, title: string, pages: unknown[], extra: Record<string, unknown> = {}) => ({
-  format: "hycanvas.design", schemaVersion: 28, id, title, unit: "px", dpi: 96, assets: [], fonts: [], meta: {}, pages, ...extra,
+  format: "hycanvas.design", schemaVersion: 29, id, title, unit: "px", dpi: 96, assets: [], fonts: [], meta: {}, pages, ...extra,
 });
 
 /** Builds the fixtures; `font` is the embedded font's data URL, `photo` a
@@ -154,5 +158,34 @@ export function fixtures(font: string, photo: string, photoAlpha: string): Fixtu
     ink: [{ x: 20, y: 335, w: 100, h: 4, what: "black bar" }],
   };
 
-  return [shapes, offbox, text, synth, image, clip, label];
+  // The print shop's file, exactly: a 50 x 100 mm label set up in mm with
+  // 1.5 mm bleed, the background in C73 M25 Y7 K0, a bar in C0 M100 Y100 K0
+  // and text in the spot colour "HKS 44". The CMYK files must carry these
+  // values as given (no profile in between) and the spot colour as a plate.
+  const blue = { srgb: { r: 0, g: 0.57, b: 0.79, a: 1 }, cmyk: { c: 0.73, m: 0.25, y: 0.07, k: 0 } };
+  const red = { srgb: { r: 0.89, g: 0.12, b: 0.14, a: 1 }, cmyk: { c: 0, m: 1, y: 1, k: 0 } };
+  const hks = { srgb: { r: 0, g: 0.52, b: 0.33, a: 1 }, spot: { name: "HKS 44", fallback: { c: 1, m: 0, y: 0.7, k: 0.1 } } };
+  const prepress: Fixture = {
+    name: "prepress",
+    doc: base("fx-prepress", "Prepress", [{
+      id: "p", width: 50 * MM, height: 100 * MM, bleed: 1.5 * MM,
+      background: { type: "solid", color: blue },
+      children: [
+        textNode("spot", 10 * MM, 8 * MM, 30 * MM, 14 * MM, "HKS", 36, hks, "Bold"),
+        { id: "bar", type: "shape", shape: "rect", transform: T(10 * MM, 60 * MM), size: { width: 30 * MM, height: 10 * MM }, opacity: 1, blendMode: "normal", fills: [{ type: "solid", color: red }] },
+      ],
+    }], { measureUnit: "mm", fonts: [{ id: "f1", family: "Export Check Sans", source: "upload", url: font }] }),
+    ink: [{ x: 10 * MM, y: 60 * MM, w: 30 * MM, h: 10 * MM, what: "red bar" }],
+    prepress: {
+      trimMm: [50, 100],
+      bleedMm: 1.5,
+      plates: [
+        { atMm: [45, 40], what: "background", expect: { Cyan: 73, Magenta: 25, Yellow: 7, Black: 0 } },
+        { atMm: [25, 65], what: "red bar", expect: { Cyan: 0, Magenta: 100, Yellow: 100, Black: 0 } },
+      ],
+      spots: ["HKS 44"],
+    },
+  };
+
+  return [shapes, offbox, text, synth, image, clip, label, prepress];
 }

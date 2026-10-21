@@ -9,6 +9,7 @@ import { measuredTextHeight, minContentWidth } from "@/lib/textFit";
 import { edgeCrop, edgeCropStart, isEdgeHandle, type EdgeCropStart } from "@/lib/imageEdgeCrop";
 import { relayGridCells, scaleFrameImageChildren } from "@/store/editor";
 import { overlay } from "@/lib/theme.generated";
+import { measureUnitOf, shortLength } from "@/lib/units";
 import {
   locate,
   parentSpaceDelta,
@@ -339,7 +340,11 @@ function SelectionGizmo({ api, ids }: { api: CanvasApi; ids: string[] }) {
           className="pointer-events-none absolute -translate-x-1/2 whitespace-nowrap rounded bg-neutral-800/90 px-1.5 py-0.5 text-[11px] font-medium tabular-nums text-white shadow"
           style={{ left: sx(0.5), top: sy(1) + 14 }}
         >
-          {Math.round(box.width)} × {Math.round(box.height)}
+          {(() => {
+            const { doc } = useEditor.getState();
+            const u = measureUnitOf(doc), dpi = doc.dpi ?? 96;
+            return `${shortLength(box.width, u, dpi)} × ${shortLength(box.height, u, dpi)}${u === "px" ? "" : ` ${u}`}`;
+          })()}
         </div>
       )}
     </>

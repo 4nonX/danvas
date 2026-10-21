@@ -138,7 +138,7 @@ export function createNode<T extends Exclude<NodeType, "model3d">>(
 
 /** Create a blank, valid single-page design. */
 export function createBlankDesign(
-  init?: Partial<Pick<DesignFile, "id" | "title" | "unit" | "dpi">> & {
+  init?: Partial<Pick<DesignFile, "id" | "title" | "unit" | "dpi" | "measureUnit">> & {
     width?: number;
     height?: number;
   },
@@ -150,6 +150,7 @@ export function createBlankDesign(
     title: init?.title ?? "Untitled design",
     unit: init?.unit ?? "px",
     dpi: init?.dpi ?? 96,
+    ...(init?.measureUnit && init.measureUnit !== "px" ? { measureUnit: init.measureUnit } : {}),
     pages: [
       {
         id: newId(),

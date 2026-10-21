@@ -10,6 +10,7 @@
 
 import { create } from "zustand";
 import type { BrandKit, ResolvedBrand } from "@hc/sdk";
+import type { Color } from "@hc/schema";
 import { oc } from "@/lib/sdk";
 
 interface BrandState {
@@ -144,6 +145,27 @@ export function brandHexColors(kit: BrandKit | null): string[] {
       if (!out.includes(hex)) out.push(hex);
     }
   return out;
+}
+
+/** The kit's colour for a swatch hex, with its print values (exact CMYK, a
+ *  spot colour) when the swatch has them; a plain colour of that hex when the
+ *  kit has none. Applying a brand colour goes through this, so a house colour
+ *  set as C73 M25 Y7 K0 prints as exactly that. */
+export function brandColorOf(kit: BrandKit | null, hex: string): Color {
+  const want = hex.toLowerCase();
+  let plain: Color | null = null;
+  for (const pal of kit?.palettes ?? [])
+    for (const sw of pal.colors) {
+      const { r, g, b } = sw.value.srgb;
+      const ch = (v: number) => Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16).padStart(2, "0");
+      if (`#${ch(r)}${ch(g)}${ch(b)}` !== want) continue;
+      const c = structuredClone(sw.value);
+      if (c.cmyk || c.spot) return { ...c, srgb: { ...c.srgb, a: 1 } };
+      plain ??= { ...c, srgb: { ...c.srgb, a: 1 } };
+    }
+  if (plain) return plain;
+  const n = parseInt(want.slice(1), 16);
+  return { srgb: { r: ((n >> 16) & 255) / 255, g: ((n >> 8) & 255) / 255, b: (n & 255) / 255, a: 1 } };
 }
 
 /** The approved brand font families (for the constrained font selector). */

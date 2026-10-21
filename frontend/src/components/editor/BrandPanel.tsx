@@ -22,7 +22,9 @@ import { BrandKitTransfer } from "./BrandKitTransfer";
 import { collectPageColors, collectSelectionColors } from "@/lib/pageColors";
 import { imageAssetIds, imageAssetPalette } from "@/lib/imagePalette";
 import { useEditor, type ReskinResult, type ReskinOverrides, type BrandFixTarget } from "@/store/editor";
-import { useBrand, brandHexColors, brandFontFamilies } from "@/store/brand";
+import { useBrand, brandHexColors, brandFontFamilies, brandColorOf } from "@/store/brand";
+import { selectionColors } from "@/lib/selectionColors";
+import { printColorLabel } from "@/lib/print/printColor";
 import { fonts } from "@/lib/fontProvider";
 import { useWorkspaceFontFamilies } from "@/lib/workspaceFonts";
 import { FONT_FAMILY_OPTIONS } from "./PropertiesPanel";
@@ -105,16 +107,25 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
   // Add colours to the kit's first palette from where the colours already
   // are: a picked or typed value, the selection, or the whole page. Skips
   // what the palette already holds and says so.
-  const addColors = useCallback(async (hexes: string[]) => {
+  // A colour taken from the selection keeps its print values (exact CMYK, a
+  // spot colour), so a house colour set up on an element lands in the kit as
+  // it prints.
+  const addColors = useCallback(async (entries: (string | { hex: string; color: Color })[]) => {
     if (!kit) return;
     const have = new Set(brandHexColors(kit).map((h) => h.toLowerCase()));
-    const fresh = [...new Set(hexes.map((h) => h.toLowerCase()))].filter((h) => /^#[0-9a-f]{6}$/.test(h) && !have.has(h));
-    if (!fresh.length) {
+    const byHex = new Map<string, Color>();
+    for (const e of entries) {
+      const hex = (typeof e === "string" ? e : e.hex).toLowerCase();
+      if (!/^#[0-9a-f]{6}$/.test(hex) || have.has(hex) || byHex.has(hex)) continue;
+      byHex.set(hex, typeof e === "string" ? srgbFromHexFull(hex) : { ...structuredClone(e.color), srgb: { ...e.color.srgb, a: 1 } });
+    }
+    if (!byHex.size) {
       toast.toast(tr("editor.color_already_in_palette"));
       return;
     }
+    const fresh = [...byHex.keys()];
     const base = kit.palettes[0] ?? { id: `p-${crypto.randomUUID()}`, name: tr("editor.palette"), colors: [] };
-    const first = { ...base, colors: [...base.colors, ...fresh.map((hex) => ({ id: `s-${crypto.randomUUID()}`, role: "accent", value: srgbFromHexFull(hex) }))] };
+    const first = { ...base, colors: [...base.colors, ...[...byHex.values()].map((value) => ({ id: `s-${crypto.randomUUID()}`, role: "accent", value }))] };
     const palettes = kit.palettes.length ? kit.palettes.map((p, i) => (i === 0 ? first : p)) : [first];
     try {
       const updated = await oc.updateBrandKit(kit.id, { palettes });
@@ -127,16 +138,18 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
 
   // Apply a brand color: to the selection's fills, or the page background if
   // nothing is selected (so a click is never a no-op).
+  // With the swatch's print values (brandColorOf).
   const applyColor = useCallback((hex: string) => {
     const st = useEditor.getState();
-    if (st.selection.length > 0) st.setFillColorSel(hex);
-    else st.setPageBackground({ type: "solid", color: srgbFromHex(hex) });
-  }, []);
+    const color = brandColorOf(kit, hex);
+    if (st.selection.length > 0) st.setFillColorSel(color);
+    else st.setPageBackground({ type: "solid", color });
+  }, [kit]);
 
   const applyTextColor = useCallback((hex: string) => {
     const st = useEditor.getState();
-    st.setCharStyleDeep({ fill: { type: "solid", color: srgbFromHex(hex) } as Fill });
-  }, []);
+    st.setCharStyleDeep({ fill: { type: "solid", color: brandColorOf(kit, hex) } as Fill });
+  }, [kit]);
 
   const applyFont = useCallback((family: string) => {
     fonts.ensure(family);
@@ -429,7 +442,7 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
                 {swatches.map((hex) => (
                   <button
                     key={hex}
-                    title={hex.toUpperCase()}
+                    title={[hex.toUpperCase(), printColorLabel(brandColorOf(kit, hex))].filter(Boolean).join(" · ")}
                     onClick={(e) => (e.shiftKey ? applyTextColor(hex) : applyColor(hex))}
                     className="h-8 w-8 rounded-lg border border-neutral-200 shadow-sm"
                     style={{ backgroundColor: hex }}
@@ -1680,7 +1693,7 @@ function BrandFromWebsite({
 /** The add-colour row of the Colors section: pick or type a colour and add
  *  it, take the selection's colours or the whole page's, or pick from the
  *  colours present in a selected image. */
-function AddBrandColors({ existing, onAdd }: { existing: string[]; onAdd: (hexes: string[]) => void }) {
+function AddBrandColors({ existing, onAdd }: { existing: string[]; onAdd: (colors: (string | { hex: string; color: Color })[]) => void }) {
   const [hex, setHex] = useState("#9b2c72");
   const selection = useEditor((s) => s.selection);
   const rev = useEditor((s) => s.rev);
@@ -1703,7 +1716,11 @@ function AddBrandColors({ existing, onAdd }: { existing: string[]; onAdd: (hexes
   const fromSelection = () => {
     const st = useEditor.getState();
     const nodes = st.selection.map((id) => locate(st.doc, id)?.node).filter((n): n is NonNullable<typeof n> => !!n);
-    const colors = [...collectSelectionColors(nodes), ...imageColors];
+    // The elements' own colours as objects (print values kept), then the
+    // dominant colours of selected pictures.
+    const own = selectionColors(nodes, 24);
+    const ownHex = new Set(own.map((c) => c.hex.toLowerCase()));
+    const colors = [...own, ...collectSelectionColors(nodes).filter((h) => !ownHex.has(h.toLowerCase())), ...imageColors];
     if (!colors.length) { toast.toast(tr("editor.select_an_element_to_take_its_color")); return; }
     onAdd(colors);
   };

@@ -15,6 +15,7 @@ import { exportEps } from "@/lib/print/eps";
 import { createCmykConverter, type CmykConverter } from "@/lib/print/cms";
 import { checkPrintFile, type FileFinding } from "@/lib/print/fileCheck";
 import { applyBlackOnly } from "@/lib/print/proof";
+import { spotNamesOf } from "@/lib/print/printColor";
 import { renderPageCanvas } from "@/lib/exportFormats";
 import { clipToBleed, drawPrintMarks, printSheet, sheetViewport, type PrintExtras, type PrintParts } from "@/lib/print/sheet";
 import { installRandomUuidPolyfill } from "@/lib/randomUuidPolyfill";
@@ -41,6 +42,8 @@ export interface Output {
   /** Mean ink per process plate the editor's preview computes for this
    *  sheet, in percent; compared with the file's real plates. */
   proofCoverage?: Record<"Cyan" | "Magenta" | "Yellow" | "Black", number>;
+  /** The prepress case's exact values (see Fixture.prepress). */
+  prepress?: Fixture["prepress"];
   /** Reference key (one reference per fixture, page and print variant). */
   ref: string;
   /** What the file must state. */
@@ -206,6 +209,21 @@ async function exportAll(fx: Fixture, printCase: boolean, only?: Output["format"
     const marksOnly: PrintParts = { bleed: false, marks: true };
     const refM = variant("marks", marksOnly);
     await add("marks/pdf-vector", "pdf-vector", "pdf", (await exportVectorPdf(doc, [0], { assets, title: fx.name, print: marksOnly })).blob, refM);
+  }
+  if (fx.prepress) {
+    // Exact print values: CMYK vector PDF and EPS with the bleed, no marks.
+    const conv = await cmyk();
+    const bleedOnly: PrintParts = { bleed: true, marks: false };
+    const ref = variant("print", bleedOnly);
+    const more = { pdfx: true, separations: fx.prepress.spots, overprintBlack: false };
+    await add("print/pdf-vector-cmyk", "pdf-vector", "pdf", (await exportVectorPdf(doc, [0], { assets, title: fx.name, print: bleedOnly, converter: conv, blackOnly: true, pdfx: true })).blob, ref, more, true);
+    await add("print/eps-cmyk", "eps", "eps", await exportEps(doc, 0, { assets, title: fx.name, print: bleedOnly, converter: conv, blackOnly: true }), ref, { separations: fx.prepress.spots }, true);
+    for (const o of outputs.filter((x) => x.id.includes("/print/"))) {
+      o.prepress = fx.prepress;
+      // The editor's output check on it: the design's spot colours expected.
+      const bytes = Uint8Array.from(atob(o.data), (ch) => ch.charCodeAt(0));
+      o.fileFindings = await checkPrintFile(bytes, { kind: o.ext === "eps" ? "eps" : "pdf", cmyk: true, pdfx: o.ext === "pdf", bleed: true, spots: spotNamesOf(doc) });
+    }
   }
   return { outputs, refs };
 }

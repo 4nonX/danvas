@@ -36,7 +36,7 @@ Click **Create**. A menu of common formats opens, grouped by purpose: social pos
 ![The Create menu with preset formats](images/create-design.png)
 
 - Pick a preset (for example **Instagram post**, 1080 x 1080) and the editor opens on a blank page at that size.
-- Pick **Blank / custom size** to enter your own dimensions.
+- Pick **Blank / custom size** to choose a print format in millimetres (A4, A5, business card, ...) or enter your own dimensions in mm, cm, in, pt or px; the design then measures in that unit ([units and exact sizes](danvas.md#units-and-exact-sizes)).
 - Or start from content instead: **Browse templates** opens the template library, and picking one creates a design pre-filled with it.
 
 ## Design something

@@ -20991,16 +20991,17 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
     "packages/schema/dist/schema.js"(exports) {
       "use strict";
       Object.defineProperty(exports, "__esModule", { value: true });
-      exports.TextFlowSchema = exports.TextBoxSchema = exports.ParagraphSchema = exports.ParagraphStyleSchema = exports.RunSchema = exports.CharStyleSchema = exports.TextRunSchema = exports.NodeBaseSchema = exports.knownNodeTypes = exports.ColorSwatchSchema = exports.FontRefSchema = exports.AssetRefSchema = exports.GuideSchema = exports.VectorPathSchema = exports.SubPathSchema = exports.VectorAnchorSchema = exports.ImageMotionSchema = exports.PageTransitionSchema = exports.InteractionSchema = exports.InteractionActionSchema = exports.NodeAnimationSchema = exports.KeyframeTrackSchema = exports.KeyframeSchema = exports.EmphasisPresetSchema = exports.ExitPresetSchema = exports.EntrancePresetSchema = exports.EasingSchema = exports.ElementLinkSchema = exports.CornerRadiusSchema = exports.EffectSchema = exports.AdjustmentOpSchema = exports.StrokeSchema = exports.FillSchema = exports.PatternFillSchema = exports.GradientFillSchema = exports.SolidFillSchema = exports.MeshPointSchema = exports.GradientStopSchema = exports.BlendModeSchema = exports.ConstraintsSchema = exports.SizeSchema = exports.TransformSchema = exports.ImageFillSchema = exports.ImageSourceSchema = exports.ClipPathSchema = exports.CropRectSchema = exports.ColorSchema = exports.UnitSchema = exports.maxNestingDepth = exports.currentSchemaVersion = void 0;
-      exports.SlideSectionSchema = exports.ThemeSchema = exports.SlideLayoutSchema = exports.SlideMasterSchema = exports.PlaceholderSchema = exports.PlaceholderRoleSchema = exports.NodeSchema = exports.KnownNodeSchema = exports.knownNodeSchemas = exports.UnknownNodeSchema = exports.StampNodeSchema = exports.DiagramCodeNodeSchema = exports.BoardViewNodeSchema = exports.MindMapNodeSchema = exports.InkNodeSchema = exports.StickyNodeSchema = exports.BooleanNodeSchema = exports.MaskNodeSchema = exports.ConnectorNodeSchema = exports.QRNodeSchema = exports.EmbedNodeSchema = exports.ChartNodeSchema = exports.ChartStyleSchema = exports.ChartTypeSchema = exports.ChartSeriesSchema = exports.TableNodeSchema = exports.TableConditionalRuleSchema = exports.DataBindingSchema = exports.TableBorderStyleSchema = exports.TableHeaderStyleSchema = exports.TableCellSchema = exports.AudioNodeSchema = exports.VideoNodeSchema = exports.GridNodeSchema = exports.GridCellSchema = exports.FrameNodeSchema = exports.FrameHeaderSchema = exports.AutoLayoutSchema = exports.GroupNodeSchema = exports.StickerNodeSchema = exports.IconNodeSchema = exports.PathNodeSchema = exports.PathContourSchema = exports.PathSegmentSchema = exports.LineNodeSchema = exports.ShapeNodeSchema = exports.ImageNodeSchema = exports.ImageAlphaMaskSchema = exports.TextNodeSchema = exports.TextEffectSchema = void 0;
-      exports.DesignFileSchema = exports.PageSchema = exports.PrintMarksSchema = void 0;
+      exports.TextBoxSchema = exports.ParagraphSchema = exports.ParagraphStyleSchema = exports.RunSchema = exports.CharStyleSchema = exports.TextRunSchema = exports.NodeBaseSchema = exports.knownNodeTypes = exports.ColorSwatchSchema = exports.FontRefSchema = exports.AssetRefSchema = exports.GuideSchema = exports.VectorPathSchema = exports.SubPathSchema = exports.VectorAnchorSchema = exports.ImageMotionSchema = exports.PageTransitionSchema = exports.InteractionSchema = exports.InteractionActionSchema = exports.NodeAnimationSchema = exports.KeyframeTrackSchema = exports.KeyframeSchema = exports.EmphasisPresetSchema = exports.ExitPresetSchema = exports.EntrancePresetSchema = exports.EasingSchema = exports.ElementLinkSchema = exports.CornerRadiusSchema = exports.EffectSchema = exports.AdjustmentOpSchema = exports.StrokeSchema = exports.FillSchema = exports.PatternFillSchema = exports.GradientFillSchema = exports.SolidFillSchema = exports.MeshPointSchema = exports.GradientStopSchema = exports.BlendModeSchema = exports.ConstraintsSchema = exports.SizeSchema = exports.TransformSchema = exports.ImageFillSchema = exports.ImageSourceSchema = exports.ClipPathSchema = exports.CropRectSchema = exports.ColorSchema = exports.MEASURE_UNITS = exports.UnitSchema = exports.maxNestingDepth = exports.currentSchemaVersion = void 0;
+      exports.ThemeSchema = exports.SlideLayoutSchema = exports.SlideMasterSchema = exports.PlaceholderSchema = exports.PlaceholderRoleSchema = exports.NodeSchema = exports.KnownNodeSchema = exports.knownNodeSchemas = exports.UnknownNodeSchema = exports.StampNodeSchema = exports.DiagramCodeNodeSchema = exports.BoardViewNodeSchema = exports.MindMapNodeSchema = exports.InkNodeSchema = exports.StickyNodeSchema = exports.BooleanNodeSchema = exports.MaskNodeSchema = exports.ConnectorNodeSchema = exports.QRNodeSchema = exports.EmbedNodeSchema = exports.ChartNodeSchema = exports.ChartStyleSchema = exports.ChartTypeSchema = exports.ChartSeriesSchema = exports.TableNodeSchema = exports.TableConditionalRuleSchema = exports.DataBindingSchema = exports.TableBorderStyleSchema = exports.TableHeaderStyleSchema = exports.TableCellSchema = exports.AudioNodeSchema = exports.VideoNodeSchema = exports.GridNodeSchema = exports.GridCellSchema = exports.FrameNodeSchema = exports.FrameHeaderSchema = exports.AutoLayoutSchema = exports.GroupNodeSchema = exports.StickerNodeSchema = exports.IconNodeSchema = exports.PathNodeSchema = exports.PathContourSchema = exports.PathSegmentSchema = exports.LineNodeSchema = exports.ShapeNodeSchema = exports.ImageNodeSchema = exports.ImageAlphaMaskSchema = exports.TextNodeSchema = exports.TextEffectSchema = exports.TextFlowSchema = void 0;
+      exports.DesignFileSchema = exports.PageSchema = exports.PrintMarksSchema = exports.SlideSectionSchema = void 0;
       exports.enabledEffects = enabledEffects;
       exports.enabledTextEffects = enabledTextEffects;
       exports.isKnownNodeType = isKnownNodeType;
       var zod_1 = (init_zod(), __toCommonJS(zod_exports));
-      exports.currentSchemaVersion = 28;
+      exports.currentSchemaVersion = 29;
       exports.maxNestingDepth = 32;
       exports.UnitSchema = zod_1.z.enum(["px", "mm", "in", "pt"]);
+      exports.MEASURE_UNITS = ["mm", "cm", "in", "pt", "px"];
       var unit = zod_1.z.number();
       var channel = zod_1.z.number().min(0).max(1);
       var cmyk4 = zod_1.z.object({ c: channel, m: channel, y: channel, k: channel });
@@ -21904,6 +21905,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
         theme: exports.ThemeSchema.optional(),
         sections: zod_1.z.array(exports.SlideSectionSchema).optional(),
         language: zod_1.z.string().optional(),
+        measureUnit: zod_1.z.string().optional(),
         assets: zod_1.z.array(exports.AssetRefSchema),
         fonts: zod_1.z.array(exports.FontRefSchema),
         palette: zod_1.z.array(exports.ColorSwatchSchema).optional(),
@@ -22534,7 +22536,11 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
         // v27 -> v28: print marks. `printMarks` is optional on Page and `bleed`
         // gets a defined unit (design px); no existing page has marks, and no
         // client ever wrote `bleed`, so nothing is rewritten. Stamps the version.
-        27: (file2) => __spreadProps(__spreadValues({}, file2), { schemaVersion: 28 })
+        27: (file2) => __spreadProps(__spreadValues({}, file2), { schemaVersion: 28 }),
+        // v28 -> v29: measurement unit. `measureUnit` is optional on the file and
+        // only changes how lengths are shown; absent means px, which is how every
+        // existing design shows them. Stamps the version only.
+        28: (file2) => __spreadProps(__spreadValues({}, file2), { schemaVersion: 29 })
       };
       var MigrationError = class extends Error {
         constructor(message, from2, to) {
@@ -22682,13 +22688,14 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
       }
       function createBlankDesign(init) {
         var _a5, _b, _c, _d, _e, _f;
-        return {
+        return __spreadProps(__spreadValues({
           format: "hycanvas.design",
           schemaVersion: schema_1.currentSchemaVersion,
           id: (_a5 = init == null ? void 0 : init.id) != null ? _a5 : newId(),
           title: (_b = init == null ? void 0 : init.title) != null ? _b : "Untitled design",
           unit: (_c = init == null ? void 0 : init.unit) != null ? _c : "px",
-          dpi: (_d = init == null ? void 0 : init.dpi) != null ? _d : 96,
+          dpi: (_d = init == null ? void 0 : init.dpi) != null ? _d : 96
+        }, (init == null ? void 0 : init.measureUnit) && init.measureUnit !== "px" ? { measureUnit: init.measureUnit } : {}), {
           pages: [
             {
               id: newId(),
@@ -22704,7 +22711,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
           assets: [],
           fonts: [],
           meta: {}
-        };
+        });
       }
     }
   });

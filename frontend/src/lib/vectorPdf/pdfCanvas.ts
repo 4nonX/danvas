@@ -21,6 +21,7 @@
 
 import type * as fontkit from "fontkit";
 import { isDecorative, nodeAltText, type Node } from "@hc/schema";
+import type { PrintColor } from "@hc/engine";
 import { faceKeyOf, parseCanvasFont, type FaceRequest, type LoadedFace } from "./fontSource";
 
 export type Mat = { a: number; b: number; c: number; d: number; e: number; f: number };
@@ -92,13 +93,15 @@ function tracePath(ctx: CanvasRenderingContext2D, path: Seg[]): void {
 /** A canvas gradient as data, so it can become a PDF shading or, when PDF
  *  cannot express it, a real gradient on the fallback canvas. */
 export class GradientProxy {
-  stops: { offset: number; color: string }[] = [];
+  stops: { offset: number; color: string; print?: PrintColor | null }[] = [];
   constructor(
     readonly kind: "linear" | "radial" | "conic",
     readonly args: number[],
+    /** The print colour noted for a CSS colour (explicit CMYK, spot). */
+    private readonly printOf?: (css: string) => PrintColor | null,
   ) {}
   addColorStop(offset: number, color: string): void {
-    this.stops.push({ offset: Math.min(1, Math.max(0, offset)), color });
+    this.stops.push({ offset: Math.min(1, Math.max(0, offset)), color, print: this.printOf?.(color) ?? null });
   }
   materialize(ctx: CanvasRenderingContext2D): CanvasGradient {
     const a = this.args;
@@ -118,6 +121,9 @@ interface State {
   ctm: Mat;
   fillStyle: string | GradientProxy | unknown;
   strokeStyle: string | GradientProxy | unknown;
+  /** The print colour the fill / stroke colour stands for, when noted. */
+  fillPrint: PrintColor | null;
+  strokePrint: PrintColor | null;
   lineWidth: number;
   lineCap: CanvasLineCap;
   lineJoin: CanvasLineJoin;
@@ -394,6 +400,8 @@ export abstract class VectorCanvas {
   private measure: CanvasRenderingContext2D;
   private colorCtx: CanvasRenderingContext2D;
   private colorCache = new Map<string, Rgba>();
+  // The latest print colour the renderer noted for each CSS colour.
+  private printNotes = new Map<string, PrintColor | null>();
   private scratch: CanvasRenderingContext2D | null = null;
   readonly stats: PdfPageStats = { vectorOps: 0, textRuns: 0, rasterPatches: 0, images: 0 };
   // Engine capability probes: "filter" in ctx enables effect filters (which
@@ -404,7 +412,7 @@ export abstract class VectorCanvas {
 
   constructor(protected readonly o: VectorCanvasOptions) {
     this.s = {
-      ctm: IDENTITY, fillStyle: "#000000", strokeStyle: "#000000", lineWidth: 1, lineCap: "butt", lineJoin: "miter",
+      ctm: IDENTITY, fillStyle: "#000000", strokeStyle: "#000000", fillPrint: null, strokePrint: null, lineWidth: 1, lineCap: "butt", lineJoin: "miter",
       miterLimit: 10, dash: [], dashOffset: 0, globalAlpha: 1, composite: "source-over", font: "10px sans-serif",
       textAlign: "start", textBaseline: "alphabetic", letterSpacing: "0px", textRendering: "auto", fontKerning: "auto",
       direction: "ltr", shadowColor: "rgba(0, 0, 0, 0)", shadowBlur: 0, shadowOffsetX: 0, shadowOffsetY: 0, filter: "none", clips: [],
@@ -419,12 +427,13 @@ export abstract class VectorCanvas {
   protected abstract emitSave(): void;
   protected abstract emitRestore(): void;
   /** Fill with a solid colour (alpha already includes globalAlpha). */
-  protected abstract emitFill(path: Seg[], rule: CanvasFillRule, c: Rgba, alpha: number, blend: string): void;
+  /** `print`: the explicit print colour of this paint (CMYK or spot), if any. */
+  protected abstract emitFill(path: Seg[], rule: CanvasFillRule, c: Rgba, alpha: number, blend: string, print?: PrintColor | null): void;
   /** Fill with a gradient whose geometry is in the space of `ctm`. */
   protected abstract emitGradientFill(path: Seg[], rule: CanvasFillRule, g: GradientProxy, ctm: Mat, alpha: number, blend: string): void;
   /** Stroke with a solid colour; line settings from the current state, the
    *  width and dashes scaled to device space with `scaleOf(ctm)`. */
-  protected abstract emitStroke(path: Seg[], c: Rgba, alpha: number, blend: string): void;
+  protected abstract emitStroke(path: Seg[], c: Rgba, alpha: number, blend: string, print?: PrintColor | null): void;
   /** Intersect the clip with `path` until the matching restore. */
   protected abstract emitClip(path: Seg[], rule: CanvasFillRule): void;
   /** Place an image: `place` maps the unit square (rows top-down) to device
@@ -460,9 +469,22 @@ export abstract class VectorCanvas {
   }
 
   get fillStyle() { return this.s.fillStyle as string; }
-  set fillStyle(v: string) { this.s.fillStyle = v; }
+  set fillStyle(v: string) { this.s.fillStyle = v; this.s.fillPrint = typeof v === "string" ? this.printNotes.get(v) ?? null : null; }
   get strokeStyle() { return this.s.strokeStyle as string; }
-  set strokeStyle(v: string) { this.s.strokeStyle = v; }
+  set strokeStyle(v: string) { this.s.strokeStyle = v; this.s.strokePrint = typeof v === "string" ? this.printNotes.get(v) ?? null : null; }
+
+  /** The renderer's note of which print colour a CSS colour stands for (see
+   *  CanvasLike.notePrintColor); taken when the colour is assigned. */
+  notePrintColor(css: string, print: PrintColor | null): void {
+    this.printNotes.set(css, print);
+  }
+
+  /** The print colour of a paint style about to be drawn. */
+  private printFor(style: string): PrintColor | null {
+    if (style === this.s.fillStyle) return this.s.fillPrint;
+    if (style === this.s.strokeStyle) return this.s.strokePrint;
+    return this.printNotes.get(style) ?? null;
+  }
   get lineWidth() { return this.s.lineWidth; }
   set lineWidth(v: number) { if (Number.isFinite(v) && v > 0) this.s.lineWidth = v; }
   get lineCap() { return this.s.lineCap; }
@@ -505,13 +527,13 @@ export abstract class VectorCanvas {
   set filter(v: string) { this.s.filter = v || "none"; }
 
   createLinearGradient(x0: number, y0: number, x1: number, y1: number): GradientProxy {
-    return new GradientProxy("linear", [x0, y0, x1, y1]);
+    return new GradientProxy("linear", [x0, y0, x1, y1], (css) => this.printNotes.get(css) ?? null);
   }
   createRadialGradient(x0: number, y0: number, r0: number, x1: number, y1: number, r1: number): GradientProxy {
-    return new GradientProxy("radial", [x0, y0, r0, x1, y1, r1]);
+    return new GradientProxy("radial", [x0, y0, r0, x1, y1, r1], (css) => this.printNotes.get(css) ?? null);
   }
   createConicGradient(angle: number, x: number, y: number): GradientProxy {
-    return new GradientProxy("conic", [angle, x, y]);
+    return new GradientProxy("conic", [angle, x, y], (css) => this.printNotes.get(css) ?? null);
   }
 
   // --- path ----------------------------------------------------------------
@@ -676,7 +698,7 @@ export abstract class VectorCanvas {
         this.onBackdrop((ctx) => { ctx.setTransform(1, 0, 0, 1, 0, 0); tracePath(ctx, path); ctx.fill(rule); });
         if (alpha < 0.999 || blend !== "Normal") { this.patch(pathBox(path), { path, rule }); return; }
       }
-      this.emitFill(path, rule, c, alpha, blend);
+      this.emitFill(path, rule, c, alpha, blend, this.printFor(style));
     } else if (style instanceof GradientProxy) {
       if (this.s.globalAlpha <= 0) return;
       if (this.o.backdrop) {
@@ -711,7 +733,7 @@ export abstract class VectorCanvas {
           return;
         }
       }
-      this.emitStroke(path, c, alpha, blend);
+      this.emitStroke(path, c, alpha, blend, this.printFor(style));
     } else if (style instanceof GradientProxy) {
       // A gradient stroke: stroke-to-clip is not available in PDF without
       // outlining, so this is the one gradient case drawn as a patch.
@@ -1194,20 +1216,27 @@ export class PdfCanvas extends VectorCanvas {
     this.ops.push("EMC");
   }
 
-  /** The graphics state and colour operators of one paint. */
-  private paintState(c: Rgba, alpha: number, blend: string, stroke: boolean): string {
+  /** The graphics state and colour operators of one paint. A colour with
+   *  print values in a CMYK file is written as given: a spot colour as its
+   *  own separation, explicit CMYK as those four values, no profile. */
+  private paintState(c: Rgba, alpha: number, blend: string, stroke: boolean, print?: PrintColor | null): string {
     const res = this.o.resources;
     if (this.spot) {
       return `/${res.gs(alpha, alpha, blend, this.spot.overprint)} gs /${this.spot.cs} ${stroke ? "CS 1 SCN" : "cs 1 scn"}`;
     }
     const out = this.o.color;
-    const comps = this.components(c);
+    if (out && print?.spot) {
+      const cs = res.separation({ name: print.spot.name, cmyk: print.spot.cmyk });
+      return `/${res.gs(alpha, alpha, blend)} gs /${cs} ${stroke ? "CS 1 SCN" : "cs 1 scn"}`;
+    }
+    const comps = out && print?.cmyk ? [...print.cmyk] : this.components(c);
     const overprint = !!out?.overprintBlack && comps.length === 4 && comps[0] === 0 && comps[1] === 0 && comps[2] === 0 && comps[3] === 1;
     if (overprint && out?.overprintAsSeparation) {
       const cs = res.separation({ name: "Black", cmyk: [0, 0, 0, 1], overprint: true }); // i18n-ignore: the process black separation
       return `/${res.gs(alpha, alpha, blend, true)} gs /${cs} ${stroke ? "CS 1 SCN" : "cs 1 scn"}`;
     }
-    return `/${res.gs(alpha, alpha, blend, overprint)} gs ${this.colorOp(c, stroke)}`;
+    const op = out ? `${comps.map(num).join(" ")} ${stroke ? "K" : "k"}` : this.colorOp(c, stroke);
+    return `/${res.gs(alpha, alpha, blend, overprint)} gs ${op}`;
   }
 
   /** The page's content stream operators (device space). */
@@ -1339,25 +1368,31 @@ export class PdfCanvas extends VectorCanvas {
     const stops = [...g.stops].sort((a, b) => a.offset - b.offset);
     if (stops[0].offset > 0) stops.unshift({ offset: 0, color: stops[0].color });
     if (stops[stops.length - 1].offset < 1) stops.push({ offset: 1, color: stops[stops.length - 1].color });
-    // CMYK through a profile is not linear in RGB: each stop-to-stop piece is
-    // split so the press colours follow the on-screen blend closely.
-    const sub = this.o.color ? 8 : 1;
-    const pts: { offset: number; c: { r: number; g: number; b: number } }[] = [];
+    // Stops with print values (explicit CMYK, or a spot colour's fallback) in
+    // a CMYK file: the press colours are given, so the blend runs between
+    // them in CMYK, as print software blends.
+    const explicit = !!this.o.color && stops.some((st) => st.print);
+    const stopCmyk = (st: { color: string; print?: PrintColor | null }) => st.print?.cmyk ?? st.print?.spot?.cmyk ?? this.components(this.color(st.color));
+    // Otherwise CMYK through a profile is not linear in RGB: each stop-to-stop
+    // piece is split so the press colours follow the on-screen blend closely.
+    const sub = this.o.color && !explicit ? 8 : 1;
+    const pts: { offset: number; v: number[] }[] = [];
     for (let i = 0; i < stops.length - 1; i++) {
+      if (explicit) { pts.push({ offset: stops[i].offset, v: [...stopCmyk(stops[i])] }); continue; }
       const a = this.color(stops[i].color), b = this.color(stops[i + 1].color);
       for (let k = 0; k < sub; k++) {
         const t = k / sub;
-        pts.push({ offset: stops[i].offset + (stops[i + 1].offset - stops[i].offset) * t, c: { r: a.r + (b.r - a.r) * t, g: a.g + (b.g - a.g) * t, b: a.b + (b.b - a.b) * t } });
+        pts.push({ offset: stops[i].offset + (stops[i + 1].offset - stops[i].offset) * t, v: this.components({ r: a.r + (b.r - a.r) * t, g: a.g + (b.g - a.g) * t, b: a.b + (b.b - a.b) * t }) });
       }
     }
-    const lastStop = this.color(stops[stops.length - 1].color);
-    pts.push({ offset: 1, c: lastStop });
-    const arr = (c: { r: number; g: number; b: number }) => `[${this.components(c).map(num).join(" ")}]`;
+    const lastStop = stops[stops.length - 1];
+    pts.push({ offset: 1, v: explicit ? [...stopCmyk(lastStop)] : this.components(this.color(lastStop.color)) });
+    const arr = (v: number[]) => `[${v.map(num).join(" ")}]`;
     const pieces: string[] = [];
     const bounds: string[] = [];
     const encode: string[] = [];
     for (let i = 0; i < pts.length - 1; i++) {
-      pieces.push(`<< /FunctionType 2 /Domain [0 1] /C0 ${arr(pts[i].c)} /C1 ${arr(pts[i + 1].c)} /N 1 >>`);
+      pieces.push(`<< /FunctionType 2 /Domain [0 1] /C0 ${arr(pts[i].v)} /C1 ${arr(pts[i + 1].v)} /N 1 >>`);
       if (i > 0) bounds.push(num(pts[i].offset));
       encode.push("0 1");
     }
@@ -1391,16 +1426,16 @@ export class PdfCanvas extends VectorCanvas {
   protected emitRestore(): void {
     this.ops.push("Q");
   }
-  protected emitFill(path: Seg[], rule: CanvasFillRule, c: Rgba, alpha: number, blend: string): void {
-    this.paintOps(`q ${this.paintState(c, alpha, blend, false)}`, pathOps(path), rule === "evenodd" ? "f* Q" : "f Q");
+  protected emitFill(path: Seg[], rule: CanvasFillRule, c: Rgba, alpha: number, blend: string, print?: PrintColor | null): void {
+    this.paintOps(`q ${this.paintState(c, alpha, blend, false, print)}`, pathOps(path), rule === "evenodd" ? "f* Q" : "f Q");
   }
   protected emitGradientFill(path: Seg[], rule: CanvasFillRule, g: GradientProxy, ctm: Mat, alpha: number, blend: string): void {
     const res = this.o.resources;
     const sh = res.addShading(this.shading(g));
     this.paintOps(`q /${res.gs(alpha, alpha, blend)} gs`, pathOps(path), rule === "evenodd" ? "W* n" : "W n", this.matrixOp(ctm), `/${sh} sh Q`); // i18n-ignore: PDF operators and names
   }
-  protected emitStroke(path: Seg[], c: Rgba, alpha: number, blend: string): void {
-    this.paintOps(`q ${this.paintState(c, alpha, blend, true)} ${this.strokeParams()}`, pathOps(path), "S Q");
+  protected emitStroke(path: Seg[], c: Rgba, alpha: number, blend: string, print?: PrintColor | null): void {
+    this.paintOps(`q ${this.paintState(c, alpha, blend, true, print)} ${this.strokeParams()}`, pathOps(path), "S Q");
   }
   protected emitClip(path: Seg[], rule: CanvasFillRule): void {
     if (path.length) this.ops.push(...this.clipOps({ path, rule }));

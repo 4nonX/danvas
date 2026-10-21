@@ -9,9 +9,12 @@ import { Wand2, X } from "lucide-react";
 import { useEditor } from "@/store/editor";
 import { useToast } from "@/components/ui/Toast";
 import { tr } from "@/lib/i18n";
+import { fromUnit, measureUnitOf, parseLength, unitInputText } from "@/lib/units";
 
-interface Preset { label: string; w: number; h: number }
-const groups = (): { name: string; items: Preset[] }[] => [
+/** A target size in design px; `mm` marks a print format, shown in mm. */
+interface Preset { label: string; w: number; h: number; mm?: [number, number] }
+const mmPreset = (label: string, wMm: number, hMm: number, dpi: number): Preset => ({ label, w: fromUnit(wMm, "mm", dpi), h: fromUnit(hMm, "mm", dpi), mm: [wMm, hMm] });
+const groups = (dpi: number): { name: string; items: Preset[] }[] => [
   {
     name: tr("editor.social"),
     items: [
@@ -34,9 +37,10 @@ const groups = (): { name: string; items: Preset[] }[] => [
   {
     name: tr("editor.print"),
     items: [
-      { label: tr("editor.a4_portrait"), w: 794, h: 1123 },
-      { label: tr("editor.a4_landscape"), w: 1123, h: 794 },
-      { label: tr("editor.us_letter"), w: 816, h: 1056 },
+      // Exact paper sizes at the design's dpi.
+      mmPreset(tr("editor.a4_portrait"), 210, 297, dpi),
+      mmPreset(tr("editor.a4_landscape"), 297, 210, dpi),
+      mmPreset(tr("editor.us_letter"), 215.9, 279.4, dpi),
       { label: tr("editor.poster"), w: 1080, h: 1350 },
     ],
   },
@@ -47,19 +51,23 @@ const keyOf = (p: { w: number; h: number }) => `${p.w}x${p.h}`;
 // Magic Switch: one-click semantic format targets, including a
 // multi-size set (a single design -> a social set). Each switches the page into
 // the target format(s) in one action, reusing the smart reflow.
-const formatSets = (): { label: string; emoji: string; sizes: { w: number; h: number }[] }[] => [
+const formatSets = (dpi: number): { label: string; emoji: string; sizes: { w: number; h: number }[] }[] => [
   { label: tr("editor.social_set"), emoji: "📱", sizes: [{ w: 1080, h: 1080 }, { w: 1080, h: 1920 }, { w: 1200, h: 630 }, { w: 1600, h: 900 }] },
   { label: tr("editor.story_reel"), emoji: "📲", sizes: [{ w: 1080, h: 1920 }] },
   { label: tr("editor.presentation"), emoji: "🖥", sizes: [{ w: 1920, h: 1080 }] },
-  { label: tr("editor.document"), emoji: "📄", sizes: [{ w: 794, h: 1123 }] },
+  { label: tr("editor.document"), emoji: "📄", sizes: [{ w: fromUnit(210, "mm", dpi), h: fromUnit(297, "mm", dpi) }] },
   { label: tr("editor.poster"), emoji: "🖼", sizes: [{ w: 1080, h: 1350 }] },
 ];
 
 export function MagicResizeDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const toast = useToast();
   const [picked, setPicked] = useState<Record<string, { w: number; h: number }>>({});
-  const [cw, setCw] = useState(1080);
-  const [ch, setCh] = useState(1080);
+  // The custom size as typed, in the design's unit.
+  const doc = useEditor((s) => s.doc);
+  const unit = measureUnitOf(doc);
+  const dpi = doc.dpi ?? 96;
+  const [cw, setCw] = useState(() => unitInputText(1080, unit, dpi));
+  const [ch, setCh] = useState(() => unitInputText(1080, unit, dpi));
   if (!open) return null;
 
   const toggle = (p: { w: number; h: number }) => {
@@ -72,7 +80,8 @@ export function MagicResizeDialog({ open, onClose }: { open: boolean; onClose: (
     });
   };
   const addCustom = () => {
-    if (cw > 0 && ch > 0) setPicked((prev) => ({ ...prev, [keyOf({ w: cw, h: ch })]: { w: cw, h: ch } }));
+    const w = parseLength(cw, unit, dpi, 0), h = parseLength(ch, unit, dpi, 0);
+    if (w !== null && h !== null && w >= 1 && h >= 1) setPicked((prev) => ({ ...prev, [keyOf({ w, h })]: { w, h } }));
   };
   const targets = Object.values(picked);
 
@@ -98,7 +107,7 @@ export function MagicResizeDialog({ open, onClose }: { open: boolean; onClose: (
         <div className="mb-3">
           <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("editor.switch_to_a_format")}</div>
           <div className="flex flex-wrap gap-1.5">
-            {formatSets().map((f) => (
+            {formatSets(dpi).map((f) => (
               <button
                 key={f.label} onClick={() => apply(f.sizes, tr("editor.switched_to"))}
                 title={f.sizes.map((s) => `${s.w}×${s.h}`).join(", ")}
@@ -113,7 +122,7 @@ export function MagicResizeDialog({ open, onClose }: { open: boolean; onClose: (
         <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("editor.or_pick_exact_sizes")}</div>
         <p className="mb-2 text-xs text-neutral-500">{tr("editor.magic_resize_hint")}</p>
 
-        {groups().map((g) => (
+        {groups(dpi).map((g) => (
           <div key={g.name} className="mb-3">
             <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{g.name}</div>
             <div className="grid grid-cols-2 gap-1.5">
@@ -125,7 +134,7 @@ export function MagicResizeDialog({ open, onClose }: { open: boolean; onClose: (
                     className={`flex items-center justify-between rounded-lg border px-2.5 py-1.5 text-start text-xs transition ${active ? "border-brand-400 bg-brand-50 text-brand-ink" : "border-neutral-200 text-neutral-700 hover:bg-neutral-50"}`}
                   >
                     <span className="font-medium">{p.label}</span>
-                    <span className="text-[10px] text-neutral-400">{p.w}×{p.h}</span>
+                    <span className="text-[10px] text-neutral-400">{p.mm ? `${p.mm[0].toLocaleString()} × ${p.mm[1].toLocaleString()} mm` : `${p.w}×${p.h}`}</span>
                   </button>
                 );
               })}
@@ -136,9 +145,10 @@ export function MagicResizeDialog({ open, onClose }: { open: boolean; onClose: (
         <div className="mb-3">
           <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("editor.custom_2")}</div>
           <div className="flex items-center gap-1.5">
-            <input type="number" min={1} value={cw} onChange={(e) => setCw(Math.max(1, Number(e.target.value)))} className="w-20 rounded-lg border border-neutral-200 px-2 py-1.5 text-sm outline-none focus:border-brand-400" aria-label={tr("editor.custom_width")} />
+            <input inputMode="decimal" value={cw} onChange={(e) => setCw(e.target.value)} className="w-20 rounded-lg border border-neutral-200 px-2 py-1.5 text-sm outline-none focus:border-brand-400" aria-label={tr("editor.custom_width")} />
             <span className="text-neutral-400">×</span>
-            <input type="number" min={1} value={ch} onChange={(e) => setCh(Math.max(1, Number(e.target.value)))} className="w-20 rounded-lg border border-neutral-200 px-2 py-1.5 text-sm outline-none focus:border-brand-400" aria-label={tr("editor.custom_height")} />
+            <input inputMode="decimal" value={ch} onChange={(e) => setCh(e.target.value)} className="w-20 rounded-lg border border-neutral-200 px-2 py-1.5 text-sm outline-none focus:border-brand-400" aria-label={tr("editor.custom_height")} />
+            {unit !== "px" && <span className="text-xs text-neutral-400">{unit}</span>}
             <button onClick={addCustom} className="rounded-lg border border-neutral-200 px-2.5 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-50">{tr("editor.add")}</button>
           </div>
         </div>

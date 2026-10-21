@@ -6,7 +6,7 @@
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/router";
 import QRCode from "qrcode";
-import { Bell, BellRing, Check, ChevronLeft, Contrast, Copy, Download, Gauge, KeyRound, LogOut, Moon, MonitorSmartphone, ShieldCheck, Sparkles, Sun, Trash2, User as UserIcon, FileDown, Printer } from "lucide-react";
+import { Bell, BellRing, Check, ChevronLeft, Contrast, Copy, Download, Gauge, KeyRound, LogOut, Moon, MonitorSmartphone, ShieldCheck, Sparkles, Sun, Trash2, User as UserIcon, FileDown, Printer, Palette } from "lucide-react";
 import { ApiError, type MfaEnrollment, type NotificationType, type SessionInfo, type TimeFormat, type WeekStart } from "@hc/sdk";
 import { oc, ssoLinkUrl } from "@/lib/sdk";
 import { browserTimezone } from "@/lib/datetime";
@@ -24,6 +24,7 @@ import { Modal } from "@/components/ui/Modal";
 import { settingsPath, type SettingsTab } from "./tabs";
 import { PersonalAiSettings } from "./PersonalAiSettings";
 import { ProfileManager } from "./ProfileManager";
+import { PrintProfilesPanel } from "@/components/dashboard/PrintProfilesPanel";
 import { tr } from "@/lib/i18n";
 import { apiCodeMessage, CodedError, userMessage } from "@/lib/errors";
 
@@ -40,6 +41,7 @@ const tabs = (): { id: Tab; label: string; icon: typeof UserIcon }[] => [
   { id: "ai", label: tr("settings.ai_provider"), icon: Sparkles },
   { id: "export-profiles", label: tr("editor.export_profiles"), icon: FileDown },
   { id: "print-presets", label: tr("editor.print_presets"), icon: Printer },
+  { id: "color-profiles", label: tr("settings.color_profiles"), icon: Palette },
 ];
 
 // A small, friendly set of UI languages. The user's current locale is added if
@@ -740,6 +742,7 @@ export function SettingsApp({ tab: urlTab }: { tab: SettingsTab | null }) {
           {tab === "ai" && <PersonalAiSettings />}
           {tab === "export-profiles" && <ProfileManager kind="export" scope="personal" />}
           {tab === "print-presets" && <ProfileManager kind="print" scope="personal" />}
+          {tab === "color-profiles" && <PrintProfilesPanel scope="user" />}
         </main>
       </div>
 

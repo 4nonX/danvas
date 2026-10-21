@@ -39,9 +39,11 @@ import { useToast } from "@/components/ui/Toast";
 import { tr } from "@/lib/i18n";
 import { resolvedLocale } from "@/lib/locale";
 import { copyText } from "@/lib/clipboard";
-import { listProfileOptions, profileBytes, type ProfileOption } from "@/lib/print/profiles";
+import { settingsPath } from "@/components/settings/tabs";
+import { designProfileId, listProfileOptions, profileBytes, type ProfileOption } from "@/lib/print/profiles";
 import type { CmykConverter, RenderingIntent } from "@/lib/print/cms";
 import { defaultTacLimit } from "@/lib/print/proof";
+import { spotNamesOf } from "@/lib/print/printColor";
 import { initialPrintOverride, printAdditions, printSheet, pxToMm, withPrintOverride, type PrintExtras, type PrintOverride, type PrintParts } from "@/lib/print/sheet";
 import { pageBleed } from "@hc/engine";
 import { imagePdfBlob, rasterBlob, renderPageCanvas, tiffBlob } from "@/lib/exportFormats";
@@ -388,18 +390,19 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
     void listProfileOptions(workspaceId).then((list) => {
       if (cancelled) return;
       setProfiles(list);
-      setProfileId((cur) => cur ?? (list.find((p) => p.isDefault) ?? list[0])?.id ?? null);
+      // The design's own profile (page panel) when set, else the default.
+      setProfileId((cur) => cur ?? designProfileId(list, doc.colorProfile));
     });
     return () => { cancelled = true; };
-  }, [open, cmykCapable, profiles, workspaceId]);
+  }, [open, cmykCapable, profiles, workspaceId, doc.colorProfile]);
   // A profile's print profile that this workspace does not have (a personal
   // profile made in another one) falls back to the default.
   useEffect(() => {
     if (!profiles || !profileId || profiles.some((p) => p.id === profileId)) return;
     let cancelled = false;
-    void Promise.resolve().then(() => { if (!cancelled) setProfileId((profiles.find((p) => p.isDefault) ?? profiles[0])?.id ?? null); });
+    void Promise.resolve().then(() => { if (!cancelled) setProfileId(designProfileId(profiles, doc.colorProfile)); });
     return () => { cancelled = true; };
-  }, [profiles, profileId]);
+  }, [profiles, profileId, doc.colorProfile]);
 
   // The menu's settings as an export profile stores them.
   const currentSettings: ExportSettings = {
@@ -1127,13 +1130,19 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
                     onChange={(e) => setProfileId(e.target.value)}
                     className="h-8 w-full rounded-lg border border-neutral-200 bg-surface px-2 text-xs outline-none focus:border-brand-400"
                   >
-                    {(profiles ?? []).map((p) => (
-                      <option key={p.id} value={p.id}>{p.name}{p.builtIn ? ` (${tr("dashboard.built_in")})` : ""}</option>
-                    ))}
+                    {([["user", tr("editor.profiles_mine")], ["workspace", tr("editor.profiles_workspace")], ["builtin", tr("dashboard.built_in")]] as const).map(([owner, label]) => {
+                      const group = (profiles ?? []).filter((p) => p.owner === owner);
+                      return group.length ? (
+                        <optgroup key={owner} label={label}>
+                          {group.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                        </optgroup>
+                      ) : null;
+                    })}
                   </select>
-                  {profiles !== null && profiles.every((p) => p.builtIn) && (
-                    <span className="mt-1 block text-[11px] leading-snug text-neutral-400">{tr("editor.print_profile_upload_tip")}</span>
-                  )}
+                  <span className="mt-1 flex items-start justify-between gap-2 text-[11px] leading-snug text-neutral-400">
+                    <span>{profiles !== null && profiles.every((p) => p.builtIn) ? tr("editor.print_profile_upload_tip") : null}</span>
+                    <a href={settingsPath("color-profiles")} target="_blank" rel="noreferrer" className="shrink-0 font-medium text-brand-ink hover:underline">{tr("editor.manage_color_profiles")}</a>
+                  </span>
                 </label>
                 <label className="block">
                   <span className="mb-1 block text-xs font-medium text-neutral-500">{tr("editor.rendering_intent")}</span>
@@ -1508,7 +1517,8 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
               cmyk: true,
               pdfx: format === "pdf" && pdfx,
               bleed: format === "pdf" && useSheet.bleed,
-              spots: printExtras?.dieLine ? [printExtras.dieLine.name] : [],
+              // The design's own spot colours, and the die line's.
+              spots: [...spotNamesOf(proofDoc), ...(printExtras?.dieLine ? [printExtras.dieLine.name] : [])],
             }}
             tacLimit={effectiveTac}
             profileId={profileId!}

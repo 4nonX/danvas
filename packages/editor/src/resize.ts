@@ -149,8 +149,9 @@ function reflowText(node: TextNode, factor: number): void {
  * children move with their group (the group is re-placed as a unit).
  */
 export function resizePage(page: Page, target: ResizeTarget): Page {
-  const tW = Math.max(1, Math.round(target.width));
-  const tH = Math.max(1, Math.round(target.height));
+  // Exact: a target given in mm stays that size (no rounding to whole px).
+  const tW = Math.max(1, target.width);
+  const tH = Math.max(1, target.height);
   const sW = Math.max(1, page.width);
   const sH = Math.max(1, page.height);
 

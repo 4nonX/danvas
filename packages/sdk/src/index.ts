@@ -995,10 +995,13 @@ export interface WorkspaceFont {
   createdAt: string;
 }
 
-/** A workspace ICC print profile (CMYK output), without its bytes. */
+/** An ICC print profile (CMYK output), without its bytes: a workspace's
+ *  (admins manage it, every member uses it) or a user's own. */
 export interface PrintProfile {
   id: string;
-  workspaceId: string;
+  /** "workspace", or "user" for a personal profile (no workspaceId). */
+  owner?: "workspace" | "user";
+  workspaceId?: string;
   name: string;
   /** The profile's own name from inside the file. */
   description: string;
@@ -2565,7 +2568,18 @@ export class HyCanvasClient {
     const res = await this.requestRaw("POST", `/v1/workspaces/${workspaceId}/print-profiles${q}`, new Blob([file], { type: "application/vnd.iccprofile" }));
     return (await res.json()) as PrintProfile;
   }
-  /** Rename and/or make the workspace default (admins). */
+  /** The user's own profiles, usable in every workspace. */
+  listMyPrintProfiles(): Promise<PrintProfile[]> {
+    return this.request("GET", `/v1/me/print-profiles`);
+  }
+  /** Upload an .icc file as a personal profile. */
+  async uploadMyPrintProfile(file: Blob, name?: string): Promise<PrintProfile> {
+    const q = name ? `?name=${encodeURIComponent(name)}` : "";
+    const res = await this.requestRaw("POST", `/v1/me/print-profiles${q}`, new Blob([file], { type: "application/vnd.iccprofile" }));
+    return (await res.json()) as PrintProfile;
+  }
+  /** Rename and/or make the default: a workspace's (admins) or a personal
+   *  one (its owner; `isDefault: false` clears a personal default). */
   updatePrintProfile(id: string, patch: { name?: string; isDefault?: boolean }): Promise<void> {
     return this.request("PATCH", `/v1/print-profiles/${id}`, patch);
   }

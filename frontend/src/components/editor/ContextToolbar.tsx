@@ -14,9 +14,10 @@ import type { CharStyle, Color, Fill, Node, ParagraphStyle, Stroke } from "@hc/s
 import { locate } from "@hc/editor";
 import { weightFromFontStyle } from "@hc/engine";
 import { useEditor } from "@/store/editor";
-import { useBrand, colorsLockedFor, fontsLockedFor, brandHexColors, brandFontFamilies } from "@/store/brand";
+import { useBrand, colorsLockedFor, fontsLockedFor, brandHexColors, brandFontFamilies, brandColorOf } from "@/store/brand";
 import { fonts } from "@/lib/fontProvider";
 import { tr } from "@/lib/i18n";
+import { isPhysical, measureUnitOf } from "@/lib/units";
 import { ColorField } from "./ColorField";
 import { selectionColors } from "@/lib/selectionColors";
 import { svgSourceOf } from "@/lib/svgImage";
@@ -76,7 +77,7 @@ function Pop({ label, title, children, width = 240, square, closeOnClick }: { la
 
 /** Number input that commits on Enter/blur (no store write per keystroke). */
 function NumIn({ value, onCommit, min, width = 56, label }: { value: number; onCommit: (n: number) => void; min?: number; width?: number; label: string }) {
-  const [v, setV] = useState(String(value));
+  const [v, setV] = useState(String(Math.round(value * 100) / 100));
   // Follow outside changes to the value (adjusting state during render).
   const [seen, setSeen] = useState(value);
   if (seen !== value) { setSeen(value); setV(String(Math.round(value * 100) / 100)); }
@@ -189,7 +190,7 @@ export function ContextToolbar({ propsOpen, onToggleProps }: { propsOpen: boolea
         {brandSwatches ? (
           <div className="flex flex-wrap gap-1.5">
             {brandSwatches.map((c) => (
-              <button key={c} type="button" title={c} onClick={() => onPick(colorFromHex(c))} className="h-6 w-6 rounded border border-neutral-300" style={{ background: c }} />
+              <button key={c} type="button" title={c} onClick={() => onPick(brandColorOf(brand, c))} className="h-6 w-6 rounded border border-neutral-300" style={{ background: c }} />
             ))}
           </div>
         ) : (
@@ -312,6 +313,10 @@ export function ContextToolbar({ propsOpen, onToggleProps }: { propsOpen: boolea
     };
     const isUpper = (cs as unknown as { case?: string } | null)?.case === "upper";
     const size = cs?.fontSize ?? 16;
+    // Type in a print design (mm, cm, in, pt) is sized in points, as print
+    // software does: 1 pt is dpi/72 design px. A px design keeps px.
+    const ptPerPx = isPhysical(measureUnitOf(doc)) ? 72 / (doc.dpi ?? 96) : 1;
+    const shownSize = size * ptPerPx;
     const lineHeight = typeof cs?.lineHeight === "number" ? cs.lineHeight : 1.2;
     const aligns = [
       { a: "left", I: AlignLeft },
@@ -352,9 +357,9 @@ export function ContextToolbar({ propsOpen, onToggleProps }: { propsOpen: boolea
           )}
         </select>
         <div className="flex shrink-0 items-center rounded-md border border-neutral-200">
-          <button type="button" className={`${ico} h-7`} title={tr("editor.font_size")} aria-label={tr("editor.font_size")} onClick={() => setChar({ fontSize: Math.max(1, Math.round(size) - 1) })}><Minus size={13} /></button>
-          <NumIn value={size} min={1} onCommit={(n) => setChar({ fontSize: n })} label={tr("editor.font_size")} width={40} />
-          <button type="button" className={`${ico} h-7`} title={tr("editor.font_size")} aria-label={tr("editor.font_size")} onClick={() => setChar({ fontSize: Math.round(size) + 1 })}><Plus size={13} /></button>
+          <button type="button" className={`${ico} h-7`} title={tr("editor.font_size")} aria-label={tr("editor.font_size")} onClick={() => setChar({ fontSize: Math.max(1, Math.round(shownSize) - 1) / ptPerPx })}><Minus size={13} /></button>
+          <NumIn value={shownSize} min={ptPerPx === 1 ? 1 : 0.5} onCommit={(n) => setChar({ fontSize: n / ptPerPx })} label={ptPerPx === 1 ? tr("editor.font_size") : tr("editor.font_size_pt")} width={40} />
+          <button type="button" className={`${ico} h-7`} title={tr("editor.font_size")} aria-label={tr("editor.font_size")} onClick={() => setChar({ fontSize: (Math.round(shownSize) + 1) / ptPerPx })}><Plus size={13} /></button>
         </div>
         {colorControl(
           textColor,

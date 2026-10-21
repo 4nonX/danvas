@@ -13,19 +13,21 @@ import { ZoomControl } from "./ZoomControl";
 import { pageAssigneeOf, pageStatusColor, pageStatusLabel, pageStatusOf } from "@/lib/pageStatus";
 import { mirrorInRtl } from "@/lib/locale";
 import { tr } from "@/lib/i18n";
+import { fromUnit } from "@/lib/units";
 
 const THUMB_W = 54;
 const THUMB_H = 34;
 
-// Preset page sizes offered when adding a page (mirrors the Magic Resize presets).
-const pageSizePresets = (): { label: string; w: number; h: number }[] => [
+// Preset page sizes offered when adding a page (mirrors the Magic Resize
+// presets); A4 is the exact paper size at the design's dpi.
+const pageSizePresets = (dpi: number): { label: string; w: number; h: number; mm?: [number, number] }[] => [
   { label: tr("editor.instagram_post"), w: 1080, h: 1080 },
   { label: tr("editor.instagram_story"), w: 1080, h: 1920 },
   { label: tr("editor.presentation_16_9"), w: 1920, h: 1080 },
   { label: tr("editor.facebook_post"), w: 1200, h: 630 },
   { label: tr("editor.poster"), w: 1080, h: 1350 },
-  { label: "A4 Portrait", w: 1240, h: 1754 },
-  { label: "A4 Landscape", w: 1754, h: 1240 },
+  { label: tr("editor.a4_portrait"), w: fromUnit(210, "mm", dpi), h: fromUnit(297, "mm", dpi), mm: [210, 297] },
+  { label: tr("editor.a4_landscape"), w: fromUnit(297, "mm", dpi), h: fromUnit(210, "mm", dpi), mm: [297, 210] },
 ];
 
 
@@ -230,7 +232,7 @@ export function PagesBar() {
           <>
             <div className="fixed inset-0 z-40" onClick={() => setSizeMenu(false)} />
             <div ref={sizeMenuRef} role="menu" aria-label={tr("editor.add_page_with_a_preset_size")} style={{ visibility: "hidden" }} className="fixed z-50 w-48 overflow-hidden rounded-xl border border-neutral-200 bg-surface p-1 shadow-xl">
-              {pageSizePresets().map((p) => (
+              {pageSizePresets(st().doc.dpi ?? 96).map((p) => (
                 <button
                   key={p.label}
                   role="menuitem"
@@ -238,7 +240,7 @@ export function PagesBar() {
                   className="flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-start text-[13px] text-neutral-700 hover:bg-neutral-100"
                 >
                   <span>{p.label}</span>
-                  <span className="text-[11px] tabular-nums text-neutral-400">{p.w}×{p.h}</span>
+                  <span className="text-[11px] tabular-nums text-neutral-400">{p.mm ? `${p.mm[0]} × ${p.mm[1]} mm` : `${p.w}×${p.h}`}</span>
                 </button>
               ))}
             </div>

@@ -25,6 +25,7 @@ import {
 } from "@/lib/textEditModel";
 import { useCallbackRef } from "@/lib/useCallbackRef";
 import { rulerTicks } from "@/lib/rulerTicks";
+import { measureUnitOf, NUDGE_STEPS, fromUnit, shortLength, snapLength, unitRulerTicks } from "@/lib/units";
 import { overlay } from "@/lib/theme.generated";
 import { useEditorCanvas, type CanvasApi } from "@/lib/useEditorCanvas";
 import { useEditor, ocClipPrefix, templateLockBlocking } from "@/store/editor";
@@ -85,7 +86,15 @@ function Ruler({ axis, api, page }: { axis: "x" | "y"; api: CanvasApi; page: { w
   const pointer = useSyncExternalStore(pointerBus.subscribe, pointerBus.get, () => null);
   const zoom = api.viewport().zoom;
   const dim = axis === "x" ? page.width : page.height;
-  const plan = rulerTicks(zoom, dim);
+  // Marks at round values of the design's unit (mm, pt, ...); a px design
+  // keeps its px steps.
+  const { measureUnit, dpi: docDpi } = useEditor.getState().doc;
+  const unit = measureUnitOf({ measureUnit });
+  const dpi = docDpi ?? 96;
+  const plan = unit === "px"
+    ? (() => { const p = rulerTicks(zoom, dim); return { majors: p.majors.map((v) => ({ px: v, value: v })), minors: p.minors }; })()
+    : unitRulerTicks(zoom, dim, unit, dpi);
+  const tickLabel = (v: number) => v.toLocaleString(undefined, { maximumFractionDigits: 2 });
   const along = (p: number) => (axis === "x" ? api.toScreen({ x: p, y: 0 }).x : api.toScreen({ x: 0, y: p }).y) - RULER;
   const ticks: React.ReactElement[] = [];
   for (const p of plan.minors) {
@@ -96,14 +105,14 @@ function Ruler({ axis, api, page }: { axis: "x" | "y"; api: CanvasApi; page: { w
         : <line key={`m${p}`} x1={RULER - 3} y1={s} x2={RULER} y2={s} stroke={overlay.ruler} strokeWidth={1} opacity={0.7} />,
     );
   }
-  for (const p of plan.majors) {
+  for (const { px: p, value } of plan.majors) {
     const s = along(p);
     if (axis === "x") {
       ticks.push(<line key={p} x1={s} y1={RULER - 6} x2={s} y2={RULER} stroke={overlay.ruler} strokeWidth={1} />);
-      ticks.push(<text key={`t${p}`} x={s + 2} y={9} fontSize={8} fill={overlay.ruler}>{Math.round(p)}</text>);
+      ticks.push(<text key={`t${p}`} x={s + 2} y={9} fontSize={8} fill={overlay.ruler}>{tickLabel(value)}</text>);
     } else {
       ticks.push(<line key={p} x1={RULER - 6} y1={s} x2={RULER} y2={s} stroke={overlay.ruler} strokeWidth={1} />);
-      ticks.push(<text key={`t${p}`} x={2} y={s + 3} fontSize={8} fill={overlay.ruler}>{Math.round(p)}</text>);
+      ticks.push(<text key={`t${p}`} x={2} y={s + 3} fontSize={8} fill={overlay.ruler}>{tickLabel(value)}</text>);
     }
   }
   // The selection's extent, so its edges can be read against the scale.
@@ -129,7 +138,7 @@ function Ruler({ axis, api, page }: { axis: "x" | "y"; api: CanvasApi; page: { w
   if (pointer) {
     const v = axis === "x" ? pointer.x : pointer.y;
     const s = along(v);
-    const label = String(Math.round(v));
+    const label = shortLength(v, unit, dpi);
     if (axis === "x") {
       ticks.push(<line key="pt" x1={s} y1={0} x2={s} y2={RULER} stroke={overlay.guideActive} strokeWidth={1} />);
       ticks.push(<rect key="ptb" x={s + 2} y={RULER - 11} width={label.length * 5 + 4} height={10} rx={2} fill={overlay.guideActive} />);
@@ -2576,7 +2585,9 @@ export function Canvas() {
       } else if (e.key.startsWith("Arrow") && store.selection.length) {
         if (!canEdit) return;
         e.preventDefault();
-        const s = e.shiftKey ? 10 : 1;
+        // One step of the design's unit (0.1 mm, 1 px, ...), ten with Shift.
+        const unit = measureUnitOf(store.doc);
+        const s = fromUnit(NUDGE_STEPS[unit][e.shiftKey ? 1 : 0], unit, store.doc.dpi ?? 96);
         const d: Record<string, [number, number]> = { ArrowLeft: [-s, 0], ArrowRight: [s, 0], ArrowUp: [0, -s], ArrowDown: [0, s] };
         const v = d[e.key];
         // Alt+arrow resizes (right/down grow, left/up shrink); plain arrows nudge.
@@ -2712,7 +2723,9 @@ export function Canvas() {
       // A horizontal guide (axis "y") comes from / returns to the TOP ruler; a
       // vertical guide (axis "x") comes from / returns to the LEFT ruler.
       const onRuler = axis === "y" ? lp.y < RULER : lp.x < RULER;
-      const pos = toPos(ev);
+      // A guide lands on the unit's fine step (0.1 mm, a whole px).
+      const { doc: gd } = useEditor.getState();
+      const pos = snapLength(toPos(ev), measureUnitOf(gd), gd.dpi ?? 96);
       const st = useEditor.getState();
       if (index === null) {
         if (!onRuler) st.addGuide(axis, pos); // dropped on canvas -> create
@@ -3024,7 +3037,7 @@ export function Canvas() {
               <line x1={p2.x} y1={p2.y - CAP} x2={p2.x} y2={p2.y + CAP} stroke={overlay.guideConflict} strokeWidth={1} />
             </g>,
           );
-          els.push(pill((p1.x + p2.x) / 2, (p1.y + p2.y) / 2 - 9, String(Math.round(x2 - x1)), key + "l"));
+          els.push(pill((p1.x + p2.x) / 2, (p1.y + p2.y) / 2 - 9, shortLength(x2 - x1, measureUnitOf(doc), doc.dpi ?? 96), key + "l"));
         };
         const vBar = (y1: number, y2: number, xPage: number, key: string) => {
           if (y2 - y1 <= 0.5) return;
@@ -3036,7 +3049,7 @@ export function Canvas() {
               <line x1={p2.x - CAP} y1={p2.y} x2={p2.x + CAP} y2={p2.y} stroke={overlay.guideConflict} strokeWidth={1} />
             </g>,
           );
-          els.push(pill((p1.x + p2.x) / 2 + 12, (p1.y + p2.y) / 2, String(Math.round(y2 - y1)), key + "l"));
+          els.push(pill((p1.x + p2.x) / 2 + 12, (p1.y + p2.y) / 2, shortLength(y2 - y1, measureUnitOf(doc), doc.dpi ?? 96), key + "l"));
         };
         const target = hoverId && !selection.includes(hoverId) ? hoverId : null;
         if (target) {
@@ -3116,7 +3129,8 @@ export function Canvas() {
         const CAP = 4; // end-tick half length in screen px
         const els: React.ReactElement[] = [];
         spacingGuides.forEach((sg, gi) => {
-          const text = String(Math.round(sg.gap));
+          const { doc: sd } = useEditor.getState();
+          const text = shortLength(sg.gap, measureUnitOf(sd), sd.dpi ?? 96);
           const lw = text.length * 6.2 + 8;
           sg.segments.forEach((seg, si) => {
             const key = `sp${gi}-${si}`;

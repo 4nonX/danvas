@@ -109,6 +109,35 @@ The model works on a 1024 pixel copy of the photo. Its edge is then fitted to th
 - Group color swatches recolor every use of a color inside a group or selection at once.
 - Copy and paste style works on groups and carries text colors.
 
+### Units and exact sizes
+
+Every design has a measurement unit: millimetres, centimetres, inches, points or pixels. Set it in the page panel (**Unit**, with no element selected); a new design made from a print format or with a custom size in mm starts in mm.
+
+- Page size, position and size of elements, corner radius, paragraph spacing and indents, shadow offsets, the rulers, guides, distance labels and the live size while dragging all use it. Type another unit to use it once: `10mm`, `1in`, `72pt`, `2 cm`; arithmetic works as before (`+5`, `*2`, `210/3`).
+- Values are kept exactly, not rounded to whole pixels: a page of 50 x 100 mm is exactly that in every export (vector PDF and EPS state it to the hundredth of a millimetre).
+- In a design in mm, cm, in or pt, type is sized in points and line widths are shown in points, as print software does. Arrow keys move by 0.1 mm (Shift: 1 mm), or 1 px in a pixel design.
+- The page size list has the print formats (A3 to A6, DIN long, US Letter, business card) in exact millimetres, as do Magic Resize and **Add page**.
+
+### Exact print colors
+
+Every color picker has **Print color** below the color fields:
+
+- **Automatic** (the default): the color is converted to CMYK through the color profile chosen for the export, as before.
+- **CMYK**: the four values are entered and printed exactly as given, for example C73 M25 Y7 K0 for a house color; no profile changes them.
+- **Spot color**: a named ink with a plate of its own (HKS, Pantone, white ink, varnish, as the print shop calls it), with CMYK values for how it looks and what prints when the plate is not used.
+
+The values go into vector PDF and EPS unchanged: CMYK as the process values, a spot color as its own separation; a gradient between such colors blends in CMYK. On screen they are shown through the design's color profile (see below). Changing the opacity keeps the print color; picking another shade turns it back into an automatic one. Brand colors keep their print values when applied, and adding a color from the selection to the brand kit takes them along, so a house color set up once prints the same everywhere. Raster formats (image PDF, TIFF), effects (shadows, glows) and text without a font file for outlining are pictures and go through the profile. The download menu's output check expects the design's spot colors as plates.
+
+### Color profiles
+
+ICC profiles describe how CMYK prints on a paper and press. There are three kinds:
+
+- **Built in**: PSO Uncoated ISO12647 (FOGRA47), always available.
+- **The workspace's**: uploaded by its admins under **Members**, **Print profiles**, for every member.
+- **Your own**: under **Settings**, **Color profiles**, anyone uploads the profile a print shop sent them (for example PSO Coated v3); only they see it, in every workspace. Rename, make default, remove the default again, or delete it there.
+
+Which one applies: the profile chosen in the download menu; it starts with the design's color profile (page panel, **Color profile of the design**; **Default** follows your default, else the workspace's, else the built-in one). The design's profile also decides how exact CMYK and spot colors look on screen; changing it shows them anew (one undo step), their print values stay. The download menu and the page panel list your profiles, the workspace's and the built-in one, with **Manage** leading to the settings.
+
 ## Brand kits and fonts
 
 - **Workspace fonts**: under **Members**, **Upload fonts** adds font files to the workspace once. They then appear in every font picker and are embedded in vector exports.
@@ -122,7 +151,7 @@ All of these are drawn by the same engine as the editor, so they match what you 
 
 - **SVG** and **vector PDF**.
 - **Accessible PDF (tagged)**: the vector PDF plus a structure tree in reading order, alt text, and an invisible real-text layer.
-- **Print**: vector PDF, image PDF, TIFF and EPS (PostScript Level 3), each in CMYK through an ICC color profile or in RGB. For CMYK, choose a color profile and a rendering intent; workspace admins upload their own printing profiles under **Members**, **Print profiles** (**Upload .icc profile**).
+- **Print**: vector PDF, image PDF, TIFF and EPS (PostScript Level 3), each in CMYK through an ICC color profile or in RGB. For CMYK, choose a color profile and a rendering intent: your own, the workspace's or the built-in one (see [Color profiles](#color-profiles)). Colors set as exact CMYK or spot colors are written as given ([Exact print colors](#exact-print-colors)).
 - **danvas file (.hyc)**: the design itself in the open file format, all pages, for keeping, for another instance or to import again. Also in the editor's **File** menu.
 
 The download menu checks what the chosen format would lose before the file is made, and lists it with the page and element: a font that is unknown here or did not load (a fallback font draws the text), an image that did not load, for the vector formats a font with no file to outline the text from (the text becomes a picture in the file), and for PDF, TIFF and EPS an image placed at under 150 dpi, lines thinner than 0.25 pt, text under 8 pt printed in several inks (in CMYK), and artwork or a coloured page background reaching the edge of a page exported without bleed. It never blocks the download.

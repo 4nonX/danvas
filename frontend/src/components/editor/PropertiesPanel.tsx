@@ -37,7 +37,7 @@ import { AddEffectRow, EffectStack } from "./EffectStack";
 import { useEditor } from "@/store/editor";
 import { BuildOrderSection } from "./BuildOrderSection";
 import { usePresence } from "@/store/presence";
-import { useBrand, colorsLockedFor, brandHexColors, brandFontFamilies } from "@/store/brand";
+import { useBrand, colorsLockedFor, brandHexColors, brandFontFamilies, brandColorOf } from "@/store/brand";
 import { lockSelection, unlockSelection } from "@/lib/useRealtime";
 import { CollapsibleSection } from "./EditorPanels";
 import { ColorField } from "./ColorField";
@@ -48,6 +48,11 @@ import { MagicResizeButton } from "./MagicResizeDialog";
 import { TYPE_ICON, layerLabel } from "./LayerPanel";
 import { useToast } from "@/components/ui/Toast";
 import { tr } from "@/lib/i18n";
+import { fromUnit, MEASURE_UNITS, measureUnitOf, parseLength, strokeUnitOf, unitInputText, type MeasureUnit } from "@/lib/units";
+import { PRINT_FORMATS } from "@/lib/printFormats";
+import { designProfileId, listProfileOptions, type ProfileOption } from "@/lib/print/profiles";
+import { cmykToScreen, setScreenProofProfile } from "@/lib/print/printColor";
+import { settingsPath } from "@/components/settings/tabs";
 import { userMessage } from "@/lib/errors";
 
 type IconType = ComponentType<{ size?: number | string; strokeWidth?: number; className?: string }>;
@@ -348,18 +353,26 @@ const BLEND_MODES: BlendMode[] = [
 
 // Uncontrolled: keyed by `value` at the call site so it resets when the value
 // changes externally (commit/undo) but keeps local text while the user types.
+// `kind` "length" shows and takes the value in the design's unit (mm, pt, ...;
+// "10mm" or "1in" name another), "line" a line width (pt in a print design);
+// the committed value is always design px, exact.
 function Field({
   label,
   value,
   onCommit,
+  kind,
 }: {
   label: string;
   value: number;
   onCommit: (n: number) => void;
+  kind?: "length" | "line";
 }) {
-  const initial = String(Math.round(value * 100) / 100);
+  const doc = useEditor.getState().doc;
+  const unit: MeasureUnit | null = kind === "length" ? measureUnitOf(doc) : kind === "line" ? strokeUnitOf(measureUnitOf(doc)) : null;
+  const dpi = doc.dpi ?? 96;
+  const initial = unit ? unitInputText(value, unit, dpi) : String(Math.round(value * 100) / 100);
   const commit = (el: HTMLInputElement) => {
-    const n = evalExpression(el.value, value);
+    const n = unit ? parseLength(el.value, unit, dpi, value) : evalExpression(el.value, value);
     if (n === null) el.value = initial;
     else onCommit(n);
   };
@@ -374,9 +387,61 @@ function Field({
         }}
         className="w-full min-w-0 bg-transparent text-neutral-800 outline-none"
       />
+      {unit && unit !== "px" && <span className="shrink-0 text-[11px] text-neutral-400">{unit}</span>}
     </label>
   );
 }
+
+/** The design's colour profile (DesignFile `colorProfile`): the print
+ *  profile exact CMYK and spot colours are shown through on screen, and the
+ *  one the download menu starts with. "Default" follows the user's or the
+ *  workspace's default. Changing it shows those colours anew (one undo). */
+function DesignColorProfile() {
+  const doc = useEditor((s) => s.doc);
+  useEditor((s) => s.rev);
+  const workspaceId = useBrand((s) => s.workspaceId);
+  const [options, setOptions] = useState<ProfileOption[] | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    void listProfileOptions(workspaceId).then((l) => { if (!cancelled) setOptions(l); });
+    return () => { cancelled = true; };
+  }, [workspaceId]);
+  if (!options) return null;
+  const fallback = options.find((o) => o.isDefault);
+  const value = doc.colorProfile && options.some((o) => o.id === doc.colorProfile) ? doc.colorProfile : "";
+  const choose = async (id: string) => {
+    await setScreenProofProfile(designProfileId(options, id || undefined));
+    useEditor.getState().setColorProfile(id || undefined, cmykToScreen);
+  };
+  return (
+    <label className="block">
+      <span className="mb-1 flex items-center justify-between gap-2 text-xs text-neutral-500">
+        <span>{tr("editor.design_color_profile")}</span>
+        <a href={settingsPath("color-profiles")} target="_blank" rel="noreferrer" className="font-medium text-brand-ink hover:underline">{tr("editor.manage_color_profiles")}</a>
+      </span>
+      <select
+        value={value}
+        onChange={(e) => void choose(e.target.value)}
+        className="w-full rounded-lg border border-neutral-200 bg-surface px-2 py-1.5 text-xs text-neutral-800 outline-none focus:border-brand-400"
+      >
+        <option value="">{tr("editor.design_color_profile_default", { name: fallback?.name ?? "" })}</option>
+        {([["user", tr("editor.profiles_mine")], ["workspace", tr("editor.profiles_workspace")], ["builtin", tr("dashboard.built_in")]] as const).map(([owner, label]) => {
+          const group = options.filter((o) => o.owner === owner);
+          return group.length ? (
+            <optgroup key={owner} label={label}>
+              {group.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+            </optgroup>
+          ) : null;
+        })}
+      </select>
+      <span className="mt-1 block text-[11px] leading-snug text-neutral-400">{tr("editor.design_color_profile_hint")}</span>
+    </label>
+  );
+}
+
+/** A unit's name for the unit picker. */
+const unitLabel = (u: MeasureUnit): string =>
+  ({ mm: tr("editor.unit_mm"), cm: tr("editor.unit_cm"), in: tr("editor.unit_in"), pt: tr("editor.unit_pt"), px: tr("editor.unit_px") })[u];
 
 const PAGE_PRESETS: { label: string; w: number; h: number }[] = [
   { label: "Instagram Post (1080×1080)", w: 1080, h: 1080 },
@@ -453,7 +518,7 @@ function GradientEditor({ g, onChange }: { g: GradientFill; onChange: (patch: Pa
       <div className="flex flex-col gap-1">
         {g.stops.map((s, i) => (
           <div key={i} className="flex items-center gap-1.5">
-            <div className="h-7 w-8 shrink-0 [&_.oc-color-trigger]:h-full"><ColorField value={colorFromHex(colorHex(s.color))} onChange={(c) => setStop(i, { color: { srgb: { ...colorFromHex(colorHex(c)).srgb, a: s.color.srgb.a ?? 1 } } })} title={tr("editor.stop_color")} allowAlpha={false} /></div>
+            <div className="h-7 w-8 shrink-0 [&_.oc-color-trigger]:h-full"><ColorField value={{ ...s.color, srgb: { ...s.color.srgb, a: 1 } }} onChange={(c) => setStop(i, { color: { ...c, srgb: { ...c.srgb, a: s.color.srgb.a ?? 1 } } })} title={tr("editor.stop_color")} allowAlpha={false} /></div>
             <input type="range" min={0} max={100} value={Math.round(s.position * 100)} aria-label={tr("editor.position")} onChange={(e) => setStop(i, { position: Number(e.target.value) / 100 })} className="flex-1" title={`Position ${Math.round(s.position * 100)}%`} />
             <input type="range" min={0} max={100} value={Math.round((s.color.srgb.a ?? 1) * 100)} aria-label={tr("editor.opacity")} onChange={(e) => setStop(i, { color: { srgb: { ...s.color.srgb, a: Number(e.target.value) / 100 } } })} className="w-12 shrink-0 accent-neutral-400" title={`Opacity ${Math.round((s.color.srgb.a ?? 1) * 100)}%`} />
             <button onClick={() => removeStop(i)} disabled={g.stops.length <= 2} className="text-neutral-300 hover:text-red-600 disabled:opacity-30" title={tr("editor.remove_stop")}>×</button>
@@ -619,27 +684,54 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
   if (selection.length === 0) {
     const page = doc.pages[Math.min(activePage, doc.pages.length - 1)];
     const st = useEditor.getState();
-    const cur = `${Math.round(page.width)}x${Math.round(page.height)}`;
+    const dpi = doc.dpi ?? 96;
+    const unit = measureUnitOf(doc);
+    // Screen formats in px, print formats in mm (exact at the design's dpi).
+    // A page matches a format within 0.01 px either way round.
+    const near = (a: number, b: number) => Math.abs(a - b) < 0.01;
+    const formats = [
+      ...PAGE_PRESETS.map((p) => ({ id: `px:${p.w}x${p.h}`, label: p.label, w: p.w, h: p.h, print: false })),
+      ...PRINT_FORMATS.map((f) => ({ id: `mm:${f.id}`, label: `${f.label()} (${f.mm[0].toLocaleString()} × ${f.mm[1].toLocaleString()} mm)`, w: fromUnit(f.mm[0], "mm", dpi), h: fromUnit(f.mm[1], "mm", dpi), print: true })),
+    ];
+    const match = formats.find((f) => near(f.w, page.width) && near(f.h, page.height))
+      ?? formats.find((f) => f.print && near(f.h, page.width) && near(f.w, page.height));
+    const landscape = !!match && !near(match.w, page.width);
     return (
       <Wrap>
         <Section title={tr("editor.page_size")}>
           <select aria-label={tr("editor.page_size")}
-            value={PAGE_PRESETS.some((p) => `${p.w}x${p.h}` === cur) ? cur : "custom"}
+            value={match ? match.id : "custom"}
             onChange={(e) => {
-              const p = PAGE_PRESETS.find((x) => `${x.w}x${x.h}` === e.target.value);
-              if (p) st.setPageSize(p.w, p.h);
+              const f = formats.find((x) => x.id === e.target.value);
+              if (f) st.setPageSize(landscape ? f.h : f.w, landscape ? f.w : f.h);
             }}
             className="w-full rounded-lg border border-neutral-200 bg-surface px-2 py-1.5 text-sm outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
           >
-            {!PAGE_PRESETS.some((p) => `${p.w}x${p.h}` === cur) && <option value="custom">Custom ({cur})</option>}
-            {PAGE_PRESETS.map((p) => <option key={p.label} value={`${p.w}x${p.h}`}>{p.label}</option>)}
+            {!match && <option value="custom">{tr("editor.page_size_custom", { size: `${unitInputText(page.width, unit, dpi)} × ${unitInputText(page.height, unit, dpi)} ${unit}` })}</option>}
+            <optgroup label={tr("editor.page_formats_screen")}>
+              {formats.filter((f) => !f.print).map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
+            </optgroup>
+            <optgroup label={tr("editor.page_formats_print")}>
+              {formats.filter((f) => f.print).map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
+            </optgroup>
           </select>
           <div className="grid grid-cols-2 gap-2">
-            <Field key={`pw${page.width}`} label="W" value={Math.round(page.width)} onCommit={(n) => st.setPageSize(n, page.height)} />
-            <Field key={`ph${page.height}`} label="H" value={Math.round(page.height)} onCommit={(n) => st.setPageSize(page.width, n)} />
+            <Field key={`pw${page.width}`} kind="length" label="W" value={page.width} onCommit={(n) => st.setPageSize(n, page.height)} />
+            <Field key={`ph${page.height}`} kind="length" label="H" value={page.height} onCommit={(n) => st.setPageSize(page.width, n)} />
           </div>
-          <p className="text-[11px] text-neutral-400">Resize the current page. Units: {doc.unit}.</p>
+          <label className="flex items-center justify-between gap-2 text-xs text-neutral-500">
+            <span>{tr("editor.measure_unit")}</span>
+            <select
+              value={unit}
+              onChange={(e) => st.setMeasureUnit(e.target.value)}
+              className="rounded-md border border-neutral-200 bg-surface px-1.5 py-1 text-xs text-neutral-800 outline-none focus:border-brand-400"
+            >
+              {MEASURE_UNITS.map((u) => <option key={u} value={u}>{unitLabel(u)}</option>)}
+            </select>
+          </label>
+          <p className="text-[11px] leading-snug text-neutral-400">{tr("editor.measure_unit_hint")}</p>
           <MagicResizeButton />
+          <DesignColorProfile />
         </Section>
         {(() => {
           // Slide layouts (doc 28 FR-3/FR-4): link this page to a reusable
@@ -696,7 +788,7 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
                   <BrandLockHint />
                   <div className="flex flex-wrap gap-1.5">
                     {brandSwatches.map((c) => (
-                      <Swatch key={c} color={c} onClick={() => st.setPageBackground(solidFromHex(c))} />
+                      <Swatch key={c} color={c} onClick={() => st.setPageBackground({ type: "solid", color: brandColorOf(brand, c) })} />
                     ))}
                     <button onClick={() => st.setPageBackground(undefined)} title={tr("editor.no_background_transparent")} className="rounded-lg border border-neutral-200 px-2.5 py-1.5 text-xs font-medium text-neutral-500 transition hover:bg-neutral-100">{tr("editor.none")}</button>
                   </div>
@@ -704,12 +796,12 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
               ) : (
                 <>
                   <div className="flex items-center gap-2">
-                    <div className="h-8 flex-1 [&_.oc-color-trigger]:h-full"><ColorField value={colorFromHex(bgHex)} onChange={(c) => st.setPageBackground(solidFromHex(colorHex(c)))} title={tr("editor.background_color")} allowAlpha={false} /></div>
+                    <div className="h-8 flex-1 [&_.oc-color-trigger]:h-full"><ColorField value={bg?.type === "solid" ? { ...bg.color, srgb: { ...bg.color.srgb, a: 1 } } : colorFromHex(bgHex)} onChange={(c) => st.setPageBackground({ type: "solid", color: { ...c, srgb: { ...c.srgb, a: 1 } } })} title={tr("editor.background_color")} allowAlpha={false} /></div>
                     <button onClick={() => st.setPageBackground(undefined)} title={tr("editor.no_background_transparent")} className="rounded-lg border border-neutral-200 px-2.5 py-1.5 text-xs font-medium text-neutral-500 transition hover:bg-neutral-100">{tr("editor.none")}</button>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {PALETTE.map((c) => (
-                      <Swatch key={c} color={c} onClick={() => st.setPageBackground(solidFromHex(c))} />
+                      <Swatch key={c} color={c} onClick={() => st.setPageBackground({ type: "solid", color: brandColorOf(brand, c) })} />
                     ))}
                   </div>
                 </>
@@ -892,10 +984,10 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
         return (
           <Section title={tr("editor.size_position")} order={ORDER.position} dim={locked}>
             <div className="grid grid-cols-2 gap-1.5">
-              <Field key={`x${single.node.transform.x}`} label="X" value={single.node.transform.x} onCommit={(n) => commitGeo({ x: n })} />
-              <Field key={`y${single.node.transform.y}`} label="Y" value={single.node.transform.y} onCommit={(n) => commitGeo({ y: n })} />
-              <Field key={`w${single.node.size.width}`} label="W" value={single.node.size.width} onCommit={(n) => commitGeo({ w: n })} />
-              <Field key={`h${single.node.size.height}`} label="H" value={single.node.size.height} onCommit={(n) => commitGeo({ h: n })} />
+              <Field key={`x${single.node.transform.x}`} kind="length" label="X" value={single.node.transform.x} onCommit={(n) => commitGeo({ x: n })} />
+              <Field key={`y${single.node.transform.y}`} kind="length" label="Y" value={single.node.transform.y} onCommit={(n) => commitGeo({ y: n })} />
+              <Field key={`w${single.node.size.width}`} kind="length" label="W" value={single.node.size.width} onCommit={(n) => commitGeo({ w: n })} />
+              <Field key={`h${single.node.size.height}`} kind="length" label="H" value={single.node.size.height} onCommit={(n) => commitGeo({ h: n })} />
               <Field key={`r${single.node.transform.rotation}`} label="∠" value={single.node.transform.rotation} onCommit={(n) => commitGeo({ rotation: n })} />
               <div className="flex items-center gap-1.5 ps-1" title={tr("editor.rotate_around")}>
                 <div className="grid grid-cols-3 gap-0.5 rounded-md border border-neutral-200 p-0.5">
@@ -1038,7 +1130,7 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
                 <BrandLockHint />
                 <div className="flex flex-wrap gap-1.5">
                   {brandSwatches.map((c) => (
-                    <Swatch key={c} color={c} onClick={() => applySolid(c)} />
+                    <Swatch key={c} color={c} onClick={() => { rememberColor(c); applyFills([{ type: "solid", color: brandColorOf(brand, c) }]); }} />
                   ))}
                 </div>
               </>
@@ -1276,10 +1368,10 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
                     <BrandLockHint />
                     <div className="flex flex-wrap gap-1.5">
                       {brandSwatches.map((c) => (
-                        <Swatch key={c} color={c} onClick={() => applyStroke({ ...stroke, fill: solidFromHex(c) })} />
+                        <Swatch key={c} color={c} onClick={() => applyStroke({ ...stroke, fill: { type: "solid", color: brandColorOf(brand, c) } })} />
                       ))}
                     </div>
-                    <Field key={`sw${stroke.width}`} label="W" value={stroke.width} onCommit={(n) => applyStroke({ ...stroke, width: Math.max(0, n) })} />
+                    <Field key={`sw${stroke.width}`} kind="line" label="W" value={stroke.width} onCommit={(n) => applyStroke({ ...stroke, width: Math.max(0, n) })} />
                   </>
                 ) : (
                   <div className="flex flex-col gap-2">
@@ -1297,7 +1389,7 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
                           />
                         </div>
                       )}
-                      <div className="flex-1"><Field key={`sw${stroke.width}`} label="W" value={stroke.width} onCommit={(n) => applyStroke({ ...stroke, width: Math.max(0, n) })} /></div>
+                      <div className="flex-1"><Field key={`sw${stroke.width}`} kind="line" label="W" value={stroke.width} onCommit={(n) => applyStroke({ ...stroke, width: Math.max(0, n) })} /></div>
                     </div>
                     <label className="flex items-center justify-between text-xs text-neutral-500">
                       <span>{tr("editor.gradient_border")}</span>
@@ -1353,7 +1445,7 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
               if (!crRep) return null;
               const cur = (crRep as unknown as { cornerRadius?: { topLeft: number } }).cornerRadius?.topLeft ?? 0;
               return (
-                <Field key={`cr${cur}`} label={tr("editor.radius")} value={cur} onCommit={(n) => (single ? st.setCornerRadius(crRep.id, n) : st.setCornerRadiusSel(n))} />
+                <Field key={`cr${cur}`} kind="length" label={tr("editor.radius")} value={cur} onCommit={(n) => (single ? st.setCornerRadius(crRep.id, n) : st.setCornerRadiusSel(n))} />
               );
             })()}
             {/* Single node: full effects control (presets + shadow/outline/glow,
@@ -1486,7 +1578,7 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
                     <>
                       <div className="flex items-center gap-2">
                         <span className="w-12 shrink-0 text-[11px] text-neutral-400">{tr("editor.color")}</span>
-                        <div className="h-8 w-9 shrink-0 [&_.oc-color-trigger]:h-full"><ColorField value={colorFromHex(hlColor ? colorHex(hlColor) : "#fde047")} onChange={(c) => setBg(colorFromHex(colorHex(c)))} title={tr("editor.background_color")} allowAlpha={false} /></div>
+                        <div className="h-8 w-9 shrink-0 [&_.oc-color-trigger]:h-full"><ColorField value={hlColor ? { ...hlColor, srgb: { ...hlColor.srgb, a: 1 } } : colorFromHex("#fde047")} onChange={(c) => setBg({ ...c, srgb: { ...c.srgb, a: 1 } })} title={tr("editor.background_color")} allowAlpha={false} /></div>
                       </div>
                       <TextHighlightLevels id={id} hl={hl} />
                     </>
@@ -1502,10 +1594,10 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
             </div>
             {/* Paragraph spacing and indents (engine lays these out per paragraph). */}
             <div className="grid grid-cols-2 gap-2">
-              <Field key={`sb${ps?.spaceBefore ?? 0}`} label={tr("editor.before")} value={ps?.spaceBefore ?? 0} onCommit={(n) => setPara({ spaceBefore: Math.max(0, n) || undefined })} />
-              <Field key={`sa${ps?.spaceAfter ?? 0}`} label={tr("editor.after")} value={ps?.spaceAfter ?? 0} onCommit={(n) => setPara({ spaceAfter: Math.max(0, n) || undefined })} />
-              <Field key={`in${ps?.indentStart ?? 0}`} label={tr("editor.indent")} value={ps?.indentStart ?? 0} onCommit={(n) => setPara({ indentStart: Math.max(0, n) || undefined })} />
-              <Field key={`fi${ps?.firstLineIndent ?? 0}`} label={tr("editor.1st_line")} value={ps?.firstLineIndent ?? 0} onCommit={(n) => setPara({ firstLineIndent: n || undefined })} />
+              <Field key={`sb${ps?.spaceBefore ?? 0}`} kind="length" label={tr("editor.before")} value={ps?.spaceBefore ?? 0} onCommit={(n) => setPara({ spaceBefore: Math.max(0, n) || undefined })} />
+              <Field key={`sa${ps?.spaceAfter ?? 0}`} kind="length" label={tr("editor.after")} value={ps?.spaceAfter ?? 0} onCommit={(n) => setPara({ spaceAfter: Math.max(0, n) || undefined })} />
+              <Field key={`in${ps?.indentStart ?? 0}`} kind="length" label={tr("editor.indent")} value={ps?.indentStart ?? 0} onCommit={(n) => setPara({ indentStart: Math.max(0, n) || undefined })} />
+              <Field key={`fi${ps?.firstLineIndent ?? 0}`} kind="length" label={tr("editor.1st_line")} value={ps?.firstLineIndent ?? 0} onCommit={(n) => setPara({ firstLineIndent: n || undefined })} />
             </div>
             {/* Lists */}
             <div className="flex flex-wrap items-center gap-1">
@@ -1730,7 +1822,7 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
                   masonry hides the control rather than leaving a dead one. */}
               {!g.masonry && <Field key={`gr-${g.rows}`} label={tr("editor.rows")} value={g.rows} onCommit={(n) => set({ rows: Math.max(1, Math.min(6, Math.round(n))) })} />}
               <Field key={`gc-${g.cols}`} label={g.masonry ? tr("editor.columns") : tr("editor.cols")} value={g.cols} onCommit={(n) => set({ cols: Math.max(1, Math.min(6, Math.round(n))) })} />
-              <Field key={`gg-${g.gap}`} label={tr("editor.gap")} value={g.gap} onCommit={(n) => set({ gap: Math.max(0, n) })} />
+              <Field key={`gg-${g.gap}`} kind="length" label={tr("editor.gap")} value={g.gap} onCommit={(n) => set({ gap: Math.max(0, n) })} />
             </div>
             {g.masonry && <p className="text-[11px] text-neutral-400">{tr("editor.masonry_hint")}</p>}
             {!g.masonry && axis(tr("editor.column_sizes"), "colWidths", g.cols)}
@@ -1878,9 +1970,9 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
             {header.enabled && (
               <div className="flex items-center gap-2 text-[11px] text-neutral-500">
                 <span>{tr("editor.fill")}</span>
-                <div className="h-7 w-8 shrink-0 [&_.oc-color-trigger]:h-full"><ColorField value={colorFromHex(header.fill && header.fill.type === "solid" ? colorHex(header.fill.color) : "#f4f4f5")} onChange={(c) => st.setTableStyle(id, { headerStyle: { ...header, enabled: true, fill: solidFromHex(colorHex(c)) } })} title={tr("editor.header_fill_color")} allowAlpha={false} /></div>
+                <div className="h-7 w-8 shrink-0 [&_.oc-color-trigger]:h-full"><ColorField value={header.fill && header.fill.type === "solid" ? header.fill.color : colorFromHex("#f4f4f5")} onChange={(c) => st.setTableStyle(id, { headerStyle: { ...header, enabled: true, fill: { type: "solid", color: c } } })} title={tr("editor.header_fill_color")} allowAlpha={false} /></div>
                 <span>{tr("editor.text")}</span>
-                <div className="h-7 w-8 shrink-0 [&_.oc-color-trigger]:h-full"><ColorField value={colorFromHex(header.textColor ? colorHex(header.textColor) : "#18181b")} onChange={(c) => st.setTableStyle(id, { headerStyle: { ...header, enabled: true, textColor: colorFromHex(colorHex(c)) } })} title={tr("editor.header_text_color")} allowAlpha={false} /></div>
+                <div className="h-7 w-8 shrink-0 [&_.oc-color-trigger]:h-full"><ColorField value={header.textColor ?? colorFromHex("#18181b")} onChange={(c) => st.setTableStyle(id, { headerStyle: { ...header, enabled: true, textColor: c } })} title={tr("editor.header_text_color")} allowAlpha={false} /></div>
               </div>
             )}
 
@@ -1892,7 +1984,7 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
             {border.show && (
               <div className="flex items-center gap-2 text-[11px] text-neutral-500">
                 <span>{tr("editor.color")}</span>
-                <div className="h-7 w-8 shrink-0 [&_.oc-color-trigger]:h-full"><ColorField value={colorFromHex(border.color ? colorHex(border.color) : "#d4d4d8")} onChange={(c) => st.setTableStyle(id, { borderStyle: { ...border, show: true, color: colorFromHex(colorHex(c)) } })} title={tr("editor.border_color")} allowAlpha={false} /></div>
+                <div className="h-7 w-8 shrink-0 [&_.oc-color-trigger]:h-full"><ColorField value={border.color ?? colorFromHex("#d4d4d8")} onChange={(c) => st.setTableStyle(id, { borderStyle: { ...border, show: true, color: c } })} title={tr("editor.border_color")} allowAlpha={false} /></div>
                 <span>{tr("editor.width")}</span>
                 <input type="number" min={0} max={8} step={0.5} value={border.width ?? 1} onChange={(e) => st.setTableStyle(id, { borderStyle: { ...border, show: true, width: Math.max(0, Number(e.target.value)) } })} className={`${inputCls} w-16`} />
               </div>
@@ -1913,9 +2005,9 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
             </div>
             <div className="flex items-center gap-2 text-[11px] text-neutral-500">
               <span>{tr("editor.fill")}</span>
-              <div className="h-7 w-8 shrink-0 [&_.oc-color-trigger]:h-full"><ColorField value={colorFromHex(selCell?.fill && selCell.fill.type === "solid" ? colorHex(selCell.fill.color) : "#ffffff")} onChange={(c) => st.setTableCellStyle(id, sel.row, sel.col, { fill: solidFromHex(colorHex(c)) })} title={tr("editor.cell_fill")} allowAlpha={false} /></div>
+              <div className="h-7 w-8 shrink-0 [&_.oc-color-trigger]:h-full"><ColorField value={selCell?.fill && selCell.fill.type === "solid" ? selCell.fill.color : colorFromHex("#ffffff")} onChange={(c) => st.setTableCellStyle(id, sel.row, sel.col, { fill: { type: "solid", color: c } })} title={tr("editor.cell_fill")} allowAlpha={false} /></div>
               <span>{tr("editor.text")}</span>
-              <div className="h-7 w-8 shrink-0 [&_.oc-color-trigger]:h-full"><ColorField value={colorFromHex(selCell?.textColor ? colorHex(selCell.textColor) : "#18181b")} onChange={(c) => st.setTableCellStyle(id, sel.row, sel.col, { textColor: colorFromHex(colorHex(c)) })} title={tr("editor.cell_text_color")} allowAlpha={false} /></div>
+              <div className="h-7 w-8 shrink-0 [&_.oc-color-trigger]:h-full"><ColorField value={selCell?.textColor ?? colorFromHex("#18181b")} onChange={(c) => st.setTableCellStyle(id, sel.row, sel.col, { textColor: c })} title={tr("editor.cell_text_color")} allowAlpha={false} /></div>
             </div>
             {/* Merge / split the selected cell (engine renders row/col spans). */}
             <div className="flex flex-wrap gap-1.5">
@@ -2055,14 +2147,14 @@ function KeyframeEditor({ node }: { node: Node }) {
       <div className="grid grid-cols-2 gap-1.5">
         <Field key={`dur${track.durationMs}`} label={tr("editor.dur")} value={track.durationMs} onCommit={(n) => set({ ...track, durationMs: Math.max(1, n) })} />
         <Field key={`t${curIdx}-${cur.t}`} label={tr("editor.t_ms")} value={cur.t} onCommit={(n) => upd({ t: Math.max(0, Math.min(track.durationMs, n)) })} />
-        <Field key={`dx${curIdx}-${cur.dx}`} label={tr("editor.dx")} value={cur.dx ?? 0} onCommit={(n) => upd({ dx: n })} />
-        <Field key={`dy${curIdx}-${cur.dy}`} label={tr("editor.dy")} value={cur.dy ?? 0} onCommit={(n) => upd({ dy: n })} />
+        <Field key={`dx${curIdx}-${cur.dx}`} kind="length" label={tr("editor.dx")} value={cur.dx ?? 0} onCommit={(n) => upd({ dx: n })} />
+        <Field key={`dy${curIdx}-${cur.dy}`} kind="length" label={tr("editor.dy")} value={cur.dy ?? 0} onCommit={(n) => upd({ dy: n })} />
         <Field key={`sc${curIdx}-${cur.scale}`} label={tr("editor.scale")} value={cur.scale ?? 1} onCommit={(n) => upd({ scale: n })} />
         <Field key={`rot${curIdx}-${cur.rotate}`} label={tr("editor.rotate")} value={cur.rotate ?? 0} onCommit={(n) => upd({ rotate: n })} />
         <Field key={`op${curIdx}-${cur.opacity}`} label={tr("editor.opacity_2")} value={cur.opacity ?? 1} onCommit={(n) => upd({ opacity: Math.max(0, Math.min(1, n)) })} />
         {/* v23 size channels: absolute px, 0 clears the override. */}
-        <Field key={`w${curIdx}-${cur.width}`} label={tr("editor.w")} value={cur.width ?? 0} onCommit={(n) => upd({ width: n > 0 ? n : undefined })} />
-        <Field key={`h${curIdx}-${cur.height}`} label={tr("editor.h")} value={cur.height ?? 0} onCommit={(n) => upd({ height: n > 0 ? n : undefined })} />
+        <Field key={`w${curIdx}-${cur.width}`} kind="length" label={tr("editor.w")} value={cur.width ?? 0} onCommit={(n) => upd({ width: n > 0 ? n : undefined })} />
+        <Field key={`h${curIdx}-${cur.height}`} kind="length" label={tr("editor.h")} value={cur.height ?? 0} onCommit={(n) => upd({ height: n > 0 ? n : undefined })} />
       </div>
       {/* v23 color channel: an absolute fill override at this keyframe. */}
       <div className="flex items-center gap-2">
@@ -3916,8 +4008,8 @@ export function NodeEffects({ id, effects }: { id: string; effects?: readonly { 
         <>
           <div className="flex items-center gap-2">
             {colorInput("shadow", sh.color)}
-            <Field key={`shx${sh.offsetX}`} label="X" value={sh.offsetX ?? 0} onCommit={(n) => update("shadow", { offsetX: n })} />
-            <Field key={`shy${sh.offsetY}`} label="Y" value={sh.offsetY ?? 0} onCommit={(n) => update("shadow", { offsetY: n })} />
+            <Field key={`shx${sh.offsetX}`} kind="length" label="X" value={sh.offsetX ?? 0} onCommit={(n) => update("shadow", { offsetX: n })} />
+            <Field key={`shy${sh.offsetY}`} kind="length" label="Y" value={sh.offsetY ?? 0} onCommit={(n) => update("shadow", { offsetY: n })} />
           </div>
           <FxSlider label={tr("editor.blur")} min={0} max={60} value={Math.round(sh.blur ?? 0)} onStart={snapshot} onCommit={commit} onChange={(n) => previewUpdate("shadow", { blur: n })} />
           <FxSlider label={tr("editor.opacity")} min={0} max={100} value={Math.round(((sh.color?.srgb.a ?? 1) as number) * 100)} fmt={(n) => `${n}%`} onStart={snapshot} onCommit={commit}
@@ -3927,7 +4019,7 @@ export function NodeEffects({ id, effects }: { id: string; effects?: readonly { 
       {ol && (
         <div className="flex items-center gap-2">
           {colorInput("outline", ol.color)}
-          <Field key={`olw${ol.width}`} label="W" value={ol.width ?? 1} onCommit={(n) => update("outline", { width: Math.max(0.5, n) })} />
+          <Field key={`olw${ol.width}`} kind="line" label="W" value={ol.width ?? 1} onCommit={(n) => update("outline", { width: Math.max(0.5, n) })} />
         </div>
       )}
       {gl && (

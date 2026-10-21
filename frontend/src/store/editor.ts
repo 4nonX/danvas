@@ -453,6 +453,14 @@ interface EditorState {
   /** Set (or clear, with "") the document's primary language, a BCP 47 tag
    *  announced to assistive technology and the tagged-PDF /Lang (F38 FR-8). */
   setDocLanguage(tag: string): void;
+  /** Set the unit lengths are shown and entered in (schema v29); "px", the
+   *  default, removes the key. Geometry is not touched. */
+  setMeasureUnit(unit: string): void;
+  /** Set the design's colour profile (`colorProfile`, a print profile id;
+   *  undefined: the default). `screen` gives the new screen colour of a print
+   *  colour's CMYK; every colour with exact CMYK or a spot colour is shown
+   *  anew through it. Print values are not touched. One undo step. */
+  setColorProfile(id: string | undefined, screen: (cmyk: { c: number; m: number; y: number; k: number }) => { r: number; g: number; b: number }): void;
   /**
    * Shallow-merge a patch into `doc.meta` as one undoable step. Document-type
    * surfaces (whiteboard/doc/sheet/video-32) keep their non-scene state
@@ -2606,9 +2614,11 @@ export const useEditor = create<EditorState>((set, get) => {
       const page = get().doc.pages[curPageIndex()];
       if (!page) return;
       const before = { width: page.width, height: page.height };
-      const w = Math.max(1, Math.round(width));
-      const h = Math.max(1, Math.round(height));
-      if (before.width === w && before.height === h) return;
+      // Exact, not rounded: a page entered as 50 mm is 188.976... px, and
+      // that is what every export turns back into 50 mm.
+      const w = Math.max(1, width);
+      const h = Math.max(1, height);
+      if (!Number.isFinite(w) || !Number.isFinite(h) || (before.width === w && before.height === h)) return;
       // Background images are PAGE-SIZED cover boxes; they follow the page so
       // a manual W/H change never leaves the background at the old bounds.
       // Only the flagged, still-locked ones move - this raw path deliberately
@@ -3379,8 +3389,8 @@ export const useEditor = create<EditorState>((set, get) => {
     addPage: (size) => {
       const doc = get().doc;
       const cur = doc.pages[curPageIndex()];
-      const w = size && size.width > 0 ? Math.round(size.width) : cur.width;
-      const h = size && size.height > 0 ? Math.round(size.height) : cur.height;
+      const w = size && size.width > 0 ? size.width : cur.width;
+      const h = size && size.height > 0 ? size.height : cur.height;
       const tmpl = createBlankDesign({ width: w, height: h });
       const seed = tmpl.pages[0];
       seed.name = `Page ${doc.pages.length + 1}`;
@@ -3452,6 +3462,45 @@ export const useEditor = create<EditorState>((set, get) => {
       if (!usePresence.getState().canEdit() || get().readonlyPreview()) return;
       if (tag) get().doc.language = tag;
       else delete get().doc.language;
+      set((s) => ({ rev: s.rev + 1 }));
+    },
+
+    setColorProfile: (id, screen) => {
+      if (!usePresence.getState().canEdit() || get().readonlyPreview()) return;
+      const doc = get().doc;
+      // Every colour object carrying print values, anywhere in the design.
+      type PrintCol = { srgb: { r: number; g: number; b: number; a: number }; cmyk?: { c: number; m: number; y: number; k: number }; spot?: { fallback: { c: number; m: number; y: number; k: number } } };
+      const found: PrintCol[] = [];
+      const walk = (v: unknown) => {
+        if (Array.isArray(v)) { for (const x of v) walk(x); return; }
+        if (!v || typeof v !== "object") return;
+        const o = v as Record<string, unknown>;
+        if (o.srgb && (o.cmyk || (o.spot as { fallback?: unknown } | undefined)?.fallback)) found.push(o as unknown as PrintCol);
+        for (const k in o) if (k !== "srgb") walk(o[k]);
+      };
+      walk(doc.pages);
+      walk(doc.masters);
+      walk(doc.layouts);
+      walk(doc.theme);
+      walk(doc.palette);
+      const before = { id: doc.colorProfile, srgb: found.map((c) => ({ ...c.srgb })) };
+      const after = found.map((c) => ({ ...screen(c.cmyk ?? c.spot!.fallback), a: c.srgb.a }));
+      perform(
+        () => {
+          if (id) doc.colorProfile = id; else delete doc.colorProfile;
+          found.forEach((c, i) => { c.srgb = { ...after[i] }; });
+        },
+        () => {
+          if (before.id) doc.colorProfile = before.id; else delete doc.colorProfile;
+          found.forEach((c, i) => { c.srgb = { ...before.srgb[i] }; });
+        },
+      );
+    },
+
+    setMeasureUnit: (unit) => {
+      if (!usePresence.getState().canEdit() || get().readonlyPreview()) return;
+      if (unit && unit !== "px") get().doc.measureUnit = unit;
+      else delete get().doc.measureUnit;
       set((s) => ({ rev: s.rev + 1 }));
     },
 
@@ -3586,7 +3635,7 @@ export const useEditor = create<EditorState>((set, get) => {
       if (!pid) return;
       set((s) => {
         const g = s.guides[pid] ?? { x: [], y: [] };
-        return { guides: { ...s.guides, [pid]: { ...g, [axis]: [...g[axis], Math.round(pos)] } }, rev: s.rev + 1 };
+        return { guides: { ...s.guides, [pid]: { ...g, [axis]: [...g[axis], pos] } }, rev: s.rev + 1 };
       });
     },
     setGuide: (axis, index, pos) => {
@@ -3596,7 +3645,7 @@ export const useEditor = create<EditorState>((set, get) => {
         const g = s.guides[pid] ?? { x: [], y: [] };
         const arr = [...g[axis]];
         if (pos === null) arr.splice(index, 1);
-        else if (index >= 0 && index < arr.length) arr[index] = Math.round(pos);
+        else if (index >= 0 && index < arr.length) arr[index] = pos;
         return { guides: { ...s.guides, [pid]: { ...g, [axis]: arr } }, rev: s.rev + 1 };
       });
     },

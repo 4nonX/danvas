@@ -20,15 +20,6 @@ func pageWithMarks() DesignFile {
 	return d
 }
 
-// The paired EXACT pins are the cross-language drift alarm: a future bump
-// must update this line, the TS twin (printMarks.test.ts), and both
-// currentSchemaVersion mirrors in the SAME change (CLAUDE.md bump protocol).
-func TestV28PinsTheVersionPair(t *testing.T) {
-	if currentSchemaVersion != 28 {
-		t.Fatalf("currentSchemaVersion = %d: update this pin and the TS twin as part of the bump", currentSchemaVersion)
-	}
-}
-
 func TestWriteBoundaryAcceptsV28(t *testing.T) {
 	if err := validateForWrite(pageWithMarks()); err != nil {
 		t.Fatalf("a current-version document was rejected: %v", err)

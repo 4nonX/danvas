@@ -1,9 +1,11 @@
 // Color picker field (picker, eyedropper, contrast, CVD, CMYK). A
 // swatch-button trigger that opens an HSV popover: saturation/value square, hue
-// + alpha sliders, hex/RGB inputs, a CMYK readout with an out-of-gamut badge, a
-// color-vision (CVD) simulation preview, an optional WCAG contrast badge (when a
-// background color is supplied), plus brand-palette/recent swatches and the
-// screen eyedropper. Pure client React; all color math comes from @hc/color.
+// + alpha sliders, hex/RGB inputs, the print colour (automatic through the
+// export's profile, exact CMYK values, or a named spot colour with its own
+// plate), a color-vision (CVD) simulation preview, an optional WCAG contrast
+// badge (when a background color is supplied), plus brand-palette/recent
+// swatches and the screen eyedropper. Colour math comes from @hc/color; exact
+// print colours are shown through the bundled ICC profile (lib/print/printColor).
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -13,6 +15,10 @@ import {
 } from "@hc/color";
 import { Pipette } from "lucide-react";
 import { tr } from "@/lib/i18n";
+import { cmykColor, estimateCmyk, loadScreenProof, printColorLabel, spotColor, type Cmyk4 } from "@/lib/print/printColor";
+
+type PrintMode = "auto" | "cmyk" | "spot";
+const printModeOf = (c: Color): PrintMode => (c.spot?.name ? "spot" : c.cmyk ? "cmyk" : "auto");
 
 type HSV = { h: number; s: number; v: number };
 
@@ -86,6 +92,15 @@ export function ColorField({
 }: ColorFieldProps) {
   const [open, setOpen] = useState(false);
   const [cvd, setCvd] = useState<"" | CvdType>("");
+  // The print colour mode follows the value; "spot" may be chosen before a
+  // name is typed, so it is also kept while the value has no print data.
+  const [printMode, setPrintMode] = useState<PrintMode>(printModeOf(value));
+  const [seenMode, setSeenMode] = useState<PrintMode>(printModeOf(value));
+  if (seenMode !== printModeOf(value)) { setSeenMode(printModeOf(value)); setPrintMode(printModeOf(value)); }
+  const [, setProofReady] = useState(false);
+  useEffect(() => {
+    if (open) void loadScreenProof().then((c) => setProofReady(!!c));
+  }, [open]);
   const wrapRef = useRef<HTMLDivElement>(null);
 
   // localHue preserves the chosen hue while dragging through grayscale (where
@@ -157,7 +172,23 @@ export function ColorField({
     setLocalHue(h);
     emit(hsvToColor(h, ss, vv, alpha));
   };
-  const setAlpha = (a: number) => emit({ srgb: { ...value.srgb, a } });
+  // Opacity keeps a print colour (it prints as a tint of the same values).
+  const setAlpha = (a: number) => emit({ ...value, srgb: { ...value.srgb, a } });
+  // Print colour: exact CMYK, or a named spot colour with fallback CMYK.
+  const baseCmyk = (): Cmyk4 => value.cmyk ?? value.spot?.fallback ?? estimateCmyk(value.srgb);
+  const choosePrintMode = (m: PrintMode) => {
+    setPrintMode(m);
+    if (m === "auto" && (value.cmyk || value.spot)) emit({ srgb: { ...value.srgb } });
+    if (m === "cmyk") emit(cmykColor(baseCmyk(), alpha));
+  };
+  const setPrintChannel = (k: keyof Cmyk4, pct: number) => {
+    const next = { ...baseCmyk(), [k]: clamp01(pct / 100) };
+    emit(value.spot?.name ? spotColor(value.spot.name, next, alpha) : cmykColor(next, alpha));
+  };
+  const setSpotName = (name: string) => {
+    const n = name.trim();
+    if (n) emit(spotColor(n, baseCmyk(), alpha));
+  };
   const setHex = (raw: string) => {
     const c = fromHex(raw);
     if (c) emit({ srgb: { ...c.srgb, a: allowAlpha ? alpha : 1 } });
@@ -202,7 +233,7 @@ export function ColorField({
     <div ref={wrapRef} className={`relative h-full items-center justify-center ${block ? "flex flex-1" : "inline-flex"}`}>
       <button
         type="button"
-        title={title ?? tr("editor.edit_color")}
+        title={[title ?? tr("editor.edit_color"), printColorLabel(value)].filter(Boolean).join(" · ")}
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
         className={`oc-color-trigger h-8 ${block ? "w-full" : "w-9"} rounded-lg border border-neutral-200`}
@@ -280,10 +311,48 @@ export function ColorField({
             )}
           </div>
 
-          {/* Print + accessibility readouts */}
-          <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1.5 border-t border-neutral-100 pt-2.5 text-[10px] text-neutral-500">
-            <span className="font-mono" title="CMYK">CMYK {Math.round(cmyk.c * 100)}/{Math.round(cmyk.m * 100)}/{Math.round(cmyk.y * 100)}/{Math.round(cmyk.k * 100)}</span>
-            {!inGamut && (
+          {/* Print colour: automatic (through the export's profile), exact
+              CMYK, or a spot colour on a plate of its own. */}
+          <div className="mt-3 border-t border-neutral-100 pt-2.5">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[11px] font-medium text-neutral-500">{tr("editor.print_ink")}</span>
+              <div role="radiogroup" aria-label={tr("editor.print_ink")} className="flex rounded-md bg-neutral-100 p-0.5">
+                {(["auto", "cmyk", "spot"] as const).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    role="radio"
+                    aria-checked={printMode === m}
+                    onClick={() => choosePrintMode(m)}
+                    className={`rounded px-1.5 py-0.5 text-[10px] font-medium transition ${printMode === m ? "bg-surface text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-800"}`}
+                  >{{ auto: tr("editor.print_color_auto"), cmyk: tr("editor.print_color_cmyk"), spot: tr("editor.print_color_spot") }[m]}</button>
+                ))}
+              </div>
+            </div>
+            {printMode === "spot" && (
+              <div className="mt-1.5">
+                <NumBox label={tr("editor.spot_color_name")} wide text value={value.spot?.name ?? ""} onCommit={setSpotName} />
+              </div>
+            )}
+            {printMode !== "auto" && (
+              <>
+                <div className="mt-1.5 flex items-end gap-1.5">
+                  {(["c", "m", "y", "k"] as const).map((k) => (
+                    <NumBox key={k} label={k.toUpperCase()} value={String(Math.round(baseCmyk()[k] * 1000) / 10)} onCommit={(t) => { const n = Number(t.replace(",", ".")); if (Number.isFinite(n)) setPrintChannel(k, Math.max(0, Math.min(100, n))); }} />
+                  ))}
+                  <span className="pb-1.5 text-[10px] text-neutral-400">%</span>
+                </div>
+                <p className="mt-1 text-[10px] leading-snug text-neutral-400">
+                  {printMode === "spot" ? (value.spot?.name ? tr("editor.spot_color_hint") : tr("editor.spot_color_name_first")) : tr("editor.print_cmyk_hint")}
+                </p>
+              </>
+            )}
+          </div>
+          <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[10px] text-neutral-500">
+            {printMode === "auto" && (
+              <span className="font-mono" title="CMYK">CMYK {Math.round(cmyk.c * 100)}/{Math.round(cmyk.m * 100)}/{Math.round(cmyk.y * 100)}/{Math.round(cmyk.k * 100)}</span>
+            )}
+            {printMode === "auto" && !inGamut && (
               <span className="rounded bg-amber-100 px-1.5 py-0.5 font-medium text-amber-700" title={tr("editor.outside_cmyk_print_gamut")}>{tr("editor.out_of_gamut")}</span>
             )}
             {contrast && (
@@ -366,7 +435,7 @@ function Track({ label, value, onChange, background, thumb }: { label: string; v
 }
 
 /** A small labelled text box that commits on Enter / blur. */
-function NumBox({ label, value, onCommit, wide }: { label: string; value: string; onCommit: (v: string) => void; wide?: boolean }) {
+function NumBox({ label, value, onCommit, wide, text }: { label: string; value: string; onCommit: (v: string) => void; wide?: boolean; text?: boolean }) {
   const [draft, setDraft] = useState<string | null>(null);
   const commit = () => {
     if (draft !== null && draft !== value) onCommit(draft);
@@ -380,8 +449,8 @@ function NumBox({ label, value, onCommit, wide }: { label: string; value: string
         onBlur={commit}
         onKeyDown={(e) => { if (e.key === "Enter") commit(); }}
         spellCheck={false}
-        inputMode={wide ? "text" : "numeric"}
-        className={`h-7 w-full rounded-md border border-neutral-200 bg-surface px-1 text-center text-[11px] text-neutral-800 outline-none focus:border-brand-400 ${wide ? "font-mono uppercase" : "tabular-nums"}`}
+        inputMode={wide || text ? "text" : "decimal"}
+        className={`h-7 w-full rounded-md border border-neutral-200 bg-surface px-1 text-[11px] text-neutral-800 outline-none focus:border-brand-400 ${text ? "px-2 text-start" : wide ? "text-center font-mono uppercase" : "text-center tabular-nums"}`}
         aria-label={label}
       />
       <span className="text-[9px] font-medium uppercase tracking-wide text-neutral-400">{label}</span>

@@ -231,6 +231,41 @@ function check(o, refFile, ink, pageBg) {
       if (!(Math.abs(got - want) <= 3)) problems.push(`preview shows ${want.toFixed(1)} % ${name}, the file has ${got.toFixed(1)} %`);
     }
   }
+  // Prepress: the finished size and bleed to 0.01 mm, the plates carrying
+  // exactly the values set (no profile in between), spot colours as plates.
+  if (o.prepress) {
+    const p = o.prepress;
+    const mmPt = (mm) => (mm * 72) / 25.4;
+    const tol = mmPt(0.01);
+    const sheet = [mmPt(p.trimMm[0] + 2 * p.bleedMm), mmPt(p.trimMm[1] + 2 * p.bleedMm)];
+    if (o.ext === "pdf") {
+      const b = pdfBoxes(file);
+      const tw = b.trim ? b.trim[2] - b.trim[0] : NaN, th = b.trim ? b.trim[3] - b.trim[1] : NaN;
+      if (!(Math.abs(tw - mmPt(p.trimMm[0])) <= tol && Math.abs(th - mmPt(p.trimMm[1])) <= tol)) problems.push(`finished size ${(tw * 25.4 / 72).toFixed(3)} x ${(th * 25.4 / 72).toFixed(3)} mm, wanted ${p.trimMm.join(" x ")} mm`);
+      const bw = b.bleed ? b.bleed[2] - b.bleed[0] : NaN, bh = b.bleed ? b.bleed[3] - b.bleed[1] : NaN;
+      if (!(Math.abs(bw - sheet[0]) <= tol && Math.abs(bh - sheet[1]) <= tol)) problems.push(`bleed box ${(bw * 25.4 / 72).toFixed(3)} x ${(bh * 25.4 / 72).toFixed(3)} mm, wanted ${p.bleedMm} mm on every side`);
+    } else {
+      const m = /%%HiResBoundingBox: ([\d.]+) ([\d.]+) ([\d.]+) ([\d.]+)/.exec(buf.toString("latin1"));
+      const w = m ? +m[3] - +m[1] : NaN, h = m ? +m[4] - +m[2] : NaN;
+      if (!(Math.abs(w - sheet[0]) <= tol && Math.abs(h - sheet[1]) <= tol)) problems.push(`EPS sheet ${(w * 25.4 / 72).toFixed(3)} x ${(h * 25.4 / 72).toFixed(3)} mm, wanted the finished size plus ${p.bleedMm} mm bleed`);
+    }
+    const sep = file + ".pp.tif";
+    const dpi = 150;
+    run("gs", ["-q", "-dSAFER", "-dBATCH", "-dNOPAUSE", ...(o.ext === "eps" ? ["-dEPSCrop"] : []), "-sDEVICE=tiffsep", `-r${dpi}`, `-sOutputFile=${sep}`, file]);
+    const plateFile = (name) => sep.replace(/\.tif$/, `(${name.replace(/[^\x20-\x7e]/g, (ch) => [...Buffer.from(ch)].map((x) => "%" + x.toString(16).toUpperCase()).join(""))}).tif`);
+    for (const pt of p.plates) {
+      const x = Math.round(((pt.atMm[0] + p.bleedMm) / 25.4) * dpi), y = Math.round(((pt.atMm[1] + p.bleedMm) / 25.4) * dpi);
+      for (const [plate, want] of Object.entries(pt.expect)) {
+        const got = 100 * (1 - parseFloat(text(IM, [plateFile(plate), "-format", `%[fx:p{${x},${y}}.r]`, "info:"])));
+        if (!(Math.abs(got - want) <= 1)) problems.push(`${pt.what}: ${plate} ${got.toFixed(1)} %, set to ${want} %`);
+      }
+    }
+    for (const s of p.spots) {
+      const f = plateFile(s);
+      const cov = existsSync(f) ? 100 * parseFloat(text(IM, [f, "-format", "%[fx:1-mean]", "info:"])) : -1;
+      if (!(cov > 0.1)) problems.push(cov < 0 ? `no plate for the spot colour ${s}` : `the ${s} plate is empty`);
+    }
+  }
   // The editor's output check must find nothing wrong with a correct file.
   for (const f of (o.fileFindings ?? []).filter((x) => x.level !== "ok")) problems.push(`output check: ${f.level} ${f.code}${f.params ? " " + JSON.stringify(f.params) : ""}`);
   return { id: o.id, problems, worst: cmp.worst };

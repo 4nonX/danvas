@@ -6,6 +6,8 @@ import { readDpi, setJpegDpi, setPngDpi } from "./rasterMeta";
 import { PdfCanvas, PdfResources, pdfName } from "../vectorPdf/pdfCanvas";
 import { drawDieLine, drawPrintMarks, mmToPx, printSheet } from "./sheet";
 import { psText } from "./eps";
+import { createScene, renderScene, type CanvasLike } from "@hc/engine";
+import type { DesignFile } from "@hc/schema";
 
 // jsdom has no canvas; the PDF recorder only needs one to normalize colours.
 beforeAll(() => {
@@ -102,6 +104,37 @@ describe("spot colours, overprint and layers in PDF", () => {
     expect([...res.spots.keys()]).toEqual(["All", "Stanze"]);
     expect(ops).toMatch(/\/OC \/OC0 BDC[\s\S]*CS 1 SCN[\s\S]*EMC/);
     expect([...res.layers.keys()]).toEqual(["Stanze"]);
+  });
+
+  it("writes explicit CMYK and spot colours as given, not through the profile", () => {
+    const solid = (srgb: [number, number, number], extra: Record<string, unknown> = {}) => ({ type: "solid", color: { srgb: { r: srgb[0], g: srgb[1], b: srgb[2], a: 1 }, ...extra } });
+    const rect = (id: string, x: number, fill: unknown) => ({ id, type: "shape", shape: "rect", transform: { x, y: 0, scaleX: 1, scaleY: 1, rotation: 0 }, size: { width: 10, height: 10 }, opacity: 1, blendMode: "normal", fills: [fill] });
+    const doc = {
+      format: "hycanvas.design", schemaVersion: 29, id: "d", title: "D", unit: "px", dpi: 96, measureUnit: "mm", assets: [], fonts: [], meta: {},
+      pages: [{ id: "p", width: 100, height: 100, children: [
+        rect("cmyk", 0, solid([0, 0.57, 0.79], { cmyk: { c: 0.73, m: 0.25, y: 0.07, k: 0 } })),
+        // White ink as a spot colour, and plain white (paper) next to it with
+        // the very same sRGB: only the first is the separation.
+        rect("ink", 20, solid([1, 1, 1], { spot: { name: "Weiß", fallback: { c: 0, m: 0, y: 0, k: 0 } } })),
+        rect("paper", 40, solid([1, 1, 1])),
+        rect("rgb", 60, solid([0.2, 0.4, 0.6])),
+        rect("grad", 80, { type: "gradient", gradient: "linear", angle: 0, stops: [
+          { position: 0, color: { srgb: { r: 0, g: 0.57, b: 0.79, a: 1 }, cmyk: { c: 0.73, m: 0.25, y: 0.07, k: 0 } } },
+          { position: 1, color: { srgb: { r: 1, g: 1, b: 1, a: 1 }, cmyk: { c: 0, m: 0, y: 0, k: 0 } } },
+        ] }),
+      ] }],
+    } as unknown as DesignFile;
+    const res = new PdfResources();
+    const ctx = new PdfCanvas({ width: 100, height: 100, faces: new Map(), resources: res, color: { cmyk: () => [0.5, 0.5, 0.5, 0.5], blackOnly: true } });
+    renderScene(createScene(doc, 0), ctx as unknown as CanvasLike, { width: 100, height: 100, zoom: 1, panX: 0, panY: 0, dpr: 1 }, { clear: false, cull: false });
+    const ops = ctx.content();
+    expect(ops).toMatch(/0\.73 0\.25 0\.07 0 k/);
+    expect([...res.spots.keys()]).toEqual(["Weiß"]);
+    expect(ops.match(/cs 1 scn/g)?.length).toBe(1);
+    // Paper white and the RGB colour go through the (stub) profile.
+    expect(ops.match(/0\.5 0\.5 0\.5 0\.5 k/g)?.length).toBe(2);
+    // The gradient blends between the given CMYK values.
+    expect(res.shadings.map((s) => s.dict).join(" ")).toMatch(/\/C0 \[0\.73 0\.25 0\.07 0\] \/C1 \[0 0 0 0\]/);
   });
 
   it("draws no die line where it would be printed (a plain canvas)", () => {

@@ -2,6 +2,18 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.5.4 (2026-10-21)
+
+### Added
+
+- **Measurement units and exact sizes**: every design has a unit (millimetres, centimetres, inches, points or pixels), set in the page panel. Page size, positions and sizes, corner radius, spacing, the rulers, guides, distances and the live size while dragging are shown and entered in it; typing another unit uses it once (`10mm`, `1in`, `72pt`). Sizes are kept exactly instead of being rounded to whole pixels, so a 50 x 100 mm label is 50 x 100 mm in every export. Print formats in mm (A3 to A6, DIN long, US Letter, business card) in the page panel, for a new design, in Magic Resize and Add page; a custom size for a new design in any unit. In mm, cm, in and pt designs type sizes and line widths are in points and the arrow keys move by 0.1 mm.
+- **Exact print colors**: the color picker's new **Print color** sets a color as exact CMYK values or as a named spot color (HKS, Pantone, white ink, varnish) with its own plate. Vector PDF and EPS carry them unchanged (CMYK as given, spot colors as separations, gradients between them blended in CMYK) instead of converting through the profile; "Automatic" stays the default. Brand colors keep their print values when applied and when taken from the selection into the kit, group recoloring keeps them, and the output check expects the design's spot colors.
+- **Color profiles of your own**: Settings › Color profiles takes ICC profiles for yourself, usable in every workspace, next to the workspace's (admins) and the built-in one; with a personal default ahead of the workspace's. Each design gets a **color profile** in the page panel: exact print colors are shown on screen through it, and the download menu starts with it. The download menu lists your profiles, the workspace's and the built-in one, with a link to manage them.
+
+### Data
+
+- Design file schema 29: an optional `measureUnit` on the file (how lengths are shown; geometry stays in design px). Older versions open such files and show px. One additive migration: a new table `user_print_profiles`; nothing existing changes, a rollback to 0.5.3 leaves it unused.
+
 ## 0.5.3 (2026-10-21)
 
 ### Added

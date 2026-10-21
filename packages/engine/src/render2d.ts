@@ -29,7 +29,7 @@ import { layerContext, makeLayerCanvas, needsIsolation } from "./layer";
 import { maskedCanvas, maskLevel } from "./maskedImage";
 import { autoFitNode, layoutText, isTabRun, tabRunWidth, type MeasureFn } from "@hc/text";
 import { cellLineHeight, wrapCellLines } from "./tablewrap";
-import { colorToCss } from "./color";
+import { colorToCss, withPrintSink } from "./color";
 import { applyTextCase, canvasFontString, fontFamilyStack } from "./fonts";
 import { effectsFilter, outlineSpecs, duotoneEffect } from "./effects";
 import { duotoneCanvas } from "./duotone";
@@ -859,7 +859,7 @@ function drawNodeContent(ctx: CanvasLike, node: Node, assets?: AssetProvider, bo
       const flatColorAlpha = (fill: Fill, mult: number): string => {
         const c = fill.type === "solid" ? fill.color : fill.type === "gradient" && fill.stops[0] ? fill.stops[0].color : { srgb: { r: 0, g: 0, b: 0, a: 1 } };
         const m = Math.max(0, Math.min(1, mult));
-        return colorToCss({ srgb: { ...c.srgb, a: (c.srgb.a ?? 1) * m } });
+        return colorToCss({ ...c, srgb: { ...c.srgb, a: (c.srgb.a ?? 1) * m } }); // keeps cmyk/spot for print
       };
       const flatColor = (fill: Fill): string => flatColorAlpha(fill, 1);
       const sctx = ctx as unknown as { shadowColor: string; shadowBlur: number; shadowOffsetX: number; shadowOffsetY: number };
@@ -2288,6 +2288,19 @@ export function renderScene(
   ctx: CanvasLike,
   viewport: Viewport,
   opts: Render2DOptions = {},
+): void {
+  // A print export context hears which print colour each CSS colour stands
+  // for; a screen context renders exactly as before.
+  const note = ctx.notePrintColor;
+  if (typeof note !== "function") return renderSceneInner(scene, ctx, viewport, opts);
+  withPrintSink((css, print) => note.call(ctx, css, print), () => renderSceneInner(scene, ctx, viewport, opts));
+}
+
+function renderSceneInner(
+  scene: Scene,
+  ctx: CanvasLike,
+  viewport: Viewport,
+  opts: Render2DOptions,
 ): void {
   const dpr = viewport.dpr || 1;
   const s = viewport.zoom * dpr;

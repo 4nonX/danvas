@@ -1,7 +1,10 @@
-// Workspace print profiles: the ICC CMYK output profiles print exports
-// convert through and embed. An admin uploads the profile their print shop
+// ICC print profiles: the CMYK output profiles print exports convert through
+// and embed. A workspace's: an admin uploads the profile their print shop
 // works to (the common coated ones may not be redistributed, so they are not
-// shipped); every member sees the list, since every member exports.
+// shipped); every member sees the list, since every member exports. A user's
+// own (scope "user", under Settings): anyone uploads the profile a print
+// shop sent them and uses it in every workspace; their default, when they
+// set one, comes before the workspace's.
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Printer, Star, Trash2, Upload } from "lucide-react";
@@ -13,7 +16,13 @@ import { userMessage } from "@/lib/errors";
 import { createCmykConverter } from "@/lib/print/cms";
 import { tr } from "@/lib/i18n";
 
-export function PrintProfilesPanel({ workspaceId, canEdit }: { workspaceId: string; canEdit: boolean }) {
+export type PrintProfilesScope = { scope: "workspace"; workspaceId: string; canEdit: boolean } | { scope: "user" };
+
+export function PrintProfilesPanel(props: PrintProfilesScope) {
+  const personal = props.scope === "user";
+  const workspaceId = props.scope === "workspace" ? props.workspaceId : null;
+  const canEdit = props.scope === "user" || props.canEdit;
+  const list = useCallback(() => (workspaceId ? oc.listPrintProfiles(workspaceId) : oc.listMyPrintProfiles()), [workspaceId]);
   const toast = useToast();
   const [profiles, setProfiles] = useState<PrintProfile[] | null>(null);
   const [busy, setBusy] = useState(false);
@@ -23,20 +32,20 @@ export function PrintProfilesPanel({ workspaceId, canEdit }: { workspaceId: stri
 
   const reload = useCallback(async () => {
     try {
-      setProfiles(await oc.listPrintProfiles(workspaceId));
+      setProfiles(await list());
     } catch {
       setProfiles([]);
     }
-  }, [workspaceId]);
+  }, [list]);
 
   useEffect(() => {
     let cancelled = false;
-    void oc.listPrintProfiles(workspaceId).then(
-      (list) => { if (!cancelled) setProfiles(list); },
+    void list().then(
+      (l) => { if (!cancelled) setProfiles(l); },
       () => { if (!cancelled) setProfiles([]); },
     );
     return () => { cancelled = true; };
-  }, [workspaceId]);
+  }, [list]);
 
   async function upload(file: File) {
     setBusy(true);
@@ -50,7 +59,7 @@ export function PrintProfilesPanel({ workspaceId, canEdit }: { workspaceId: stri
         toast.error(tr("dashboard.print_profile_not_usable"));
         return;
       }
-      const p = await oc.uploadPrintProfile(workspaceId, file);
+      const p = workspaceId ? await oc.uploadPrintProfile(workspaceId, file) : await oc.uploadMyPrintProfile(file);
       toast.success(tr("dashboard.print_profile_added", { name: p.name }));
       await reload();
     } catch (e) {
@@ -61,9 +70,9 @@ export function PrintProfilesPanel({ workspaceId, canEdit }: { workspaceId: stri
     }
   }
 
-  async function makeDefault(p: PrintProfile) {
+  async function makeDefault(p: PrintProfile, on = true) {
     try {
-      await oc.updatePrintProfile(p.id, { isDefault: true });
+      await oc.updatePrintProfile(p.id, { isDefault: on });
       await reload();
     } catch (e) {
       toast.error(userMessage(e, tr("dashboard.could_not_update_print_profile")));
@@ -104,13 +113,13 @@ export function PrintProfilesPanel({ workspaceId, canEdit }: { workspaceId: stri
   return (
     <section className="mt-8">
       <h2 className="mb-1 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-neutral-400">
-        <Printer size={15} /> {tr("dashboard.print_profiles")}
+        <Printer size={15} /> {personal ? tr("settings.my_print_profiles") : tr("dashboard.print_profiles")}
       </h2>
-      <p className="mb-3 max-w-xl text-xs text-neutral-500">{tr("dashboard.print_profiles_hint")}</p>
+      <p className="mb-3 max-w-xl text-xs text-neutral-500">{personal ? tr("settings.my_print_profiles_hint") : tr("dashboard.print_profiles_hint")}</p>
 
       {canEdit && (
         <div className="flex flex-wrap items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50/60 p-3">
-          <p className="min-w-0 flex-1 text-xs text-neutral-500">{tr("dashboard.print_profiles_upload_hint")}</p>
+          <p className="min-w-0 flex-1 text-xs text-neutral-500">{personal ? tr("settings.my_print_profiles_upload_hint") : tr("dashboard.print_profiles_upload_hint")}</p>
           <input
             ref={fileRef}
             type="file"
@@ -163,6 +172,13 @@ export function PrintProfilesPanel({ workspaceId, canEdit }: { workspaceId: stri
                     <Star size={13} /> {tr("dashboard.make_default")}
                   </button>
                 )}
+                {/* A personal default can be dropped again: the workspace's
+                    then applies. A workspace always has one. */}
+                {personal && p.isDefault && (
+                  <button type="button" onClick={() => void makeDefault(p, false)} className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-800">
+                    <Star size={13} /> {tr("settings.clear_default")}
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => void remove(p)}
@@ -174,14 +190,17 @@ export function PrintProfilesPanel({ workspaceId, canEdit }: { workspaceId: stri
             )}
           </li>
         ))}
-        <li className="flex flex-wrap items-center gap-2 rounded-xl border border-dashed border-neutral-200 px-3 py-2 text-sm">
+        {personal && profiles !== null && profiles.length === 0 && (
+          <li className="rounded-xl border border-dashed border-neutral-200 px-3 py-2 text-sm text-neutral-500">{tr("settings.no_print_profiles_yet")}</li>
+        )}
+        {!personal && <li className="flex flex-wrap items-center gap-2 rounded-xl border border-dashed border-neutral-200 px-3 py-2 text-sm">
           {/* i18n-ignore: the profile's registered name, identical in every language. */}
           <span className="font-medium text-neutral-600">{"PSO Uncoated ISO12647 (FOGRA47)"}</span>
           <span className="rounded bg-neutral-100 px-1.5 py-0.5 text-[11px] text-neutral-500">{tr("dashboard.built_in")}</span>
           {profiles !== null && profiles.length === 0 && (
             <span className="rounded bg-brand-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-ink">{tr("dashboard.default")}</span>
           )}
-        </li>
+        </li>}
       </ul>
     </section>
   );

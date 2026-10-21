@@ -391,6 +391,10 @@ export const migrations: Record<number, Migration> = {
   // gets a defined unit (design px); no existing page has marks, and no
   // client ever wrote `bleed`, so nothing is rewritten. Stamps the version.
   27: (file: AnyObj) => ({ ...file, schemaVersion: 28 }),
+  // v28 -> v29: measurement unit. `measureUnit` is optional on the file and
+  // only changes how lengths are shown; absent means px, which is how every
+  // existing design shows them. Stamps the version only.
+  28: (file: AnyObj) => ({ ...file, schemaVersion: 29 }),
 };
 
 export class MigrationError extends Error {

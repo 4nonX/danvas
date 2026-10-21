@@ -78,6 +78,9 @@ A living checklist of what ships today versus what is planned. Shipped items are
 - [x] Print exports: vector PDF, image PDF, TIFF and EPS in CMYK (ICC profile) or RGB; PDF output intent and PDF/X-4
 - [x] Print-shop extras: black ink only with black overprint, registration-colour crop marks, die line as a spot colour on its own layer (vector PDF, EPS); resolution in PNG/JPG headers
 - [x] Bleed and crop marks per page (line type, color, weight, length, gap), for every image and print format; PDF TrimBox/BleedBox
+- [x] Measurement unit per design (mm, cm, in, pt, px) for sizes, positions, rulers and guides, exact (unrounded) sizes, print formats in mm, type in pt in print designs
+- [x] Exact print colors: CMYK values and named spot colors in the color picker, written unchanged to vector PDF and EPS (spot colors as separations, CMYK gradients); kept by brand colors and group recoloring
+- [x] ICC color profiles: built in, per workspace (admins) and personal (Settings), with defaults; a color profile per design for the screen display of print colors and the download default
 - [x] Print-file checks: proof in the browser (soft proof through the ICC profile, single plates, ink coverage against a TAC limit, out-of-gamut colours) and output check of the real file (structure in the browser, plates separated by Ghostscript on the server); preflight hints for hairlines, small text in several inks, artwork at the edge without bleed
 - [x] Export profiles and print presets: named settings, personal or per workspace, with defaults and full management
 - [x] Print from the editor and the dashboard (one design or a selection): paper handed to the driver (each page's own size, or A4/A3/Letter), actual size or fitted, 150 to 600 dpi, bleed and crop marks

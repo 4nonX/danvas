@@ -124,8 +124,18 @@ import { z } from "zod";
  *      page, in design px. `style` validates as any string so a style added
  *      later never makes an older client reject the file; a reader draws a
  *      style it does not know as solid. An older client keeps the key and
- *      simply exports without marks. Additive. */
-export const currentSchemaVersion = 28;
+ *      simply exports without marks. Additive.
+ *  v29: measurement unit. DesignFile gains optional `measureUnit`, the unit
+ *      lengths are shown and entered in (page size, positions, sizes, rulers).
+ *      Geometry stays in design px at `dpi` everywhere, exactly as before:
+ *      the field only changes how a value is presented, and a length entered
+ *      in mm is stored as the exact (fractional) px value. A new field with
+ *      a type of its own, deliberately not the long-standing `unit`, which
+ *      older readers may take to describe the coordinates. `measureUnit`
+ *      validates as any string so a unit added later never makes an older
+ *      client reject the file; a reader shows a unit it does not know as px.
+ *      An older client keeps the key and shows px. Additive. */
+export const currentSchemaVersion = 29;
 
 /** Maximum container nesting depth; guards traversal against stack overflow (FR-4). */
 export const maxNestingDepth = 32;
@@ -136,6 +146,11 @@ export const maxNestingDepth = 32;
 
 export type Unit = "px" | "mm" | "in" | "pt";
 export const UnitSchema = z.enum(["px", "mm", "in", "pt"]);
+
+/** The unit a design's lengths are shown and entered in (v29). Not the unit
+ *  of the stored geometry, which is always design px at `dpi`. */
+export type MeasureUnit = "px" | "mm" | "cm" | "in" | "pt";
+export const MEASURE_UNITS: readonly MeasureUnit[] = ["mm", "cm", "in", "pt", "px"];
 
 // Canonical sRGB (always present) plus optional explicit print color.
 export interface Color {
@@ -2210,6 +2225,9 @@ export interface DesignFile {
    *  assistive technology and written as the tagged-PDF /Lang. Absent means
    *  unset; exports fall back to en-US. */
   language?: string;
+  /** The unit lengths are shown and entered in (v29); absent means px. A
+   *  value this reader does not know is shown as px. */
+  measureUnit?: string;
   meta: Record<string, unknown>;
 }
 export const DesignFileSchema = z.object({
@@ -2226,6 +2244,7 @@ export const DesignFileSchema = z.object({
   theme: ThemeSchema.optional(),
   sections: z.array(SlideSectionSchema).optional(),
   language: z.string().optional(),
+  measureUnit: z.string().optional(),
   assets: z.array(AssetRefSchema),
   fonts: z.array(FontRefSchema),
   palette: z.array(ColorSwatchSchema).optional(),

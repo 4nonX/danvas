@@ -109,11 +109,16 @@ function printChecks(doc: DesignFile, pages: number[], check: PrintCheck, add: (
       if (n.type === "text" && check.cmyk) {
         for (const p of (n as unknown as TextNodeLike).content ?? []) {
           for (const r of p.runs ?? []) {
-            const st = r.style as (RunFont & { fontSize?: number; fill?: { type?: string; color?: { srgb?: { r: number; g: number; b: number } } } }) | undefined;
-            const c = st?.fill?.type === "solid" ? st.fill.color?.srgb : undefined;
+            type PrintKeys = { cmyk?: { c: number; m: number; y: number; k: number }; spot?: { name: string } };
+            const st = r.style as (RunFont & { fontSize?: number; fill?: { type?: string; color?: { srgb?: { r: number; g: number; b: number } } & PrintKeys } }) | undefined;
+            const color = st?.fill?.type === "solid" ? st.fill.color : undefined;
+            const c = color?.srgb;
             if (!r.text?.trim() || !st?.fontSize || !c || st.fontSize * scale * toPt >= SMALL_TEXT_PT) continue;
-            if (check.blackOnly && c.r <= 0.002 && c.g <= 0.002 && c.b <= 0.002) continue;
-            const inks = check.cmyk(c.r, c.g, c.b).filter((v) => v >= 0.1).length;
+            // A spot colour is one ink; explicit CMYK is printed as given.
+            if (color?.spot?.name) continue;
+            if (!color?.cmyk && check.blackOnly && c.r <= 0.002 && c.g <= 0.002 && c.b <= 0.002) continue;
+            const values = color?.cmyk ? [color.cmyk.c, color.cmyk.m, color.cmyk.y, color.cmyk.k] : check.cmyk(c.r, c.g, c.b);
+            const inks = values.filter((v) => v >= 0.1).length;
             if (inks >= 2) add("small-rich-text", hex(c), page, labelOf(n));
           }
         }

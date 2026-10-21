@@ -1,6 +1,7 @@
-// Package printprofiles stores the ICC output profiles a workspace prints
-// with. An admin uploads the CMYK profile their print shop works to (e.g. PSO
-// Coated v3 / FOGRA51); CMYK exports convert through it and embed it.
+// Package printprofiles stores ICC output profiles: a workspace's, which an
+// admin uploads for every member (the CMYK profile their print shop works to,
+// e.g. PSO Coated v3 / FOGRA51), and a user's own (personal.go), usable in
+// every workspace. CMYK exports convert through one and embed it.
 //
 // Profiles are uploaded rather than shipped because the common coated
 // profiles may be used and embedded freely but not redistributed. The bytes
@@ -47,8 +48,10 @@ type Access interface {
 
 // Profile is the JSON shape of one profile (without its bytes).
 type Profile struct {
-	ID          string `json:"id"`
-	WorkspaceID string `json:"workspaceId"`
+	ID string `json:"id"`
+	// Owner is "workspace" or "user" (a personal profile, no WorkspaceID).
+	Owner       string `json:"owner"`
+	WorkspaceID string `json:"workspaceId,omitempty"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	ColorSpace  string `json:"colorSpace"`
@@ -78,7 +81,7 @@ func (s *Service) member(ctx context.Context, userID, workspaceID, role string) 
 const cols = `"id", "workspace_id", "name", "description", "color_space", "icc_version", "size_bytes", "is_default", "created_at"`
 
 func scan(row pgx.Row) (Profile, error) {
-	var p Profile
+	p := Profile{Owner: "workspace"}
 	var created time.Time
 	err := row.Scan(&p.ID, &p.WorkspaceID, &p.Name, &p.Description, &p.ColorSpace, &p.ICCVersion, &p.SizeBytes, &p.IsDefault, &created)
 	p.CreatedAt = created.UTC().Format(time.RFC3339)
@@ -161,8 +164,17 @@ func (s *Service) workspaceOf(ctx context.Context, id string) (string, error) {
 	return ws, err
 }
 
-// Update renames a profile and/or makes it the workspace default (admins).
-func (s *Service) Update(ctx context.Context, userID, id string, name *string, makeDefault bool) error {
+// Update renames a profile and/or makes it the default: a workspace's by its
+// admins, a personal one by its owner (who may also clear their default).
+func (s *Service) Update(ctx context.Context, userID, id string, name *string, makeDefault, clearDefault bool) error {
+	if owner, err := s.personalOwner(ctx, id); err != nil {
+		return err
+	} else if owner != "" {
+		if owner != userID {
+			return ErrNotFound
+		}
+		return s.updatePersonal(ctx, userID, id, name, makeDefault, clearDefault)
+	}
 	ws, err := s.workspaceOf(ctx, id)
 	if err != nil {
 		return err
@@ -188,9 +200,19 @@ func (s *Service) Update(ctx context.Context, userID, id string, name *string, m
 	return nil
 }
 
-// Delete removes a profile (admins). Exports already made keep their
-// embedded copy; if it was the default, the oldest remaining one takes over.
+// Delete removes a profile (a workspace's: admins; a personal one: its
+// owner). Exports already made keep their embedded copy; if a workspace
+// default goes, the oldest remaining one takes over.
 func (s *Service) Delete(ctx context.Context, userID, id string) error {
+	if owner, err := s.personalOwner(ctx, id); err != nil {
+		return err
+	} else if owner != "" {
+		if owner != userID {
+			return ErrNotFound
+		}
+		_, err := s.db.Exec(ctx, `DELETE FROM "user_print_profiles" WHERE "id" = $1`, id)
+		return err
+	}
 	ws, err := s.workspaceOf(ctx, id)
 	if err != nil {
 		return err
@@ -207,8 +229,20 @@ func (s *Service) Delete(ctx context.Context, userID, id string) error {
 	return err
 }
 
-// Data returns a profile's bytes for any member (exports run in the browser).
+// Data returns a profile's bytes: a workspace's to any member (exports run in
+// the browser), a personal one to its owner.
 func (s *Service) Data(ctx context.Context, userID, id string) ([]byte, string, error) {
+	if owner, err := s.personalOwner(ctx, id); err != nil {
+		return nil, "", err
+	} else if owner != "" {
+		if owner != userID {
+			return nil, "", ErrNotFound
+		}
+		var data []byte
+		var checksum string
+		err := s.db.QueryRow(ctx, `SELECT "data", "checksum" FROM "user_print_profiles" WHERE "id" = $1`, id).Scan(&data, &checksum)
+		return data, checksum, err
+	}
 	ws, err := s.workspaceOf(ctx, id)
 	if err != nil {
 		return nil, "", err

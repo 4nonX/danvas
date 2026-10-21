@@ -14,6 +14,8 @@ import { downloadHycFile } from "@/lib/hycFile";
 import { deckToVideoFile } from "@/lib/video/deckToVideo";
 import { parseCsvMatrix } from "@/lib/csv";
 import { useEditor } from "@/store/editor";
+import { designProfileId, listProfileOptions } from "@/lib/print/profiles";
+import { setScreenProofProfile } from "@/lib/print/printColor";
 import { useToast } from "@/components/ui/Toast";
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
@@ -330,6 +332,15 @@ export function EditorApp() {
   const [forbiddenId, setForbiddenId] = useState<string | null>(null);
   const [designId, setDesignId] = useState<string | null>(null);
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
+  // Exact print colours (CMYK, spot) are shown through the design's colour
+  // profile, else the user's or workspace's default.
+  const designColorProfile = useEditor((s) => s.doc.colorProfile);
+  useEffect(() => {
+    if (!workspaceId) return;
+    let cancelled = false;
+    void listProfileOptions(workspaceId).then((list) => { if (!cancelled) void setScreenProofProfile(designProfileId(list, designColorProfile)); });
+    return () => { cancelled = true; };
+  }, [workspaceId, designColorProfile]);
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [exportOpen, setExportOpen] = useState(false);
