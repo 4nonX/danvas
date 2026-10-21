@@ -63,7 +63,7 @@
   "editor.vectorize_stats": "{colors} colours · {paths} shapes · {anchors} points",
   "editor.remove_background_color": "Remove background colour",
   "editor.vectorize_hint": "Works best on logos, icons and flat illustrations. The image is replaced by a group of vector shapes, one per colour; undo brings the image back.",
-  "dashboard.print_profiles_hint": "CMYK colour profiles for print exports (CMYK TIFF, EPS). Exports convert to CMYK through the chosen profile and embed it, so the print shop knows exactly what the file was made for.",
+  "dashboard.print_profiles_hint": "ICC profiles for everyone in this workspace: CMYK print files (PDF, TIFF, EPS) are made through them and exact print colours are shown on screen through them. Owners and admins add them.",
   "editor.tiff_desc": "Print-ready image in CMYK or RGB with the colour profile embedded",
   "editor.print_color": "Colour",
   "editor.color_profile": "Colour profile",
@@ -91,11 +91,17 @@
   "editor.spot_color_name_first": "Enter the name the print shop uses for the colour.",
   "settings.color_profiles": "Colour profiles",
   "settings.my_print_profiles": "My colour profiles",
-  "settings.my_print_profiles_hint": "ICC profiles of your own, for CMYK print files and for showing exact print colours on screen. Only you see them, in every workspace. Profiles for everyone in a workspace are added by its admins under Members › Print profiles.",
+  "settings.my_print_profiles_hint": "ICC profiles of your own, for CMYK print files and for showing exact print colours on screen. Only you see them, in every workspace. Profiles for everyone in a workspace are on its Members page, under Print and export.",
   "editor.design_color_profile": "Colour profile of the design",
   "editor.design_color_profile_hint": "Exact CMYK and spot colours are shown on screen as they print with this profile; the download menu starts with it.",
   "editor.print_profile_upload_tip": "For coated paper, upload your print shop's profile (e.g. PSO Coated v3) under Settings › Colour profiles, or ask a workspace admin to add it for everyone.",
   "editor.round_to_mm": "Finished size in whole millimetres",
   "editor.round_to_mm_desc": "Each design goes out at its nearest whole-millimetre size (89.96 × 39.95 mm becomes 90 × 40 mm). The designs themselves stay as they are.",
-  "dashboard.reformat_fit_scale_desc": "Everything grows or shrinks by one factor, so text keeps its line breaks; the space left over is shared out, and colour areas along an edge stretch with it."
+  "dashboard.reformat_fit_scale_desc": "Everything grows or shrinks by one factor, so text keeps its line breaks; the space left over is shared out, and colour areas along an edge stretch with it.",
+  "dashboard.print_and_export_hint": "Colour profiles, export profiles and print presets for everyone in this workspace. Your own, which only you see, are in",
+  "dashboard.print_profiles": "Colour profiles",
+  "dashboard.print_profile_not_usable": "This file is not a usable CMYK colour profile. Colour profiles are .icc files for a printing condition, e.g. PSO Coated v3.",
+  "errors.api_print_profile_forbidden": "Only workspace admins can manage colour profiles.",
+  "errors.api_print_profile_not_found": "That colour profile no longer exists.",
+  "errors.api_print_profile_not_cmyk": "This file is not an ICC CMYK colour profile."
 }

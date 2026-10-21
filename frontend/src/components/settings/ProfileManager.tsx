@@ -1,12 +1,12 @@
 // The full list of export profiles or print presets: the user's own (the
-// settings page) or a workspace's (the workspace settings, next to its ICC
-// print profiles). Rename, describe, make default, duplicate, copy a shared
-// one into one's own, delete. The settings themselves are changed where they
-// are used: pick the profile in the download menu or print dialog, change
-// it, "Update". A new one starts there too ("Save as") or from defaults here.
+// settings page) or a workspace's (its Members page, next to its colour
+// profiles). Create, edit every setting, rename, describe, make default,
+// duplicate, copy a shared one into one's own, delete. The settings can also
+// be changed where they are used: pick the profile in the download menu or
+// print dialog, change it, "Update"; "Save as" there starts a new one.
 
 import { useCallback, useEffect, useState } from "react";
-import { Copy, CopyPlus, FileDown, Plus, Printer, Star, Trash2 } from "lucide-react";
+import { Copy, CopyPlus, FileDown, Pencil, Plus, Printer, Star, Trash2 } from "lucide-react";
 import type { ExportProfile, ExportProfileKind, ExportProfileView } from "@hc/sdk";
 import { oc } from "@/lib/sdk";
 import { useToast } from "@/components/ui/Toast";
@@ -16,6 +16,7 @@ import { defaultPrintSettings, describePrintSettings, normalizePrintSettings } f
 import { listProfileOptions, type ProfileOption } from "@/lib/print/profiles";
 import { useDateFormat } from "@/lib/datetime";
 import { tr } from "@/lib/i18n";
+import { ProfileSettingsEditor } from "./ProfileSettingsEditor";
 
 type Props =
   | { kind: ExportProfileKind; scope: "personal" }
@@ -31,6 +32,7 @@ export function ProfileManager(props: Props) {
   const [icc, setIcc] = useState<ProfileOption[]>([]);
   const [editing, setEditing] = useState<{ id: string; field: "name" | "description"; value: string } | null>(null);
   const [armedDelete, setArmedDelete] = useState<string | null>(null);
+  const [editingSettings, setEditingSettings] = useState<ExportProfile | null>(null);
   const [busy, setBusy] = useState(false);
   // Two kinds, two vocabularies: both texts are literal keys.
   const t = (exportText: string, printText: string) => (print ? printText : exportText);
@@ -176,6 +178,11 @@ export function ProfileManager(props: Props) {
               )}
               <span className="ms-auto flex flex-wrap items-center gap-1">
                 {canEdit && (
+                  <button type="button" disabled={busy} onClick={() => setEditingSettings(p)} className={action}>
+                    <Pencil size={13} /> {tr("editor.profile_edit")}
+                  </button>
+                )}
+                {canEdit && (
                   <button type="button" disabled={busy} onClick={() => void run(() => oc.updateExportProfile(p.id, { isDefault: !p.isDefault }))} className={action}>
                     <Star size={13} className={p.isDefault ? "fill-current" : ""} /> {p.isDefault ? tr("editor.export_profile_unset_default") : tr("dashboard.make_default")}
                   </button>
@@ -237,6 +244,20 @@ export function ProfileManager(props: Props) {
         ))}
       </ul>
       <p className="mt-2 max-w-xl text-[11px] text-neutral-400">{t(tr("editor.export_profiles_edit_hint"), tr("editor.print_presets_edit_hint"))}</p>
+      {editingSettings && (
+        <ProfileSettingsEditor
+          profile={editingSettings}
+          print={print}
+          workspaceId={workspaceId}
+          onClose={() => setEditingSettings(null)}
+          onSave={async (settings) => {
+            // Errors reach the editor, which stays open with the changes.
+            await oc.updateExportProfile(editingSettings.id, { settings });
+            await reload();
+            toast.success(t(tr("editor.export_profile_updated", { name: editingSettings.name }), tr("editor.print_preset_updated", { name: editingSettings.name })));
+          }}
+        />
+      )}
     </section>
   );
 }

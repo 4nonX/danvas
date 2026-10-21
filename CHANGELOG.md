@@ -2,6 +2,18 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.5.7 (2026-10-21)
+
+### Added
+
+- **Edit** in the lists of export profiles and print presets (your own in Settings, the workspace's on its Members page): every setting of a profile in one dialog, with the fields the chosen format can carry, without going through the download menu or print dialog. Creating, renaming, the default, duplicating and deleting stay where they were.
+
+### Changed
+
+- Profiles are easier to find. On the dashboard's **Members** page the workspace's colour profiles, export profiles and print presets are now one section, **Print and export**, with a link to your own. Beside every profile picker (download menu, print dialog, page panel) **Manage: Mine · Workspace** leads to your own list in Settings or to the workspace's, straight to the right section; before, Manage only led to your own.
+- The workspace's ICC profiles are called **Color profiles** everywhere, as in Settings (they were "Print profiles" on the Members page and in some messages). Each list now says where the other kind is kept.
+- Documentation: a new section, Where profiles are kept, sets out your own against the workspace's (where, who sees them, who may change them, defaults). No database change.
+
 ## 0.5.6 (2026-10-21)
 
 ### Added

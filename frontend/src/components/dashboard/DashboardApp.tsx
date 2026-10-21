@@ -69,6 +69,8 @@ import { dashboardPath, type DashboardView } from "./views";
 import { DesignThumb } from "./DesignThumb";
 import { BulkShareDialog } from "./BulkShareDialog";
 import { ReformatDialog } from "./ReformatDialog";
+import Link from "next/link";
+import { settingsPath } from "@/components/settings/tabs";
 import { ExportDialog, type ExportTarget } from "@/components/editor/ExportDialog";
 import { PrintDialog } from "@/components/editor/PrintDialog";
 import { ProfileManager } from "@/components/settings/ProfileManager";
@@ -319,6 +321,30 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     (v: DashboardView) => { if (v !== view) void router.push(dashboardPath(v)); },
     [router, view],
   );
+  // The profile pickers link to the workspace's lists on the Members page by
+  // anchor (#color-profiles and the like). The panels above the target load
+  // their lists afterwards and push it down, so it is brought back into view
+  // a few times while that settles, until the user scrolls themselves.
+  useEffect(() => {
+    if (view !== "members" || typeof window === "undefined") return;
+    const id = decodeURIComponent(window.location.hash.slice(1));
+    if (!id) return;
+    let userScrolled = false;
+    const stop = () => { userScrolled = true; };
+    window.addEventListener("wheel", stop, { passive: true });
+    window.addEventListener("touchmove", stop, { passive: true });
+    window.addEventListener("keydown", stop);
+    const timers = [0, 300, 800, 1500, 2500].map((ms) => setTimeout(() => {
+      const el = userScrolled ? null : document.getElementById(id);
+      if (el && Math.abs(el.getBoundingClientRect().top) > 24) el.scrollIntoView({ block: "start" });
+    }, ms));
+    return () => {
+      timers.forEach(clearTimeout);
+      window.removeEventListener("wheel", stop);
+      window.removeEventListener("touchmove", stop);
+      window.removeEventListener("keydown", stop);
+    };
+  }, [view, activeWorkspaceId]);
   // Left rail collapse, remembered across visits. Lazy init: localStorage is
   // client-only and the static prerender falls back to expanded.
   const [railCollapsed, setRailCollapsed] = useState(
@@ -1954,19 +1980,32 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                   canEdit={activeWs?.role === "owner" || activeWs?.role === "admin"}
                 />
               )}
-              {activeWorkspaceId && (
-                <PrintProfilesPanel
-                  scope="workspace"
-                  workspaceId={activeWorkspaceId}
-                  canEdit={activeWs?.role === "owner" || activeWs?.role === "admin"}
-                />
-              )}
-              {/* The workspace's export profiles and print presets; who may
-                  manage them is set right there (owners and admins). */}
-              {activeWorkspaceId && <ProfileManager kind="export" scope="workspace" workspaceId={activeWorkspaceId} />}
-              {activeWorkspaceId && <ProfileManager kind="print" scope="workspace" workspaceId={activeWorkspaceId} />}
               {activeWorkspaceId && (activeWs?.role === "owner" || activeWs?.role === "admin") && (
                 <ApiKeysPanel workspaceId={activeWorkspaceId} />
+              )}
+              {/* Print and export: the workspace's colour profiles, export
+                  profiles and print presets, shared by every member. Each
+                  user's own are in Settings; the pickers link to both, and
+                  land here on the matching anchor. */}
+              {activeWorkspaceId && (
+                <div className="mt-10 border-t border-neutral-200 pt-6">
+                  <h3 id="print-and-export" className="scroll-mt-4 px-2 text-lg font-semibold text-neutral-900">{tr("dashboard.print_and_export")}</h3>
+                  <p className="mt-1 max-w-xl px-2 text-xs text-neutral-500">
+                    {tr("dashboard.print_and_export_hint")}{" "}
+                    <Link href={settingsPath("export-profiles")} className="font-medium text-brand-ink hover:underline">{tr("dashboard.print_and_export_mine")}</Link>
+                  </p>
+                  <div id="color-profiles" className="scroll-mt-4">
+                    <PrintProfilesPanel
+                      scope="workspace"
+                      workspaceId={activeWorkspaceId}
+                      canEdit={activeWs?.role === "owner" || activeWs?.role === "admin"}
+                    />
+                  </div>
+                  {/* Who may manage the export profiles and print presets is
+                      set right there (owners and admins by default). */}
+                  <div id="export-profiles" className="scroll-mt-4"><ProfileManager kind="export" scope="workspace" workspaceId={activeWorkspaceId} /></div>
+                  <div id="print-presets" className="scroll-mt-4"><ProfileManager kind="print" scope="workspace" workspaceId={activeWorkspaceId} /></div>
+                </div>
               )}
             </section>
           )}

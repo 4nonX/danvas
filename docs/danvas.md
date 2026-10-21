@@ -143,10 +143,10 @@ The values go into vector PDF and EPS unchanged: CMYK as the process values, a s
 ICC profiles describe how CMYK prints on a paper and press. There are three kinds:
 
 - **Built in**: PSO Uncoated ISO12647 (FOGRA47), always available.
-- **The workspace's**: uploaded by its admins on the dashboard's **Members** page, below the member list, under **Print profiles**, for every member.
+- **The workspace's**: uploaded by its admins on the dashboard's **Members** page, under **Print and export**, **Color profiles**, for every member.
 - **Your own**: under **Settings**, **Color profiles**, anyone uploads the profile a print shop sent them (for example PSO Coated v3); only they see it, in every workspace. Rename, make default, remove the default again, or delete it there.
 
-Which one applies: the profile chosen in the download menu; it starts with the design's color profile (page panel, **Color profile of the design**; **Default** follows your default, else the workspace's, else the built-in one). The design's profile also decides how exact CMYK and spot colors look on screen; changing it shows them anew (one undo step), their print values stay. The download menu and the page panel list your profiles, the workspace's and the built-in one, with **Manage** leading to your settings. Where each kind is kept and who may change it: [Where profiles are kept](#where-profiles-are-kept).
+Which one applies: the profile chosen in the download menu; it starts with the design's color profile (page panel, **Color profile of the design**; **Default** follows your default, else the workspace's, else the built-in one). The design's profile also decides how exact CMYK and spot colors look on screen; changing it shows them anew (one undo step), their print values stay. The download menu and the page panel list your profiles, the workspace's and the built-in one, with **Manage: Mine · Workspace** leading to your own list or to the workspace's. Where each kind is kept and who may change it: [Where profiles are kept](#where-profiles-are-kept).
 
 ## Brand kits and fonts
 
@@ -224,7 +224,7 @@ An export profile is a named set of download settings: format, size, colour prof
 
 - Pick a profile and the menu takes its settings. A line under it says what it does (for example "PDF vector · CMYK, PSO Uncoated · PDF/X-4 · bleed 1.5 mm · die line Stanze"), after its description.
 - Change anything and the menu says so; **Update** writes the change into the profile, **Save as new** keeps it as a new one (name, description, "Just me" or "Whole workspace", default).
-- **Manage** opens the full list: your own under **Settings**, **Export profiles**, the workspace's on its **Members** page (see [Where profiles are kept](#where-profiles-are-kept)). Rename and describe by clicking, make one the default, duplicate, copy a workspace profile into one's own, delete.
+- **Manage: Mine · Workspace** opens the full list: your own under **Settings**, **Export profiles**, the workspace's on its **Members** page (see [Where profiles are kept](#where-profiles-are-kept)). There **New** creates one, **Edit** changes every setting of a profile in one dialog (format, PDF type, colour, colour profile and intent, ink limit, black ink, PDF/X-4, registration marks, die line, bleed and crop marks, extending into the bleed, whole millimetres, zip), a click renames or describes it, and it can be made the default, duplicated, copied from the workspace into one's own, or deleted.
 - The download menu opens with the user's default, else the workspace's. Names are unique per owner, ignoring case.
 - Who may create, change and delete the workspace's profiles is set on the same **Members** page: owners and admins (the default) or every member who may edit. Everyone uses them.
 
@@ -239,7 +239,7 @@ A profile can hold bleed and crop marks "as on the pages" or "set for this outpu
 - The printer receives the paper size and one RGB image per page; its driver handles the colours (the colour profiles of the download menu are for print-shop files). For actual size, keep the scale at 100 % ("Default") in the system print dialog.
 - **Resolution**: 150, 200, 300 or 600 dpi. The whole page, text included, reaches the printer as an image, so 600 dpi gives sharper small text, hairlines and barcodes on printers that print at 600 dpi (most office laser printers). Each page is rendered at no more than 7000 pixels on its longest side to stay within the browser's memory; a page larger than that (A3 at 600 dpi, for example) prints at a lower resolution, and the dialog says which.
 - **Bleed and crop marks**: as on the pages, or set for this print.
-- **Print presets** store these settings like export profiles store a download's: personal or per workspace, with a default, their own list under **Settings**, **Print presets** and on the workspace's **Members** page, and their own setting for who manages the workspace's.
+- **Print presets** store these settings like export profiles store a download's: personal or per workspace, with a default, their own list under **Settings**, **Print presets** and on the workspace's **Members** page (**Edit** there changes pages, paper, size on paper, resolution, bleed and crop marks), and their own setting for who manages the workspace's.
 
 ### Where profiles are kept
 
@@ -247,12 +247,12 @@ Colour profiles, export profiles and print presets each exist twice: **your own*
 
 | | Your own | The workspace's |
 |---|---|---|
-| Where to manage them | **Settings** (in the menu under your name): **Export profiles**, **Print presets**, **Color profiles** | Dashboard, **Members** in the left bar, below the member list: **Print profiles** (the workspace's colour profiles), **Export profiles**, **Print presets** |
+| Where to manage them | **Settings** (in the menu under your name): **Export profiles**, **Print presets**, **Color profiles** | Dashboard, **Members** in the left bar, section **Print and export**: **Color profiles**, **Export profiles**, **Print presets** |
 | Who sees and uses them | only you, in every workspace you work in (your personal one too) | every member of that workspace, only there |
-| Who may add, change and delete them | you | colour profiles: owners and admins; export profiles and print presets: owners and admins, or every member who may edit (set on the same page) |
+| Create, edit, delete | you | colour profiles: owners and admins; export profiles and print presets: owners and admins, or every member who may edit (set on the same page) |
 | Default | **Use as my default** (colour profiles: **Make default**): applies to you only and comes before the workspace's default | **Use as the workspace default** (colour profiles: **Make default**): applies to every member who has no default of their own |
 
-In the download menu, the print dialog and the page panel both kinds are listed together, yours as **Mine** and the workspace's under its name. **Manage** there opens your own **Settings**; the workspace's lists are on its **Members** page. **Copy to mine** turns a workspace profile into one of your own, to change it for yourself without changing it for everyone.
+In the download menu, the print dialog and the page panel both kinds are listed together, yours as **Mine** and the workspace's under its name. Beside each picker, **Manage: Mine · Workspace** opens your own list in **Settings** or the workspace's on its **Members** page, at the right section. Each list creates, edits (every setting, with **Edit**), renames, sets the default and deletes; colour profiles are created by uploading an `.icc` file. **Copy to mine** turns a workspace profile into one of your own, to change it for yourself without changing it for everyone.
 
 What you pick in the download menu or the print dialog applies to that one download or print only: the designs do not change, and a profile only changes when you choose **Update** (or edit it in the lists above).
 

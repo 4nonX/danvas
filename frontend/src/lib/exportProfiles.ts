@@ -126,7 +126,7 @@ export function sameSettings(a: ExportSettings, b: ExportSettings): boolean {
   return JSON.stringify(normalizeSettings(a)) === JSON.stringify(normalizeSettings(b));
 }
 
-const FORMAT_LABEL: Record<ExportFormat, string> = {
+export const FORMAT_LABEL: Record<ExportFormat, string> = {
   png: "PNG", jpg: "JPG", pdf: "PDF", svg: "SVG", apng: "APNG", gif: "GIF", lottie: "Lottie", mp4: "MP4", pptx: "PPTX", md: "MD", hyc: "HYC", tiff: "TIFF", eps: "EPS",
 };
 

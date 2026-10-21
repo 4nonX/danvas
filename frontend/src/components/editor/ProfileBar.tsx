@@ -6,13 +6,12 @@
 // pages (ProfileManager).
 
 import { useEffect, useId, useState } from "react";
-import Link from "next/link";
 import type { ExportProfile, ExportProfileKind, ExportProfileView } from "@hc/sdk";
 import { oc } from "@/lib/sdk";
 import { defaultProfile, freeName } from "@/lib/exportProfiles";
 import { useToast } from "@/components/ui/Toast";
 import { userMessage } from "@/lib/errors";
-import { settingsPath } from "@/components/settings/tabs";
+import { ManageProfilesLinks } from "@/components/editor/ManageProfilesLinks";
 import { tr } from "@/lib/i18n";
 
 export interface ProfileBarProps<T> {
@@ -133,9 +132,7 @@ export function ProfileBar<T>({ kind, open, workspaceId, current, normalize, sam
     <div className="mb-3 flex flex-col gap-1.5 rounded-lg border border-neutral-200 p-2.5">
       <div className="flex items-center justify-between gap-2">
         <label htmlFor={`${id}-pick`} className="text-xs font-medium text-neutral-700">{t(tr("editor.export_profile"), tr("editor.print_preset"))}</label>
-        <Link href={settingsPath(print ? "print-presets" : "export-profiles")} className="text-[11px] font-medium text-brand-ink hover:underline">
-          {t(tr("editor.manage_export_profiles"), tr("editor.manage_print_presets"))}
-        </Link>
+        <ManageProfilesLinks kind={print ? "print-presets" : "export-profiles"} newTab />
       </div>
       <select id={`${id}-pick`} value={activeId ?? ""} onChange={(e) => pick(e.target.value)} className={field}>
         <option value="">{t(tr("editor.export_profile_none"), tr("editor.print_preset_none"))}</option>

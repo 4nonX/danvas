@@ -20,7 +20,7 @@ const round2 = (v: number) => Math.round(v * 100) / 100;
 
 /** A number field that commits on blur or Enter (arithmetic allowed), in the
  *  look of the properties panel's fields. */
-function NumField({ label, value, onCommit }: { label: string; value: number; onCommit: (n: number) => void }) {
+export function NumField({ label, value, onCommit }: { label: string; value: number; onCommit: (n: number) => void }) {
   const initial = String(round2(value));
   return (
     <label className="flex h-8 items-center gap-1.5 rounded-md border border-neutral-200 bg-surface px-2 text-[13px] transition focus-within:border-brand-400 focus-within:ring-2 focus-within:ring-brand-100">

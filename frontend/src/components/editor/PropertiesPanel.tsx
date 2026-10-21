@@ -52,7 +52,7 @@ import { fromUnit, MEASURE_UNITS, measureUnitOf, parseLength, strokeUnitOf, unit
 import { PRINT_FORMATS } from "@/lib/printFormats";
 import { designProfileId, listProfileOptions, type ProfileOption } from "@/lib/print/profiles";
 import { cmykToScreen, setScreenProofProfile } from "@/lib/print/printColor";
-import { settingsPath } from "@/components/settings/tabs";
+import { ManageProfilesLinks } from "@/components/editor/ManageProfilesLinks";
 import { userMessage } from "@/lib/errors";
 
 type IconType = ComponentType<{ size?: number | string; strokeWidth?: number; className?: string }>;
@@ -417,7 +417,7 @@ function DesignColorProfile() {
     <label className="block">
       <span className="mb-1 flex items-center justify-between gap-2 text-xs text-neutral-500">
         <span>{tr("editor.design_color_profile")}</span>
-        <a href={settingsPath("color-profiles")} target="_blank" rel="noreferrer" className="font-medium text-brand-ink hover:underline">{tr("editor.manage_color_profiles")}</a>
+        <ManageProfilesLinks kind="color-profiles" newTab />
       </span>
       <select
         value={value}

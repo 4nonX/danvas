@@ -39,7 +39,7 @@ import { useToast } from "@/components/ui/Toast";
 import { tr } from "@/lib/i18n";
 import { resolvedLocale } from "@/lib/locale";
 import { copyText } from "@/lib/clipboard";
-import { settingsPath } from "@/components/settings/tabs";
+import { ManageProfilesLinks } from "@/components/editor/ManageProfilesLinks";
 import { designProfileId, listProfileOptions, profileBytes, type ProfileOption } from "@/lib/print/profiles";
 import type { CmykConverter, RenderingIntent } from "@/lib/print/cms";
 import { defaultTacLimit } from "@/lib/print/proof";
@@ -1174,7 +1174,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
                   </select>
                   <span className="mt-1 flex items-start justify-between gap-2 text-[11px] leading-snug text-neutral-400">
                     <span>{profiles !== null && profiles.every((p) => p.builtIn) ? tr("editor.print_profile_upload_tip") : null}</span>
-                    <a href={settingsPath("color-profiles")} target="_blank" rel="noreferrer" className="shrink-0 font-medium text-brand-ink hover:underline">{tr("editor.manage_color_profiles")}</a>
+                    <ManageProfilesLinks kind="color-profiles" newTab />
                   </span>
                 </label>
                 <label className="block">
