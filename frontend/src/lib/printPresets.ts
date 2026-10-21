@@ -18,11 +18,29 @@ export interface PrintSettings {
    *  roll printers, Save as PDF) or a standard sheet. */
   paper: PrintPaper;
   /** Raster resolution sent to the printer. */
-  dpi: 150 | 200 | 300;
+  dpi: 150 | 200 | 300 | 600;
   print: ProfilePrint;
 }
 
-export const PRINT_DPIS = [150, 200, 300] as const;
+export const PRINT_DPIS = [150, 200, 300, 600] as const;
+
+/** Longest side, in pixels, a page is rendered at for printing (browser memory). */
+export const PRINT_MAX_DIM = 7000;
+
+/** The render scale for one print sheet: the chosen resolution, reduced so the
+ *  sheet's longest side stays within PRINT_MAX_DIM. `docDpi` is the design's own
+ *  resolution (pixels per inch of its page units). */
+export function printScale(sheetWidth: number, sheetHeight: number, docDpi: number, dpi: number): number {
+  return Math.max(0.1, Math.min(dpi / docDpi, PRINT_MAX_DIM / Math.max(1, sheetWidth, sheetHeight)));
+}
+
+/** The lowest resolution any of `sheets` actually prints at, rounded down, when
+ *  it falls noticeably (over 5 %) below the chosen `dpi`; otherwise null. */
+export function cappedPrintDpi(sheets: { sheetWidth: number; sheetHeight: number; docDpi: number }[], dpi: number): number | null {
+  let lowest = Infinity;
+  for (const s of sheets) lowest = Math.min(lowest, printScale(s.sheetWidth, s.sheetHeight, s.docDpi, dpi) * s.docDpi);
+  return lowest < dpi * 0.95 ? Math.floor(lowest) : null;
+}
 
 export function defaultPrintSettings(): PrintSettings {
   return { v: 1, pages: "all", size: "actual", paper: "a4", dpi: 200, print: { source: "page", bleed: false, marks: false } };

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ExportProfile } from "@hc/sdk";
 import { defaultExportSettings, defaultProfile, describeSettings, freeName, normalizeSettings, sameSettings } from "./exportProfiles";
-import { describePrintSettings, normalizePrintSettings, samePrintSettings } from "./printPresets";
+import { cappedPrintDpi, describePrintSettings, normalizePrintSettings, printScale, PRINT_MAX_DIM, samePrintSettings } from "./printPresets";
 import { oversizedPages, paperFor, printHtml } from "./printDocument";
 
 const profile = (p: Partial<ExportProfile>): ExportProfile => ({
@@ -62,6 +62,22 @@ describe("print presets", () => {
     expect(s).toEqual(expect.objectContaining({ size: "fit", dpi: 200, pages: "current" }));
     expect(samePrintSettings(s, normalizePrintSettings(s))).toBe(true);
     expect(describePrintSettings(normalizePrintSettings({ v: 1, dpi: 300 }))).toContain("300 dpi");
+  });
+
+  it("offers 600 dpi and says when a page cannot reach the chosen resolution", () => {
+    expect(normalizePrintSettings({ v: 1, dpi: 600 }).dpi).toBe(600);
+    expect(describePrintSettings(normalizePrintSettings({ v: 1, dpi: 600 }))).toContain("600 dpi");
+    // A design at 96 px per inch: A4 is 794 x 1123 px, A3 1123 x 1587 px.
+    const a4 = { sheetWidth: 794, sheetHeight: 1123, docDpi: 96 };
+    const a3 = { sheetWidth: 1123, sheetHeight: 1587, docDpi: 96 };
+    expect(printScale(a4.sheetWidth, a4.sheetHeight, 96, 300)).toBeCloseTo(300 / 96, 6);
+    expect(cappedPrintDpi([a4], 300)).toBeNull();
+    expect(cappedPrintDpi([a4], 600)).toBeNull();                       // 598 dpi: within 5 %, not worth a warning
+    const a3dpi = Math.floor((PRINT_MAX_DIM / 1587) * 96);
+    expect(cappedPrintDpi([a4, a3], 600)).toBe(a3dpi);                  // the largest page sets the figure
+    expect(a3dpi).toBeLessThan(450);
+    expect(Math.max(a3.sheetWidth, a3.sheetHeight) * printScale(a3.sheetWidth, a3.sheetHeight, 96, 600)).toBeLessThanOrEqual(PRINT_MAX_DIM);
+    expect(cappedPrintDpi([], 600)).toBeNull();
   });
 
   it("hands the driver each page's own paper size, or a standard sheet turned to fit", () => {

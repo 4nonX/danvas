@@ -18,14 +18,12 @@ import { useBrand } from "@/store/brand";
 import { useToast } from "@/components/ui/Toast";
 import { renderPageCanvas } from "@/lib/exportFormats";
 import { initialPrintOverride, printSheet, pxToMm, withPrintOverride, type PrintOverride } from "@/lib/print/sheet";
-import { describePrintSettings, normalizePrintSettings, paperLabel, PRINT_DPIS, samePrintSettings, type PrintSettings } from "@/lib/printPresets";
+import { cappedPrintDpi, describePrintSettings, normalizePrintSettings, paperLabel, PRINT_DPIS, printScale, samePrintSettings, type PrintSettings } from "@/lib/printPresets";
 import { oversizedPages, PRINT_PAPERS, printHtml, type PrintPage } from "@/lib/printDocument";
 import { BleedInput, MarkInputs } from "./PrintSettings";
 import { ProfileBar } from "./ProfileBar";
 import type { ExportTarget } from "./ExportDialog";
 import { tr } from "@/lib/i18n";
-
-const MAX_DIM = 7000; // cap any single page's pixel dimension (memory)
 
 type Job = { doc: DesignFile; pages: number[] };
 
@@ -48,7 +46,7 @@ function sheets(jobs: Job[], s: PrintSettings, override: PrintOverride) {
 async function renderPages(list: ReturnType<typeof sheets>, s: PrintSettings): Promise<PrintPage[]> {
   const out: PrintPage[] = [];
   for (const p of list) {
-    const scale = Math.max(0.1, Math.min(s.dpi / p.dpi, MAX_DIM / Math.max(1, p.sheet.sheetWidth, p.sheet.sheetHeight)));
+    const scale = printScale(p.sheet.sheetWidth, p.sheet.sheetHeight, p.dpi, s.dpi);
     const canvas = renderPageCanvas(p.doc, p.index, scale, true, p.parts);
     if (!canvas) continue;
     // A tainted canvas (an image from another site) throws here.
@@ -116,6 +114,7 @@ export function PrintDialog({ open, onClose, designs, workspaceId: workspaceIdPr
   const sheetList = sheets(jobs, current, override);
   const sheetCount = sheetList.length;
   const tooBig = oversizedPages(sheetList, settings.paper, settings.size);
+  const cappedDpi = cappedPrintDpi(sheetList.map((p) => ({ sheetWidth: p.sheet.sheetWidth, sheetHeight: p.sheet.sheetHeight, docDpi: p.dpi })), settings.dpi);
 
   async function go() {
     setBusy(true);
@@ -194,6 +193,7 @@ export function PrintDialog({ open, onClose, designs, workspaceId: workspaceIdPr
               <button key={d} type="button" onClick={() => set({ dpi: d })} className={seg(settings.dpi === d)}>{d} dpi</button>
             ))}
           </div>
+          {cappedDpi !== null && <p className="mt-1.5 text-[11px] font-medium text-amber-700">{tr("editor.print_resolution_capped", { dpi: cappedDpi, chosen: settings.dpi })}</p>}
         </div>
 
         <div className="mb-4 flex flex-col gap-2 rounded-lg border border-neutral-200 p-2.5">

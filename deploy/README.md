@@ -101,6 +101,7 @@ Main settings in `.env`:
 | `INSTANCE_ACCENT` | accent color of the interface as `#rrggbb`; the full color scale, the gradient and the favicon are derived from it |
 | `INSTANCE_LOCALE` | language for everyone who has not picked one, e.g. `de` (empty: the browser's language) |
 | `INSTANCE_SOURCE_URL` | where the sign-in page's "Source code" link points, an https URL. Set it when you run a modified version: the AGPL-3.0 requires offering your users your source (empty: the danvas repository at the running version) |
+| `GHOSTSCRIPT_PATH` | the Ghostscript binary the download menu's output check separates print files with (empty: `gs`, which the image includes; without it the check is not offered) |
 | `BUILTIN_TEMPLATES` | `off` hides the built-in starter templates |
 | `BRAND_STARTER_KIT` | `hycanvas` seeds HyCanvas's own brand kit into new workspaces (off by default) |
 | `OIDC_*` | optional single sign-on (Authentik, Keycloak, Google, ...) |

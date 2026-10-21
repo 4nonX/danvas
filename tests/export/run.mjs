@@ -225,7 +225,14 @@ function check(o, refFile, ink, pageBg) {
     const base = basename(sep).replace(/\.tif$/, "");
     const plates = readdirSync(dirname(sep)).filter((f) => f.startsWith(base + "(") && f.endsWith(").tif")).map((f) => Buffer.from(f.slice(base.length + 1, -5).replace(/%([0-9A-F]{2})/g, (_, h) => String.fromCharCode(parseInt(h, 16))), "latin1").toString("utf8")); // Ghostscript writes non-ASCII bytes as %XX
     for (const name of (e.separations ?? []).filter((x) => x !== "All")) if (!plates.includes(name)) problems.push(`no plate named ${name} (plates: ${plates.join(", ")})`);
+    // The editor's preview must show the inks the file really carries.
+    for (const [name, want] of Object.entries(o.proofCoverage ?? {})) {
+      const got = 100 * parseFloat(text(IM, [sep.replace(/\.tif$/, `(${name}).tif`), "-format", "%[fx:1-mean]", "info:"]));
+      if (!(Math.abs(got - want) <= 3)) problems.push(`preview shows ${want.toFixed(1)} % ${name}, the file has ${got.toFixed(1)} %`);
+    }
   }
+  // The editor's output check must find nothing wrong with a correct file.
+  for (const f of (o.fileFindings ?? []).filter((x) => x.level !== "ok")) problems.push(`output check: ${f.level} ${f.code}${f.params ? " " + JSON.stringify(f.params) : ""}`);
   return { id: o.id, problems, worst: cmp.worst };
 }
 

@@ -121,7 +121,7 @@ All of these are drawn by the same engine as the editor, so they match what you 
 - **Print**: vector PDF, image PDF, TIFF and EPS (PostScript Level 3), each in CMYK through an ICC color profile or in RGB. For CMYK, choose a color profile and a rendering intent; workspace admins upload their own printing profiles under **Members**, **Print profiles** (**Upload .icc profile**).
 - **danvas file (.hyc)**: the design itself in the open file format, all pages, for keeping, for another instance or to import again. Also in the editor's **File** menu.
 
-The download menu checks what the chosen format would lose before the file is made, and lists it with the page and element: a font that is unknown here or did not load (a fallback font draws the text), an image that did not load, for the vector formats a font with no file to outline the text from (the text becomes a picture in the file), and for PDF, TIFF and EPS an image placed at under 150 dpi. It never blocks the download.
+The download menu checks what the chosen format would lose before the file is made, and lists it with the page and element: a font that is unknown here or did not load (a fallback font draws the text), an image that did not load, for the vector formats a font with no file to outline the text from (the text becomes a picture in the file), and for PDF, TIFF and EPS an image placed at under 150 dpi, lines thinner than 0.25 pt, text under 8 pt printed in several inks (in CMYK), and artwork or a coloured page background reaching the edge of a page exported without bleed. It never blocks the download.
 
 To check every format against the editor after a change to the export, run `npm run test:export` (see [`tests/export`](../tests/export/README.md)).
 
@@ -150,6 +150,15 @@ What a print shop needs depends on the format; the download menu offers each opt
 
 Effects (shadows, glows, blurs) keep their size at every export scale.
 
+### Proof and output check
+
+For a CMYK print file the download menu has two more buttons above **Download**:
+
+- **Proof** shows the pages as they will print, computed in the browser through the chosen colour profile and intent: the soft proof (optionally with the paper's white simulated), each plate (cyan, magenta, yellow, black, the die line) in grey or in its ink, the **ink coverage** with every area above the limit marked, and the colours **out of gamut** (which the profile cannot print). Pointing at the page reads the inks there; the side panel gives the highest coverage, the area above the limit and the area out of gamut. It is a close estimate from the screen rendering.
+- **Check output** builds the file exactly as **Download** would and checks the file itself. In the browser: CMYK only, output intent, PDF/X-4 marking, trim and bleed box, for EPS the bounding box and colours, and the spot colours asked for. On the server, Ghostscript separates the file into its real plates, as a print shop's software does: each plate with its coverage, a soft proof made from them, and the total ink coverage against the limit. Up to 20 pages and 200 MB; the check needs Ghostscript on the server (the image has it, see `GHOSTSCRIPT_PATH`).
+
+**Max. ink coverage (TAC)**, in the CMYK settings and stored in export profiles, is the total of all four inks the print shop allows; empty means the usual value for the paper (300 % for uncoated, 330 % for coated profiles).
+
 ### Bleed and crop marks
 
 Artwork that should reach the edge of a printed piece is printed larger and cut back, so no white edge is left when the cut is slightly off. Each page sets this for itself:
@@ -161,7 +170,7 @@ Artwork that should reach the edge of a printed piece is printed larger and cut 
 
 ### Export profiles
 
-An export profile is a named set of download settings: format, size, colour profile and intent, the print-shop options, bleed and crop marks. The download menu starts with a profile picker:
+An export profile is a named set of download settings: format, size, colour profile and intent, the maximum ink coverage (TAC), the print-shop options, bleed and crop marks. The download menu starts with a profile picker:
 
 - Pick a profile and the menu takes its settings. A line under it says what it does (for example "PDF vector · CMYK, PSO Uncoated · PDF/X-4 · bleed 1.5 mm · die line Stanze"), after its description.
 - Change anything and the menu says so; **Update** writes the change into the profile, **Save as new** keeps it as a new one (name, description, "Just me" or "Whole workspace", default).
@@ -178,7 +187,7 @@ A profile can hold bleed and crop marks "as on the pages" or "set for this outpu
 - **Paper**: the paper handed to the printer driver. "Size of the design" gives each page paper of its own size (with bleed and marks), for label and roll printers loaded with that media and for "Save as PDF"; A4, A3 or Letter is the sheet in the printer, turned to fit the design.
 - **Size on paper**: the design's actual size (100 %), centred on the paper, or fitted to it within a margin most printers can print to. A page larger than the paper at actual size is pointed out before printing.
 - The printer receives the paper size and one RGB image per page; its driver handles the colours (the colour profiles of the download menu are for print-shop files). For actual size, keep the scale at 100 % ("Default") in the system print dialog.
-- **Resolution**: 150, 200 or 300 dpi.
+- **Resolution**: 150, 200, 300 or 600 dpi. The whole page, text included, reaches the printer as an image, so 600 dpi gives sharper small text, hairlines and barcodes on printers that print at 600 dpi (most office laser printers). Each page is rendered at no more than 7000 pixels on its longest side to stay within the browser's memory; a page larger than that (A3 at 600 dpi, for example) prints at a lower resolution, and the dialog says which.
 - **Bleed and crop marks**: as on the pages, or set for this print.
 - **Print presets** store these settings like export profiles store a download's: personal or per workspace, with a default, their own list under **Settings**, **Print presets** and in the workspace settings, and their own setting for who manages the workspace's.
 

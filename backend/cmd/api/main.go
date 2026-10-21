@@ -45,6 +45,7 @@ import (
 	"hycanvas/backend/internal/jobs"
 	"hycanvas/backend/internal/migrations"
 	"hycanvas/backend/internal/oidc"
+	"hycanvas/backend/internal/outputcheck"
 	"hycanvas/backend/internal/persistence"
 	"hycanvas/backend/internal/platform/config"
 	"hycanvas/backend/internal/platform/db"
@@ -201,6 +202,8 @@ func main() {
 	homeSvc := home.NewService(pool, persist, acct)
 	printProfilesSvc := printprofiles.NewService(pool, acct)
 	exportProfilesSvc := exportprofiles.NewService(pool, acct)
+	// Separating print files for the output check; GHOSTSCRIPT_PATH, else "gs".
+	outputCheck := outputcheck.New(os.Getenv("GHOSTSCRIPT_PATH"))
 	fontsSvc := workspacefonts.NewService(pool, acct)
 	// The engagement emitter (write side: activity log + notifications) depends
 	// only on the DB, account lookup, and title lookup - never on sharing - so
@@ -424,6 +427,7 @@ func main() {
 			Home:           homeSvc,
 			PrintProfiles:  printProfilesSvc,
 			ExportProfiles: exportProfilesSvc,
+			OutputCheck:    outputCheck,
 			Fonts:          fontsSvc,
 			Sharing:        sharingSvc,
 			Approvals:      approvalsSvc,

@@ -7,7 +7,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { compileAttribution, attributionText } from "@hc/stock";
-import { AlertTriangle, ShieldAlert, Image as ImageIcon, FileText, Shapes, Download, Film, Printer } from "lucide-react";
+import { AlertTriangle, ShieldAlert, Image as ImageIcon, FileText, Shapes, Download, Film, Printer, Eye, ScanSearch } from "lucide-react";
 import { rasterDimensions, encodeApng, encodeGif, designPageToLottie, deckToPptx, type PptxImage, type PptxRaster } from "@hc/export";
 import { worldAABB } from "@hc/editor";
 import { resolveAssetUrl } from "@/lib/sdk";
@@ -41,13 +41,16 @@ import { resolvedLocale } from "@/lib/locale";
 import { copyText } from "@/lib/clipboard";
 import { listProfileOptions, profileBytes, type ProfileOption } from "@/lib/print/profiles";
 import type { CmykConverter, RenderingIntent } from "@/lib/print/cms";
+import { defaultTacLimit } from "@/lib/print/proof";
 import { initialPrintOverride, printAdditions, printSheet, pxToMm, withPrintOverride, type PrintExtras, type PrintOverride, type PrintParts } from "@/lib/print/sheet";
 import { pageBleed } from "@hc/engine";
 import { imagePdfBlob, rasterBlob, renderPageCanvas, tiffBlob } from "@/lib/exportFormats";
 import { hycBlob } from "@/lib/hycFile";
-import { exportIssues, PRINT_MIN_PPI, type ExportIssue } from "@/lib/exportIssues";
+import { exportIssues, HAIRLINE_PT, PRINT_MIN_PPI, SMALL_TEXT_PT, type ExportIssue } from "@/lib/exportIssues";
 import { describeSettings, normalizeSettings, sameSettings, type ExportSettings } from "@/lib/exportProfiles";
 import { ProfileBar } from "./ProfileBar";
+import { ProofView } from "./ProofView";
+import { OutputCheckView } from "./OutputCheckView";
 import { whenRenderable } from "@/lib/loadDesignForExport";
 import { BleedField, BleedInput, MarkFields, MarkInputs, setPagesBleed, setPagesMarks } from "./PrintSettings";
 
@@ -260,6 +263,18 @@ const FOCUSABLE =
  *  each into one zip, a folder per design. */
 export interface ExportTarget { id: string; doc: DesignFile }
 
+// The design with a fixed bleed and marks, kept per design and setting, so
+// the proof view does not redo its work on every render of the menu.
+const overridden = new WeakMap<DesignFile, { key: string; doc: DesignFile }>();
+function overriddenDoc(doc: DesignFile, o: PrintOverride): DesignFile {
+  const key = JSON.stringify(o);
+  const hit = overridden.get(doc);
+  if (hit && hit.key === key) return hit.doc;
+  const out = withPrintOverride(doc, o);
+  overridden.set(doc, { key, doc: out });
+  return out;
+}
+
 /** Where an export check issue is: "p. 1: Title, Footer; p. 2: ...". */
 function issueWhere(i: ExportIssue): string {
   const byPage = new Map<number, string[]>();
@@ -274,6 +289,9 @@ function issueText(i: ExportIssue): string {
   const where = issueWhere(i);
   if (i.kind === "font") return tr("editor.export_issue_font", { subject: i.subject, where });
   if (i.kind === "font-outline") return tr("editor.export_issue_font_outline", { subject: i.subject, where });
+  if (i.kind === "hairline") return tr("editor.export_issue_hairline", { subject: i.subject, min: HAIRLINE_PT, where });
+  if (i.kind === "small-rich-text") return tr("editor.export_issue_small_rich_text", { subject: i.subject, size: SMALL_TEXT_PT, where });
+  if (i.kind === "edge-no-bleed") return tr("editor.export_issue_edge_no_bleed", { where });
   if (i.kind === "image-resolution") return tr("editor.export_issue_image_resolution", { subject: i.subject, ppi: i.ppi ?? 0, min: PRINT_MIN_PPI, where });
   return tr("editor.export_issue_image", { subject: i.subject, where });
 }
@@ -314,6 +332,18 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
   const [profileId, setProfileId] = useState<string | null>(null);
   const [intent, setIntent] = useState<RenderingIntent>("relative");
   const [blackOnly, setBlackOnly] = useState(true);
+  // The print shop's total ink limit, per cent; null: the paper's usual.
+  const [tacLimit, setTacLimit] = useState<number | null>(null);
+  const [proofOpen, setProofOpen] = useState(false);
+  // The output check needs Ghostscript on the instance.
+  const [checkOpen, setCheckOpen] = useState(false);
+  const [checkAvailable, setCheckAvailable] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    void oc.outputCheckAvailable().then((r) => { if (!cancelled) setCheckAvailable(r.available); }, () => undefined);
+    return () => { cancelled = true; };
+  }, [open]);
   const [tiffDpi, setTiffDpi] = useState(300);
   // Print-shop options of the CMYK and vector print files.
   const [overprintBlack, setOverprintBlack] = useState(true);
@@ -374,7 +404,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
   // The menu's settings as an export profile stores them.
   const currentSettings: ExportSettings = {
     v: 1, format, pdfMode, scale, transparent, quality, zip: zipBatch, tiffDpi,
-    color: printColor, iccProfileId: profileId, intent, blackOnly, overprintBlack, pdfx, registration, dieLine,
+    color: printColor, iccProfileId: profileId, intent, blackOnly, overprintBlack, pdfx, registration, dieLine, tacLimit,
     print: printSource === "fixed" ? { source: "fixed", override } : { source: "page", bleed: withBleed, marks: withMarks },
   };
   function applySettings(raw: ExportSettings) {
@@ -390,6 +420,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
     if (s.iccProfileId) setProfileId(s.iccProfileId);
     setIntent(s.intent);
     setBlackOnly(s.blackOnly);
+    setTacLimit(s.tacLimit);
     setOverprintBlack(s.overprintBlack);
     setPdfx(s.pdfx);
     setRegistration(s.registration);
@@ -462,6 +493,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
   const rendersDesign = format !== "hyc" && format !== "md" && format !== "lottie";
   const vectorOut = format === "svg" || format === "eps" || (format === "pdf" && pdfMode !== "image");
   const printOut = format === "pdf" || format === "tiff" || format === "eps";
+  const overrideBleed = override.bleed;
   // The pages exported (as `pages` below, which comes after the early return).
   const pagesKey = (selected.length ? [...selected].sort((a, b) => a - b) : [Math.min(activePage, pageCount - 1)]).join(",");
   useEffect(() => {
@@ -472,15 +504,33 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
         ? designs!.map((d) => ({ design: d.doc.title || tr("editor.untitled"), doc: d.doc, pages: d.doc.pages.map((_, i) => i) }))
         : [{ design: "", doc: designs?.[0]?.doc ?? useEditor.getState().doc, pages: pagesKey.split(",").map(Number) }];
       const out: { design: string; list: ExportIssue[] }[] = [];
-      for (const t of targets) {
-        await whenRenderable(t.doc);
-        const list = await exportIssues(t.doc, t.pages, { vector: vectorOut, print: printOut });
-        if (list.length) out.push({ design: t.design, list });
+      // The print preflight converts colours as the export will.
+      let conv: CmykConverter | null = null;
+      if (printOut && cmykCapable && printColor === "cmyk" && profileId) {
+        try {
+          const { createCmykConverter } = await import("@/lib/print/cms");
+          conv = await createCmykConverter(await profileBytes(profileId), intent);
+        } catch { conv = null; }
+      }
+      try {
+        for (const t of targets) {
+          await whenRenderable(t.doc);
+          const bleed = printSource === "fixed" ? overrideBleed : withBleed && t.pages.some((i) => !!t.doc.pages[i] && pageBleed(t.doc.pages[i]) > 0);
+          const list = await exportIssues(t.doc, t.pages, {
+            vector: vectorOut,
+            print: printOut,
+            printCheck: { cmyk: conv ? (r, g, b) => conv!.cmyk(r, g, b) : null, blackOnly: vectorPrint && blackOnly, bleed },
+            backgroundLabel: tr("editor.export_issue_page_background"),
+          });
+          if (list.length) out.push({ design: t.design, list });
+        }
+      } finally {
+        conv?.dispose();
       }
       if (!cancelled) setIssues(out);
     })();
     return () => { cancelled = true; };
-  }, [open, rendersDesign, vectorOut, printOut, pagesKey, designs, bulk, rev]);
+  }, [open, rendersDesign, vectorOut, printOut, pagesKey, designs, bulk, rev, cmykCapable, printColor, profileId, intent, vectorPrint, blackOnly, printSource, overrideBleed, withBleed]);
   const shownIssues = rendersDesign ? issues : [];
 
   // Dialog focus contract: on open, remember the opener and move focus onto the
@@ -555,6 +605,13 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
   const printExtras: PrintExtras | undefined = vectorPrint
     ? { registration: useSheet.marks && registration, dieLine: dieLine.on && dieLine.name.trim() ? { name: dieLine.name.trim(), radiusMm: dieLine.radiusMm } : undefined }
     : undefined;
+  // The proof view: CMYK through a profile, the design as exported.
+  const proofable = cmykCapable && printColor === "cmyk" && !!profileId;
+  const profileName = profiles?.find((p) => p.id === profileId)?.name ?? "";
+  const effectiveTac = tacLimit ?? defaultTacLimit(profileName);
+  const proofDoc = fixedPrint && sheetCapable ? overriddenDoc(doc, override) : doc;
+  // The output check: the real PDF or EPS, separated on the instance.
+  const checkable = checkAvailable && proofable && (format === "eps" || (format === "pdf" && pdfMode !== "tagged"));
   const sizedPage = !fixedPrint || !sheetCapable ? refPage : withPrintOverride({ ...doc, pages: [refPage] }, override).pages[0];
   const tiffSheet = printSheet(sizedPage, doc.dpi ?? 96, useSheet);
   const tiffDim = rasterDimensions({ width: tiffSheet.sheetWidth, height: tiffSheet.sheetHeight }, { scale: tiffDpi / (doc.dpi ?? 96) }, doc.dpi ?? 96);
@@ -810,6 +867,15 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
         if (!quiet) toast.success(fileCount > 1 ? tr("editor.downloaded_n_format_files", { count: fileCount, format: fmt.label }) : tr("editor.downloaded_file", { file: `${safeBase}.${fmt.suffix}` }));
       }
     }
+  }
+
+  /** The file the download would make, for the output check: the PDF of
+   *  the pages, or the EPS of the first one. */
+  async function buildForCheck(): Promise<Blob> {
+    const files: Blob[] = [];
+    await exportDesign(doc, designId, format === "eps" ? [pages[0]] : pages, (b) => files.push(b), true);
+    if (!files[0]) throw new Error("nothing was made");
+    return files[0];
   }
 
   async function run() {
@@ -1079,6 +1145,23 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
                     <option value="relative">{tr("editor.intent_relative")}</option>
                     <option value="perceptual">{tr("editor.intent_perceptual")}</option>
                   </select>
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-xs font-medium text-neutral-500">{tr("editor.tac_limit")}</span>
+                  <span className="flex h-8 items-center gap-1.5 rounded-lg border border-neutral-200 bg-surface px-2 text-xs focus-within:border-brand-400">
+                    <input
+                      type="number"
+                      min={200}
+                      max={400}
+                      step={5}
+                      value={tacLimit ?? ""}
+                      placeholder={String(defaultTacLimit(profiles?.find((p) => p.id === profileId)?.name))}
+                      onChange={(e) => setTacLimit(e.target.value === "" ? null : Math.min(400, Math.max(200, Number(e.target.value) || 0)))}
+                      className="w-full min-w-0 bg-transparent text-neutral-800 outline-none"
+                    />
+                    <span className="shrink-0 text-neutral-400">%</span>
+                  </span>
+                  <span className="mt-1 block text-[11px] leading-snug text-neutral-400">{tr("editor.tac_limit_desc")}</span>
                 </label>
                 {vectorPrint && (
                   <label className="flex cursor-pointer items-start justify-between gap-3 text-xs">
@@ -1383,6 +1466,29 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
           </div>
         )}
 
+        {/* Check the output before making it: the page as it will print
+            (estimated from the render), and the real file separated. */}
+        {proofable && (
+          <div className="mb-2 flex gap-2">
+            <button
+              type="button"
+              onClick={() => setProofOpen(true)}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-neutral-200 px-2 py-2 text-xs font-medium text-neutral-700 transition hover:bg-neutral-50"
+            >
+              <Eye size={15} /> {tr("editor.proof_open")}
+            </button>
+            {checkable && (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => setCheckOpen(true)}
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-neutral-200 px-2 py-2 text-xs font-medium text-neutral-700 transition hover:bg-neutral-50 disabled:opacity-50"
+              >
+                <ScanSearch size={15} /> {tr("editor.output_check_open")}
+              </button>
+            )}
+          </div>
+        )}
         <button
           onClick={() => void run()}
           disabled={busy || blocked}
@@ -1390,8 +1496,40 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:opacity-50"
         >
           <Download size={16} />
-          {busy ? tr("editor.preparing") : fileCount > 1 ? `Download ${fileCount} files` : tr("editor.download")}
+          {busy ? tr("editor.preparing") : fileCount > 1 ? tr("editor.download_n_files", { count: fileCount }) : tr("editor.download")}
         </button>
+        {checkable && checkOpen && (
+          <OutputCheckView
+            open={checkOpen}
+            onClose={() => setCheckOpen(false)}
+            build={buildForCheck}
+            expect={{
+              kind: format === "eps" ? "eps" : "pdf",
+              cmyk: true,
+              pdfx: format === "pdf" && pdfx,
+              bleed: format === "pdf" && useSheet.bleed,
+              spots: printExtras?.dieLine ? [printExtras.dieLine.name] : [],
+            }}
+            tacLimit={effectiveTac}
+            profileId={profileId!}
+            intent={intent}
+          />
+        )}
+        {proofable && (
+          <ProofView
+            open={proofOpen}
+            onClose={() => setProofOpen(false)}
+            doc={proofDoc}
+            pages={pages}
+            parts={useSheet}
+            profileId={profileId!}
+            profileName={profileName}
+            intent={intent}
+            blackOnly={vectorPrint && blackOnly}
+            tacLimit={effectiveTac}
+            dieLine={printExtras?.dieLine}
+          />
+        )}
       </div>
     </>
   );

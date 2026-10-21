@@ -31,11 +31,12 @@ LABEL org.opencontainers.image.title="danvas" \
       io.artifacthub.package.readme-url="https://raw.githubusercontent.com/4nonX/danvas/main/deploy/README.md" \
       io.artifacthub.package.license="AGPL-3.0-only"
 
-# ffmpeg: video export. ca-certificates: outbound TLS (AI providers, SSO).
+# ffmpeg: video export. ghostscript: the output check separates print files.
+# ca-certificates: outbound TLS (AI providers, SSO).
 # curl: container healthcheck against /healthz. tzdata: TZ works. The app
 # runs as the unprivileged user danvas (PUID/PGID, see docker/entrypoint.sh).
 RUN apt-get update \
- && apt-get install -y --no-install-recommends ffmpeg ca-certificates curl tzdata \
+ && apt-get install -y --no-install-recommends ffmpeg ghostscript ca-certificates curl tzdata \
  && rm -rf /var/lib/apt/lists/* \
  && groupadd --gid 1000 danvas \
  && useradd --uid 1000 --gid 1000 --home-dir /app --no-create-home --shell /usr/sbin/nologin danvas

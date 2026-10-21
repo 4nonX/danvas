@@ -41,6 +41,9 @@ export interface ExportSettings {
   pdfx: boolean;
   registration: boolean;
   dieLine: { on: boolean; name: string; radiusMm: number };
+  /** The print shop's total ink limit (TAC), per cent; null: the paper's
+   *  usual (proof view and output check). */
+  tacLimit: number | null;
   print: ProfilePrint;
 }
 
@@ -52,6 +55,7 @@ export function defaultExportSettings(): ExportSettings {
     v: 1, format: "png", pdfMode: "vector", scale: 1, transparent: true, quality: 92, zip: true, tiffDpi: 300,
     color: "cmyk", iccProfileId: null, intent: "relative", blackOnly: true, overprintBlack: true, pdfx: true, registration: true,
     dieLine: { on: false, name: tr("editor.die_line_default_name"), radiusMm: 2 },
+    tacLimit: null,
     print: { source: "page", bleed: true, marks: true },
   };
 }
@@ -104,6 +108,7 @@ export function normalizeSettings(raw: unknown): ExportSettings {
     pdfx: bool(r.pdfx, d.pdfx),
     registration: bool(r.registration, d.registration),
     dieLine: { on: bool(dl.on, false), name: str(dl.name, d.dieLine.name).slice(0, 40), radiusMm: num(dl.radiusMm, 2, 0, 50) },
+    tacLimit: typeof r.tacLimit === "number" && Number.isFinite(r.tacLimit) ? Math.min(400, Math.max(200, Math.round(r.tacLimit))) : null,
     print,
   };
 }
@@ -142,6 +147,7 @@ export function describeSettings(s: ExportSettings, iccName: (id: string) => str
     const icc = s.iccProfileId ? iccName(s.iccProfileId) ?? tr("editor.profile_chosen_icc") : tr("editor.profile_default_icc");
     parts.push(s.color === "cmyk" ? `CMYK, ${icc}` : "RGB");
     if (s.color === "cmyk" && f === "pdf" && s.pdfx) parts.push("PDF/X-4");
+    if (s.color === "cmyk" && s.tacLimit !== null) parts.push(`TAC ${s.tacLimit} %`);
   }
   const sheetCapable = cmykCapable || f === "png" || f === "jpg" || f === "svg";
   if (sheetCapable) {

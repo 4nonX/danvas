@@ -195,12 +195,16 @@ export function drawPrintMarks(ctx: StrokeCtx & SpotCtx, sheet: PrintSheet, zoom
  * colour, overprinting, on a layer named after it. Only for contexts that
  * paint spot colours: anywhere else the line would be printed.
  */
+/** The die line's spot colour as defined in the files: full magenta, so it
+ *  stands out on screen and in a proof. */
+export const DIE_LINE_CMYK: [number, number, number, number] = [0, 1, 0, 0];
+
 export function drawDieLine(ctx: StrokeCtx & SpotCtx & { roundRect(x: number, y: number, w: number, h: number, r: number): void }, sheet: PrintSheet, zoom: number, die: DieLine, dpi: number): void {
   if (typeof ctx.setSpot !== "function") return;
   const w = sheet.width, h = sheet.height;
   const r = Math.max(0, Math.min(mmToPx(die.radiusMm, dpi), w / 2, h / 2));
   ctx.beginLayer?.(die.name);
-  ctx.setSpot({ name: die.name, cmyk: [0, 1, 0, 0], overprint: true });
+  ctx.setSpot({ name: die.name, cmyk: DIE_LINE_CMYK, overprint: true });
   ctx.save();
   ctx.setTransform(zoom, 0, 0, zoom, sheet.margin * zoom, sheet.margin * zoom);
   ctx.globalAlpha = 1;

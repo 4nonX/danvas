@@ -9,14 +9,19 @@
 // itself waits the same way.
 
 import type { DesignFile, ImageNode, Node } from "@hc/schema";
-import { computeEffectivePpi } from "@hc/engine";
+import { computeEffectivePpi, createScene, type SceneNode } from "@hc/engine";
 import { imageAssets } from "@/lib/assetProvider";
 import { faceOf, fonts, type RunFont } from "@/lib/fontProvider";
 
-export type ExportIssueKind = "font" | "font-outline" | "image" | "image-resolution";
+export type ExportIssueKind = "font" | "font-outline" | "image" | "image-resolution" | "hairline" | "small-rich-text" | "edge-no-bleed";
 
 /** Below this effective resolution an image looks soft in print. */
 export const PRINT_MIN_PPI = 150;
+/** Strokes thinner than this (points, at print size) may not print. */
+export const HAIRLINE_PT = 0.25;
+/** Text below this size (points) in several inks blurs when the plates are
+ *  slightly out of register. */
+export const SMALL_TEXT_PT = 8;
 
 export interface ExportIssue {
   kind: ExportIssueKind;
@@ -71,10 +76,72 @@ function imagePpi(n: ImageNode, doc: DesignFile): number {
   return computeEffectivePpi({ ...n, source: { ...n.source, naturalWidth, naturalHeight } }, doc);
 }
 
+/** What the print checks need to know about the export. */
+export interface PrintCheck {
+  /** The colour conversion of a CMYK export (null: RGB). */
+  cmyk?: ((r: number, g: number, b: number) => [number, number, number, number]) | null;
+  /** Pure black goes on the black plate alone (vector print files). */
+  blackOnly?: boolean;
+  /** Whether the export includes a bleed. */
+  bleed?: boolean;
+}
+
+const hex = (c: { r: number; g: number; b: number }) => `#${[c.r, c.g, c.b].map((v) => Math.round(Math.min(1, Math.max(0, v)) * 255).toString(16).padStart(2, "0")).join("").toUpperCase()}`;
+
+/** Print preflight on what the export draws (the engine's own scene, with
+ *  groups, rotation and scaling): strokes too thin to print, small text in
+ *  several inks, artwork at the edge of a page exported without bleed. */
+function printChecks(doc: DesignFile, pages: number[], check: PrintCheck, add: (kind: ExportIssueKind, subject: string, page: number, element: string) => void, backgroundLabel: string) {
+  const dpi = doc.dpi ?? 96;
+  const toPt = 72 / dpi;
+  for (const i of pages) {
+    const pg = doc.pages[i];
+    if (!pg) continue;
+    const page = i + 1;
+    const visit = (sn: SceneNode, top: boolean) => {
+      const n = sn.node;
+      const t = sn.worldTransform;
+      const scale = Math.sqrt(Math.abs(t[0] * t[3] - t[1] * t[2])) || 1;
+      const stroke = (n as { stroke?: { width?: number } }).stroke;
+      if (stroke?.width && stroke.width > 0 && stroke.width * scale * toPt < HAIRLINE_PT) {
+        add("hairline", `${Math.round(stroke.width * scale * toPt * 100) / 100} pt`, page, labelOf(n));
+      }
+      if (n.type === "text" && check.cmyk) {
+        for (const p of (n as unknown as TextNodeLike).content ?? []) {
+          for (const r of p.runs ?? []) {
+            const st = r.style as (RunFont & { fontSize?: number; fill?: { type?: string; color?: { srgb?: { r: number; g: number; b: number } } } }) | undefined;
+            const c = st?.fill?.type === "solid" ? st.fill.color?.srgb : undefined;
+            if (!r.text?.trim() || !st?.fontSize || !c || st.fontSize * scale * toPt >= SMALL_TEXT_PT) continue;
+            if (check.blackOnly && c.r <= 0.002 && c.g <= 0.002 && c.b <= 0.002) continue;
+            const inks = check.cmyk(c.r, c.g, c.b).filter((v) => v >= 0.1).length;
+            if (inks >= 2) add("small-rich-text", hex(c), page, labelOf(n));
+          }
+        }
+      }
+      // Only whole elements: a group's bounds already hold its children.
+      if (top && check.bleed === false) {
+        const b = sn.worldBounds;
+        const e = 0.5;
+        if (b.x <= e || b.y <= e || b.x + b.width >= pg.width - e || b.y + b.height >= pg.height - e) add("edge-no-bleed", "", page, labelOf(n));
+      }
+      for (const ch of sn.children ?? []) visit(ch, false);
+    };
+    for (const ch of createScene(doc, i).root.children ?? []) visit(ch, true);
+    // A coloured page background always reaches the edge.
+    const bg = pg.background as { type?: string; color?: { srgb?: { r: number; g: number; b: number; a?: number } } } | undefined;
+    const bc = bg?.type === "solid" ? bg.color?.srgb : undefined;
+    if (check.bleed === false && bg && (bg.type !== "solid" || (bc && (bc.a ?? 1) > 0 && (bc.r < 0.98 || bc.g < 0.98 || bc.b < 0.98)))) {
+      add("edge-no-bleed", "", page, backgroundLabel);
+    }
+  }
+}
+
 /** The problems an export of `pages` of `doc` would have. `vector` adds the
  *  font-file check of the vector formats (PDF, EPS, SVG), `print` the image
- *  resolution check of the print formats. */
-export async function exportIssues(doc: DesignFile, pages: number[], o: { vector: boolean; print?: boolean }): Promise<ExportIssue[]> {
+ *  resolution check of the print formats, `printCheck` the print preflight
+ *  (hairlines, small text in several inks, artwork at the edge without
+ *  bleed). */
+export async function exportIssues(doc: DesignFile, pages: number[], o: { vector: boolean; print?: boolean; printCheck?: PrintCheck; backgroundLabel?: string }): Promise<ExportIssue[]> {
   const issues = new Map<string, ExportIssue>();
   const add = (kind: ExportIssueKind, subject: string, page: number, element: string) => {
     const key = `${kind}|${subject}`;
@@ -137,5 +204,6 @@ export async function exportIssues(doc: DesignFile, pages: number[], o: { vector
       for (const w of f.where) add("font-outline", f.subject, w.page, w.element);
     }));
   }
+  if (o.print && o.printCheck) printChecks(doc, pages, o.printCheck, add, o.backgroundLabel ?? "background");
   return [...issues.values()];
 }

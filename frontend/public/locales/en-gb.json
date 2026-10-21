@@ -71,5 +71,16 @@
   "editor.intent_perceptual": "Perceptual (smooth for photos with vivid colours)",
   "editor.black_ink_only_desc": "Pure black prints as 100% K instead of a four-colour mix, so small text stays sharp even if the plates are slightly misaligned.",
   "errors.print_profile_missing": "Choose a colour profile for the CMYK export.",
-  "editor.make_editable_tooltip": "Turn this SVG into shapes so colours and parts can be edited"
+  "editor.make_editable_tooltip": "Turn this SVG into shapes so colours and parts can be edited",
+  "editor.profile_chosen_icc": "chosen colour profile",
+  "editor.proof_tinted": "Plates in their ink colour",
+  "editor.proof_note": "Computed from the screen rendering through the chosen colour profile: a close estimate. “Check output” separates the real file.",
+  "editor.output_cmyk_only": "CMYK and spot colours only, no RGB.",
+  "editor.output_rgb_in_cmyk": "The file contains RGB colours.",
+  "editor.output_output_intent": "Output intent (colour profile) embedded.",
+  "editor.output_no_output_intent": "No output intent: the print shop cannot tell which colour profile the file was made for.",
+  "editor.output_eps_no_process": "Process colours not declared.",
+  "editor.output_spot": "Spot colour “{name}” present.",
+  "editor.output_spot_missing": "Spot colour “{name}” is missing.",
+  "editor.output_spot_unexpected": "Further spot colours: {names}."
 }

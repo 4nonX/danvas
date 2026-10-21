@@ -35,6 +35,7 @@ import (
 	"hycanvas/backend/internal/home"
 	"hycanvas/backend/internal/jobs"
 	"hycanvas/backend/internal/oidc"
+	"hycanvas/backend/internal/outputcheck"
 	"hycanvas/backend/internal/persistence"
 	"hycanvas/backend/internal/platform/config"
 	"hycanvas/backend/internal/printprofiles"
@@ -61,6 +62,7 @@ type Deps struct {
 	Home           *home.Service
 	PrintProfiles  *printprofiles.Service
 	ExportProfiles *exportprofiles.Service
+	OutputCheck    *outputcheck.Checker
 	Fonts          *workspacefonts.Service
 	Sharing        *sharing.Service
 	Approvals      *approvals.Service
@@ -181,6 +183,9 @@ func NewRouter(d Deps) http.Handler {
 		}
 		if d.Accounts != nil && d.ExportProfiles != nil {
 			mountExportProfiles(api, d.ExportProfiles, d.Accounts)
+		}
+		if d.Accounts != nil && d.OutputCheck != nil && d.Jobs != nil {
+			mountOutputCheck(api, d.OutputCheck, d.Jobs, d.Accounts)
 		}
 		if d.Accounts != nil && d.Fonts != nil {
 			mountWorkspaceFonts(api, d.Fonts, d.Accounts)

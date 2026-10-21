@@ -101,3 +101,46 @@ describe("exportIssues", () => {
     expect(vector).toEqual([{ kind: "font-outline", subject: "Arimo Regular", where: [{ page: 1, element: "Body" }] }]);
   });
 });
+
+describe("print checks", () => {
+  const T = (x: number, y: number, scale = 1) => ({ x, y, scaleX: scale, scaleY: scale, rotation: 0 });
+  const col = (r: number, g: number, b: number) => ({ type: "solid", color: { srgb: { r, g, b, a: 1 } } });
+  const rect = (id: string, x: number, y: number, w: number, h: number, extra: Record<string, unknown> = {}) => ({ id, name: id, type: "shape", shape: "rect", transform: T(x, y), size: { width: w, height: h }, opacity: 1, blendMode: "normal", fills: [col(0.2, 0.4, 0.8)], ...extra });
+  const small = (id: string, fill: ReturnType<typeof col>, size: number) => ({
+    id, name: id, type: "text", transform: T(20, 20), size: { width: 60, height: 20 }, opacity: 1, blendMode: "normal",
+    box: { mode: "fixed", width: 60, height: 20, autoFit: { enabled: false, min: 8, max: 512 }, verticalAlign: "top" },
+    content: [{ style: { align: "left", direction: "auto" }, runs: [{ text: "Note", style: { fontFamily: "Arimo", fontStyle: "Regular", fontSize: size, fill } }] }],
+  });
+  // A rough RGB to CMYK: what matters is how many inks a colour takes.
+  const cmyk = (r: number, g: number, b: number): [number, number, number, number] => {
+    const k = 1 - Math.max(r, g, b);
+    if (k >= 1) return [0, 0, 0, 1];
+    return [(1 - r - k) / (1 - k), (1 - g - k) / (1 - k), (1 - b - k) / (1 - k), k];
+  };
+  const found = (issues: { kind: string; where: { element: string }[] }[]) => issues.flatMap((i) => i.where.map((w) => `${i.kind}:${w.element}`)).sort();
+
+  it("flags hairlines at print size, through a group's scaling", async () => {
+    const thin = { width: 0.2, fill: col(0, 0, 0), align: "center", cap: "butt", join: "miter" };
+    const doc = design([
+      rect("thin", 20, 20, 30, 30, { stroke: thin }),
+      rect("fine", 20, 60, 30, 30, { stroke: { ...thin, width: 1 } }),
+      { id: "g", name: "g", type: "group", transform: T(50, 20, 0.25), size: { width: 40, height: 40 }, opacity: 1, blendMode: "normal", children: [rect("shrunk", 0, 0, 40, 40, { stroke: { ...thin, width: 1 } })] },
+    ]);
+    expect(found(await exportIssues(doc, [0], { vector: false, print: true, printCheck: { bleed: true } }))).toEqual(["hairline:shrunk", "hairline:thin"]);
+    expect(await exportIssues(doc, [0], { vector: false })).toEqual([]);
+  });
+
+  it("flags small text in several inks, not in black alone", async () => {
+    const doc = design([small("blue", col(0.1, 0.3, 0.7), 8), small("black", col(0, 0, 0), 8), small("cyan", col(0, 1, 1), 8), small("big", col(0.1, 0.3, 0.7), 14)]);
+    expect(found(await exportIssues(doc, [0], { vector: false, print: true, printCheck: { cmyk, blackOnly: true, bleed: true } }))).toEqual(["small-rich-text:blue"]);
+    // An RGB file has no plates to misregister.
+    expect(await exportIssues(doc, [0], { vector: false, print: true, printCheck: { cmyk: null, bleed: true } })).toEqual([]);
+  });
+
+  it("flags artwork and a coloured background at the edge when there is no bleed", async () => {
+    const doc = design([rect("edge", 0, 40, 30, 20), rect("inside", 30, 30, 20, 20)]);
+    (doc.pages[0] as { background?: unknown }).background = col(0.9, 0.2, 0.2);
+    expect(found(await exportIssues(doc, [0], { vector: false, print: true, printCheck: { bleed: false }, backgroundLabel: "Background" }))).toEqual(["edge-no-bleed:Background", "edge-no-bleed:edge"]);
+    expect(await exportIssues(doc, [0], { vector: false, print: true, printCheck: { bleed: true } })).toEqual([]);
+  });
+});

@@ -25,6 +25,7 @@ Needs Chrome or Chromium (found at the usual paths, or set `CHROME_PATH`), Poppl
 | Sheet | PDF MediaBox, TrimBox and BleedBox; EPS bounding box; pixel size. |
 | Colour | No RGB operators or images in a CMYK file; output intent; PDF/X-4 in info and XMP with PDF 1.6, trapping flag and file id; the spot colours asked for. |
 | Overprint | Ghostscript separations: black text sits on the black plate and the cyan under it stays. |
+| Proof and output check | The download menu's own checks on the print files: its proof's ink per plate (`lib/print/proof`) is within 3 percentage points of the plates Ghostscript separates from the CMYK PDF, and its file check (`lib/print/fileCheck`) finds nothing wrong with the CMYK PDF and EPS. |
 | Resolution | The dpi PNG, JPEG and TIFF state. |
 
 Over real designs (`--designs`) one kind of difference is not an export fault: a small raster image scaled up many times (a 150 px logo across half a poster) is smoothed differently by Chrome and by a PDF viewer. Look at such a report before suspecting the export; the download menu flags those images for print anyway.

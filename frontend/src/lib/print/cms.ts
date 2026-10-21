@@ -15,6 +15,11 @@ export interface CmykConverter {
   /** RGBA pixels (straight alpha) composited on paper white, to interleaved
    *  CMYK bytes (0..255 = 0..100 % ink). */
   pixels(rgba: Uint8Array | Uint8ClampedArray, count: number): Uint8Array;
+  /** Soft proof: interleaved CMYK bytes back to screen RGBA through the same
+   *  profile, as the press would print them. `paperWhite` simulates the
+   *  paper's own colour (absolute colorimetric); otherwise paper white shows
+   *  as screen white (relative). */
+  proof(cmyk: Uint8Array, count: number, paperWhite: boolean): Uint8ClampedArray;
   dispose(): void;
 }
 
@@ -64,6 +69,17 @@ export async function createCmykConverter(icc: Uint8Array, intent: RenderingInte
   }
   const cache = new Map<number, [number, number, number, number]>();
   const CHUNK = 1 << 16;
+  // The way back for the soft proof, made on first use.
+  const back: { relative?: number; absolute?: number } = {};
+  const backTransform = (paperWhite: boolean) => {
+    const key = paperWhite ? "absolute" : "relative";
+    back[key] ??= lcms.cmsCreateTransform(
+      out, L.TYPE_CMYK_8, srgb, L.TYPE_RGB_8,
+      paperWhite ? L.INTENT_ABSOLUTE_COLORIMETRIC : L.INTENT_RELATIVE_COLORIMETRIC,
+      paperWhite ? 0 : L.cmsFLAGS_BLACKPOINTCOMPENSATION,
+    );
+    return back[key]!;
+  };
   return {
     description,
     icc,
@@ -96,7 +112,25 @@ export async function createCmykConverter(icc: Uint8Array, intent: RenderingInte
       }
       return out8;
     },
+    proof(cmyk, count, paperWhite) {
+      const t = backTransform(paperWhite);
+      const rgba = new Uint8ClampedArray(count * 4);
+      for (let start = 0; start < count; start += CHUNK) {
+        const n = Math.min(CHUNK, count - start);
+        const o = lcms.cmsDoTransform(t, cmyk.subarray(start * 4, (start + n) * 4), n) as Uint8Array;
+        for (let i = 0; i < n; i++) {
+          const j = (start + i) * 4;
+          rgba[j] = o[i * 3];
+          rgba[j + 1] = o[i * 3 + 1];
+          rgba[j + 2] = o[i * 3 + 2];
+          rgba[j + 3] = 255;
+        }
+      }
+      return rgba;
+    },
     dispose() {
+      if (back.relative) lcms.cmsDeleteTransform(back.relative);
+      if (back.absolute) lcms.cmsDeleteTransform(back.absolute);
       lcms.cmsDeleteTransform(xf);
       lcms.cmsCloseProfile(srgb);
       lcms.cmsCloseProfile(out);

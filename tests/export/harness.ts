@@ -13,6 +13,9 @@ import { imagePdfBlob, rasterBlob, tiffBlob } from "@/lib/exportFormats";
 import { exportVectorPdf, exportVectorSvg } from "@/lib/vectorPdf";
 import { exportEps } from "@/lib/print/eps";
 import { createCmykConverter, type CmykConverter } from "@/lib/print/cms";
+import { checkPrintFile, type FileFinding } from "@/lib/print/fileCheck";
+import { applyBlackOnly } from "@/lib/print/proof";
+import { renderPageCanvas } from "@/lib/exportFormats";
 import { clipToBleed, drawPrintMarks, printSheet, sheetViewport, type PrintExtras, type PrintParts } from "@/lib/print/sheet";
 import { installRandomUuidPolyfill } from "@/lib/randomUuidPolyfill";
 import { whenRenderable } from "@/lib/loadDesignForExport";
@@ -33,6 +36,11 @@ export interface Output {
   /** SVG drawn by the browser at the check's scale (PNG, base64). */
   svgRaster?: string;
   cmyk: boolean;
+  /** The editor's output check on this file (print files only). */
+  fileFindings?: FileFinding[];
+  /** Mean ink per process plate the editor's preview computes for this
+   *  sheet, in percent; compared with the file's real plates. */
+  proofCoverage?: Record<"Cyan" | "Magenta" | "Yellow" | "Black", number>;
   /** Reference key (one reference per fixture, page and print variant). */
   ref: string;
   /** What the file must state. */
@@ -118,6 +126,20 @@ async function cmyk(): Promise<CmykConverter> {
   return converter;
 }
 
+/** The preview's plates for page 0, as the proof view computes them. */
+function previewCoverage(doc: DesignFile, print: PrintParts, conv: CmykConverter): NonNullable<Output["proofCoverage"]> {
+  const canvas = renderPageCanvas(doc, 0, 1, true, print);
+  if (!canvas) throw new Error("preview: no canvas");
+  const rgba = canvas.getContext("2d")!.getImageData(0, 0, canvas.width, canvas.height).data;
+  const n = canvas.width * canvas.height;
+  const ink = conv.pixels(rgba, n);
+  applyBlackOnly(rgba, ink);
+  const sum = [0, 0, 0, 0];
+  for (let i = 0; i < ink.length; i += 4) for (let p = 0; p < 4; p++) sum[p] += ink[i + p];
+  const pct = (p: number) => (sum[p] / 255 / n) * 100;
+  return { Cyan: pct(0), Magenta: pct(1), Yellow: pct(2), Black: pct(3) };
+}
+
 /** Every export of one design (page 0) the check covers. */
 async function exportAll(fx: Fixture, printCase: boolean, only?: Output["format"][]): Promise<{ outputs: Output[]; refs: Record<string, string>; invalid?: string }> {
   const doc = fx.doc as unknown as DesignFile;
@@ -169,6 +191,13 @@ async function exportAll(fx: Fixture, printCase: boolean, only?: Output["format"
     await add("sheet/pdf-vector-cmyk", "pdf-vector", "pdf", (await exportVectorPdf(doc, [0], { assets, title: fx.name, print: both, converter: conv, blackOnly: true, overprintBlack: true, pdfx: true, extras })).blob, ref, { pdfx: true, separations: ["All", "Prägung (Stanze)"], overprintBlack: true }, true);
     await add("sheet/eps-cmyk", "eps", "eps", await exportEps(doc, 0, { assets, title: fx.name, print: both, converter: conv, blackOnly: true, overprintBlack: true, extras }), ref, { separations: ["Prägung (Stanze)"], overprintBlack: true }, true);
     await add("sheet/pdf-image-cmyk", "pdf-image", "pdf", await imagePdfBlob(doc, [0], { scale: SCALE, converter: conv, pdfx: true, print: both, title: fx.name }), ref, { pdfx: true }, true);
+    // What the editor's preview and output check say about these files.
+    const proofOf = (o: Output) => o.id === `${fx.name}/sheet/pdf-vector-cmyk`;
+    for (const o of outputs.filter((x) => x.id.endsWith("sheet/pdf-vector-cmyk") || x.id.endsWith("sheet/eps-cmyk"))) {
+      const bytes = Uint8Array.from(atob(o.data), (ch) => ch.charCodeAt(0));
+      o.fileFindings = await checkPrintFile(bytes, { kind: o.ext === "eps" ? "eps" : "pdf", cmyk: true, pdfx: o.ext === "pdf", bleed: true, spots: ["Prägung (Stanze)"] });
+      if (proofOf(o)) o.proofCoverage = previewCoverage(doc, both, conv);
+    }
     await add("sheet/tiff-cmyk", "tiff", "tif", await tiffBlob(doc, 0, { dpi: dpi * SCALE, converter: conv, print: both }), ref, { dpi: dpi * SCALE }, true);
     // The print shop's request: the bleed only, no marks.
     const bleedOnly: PrintParts = { bleed: true, marks: false };

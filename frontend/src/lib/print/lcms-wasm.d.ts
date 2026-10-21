@@ -16,6 +16,7 @@ declare module "lcms-wasm" {
   export const TYPE_CMYK_8: number;
   export const INTENT_PERCEPTUAL: number;
   export const INTENT_RELATIVE_COLORIMETRIC: number;
+  export const INTENT_ABSOLUTE_COLORIMETRIC: number;
   export const cmsFLAGS_BLACKPOINTCOMPENSATION: number;
   export const cmsInfoDescription: number;
 }

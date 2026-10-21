@@ -1009,6 +1009,35 @@ export interface PrintProfile {
   createdAt: string;
 }
 
+/** The output check of an exported PDF or EPS, separated by Ghostscript on
+ *  the instance: per page every plate with its coverage and a picture, and
+ *  the total ink coverage against the limit. */
+export interface OutputCheckPlate {
+  name: string;
+  /** One of Cyan, Magenta, Yellow, Black; else a spot colour. */
+  process: boolean;
+  coveragePct: number;
+  /** Grey picture of the plate (ink dark), a data URL. */
+  png: string;
+}
+export interface OutputCheckPage {
+  page: number;
+  widthMm: number;
+  heightMm: number;
+  plates: OutputCheckPlate[];
+  tacMaxPct: number;
+  tacOverPct: number;
+  /** Pixels above the limit, red on transparent (data URL). */
+  over: string;
+}
+export interface OutputCheckResult {
+  pages: OutputCheckPage[];
+  tacLimit: number;
+  resolution: number;
+  /** The file had more pages than were checked. */
+  truncated: boolean;
+}
+
 /** The two kinds of profile, kept apart wherever a user sees them. */
 export type ExportProfileKind = "export" | "print";
 
@@ -2547,6 +2576,16 @@ export class HyCanvasClient {
   async printProfileData(id: string): Promise<Uint8Array> {
     const res = await this.requestRaw("GET", `/v1/print-profiles/${id}/data`);
     return new Uint8Array(await res.arrayBuffer());
+  }
+
+  /** Whether this instance can separate print files (Ghostscript installed). */
+  outputCheckAvailable(): Promise<{ available: boolean }> {
+    return this.request("GET", `/v1/output-check`);
+  }
+  /** Send an exported PDF or EPS to be separated; poll the job via getJob. */
+  async startOutputCheck(file: Blob, tacLimit: number): Promise<{ jobId: string }> {
+    const res = await this.requestRaw("POST", `/v1/output-check?tac=${Math.round(tacLimit)}`, file);
+    return (await res.json()) as { jobId: string };
   }
 
   // Export profiles: named download settings, personal or per workspace.

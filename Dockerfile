@@ -84,14 +84,15 @@ LABEL org.opencontainers.image.title="danvas" \
       io.artifacthub.package.readme-url="https://raw.githubusercontent.com/4nonX/danvas/main/deploy/README.md" \
       io.artifacthub.package.license="AGPL-3.0-only"
 
-# ffmpeg: video export. ca-certificates: outbound TLS (AI providers, SSO).
+# ffmpeg: video export. ghostscript: the output check separates print files.
+# ca-certificates: outbound TLS (AI providers, SSO).
 # curl: container healthcheck against /healthz. tzdata: TZ=Europe/Berlin and
 # friends work. The upgrade pulls in Debian security fixes the base image tag
 # does not carry yet (release scans fail on fixed CRITICAL CVEs, e.g.
 # perl-base). setpriv (util-linux, always present) drops to the app user.
 RUN apt-get update \
  && apt-get upgrade -y --no-install-recommends \
- && apt-get install -y --no-install-recommends ffmpeg ca-certificates curl tzdata \
+ && apt-get install -y --no-install-recommends ffmpeg ghostscript ca-certificates curl tzdata \
  && rm -rf /var/lib/apt/lists/* \
  && groupadd --gid 1000 danvas \
  && useradd --uid 1000 --gid 1000 --home-dir /app --no-create-home --shell /usr/sbin/nologin danvas

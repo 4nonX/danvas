@@ -89,6 +89,26 @@ describe("CMYK conversion", () => {
     }
   });
 
+  it("soft-proofs CMYK back to the screen through the same profile", async () => {
+    const conv = await createCmykConverter(new Uint8Array(readFileSync(PROFILE)));
+    try {
+      // A mid grey and a saturated green (outside uncoated paper's gamut).
+      const rgba = new Uint8Array([128, 128, 128, 255, 0, 255, 0, 255, 255, 255, 255, 255]);
+      const cmyk = conv.pixels(rgba, 3);
+      const rel = conv.proof(cmyk, 3, false);
+      // The grey comes back close to itself; paper white as screen white.
+      expect(Math.abs(rel[0] - 128)).toBeLessThan(12);
+      expect([...rel.slice(8, 12)]).toEqual([255, 255, 255, 255]);
+      // The green comes back duller: the press cannot print it.
+      expect(rel[5]).toBeLessThan(230);
+      // Paper-white simulation: unprinted paper is no longer pure white.
+      const abs = conv.proof(cmyk, 3, true);
+      expect(abs[8] + abs[9] + abs[10]).toBeLessThan(765);
+    } finally {
+      conv.dispose();
+    }
+  });
+
   it("rejects files that are not CMYK profiles", async () => {
     await expect(createCmykConverter(new TextEncoder().encode("not a profile"))).rejects.toThrow();
   });

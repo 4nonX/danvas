@@ -106,7 +106,9 @@ jobs:
         run: go vet ./...
       - name: Backend tests
         working-directory: backend
+        # Ghostscript, as in the image: the output check's tests separate a file.
         run: |
+          sudo apt-get update -q && sudo apt-get install -y -q --no-install-recommends ghostscript
           go run ./cmd/migrate
           go test ./...
 

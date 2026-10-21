@@ -2,6 +2,20 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.5.2 (2026-10-21)
+
+### Added
+
+- **Proof** in the download menu for CMYK print files: the pages as they will print through the chosen colour profile (soft proof, paper white optional), each plate (cyan, magenta, yellow, black, the die line) in grey or in its ink, the ink coverage with the areas above the limit marked, and the colours out of gamut. Pointing at the page reads the inks there; the panel gives the highest coverage, the area above the limit and the area out of gamut.
+- **Check output**: builds the file exactly as Download would and checks the file itself, its structure in the browser (CMYK only, output intent, PDF/X-4, trim and bleed box, EPS bounding box and colours, the spot colours asked for) and its real plates on the server, separated by Ghostscript as a print shop's software does, with the coverage per plate, a soft proof from the plates and the total ink coverage. The image now includes Ghostscript; `GHOSTSCRIPT_PATH` points at another binary, and without one the check is not offered.
+- **Max. ink coverage (TAC)** in the CMYK settings, stored in export profiles: the limit the proof and the check measure against (empty: 300 % for uncoated, 330 % for coated profiles).
+- The download menu now also points out lines thinner than 0.25 pt, text under 8 pt printed in several inks, and artwork or a coloured page background at the edge of a page exported without bleed.
+- **600 dpi** in the print dialog, for sharper small text, hairlines and barcodes on 600 dpi printers. Pages too large to render at the chosen resolution in the browser (A3 at 600 dpi, for example) are pointed out with the resolution they print at; print presets store the new setting.
+
+### Fixed
+
+- The download button for several files said "Download N files" in English in every language.
+
 ## 0.5.1 (2026-10-21)
 
 ### Added
