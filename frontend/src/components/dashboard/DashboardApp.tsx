@@ -1155,7 +1155,10 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     );
 
   return (
-    <div className="flex h-screen overflow-hidden bg-neutral-50 text-neutral-900" onClick={() => { setMenuFor(null); setFolderMenu(null); setImportMenu(false); }}>
+    // overflow-clip, not hidden: a hidden box can still be scrolled by the
+    // browser (focus moving into a tall dialog), which shifted the whole
+    // dashboard up and left a blank band below it.
+    <div className="flex h-screen overflow-clip bg-neutral-50 text-neutral-900" onClick={() => { setMenuFor(null); setFolderMenu(null); setImportMenu(false); }}>
       {/* Left rail: fixed to the viewport; only the main column scrolls.
           Collapsible to an icon-only strip (remembered in localStorage). */}
       <aside

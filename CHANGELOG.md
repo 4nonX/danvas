@@ -2,6 +2,12 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.5.8 (2026-10-21)
+
+### Fixed
+
+- After editing a profile on the Members page (for example switching on crop marks, which makes the dialog taller), the whole dashboard could stay shifted up with a blank band below it. The browser scrolled the dashboard's outer frame to show a field of the dialog; that frame can no longer be scrolled, and the profile dialog now opens above the page instead of inside it. No database change.
+
 ## 0.5.7 (2026-10-21)
 
 ### Added

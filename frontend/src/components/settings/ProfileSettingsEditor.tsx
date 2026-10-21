@@ -4,6 +4,7 @@
 // what the chosen format can carry.
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import type { ExportProfile } from "@hc/sdk";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
@@ -242,7 +243,10 @@ export function ProfileSettingsEditor({ profile, print, workspaceId, onSave, onC
     }
   }
 
-  return (
+  // Rendered into the body: the lists sit deep inside scrolled pages, and a
+  // dialog there can make the browser scroll those pages to show a field.
+  if (typeof document === "undefined") return null;
+  return createPortal(
     <Modal open onClose={busy ? () => {} : onClose} title={tr("editor.profile_edit_title", { name: profile.name })} width="w-[30rem] max-w-full">
       <div className="flex max-h-[70vh] flex-col gap-4 overflow-hidden">
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pe-1">
@@ -255,6 +259,7 @@ export function ProfileSettingsEditor({ profile, print, workspaceId, onSave, onC
           <Button onClick={() => void save()} disabled={busy}>{tr("editor.export_profile_save")}</Button>
         </div>
       </div>
-    </Modal>
+    </Modal>,
+    document.body,
   );
 }
