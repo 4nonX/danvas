@@ -67,9 +67,8 @@ export function prepressDoc(doc: DesignFile, pages: number[] | null, o: Prepress
       if (container && !clipping) return;
       const moved = extendNode(sn, n, { W, H, bleed, tolX, tolY }, () => notExtended.push({ page: i + 1, element: labelOf(n) }));
       if (moved && container) {
-        const m = sn.worldTransform;
         for (const c of (n as { children?: Node[] }).children ?? []) {
-          c.transform = { ...c.transform, x: c.transform.x + moved.left / m[0], y: c.transform.y + moved.top / m[3] };
+          c.transform = { ...c.transform, x: c.transform.x + moved.x, y: c.transform.y + moved.y };
         }
       }
     };
@@ -80,39 +79,69 @@ export function prepressDoc(doc: DesignFile, pages: number[] | null, o: Prepress
 
 type Edge = { W: number; H: number; bleed: number; tolX: number; tolY: number };
 
-/** Extends one element; returns how far (page px) its origin moved left and
- *  up, or null when it was not changed. */
-function extendNode(sn: SceneNode, n: Node, e: Edge, report: () => void): { left: number; top: number } | null {
+/** Extends one element; returns how far its local origin moved back along
+ *  its own x and y axes (local units), or null when it was not changed.
+ *  Works for any placement that keeps the axes: unturned, or turned by a
+ *  multiple of 90 degrees (a label laid out sideways), mirrored or not. */
+function extendNode(sn: SceneNode, n: Node, e: Edge, report: () => void): { x: number; y: number } | null {
   const m = sn.worldTransform;
   const w = n.size?.width ?? 0, h = n.size?.height ?? 0;
   if (!(w > 0 && h > 0)) return null;
+  // Axis-keeping: local x runs along page x and local y along page y (a, d),
+  // or swapped (b, c) after a quarter turn.
+  const eps = 1e-6;
+  const straight = Math.abs(m[1]) < eps && Math.abs(m[2]) < eps;
+  const swapped = Math.abs(m[0]) < eps && Math.abs(m[3]) < eps;
+  const keeps = straight || swapped;
   // The element's own box on the page (its geometry, not its effects).
-  const axisAligned = Math.abs(m[1]) < 1e-6 && Math.abs(m[2]) < 1e-6 && m[0] > 0 && m[3] > 0;
-  const x0 = m[4], y0 = m[5];
-  const x1 = axisAligned ? x0 + m[0] * w : sn.worldBounds.x + sn.worldBounds.width;
-  const y1 = axisAligned ? y0 + m[3] * h : sn.worldBounds.y + sn.worldBounds.height;
-  const bx0 = axisAligned ? x0 : sn.worldBounds.x, by0 = axisAligned ? y0 : sn.worldBounds.y;
+  const xs = [m[4], m[4] + m[0] * w, m[4] + m[2] * h, m[4] + m[0] * w + m[2] * h];
+  const ys = [m[5], m[5] + m[1] * w, m[5] + m[3] * h, m[5] + m[1] * w + m[3] * h];
+  const bx0 = keeps ? Math.min(...xs) : sn.worldBounds.x, bx1 = keeps ? Math.max(...xs) : sn.worldBounds.x + sn.worldBounds.width;
+  const by0 = keeps ? Math.min(...ys) : sn.worldBounds.y, by1 = keeps ? Math.max(...ys) : sn.worldBounds.y + sn.worldBounds.height;
   // Meeting an edge: reaching it (within the tolerance) from inside, not yet
   // filling the bleed beyond it.
-  const left = bx0 <= e.tolX && bx0 > -e.bleed + 1e-6 && x1 > e.tolX;
-  const right = x1 >= e.W - e.tolX && x1 < e.W + e.bleed - 1e-6 && bx0 < e.W - e.tolX;
-  const top = by0 <= e.tolY && by0 > -e.bleed + 1e-6 && y1 > e.tolY;
-  const bottom = y1 >= e.H - e.tolY && y1 < e.H + e.bleed - 1e-6 && by0 < e.H - e.tolY;
+  const left = bx0 <= e.tolX && bx0 > -e.bleed + 1e-6 && bx1 > e.tolX;
+  const right = bx1 >= e.W - e.tolX && bx1 < e.W + e.bleed - 1e-6 && bx0 < e.W - e.tolX;
+  const top = by0 <= e.tolY && by0 > -e.bleed + 1e-6 && by1 > e.tolY;
+  const bottom = by1 >= e.H - e.tolY && by1 < e.H + e.bleed - 1e-6 && by0 < e.H - e.tolY;
   if (!left && !right && !top && !bottom) return null;
   if (!canExtend(n)) {
     if (reportable(n)) report();
     return null;
   }
-  if (!axisAligned || (n.transform?.rotation ?? 0) % 360 !== 0) { report(); return null; }
-  // Page px per local unit (m[0], m[3]) and per parent unit (for x / y).
-  const sx = n.transform.scaleX || 1, sy = n.transform.scaleY || 1;
-  const psx = m[0] / sx, psy = m[3] / sy;
+  if (!keeps || n.transform.skewX || n.transform.skewY) { report(); return null; }
+  // Which local side lies on a page side, and the page px per local unit
+  // along it: page x is local x (straight, |a|) or local y (swapped, |c|).
+  type Side = { axis: "x" | "y"; start: boolean; per: number };
+  const sideX = (pageStart: boolean): Side => straight
+    ? { axis: "x", start: (m[0] > 0) === pageStart, per: Math.abs(m[0]) }
+    : { axis: "y", start: (m[2] > 0) === pageStart, per: Math.abs(m[2]) };
+  const sideY = (pageStart: boolean): Side => straight
+    ? { axis: "y", start: (m[3] > 0) === pageStart, per: Math.abs(m[3]) }
+    : { axis: "x", start: (m[1] > 0) === pageStart, per: Math.abs(m[1]) };
+  const grow: [Side, number][] = [];
+  if (left) grow.push([sideX(true), bx0 + e.bleed]);
+  if (right) grow.push([sideX(false), e.W + e.bleed - bx1]);
+  if (top) grow.push([sideY(true), by0 + e.bleed]);
+  if (bottom) grow.push([sideY(false), e.H + e.bleed - by1]);
+  // The node's own local-to-parent matrix (rotation clockwise about its
+  // origin, then scale), to move its origin in the parent's units.
+  const r = ((n.transform.rotation ?? 0) * Math.PI) / 180;
+  const cos = Math.cos(r), sin = Math.sin(r);
+  const sx = n.transform.scaleX, sy = n.transform.scaleY;
+  const N = { a: cos * sx, b: sin * sx, c: -sin * sy, d: cos * sy };
   const t = { ...n.transform }, s = { ...n.size };
-  const moved = { left: 0, top: 0 };
-  if (left) { const d = x0 + e.bleed; s.width += d / m[0]; t.x -= d / psx; moved.left = d; }
-  if (right) { const d = e.W + e.bleed - (x0 + m[0] * w); s.width += d / m[0]; }
-  if (top) { const d = y0 + e.bleed; s.height += d / m[3]; t.y -= d / psy; moved.top = d; }
-  if (bottom) { const d = e.H + e.bleed - (y0 + m[3] * h); s.height += d / m[3]; }
+  const moved = { x: 0, y: 0 };
+  for (const [side, d] of grow) {
+    const L = d / side.per;
+    if (side.axis === "x") {
+      s.width += L;
+      if (side.start) { t.x -= L * N.a; t.y -= L * N.b; moved.x += L; }
+    } else {
+      s.height += L;
+      if (side.start) { t.x -= L * N.c; t.y -= L * N.d; moved.y += L; }
+    }
+  }
   n.transform = t;
   n.size = s;
   return moved;

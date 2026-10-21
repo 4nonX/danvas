@@ -2,6 +2,16 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.5.6 (2026-10-21)
+
+### Added
+
+- **Change format…** for a design or a whole selection on the dashboard: a new exact size in any unit, the content scaled and spread (one factor for everything so text keeps its line breaks, the extra room shared out, colour areas along an edge stretched), laid out anew as in Magic Resize, or left as it is, and optionally turned a quarter left or right for labels that run sideways (a 90 x 40 mm label becomes an upright 50 x 100 mm one). Every design is previewed before anything changes; each is then saved as a version named after the size, so the state before stays in its version history. Designs edited live also get the change in their edit history (as a checkpoint), and this browser's offline copy of them is dropped, so an editor opened later starts from the new format. No database change.
+
+### Changed
+
+- **Extend artwork into the bleed** now also extends elements turned by a quarter (90 or 270 degrees).
+
 ## 0.5.5 (2026-10-21)
 
 ### Added

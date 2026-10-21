@@ -9,6 +9,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createScene, renderScene, type CanvasLike, type Viewport } from "@hc/engine";
+import type { DesignFile } from "@hc/schema";
 import { oc } from "@/lib/sdk";
 import { imageAssets } from "@/lib/assetProvider";
 import { fonts } from "@/lib/fontProvider";
@@ -23,7 +24,9 @@ function scrollParent(el: HTMLElement): Element | null {
   return null;
 }
 
-export function DesignThumb({ designId, templateId, trashed }: { designId?: string; templateId?: string; trashed?: boolean }) {
+/** `file` draws that file as given (a preview of a change not saved yet)
+ *  instead of fetching the design. */
+export function DesignThumb({ designId, templateId, trashed, file: given }: { designId?: string; templateId?: string; trashed?: boolean; file?: DesignFile }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const [ok, setOk] = useState<boolean | null>(null);
   // Each preview costs a full design-file download plus an engine render, so
@@ -57,7 +60,7 @@ export function DesignThumb({ designId, templateId, trashed }: { designId?: stri
         // `trashed` opts into the member-only trash read; without it the file
         // endpoint returns 404 for trashed designs and the card shows only the
         // gradient fallback.
-        const file = templateId ? await oc.getTemplateFile(templateId) : await oc.getDesignFile(designId!, trashed ? { trashed: true } : undefined);
+        const file = given ?? (templateId ? await oc.getTemplateFile(templateId) : await oc.getDesignFile(designId!, trashed ? { trashed: true } : undefined));
         if (cancelled) return;
         const canvas = ref.current;
         if (!canvas) return;
@@ -138,7 +141,7 @@ export function DesignThumb({ designId, templateId, trashed }: { designId?: stri
       cancelled = true;
       cleanup?.();
     };
-  }, [near, designId, templateId, trashed]);
+  }, [near, designId, templateId, trashed, given]);
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-neutral-200">

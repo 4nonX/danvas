@@ -35,6 +35,16 @@ Between workspaces:
 
 Design cards say when a design was last edited ("5 minutes ago", "yesterday"); the exact date and time show on hover.
 
+### Changing the format of designs
+
+**Change format…** in a design's menu, or in the selection bar for several designs, gives every page of them a new size in one go, for example when a print shop asks for 50 x 100 mm labels instead of 90 x 40 mm ones. Set:
+
+- **New size**, in any unit; the designs take that unit afterwards. Each page gets exactly this size; bleed, print marks and notes stay as they are.
+- **Turn the content** left or right, for labels that run sideways on a roll: the content is laid out on the turned size (100 x 50 mm) and turned a quarter, so the page ends up upright at exactly 50 x 100 mm and looks like the old one turned.
+- **Content**: **Scale and spread** (everything grows or shrinks by one factor, so text keeps its line breaks; the space left over is shared out by where things sit, and colour areas that run along an edge stretch with it), **Lay out anew** (as Magic Resize does) or **Leave as it is** (only the page changes).
+
+The dialog previews the result for every design before anything changes. **Change format** then saves each design as a version named after the size (Format 50 × 100 mm); the state before stays in the version history, from where it can be restored. Designs edited live get the change in their edit history as well, so an editor opened later starts from it; close the designs in every editor before changing them. Combined with **Extend artwork into the bleed** on download, the turned colour areas still fill the bleed.
+
 ### Importing
 
 **Import** in Projects opens a menu with three ways to bring designs in, always into the folder that is open:
@@ -203,7 +213,7 @@ Artwork that should reach the edge of a printed piece is printed larger and cut 
 
 What a print shop asks for (bleed X mm, crop marks of Y mm, a die line) is set once in the download menu and works for every design, whatever its size or layout. Two more options make each design fit it, on a copy, so the designs themselves do not change:
 
-- **Extend artwork into the bleed** (on by default): areas, frames, clipping groups and pictures that stop at the edge of the page grow outward by exactly the bleed set, on each side they meet, also inside scaled groups. Without it a bleed would stay white wherever artwork ends at the cut. What cannot grow without changing its look (a turned element, an ellipse or free path, a cropped or letterboxed picture) is left as it is and listed in the download menu with its design and name, to extend by hand; text and lines are not extended.
+- **Extend artwork into the bleed** (on by default): areas, frames, clipping groups and pictures that stop at the edge of the page grow outward by exactly the bleed set, on each side they meet, also inside scaled groups. Without it a bleed would stay white wherever artwork ends at the cut. Elements turned by a quarter (90 or 270 degrees, as after **Change format** with a turn) grow too. What cannot grow without changing its look (an element at any other angle, an ellipse or free path, a cropped or letterboxed picture) is left as it is and listed in the download menu with its design and name, to extend by hand; text and lines are not extended.
 - **Finished size in whole millimeters**: each design goes out at its nearest whole-millimeter size, so a label made as 89.96 x 39.95 mm (designs from before exact sizes) is cut as 90 x 40 mm; artwork at the edge counts as meeting the new edge.
 
 Both apply to every format with bleed and marks, to the proof and to the output check, and are stored in export profiles: one profile per print shop then turns any selection of designs into its files in one go.

@@ -34,18 +34,35 @@ function base64ToBytes(b64: string): Uint8Array {
  * returning so nothing leaks.
  */
 export function foldUpdatesToFile(updatesB64: string[]): DesignFile {
-  const doc = new Y.Doc();
+  const doc = foldUpdates(updatesB64);
   try {
-    doc.transact(() => {
-      for (const b64 of updatesB64) {
-        if (!b64) continue;
-        const decoder = decoding.createDecoder(base64ToBytes(b64));
-        const encoder = encoding.createEncoder(); // reply sink, unused for updates
-        syncProtocol.readSyncMessage(decoder, encoder, doc, FOLD_ORIGIN);
-      }
-    }, FOLD_ORIGIN);
     return docToFile(doc);
   } finally {
     doc.destroy();
   }
+}
+
+/** The frames folded into a fresh Y.Doc (the caller destroys it). */
+export function foldUpdates(updatesB64: string[]): Y.Doc {
+  const doc = new Y.Doc();
+  doc.transact(() => {
+    for (const b64 of updatesB64) {
+      if (!b64) continue;
+      const decoder = decoding.createDecoder(base64ToBytes(b64));
+      const encoder = encoding.createEncoder(); // reply sink, unused for updates
+      syncProtocol.readSyncMessage(decoder, encoder, doc, FOLD_ORIGIN);
+    }
+  }, FOLD_ORIGIN);
+  return doc;
+}
+
+/** The whole state of `doc` as one base64 y-protocols update frame, the
+ *  format the server takes as a checkpoint. */
+export function checkpointFrameOf(doc: Y.Doc): string {
+  const enc = encoding.createEncoder();
+  syncProtocol.writeUpdate(enc, Y.encodeStateAsUpdate(doc));
+  const bytes = encoding.toUint8Array(enc);
+  let bin = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000) as unknown as number[]);
+  return btoa(bin);
 }

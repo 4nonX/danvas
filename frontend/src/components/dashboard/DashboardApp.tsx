@@ -45,7 +45,7 @@ import {
   List,
   Users,
   Moon,
-  Sun, Sparkles, Wand2, Paperclip, Loader2, X, Folder as FolderIcon, FolderPlus, FolderInput, Check, Download, Share2, Link2, ArrowRightLeft, Printer, CopyPlus } from "lucide-react";
+  Sun, Sparkles, Wand2, Paperclip, Loader2, X, Folder as FolderIcon, FolderPlus, FolderInput, Check, Download, Share2, Link2, ArrowRightLeft, Printer, CopyPlus, Scaling } from "lucide-react";
 import { createBlankDesign } from "@hc/schema";
 import { hycAccept, downloadHycFile, importedTitle, parseHycFile, readFileText } from "@/lib/hycFile";
 import { dialTones } from "@hc/aistudio";
@@ -68,6 +68,7 @@ import { Spinner } from "@/components/ui/Spinner";
 import { dashboardPath, type DashboardView } from "./views";
 import { DesignThumb } from "./DesignThumb";
 import { BulkShareDialog } from "./BulkShareDialog";
+import { ReformatDialog } from "./ReformatDialog";
 import { ExportDialog, type ExportTarget } from "@/components/editor/ExportDialog";
 import { PrintDialog } from "@/components/editor/PrintDialog";
 import { ProfileManager } from "@/components/settings/ProfileManager";
@@ -447,6 +448,9 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   const [printLoading, setPrintLoading] = useState(false);
   const [shareDesignId, setShareDesignId] = useState<string | null>(null);
   const [bulkShare, setBulkShare] = useState<{ id: string; title: string }[] | null>(null);
+  const [reformat, setReformat] = useState<{ id: string; title: string }[] | null>(null);
+  // Bumped when designs change outside the editor, so their cards redraw.
+  const [thumbRev, setThumbRev] = useState(0);
   const titleOf = (id: string) => items.find((i) => i.id === id)?.title ?? favorites.find((i) => i.id === id)?.title ?? tr("editor.untitled");
   const printDesigns = async (ids: string[]) => {
     if (!ids.length || printLoading) return;
@@ -1023,6 +1027,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
           <MenuRow icon={Download} onClick={() => { setMenuFor(null); void downloadDesigns(withSelection(item.id)); }}>{tr("editor.download")}</MenuRow>
           <MenuRow icon={Printer} onClick={() => { setMenuFor(null); void printDesigns(withSelection(item.id)); }}>{tr("editor.print")}</MenuRow>
           <MenuRow icon={Share2} onClick={() => { setMenuFor(null); shareDesigns(withSelection(item.id)); }}>{tr("dashboard.share")}</MenuRow>
+          <MenuRow icon={Scaling} onClick={() => { setMenuFor(null); setReformat(withSelection(item.id).map((id) => ({ id, title: titleOf(id) }))); }}>{tr("dashboard.reformat")}</MenuRow>
           <MenuRow icon={Copy} onClick={() => { setMenuFor(null); void duplicate(item); }}>{tr("dashboard.duplicate")}</MenuRow>
           <MenuRow icon={Pencil} onClick={() => { setMenuFor(null); setRenameTarget(item); setRenameValue(item.title); }}>{tr("dashboard.rename")}</MenuRow>
           <MenuRow icon={FolderInput} onClick={() => { setMenuFor(null); setMoveReq(dragPayload("designs", item.id)); }}>{tr("dashboard.move_to_folder")}</MenuRow>
@@ -1059,7 +1064,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
       onDragStart={(e) => setDragItems(e, dragPayload("designs", item.id))}
       className={`group relative rounded-2xl border bg-surface shadow-sm transition hover:shadow-md ${selDesigns.has(item.id) ? "border-brand-400 ring-2 ring-brand-100" : "border-neutral-200"}`}
     >
-      <button onClick={() => (selCount ? toggleSel("designs", item.id) : void open(item.id))} className="block aspect-[4/3] w-full overflow-hidden rounded-t-2xl" title={tr("dashboard.open")}><DesignThumb designId={item.id} /></button>
+      <button onClick={() => (selCount ? toggleSel("designs", item.id) : void open(item.id))} className="block aspect-[4/3] w-full overflow-hidden rounded-t-2xl" title={tr("dashboard.open")}><DesignThumb key={`${item.id}-${thumbRev}`} designId={item.id} /></button>
       <div className="absolute start-2.5 top-2.5">{selectBox(item)}</div>
       <FavoriteButton starred={item.starred} onToggle={() => void toggleFavorite(item)} />
       <div className="flex items-start justify-between gap-2 px-3 py-2.5">
@@ -1083,7 +1088,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
       className={`group flex items-center gap-3 border-b border-neutral-100 px-3 py-2 last:border-b-0 ${selDesigns.has(item.id) ? "bg-brand-50" : "hover:bg-neutral-50"}`}
     >
       {selectBox(item)}
-      <button onClick={() => void open(item.id)} className="h-10 w-14 shrink-0 overflow-hidden rounded-md border border-neutral-200 bg-neutral-100" title={tr("dashboard.open")}><DesignThumb designId={item.id} /></button>
+      <button onClick={() => void open(item.id)} className="h-10 w-14 shrink-0 overflow-hidden rounded-md border border-neutral-200 bg-neutral-100" title={tr("dashboard.open")}><DesignThumb key={`${item.id}-${thumbRev}`} designId={item.id} /></button>
       <button onClick={() => void open(item.id)} className="min-w-0 flex-1 text-start">
         <div className="truncate text-sm font-semibold text-neutral-800"><Highlight text={item.title} q={searched} /></div>
         <div className="flex min-w-0 items-center gap-1 text-xs text-neutral-400">
@@ -2096,6 +2101,9 @@ export function DashboardApp({ view }: { view: DashboardView }) {
               <button type="button" onClick={() => shareDesigns([...selDesigns])} className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-sm text-neutral-700 transition hover:bg-neutral-100">
                 <Share2 size={15} /> {tr("dashboard.share")}
               </button>
+              <button type="button" onClick={() => setReformat([...selDesigns].map((id) => ({ id, title: titleOf(id) })))} className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-sm text-neutral-700 transition hover:bg-neutral-100">
+                <Scaling size={15} /> {tr("dashboard.reformat")}
+              </button>
             </>
           )}
           {selDesigns.size > 0 && (
@@ -2133,6 +2141,13 @@ export function DashboardApp({ view }: { view: DashboardView }) {
       )}
       {shareDesignId && <ShareDialog open onClose={() => setShareDesignId(null)} designId={shareDesignId} />}
       {bulkShare && <BulkShareDialog designs={bulkShare} onClose={() => setBulkShare(null)} />}
+      {reformat && (
+        <ReformatDialog
+          designs={reformat}
+          onClose={() => setReformat(null)}
+          onDone={() => { setThumbRev((n) => n + 1); void load(searched).then(setItems).catch(() => {}); }}
+        />
+      )}
 
       {bulkEntries && activeWorkspaceId && (
         <BulkImportDialog
