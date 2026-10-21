@@ -2,6 +2,13 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.5.1 (2026-10-21)
+
+### Fixed
+
+- Colour swatches sized by their surroundings collapsed to a thin line, so their colour could not be seen or picked: the crop mark colour in the download menu and the page panel, and in the properties panel the gradient stops, page background, highlight, chart series, table and keyframe colours. The swatch now fills the space it is given.
+- Texts that count something showed their key name instead of the text when they had no singular and plural forms, for example "editor.download_n_designs_all_pages" under the title of the download menu for several designs, and in bulk sharing, moving to a folder, brand colours added, available AI models and personal AI usage. Such a text now shows as written.
+
 ## 0.5.0 (2026-10-20)
 
 ### License

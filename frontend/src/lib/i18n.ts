@@ -166,7 +166,12 @@ function pluralKey(key: string, count: number, tag: string, from: Catalog): stri
   if (exact in from || exact in baseCatalog) return exact;
   const wanted = `${key}.${category}`;
   if (wanted in from || wanted in baseCatalog) return wanted;
-  return `${key}.other`;
+  const other = `${key}.other`;
+  // A key without plural forms that is merely passed a count (its text
+  // embeds {count}) is the plain key: looking only for ".other" showed the
+  // raw key name instead of the text.
+  if (!(other in from || other in baseCatalog) && (key in from || key in baseCatalog)) return key;
+  return other;
 }
 
 // ----------------------------------------------------------------- translate

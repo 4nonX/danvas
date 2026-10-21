@@ -107,6 +107,14 @@ describe("plurals", () => {
     await loadCatalog("nl");
     expect(translate("t.plain", { name: "Ada" })).toBe("Hi Ada");
   });
+
+  it("uses a plain key that is only passed a count, not the raw key name", async () => {
+    // "{count} designs, all pages, in one zip" showed as its key name in the
+    // download menu: a count was passed, so only ".other" was looked up.
+    registerCatalog("nl", { "t.counted": "{count} designs in one zip" });
+    await loadCatalog("nl");
+    expect(translate("t.counted", { count: 10 })).toBe("10 designs in one zip");
+  });
 });
 
 describe("catalogChain", () => {
