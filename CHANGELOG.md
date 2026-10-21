@@ -2,6 +2,12 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.5.9 (2026-10-21)
+
+### Fixed
+
+- The dashboard no longer shifts up with a blank band below it after working in a dialog on the Members page. The cause, which 0.5.8 did not reach: a label for screen readers in the AI settings is positioned absolutely, and the dashboard's scrolling area was not a positioned box, so the label was placed against the page instead, far below the window. That made the page taller than the window, and the browser scrolled the whole page when it brought a focused field into view. The scrolling area now holds such content itself, on every dashboard page. No database change.
+
 ## 0.5.8 (2026-10-21)
 
 ### Fixed

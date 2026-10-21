@@ -1156,8 +1156,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
 
   return (
     // overflow-clip, not hidden: a hidden box can still be scrolled by the
-    // browser (focus moving into a tall dialog), which shifted the whole
-    // dashboard up and left a blank band below it.
+    // browser when it moves focus into view.
     <div className="flex h-screen overflow-clip bg-neutral-50 text-neutral-900" onClick={() => { setMenuFor(null); setFolderMenu(null); setImportMenu(false); }}>
       {/* Left rail: fixed to the viewport; only the main column scrolls.
           Collapsible to an icon-only strip (remembered in localStorage). */}
@@ -1261,7 +1260,12 @@ export function DashboardApp({ view }: { view: DashboardView }) {
       </aside>
 
       {/* Main */}
-      <main className="oc-scroll flex-1 overflow-y-auto" style={DASH_BACKDROP}>
+      {/* relative: absolutely positioned content (a screen-reader legend,
+          for one) is placed in this scroll box. Without a positioned
+          ancestor it was placed against the document instead, made the
+          page taller than the window, and the browser scrolled the whole
+          dashboard away when it moved focus into view. */}
+      <main className="oc-scroll relative flex-1 overflow-y-auto" style={DASH_BACKDROP}>
         {/* Header: global search, create, notifications, and the user menu. */}
         <div className="sticky top-0 z-30 flex items-center gap-3 border-b border-neutral-200 bg-surface/90 px-6 py-2.5 backdrop-blur">
           <form onSubmit={onSearch} className="relative max-w-lg flex-1">
