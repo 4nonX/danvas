@@ -158,10 +158,7 @@ func TestTransfer_DB(t *testing.T) {
 		t.Fatalf("move into folder: %v", err)
 	}
 
-	// Refusals: same workspace, and a user who cannot read the source.
-	if _, err := svc.Prepare(ctx, owner.ID, Input{DesignIDs: []string{top}, TargetWorkspaceID: mine.ID}); err != ErrSameWorkspace {
-		t.Fatalf("same workspace: %v", err)
-	}
+	// Refusal: a user who cannot read the source.
 	if _, err := svc.Prepare(ctx, outsider.ID, Input{DesignIDs: []string{top}, TargetWorkspaceID: team.ID}); err != ErrForbidden {
 		t.Fatalf("outsider: %v", err)
 	}
@@ -238,5 +235,63 @@ func TestTransfer_DB(t *testing.T) {
 	left, _ := folders.ListFolders(ctx, owner.ID, mine.ID)
 	if len(left) != 0 {
 		t.Fatalf("source folders left: %+v", left)
+	}
+
+	// Within one workspace: a copy into a folder uses the same upload and
+	// keeps the brand kit; nothing is copied but the design.
+	archive, err := folders.CreateFolder(ctx, owner.ID, mine.ID, "Archiv", nil)
+	if err != nil {
+		t.Fatalf("archive: %v", err)
+	}
+	cp := Input{DesignIDs: []string{top}, TargetWorkspaceID: mine.ID, TargetFolderID: &archive.ID}
+	if _, err := svc.Prepare(ctx, owner.ID, cp); err != nil {
+		t.Fatalf("prepare copy within: %v", err)
+	}
+	res, err = svc.Transfer(ctx, owner.ID, mine.ID, cp, func(int, int) {})
+	if err != nil || len(res.Designs) != 1 || res.Designs[0].Error != "" || res.Assets != 0 || res.Moved {
+		t.Fatalf("copy within: %v %+v", err, res)
+	}
+	dup := res.Designs[0].NewID
+	loaded, err := persist.LoadFile(ctx, dup, mine.ID)
+	if err != nil || dup == top {
+		t.Fatalf("copy within not a new design: %v", err)
+	}
+	if url := loaded.File["assets"].([]any)[0].(map[string]any)["url"].(string); !strings.Contains(url, asset.ID) {
+		t.Fatalf("copy within does not use the same upload: %s", url)
+	}
+	if loaded.File["meta"].(map[string]any)["brandKitId"] != kitID {
+		t.Fatal("copy within lost its brand kit")
+	}
+	inFolder := func(id string) string {
+		var p *string
+		_ = tx.QueryRow(ctx, `SELECT "project_id"::text FROM "designs" WHERE id::text = $1`, id).Scan(&p)
+		if p == nil {
+			return ""
+		}
+		return *p
+	}
+	if inFolder(dup) != archive.ID || inFolder(top) != "" {
+		t.Fatalf("copy within: copy in %q, original in %q", inFolder(dup), inFolder(top))
+	}
+	// A folder copied within the workspace arrives with its designs.
+	res, err = svc.Transfer(ctx, owner.ID, mine.ID, Input{FolderIDs: []string{archive.ID}, TargetWorkspaceID: mine.ID}, func(int, int) {})
+	if err != nil || res.Folders != 1 || len(res.Designs) != 1 || res.Designs[0].Error != "" {
+		t.Fatalf("folder copy within: %v %+v", err, res)
+	}
+	if fl, _ := folders.ListFolders(ctx, owner.ID, mine.ID); len(fl) != 2 {
+		t.Fatalf("folders after copy within = %+v", fl)
+	}
+	// Moving within the workspace is the folder move, and refuses a folder
+	// into itself.
+	mvIn := Input{DesignIDs: []string{top}, TargetWorkspaceID: mine.ID, TargetFolderID: &archive.ID, Move: true}
+	if _, err := svc.Prepare(ctx, owner.ID, mvIn); err != nil {
+		t.Fatalf("prepare move within: %v", err)
+	}
+	res, err = svc.Transfer(ctx, owner.ID, mine.ID, mvIn, func(int, int) {})
+	if err != nil || !res.Moved || len(res.Designs) != 1 || res.Designs[0].NewID != top || res.Designs[0].Title != "Etikett" || inFolder(top) != archive.ID {
+		t.Fatalf("move within: %v %+v (in %q)", err, res, inFolder(top))
+	}
+	if _, err := svc.Transfer(ctx, owner.ID, mine.ID, Input{FolderIDs: []string{archive.ID}, TargetWorkspaceID: mine.ID, TargetFolderID: &archive.ID, Move: true}, func(int, int) {}); err == nil {
+		t.Fatal("moved a folder into itself")
 	}
 }

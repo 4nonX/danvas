@@ -2,6 +2,16 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.5.3 (2026-10-21)
+
+### Added
+
+- **Copy to folder…**: designs and folders can now be copied into another folder of the same workspace, from their menu and for a whole selection in the selection bar, alongside Move to folder. The copy and move dialog lists this workspace too ("this workspace"); a copy there uses the same uploads, fonts and brand kit as the original and keeps its name, and a copied folder arrives with everything inside it. Move within the workspace is the same as Move to folder. No database change.
+
+### Fixed
+
+- The colour swatch in the editor's floating toolbar (page background, fill and text colour) sat 4 px above the middle of its button since 0.5.1. Colour swatches of a fixed size are now centred where they are placed.
+
 ## 0.5.2 (2026-10-21)
 
 ### Added

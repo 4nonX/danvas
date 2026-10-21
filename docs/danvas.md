@@ -6,7 +6,7 @@ The other pages in this folder are HyScaler's documentation of HyCanvas and desc
 
 ### Folders
 
-Designs live in folders, as deep as you like. In **Projects**, **New folder** creates one in the folder that is open; designs and folders move by drag and drop or with **Move to folder** in their menu.
+Designs live in folders, as deep as you like. In **Projects**, **New folder** creates one in the folder that is open; designs and folders move by drag and drop or with **Move to folder** in their menu, and **Copy to folder…** copies them into another folder (see below).
 
 The sidebar shows the folders as a tree below **Projects**:
 
@@ -18,11 +18,15 @@ The sidebar shows the folders as a tree below **Projects**:
 - What you opened is remembered per workspace. The way to the folder you are in shows by itself.
 - While a search is showing, the tree lists folders only.
 
-### Copying and moving between workspaces
+### Copying and moving to folders and workspaces
 
-A design or a folder can go to another workspace, for example from your personal workspace to the team's once it is finished. In its menu choose **Copy to workspace…** or **Move to workspace…**; with several designs and folders selected (the box at a card's top left), **To workspace…** in the selection bar does the same for all of them.
+A design or a folder can be copied to another folder of the same workspace, or copied or moved to another workspace, for example from your personal workspace to the team's once it is finished. In its menu choose **Copy to folder…**, **Copy to workspace…** or **Move to workspace…**; with several designs and folders selected (the box at a card's top left), **Copy to folder…** and **To workspace…** in the selection bar do the same for all of them. All three open one dialog: **Copy** or **Move**, the workspace and the folder there; **Copy to folder…** starts on this workspace, marked "(this workspace)".
 
-- Pick the workspace (any you are at least a member of) and the folder there. A copied folder arrives with its sub-folders and designs in the same structure.
+- Pick the workspace (any you are at least a member of) and the folder there. A copied folder arrives with its sub-folders and designs in the same structure. Copies keep their names.
+- Within the same workspace, a copy uses the same uploads, fonts and brand kit as the original; nothing else is copied. **Move** there is the same as **Move to folder**. A folder cannot be copied or moved into itself or one of its sub-folders.
+
+Between workspaces:
+
 - The uploads a design uses (pictures, masks, logos, video and audio) are copied into the target workspace, so the designs there export and keep working even if the originals' uploads are deleted later. An upload used by several of the designs is copied once.
 - Workspace fonts the designs use come along when you are an admin of the target; otherwise the dialog names the ones its admins would have to add.
 - A brand kit assignment the target does not have is dropped, so the designs follow the target's default kit.

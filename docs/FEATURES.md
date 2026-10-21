@@ -88,7 +88,7 @@ A living checklist of what ships today versus what is planned. Shipped items are
 - [x] Roles (owner/admin/member/viewer) + custom roles; invitations
 - [x] Cookie sessions, MFA (TOTP), OIDC SSO
 - [x] Per-workspace + per-user storage quotas with UI meters
-- [x] Copy or move designs and folders to another workspace, uploads and library fonts included
+- [x] Copy designs and folders to another folder of the same workspace; copy or move them to another workspace, uploads and library fonts included
 - [x] Notifications (email + web-push preferences)
 - [x] Dark mode (system/light/dark), app-wide reduced motion
 - [x] Design accessibility checker (contrast/alt-text/reading-order/tap-target)

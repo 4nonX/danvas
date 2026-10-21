@@ -12,7 +12,7 @@ The dashboard is the home surface after signing in: it holds your designs, the t
 
 ## Workspaces
 
-Every design lives in exactly one workspace. You get a personal workspace on signup and can create or join others; the switcher at the top of the sidebar moves between them. Workspace data is isolated: members of one workspace never see another workspace's designs, uploads, or brand kit. To hand designs from one workspace to another, copy or move them (see [Copying and moving between workspaces](danvas.md#copying-and-moving-between-workspaces)).
+Every design lives in exactly one workspace. You get a personal workspace on signup and can create or join others; the switcher at the top of the sidebar moves between them. Workspace data is isolated: members of one workspace never see another workspace's designs, uploads, or brand kit. To hand designs from one workspace to another, copy or move them (see [Copying and moving to folders and workspaces](danvas.md#copying-and-moving-to-folders-and-workspaces)).
 
 ## Sections
 

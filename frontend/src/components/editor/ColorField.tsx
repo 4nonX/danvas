@@ -197,7 +197,9 @@ export function ColorField({
     // swatch h-full ("[&_.oc-color-trigger]:h-full"). Without a height of its
     // own this box left that percentage nothing to resolve against, and the
     // swatch collapsed to its 2 px border. With no height given it stays auto.
-    <div ref={wrapRef} className={`relative h-full ${block ? "flex flex-1" : "inline-flex"}`}>
+    // A swatch of its own fixed size (the toolbar's 24 px circle in a 32 px
+    // cell) is centred in that height instead of sitting at the top.
+    <div ref={wrapRef} className={`relative h-full items-center justify-center ${block ? "flex flex-1" : "inline-flex"}`}>
       <button
         type="button"
         title={title ?? tr("editor.edit_color")}

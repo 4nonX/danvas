@@ -1,5 +1,5 @@
 // Package designtransfer copies or moves designs (and whole folders of them)
-// from one workspace to another.
+// to another workspace, or copies them to a folder of their own workspace.
 //
 // A design points at workspace data: its uploads (images, masks, video and
 // audio clips, logos), the workspace's font library by family name, and the
@@ -14,6 +14,10 @@
 // Moving is copying followed by moving the original to the trash, so it can
 // be restored from there. Version history, comments and share links stay
 // with the original.
+//
+// Within one workspace the uploads, fonts and brand kit are already the
+// target's: a copy keeps pointing at them, and moving is the ordinary move to
+// a folder.
 package designtransfer
 
 import (
@@ -31,9 +35,8 @@ import (
 )
 
 var (
-	ErrForbidden     = errors.New("designtransfer: forbidden")
-	ErrBadRequest    = errors.New("designtransfer: bad request")
-	ErrSameWorkspace = errors.New("designtransfer: target is the source workspace")
+	ErrForbidden  = errors.New("designtransfer: forbidden")
+	ErrBadRequest = errors.New("designtransfer: bad request")
 )
 
 // MaxItems bounds one transfer (designs, including those inside folders).
@@ -161,9 +164,6 @@ func (s *Service) Prepare(ctx context.Context, userID string, in Input) (string,
 			return "", err
 		}
 	}
-	if src == in.TargetWorkspaceID {
-		return "", ErrSameWorkspace
-	}
 	// Moving changes the source (its designs go to the trash): members only.
 	// A copy needs to read it: viewers too.
 	role := "viewer"
@@ -189,6 +189,10 @@ func (s *Service) Transfer(ctx context.Context, userID, src string, in Input, pr
 	var target *string
 	if in.TargetFolderID != nil && *in.TargetFolderID != "" {
 		target = in.TargetFolderID
+	}
+	same := src == in.TargetWorkspaceID
+	if same && in.Move {
+		return s.moveWithin(ctx, userID, src, in, target, progress)
 	}
 
 	// The work list: the selected designs into the target folder, and each
@@ -286,7 +290,7 @@ func (s *Service) Transfer(ctx context.Context, userID, src string, in Input, pr
 			collectFamilies(map[string]any(files[i].File), families)
 		}
 	}
-	if len(families) > 0 && s.fonts != nil {
+	if len(families) > 0 && s.fonts != nil && !same {
 		names := make([]string, 0, len(families))
 		for f := range families {
 			names = append(names, f)
@@ -355,9 +359,13 @@ func (s *Service) transferOne(ctx context.Context, userID, src, dst, title strin
 	for id := range ids {
 		cand = append(cand, id)
 	}
-	owned, err := s.assets.InWorkspace(ctx, src, cand)
-	if err != nil {
-		return "", 0, err
+	// Within one workspace the copy uses the same uploads.
+	owned := map[string]bool{}
+	if src != dst {
+		var err error
+		if owned, err = s.assets.InWorkspace(ctx, src, cand); err != nil {
+			return "", 0, err
+		}
 	}
 	n := 0
 	mapping := map[string]string{}
@@ -381,6 +389,22 @@ func (s *Service) transferOne(ctx context.Context, userID, src, dst, title strin
 		return "", n, err
 	}
 	return rec.ID, n, nil
+}
+
+// moveWithin moves designs and folders to a folder of their own workspace:
+// the ordinary folder move (which refuses a folder into its own subtree).
+func (s *Service) moveWithin(ctx context.Context, userID, ws string, in Input, target *string, progress Progress) (Result, error) {
+	res := Result{Designs: []Item{}, MissingFonts: []string{}, Moved: true, Folders: len(in.FolderIDs)}
+	if err := s.folders.Move(ctx, userID, ws, in.DesignIDs, in.FolderIDs, target); err != nil {
+		return res, err
+	}
+	for _, id := range in.DesignIDs {
+		item := Item{SourceID: id, NewID: id}
+		_ = s.db.QueryRow(ctx, `SELECT "title" FROM "designs" WHERE id::text = $1`, id).Scan(&item.Title)
+		res.Designs = append(res.Designs, item)
+	}
+	progress(1, 1)
+	return res, nil
 }
 
 // designsIn lists the live designs directly inside a folder.

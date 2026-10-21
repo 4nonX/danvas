@@ -4,7 +4,7 @@
 // only render it and report what the user did.
 
 import { useState, type DragEvent, type ReactNode } from "react";
-import { ChevronRight, Folder as FolderIcon, FolderOpen, FolderPlus, MoreHorizontal, Pencil, Trash2, FolderInput, Check, LayoutTemplate, Copy, ArrowRightLeft } from "lucide-react";
+import { ChevronRight, Folder as FolderIcon, FolderOpen, FolderPlus, MoreHorizontal, Pencil, Trash2, FolderInput, Check, LayoutTemplate, Copy, CopyPlus, ArrowRightLeft } from "lucide-react";
 import type { DesignFolder } from "@hc/sdk";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
@@ -108,7 +108,7 @@ export function FolderTile({
   onRename: () => void;
   onMove: () => void;
   /** Copy or move the folder to another workspace (absent: not offered). */
-  onTransfer?: (mode: "copy" | "move") => void;
+  onTransfer?: (mode: "copy" | "move", here?: boolean) => void;
   onDelete: () => void;
   onDropItems: (items: DragItems) => void;
   onDragStart: (e: DragEvent) => void;
@@ -162,6 +162,7 @@ export function FolderTile({
             <FolderMenuRow icon={FolderOpen} onClick={onOpen}>{tr("dashboard.open")}</FolderMenuRow>
             <FolderMenuRow icon={Pencil} onClick={onRename}>{tr("dashboard.rename")}</FolderMenuRow>
             <FolderMenuRow icon={FolderInput} onClick={onMove}>{tr("dashboard.move_to_folder")}</FolderMenuRow>
+            {onTransfer && <FolderMenuRow icon={CopyPlus} onClick={() => onTransfer("copy", true)}>{tr("dashboard.copy_to_folder")}</FolderMenuRow>}
             {onTransfer && <FolderMenuRow icon={Copy} onClick={() => onTransfer("copy")}>{tr("dashboard.copy_to_workspace")}</FolderMenuRow>}
             {onTransfer && <FolderMenuRow icon={ArrowRightLeft} onClick={() => onTransfer("move")}>{tr("dashboard.move_to_workspace")}</FolderMenuRow>}
             <FolderMenuRow icon={Trash2} danger onClick={onDelete}>{tr("dashboard.delete_folder")}</FolderMenuRow>

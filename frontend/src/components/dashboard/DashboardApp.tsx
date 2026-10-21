@@ -45,7 +45,7 @@ import {
   List,
   Users,
   Moon,
-  Sun, Sparkles, Wand2, Paperclip, Loader2, X, Folder as FolderIcon, FolderPlus, FolderInput, Check, Download, Share2, Link2, ArrowRightLeft, Printer } from "lucide-react";
+  Sun, Sparkles, Wand2, Paperclip, Loader2, X, Folder as FolderIcon, FolderPlus, FolderInput, Check, Download, Share2, Link2, ArrowRightLeft, Printer, CopyPlus } from "lucide-react";
 import { createBlankDesign } from "@hc/schema";
 import { hycAccept, downloadHycFile, importedTitle, parseHycFile, readFileText } from "@/lib/hycFile";
 import { dialTones } from "@hc/aistudio";
@@ -379,7 +379,8 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   const [folderMenu, setFolderMenu] = useState<string | null>(null);
   const [moveReq, setMoveReq] = useState<DragItems | null>(null);
   // Copy or move to another workspace: what, and which of the two first.
-  const [transferReq, setTransferReq] = useState<{ items: DragItems; mode: "copy" | "move" } | null>(null);
+  // here: "Copy to folder", the dialog opens on this workspace.
+  const [transferReq, setTransferReq] = useState<{ items: DragItems; mode: "copy" | "move"; here?: boolean } | null>(null);
   // Bulk import (Projects): files waiting to be imported, and the OS-drop hint.
   const [bulkEntries, setBulkEntries] = useState<ImportEntry[] | null>(null);
   const [osDrop, setOsDrop] = useState(false);
@@ -1021,6 +1022,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
           <MenuRow icon={Copy} onClick={() => { setMenuFor(null); void duplicate(item); }}>{tr("dashboard.duplicate")}</MenuRow>
           <MenuRow icon={Pencil} onClick={() => { setMenuFor(null); setRenameTarget(item); setRenameValue(item.title); }}>{tr("dashboard.rename")}</MenuRow>
           <MenuRow icon={FolderInput} onClick={() => { setMenuFor(null); setMoveReq(dragPayload("designs", item.id)); }}>{tr("dashboard.move_to_folder")}</MenuRow>
+          <MenuRow icon={CopyPlus} onClick={() => { setMenuFor(null); setTransferReq({ items: dragPayload("designs", item.id), mode: "copy", here: true }); }}>{tr("dashboard.copy_to_folder")}</MenuRow>
           <MenuRow icon={Copy} onClick={() => { setMenuFor(null); setTransferReq({ items: dragPayload("designs", item.id), mode: "copy" }); }}>{tr("dashboard.copy_to_workspace")}</MenuRow>
           <MenuRow icon={ArrowRightLeft} onClick={() => { setMenuFor(null); setTransferReq({ items: dragPayload("designs", item.id), mode: "move" }); }}>{tr("dashboard.move_to_workspace")}</MenuRow>
           <MenuRow icon={Trash2} danger onClick={() => { setMenuFor(null); setDeleteTarget(item); }}>{tr("dashboard.delete")}</MenuRow>
@@ -1351,7 +1353,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                               onToggleMenu={() => setFolderMenu(folderMenu === f.id ? null : f.id)}
                               onRename={() => void renameFolder(f)}
                               onMove={() => { setFolderMenu(null); setMoveReq(dragPayload("folders", f.id)); }}
-                              onTransfer={(mode) => { setFolderMenu(null); setTransferReq({ items: dragPayload("folders", f.id), mode }); }}
+                              onTransfer={(mode, here) => { setFolderMenu(null); setTransferReq({ items: dragPayload("folders", f.id), mode, here }); }}
                               onDelete={() => void deleteFolder(f)}
                               onDropItems={(it) => void moveItems(it, f.id)}
                               onDragStart={(e) => setDragItems(e, dragPayload("folders", f.id))}
@@ -2031,6 +2033,9 @@ export function DashboardApp({ view }: { view: DashboardView }) {
           <button type="button" onClick={() => setMoveReq({ designIds: [...selDesigns], folderIds: [...selFolders] })} className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-sm text-neutral-700 transition hover:bg-neutral-100">
             <FolderInput size={15} /> {tr("dashboard.move_to_folder")}
           </button>
+          <button type="button" onClick={() => setTransferReq({ items: { designIds: [...selDesigns], folderIds: [...selFolders] }, mode: "copy", here: true })} className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-sm text-neutral-700 transition hover:bg-neutral-100">
+            <CopyPlus size={15} /> {tr("dashboard.copy_to_folder")}
+          </button>
           <button type="button" onClick={() => setTransferReq({ items: { designIds: [...selDesigns], folderIds: [...selFolders] }, mode: "copy" })} className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-sm text-neutral-700 transition hover:bg-neutral-100">
             <ArrowRightLeft size={15} /> {tr("dashboard.to_workspace")}
           </button>
@@ -2064,13 +2069,15 @@ export function DashboardApp({ view }: { view: DashboardView }) {
         <TransferDialog
           items={transferReq.items}
           initialMode={transferReq.mode}
+          initialTarget={transferReq.here ? activeWorkspaceId : undefined}
+          excludeFolders={new Set(transferReq.items.folderIds.flatMap((id) => [...subtreeIds(folders, id)]))}
           workspaces={workspaces}
           currentWorkspaceId={activeWorkspaceId}
           titleOf={titleOf}
           onClose={() => setTransferReq(null)}
-          onDone={(moved) => {
-            if (!moved) return;
-            // The originals went to the trash: refresh this workspace's view.
+          onDone={(changedHere) => {
+            if (!changedHere) return;
+            // Originals went away or copies arrived: refresh this workspace's view.
             clearSelection();
             void load(searched).then(setItems).catch(() => {});
             reloadFolders();

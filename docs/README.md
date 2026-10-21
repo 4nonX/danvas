@@ -4,7 +4,7 @@ Everything in HyCanvas is free: no tiers, no paywalls, no watermarks. These page
 
 ## User guides
 
-- [What danvas adds](danvas.md), the additions of this modified version and how to use them: folders and imports, copying and moving between workspaces, template protection, replace object, vectorizing, background removal, brand kits and workspace fonts, print export with bleed and crop marks.
+- [What danvas adds](danvas.md), the additions of this modified version and how to use them: folders and imports, copying to folders and copying and moving between workspaces, template protection, replace object, vectorizing, background removal, brand kits and workspace fonts, print export with bleed and crop marks.
 - [Brand kit files](brand-kit-format.md), exporting and importing brand kits, and the `.brandkit.zip` format for writing one by hand.
 - [Getting started](getting-started.md), from first sign-in to your first design.
 - [The dashboard](dashboard.md), workspaces, templates, members, roles, storage, dark mode, and settings.

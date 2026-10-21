@@ -1,6 +1,7 @@
 // Copy or move designs and folders to another workspace (with the uploads and
-// library fonts they use; the server does the work as a job). Opened from a
-// design's or folder's menu, or for the selection from the selection bar.
+// library fonts they use), or copy them to a folder of this workspace; the
+// server does the work as a job. Opened from a design's or folder's menu, or
+// for the selection from the selection bar.
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ChevronRight, Folder as FolderIcon, Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
@@ -24,22 +25,33 @@ const ERROR_TEXT = (): Record<string, string> => ({
 });
 
 export function TransferDialog({
-  items, initialMode, workspaces, currentWorkspaceId, titleOf, onClose, onDone, onOpenWorkspace,
+  items, initialMode, initialTarget, excludeFolders, workspaces, currentWorkspaceId, titleOf, onClose, onDone, onOpenWorkspace,
 }: {
   items: DragItems;
   initialMode: Mode;
+  /** The workspace preselected (this one for "Copy to folder"). */
+  initialTarget?: string;
+  /** Folders of this workspace the items cannot go into: the folders being
+   *  copied or moved and everything inside them. */
+  excludeFolders?: Set<string>;
   workspaces: WorkspaceWithRole[];
   currentWorkspaceId: string;
   titleOf: (designId: string) => string;
   onClose: () => void;
-  /** After a finished transfer (the source list may have changed). */
-  onDone: (moved: boolean) => void;
+  /** After a finished transfer; `changedHere`: this workspace's list changed
+   *  (originals moved away, or copies added to it). */
+  onDone: (changedHere: boolean) => void;
   onOpenWorkspace: (workspaceId: string) => void;
 }) {
-  // Workspaces the user may add designs to (member and up), other than this one.
-  const targets = workspaces.filter((w) => w.id !== currentWorkspaceId && w.role !== "viewer");
+  // Workspaces the user may add designs to (member and up), this one first.
+  const targets = workspaces
+    .filter((w) => w.role !== "viewer")
+    .sort((a, b) => Number(b.id === currentWorkspaceId) - Number(a.id === currentWorkspaceId));
   const [mode, setMode] = useState<Mode>(initialMode);
-  const [target, setTarget] = useState<string>(targets[0]?.id ?? "");
+  const [target, setTarget] = useState<string>(
+    targets.find((w) => w.id === initialTarget)?.id ?? targets.find((w) => w.id !== currentWorkspaceId)?.id ?? targets[0]?.id ?? "",
+  );
+  const here = target === currentWorkspaceId;
   // The target's folders, tagged with the workspace they were loaded for, so
   // a switch of target shows "loading" until its own folders arrive.
   const [loaded, setLoaded] = useState<{ ws: string; folders: DesignFolder[] } | null>(null);
@@ -83,7 +95,7 @@ export function TransferDialog({
           const res = job.result as DesignTransferResult;
           setResult(res);
           setProgress(null);
-          onDone(res.moved && res.designs.some((d) => !d.error));
+          onDone((res.moved || here) && (res.designs.some((d) => !d.error) || res.folders > 0));
           return;
         }
         if (job.status === "failed") throw new Error(job.error || "transfer failed");
@@ -100,7 +112,8 @@ export function TransferDialog({
   const kids = childrenMap(folders ?? []);
   const row = (f: DesignFolder | null, depth: number): ReactNode => {
     const id = f?.id ?? null;
-    const children = kids.get(id ?? "") ?? [];
+    // Within this workspace a folder cannot go into itself.
+    const children = (kids.get(id ?? "") ?? []).filter((c) => !(here && excludeFolders?.has(c.id)));
     const isOpen = id === null || expanded.has(id);
     return (
       <li key={id ?? "root"}>
@@ -123,6 +136,7 @@ export function TransferDialog({
   };
 
   const targetName = targets.find((w) => w.id === target)?.name ?? "";
+  const folderName = folder ? (folders?.find((f) => f.id === folder)?.name ?? "") : tr("dashboard.projects");
 
   // The outcome.
   if (result) {
@@ -134,7 +148,9 @@ export function TransferDialog({
         <p className="flex items-start gap-2 text-sm text-neutral-700">
           <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-emerald-600" />
           <span>
-            {result.moved ? tr("dashboard.transfer_moved_n", { n: ok.length, workspace: targetName }) : tr("dashboard.transfer_copied_n", { n: ok.length, workspace: targetName })}
+            {here
+              ? (result.moved ? tr("dashboard.transfer_moved_here", { folder: folderName }) : tr("dashboard.transfer_copied_here", { count: ok.length, folder: folderName }))
+              : result.moved ? tr("dashboard.transfer_moved_n", { n: ok.length, workspace: targetName }) : tr("dashboard.transfer_copied_n", { n: ok.length, workspace: targetName })}
             {result.assets > 0 && <> {tr("dashboard.transfer_assets_n", { n: result.assets })}</>}
           </span>
         </p>
@@ -151,7 +167,7 @@ export function TransferDialog({
         )}
         <div className="mt-5 flex justify-end gap-2">
           <Button variant="ghost" onClick={onClose}>{tr("ui.close")}</Button>
-          {ok.length > 0 && <Button onClick={() => onOpenWorkspace(target)}>{tr("dashboard.transfer_open_workspace", { workspace: targetName })}</Button>}
+          {ok.length > 0 && !here && <Button onClick={() => onOpenWorkspace(target)}>{tr("dashboard.transfer_open_workspace", { workspace: targetName })}</Button>}
         </div>
       </Modal>
     );
@@ -187,7 +203,7 @@ export function TransferDialog({
               onChange={(e) => { setTarget(e.target.value); setFolder(null); }}
               className="w-full rounded-lg border border-neutral-200 bg-surface px-2 py-1.5 text-sm outline-none focus:border-brand-400"
             >
-              {targets.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
+              {targets.map((w) => <option key={w.id} value={w.id}>{w.id === currentWorkspaceId ? tr("dashboard.transfer_this_workspace", { workspace: w.name }) : w.name}</option>)}
             </select>
           </label>
           <span className="mb-1 block text-xs font-medium text-neutral-500">{tr("dashboard.transfer_target_folder")}</span>
@@ -197,7 +213,9 @@ export function TransferDialog({
             <ul className="oc-scroll max-h-[30vh] overflow-y-auto rounded-xl border border-neutral-200 p-1">{row(null, 0)}</ul>
           )}
           <p className="mt-3 text-[11px] leading-snug text-neutral-500">
-            {mode === "move" ? tr("dashboard.transfer_move_hint") : tr("dashboard.transfer_copy_hint")}
+            {here
+              ? (mode === "move" ? tr("dashboard.transfer_move_hint_here") : tr("dashboard.transfer_copy_hint_here"))
+              : mode === "move" ? tr("dashboard.transfer_move_hint") : tr("dashboard.transfer_copy_hint")}
           </p>
           {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
           {busy && (
