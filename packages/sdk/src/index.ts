@@ -1009,6 +1009,38 @@ export interface PrintProfile {
   createdAt: string;
 }
 
+/** The two kinds of profile, kept apart wherever a user sees them. */
+export type ExportProfileKind = "export" | "print";
+
+/** A named set of output settings: personal (the user's own, in every
+ *  workspace) or the workspace's (shared by its members). `settings` is the
+ *  client's versioned object, stored as sent. */
+export interface ExportProfile {
+  id: string;
+  /** "export": the download menu's; "print": the print dialog's presets. */
+  kind: ExportProfileKind;
+  scope: "workspace" | "personal";
+  workspaceId: string | null;
+  name: string;
+  description: string;
+  settings: Record<string, unknown> & { v: number };
+  isDefault: boolean;
+  /** Who last changed it. */
+  updatedByName: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** The export profiles of a workspace and the user, and what the user may do. */
+export interface ExportProfileView {
+  profiles: ExportProfile[];
+  /** Who may manage the workspace's profiles. */
+  managedBy: "admins" | "members";
+  canManageWorkspace: boolean;
+  /** May change `managedBy` (owners and admins). */
+  canConfigure: boolean;
+}
+
 /** The outcome of transferDesigns, per design. `error` is a code
  *  ("load_failed", "quota", "forbidden", "folder_failed", "source_kept",
  *  "failed"). */
@@ -2515,6 +2547,33 @@ export class HyCanvasClient {
   async printProfileData(id: string): Promise<Uint8Array> {
     const res = await this.requestRaw("GET", `/v1/print-profiles/${id}/data`);
     return new Uint8Array(await res.arrayBuffer());
+  }
+
+  // Export profiles: named download settings, personal or per workspace.
+  listExportProfiles(workspaceId: string, kind: ExportProfileKind = "export"): Promise<ExportProfileView> {
+    return this.request("GET", `/v1/workspaces/${workspaceId}/export-profiles?kind=${kind}`);
+  }
+  /** Only the user's own profiles (no workspace needed). */
+  listPersonalExportProfiles(kind: ExportProfileKind = "export"): Promise<ExportProfile[]> {
+    return this.request("GET", `/v1/me/export-profiles?kind=${kind}`);
+  }
+  /** A personal profile without a workspace (the settings page). */
+  createPersonalExportProfile(input: { kind?: ExportProfileKind; name: string; description?: string; settings: ExportProfile["settings"]; isDefault?: boolean }): Promise<ExportProfile> {
+    return this.request("POST", `/v1/me/export-profiles`, { ...input, scope: "personal" });
+  }
+  createExportProfile(workspaceId: string, input: { kind?: ExportProfileKind; scope: ExportProfile["scope"]; name: string; description?: string; settings: ExportProfile["settings"]; isDefault?: boolean }): Promise<ExportProfile> {
+    return this.request("POST", `/v1/workspaces/${workspaceId}/export-profiles`, input);
+  }
+  /** Rename, describe, replace the settings of, or (un)set the default. */
+  updateExportProfile(id: string, patch: { name?: string; description?: string; settings?: ExportProfile["settings"]; isDefault?: boolean }): Promise<ExportProfile> {
+    return this.request("PATCH", `/v1/export-profiles/${id}`, patch);
+  }
+  deleteExportProfile(id: string): Promise<void> {
+    return this.request("DELETE", `/v1/export-profiles/${id}`);
+  }
+  /** Who may manage the workspace's profiles (owners and admins set this). */
+  setExportProfilesManagedBy(workspaceId: string, managedBy: ExportProfileView["managedBy"], kind: ExportProfileKind = "export"): Promise<void> {
+    return this.request("PUT", `/v1/workspaces/${workspaceId}/export-profiles/settings`, { kind, managedBy });
   }
 
   // Workspace fonts: font files (one face each) shared by every design.

@@ -4,7 +4,17 @@ All notable changes to danvas are listed here, newest first. Versions follow the
 
 ## 0.5.1 (2026-10-21)
 
+### Added
+
+- **Export profiles**: named download settings (format, size, colour profile, print-shop options, bleed and crop marks) to export with the same settings again in one click. Personal ones are a user's own in every workspace; a workspace's are shared by its members. Names are unique per owner, each profile carries a description and a one-line summary of what it does, and a personal default (else the workspace's) is chosen when the download menu opens. Pick, update and "Save as new" in the download menu; rename, describe, make default, duplicate, copy a shared one into one's own and delete under Settings > Export profiles and in the workspace settings. Who may manage a workspace's profiles is a workspace setting: owners and admins (the default) or every member who may edit.
+- **Print presets**: the same for printing on one's own printer, kept apart from the export profiles (own list, own settings tab, own workspace section and setting).
+- **Printing**, rebuilt: a print button in the editor next to Download (also Ctrl+P and File > Print), and Print for one design or a whole selection in the dashboard (the design menu and the selection bar). It hands the printer driver a paper it has: each page's own size (label and roll printers, Save as PDF) or A4, A3 or Letter turned to fit the design; prints at the design's actual size, centred, or fitted within a printable margin, and points out pages larger than the paper; at 150, 200 or 300 dpi; with bleed and crop marks as on the pages or set for this print. Pages of different sizes keep their own paper, and no blank pages are added.
+- Bleed and crop marks can be set for one download in the editor too, without changing the pages ("Set for this output"); from the dashboard, each design's own settings can be used.
+
 ### Fixed
+
+- From the dashboard, the download menu offered only the built-in colour profile, not the workspace's uploaded ones.
+- The dashboard's selection bar wrapped its labels onto two lines while there was room beside it.
 
 - Colour swatches sized by their surroundings collapsed to a thin line, so their colour could not be seen or picked: the crop mark colour in the download menu and the page panel, and in the properties panel the gradient stops, page background, highlight, chart series, table and keyframe colours. The swatch now fills the space it is given.
 - Texts that count something showed their key name instead of the text when they had no singular and plural forms, for example "editor.download_n_designs_all_pages" under the title of the download menu for several designs, and in bulk sharing, moving to a folder, brand colours added, available AI models and personal AI usage. Such a text now shows as written.

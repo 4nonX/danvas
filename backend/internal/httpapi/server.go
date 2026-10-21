@@ -31,6 +31,7 @@ import (
 	"hycanvas/backend/internal/convert"
 	"hycanvas/backend/internal/designtransfer"
 	"hycanvas/backend/internal/engagement"
+	"hycanvas/backend/internal/exportprofiles"
 	"hycanvas/backend/internal/home"
 	"hycanvas/backend/internal/jobs"
 	"hycanvas/backend/internal/oidc"
@@ -51,37 +52,38 @@ import (
 
 // Deps holds the collaborators handlers need (extended as modules are ported).
 type Deps struct {
-	DB            *pgxpool.Pool
-	Logger        *slog.Logger
-	Version       string // build version stamped via -ldflags; "dev" when un-stamped
-	Accounts      *accounts.Service
-	APIKeys       *apikeys.Service
-	Persistence   *persistence.Service
-	Home          *home.Service
-	PrintProfiles *printprofiles.Service
-	Fonts         *workspacefonts.Service
-	Sharing       *sharing.Service
-	Approvals     *approvals.Service
-	Comments      *comments.Service
-	Whiteboard    *whiteboard.Service
-	Engagement    *engagement.Service
-	Brand         *brand.Service
-	AI            *ai.Service
-	Canva         *canva.Service // import from Canva (doc 41); nil = off
-	CanvaImport   *canvaimport.Service
-	AIStudio      *aistudio.Service
-	Uploads       *uploads.Service
-	Realtime      *realtime.Hub
-	Audience      *audience.Service
-	Templates     *templates.Service
-	Stock         *stock.Service
-	OIDC          *oidc.Service
-	Push          *push.Service
-	Jobs          *jobs.Registry
-	BulkCreate    *bulkcreate.Service
-	Convert       *convert.Service
+	DB             *pgxpool.Pool
+	Logger         *slog.Logger
+	Version        string // build version stamped via -ldflags; "dev" when un-stamped
+	Accounts       *accounts.Service
+	APIKeys        *apikeys.Service
+	Persistence    *persistence.Service
+	Home           *home.Service
+	PrintProfiles  *printprofiles.Service
+	ExportProfiles *exportprofiles.Service
+	Fonts          *workspacefonts.Service
+	Sharing        *sharing.Service
+	Approvals      *approvals.Service
+	Comments       *comments.Service
+	Whiteboard     *whiteboard.Service
+	Engagement     *engagement.Service
+	Brand          *brand.Service
+	AI             *ai.Service
+	Canva          *canva.Service // import from Canva (doc 41); nil = off
+	CanvaImport    *canvaimport.Service
+	AIStudio       *aistudio.Service
+	Uploads        *uploads.Service
+	Realtime       *realtime.Hub
+	Audience       *audience.Service
+	Templates      *templates.Service
+	Stock          *stock.Service
+	OIDC           *oidc.Service
+	Push           *push.Service
+	Jobs           *jobs.Registry
+	BulkCreate     *bulkcreate.Service
+	Convert        *convert.Service
 	// Transfer copies or moves designs between workspaces.
-	Transfer *designtransfer.Service
+	Transfer      *designtransfer.Service
 	Storage       storage.Driver
 	AccountData   *accountdata.Service
 	Secure        bool                 // set Secure on session cookies (production / HTTPS)
@@ -176,6 +178,9 @@ func NewRouter(d Deps) http.Handler {
 		}
 		if d.Accounts != nil && d.PrintProfiles != nil {
 			mountPrintProfiles(api, d.PrintProfiles, d.Accounts)
+		}
+		if d.Accounts != nil && d.ExportProfiles != nil {
+			mountExportProfiles(api, d.ExportProfiles, d.Accounts)
 		}
 		if d.Accounts != nil && d.Fonts != nil {
 			mountWorkspaceFonts(api, d.Fonts, d.Accounts)

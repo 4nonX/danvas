@@ -159,6 +159,29 @@ Artwork that should reach the edge of a printed piece is printed larger and cut 
 - **Apply to all pages** copies the page's bleed and marks to every page of the design.
 - The download menu shows the same settings for the pages being exported and edits them there. Downloading from the dashboard (one design or a whole selection), the menu instead holds one bleed and one set of marks for every design exported, starting from what the first of them sets; the designs themselves are not changed. **Bleed** and **Crop marks** are switched on or off for the export, for every image and print format (PNG, JPG, SVG, vector and image PDF, TIFF, EPS): bleed only, marks only (they then start at their gap from the cut, and artwork ends at the cut), both, or neither. Switching one on for pages that have none gives them the default (3 mm bleed, solid black marks). In a PDF the finished size is the TrimBox and the bleed the BleedBox, as print shops expect; the page itself is large enough for the marks. A transparent PNG keeps the page background out, in the bleed too. The accessible PDF, PPTX, Markdown and the animation and video formats always export the bare page.
 
+### Export profiles
+
+An export profile is a named set of download settings: format, size, colour profile and intent, the print-shop options, bleed and crop marks. The download menu starts with a profile picker:
+
+- Pick a profile and the menu takes its settings. A line under it says what it does (for example "PDF vector · CMYK, PSO Uncoated · PDF/X-4 · bleed 1.5 mm · die line Stanze"), after its description.
+- Change anything and the menu says so; **Update** writes the change into the profile, **Save as new** keeps it as a new one (name, description, "Just me" or "Whole workspace", default).
+- **Manage** opens the full list. Under **Settings**, **Export profiles** are a user's own (in every workspace, seen by nobody else); in the workspace settings, next to the colour profiles, are the workspace's, shared by every member. Rename and describe by clicking, make one the default, duplicate, copy a workspace profile into one's own, delete.
+- The download menu opens with the user's default, else the workspace's. Names are unique per owner, ignoring case.
+- Who may create, change and delete the workspace's profiles is set in the workspace settings: owners and admins (the default) or every member who may edit. Everyone uses them.
+
+A profile can hold bleed and crop marks "as on the pages" or "set for this output": the second applies one bleed and one set of marks to the export without changing the design.
+
+### Printing
+
+**Print** opens the system print dialog with the design drawn as for a download. It is in the editor next to **Download** (and Ctrl+P, File > Print) and, for one design or a whole selection, in the dashboard's design menu and selection bar.
+
+- **Paper**: the paper handed to the printer driver. "Size of the design" gives each page paper of its own size (with bleed and marks), for label and roll printers loaded with that media and for "Save as PDF"; A4, A3 or Letter is the sheet in the printer, turned to fit the design.
+- **Size on paper**: the design's actual size (100 %), centred on the paper, or fitted to it within a margin most printers can print to. A page larger than the paper at actual size is pointed out before printing.
+- The printer receives the paper size and one RGB image per page; its driver handles the colours (the colour profiles of the download menu are for print-shop files). For actual size, keep the scale at 100 % ("Default") in the system print dialog.
+- **Resolution**: 150, 200 or 300 dpi.
+- **Bleed and crop marks**: as on the pages, or set for this print.
+- **Print presets** store these settings like export profiles store a download's: personal or per workspace, with a default, their own list under **Settings**, **Print presets** and in the workspace settings, and their own setting for who manages the workspace's.
+
 ## Running an instance
 
 - **Install and update**: the stack in [`compose/`](../compose/README.md), or `install.sh` and `update.sh` from [`deploy/`](../deploy/README.md), which also documents every setting, the image's tags and platforms, and reverse proxies.

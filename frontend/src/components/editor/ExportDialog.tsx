@@ -46,6 +46,8 @@ import { pageBleed } from "@hc/engine";
 import { imagePdfBlob, rasterBlob, renderPageCanvas, tiffBlob } from "@/lib/exportFormats";
 import { hycBlob } from "@/lib/hycFile";
 import { exportIssues, PRINT_MIN_PPI, type ExportIssue } from "@/lib/exportIssues";
+import { describeSettings, normalizeSettings, sameSettings, type ExportSettings } from "@/lib/exportProfiles";
+import { ProfileBar } from "./ProfileBar";
 import { whenRenderable } from "@/lib/loadDesignForExport";
 import { BleedField, BleedInput, MarkFields, MarkInputs, setPagesBleed, setPagesMarks } from "./PrintSettings";
 
@@ -276,7 +278,7 @@ function issueText(i: ExportIssue): string {
   return tr("editor.export_issue_image", { subject: i.subject, where });
 }
 
-export function ExportDialog({ open, onClose, designs }: { open: boolean; onClose: () => void; designs?: ExportTarget[] }) {
+export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdProp }: { open: boolean; onClose: () => void; designs?: ExportTarget[]; workspaceId?: string | null }) {
   const toast = useToast();
   const storeActivePage = useEditor((s) => s.activePage);
   const activePage = designs ? 0 : storeActivePage;
@@ -303,7 +305,10 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
   const [zipBatch, setZipBatch] = useState(true); // bundle multi-page non-PDF exports into one .zip
   const [selected, setSelected] = useState<number[]>([]); // page indices to export
   // Print formats (TIFF, EPS): CMYK through an ICC output profile, or RGB.
-  const workspaceId = useBrand((s) => s.workspaceId);
+  // The editor knows its design's workspace; the dashboard passes its own
+  // (the brand store is only set in the editor).
+  const brandWorkspaceId = useBrand((s) => s.workspaceId);
+  const workspaceId = workspaceIdProp ?? brandWorkspaceId;
   const [printColor, setPrintColor] = useState<"cmyk" | "rgb">("cmyk");
   const [profiles, setProfiles] = useState<ProfileOption[] | null>(null);
   const [profileId, setProfileId] = useState<string | null>(null);
@@ -322,7 +327,11 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
   // From the dashboard, one bleed and one set of marks apply to every design
   // exported (the designs themselves are not changed), starting from what
   // the first of them sets.
-  const [override, setOverride] = useState<PrintOverride>(() => initialPrintOverride((designs ?? []).map((d) => d.doc)));
+  const [override, setOverride] = useState<PrintOverride>(() => initialPrintOverride((designs ?? [{ doc: useEditor.getState().doc }]).map((d) => d.doc)));
+  // Where bleed and crop marks come from: the pages (designs) themselves, or
+  // one setting for this export ("fixed"), the designs unchanged. Fixed is
+  // the dashboard's default; an export profile stores either.
+  const [printSource, setPrintSource] = useState<"page" | "fixed">(designs ? "fixed" : "page");
   const [busy, setBusy] = useState(false);
   // Brand pre-export gate. 'block' policy with violations refuses
   // the export; 'warn' shows a dismissible warning; 'off' is invisible.
@@ -353,6 +362,47 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
     });
     return () => { cancelled = true; };
   }, [open, cmykCapable, profiles, workspaceId]);
+  // A profile's print profile that this workspace does not have (a personal
+  // profile made in another one) falls back to the default.
+  useEffect(() => {
+    if (!profiles || !profileId || profiles.some((p) => p.id === profileId)) return;
+    let cancelled = false;
+    void Promise.resolve().then(() => { if (!cancelled) setProfileId((profiles.find((p) => p.isDefault) ?? profiles[0])?.id ?? null); });
+    return () => { cancelled = true; };
+  }, [profiles, profileId]);
+
+  // The menu's settings as an export profile stores them.
+  const currentSettings: ExportSettings = {
+    v: 1, format, pdfMode, scale, transparent, quality, zip: zipBatch, tiffDpi,
+    color: printColor, iccProfileId: profileId, intent, blackOnly, overprintBlack, pdfx, registration, dieLine,
+    print: printSource === "fixed" ? { source: "fixed", override } : { source: "page", bleed: withBleed, marks: withMarks },
+  };
+  function applySettings(raw: ExportSettings) {
+    const s = normalizeSettings(raw);
+    setFormat(s.format);
+    setPdfMode(s.pdfMode);
+    setScale(s.scale);
+    setTransparent(s.transparent);
+    setQuality(s.quality);
+    setZipBatch(s.zip);
+    setTiffDpi(s.tiffDpi);
+    setPrintColor(s.color);
+    if (s.iccProfileId) setProfileId(s.iccProfileId);
+    setIntent(s.intent);
+    setBlackOnly(s.blackOnly);
+    setOverprintBlack(s.overprintBlack);
+    setPdfx(s.pdfx);
+    setRegistration(s.registration);
+    setDieLine(s.dieLine);
+    if (s.print.source === "fixed") {
+      setOverride(s.print.override);
+      setPrintSource("fixed");
+    } else {
+      setWithBleed(s.print.bleed);
+      setWithMarks(s.print.marks);
+      setPrintSource("page");
+    }
+  }
 
   // Default the page selection when the panel opens or the format changes.
   // Animated formats on a multi-page deck default to the WHOLE deck, so the
@@ -470,18 +520,42 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
   const sheetCapable = isPrint || format === "png" || format === "jpg" || format === "svg" || (format === "pdf" && pdfMode !== "tagged");
   // What the pages being exported set (in the editor).
   const offered: PrintParts = sheetCapable ? printAdditions(pages.map((i) => doc.pages[i]).filter(Boolean)) : { bleed: false, marks: false };
-  // In the editor the menu edits the exported pages' settings; from the
-  // dashboard it sets one override for all the designs exported.
-  const printEditable = !designs;
+  // "fixed": one bleed and one set of marks for everything exported, the
+  // designs unchanged. Otherwise each page's own; in the editor the menu
+  // edits them as the page panel does.
+  const fixedPrint = printSource === "fixed";
+  const printEditable = !designs && !fixedPrint;
+
+  // Export profiles: a profile without its own print profile takes whatever
+  // is the default, so the one chosen now is no change from it.
+  const iccName = (pid: string) => profiles?.find((p) => p.id === pid)?.name;
+  const sameExport = (cur: ExportSettings, saved: ExportSettings) => sameSettings({ ...cur, iccProfileId: saved.iccProfileId === null ? null : cur.iccProfileId }, saved);
+
+  const printSourceToggle = (
+    <div role="radiogroup" aria-label={tr("editor.print_source")} className="flex gap-1 rounded-lg bg-neutral-100 p-0.5">
+      {(["page", "fixed"] as const).map((src) => (
+        <button
+          key={src}
+          type="button"
+          role="radio"
+          aria-checked={printSource === src}
+          onClick={() => setPrintSource(src)}
+          className={`flex-1 rounded-md px-2 py-1 text-[11px] font-medium transition ${printSource === src ? "bg-surface text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-800"}`}
+        >
+          {src === "page" ? (designs ? tr("editor.print_source_designs") : tr("editor.print_source_pages")) : tr("editor.print_source_fixed")}
+        </button>
+      ))}
+    </div>
+  );
   // A page without bleed or marks prints as the bare page either way.
-  const useSheet: PrintParts = printEditable
-    ? { bleed: sheetCapable && withBleed, marks: sheetCapable && withMarks }
-    : { bleed: sheetCapable && override.bleed, marks: sheetCapable && override.marks };
+  const useSheet: PrintParts = fixedPrint
+    ? { bleed: sheetCapable && override.bleed, marks: sheetCapable && override.marks }
+    : { bleed: sheetCapable && withBleed, marks: sheetCapable && withMarks };
   // Spot-colour extras of the vector print files.
   const printExtras: PrintExtras | undefined = vectorPrint
     ? { registration: useSheet.marks && registration, dieLine: dieLine.on && dieLine.name.trim() ? { name: dieLine.name.trim(), radiusMm: dieLine.radiusMm } : undefined }
     : undefined;
-  const sizedPage = printEditable || !sheetCapable ? refPage : withPrintOverride({ ...doc, pages: [refPage] }, override).pages[0];
+  const sizedPage = !fixedPrint || !sheetCapable ? refPage : withPrintOverride({ ...doc, pages: [refPage] }, override).pages[0];
   const tiffSheet = printSheet(sizedPage, doc.dpi ?? 96, useSheet);
   const tiffDim = rasterDimensions({ width: tiffSheet.sheetWidth, height: tiffSheet.sheetHeight }, { scale: tiffDpi / (doc.dpi ?? 96) }, doc.dpi ?? 96);
   // Pixel size of the first exported page at the chosen size, with its bleed
@@ -534,8 +608,8 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
   }
 
   async function exportDesign(doc: DesignFile, designId: string | null, pages: number[], emit: (blob: Blob, name: string) => void, quiet: boolean): Promise<void> {
-    // From the dashboard every design gets the menu's bleed and marks.
-    if (!printEditable && sheetCapable) doc = withPrintOverride(doc, override);
+    // A fixed setting gives every design the menu's bleed and marks.
+    if (fixedPrint && sheetCapable) doc = withPrintOverride(doc, override);
     const fileCount = format === "pdf" || format === "mp4" || format === "pptx" || format === "md" || format === "hyc" || isSingleAnimated ? 1 : pages.length;
     const safeBase = (doc.title || "design").replace(/[^\w.-]+/g, "-").replace(/^-+|-+$/g, "") || "design";
     const nameFor = (i: number, suffix: string) => (fileCount > 1 ? `${safeBase}-${i + 1}.${suffix}` : `${safeBase}.${suffix}`);
@@ -842,6 +916,18 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
           </p>
         )}
 
+        {/* Export profiles: start from saved settings, save these as one. */}
+        <ProfileBar
+          kind="export"
+          open={open}
+          workspaceId={workspaceId}
+          current={currentSettings}
+          normalize={normalizeSettings}
+          same={sameExport}
+          describe={(st) => describeSettings(st, iccName)}
+          onApply={applySettings}
+        />
+
         {/* File type. A grid of chips rather than a dropdown: the format IS
             the decision this panel exists for, so all nine stay visible and
             cost one click. Grouping by output kind turns a nine-way choice
@@ -1050,12 +1136,13 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
 
         {/* Bleed and crop marks: the exported pages' own settings, edited
             here as in the page panel, each switchable for this export. */}
-        {sheetCapable && !printEditable && (() => {
+        {sheetCapable && fixedPrint && (() => {
           const row = "flex cursor-pointer items-center justify-between gap-3 text-xs text-neutral-700";
           const box = "h-4 w-4 shrink-0 accent-brand-600";
           return (
             <div className="mb-3 flex flex-col gap-2 rounded-lg border border-neutral-200 p-2.5">
               <span className="text-xs font-medium text-neutral-700">{tr("editor.print_sheet_include")}</span>
+              {printSourceToggle}
               <label className={row}>
                 <span>{tr("editor.bleed")}</span>
                 <input type="checkbox" checked={override.bleed} onChange={(e) => setOverride((o) => ({ ...o, bleed: e.target.checked }))} className={box} />
@@ -1066,24 +1153,26 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
                 <input type="checkbox" checked={override.marks} onChange={(e) => setOverride((o) => ({ ...o, marks: e.target.checked }))} className={box} />
               </label>
               {override.marks && <MarkInputs marks={override} onChange={(patch) => setOverride((o) => ({ ...o, ...patch }))} />}
-              <p className="text-[11px] leading-snug text-neutral-400">{tr("editor.print_sheet_designs_hint")}</p>
+              <p className="text-[11px] leading-snug text-neutral-400">{designs ? tr("editor.print_sheet_designs_hint") : tr("editor.print_source_fixed_hint")}</p>
             </div>
           );
         })()}
-        {sheetCapable && printEditable && (() => {
+        {sheetCapable && !fixedPrint && (() => {
           const dpi = doc.dpi ?? 96;
           const mm = (px: number) => pxToMm(px, dpi).toLocaleString(undefined, { maximumFractionDigits: 1 });
           const b = pageBleed(refPage);
           const row = "flex cursor-pointer items-center justify-between gap-3 text-xs text-neutral-700";
           const box = "h-4 w-4 shrink-0 accent-brand-600";
-          const bleedOn = withBleed && offered.bleed;
-          const marksOn = withMarks && offered.marks;
+          // From the dashboard each design brings its own: both switches show.
+          const bleedOn = withBleed && (!!designs || offered.bleed);
+          const marksOn = withMarks && (!!designs || offered.marks);
           return (
             <div className="mb-3 flex flex-col gap-2 rounded-lg border border-neutral-200 p-2.5">
               <span className="text-xs font-medium text-neutral-700">{tr("editor.print_sheet_include")}</span>
-              {(printEditable || offered.bleed) && (
+              {printSourceToggle}
+              {(printEditable || !!designs || offered.bleed) && (
                 <label className={row}>
-                  <span>{printEditable || b <= 0 ? tr("editor.bleed") : tr("editor.print_sheet_bleed_mm", { mm: mm(b) })}</span>
+                  <span>{printEditable || designs || b <= 0 ? tr("editor.bleed") : tr("editor.print_sheet_bleed_mm", { mm: mm(b) })}</span>
                   <input
                     type="checkbox"
                     checked={bleedOn}
@@ -1097,7 +1186,7 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
                 </label>
               )}
               {printEditable && bleedOn && <BleedField indexes={pages} />}
-              {(printEditable || offered.marks) && (
+              {(printEditable || !!designs || offered.marks) && (
                 <label className={row}>
                   <span>{tr("editor.print_sheet_crop_marks")}</span>
                   <input
@@ -1115,6 +1204,7 @@ export function ExportDialog({ open, onClose, designs }: { open: boolean; onClos
               {printEditable && pages.length > 1 && (bleedOn || marksOn) && (
                 <p className="text-[11px] leading-snug text-neutral-400">{tr("editor.print_sheet_pages_hint", { count: pages.length })}</p>
               )}
+              {designs && <p className="text-[11px] leading-snug text-neutral-400">{tr("editor.print_source_page_designs_hint")}</p>}
             </div>
           );
         })()}

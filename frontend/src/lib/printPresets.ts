@@ -1,0 +1,70 @@
+// Print presets: named settings of the print dialog (printing on one's own
+// printer through the system dialog), kept apart from the download menu's
+// export profiles but stored the same way (kind "print"). Defined, completed
+// and described here like lib/exportProfiles.
+
+import { normalizeProfilePrint, type ProfilePrint } from "@/lib/exportProfiles";
+import { PRINT_PAPERS, type PrintPaper } from "@/lib/printDocument";
+import { tr } from "@/lib/i18n";
+
+export interface PrintSettings {
+  v: 1;
+  /** Every page, or the one being edited (the editor). */
+  pages: "all" | "current";
+  /** "actual": the design's physical size on the paper (100 %); "fit":
+   *  scaled to the paper the printer has. */
+  size: "actual" | "fit";
+  /** The paper handed to the printer driver: each page's own size (label and
+   *  roll printers, Save as PDF) or a standard sheet. */
+  paper: PrintPaper;
+  /** Raster resolution sent to the printer. */
+  dpi: 150 | 200 | 300;
+  print: ProfilePrint;
+}
+
+export const PRINT_DPIS = [150, 200, 300] as const;
+
+export function defaultPrintSettings(): PrintSettings {
+  return { v: 1, pages: "all", size: "actual", paper: "a4", dpi: 200, print: { source: "page", bleed: false, marks: false } };
+}
+
+/** A stored preset's settings as a complete, valid object. */
+export function normalizePrintSettings(raw: unknown): PrintSettings {
+  const d = defaultPrintSettings();
+  const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+  const print = normalizeProfilePrint(r.print, d.print);
+  return {
+    v: 1,
+    pages: r.pages === "current" ? "current" : "all",
+    size: r.size === "fit" ? "fit" : "actual",
+    paper: PRINT_PAPERS.includes(r.paper as PrintPaper) ? (r.paper as PrintPaper) : d.paper,
+    dpi: PRINT_DPIS.includes(r.dpi as 150) ? (r.dpi as PrintSettings["dpi"]) : d.dpi,
+    print,
+  };
+}
+
+/** The name of a paper choice (A4 and the like are not translated). */
+export function paperLabel(p: PrintPaper): string {
+  // i18n-ignore: paper format names are the same in every language
+  return p === "design" ? tr("editor.print_paper_design") : p === "letter" ? "Letter" : p.toUpperCase();
+}
+
+export function samePrintSettings(a: PrintSettings, b: PrintSettings): boolean {
+  return JSON.stringify(normalizePrintSettings(a)) === JSON.stringify(normalizePrintSettings(b));
+}
+
+const mm = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: 2 });
+
+/** One line saying what a preset does ("Actual size · 300 dpi · bleed 1.5 mm"). */
+export function describePrintSettings(s: PrintSettings): string {
+  const parts = [paperLabel(s.paper), s.size === "actual" ? tr("editor.print_size_actual") : tr("editor.print_size_fit"), `${s.dpi} dpi`];
+  if (s.pages === "current") parts.push(tr("editor.current_page"));
+  if (s.print.source === "fixed") {
+    const o = s.print.override;
+    if (o.bleed) parts.push(tr("editor.profile_bleed_mm", { mm: mm(o.bleedMm) }));
+    if (o.marks) parts.push(tr("editor.profile_crop_marks"));
+  } else if (s.print.bleed || s.print.marks) {
+    parts.push(tr("editor.profile_page_print"));
+  }
+  return parts.join(" · ");
+}

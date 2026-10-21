@@ -45,7 +45,7 @@ import {
   List,
   Users,
   Moon,
-  Sun, Sparkles, Wand2, Paperclip, Loader2, X, Folder as FolderIcon, FolderPlus, FolderInput, Check, Download, Share2, Link2, ArrowRightLeft } from "lucide-react";
+  Sun, Sparkles, Wand2, Paperclip, Loader2, X, Folder as FolderIcon, FolderPlus, FolderInput, Check, Download, Share2, Link2, ArrowRightLeft, Printer } from "lucide-react";
 import { createBlankDesign } from "@hc/schema";
 import { hycAccept, downloadHycFile, importedTitle, parseHycFile, readFileText } from "@/lib/hycFile";
 import { dialTones } from "@hc/aistudio";
@@ -69,6 +69,8 @@ import { dashboardPath, type DashboardView } from "./views";
 import { DesignThumb } from "./DesignThumb";
 import { BulkShareDialog } from "./BulkShareDialog";
 import { ExportDialog, type ExportTarget } from "@/components/editor/ExportDialog";
+import { PrintDialog } from "@/components/editor/PrintDialog";
+import { ProfileManager } from "@/components/settings/ProfileManager";
 import { ShareDialog } from "@/components/editor/ShareDialog";
 import { loadDesignsForExport } from "@/lib/loadDesignForExport";
 import { CanvaImportDialog } from "./CanvaImport";
@@ -437,9 +439,22 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   // selection). Downloads load the designs first so they render complete.
   const [exportTargets, setExportTargets] = useState<ExportTarget[] | null>(null);
   const [exportLoading, setExportLoading] = useState(false);
+  const [printTargets, setPrintTargets] = useState<ExportTarget[] | null>(null);
+  const [printLoading, setPrintLoading] = useState(false);
   const [shareDesignId, setShareDesignId] = useState<string | null>(null);
   const [bulkShare, setBulkShare] = useState<{ id: string; title: string }[] | null>(null);
   const titleOf = (id: string) => items.find((i) => i.id === id)?.title ?? favorites.find((i) => i.id === id)?.title ?? tr("editor.untitled");
+  const printDesigns = async (ids: string[]) => {
+    if (!ids.length || printLoading) return;
+    setPrintLoading(true);
+    try {
+      setPrintTargets(await loadDesignsForExport(ids));
+    } catch (e) {
+      toast.error(userMessage(e, tr("dashboard.print_prepare_failed")));
+    } finally {
+      setPrintLoading(false);
+    }
+  };
   const downloadDesigns = async (ids: string[]) => {
     if (!ids.length || exportLoading) return;
     setExportLoading(true);
@@ -1001,6 +1016,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
         <div className="absolute end-0 z-30 mt-1 w-60 overflow-hidden rounded-xl border border-neutral-200 bg-surface py-1 text-sm shadow-lg" onClick={(e) => e.stopPropagation()}>
           <MenuRow icon={ExternalLink} onClick={() => { setMenuFor(null); void open(item.id); }}>{tr("dashboard.open")}</MenuRow>
           <MenuRow icon={Download} onClick={() => { setMenuFor(null); void downloadDesigns(withSelection(item.id)); }}>{tr("editor.download")}</MenuRow>
+          <MenuRow icon={Printer} onClick={() => { setMenuFor(null); void printDesigns(withSelection(item.id)); }}>{tr("editor.print")}</MenuRow>
           <MenuRow icon={Share2} onClick={() => { setMenuFor(null); shareDesigns(withSelection(item.id)); }}>{tr("dashboard.share")}</MenuRow>
           <MenuRow icon={Copy} onClick={() => { setMenuFor(null); void duplicate(item); }}>{tr("dashboard.duplicate")}</MenuRow>
           <MenuRow icon={Pencil} onClick={() => { setMenuFor(null); setRenameTarget(item); setRenameValue(item.title); }}>{tr("dashboard.rename")}</MenuRow>
@@ -1933,6 +1949,10 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                   canEdit={activeWs?.role === "owner" || activeWs?.role === "admin"}
                 />
               )}
+              {/* The workspace's export profiles and print presets; who may
+                  manage them is set right there (owners and admins). */}
+              {activeWorkspaceId && <ProfileManager kind="export" scope="workspace" workspaceId={activeWorkspaceId} />}
+              {activeWorkspaceId && <ProfileManager kind="print" scope="workspace" workspaceId={activeWorkspaceId} />}
               {activeWorkspaceId && (activeWs?.role === "owner" || activeWs?.role === "admin") && (
                 <ApiKeysPanel workspaceId={activeWorkspaceId} />
               )}
@@ -2004,7 +2024,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
           role="toolbar"
           aria-label={tr("dashboard.selection")}
           onClick={(e) => e.stopPropagation()}
-          className="fixed bottom-6 left-1/2 z-40 flex -translate-x-1/2 items-center gap-1 rounded-2xl border border-neutral-200 bg-surface px-2 py-1.5 shadow-xl"
+          className="fixed bottom-6 left-1/2 z-40 flex w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-1 overflow-x-auto whitespace-nowrap rounded-2xl border border-neutral-200 bg-surface px-2 py-1.5 shadow-xl"
         >
           <span className="px-2 text-sm font-medium text-neutral-700">{tr("dashboard.n_selected", { n: selCount })}</span>
           <span className="mx-1 h-5 w-px bg-neutral-200" />
@@ -2018,6 +2038,9 @@ export function DashboardApp({ view }: { view: DashboardView }) {
             <>
               <button type="button" disabled={exportLoading} onClick={() => void downloadDesigns([...selDesigns])} className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-sm text-neutral-700 transition hover:bg-neutral-100 disabled:opacity-50">
                 {exportLoading ? <Loader2 size={15} className="animate-spin" /> : <Download size={15} />} {tr("editor.download")}
+              </button>
+              <button type="button" disabled={printLoading} onClick={() => void printDesigns([...selDesigns])} className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-sm text-neutral-700 transition hover:bg-neutral-100 disabled:opacity-50">
+                {printLoading ? <Loader2 size={15} className="animate-spin" /> : <Printer size={15} />} {tr("editor.print")}
               </button>
               <button type="button" onClick={() => shareDesigns([...selDesigns])} className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-sm text-neutral-700 transition hover:bg-neutral-100">
                 <Share2 size={15} /> {tr("dashboard.share")}
@@ -2035,7 +2058,8 @@ export function DashboardApp({ view }: { view: DashboardView }) {
         </div>
       )}
 
-      {exportTargets && <ExportDialog open onClose={() => setExportTargets(null)} designs={exportTargets} />}
+      {exportTargets && <ExportDialog open onClose={() => setExportTargets(null)} designs={exportTargets} workspaceId={activeWorkspaceId} />}
+      {printTargets && <PrintDialog open onClose={() => setPrintTargets(null)} designs={printTargets} workspaceId={activeWorkspaceId} />}
       {transferReq && activeWorkspaceId && (
         <TransferDialog
           items={transferReq.items}

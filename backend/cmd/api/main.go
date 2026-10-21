@@ -36,9 +36,10 @@ import (
 	"hycanvas/backend/internal/captcha"
 	"hycanvas/backend/internal/comments"
 	"hycanvas/backend/internal/convert"
-	"hycanvas/backend/internal/designtransfer"
 	"hycanvas/backend/internal/daemon"
+	"hycanvas/backend/internal/designtransfer"
 	"hycanvas/backend/internal/engagement"
+	"hycanvas/backend/internal/exportprofiles"
 	"hycanvas/backend/internal/home"
 	"hycanvas/backend/internal/httpapi"
 	"hycanvas/backend/internal/jobs"
@@ -199,6 +200,7 @@ func main() {
 	titles := commentsPersist{persist}
 	homeSvc := home.NewService(pool, persist, acct)
 	printProfilesSvc := printprofiles.NewService(pool, acct)
+	exportProfilesSvc := exportprofiles.NewService(pool, acct)
 	fontsSvc := workspacefonts.NewService(pool, acct)
 	// The engagement emitter (write side: activity log + notifications) depends
 	// only on the DB, account lookup, and title lookup - never on sharing - so
@@ -413,43 +415,44 @@ func main() {
 	srv := &http.Server{
 		Addr: cfg.BindHost + ":" + cfg.Port,
 		Handler: httpapi.NewRouter(httpapi.Deps{
-			DB:            pool,
-			Logger:        logger,
-			Version:       version,
-			Accounts:      acct,
-			APIKeys:       apikeys.NewService(pool),
-			Persistence:   persist,
-			Home:          homeSvc,
-			PrintProfiles: printProfilesSvc,
-			Fonts:         fontsSvc,
-			Sharing:       sharingSvc,
-			Approvals:     approvalsSvc,
-			Comments:      commentsSvc,
-			Whiteboard:    whiteboardSvc,
-			Engagement:    engagementSvc,
-			Brand:         brandSvc,
-			AI:            aiSvc,
-			Canva:         canvaSvc,
-			CanvaImport:   canvaImportSvc,
-			AIStudio:      aiStudioSvc,
-			Uploads:       uploadsSvc,
-			Realtime:      rtHub,
-			Audience:      audienceSvc,
-			Templates:     templatesSvc,
-			Stock:         stockSvc,
-			OIDC:          oidcSvc,
-			Push:          pushSvc,
-			Jobs:          jobRegistry,
-			BulkCreate:    bulkSvc,
-			Convert:       convertSvc,
-			Transfer:      transferSvc,
-			Storage:       store,
-			AccountData:   accountDataSvc,
-			Secure:        secureCookies,
-			Auth:          authPolicy,
-			Captcha:       captchaVerifier,
-			CaptchaConfig: captchaCfg,
-			PublicDir:     cfg.PublicDir,
+			DB:             pool,
+			Logger:         logger,
+			Version:        version,
+			Accounts:       acct,
+			APIKeys:        apikeys.NewService(pool),
+			Persistence:    persist,
+			Home:           homeSvc,
+			PrintProfiles:  printProfilesSvc,
+			ExportProfiles: exportProfilesSvc,
+			Fonts:          fontsSvc,
+			Sharing:        sharingSvc,
+			Approvals:      approvalsSvc,
+			Comments:       commentsSvc,
+			Whiteboard:     whiteboardSvc,
+			Engagement:     engagementSvc,
+			Brand:          brandSvc,
+			AI:             aiSvc,
+			Canva:          canvaSvc,
+			CanvaImport:    canvaImportSvc,
+			AIStudio:       aiStudioSvc,
+			Uploads:        uploadsSvc,
+			Realtime:       rtHub,
+			Audience:       audienceSvc,
+			Templates:      templatesSvc,
+			Stock:          stockSvc,
+			OIDC:           oidcSvc,
+			Push:           pushSvc,
+			Jobs:           jobRegistry,
+			BulkCreate:     bulkSvc,
+			Convert:        convertSvc,
+			Transfer:       transferSvc,
+			Storage:        store,
+			AccountData:    accountDataSvc,
+			Secure:         secureCookies,
+			Auth:           authPolicy,
+			Captcha:        captchaVerifier,
+			CaptchaConfig:  captchaCfg,
+			PublicDir:      cfg.PublicDir,
 			// Translations an operator dropped next to the binary. Defaults to
 			// ./locales so adding a language needs no configuration at all.
 			LocalesDir:    localesDir(),

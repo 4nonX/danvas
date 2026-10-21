@@ -1140,6 +1140,11 @@ export function EditorApp() {
               <Download size={17} />
             </IconButton>
           )}
+          {!isCompact && docKind === "design" && (
+            <IconButton size="sm" onClick={() => setPrintOpen(true)} title={tr("editor.print_shortcut")} aria-label={tr("editor.print")}>
+              <Printer size={17} />
+            </IconButton>
+          )}
           {!isCompact && designId && canShare && (
             <Button size="sm" onClick={() => setShareOpen(true)} title={tr("editor.share_this_design")}>
               <Share2 size={15} /> {tr("editor.share")}
