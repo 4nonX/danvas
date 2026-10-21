@@ -50,6 +50,16 @@ describe("export profile settings", () => {
     expect(defaultProfile([profile({ id: "n" })])).toBeNull();
   });
 
+  it("keeps the prepress options: whole-mm size off and extension into the bleed on unless set", () => {
+    const old = normalizeSettings({ v: 1, format: "pdf" } as never);
+    expect(old.roundMm).toBe(false);
+    expect(old.extendBleed).toBe(true);
+    const shop = normalizeSettings({ v: 1, format: "pdf", roundMm: true, extendBleed: false } as never);
+    expect(shop.roundMm).toBe(true);
+    expect(shop.extendBleed).toBe(false);
+    expect(describeSettings(shop, () => null)).toContain("whole mm");
+  });
+
   it("finds a free name, ignoring case", () => {
     expect(freeName("Druckerei", ["druckerei", "Druckerei (2)"])).toBe("Druckerei (3)");
     expect(freeName(" Neu ", [])).toBe("Neu");

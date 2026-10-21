@@ -2,6 +2,14 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.5.5 (2026-10-21)
+
+### Added
+
+- **Extend artwork into the bleed**, a download option (on by default) for every format with bleed: areas, frames, clipping groups and pictures that stop at the edge of the page grow outward by exactly the bleed set, also inside scaled groups, so the bleed a print shop asks for is filled whatever the design's size or layout. Applied to a copy; the designs stay as they are. Elements it cannot extend without changing their look (turned, round, cropped) are listed in the download menu with their design and name.
+- **Finished size in whole millimeters**, a download option: each design goes out at its nearest whole-millimeter size (89.96 x 39.95 mm from before exact sizes becomes 90 x 40 mm), also on a copy.
+- Both are stored in export profiles, so one profile per print shop (bleed, crop marks, die line, these two) prepares any selection of designs at once. The proof and the output check show the result. No database change.
+
 ## 0.5.4 (2026-10-21)
 
 ### Added

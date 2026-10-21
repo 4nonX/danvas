@@ -44,6 +44,7 @@ import { designProfileId, listProfileOptions, profileBytes, type ProfileOption }
 import type { CmykConverter, RenderingIntent } from "@/lib/print/cms";
 import { defaultTacLimit } from "@/lib/print/proof";
 import { spotNamesOf } from "@/lib/print/printColor";
+import { prepressDoc, type PrepressOptions } from "@/lib/print/prepressDoc";
 import { initialPrintOverride, printAdditions, printSheet, pxToMm, withPrintOverride, type PrintExtras, type PrintOverride, type PrintParts } from "@/lib/print/sheet";
 import { pageBleed } from "@hc/engine";
 import { imagePdfBlob, rasterBlob, renderPageCanvas, tiffBlob } from "@/lib/exportFormats";
@@ -268,6 +269,18 @@ export interface ExportTarget { id: string; doc: DesignFile }
 // The design with a fixed bleed and marks, kept per design and setting, so
 // the proof view does not redo its work on every render of the menu.
 const overridden = new WeakMap<DesignFile, { key: string; doc: DesignFile }>();
+/** prepressDoc for the proof view, cached per design and options so a
+ *  re-render does not copy the design again. */
+const prepressed = new WeakMap<DesignFile, { key: string; doc: DesignFile }>();
+function prepressedDoc(doc: DesignFile, o: PrepressOptions): DesignFile {
+  const key = JSON.stringify(o);
+  const hit = prepressed.get(doc);
+  if (hit && hit.key === key) return hit.doc;
+  const out = prepressDoc(doc, null, o).doc;
+  prepressed.set(doc, { key, doc: out });
+  return out;
+}
+
 function overriddenDoc(doc: DesignFile, o: PrintOverride): DesignFile {
   const key = JSON.stringify(o);
   const hit = overridden.get(doc);
@@ -294,6 +307,7 @@ function issueText(i: ExportIssue): string {
   if (i.kind === "hairline") return tr("editor.export_issue_hairline", { subject: i.subject, min: HAIRLINE_PT, where });
   if (i.kind === "small-rich-text") return tr("editor.export_issue_small_rich_text", { subject: i.subject, size: SMALL_TEXT_PT, where });
   if (i.kind === "edge-no-bleed") return tr("editor.export_issue_edge_no_bleed", { where });
+  if (i.kind === "edge-not-extended") return tr("editor.export_issue_edge_not_extended", { where });
   if (i.kind === "image-resolution") return tr("editor.export_issue_image_resolution", { subject: i.subject, ppi: i.ppi ?? 0, min: PRINT_MIN_PPI, where });
   return tr("editor.export_issue_image", { subject: i.subject, where });
 }
@@ -336,6 +350,9 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
   const [blackOnly, setBlackOnly] = useState(true);
   // The print shop's total ink limit, per cent; null: the paper's usual.
   const [tacLimit, setTacLimit] = useState<number | null>(null);
+  // Prepress for any format: whole-mm finished size, artwork into the bleed.
+  const [roundMm, setRoundMm] = useState(false);
+  const [extendBleed, setExtendBleed] = useState(true);
   const [proofOpen, setProofOpen] = useState(false);
   // The output check needs Ghostscript on the instance.
   const [checkOpen, setCheckOpen] = useState(false);
@@ -381,6 +398,8 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
   const isPrint = format === "tiff" || format === "eps";
   // CMYK through a profile: the print formats and the PDFs for print.
   const cmykCapable = isPrint || (format === "pdf" && pdfMode !== "tagged");
+  // Formats that carry bleed and crop marks (and the prepress options).
+  const sheetCapable = isPrint || format === "png" || format === "jpg" || format === "svg" || (format === "pdf" && pdfMode !== "tagged");
   // Vector print files: spot colours (registration marks, die line) and
   // black overprint.
   const vectorPrint = format === "eps" || (format === "pdf" && pdfMode === "vector");
@@ -407,7 +426,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
   // The menu's settings as an export profile stores them.
   const currentSettings: ExportSettings = {
     v: 1, format, pdfMode, scale, transparent, quality, zip: zipBatch, tiffDpi,
-    color: printColor, iccProfileId: profileId, intent, blackOnly, overprintBlack, pdfx, registration, dieLine, tacLimit,
+    color: printColor, iccProfileId: profileId, intent, blackOnly, overprintBlack, pdfx, registration, dieLine, tacLimit, roundMm, extendBleed,
     print: printSource === "fixed" ? { source: "fixed", override } : { source: "page", bleed: withBleed, marks: withMarks },
   };
   function applySettings(raw: ExportSettings) {
@@ -424,6 +443,8 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
     setIntent(s.intent);
     setBlackOnly(s.blackOnly);
     setTacLimit(s.tacLimit);
+    setRoundMm(s.roundMm);
+    setExtendBleed(s.extendBleed);
     setOverprintBlack(s.overprintBlack);
     setPdfx(s.pdfx);
     setRegistration(s.registration);
@@ -519,12 +540,18 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
         for (const t of targets) {
           await whenRenderable(t.doc);
           const bleed = printSource === "fixed" ? overrideBleed : withBleed && t.pages.some((i) => !!t.doc.pages[i] && pageBleed(t.doc.pages[i]) > 0);
+          // What the extension into the bleed cannot reach (it runs on the
+          // copy the export makes; listed here like any other issue).
+          const prepressed = sheetCapable && extendBleed && (printSource === "fixed" ? overrideBleed : withBleed)
+            ? prepressDoc(printSource === "fixed" ? withPrintOverride(t.doc, override) : t.doc, t.pages, { roundToMm: roundMm, extendIntoBleed: true }).notExtended
+            : [];
           const list = await exportIssues(t.doc, t.pages, {
             vector: vectorOut,
             print: printOut,
             printCheck: { cmyk: conv ? (r, g, b) => conv!.cmyk(r, g, b) : null, blackOnly: vectorPrint && blackOnly, bleed },
             backgroundLabel: tr("editor.export_issue_page_background"),
           });
+          if (prepressed.length) list.push({ kind: "edge-not-extended", subject: "", where: prepressed });
           if (list.length) out.push({ design: t.design, list });
         }
       } finally {
@@ -533,7 +560,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
       if (!cancelled) setIssues(out);
     })();
     return () => { cancelled = true; };
-  }, [open, rendersDesign, vectorOut, printOut, pagesKey, designs, bulk, rev, cmykCapable, printColor, profileId, intent, vectorPrint, blackOnly, printSource, overrideBleed, withBleed]);
+  }, [open, rendersDesign, vectorOut, printOut, pagesKey, designs, bulk, rev, cmykCapable, printColor, profileId, intent, vectorPrint, blackOnly, printSource, overrideBleed, withBleed, sheetCapable, extendBleed, roundMm, override]);
   const shownIssues = rendersDesign ? issues : [];
 
   // Dialog focus contract: on open, remember the opener and move focus onto the
@@ -570,7 +597,6 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
   const fileCount = format === "pdf" || format === "mp4" || format === "pptx" || format === "md" || format === "hyc" || isSingleAnimated ? 1 : pages.length;
   // Bleed and crop marks apply to every image and print format (not the
   // accessible PDF, documents or motion).
-  const sheetCapable = isPrint || format === "png" || format === "jpg" || format === "svg" || (format === "pdf" && pdfMode !== "tagged");
   // What the pages being exported set (in the editor).
   const offered: PrintParts = sheetCapable ? printAdditions(pages.map((i) => doc.pages[i]).filter(Boolean)) : { bleed: false, marks: false };
   // "fixed": one bleed and one set of marks for everything exported, the
@@ -612,10 +638,15 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
   const proofable = cmykCapable && printColor === "cmyk" && !!profileId;
   const profileName = profiles?.find((p) => p.id === profileId)?.name ?? "";
   const effectiveTac = tacLimit ?? defaultTacLimit(profileName);
-  const proofDoc = fixedPrint && sheetCapable ? overriddenDoc(doc, override) : doc;
+  // Rounding and the extension into the bleed, as the export applies them.
+  const prepressOpts: PrepressOptions = sheetCapable ? { roundToMm: roundMm, extendIntoBleed: extendBleed && useSheet.bleed } : {};
+  const baseProofDoc = fixedPrint && sheetCapable ? overriddenDoc(doc, override) : doc;
+  const proofDoc = prepressedDoc(baseProofDoc, prepressOpts);
   // The output check: the real PDF or EPS, separated on the instance.
   const checkable = checkAvailable && proofable && (format === "eps" || (format === "pdf" && pdfMode !== "tagged"));
-  const sizedPage = !fixedPrint || !sheetCapable ? refPage : withPrintOverride({ ...doc, pages: [refPage] }, override).pages[0];
+  const overriddenPage = !fixedPrint || !sheetCapable ? refPage : withPrintOverride({ ...doc, pages: [refPage] }, override).pages[0];
+  // The size readouts show the finished size the export will have.
+  const sizedPage = roundMm && sheetCapable ? prepressDoc({ ...doc, pages: [overriddenPage] }, null, { roundToMm: true }).doc.pages[0] : overriddenPage;
   const tiffSheet = printSheet(sizedPage, doc.dpi ?? 96, useSheet);
   const tiffDim = rasterDimensions({ width: tiffSheet.sheetWidth, height: tiffSheet.sheetHeight }, { scale: tiffDpi / (doc.dpi ?? 96) }, doc.dpi ?? 96);
   // Pixel size of the first exported page at the chosen size, with its bleed
@@ -670,6 +701,8 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
   async function exportDesign(doc: DesignFile, designId: string | null, pages: number[], emit: (blob: Blob, name: string) => void, quiet: boolean): Promise<void> {
     // A fixed setting gives every design the menu's bleed and marks.
     if (fixedPrint && sheetCapable) doc = withPrintOverride(doc, override);
+    // Prepress on a copy: whole-mm size, artwork into the bleed.
+    doc = prepressDoc(doc, null, prepressOpts).doc;
     const fileCount = format === "pdf" || format === "mp4" || format === "pptx" || format === "md" || format === "hyc" || isSingleAnimated ? 1 : pages.length;
     const safeBase = (doc.title || "design").replace(/[^\w.-]+/g, "-").replace(/^-+|-+$/g, "") || "design";
     const nameFor = (i: number, suffix: string) => (fileCount > 1 ? `${safeBase}-${i + 1}.${suffix}` : `${safeBase}.${suffix}`);
@@ -1300,6 +1333,26 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
             </div>
           );
         })()}
+        {sheetCapable && (
+          <div className="mb-3 flex flex-col gap-2 rounded-lg border border-neutral-200 p-2.5">
+            <label className="flex cursor-pointer items-start justify-between gap-3 text-xs text-neutral-700">
+              <span>
+                {tr("editor.round_to_mm")}
+                <span className="mt-0.5 block text-[11px] leading-snug text-neutral-400">{tr("editor.round_to_mm_desc")}</span>
+              </span>
+              <input type="checkbox" checked={roundMm} onChange={(e) => setRoundMm(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-brand-600" />
+            </label>
+            {useSheet.bleed && (
+              <label className="flex cursor-pointer items-start justify-between gap-3 text-xs text-neutral-700">
+                <span>
+                  {tr("editor.extend_into_bleed")}
+                  <span className="mt-0.5 block text-[11px] leading-snug text-neutral-400">{tr("editor.extend_into_bleed_desc")}</span>
+                </span>
+                <input type="checkbox" checked={extendBleed} onChange={(e) => setExtendBleed(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-brand-600" />
+              </label>
+            )}
+          </div>
+        )}
 
         {/* Print-shop extras of the vector print files: marks on every plate,
             and a die line in a spot colour of its own. */}

@@ -4590,5 +4590,11 @@
   "editor.manage_color_profiles": "管理",
   "editor.design_color_profile": "设计的颜色配置文件",
   "editor.design_color_profile_default": "默认（{name}）",
-  "editor.design_color_profile_hint": "精确的 CMYK 和专色在屏幕上按此配置文件的印刷效果显示；下载菜单也从它开始。"
+  "editor.design_color_profile_hint": "精确的 CMYK 和专色在屏幕上按此配置文件的印刷效果显示；下载菜单也从它开始。",
+  "editor.round_to_mm": "成品尺寸取整到毫米",
+  "editor.round_to_mm_desc": "每个设计以最接近的整毫米尺寸输出（89.96 × 39.95 mm 变为 90 × 40 mm）。设计本身保持不变。",
+  "editor.extend_into_bleed": "将设计延伸到出血",
+  "editor.extend_into_bleed_desc": "在页面边缘结束的色块、框架和图片，在每个设计中按出血宽度向外延伸。设计本身保持不变。",
+  "editor.export_issue_edge_not_extended": "已到达页面边缘，但无法延伸到出血（已旋转、圆形或已裁剪）；请手动延伸（{where}）。",
+  "editor.profile_round_mm": "整毫米"
 }

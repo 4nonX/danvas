@@ -4590,5 +4590,11 @@
   "editor.manage_color_profiles": "Verwalten",
   "editor.design_color_profile": "Farbprofil des Designs",
   "editor.design_color_profile_default": "Standard ({name})",
-  "editor.design_color_profile_hint": "Exakte CMYK- und Sonderfarben werden am Bildschirm so gezeigt, wie sie mit diesem Profil gedruckt werden; das Download-Menü beginnt damit."
+  "editor.design_color_profile_hint": "Exakte CMYK- und Sonderfarben werden am Bildschirm so gezeigt, wie sie mit diesem Profil gedruckt werden; das Download-Menü beginnt damit.",
+  "editor.round_to_mm": "Endformat auf ganze Millimeter",
+  "editor.round_to_mm_desc": "Jedes Design wird in seinem nächsten ganzen Millimeterformat ausgegeben (aus 89,96 × 39,95 mm wird 90 × 40 mm). Die Designs selbst bleiben unverändert.",
+  "editor.extend_into_bleed": "Gestaltung in den Beschnitt verlängern",
+  "editor.extend_into_bleed_desc": "Flächen, Rahmen und Bilder, die am Seitenrand enden, wachsen um den Beschnitt nach außen, in jedem Design. Die Designs selbst bleiben unverändert.",
+  "editor.export_issue_edge_not_extended": "Reicht an den Seitenrand, ließ sich aber nicht in den Beschnitt verlängern (gedreht, rund oder zugeschnitten); bitte von Hand verlängern ({where}).",
+  "editor.profile_round_mm": "auf ganze mm"
 }

@@ -162,17 +162,22 @@ export function fixtures(font: string, photo: string, photoAlpha: string): Fixtu
   // 1.5 mm bleed, the background in C73 M25 Y7 K0, a bar in C0 M100 Y100 K0
   // and text in the spot colour "HKS 44". The CMYK files must carry these
   // values as given (no profile in between) and the spot colour as a plate.
+  // The page is 0.04 mm short, as designs from before exact sizes are, and a
+  // band stops at the top edge: exported with the size rounded to whole mm
+  // and artwork extended into the bleed, the file is 50 mm wide and the band
+  // fills the bleed above it.
   const blue = { srgb: { r: 0, g: 0.57, b: 0.79, a: 1 }, cmyk: { c: 0.73, m: 0.25, y: 0.07, k: 0 } };
   const red = { srgb: { r: 0.89, g: 0.12, b: 0.14, a: 1 }, cmyk: { c: 0, m: 1, y: 1, k: 0 } };
   const hks = { srgb: { r: 0, g: 0.52, b: 0.33, a: 1 }, spot: { name: "HKS 44", fallback: { c: 1, m: 0, y: 0.7, k: 0.1 } } };
   const prepress: Fixture = {
     name: "prepress",
     doc: base("fx-prepress", "Prepress", [{
-      id: "p", width: 50 * MM, height: 100 * MM, bleed: 1.5 * MM,
+      id: "p", width: 49.96 * MM, height: 100 * MM, bleed: 1.5 * MM,
       background: { type: "solid", color: blue },
       children: [
         textNode("spot", 10 * MM, 8 * MM, 30 * MM, 14 * MM, "HKS", 36, hks, "Bold"),
         { id: "bar", type: "shape", shape: "rect", transform: T(10 * MM, 60 * MM), size: { width: 30 * MM, height: 10 * MM }, opacity: 1, blendMode: "normal", fills: [{ type: "solid", color: red }] },
+        { id: "band", type: "shape", shape: "rect", transform: T(5 * MM, 0), size: { width: 40 * MM, height: 4 * MM }, opacity: 1, blendMode: "normal", fills: [{ type: "solid", color: red }] },
       ],
     }], { measureUnit: "mm", fonts: [{ id: "f1", family: "Export Check Sans", source: "upload", url: font }] }),
     ink: [{ x: 10 * MM, y: 60 * MM, w: 30 * MM, h: 10 * MM, what: "red bar" }],
@@ -182,6 +187,7 @@ export function fixtures(font: string, photo: string, photoAlpha: string): Fixtu
       plates: [
         { atMm: [45, 40], what: "background", expect: { Cyan: 73, Magenta: 25, Yellow: 7, Black: 0 } },
         { atMm: [25, 65], what: "red bar", expect: { Cyan: 0, Magenta: 100, Yellow: 100, Black: 0 } },
+        { atMm: [25, -1], what: "band extended into the bleed", expect: { Cyan: 0, Magenta: 100, Yellow: 100, Black: 0 } },
       ],
       spots: ["HKS 44"],
     },

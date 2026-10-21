@@ -4590,5 +4590,11 @@
   "editor.manage_color_profiles": "管理",
   "editor.design_color_profile": "デザインのカラープロファイル",
   "editor.design_color_profile_default": "既定（{name}）",
-  "editor.design_color_profile_hint": "正確な CMYK と特色は、このプロファイルで印刷したときの見え方で画面に表示されます。ダウンロードメニューもこのプロファイルで始まります。"
+  "editor.design_color_profile_hint": "正確な CMYK と特色は、このプロファイルで印刷したときの見え方で画面に表示されます。ダウンロードメニューもこのプロファイルで始まります。",
+  "editor.round_to_mm": "仕上がりサイズを整数ミリに",
+  "editor.round_to_mm_desc": "各デザインを最も近い整数ミリのサイズで書き出します（89.96 × 39.95 mm は 90 × 40 mm）。デザイン自体は変わりません。",
+  "editor.extend_into_bleed": "デザインを塗り足しまで広げる",
+  "editor.extend_into_bleed_desc": "ページの端で終わる面・フレーム・画像を、すべてのデザインで塗り足しの幅だけ外側へ広げます。デザイン自体は変わりません。",
+  "editor.export_issue_edge_not_extended": "ページの端に接していますが、塗り足しまで広げられませんでした（回転・円形・トリミング）。手動で広げてください（{where}）。",
+  "editor.profile_round_mm": "整数 mm"
 }

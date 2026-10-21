@@ -16,6 +16,7 @@ import { createCmykConverter, type CmykConverter } from "@/lib/print/cms";
 import { checkPrintFile, type FileFinding } from "@/lib/print/fileCheck";
 import { applyBlackOnly } from "@/lib/print/proof";
 import { spotNamesOf } from "@/lib/print/printColor";
+import { prepressDoc } from "@/lib/print/prepressDoc";
 import { renderPageCanvas } from "@/lib/exportFormats";
 import { clipToBleed, drawPrintMarks, printSheet, sheetViewport, type PrintExtras, type PrintParts } from "@/lib/print/sheet";
 import { installRandomUuidPolyfill } from "@/lib/randomUuidPolyfill";
@@ -153,10 +154,10 @@ async function exportAll(fx: Fixture, printCase: boolean, only?: Output["format"
   const outputs: Output[] = [];
   const refs: Record<string, string> = {};
   const pt = (px: number) => (px * 72) / dpi;
-  const variant = (name: string, print: PrintParts | false) => {
-    const sheet = printSheet(doc.pages[0], dpi, print);
+  const variant = (name: string, print: PrintParts | false, d: DesignFile = doc) => {
+    const sheet = printSheet(d.pages[0], dpi, print);
     const key = `${fx.name}/${name}`;
-    if (!refs[key]) refs[key] = reference(doc, 0, print).toDataURL("image/png").split(",")[1];
+    if (!refs[key]) refs[key] = reference(d, 0, print).toDataURL("image/png").split(",")[1];
     const m = pt(sheet.margin), b = pt(sheet.bleed);
     const W = pt(sheet.sheetWidth), H = pt(sheet.sheetHeight);
     return { key, sheet, expect: { sheetPt: [W, H] as [number, number], trimPt: [m, m, W - m, H - m] as [number, number, number, number], bleedPt: [m - b, m - b, W - m + b, H - m + b] as [number, number, number, number] } };
@@ -211,13 +212,16 @@ async function exportAll(fx: Fixture, printCase: boolean, only?: Output["format"
     await add("marks/pdf-vector", "pdf-vector", "pdf", (await exportVectorPdf(doc, [0], { assets, title: fx.name, print: marksOnly })).blob, refM);
   }
   if (fx.prepress) {
-    // Exact print values: CMYK vector PDF and EPS with the bleed, no marks.
+    // Exact print values: CMYK vector PDF and EPS with the bleed, no marks,
+    // prepared as the download menu prepares them (size to whole mm, artwork
+    // into the bleed).
     const conv = await cmyk();
     const bleedOnly: PrintParts = { bleed: true, marks: false };
-    const ref = variant("print", bleedOnly);
+    const pp = prepressDoc(doc, null, { roundToMm: true, extendIntoBleed: true }).doc;
+    const ref = variant("print", bleedOnly, pp);
     const more = { pdfx: true, separations: fx.prepress.spots, overprintBlack: false };
-    await add("print/pdf-vector-cmyk", "pdf-vector", "pdf", (await exportVectorPdf(doc, [0], { assets, title: fx.name, print: bleedOnly, converter: conv, blackOnly: true, pdfx: true })).blob, ref, more, true);
-    await add("print/eps-cmyk", "eps", "eps", await exportEps(doc, 0, { assets, title: fx.name, print: bleedOnly, converter: conv, blackOnly: true }), ref, { separations: fx.prepress.spots }, true);
+    await add("print/pdf-vector-cmyk", "pdf-vector", "pdf", (await exportVectorPdf(pp, [0], { assets, title: fx.name, print: bleedOnly, converter: conv, blackOnly: true, pdfx: true })).blob, ref, more, true);
+    await add("print/eps-cmyk", "eps", "eps", await exportEps(pp, 0, { assets, title: fx.name, print: bleedOnly, converter: conv, blackOnly: true }), ref, { separations: fx.prepress.spots }, true);
     for (const o of outputs.filter((x) => x.id.includes("/print/"))) {
       o.prepress = fx.prepress;
       // The editor's output check on it: the design's spot colours expected.

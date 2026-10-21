@@ -44,6 +44,10 @@ export interface ExportSettings {
   /** The print shop's total ink limit (TAC), per cent; null: the paper's
    *  usual (proof view and output check). */
   tacLimit: number | null;
+  /** Round each design's finished size to whole millimetres. */
+  roundMm: boolean;
+  /** Extend artwork at the page edge into the bleed (when there is one). */
+  extendBleed: boolean;
   print: ProfilePrint;
 }
 
@@ -56,6 +60,8 @@ export function defaultExportSettings(): ExportSettings {
     color: "cmyk", iccProfileId: null, intent: "relative", blackOnly: true, overprintBlack: true, pdfx: true, registration: true,
     dieLine: { on: false, name: tr("editor.die_line_default_name"), radiusMm: 2 },
     tacLimit: null,
+    roundMm: false,
+    extendBleed: true,
     print: { source: "page", bleed: true, marks: true },
   };
 }
@@ -109,6 +115,8 @@ export function normalizeSettings(raw: unknown): ExportSettings {
     registration: bool(r.registration, d.registration),
     dieLine: { on: bool(dl.on, false), name: str(dl.name, d.dieLine.name).slice(0, 40), radiusMm: num(dl.radiusMm, 2, 0, 50) },
     tacLimit: typeof r.tacLimit === "number" && Number.isFinite(r.tacLimit) ? Math.min(400, Math.max(200, Math.round(r.tacLimit))) : null,
+    roundMm: bool(r.roundMm, d.roundMm),
+    extendBleed: bool(r.extendBleed, d.extendBleed),
     print,
   };
 }
@@ -150,6 +158,7 @@ export function describeSettings(s: ExportSettings, iccName: (id: string) => str
     if (s.color === "cmyk" && s.tacLimit !== null) parts.push(`TAC ${s.tacLimit} %`);
   }
   const sheetCapable = cmykCapable || f === "png" || f === "jpg" || f === "svg";
+  if (sheetCapable && s.roundMm) parts.push(tr("editor.profile_round_mm"));
   if (sheetCapable) {
     if (s.print.source === "fixed") {
       const o = s.print.override;

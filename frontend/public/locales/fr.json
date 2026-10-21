@@ -4590,5 +4590,11 @@
   "editor.manage_color_profiles": "Gérer",
   "editor.design_color_profile": "Profil colorimétrique du design",
   "editor.design_color_profile_default": "Par défaut ({name})",
-  "editor.design_color_profile_hint": "Les couleurs CMJN exactes et les tons directs s’affichent à l’écran tels qu’ils s’impriment avec ce profil ; le menu de téléchargement démarre avec lui."
+  "editor.design_color_profile_hint": "Les couleurs CMJN exactes et les tons directs s’affichent à l’écran tels qu’ils s’impriment avec ce profil ; le menu de téléchargement démarre avec lui.",
+  "editor.round_to_mm": "Format fini en millimètres entiers",
+  "editor.round_to_mm_desc": "Chaque design sort à son format en millimètres entiers le plus proche (89,96 × 39,95 mm devient 90 × 40 mm). Les designs eux-mêmes ne changent pas.",
+  "editor.extend_into_bleed": "Étendre le visuel dans le fond perdu",
+  "editor.extend_into_bleed_desc": "Les aplats, cadres et images qui s’arrêtent au bord de la page s’agrandissent vers l’extérieur de la valeur du fond perdu, dans chaque design. Les designs eux-mêmes ne changent pas.",
+  "editor.export_issue_edge_not_extended": "Touche le bord de la page mais n’a pas pu être étendu dans le fond perdu (pivoté, rond ou recadré) ; étendez-le à la main ({where}).",
+  "editor.profile_round_mm": "mm entiers"
 }

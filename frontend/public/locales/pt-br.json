@@ -4590,5 +4590,11 @@
   "editor.manage_color_profiles": "Gerenciar",
   "editor.design_color_profile": "Perfil de cor do design",
   "editor.design_color_profile_default": "Padrão ({name})",
-  "editor.design_color_profile_hint": "Cores CMYK exatas e cores especiais aparecem na tela como saem impressas com este perfil; o menu de download começa com ele."
+  "editor.design_color_profile_hint": "Cores CMYK exatas e cores especiais aparecem na tela como saem impressas com este perfil; o menu de download começa com ele.",
+  "editor.round_to_mm": "Formato final em milímetros inteiros",
+  "editor.round_to_mm_desc": "Cada design sai no tamanho em milímetros inteiros mais próximo (89,96 × 39,95 mm vira 90 × 40 mm). Os designs em si não mudam.",
+  "editor.extend_into_bleed": "Estender a arte até a sangria",
+  "editor.extend_into_bleed_desc": "Áreas, molduras e imagens que terminam na borda da página crescem para fora o tamanho da sangria, em cada design. Os designs em si não mudam.",
+  "editor.export_issue_edge_not_extended": "Chega à borda da página, mas não pôde ser estendido até a sangria (girado, redondo ou recortado); estenda à mão ({where}).",
+  "editor.profile_round_mm": "mm inteiros"
 }

@@ -13,7 +13,7 @@ import { computeEffectivePpi, createScene, type SceneNode } from "@hc/engine";
 import { imageAssets } from "@/lib/assetProvider";
 import { faceOf, fonts, type RunFont } from "@/lib/fontProvider";
 
-export type ExportIssueKind = "font" | "font-outline" | "image" | "image-resolution" | "hairline" | "small-rich-text" | "edge-no-bleed";
+export type ExportIssueKind = "font" | "font-outline" | "image" | "image-resolution" | "hairline" | "small-rich-text" | "edge-no-bleed" | "edge-not-extended";
 
 /** Below this effective resolution an image looks soft in print. */
 export const PRINT_MIN_PPI = 150;

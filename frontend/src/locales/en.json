@@ -4590,5 +4590,11 @@
   "editor.manage_color_profiles": "Manage",
   "editor.design_color_profile": "Color profile of the design",
   "editor.design_color_profile_default": "Default ({name})",
-  "editor.design_color_profile_hint": "Exact CMYK and spot colors are shown on screen as they print with this profile; the download menu starts with it."
+  "editor.design_color_profile_hint": "Exact CMYK and spot colors are shown on screen as they print with this profile; the download menu starts with it.",
+  "editor.round_to_mm": "Finished size in whole millimeters",
+  "editor.round_to_mm_desc": "Each design goes out at its nearest whole-millimeter size (89.96 × 39.95 mm becomes 90 × 40 mm). The designs themselves stay as they are.",
+  "editor.extend_into_bleed": "Extend artwork into the bleed",
+  "editor.extend_into_bleed_desc": "Areas, frames and pictures that stop at the edge of the page grow outward by the bleed, in every design. The designs themselves stay as they are.",
+  "editor.export_issue_edge_not_extended": "Meets the edge of the page but could not be extended into the bleed (turned, round or cropped); extend it by hand ({where}).",
+  "editor.profile_round_mm": "whole mm"
 }

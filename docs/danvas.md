@@ -201,9 +201,16 @@ Artwork that should reach the edge of a printed piece is printed larger and cut 
 - **Apply to all pages** copies the page's bleed and marks to every page of the design.
 - The download menu shows the same settings for the pages being exported and edits them there. Downloading from the dashboard (one design or a whole selection), the menu instead holds one bleed and one set of marks for every design exported, starting from what the first of them sets; the designs themselves are not changed. **Bleed** and **Crop marks** are switched on or off for the export, for every image and print format (PNG, JPG, SVG, vector and image PDF, TIFF, EPS): bleed only, marks only (they then start at their gap from the cut, and artwork ends at the cut), both, or neither. Switching one on for pages that have none gives them the default (3 mm bleed, solid black marks). In a PDF the finished size is the TrimBox and the bleed the BleedBox, as print shops expect; the page itself is large enough for the marks. A transparent PNG keeps the page background out, in the bleed too. The accessible PDF, PPTX, Markdown and the animation and video formats always export the bare page.
 
+What a print shop asks for (bleed X mm, crop marks of Y mm, a die line) is set once in the download menu and works for every design, whatever its size or layout. Two more options make each design fit it, on a copy, so the designs themselves do not change:
+
+- **Extend artwork into the bleed** (on by default): areas, frames, clipping groups and pictures that stop at the edge of the page grow outward by exactly the bleed set, on each side they meet, also inside scaled groups. Without it a bleed would stay white wherever artwork ends at the cut. What cannot grow without changing its look (a turned element, an ellipse or free path, a cropped or letterboxed picture) is left as it is and listed in the download menu with its design and name, to extend by hand; text and lines are not extended.
+- **Finished size in whole millimeters**: each design goes out at its nearest whole-millimeter size, so a label made as 89.96 x 39.95 mm (designs from before exact sizes) is cut as 90 x 40 mm; artwork at the edge counts as meeting the new edge.
+
+Both apply to every format with bleed and marks, to the proof and to the output check, and are stored in export profiles: one profile per print shop then turns any selection of designs into its files in one go.
+
 ### Export profiles
 
-An export profile is a named set of download settings: format, size, colour profile and intent, the maximum ink coverage (TAC), the print-shop options, bleed and crop marks. The download menu starts with a profile picker:
+An export profile is a named set of download settings: format, size, colour profile and intent, the maximum ink coverage (TAC), the print-shop options, bleed and crop marks, extending artwork into the bleed and the finished size in whole millimetres. The download menu starts with a profile picker:
 
 - Pick a profile and the menu takes its settings. A line under it says what it does (for example "PDF vector · CMYK, PSO Uncoated · PDF/X-4 · bleed 1.5 mm · die line Stanze"), after its description.
 - Change anything and the menu says so; **Update** writes the change into the profile, **Save as new** keeps it as a new one (name, description, "Just me" or "Whole workspace", default).
