@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"hycanvas/backend/internal/authz"
 	"hycanvas/backend/internal/accounts"
 	"hycanvas/backend/internal/canvaimport"
 )
@@ -42,7 +43,7 @@ func canvaRunProblem(w http.ResponseWriter, r *http.Request, err error) {
 // of the workspace (or its root).
 func canvaRunStartHandler(svc *canvaimport.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ws, userID, ok := canvaMember(w, r, acct, "member")
+		ws, userID, ok := canvaAllow(w, r, acct, authz.CanvaUse)
 		if !ok {
 			return
 		}

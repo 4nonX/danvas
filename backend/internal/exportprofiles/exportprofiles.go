@@ -24,6 +24,9 @@ import (
 	"errors"
 	"strings"
 	"time"
+	"fmt"
+	"hycanvas/backend/internal/authz"
+	"hycanvas/backend/internal/accounts"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -86,9 +89,22 @@ type DBTX interface {
 	Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error)
 }
 
-// Access is the membership check (satisfied by *accounts.Service).
+// Access is the membership and role check (satisfied by *accounts.Service).
+// Who manages the workspace's profiles is a role action (F42); the two
+// pre-F42 "managed by" switches are answered from, and applied to, the roles.
 type Access interface {
 	AssertMember(ctx context.Context, userID, workspaceID, minRole string) error
+	Require(ctx context.Context, userID, workspaceID string, a authz.Action, creatorID string) error
+	SeedRoleAllows(ctx context.Context, workspaceID, roleSeedKey string, a authz.Action) (bool, error)
+	SetLegacyManagedBy(ctx context.Context, actorID, workspaceID string, a authz.Action, members bool) error
+}
+
+// kindAction is the role action that manages a kind's workspace profiles.
+func kindAction(kind string) authz.Action {
+	if kind == KindPrint {
+		return authz.PrintPrintPresets
+	}
+	return authz.PrintExportProfiles
 }
 
 // Profile is the JSON shape of one profile.
@@ -149,35 +165,23 @@ func validID(id string) bool {
 	return err == nil
 }
 
-// managedBy is who may manage the workspace's profiles of a kind ("admins"
-// without a row).
+// managedBy answers the pre-F42 switch from the roles: "members" when the
+// workspace's Member role holds the kind's action, else "admins".
 func (s *Service) managedBy(ctx context.Context, workspaceID, kind string) (string, error) {
-	var m string
-	err := s.db.QueryRow(ctx, `SELECT `+managedByColumn(kind)+` FROM "workspace_export_settings" WHERE "workspace_id" = $1`, workspaceID).Scan(&m)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return ManagedByAdmins, nil
-	}
+	ok, err := s.access.SeedRoleAllows(ctx, workspaceID, "member", kindAction(kind))
 	if err != nil {
 		return "", err
 	}
-	if m != ManagedByMembers {
-		return ManagedByAdmins, nil
+	if ok {
+		return ManagedByMembers, nil
 	}
-	return m, nil
+	return ManagedByAdmins, nil
 }
 
 // canManage reports whether the user may change the workspace's profiles of
-// a kind.
+// a kind (their role holds the kind's action).
 func (s *Service) canManage(ctx context.Context, userID, workspaceID, kind string) (bool, error) {
-	m, err := s.managedBy(ctx, workspaceID, kind)
-	if err != nil {
-		return false, err
-	}
-	role := "admin"
-	if m == ManagedByMembers {
-		role = "member"
-	}
-	return s.access.AssertMember(ctx, userID, workspaceID, role) == nil, nil
+	return s.access.Require(ctx, userID, workspaceID, kindAction(kind), "") == nil, nil
 }
 
 const cols = `p."id", p."kind", p."workspace_id", p."user_id", p."name", p."description", p."settings", p."is_default",
@@ -244,7 +248,7 @@ func (s *Service) List(ctx context.Context, userID, workspaceID, kind string) (V
 	if v.CanManageWorkspace, err = s.canManage(ctx, userID, workspaceID, kind); err != nil {
 		return View{}, err
 	}
-	v.CanConfigure = s.access.AssertMember(ctx, userID, workspaceID, "admin") == nil
+	v.CanConfigure = s.access.Require(ctx, userID, workspaceID, authz.RolesManage, "") == nil
 	return v, nil
 }
 
@@ -322,12 +326,8 @@ func (s *Service) authorize(ctx context.Context, userID string, o owner) error {
 		}
 		return nil
 	}
-	ok, err := s.canManage(ctx, userID, *o.workspaceID, o.kind)
-	if err != nil {
-		return err
-	}
-	if !ok {
-		return ErrForbidden
+	if err := s.access.Require(ctx, userID, *o.workspaceID, kindAction(o.kind), ""); err != nil {
+		return forbidden(err)
 	}
 	return nil
 }
@@ -515,8 +515,13 @@ func (s *Service) SetManagedBy(ctx context.Context, userID, workspaceID, kind, m
 	if managedBy != ManagedByAdmins && managedBy != ManagedByMembers {
 		return ErrInvalid
 	}
-	if err := s.access.AssertMember(ctx, userID, workspaceID, "admin"); err != nil {
-		return ErrForbidden
+	// Applied to the roles (the Member role gains or loses the action); the
+	// column below stays current for a release from before F42.
+	if err := s.access.SetLegacyManagedBy(ctx, userID, workspaceID, kindAction(kind), managedBy == ManagedByMembers); err != nil {
+		if errors.Is(err, accounts.ErrForbidden) {
+			return forbidden(err)
+		}
+		return err
 	}
 	col := managedByColumn(kind)
 	_, err = s.db.Exec(ctx, `INSERT INTO "workspace_export_settings" ("workspace_id", `+col+`, "updated_by", "updated_at")
@@ -532,4 +537,13 @@ func itoa(n int) string {
 		return digits[n : n+1]
 	}
 	return itoa(n/10) + digits[n%10:n%10+1]
+}
+
+// forbidden maps a role check failure: a missing action keeps its name for
+// the API (wrapped in ErrForbidden), anything else is plain ErrForbidden.
+func forbidden(err error) error {
+	if _, ok := accounts.IsActionError(err); ok {
+		return fmt.Errorf("%w: %w", ErrForbidden, err)
+	}
+	return ErrForbidden
 }

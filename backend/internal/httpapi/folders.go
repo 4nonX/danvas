@@ -21,6 +21,10 @@ func mountFolders(api chi.Router, h *home.Service, acct *accounts.Service) {
 }
 
 func folderProblem(w http.ResponseWriter, r *http.Request, err error) {
+	if a, ok := accounts.IsActionError(err); ok {
+		actionProblem(w, r, a)
+		return
+	}
 	switch {
 	case errors.Is(err, home.ErrForbidden):
 		problemWithCode(w, r, http.StatusForbidden, "Forbidden", "not a member of this workspace", "not_workspace_member")

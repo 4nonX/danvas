@@ -178,6 +178,10 @@ func (s *Service) CreateWorkspace(ctx context.Context, userID, name, kind string
 		uuid.NewString(), wsID, userID); err != nil {
 		return nil, err
 	}
+	// The seeded permissions and roles (F42); the creator is owner.
+	if err := s.EnsureRoles(ctx, tx, wsID); err != nil {
+		return nil, err
+	}
 	if err := tx.Commit(ctx); err != nil {
 		return nil, err
 	}
@@ -602,6 +606,9 @@ func (s *Service) Signup(ctx context.Context, email, password, name string) (*Au
 		`INSERT INTO "workspace_members" (id, "workspace_id", "user_id", role, status, "joined_at", "updated_at")
 		 VALUES ($1,$2,$3,'OWNER','ACTIVE', now(), now())`,
 		uuid.NewString(), wsID, userID); err != nil {
+		return nil, nil, nil, err
+	}
+	if err := s.EnsureRoles(ctx, tx, wsID); err != nil {
 		return nil, nil, nil, err
 	}
 

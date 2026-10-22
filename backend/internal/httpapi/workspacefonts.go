@@ -24,6 +24,10 @@ func mountWorkspaceFonts(api chi.Router, f *workspacefonts.Service, acct *accoun
 }
 
 func workspaceFontProblem(w http.ResponseWriter, r *http.Request, err error) {
+	if a, ok := accounts.IsActionError(err); ok {
+		actionProblem(w, r, a)
+		return
+	}
 	switch {
 	case errors.Is(err, workspacefonts.ErrForbidden):
 		problemWithCode(w, r, http.StatusForbidden, "Forbidden", "workspace admins manage fonts", "workspace_font_forbidden")

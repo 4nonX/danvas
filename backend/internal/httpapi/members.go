@@ -34,6 +34,10 @@ func mountMembers(api chi.Router, acct *accounts.Service) {
 
 // membersProblem maps an accounts service error to an RFC 7807 response.
 func membersProblem(w http.ResponseWriter, r *http.Request, err error) {
+	if a, ok := accounts.IsActionError(err); ok {
+		actionProblem(w, r, a)
+		return
+	}
 	switch {
 	case errors.Is(err, accounts.ErrForbidden):
 		problemWithCode(w, r, http.StatusForbidden, "Forbidden", "you do not have permission for this action", "forbidden_action")
@@ -72,19 +76,20 @@ func getSsoJoinHandler(acct *accounts.Service) http.HandlerFunc {
 func setSsoJoinHandler(acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var body struct {
-			Role string `json:"role"`
+			Role   string `json:"role"`
+			RoleID string `json:"roleId"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "invalid body", "invalid_body")
 			return
 		}
-		added, err := acct.SetSsoJoin(r.Context(), userFrom(r.Context()).ID, chi.URLParam(r, "id"), body.Role)
+		added, err := acct.SetSsoJoin(r.Context(), userFrom(r.Context()).ID, chi.URLParam(r, "id"), roleRef(body.Role, body.RoleID))
 		if err != nil {
 			membersProblem(w, r, err)
 			return
 		}
 		j, _ := acct.GetSsoJoin(r.Context(), userFrom(r.Context()).ID, chi.URLParam(r, "id"))
-		writeJSON(w, http.StatusOK, map[string]any{"role": j.Role, "added": added})
+		writeJSON(w, http.StatusOK, map[string]any{"role": j.Role, "roleId": j.RoleID, "added": added})
 	}
 }
 
@@ -103,15 +108,16 @@ func listMembersHandler(acct *accounts.Service) http.HandlerFunc {
 func inviteHandler(acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var body struct {
-			Email string `json:"email"`
-			Role  string `json:"role"`
+			Email  string `json:"email"`
+			Role   string `json:"role"`
+			RoleID string `json:"roleId"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "invalid body", "invalid_body")
 			return
 		}
 		u := userFrom(r.Context())
-		inv, token, err := acct.Invite(r.Context(), u.ID, chi.URLParam(r, "id"), body.Email, body.Role)
+		inv, token, err := acct.Invite(r.Context(), u.ID, chi.URLParam(r, "id"), body.Email, roleRef(body.Role, body.RoleID))
 		if err != nil {
 			membersProblem(w, r, err)
 			return
@@ -193,14 +199,15 @@ func revokeInvitationHandler(acct *accounts.Service) http.HandlerFunc {
 func changeMemberRoleHandler(acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var body struct {
-			Role string `json:"role"`
+			Role   string `json:"role"`
+			RoleID string `json:"roleId"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "invalid body", "invalid_body")
 			return
 		}
 		u := userFrom(r.Context())
-		if err := acct.ChangeMemberRole(r.Context(), u.ID, chi.URLParam(r, "id"), chi.URLParam(r, "userId"), body.Role); err != nil {
+		if err := acct.ChangeMemberRole(r.Context(), u.ID, chi.URLParam(r, "id"), chi.URLParam(r, "userId"), roleRef(body.Role, body.RoleID)); err != nil {
 			membersProblem(w, r, err)
 			return
 		}
@@ -217,4 +224,13 @@ func removeMemberHandler(acct *accounts.Service) http.HandlerFunc {
 		}
 		w.WriteHeader(http.StatusNoContent)
 	}
+}
+
+// roleRef picks the role a request names: a role id (F42) or, from an older
+// client, a legacy role name.
+func roleRef(role, roleID string) string {
+	if roleID != "" {
+		return roleID
+	}
+	return role
 }

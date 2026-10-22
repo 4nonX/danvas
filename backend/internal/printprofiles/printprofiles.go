@@ -15,6 +15,9 @@ import (
 	"errors"
 	"strings"
 	"time"
+	"fmt"
+	"hycanvas/backend/internal/authz"
+	"hycanvas/backend/internal/accounts"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -41,9 +44,10 @@ type DBTX interface {
 	Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error)
 }
 
-// Access is the membership check (satisfied by *accounts.Service).
+// Access is the membership and role check (satisfied by *accounts.Service).
 type Access interface {
 	AssertMember(ctx context.Context, userID, workspaceID, minRole string) error
+	Require(ctx context.Context, userID, workspaceID string, a authz.Action, creatorID string) error
 }
 
 // Profile is the JSON shape of one profile (without its bytes).
@@ -74,6 +78,18 @@ func (s *Service) member(ctx context.Context, userID, workspaceID, role string) 
 	}
 	if err := s.access.AssertMember(ctx, userID, workspaceID, role); err != nil {
 		return ErrForbidden
+	}
+	return nil
+}
+
+// allow checks the caller's role allows the action (F42). The error is
+// ErrForbidden wrapping the action error, so the API can name the action.
+func (s *Service) allow(ctx context.Context, userID, workspaceID string, a authz.Action) error {
+	if _, err := uuid.Parse(workspaceID); err != nil {
+		return ErrNotFound
+	}
+	if err := s.access.Require(ctx, userID, workspaceID, a, ""); err != nil {
+		return forbidden(err)
 	}
 	return nil
 }
@@ -113,7 +129,7 @@ func (s *Service) List(ctx context.Context, userID, workspaceID string) ([]Profi
 // Create stores an uploaded profile (admins). The first profile of a
 // workspace becomes its default.
 func (s *Service) Create(ctx context.Context, userID, workspaceID, name string, data []byte) (Profile, error) {
-	if err := s.member(ctx, userID, workspaceID, "admin"); err != nil {
+	if err := s.allow(ctx, userID, workspaceID, authz.PrintColorProfiles); err != nil {
 		return Profile{}, err
 	}
 	h, err := ParseICC(data)
@@ -179,7 +195,7 @@ func (s *Service) Update(ctx context.Context, userID, id string, name *string, m
 	if err != nil {
 		return err
 	}
-	if err := s.member(ctx, userID, ws, "admin"); err != nil {
+	if err := s.allow(ctx, userID, ws, authz.PrintColorProfiles); err != nil {
 		return err
 	}
 	if name != nil {
@@ -217,7 +233,7 @@ func (s *Service) Delete(ctx context.Context, userID, id string) error {
 	if err != nil {
 		return err
 	}
-	if err := s.member(ctx, userID, ws, "admin"); err != nil {
+	if err := s.allow(ctx, userID, ws, authz.PrintColorProfiles); err != nil {
 		return err
 	}
 	if _, err := s.db.Exec(ctx, `DELETE FROM "print_profiles" WHERE "id" = $1`, id); err != nil {
@@ -256,4 +272,13 @@ func (s *Service) Data(ctx context.Context, userID, id string) ([]byte, string, 
 		return nil, "", err
 	}
 	return data, checksum, nil
+}
+
+// forbidden maps a role check failure: a missing action keeps its name for
+// the API (wrapped in ErrForbidden), anything else is plain ErrForbidden.
+func forbidden(err error) error {
+	if _, ok := accounts.IsActionError(err); ok {
+		return fmt.Errorf("%w: %w", ErrForbidden, err)
+	}
+	return ErrForbidden
 }

@@ -44,7 +44,7 @@ Every guarded route maps to exactly one action. Membership alone still allows re
 | | `approval.decide` (approve, reject, reopen) | | admin |
 | Templates | `template.publish` (in the workspace) | | member |
 | | `template.publishPublic` (for every user of the instance) | | member |
-| | `template.delete` | yes | member own, admin all |
+| | `template.delete` (other people's templates; whoever created a template can always delete it) | | admin |
 | | `template.collections` | | member |
 | Brand | `brand.kits` (create, edit, delete, restore, default kit) | | admin |
 | | `brand.designs` (apply a kit to a design, brand-locked regions, review) | | admin |
@@ -83,7 +83,7 @@ Every workspace starts with these, so a new workspace works without setup and th
 | Upload files | `asset.upload`, `asset.edit` all, `asset.delete` all |
 | Share | `share.team`, `share.external`, `share.requests`, `approval.request` |
 | Approve | `approval.decide` |
-| Templates | `template.publish`, `template.publishPublic`, `template.delete` own, `template.collections` |
+| Templates | `template.publish`, `template.publishPublic`, `template.collections` |
 | Manage templates | `template.delete` all |
 | Brand | `brand.kits`, `brand.designs`, `brand.unlock` |
 | Print data | `print.colorProfiles`, `print.exportProfiles`, `print.printPresets` |

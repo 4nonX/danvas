@@ -15,6 +15,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"hycanvas/backend/internal/authz"
 	"hycanvas/backend/internal/accounts"
 	"hycanvas/backend/internal/ai"
 	"hycanvas/backend/internal/aistudio"
@@ -48,7 +49,7 @@ func searchGetConfigHandler(svc *ai.Service, acct *accounts.Service) http.Handle
 func searchSetConfigHandler(svc *ai.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		if !aiAssert(r, acct, id, "admin") {
+		if !aiAllow(r, acct, id, authz.AIConfigure) {
 			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "admin access required", "admin_access_required")
 			return
 		}
@@ -91,7 +92,7 @@ func aiSearchHandler(svc *ai.Service, studio *aistudio.Service, acct *accounts.S
 			problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "invalid body", "invalid_body")
 			return
 		}
-		if !aiAssert(r, acct, body.WorkspaceID, "member") {
+		if !aiAllow(r, acct, body.WorkspaceID, authz.AIUse) {
 			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "not a member of this workspace", "not_workspace_member")
 			return
 		}

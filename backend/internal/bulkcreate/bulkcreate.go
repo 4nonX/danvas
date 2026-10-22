@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"hycanvas/backend/internal/authz"
 
 	"hycanvas/backend/internal/accounts"
 	"hycanvas/backend/internal/persistence"
@@ -80,11 +81,11 @@ func (s *Service) DesignFields(ctx context.Context, userID, designID string) ([]
 
 // Autofill applies one row of values into an existing design, saving a snapshot.
 func (s *Service) Autofill(ctx context.Context, userID, designID string, values FillValues) error {
-	ws, err := s.persist.GetWorkspaceID(ctx, designID)
+	ws, creator, err := s.persist.GetOwnership(ctx, designID)
 	if err != nil {
 		return err
 	}
-	if err := s.acct.AssertMember(ctx, userID, ws, "member"); err != nil {
+	if err := s.acct.Require(ctx, userID, ws, authz.DesignEdit, creator); err != nil {
 		return err
 	}
 	loaded, err := s.persist.LoadFile(ctx, designID, ws)
@@ -111,7 +112,7 @@ func (s *Service) BulkCreate(ctx context.Context, userID string, in Input) (*Res
 	if len(in.Rows) == 0 {
 		return nil, errBad("rows must be a non-empty array")
 	}
-	if err := s.acct.AssertMember(ctx, userID, in.WorkspaceID, "member"); err != nil {
+	if err := s.acct.Require(ctx, userID, in.WorkspaceID, authz.DesignCreate, ""); err != nil {
 		return nil, err
 	}
 	baseFile, fields, baseTitle, err := s.resolveBase(ctx, userID, in)

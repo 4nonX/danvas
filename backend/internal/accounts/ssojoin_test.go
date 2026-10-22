@@ -63,13 +63,16 @@ func TestSsoJoin_DB(t *testing.T) {
 		t.Fatalf("signup: %v", err)
 	}
 
-	// Only owners and admins switch it, only to member or viewer, only on a
-	// team workspace.
+	// Only roles with members.sso switch it, never to the owner role (F42),
+	// only on a team workspace.
 	if _, err := svc.SetSsoJoin(ctx, early, ws.ID, "member"); !errors.Is(err, ErrForbidden) {
 		t.Fatalf("non-member switched it: %v", err)
 	}
-	if _, err := svc.SetSsoJoin(ctx, owner, ws.ID, "admin"); !errors.Is(err, ErrBadRequest) {
-		t.Fatalf("admin role accepted: %v", err)
+	if _, err := svc.SetSsoJoin(ctx, owner, ws.ID, "owner"); !errors.Is(err, ErrForbidden) {
+		t.Fatalf("owner role accepted: %v", err)
+	}
+	if _, err := svc.SetSsoJoin(ctx, owner, ws.ID, "no-such-role"); !errors.Is(err, ErrBadRequest) {
+		t.Fatalf("unknown role accepted: %v", err)
 	}
 	var personal string
 	_ = tx.QueryRow(ctx, `SELECT w.id FROM workspaces w JOIN workspace_members m ON m.workspace_id = w.id WHERE m.user_id = $1 AND w.kind = 'PERSONAL'`, owner).Scan(&personal)

@@ -259,6 +259,9 @@ func (s *Service) createUserWithWorkspace(ctx context.Context, email, name strin
 		uuid.NewString(), wsID, userID); err != nil {
 		return "", err
 	}
+	if err := s.EnsureRoles(ctx, tx, wsID); err != nil {
+		return "", err
+	}
 	if err := tx.Commit(ctx); err != nil {
 		return "", err
 	}

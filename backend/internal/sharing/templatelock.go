@@ -30,8 +30,8 @@ func (s *Service) CanLiftTemplateLocks(ctx context.Context, designID, userID, wo
 		access, err := s.resolveForUser(ctx, designID, userID, "", nil)
 		return err == nil && has(access, authz.CapManageLocks)
 	}
-	role := s.membershipRole(ctx, userID, workspaceID)
-	return role != "" && authz.Resolve(authz.ResolveInput{WorkspaceRole: role}).Has(authz.CapManageLocks)
+	actions, ok := s.memberActions(ctx, userID, workspaceID)
+	return ok && actions.Has(authz.BrandUnlock)
 }
 
 // ValidateTemplateLocks refuses a save that changes protected objects relative

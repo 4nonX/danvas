@@ -14,6 +14,9 @@ import (
 	"errors"
 	"strings"
 	"time"
+	"fmt"
+	"hycanvas/backend/internal/authz"
+	"hycanvas/backend/internal/accounts"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -81,9 +84,10 @@ type DBTX interface {
 	Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error)
 }
 
-// Access is the membership check (satisfied by *accounts.Service).
+// Access is the membership and role check (satisfied by *accounts.Service).
 type Access interface {
 	AssertMember(ctx context.Context, userID, workspaceID, minRole string) error
+	Require(ctx context.Context, userID, workspaceID string, a authz.Action, creatorID string) error
 }
 
 // Font is the JSON shape of one face (without its bytes).
@@ -143,6 +147,18 @@ func (s *Service) member(ctx context.Context, userID, workspaceID, role string) 
 	return nil
 }
 
+// allow checks the caller's role allows the action (F42). The error is
+// ErrForbidden wrapping the action error, so the API can name the action.
+func (s *Service) allow(ctx context.Context, userID, workspaceID string, a authz.Action) error {
+	if _, err := uuid.Parse(workspaceID); err != nil {
+		return ErrNotFound
+	}
+	if err := s.access.Require(ctx, userID, workspaceID, a, ""); err != nil {
+		return forbidden(err)
+	}
+	return nil
+}
+
 const cols = `"id", "workspace_id", "family", "weight", "style", "file_name", "format", "size_bytes", "created_at"`
 
 func scan(row pgx.Row) (Font, error) {
@@ -177,7 +193,7 @@ func (s *Service) List(ctx context.Context, userID, workspaceID string) ([]Font,
 
 // Create stores an uploaded face (admins).
 func (s *Service) Create(ctx context.Context, userID, workspaceID string, face Face, fileName string, data []byte) (Font, error) {
-	if err := s.member(ctx, userID, workspaceID, "admin"); err != nil {
+	if err := s.allow(ctx, userID, workspaceID, authz.FontsManage); err != nil {
 		return Font{}, err
 	}
 	format := Format(data)
@@ -230,7 +246,7 @@ func (s *Service) Update(ctx context.Context, userID, id string, face Face) erro
 	if err != nil {
 		return err
 	}
-	if err := s.member(ctx, userID, ws, "admin"); err != nil {
+	if err := s.allow(ctx, userID, ws, authz.FontsManage); err != nil {
 		return err
 	}
 	face, err = face.clean()
@@ -248,7 +264,7 @@ func (s *Service) Delete(ctx context.Context, userID, id string) error {
 	if err != nil {
 		return err
 	}
-	if err := s.member(ctx, userID, ws, "admin"); err != nil {
+	if err := s.allow(ctx, userID, ws, authz.FontsManage); err != nil {
 		return err
 	}
 	_, err = s.db.Exec(ctx, `DELETE FROM "workspace_fonts" WHERE "id" = $1`, id)
@@ -285,10 +301,10 @@ func (s *Service) CopyFamilies(ctx context.Context, userID, srcWS, dstWS string,
 	if err := s.member(ctx, userID, srcWS, "viewer"); err != nil {
 		return nil, err
 	}
-	if err := s.member(ctx, userID, dstWS, "member"); err != nil {
+	if err := s.allow(ctx, userID, dstWS, authz.DesignCreate); err != nil {
 		return nil, err
 	}
-	admin := s.member(ctx, userID, dstWS, "admin") == nil
+	admin := s.allow(ctx, userID, dstWS, authz.FontsManage) == nil
 	lower := make([]string, 0, len(families))
 	for _, f := range families {
 		lower = append(lower, strings.ToLower(strings.TrimSpace(f)))
@@ -328,4 +344,13 @@ func (s *Service) CopyFamilies(ctx context.Context, userID, srcWS, dstWS string,
 		return lacking, err
 	}
 	return nil, nil
+}
+
+// forbidden maps a role check failure: a missing action keeps its name for
+// the API (wrapped in ErrForbidden), anything else is plain ErrForbidden.
+func forbidden(err error) error {
+	if _, ok := accounts.IsActionError(err); ok {
+		return fmt.Errorf("%w: %w", ErrForbidden, err)
+	}
+	return ErrForbidden
 }

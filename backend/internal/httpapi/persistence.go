@@ -79,6 +79,22 @@ func authorizeDesign(r *http.Request, p *persistence.Service, acct *accounts.Ser
 	return ws, nil
 }
 
+// authorizeDesignAction resolves a design's workspace and checks that the
+// caller's role allows the action on it (F42); scoped actions pass "own" for
+// the design's creator. The error is accounts.ErrForbidden for a non-member
+// and an *accounts.ActionError naming the action otherwise (see authProblem).
+func authorizeDesignAction(r *http.Request, p *persistence.Service, acct *accounts.Service, designID string, a authz.Action) (string, error) {
+	ws, creator, err := p.GetOwnership(r.Context(), designID)
+	if err != nil {
+		return "", persistence.ErrNotFound
+	}
+	u := userFrom(r.Context())
+	if err := acct.Require(r.Context(), u.ID, ws, a, creator); err != nil {
+		return "", err
+	}
+	return ws, nil
+}
+
 // authorizeDesignRead authorizes a viewer-level read of a design. Workspace
 // members pass via the membership fast path; a non-member is allowed only if a
 // per-design grant (or an active link session recorded as a grant) resolves to
@@ -121,8 +137,8 @@ func createDesignHandler(p *persistence.Service, acct *accounts.Service) http.Ha
 			return
 		}
 		u := userFrom(r.Context())
-		if err := acct.AssertMember(r.Context(), u.ID, body.WorkspaceID, "member"); err != nil {
-			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "not a member of this workspace", "not_workspace_member")
+		if err := acct.Require(r.Context(), u.ID, body.WorkspaceID, authz.DesignCreate, ""); err != nil {
+			authProblem(w, r, err)
 			return
 		}
 		rec, err := p.Create(r.Context(), body.WorkspaceID, body.Title, body.From, &u.ID)
@@ -170,7 +186,7 @@ func renameDesignHandler(p *persistence.Service, acct *accounts.Service) http.Ha
 			return
 		}
 		id := chi.URLParam(r, "id")
-		ws, err := authorizeDesign(r, p, acct, id, "member")
+		ws, err := authorizeDesignAction(r, p, acct, id, authz.DesignRename)
 		if err != nil {
 			authProblem(w, r, err)
 			return
@@ -301,7 +317,7 @@ func checkpointUpdateLogHandler(p *persistence.Service, acct *accounts.Service, 
 	const maxCheckpointBytes = 20 << 20 // mirror the realtime update size cap
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		if _, err := authorizeDesign(r, p, acct, id, "member"); err != nil {
+		if _, err := authorizeDesignAction(r, p, acct, id, authz.DesignEdit); err != nil {
 			authProblem(w, r, err)
 			return
 		}
@@ -366,7 +382,7 @@ func checkpointUpdateLogHandler(p *persistence.Service, acct *accounts.Service, 
 func restoreVersionHandler(p *persistence.Service, acct *accounts.Service, br *brand.Service, sh *sharing.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		ws, err := authorizeDesign(r, p, acct, id, "member")
+		ws, err := authorizeDesignAction(r, p, acct, id, authz.DesignEdit)
 		if err != nil {
 			authProblem(w, r, err)
 			return
@@ -438,7 +454,7 @@ func listCrdtBranchesHandler(p *persistence.Service, acct *accounts.Service, sh 
 func createCrdtBranchHandler(p *persistence.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		ws, err := authorizeDesign(r, p, acct, id, "member")
+		ws, err := authorizeDesignAction(r, p, acct, id, authz.DesignEdit)
 		if err != nil {
 			authProblem(w, r, err)
 			return
@@ -486,7 +502,7 @@ func branchHandler(p *persistence.Service, acct *accounts.Service) http.HandlerF
 		}
 		_ = json.NewDecoder(r.Body).Decode(&body)
 		id := chi.URLParam(r, "id")
-		ws, err := authorizeDesign(r, p, acct, id, "member")
+		ws, err := authorizeDesignAction(r, p, acct, id, authz.DesignCreate)
 		if err != nil {
 			authProblem(w, r, err)
 			return
@@ -504,7 +520,11 @@ func branchHandler(p *persistence.Service, acct *accounts.Service) http.HandlerF
 func deleteDesignHandler(p *persistence.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		ws, err := authorizeDesign(r, p, acct, id, "member")
+		action := authz.DesignTrash
+		if r.URL.Query().Get("purge") == "true" {
+			action = authz.DesignPurge
+		}
+		ws, err := authorizeDesignAction(r, p, acct, id, action)
 		if err != nil {
 			authProblem(w, r, err)
 			return
@@ -525,7 +545,7 @@ func deleteDesignHandler(p *persistence.Service, acct *accounts.Service) http.Ha
 func restoreFromTrashHandler(p *persistence.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		ws, err := authorizeDesign(r, p, acct, id, "member")
+		ws, err := authorizeDesignAction(r, p, acct, id, authz.DesignRestore)
 		if err != nil {
 			authProblem(w, r, err)
 			return
@@ -574,7 +594,11 @@ func listWorkspaceDesignsHandler(p *persistence.Service, acct *accounts.Service)
 
 // authProblem maps the authorize helper's errors.
 func authProblem(w http.ResponseWriter, r *http.Request, err error) {
-	if errors.Is(err, errForbidden) {
+	if a, ok := accounts.IsActionError(err); ok {
+		actionProblem(w, r, a)
+		return
+	}
+	if errors.Is(err, errForbidden) || errors.Is(err, accounts.ErrForbidden) {
 		problemWithCode(w, r, http.StatusForbidden, "Forbidden", "not a member of this workspace", "not_workspace_member")
 		return
 	}

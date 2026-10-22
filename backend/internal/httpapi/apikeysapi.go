@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"hycanvas/backend/internal/authz"
 	"hycanvas/backend/internal/accounts"
 	"hycanvas/backend/internal/apikeys"
 )
@@ -46,8 +47,8 @@ func apiKeysAssertAdmin(w http.ResponseWriter, r *http.Request, acct *accounts.S
 		problemWithCode(w, r, http.StatusForbidden, "Forbidden", "this endpoint is not available to API keys", "api_key_route_not_allowed")
 		return false
 	}
-	if err := acct.AssertMember(r.Context(), u.ID, workspaceID, "admin"); err != nil {
-		problemWithCode(w, r, http.StatusForbidden, "Forbidden", "admin access required", "admin_access_required")
+	if err := acct.Require(r.Context(), u.ID, workspaceID, authz.APIKeysManage, ""); err != nil {
+		authProblem(w, r, err)
 		return false
 	}
 	return true

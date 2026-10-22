@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"hycanvas/backend/internal/authz"
 	"hycanvas/backend/internal/canva"
 	"hycanvas/backend/internal/home"
 	"hycanvas/backend/internal/persistence"
@@ -321,7 +322,7 @@ func (h designsHook) Create(ctx context.Context, ws, title string, from persiste
 
 type fakeAccess struct{ denyAfter int }
 
-func (a *fakeAccess) AssertMember(context.Context, string, string, string) error {
+func (a *fakeAccess) Require(context.Context, string, string, authz.Action, string) error {
 	if a.denyAfter == 0 {
 		return errors.New("forbidden")
 	}

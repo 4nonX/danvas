@@ -14,6 +14,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"hycanvas/backend/internal/authz"
 	"hycanvas/backend/internal/accounts"
 	"hycanvas/backend/internal/docexport"
 	"hycanvas/backend/internal/jobs"
@@ -194,7 +195,7 @@ func videoExportHandler(p *persistence.Service, store storage.Driver, reg *jobs.
 			return
 		}
 		id := chi.URLParam(r, "id")
-		ws, err := authorizeDesign(r, p, acct, id, "viewer")
+		ws, err := authorizeDesignAction(r, p, acct, id, authz.DesignDownload)
 		if err != nil {
 			authProblem(w, r, err)
 			return
@@ -492,7 +493,7 @@ func docExportHandler(p *persistence.Service, store storage.Driver, reg *jobs.Re
 			return
 		}
 		id := chi.URLParam(r, "id")
-		ws, err := authorizeDesign(r, p, acct, id, "viewer")
+		ws, err := authorizeDesignAction(r, p, acct, id, authz.DesignDownload)
 		if err != nil {
 			authProblem(w, r, err)
 			return
@@ -544,7 +545,7 @@ func docExportHandler(p *persistence.Service, store storage.Driver, reg *jobs.Re
 func exportDownloadHandler(p *persistence.Service, store storage.Driver, reg *jobs.Registry, acct *accounts.Service, jobName string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		if _, err := authorizeDesign(r, p, acct, id, "viewer"); err != nil {
+		if _, err := authorizeDesignAction(r, p, acct, id, authz.DesignDownload); err != nil {
 			authProblem(w, r, err)
 			return
 		}

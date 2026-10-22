@@ -28,6 +28,7 @@ import (
 	"log/slog"
 	"strings"
 	"time"
+	"hycanvas/backend/internal/authz"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -91,8 +92,8 @@ func (s *Service) s3PublicURL() string { return s.s3PublicBase }
 // InitDirectUpload starts the handshake: quota-gates the declared size,
 // records the pending row, and hands back the upload grant.
 func (s *Service) InitDirectUpload(ctx context.Context, userID, workspaceID, filename string, declaredBytes int64, folderID *string) (DirectUploadGrant, error) {
-	if err := s.access.AssertMember(ctx, userID, workspaceID, "member"); err != nil {
-		return DirectUploadGrant{}, ErrForbidden
+	if err := s.allow(ctx, userID, workspaceID, authz.AssetUpload, ""); err != nil {
+		return DirectUploadGrant{}, err
 	}
 	if declaredBytes <= 0 {
 		return DirectUploadGrant{}, ErrBadRequest
@@ -244,8 +245,8 @@ func (s *Service) CompleteDirectUpload(ctx context.Context, userID, id, thumbnai
 	if row.UserID != userID {
 		return UploadedAsset{}, ErrForbidden
 	}
-	if err := s.access.AssertMember(ctx, userID, row.WorkspaceID, "member"); err != nil {
-		return UploadedAsset{}, ErrForbidden
+	if err := s.allow(ctx, userID, row.WorkspaceID, authz.AssetUpload, ""); err != nil {
+		return UploadedAsset{}, err
 	}
 	if time.Now().UTC().After(row.ExpiresAt) {
 		return UploadedAsset{}, ErrNotFound

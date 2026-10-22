@@ -17,6 +17,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
+	"hycanvas/backend/internal/authz"
 	"hycanvas/backend/internal/accounts"
 	"hycanvas/backend/internal/canva"
 )
@@ -100,6 +101,19 @@ func canvaMember(w http.ResponseWriter, r *http.Request, acct *accounts.Service,
 	return ws, u.ID, true
 }
 
+// canvaAllow checks the caller's role allows the action in the workspace of
+// the URL (F42): canva.use to connect and import, canva.configure for the
+// workspace integration.
+func canvaAllow(w http.ResponseWriter, r *http.Request, acct *accounts.Service, a authz.Action) (ws, userID string, ok bool) {
+	ws = chi.URLParam(r, "id")
+	u := userFrom(r.Context())
+	if err := acct.Require(r.Context(), u.ID, ws, a, ""); err != nil {
+		authProblem(w, r, err)
+		return "", "", false
+	}
+	return ws, u.ID, true
+}
+
 type canvaIntegrationResponse struct {
 	canva.IntegrationView
 	RedirectURI string `json:"redirectUri"`
@@ -122,7 +136,7 @@ func canvaGetIntegrationHandler(svc *canva.Service, acct *accounts.Service) http
 
 func canvaSetIntegrationHandler(svc *canva.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ws, _, ok := canvaMember(w, r, acct, "admin")
+		ws, _, ok := canvaAllow(w, r, acct, authz.CanvaConfigure)
 		if !ok {
 			return
 		}
@@ -145,7 +159,7 @@ func canvaSetIntegrationHandler(svc *canva.Service, acct *accounts.Service) http
 
 func canvaDeleteIntegrationHandler(svc *canva.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ws, _, ok := canvaMember(w, r, acct, "admin")
+		ws, _, ok := canvaAllow(w, r, acct, authz.CanvaConfigure)
 		if !ok {
 			return
 		}
@@ -159,7 +173,7 @@ func canvaDeleteIntegrationHandler(svc *canva.Service, acct *accounts.Service) h
 
 func canvaConnectionHandler(svc *canva.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ws, userID, ok := canvaMember(w, r, acct, "member")
+		ws, userID, ok := canvaAllow(w, r, acct, authz.CanvaUse)
 		if !ok {
 			return
 		}
@@ -174,7 +188,7 @@ func canvaConnectionHandler(svc *canva.Service, acct *accounts.Service) http.Han
 
 func canvaConnectHandler(svc *canva.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ws, userID, ok := canvaMember(w, r, acct, "member")
+		ws, userID, ok := canvaAllow(w, r, acct, authz.CanvaUse)
 		if !ok {
 			return
 		}
@@ -217,7 +231,7 @@ func canvaCallbackHandler(svc *canva.Service) http.HandlerFunc {
 
 func canvaDisconnectHandler(svc *canva.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ws, userID, ok := canvaMember(w, r, acct, "member")
+		ws, userID, ok := canvaAllow(w, r, acct, authz.CanvaUse)
 		if !ok {
 			return
 		}
@@ -231,7 +245,7 @@ func canvaDisconnectHandler(svc *canva.Service, acct *accounts.Service) http.Han
 
 func canvaFolderHandler(svc *canva.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ws, userID, ok := canvaMember(w, r, acct, "member")
+		ws, userID, ok := canvaAllow(w, r, acct, authz.CanvaUse)
 		if !ok {
 			return
 		}
@@ -246,7 +260,7 @@ func canvaFolderHandler(svc *canva.Service, acct *accounts.Service) http.Handler
 
 func canvaExportHandler(svc *canva.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ws, userID, ok := canvaMember(w, r, acct, "member")
+		ws, userID, ok := canvaAllow(w, r, acct, authz.CanvaUse)
 		if !ok {
 			return
 		}
@@ -261,7 +275,7 @@ func canvaExportHandler(svc *canva.Service, acct *accounts.Service) http.Handler
 
 func canvaExportStatusHandler(svc *canva.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ws, userID, ok := canvaMember(w, r, acct, "member")
+		ws, userID, ok := canvaAllow(w, r, acct, authz.CanvaUse)
 		if !ok {
 			return
 		}
@@ -276,7 +290,7 @@ func canvaExportStatusHandler(svc *canva.Service, acct *accounts.Service) http.H
 
 func canvaExportFileHandler(svc *canva.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ws, userID, ok := canvaMember(w, r, acct, "member")
+		ws, userID, ok := canvaAllow(w, r, acct, authz.CanvaUse)
 		if !ok {
 			return
 		}
@@ -303,7 +317,7 @@ func canvaExportFileHandler(svc *canva.Service, acct *accounts.Service) http.Han
 
 func canvaImportsHandler(svc *canva.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ws, _, ok := canvaMember(w, r, acct, "member")
+		ws, _, ok := canvaAllow(w, r, acct, authz.CanvaUse)
 		if !ok {
 			return
 		}
@@ -318,7 +332,7 @@ func canvaImportsHandler(svc *canva.Service, acct *accounts.Service) http.Handle
 
 func canvaRecordImportHandler(svc *canva.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ws, _, ok := canvaMember(w, r, acct, "member")
+		ws, _, ok := canvaAllow(w, r, acct, authz.CanvaUse)
 		if !ok {
 			return
 		}

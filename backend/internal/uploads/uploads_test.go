@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"hycanvas/backend/internal/authz"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -38,6 +39,7 @@ func pngBytes() []byte {
 type fakeAccess struct{}
 
 func (fakeAccess) AssertMember(context.Context, string, string, string) error { return nil }
+func (fakeAccess) Require(context.Context, string, string, authz.Action, string) error { return nil }
 
 func testServerPort(t *testing.T, srv *httptest.Server) string {
 	t.Helper()

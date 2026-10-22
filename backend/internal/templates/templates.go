@@ -18,6 +18,7 @@ import (
 	"math"
 	"sort"
 	"strings"
+	"hycanvas/backend/internal/authz"
 )
 
 //go:embed seed.json
@@ -110,6 +111,7 @@ func findSeed(id string) (*seedEntry, bool) {
 // Access enforces workspace membership + lists the caller's workspaces.
 type Access interface {
 	AssertMember(ctx context.Context, userID, workspaceID, minRole string) error
+	Require(ctx context.Context, userID, workspaceID string, a authz.Action, creatorID string) error
 	MemberWorkspaceIDs(ctx context.Context, userID string) ([]string, error)
 }
 
@@ -319,7 +321,7 @@ func (s *Service) canSee(ctx context.Context, userID string, row TemplateRow) bo
 
 // Apply deep-copies a template into a new design in the workspace.
 func (s *Service) Apply(ctx context.Context, userID, templateID, workspaceID string) (string, error) {
-	if err := s.access.AssertMember(ctx, userID, workspaceID, "member"); err != nil {
+	if err := s.access.Require(ctx, userID, workspaceID, authz.DesignCreate, ""); err != nil {
 		return "", ErrForbidden
 	}
 	var file map[string]any
@@ -358,7 +360,7 @@ type SaveInput struct {
 }
 
 func (s *Service) SaveAsTemplate(ctx context.Context, userID string, in SaveInput) (Template, error) {
-	if err := s.access.AssertMember(ctx, userID, in.WorkspaceID, "member"); err != nil {
+	if err := s.access.Require(ctx, userID, in.WorkspaceID, authz.TemplatePublish, ""); err != nil {
 		return Template{}, ErrForbidden
 	}
 	var file map[string]any
@@ -390,6 +392,12 @@ func (s *Service) SaveAsTemplate(ctx context.Context, userID string, in SaveInpu
 	if visibility == "" {
 		visibility = "private"
 	}
+	if visibility == "public" {
+		// Visible to every user of the instance: its own action (F42).
+		if err := s.access.Require(ctx, userID, in.WorkspaceID, authz.TemplatePublishPublic, ""); err != nil {
+			return Template{}, ErrForbidden
+		}
+	}
 	style, _ := json.Marshal(extractStyle(file))
 	fileRaw, _ := json.Marshal(file)
 	tags := in.Tags
@@ -419,7 +427,7 @@ func (s *Service) SaveAsTemplate(ctx context.Context, userID string, in SaveInpu
 // --- delete --------------------------------------------------------------
 
 // mayDelete reports whether a user may delete a stored template: its creator,
-// or an owner or admin of the workspace it belongs to.
+// or a member of its workspace whose role allows deleting others' templates.
 func (s *Service) mayDelete(ctx context.Context, userID string, row TemplateRow, adminOf map[string]bool) bool {
 	if row.OwnerID == userID {
 		return true
@@ -430,7 +438,7 @@ func (s *Service) mayDelete(ctx context.Context, userID string, row TemplateRow,
 	ws := *row.WorkspaceID
 	ok, seen := adminOf[ws]
 	if !seen {
-		ok = s.access.AssertMember(ctx, userID, ws, "admin") == nil
+		ok = s.access.Require(ctx, userID, ws, authz.TemplateDelete, "") == nil
 		adminOf[ws] = ok
 	}
 	return ok
@@ -492,7 +500,7 @@ type Collection struct {
 }
 
 func (s *Service) CreateCollection(ctx context.Context, userID, workspaceID, name string) (Collection, error) {
-	if err := s.access.AssertMember(ctx, userID, workspaceID, "member"); err != nil {
+	if err := s.access.Require(ctx, userID, workspaceID, authz.TemplateCollections, ""); err != nil {
 		return Collection{}, ErrForbidden
 	}
 	row, err := s.createCollection(ctx, workspaceID, name)
@@ -522,7 +530,7 @@ func (s *Service) DeleteCollection(ctx context.Context, userID, id string) error
 	if err != nil {
 		return err
 	}
-	if err := s.access.AssertMember(ctx, userID, col.WorkspaceID, "member"); err != nil {
+	if err := s.access.Require(ctx, userID, col.WorkspaceID, authz.TemplateCollections, ""); err != nil {
 		return ErrForbidden
 	}
 	return s.deleteCollection(ctx, id)
@@ -536,7 +544,7 @@ func (s *Service) AssignCollection(ctx context.Context, userID, templateID, coll
 	if row.WorkspaceID == nil {
 		return Template{}, ErrBadRequest
 	}
-	if err := s.access.AssertMember(ctx, userID, *row.WorkspaceID, "member"); err != nil {
+	if err := s.access.Require(ctx, userID, *row.WorkspaceID, authz.TemplateCollections, ""); err != nil {
 		return Template{}, ErrForbidden
 	}
 	var colID *string

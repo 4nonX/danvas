@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"hycanvas/backend/internal/authz"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -64,7 +65,8 @@ type Member struct {
 	Email     string  `json:"email"`
 	Name      string  `json:"name"`
 	AvatarURL *string `json:"avatarUrl,omitempty"`
-	Role      string  `json:"role"`   // lowercase
+	Role      string  `json:"role"`   // lowercase legacy rank (derived from the role)
+	RoleID    string  `json:"roleId,omitempty"`
 	Status    string  `json:"status"` // lowercase
 	JoinedAt  *string `json:"joinedAt,omitempty"`
 }
@@ -75,7 +77,8 @@ type Invitation struct {
 	WorkspaceID   string  `json:"workspaceId"`
 	WorkspaceName string  `json:"workspaceName,omitempty"` // populated for the invitee's own view
 	Email         string  `json:"email"`
-	Role          string  `json:"role"` // lowercase
+	Role          string  `json:"role"` // lowercase legacy rank (derived from the role)
+	RoleID        string  `json:"roleId,omitempty"`
 	InvitedBy     string  `json:"invitedBy"`
 	ExpiresAt     string  `json:"expiresAt"`
 	AcceptedAt    *string `json:"acceptedAt,omitempty"`
@@ -108,23 +111,6 @@ func (s *Service) memberRole(ctx context.Context, userID, workspaceID string) (s
 // (the non-locking activeOwnerCount was removed; all owner-invariant checks now
 // go through lockActiveOwners inside a transaction to avoid the last-owner race.)
 
-// lockedRole reads a user's active workspace role (lowercase) with their
-// membership row locked FOR UPDATE inside tx, returning whether they are an
-// active member. Used for the AUTHORITATIVE authorization re-check in
-// ChangeMemberRole/RemoveMember: locking the caller's own row serializes against
-// a concurrent change to that role, so a just-demoted caller cannot slip an
-// action through on a stale (higher) role read.
-func lockedRole(ctx context.Context, tx pgx.Tx, userID, workspaceID string) (string, bool) {
-	var role string
-	err := tx.QueryRow(ctx,
-		`SELECT role FROM "workspace_members" WHERE "workspace_id"=$1 AND "user_id"=$2 AND status='ACTIVE' FOR UPDATE`,
-		workspaceID, userID).Scan(&role)
-	if err != nil {
-		return "", false
-	}
-	return strings.ToLower(role), true
-}
-
 // lockActiveOwners counts a workspace's active owners with their rows locked FOR
 // UPDATE inside tx. This SERIALIZES concurrent owner demotions/removals: a second
 // transaction touching the owner set blocks until the first commits, then sees
@@ -155,28 +141,32 @@ func (s *Service) workspaceMeta(ctx context.Context, workspaceID string) (kind, 
 	return strings.ToLower(kind), name, nil
 }
 
-// Invite creates a workspace invitation for `email` at `role` and captures the
-// accept link in the dev outbox. The caller must be an admin or owner of a
-// non-personal workspace, and may not invite at a role above their own. Returns
-// the invitation and the raw (unhashed) token.
+// Invite creates a workspace invitation for `email` with a role and captures
+// the accept link in the dev outbox. role is a role id of the workspace or a
+// legacy name ("member", ...; empty = member). The caller needs members.invite
+// in a non-personal workspace and may only invite with a role they could hand
+// out (F42: no escalation). Returns the invitation and the raw token.
 func (s *Service) Invite(ctx context.Context, callerID, workspaceID, email, role string) (Invitation, string, error) {
 	email = strings.ToLower(strings.TrimSpace(email))
 	if !emailRe.MatchString(email) {
 		return Invitation{}, "", ErrBadRequest
 	}
-	role = strings.ToLower(strings.TrimSpace(role))
-	if role == "" {
+	if strings.TrimSpace(role) == "" {
 		role = "member"
 	}
-	if _, ok := roleRank[role]; !ok {
-		return Invitation{}, "", ErrBadRequest
-	}
-	if err := s.AssertMember(ctx, callerID, workspaceID, "admin"); err != nil {
+	if err := s.Require(ctx, callerID, workspaceID, authz.MembersInvite, ""); err != nil {
 		return Invitation{}, "", err
 	}
-	callerRole, _ := s.memberRole(ctx, callerID, workspaceID)
-	if roleRank[role] > roleRank[callerRole] {
-		return Invitation{}, "", ErrForbidden // cannot invite above your own role
+	target, err := resolveRole(ctx, s.db, workspaceID, role)
+	if err != nil {
+		return Invitation{}, "", err
+	}
+	caller, ok, err := roleOfMember(ctx, s.db, callerID, workspaceID, false)
+	if err != nil {
+		return Invitation{}, "", err
+	}
+	if !ok || !mayHandOut(caller, target) {
+		return Invitation{}, "", ErrForbidden // cannot invite with more than you hold
 	}
 	kind, wsName, err := s.workspaceMeta(ctx, workspaceID)
 	if err != nil {
@@ -202,22 +192,23 @@ func (s *Service) Invite(ctx context.Context, callerID, workspaceID, email, role
 	raw := uuid.NewString() + "." + uuid.NewString()
 	id := uuid.NewString()
 	expires := time.Now().Add(inviteTTL)
+	base := target.Base()
 	if _, err := s.db.Exec(ctx,
-		`INSERT INTO "invitations" (id, "workspace_id", email, role, "token_hash", "invited_by_id", "expires_at")
-		 VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-		id, workspaceID, email, strings.ToUpper(role), secrets.HashToken(raw), callerID, expires); err != nil {
+		`INSERT INTO "invitations" (id, "workspace_id", email, role, "role_id", "token_hash", "invited_by_id", "expires_at")
+		 VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+		id, workspaceID, email, strings.ToUpper(base), target.ID, secrets.HashToken(raw), callerID, expires); err != nil {
 		return Invitation{}, "", err
 	}
-	s.sendInvitationEmail(email, raw, wsName, role)
+	s.sendInvitationEmail(email, raw, wsName, base)
 	// In-app dashboard notification (the bell) for an invitee who already has an
 	// account; a brand-new email only gets the invite email. Best-effort, nil-safe.
 	if existing != nil && s.notifier != nil {
 		s.notifier.Notify(ctx, callerID, existing.ID, "workspace_invite", "", map[string]any{
-			"workspaceId": workspaceID, "workspaceName": wsName, "role": role,
+			"workspaceId": workspaceID, "workspaceName": wsName, "role": base,
 		})
 	}
 	return Invitation{
-		ID: id, WorkspaceID: workspaceID, Email: email, Role: role,
+		ID: id, WorkspaceID: workspaceID, Email: email, Role: base, RoleID: target.ID,
 		InvitedBy: callerID, ExpiresAt: iso(expires), CreatedAt: iso(time.Now()),
 	}, raw, nil
 }
@@ -334,14 +325,19 @@ func (s *Service) activateInvitation(ctx context.Context, callerID string, inv i
 		return Membership{}, ErrInviteInvalid
 	}
 	memberID := uuid.NewString()
+	// The invitation's role (F42); a role deleted meanwhile reads as NULL and
+	// the reconcile below falls back to the legacy value.
 	if err := tx.QueryRow(ctx,
-		`INSERT INTO "workspace_members" (id, "workspace_id", "user_id", role, status, "invited_by_id", "joined_at", "updated_at")
-		 VALUES ($1,$2,$3,$4,'ACTIVE',$5, now(), now())
+		`INSERT INTO "workspace_members" (id, "workspace_id", "user_id", role, "role_id", status, "invited_by_id", "joined_at", "updated_at")
+		 VALUES ($1,$2,$3,$4,(SELECT "role_id" FROM "invitations" WHERE id=$6),'ACTIVE',$5, now(), now())
 		 ON CONFLICT ("workspace_id","user_id") DO UPDATE
-		   SET role=EXCLUDED.role, status='ACTIVE',
+		   SET role=EXCLUDED.role, "role_id"=EXCLUDED."role_id", status='ACTIVE',
 		       "joined_at"=COALESCE("workspace_members"."joined_at", now()), "updated_at"=now()
 		 RETURNING id`,
-		memberID, inv.workspaceID, callerID, role, inv.invitedBy).Scan(&memberID); err != nil {
+		memberID, inv.workspaceID, callerID, role, inv.invitedBy, inv.id).Scan(&memberID); err != nil {
+		return Membership{}, err
+	}
+	if err := s.EnsureRoles(ctx, tx, inv.workspaceID); err != nil {
 		return Membership{}, err
 	}
 	if err := tx.Commit(ctx); err != nil {
@@ -424,7 +420,7 @@ func (s *Service) ListMembers(ctx context.Context, callerID, workspaceID string)
 		return nil, err
 	}
 	rows, err := s.db.Query(ctx,
-		`SELECT u.id, u.email, u.name, u."avatar_url", m.role, m.status, m."joined_at"
+		`SELECT u.id, u.email, u.name, u."avatar_url", m.role, COALESCE(m."role_id"::text, ''), m.status, m."joined_at"
 		 FROM "workspace_members" m JOIN "users" u ON u.id=m."user_id"
 		 WHERE m."workspace_id"=$1 ORDER BY m."created_at" ASC`, workspaceID)
 	if err != nil {
@@ -435,7 +431,7 @@ func (s *Service) ListMembers(ctx context.Context, callerID, workspaceID string)
 	for rows.Next() {
 		var m Member
 		var joined *time.Time
-		if err := rows.Scan(&m.UserID, &m.Email, &m.Name, &m.AvatarURL, &m.Role, &m.Status, &joined); err != nil {
+		if err := rows.Scan(&m.UserID, &m.Email, &m.Name, &m.AvatarURL, &m.Role, &m.RoleID, &m.Status, &joined); err != nil {
 			return nil, err
 		}
 		m.Role = strings.ToLower(m.Role)
@@ -446,14 +442,14 @@ func (s *Service) ListMembers(ctx context.Context, callerID, workspaceID string)
 	return out, rows.Err()
 }
 
-// ListInvitations returns the pending (unaccepted) invitations for a workspace.
-// Admin or owner only.
+// ListInvitations returns the pending (unaccepted) invitations for a workspace
+// (members.invite).
 func (s *Service) ListInvitations(ctx context.Context, callerID, workspaceID string) ([]Invitation, error) {
-	if err := s.AssertMember(ctx, callerID, workspaceID, "admin"); err != nil {
+	if err := s.Require(ctx, callerID, workspaceID, authz.MembersInvite, ""); err != nil {
 		return nil, err
 	}
 	rows, err := s.db.Query(ctx,
-		`SELECT id, "workspace_id", email, role, "invited_by_id", "expires_at", "accepted_at", "created_at"
+		`SELECT id, "workspace_id", email, role, COALESCE("role_id"::text, ''), "invited_by_id", "expires_at", "accepted_at", "created_at"
 		 FROM "invitations" WHERE "workspace_id"=$1 AND "accepted_at" IS NULL ORDER BY "created_at" DESC`, workspaceID)
 	if err != nil {
 		return nil, err
@@ -464,7 +460,7 @@ func (s *Service) ListInvitations(ctx context.Context, callerID, workspaceID str
 		var inv Invitation
 		var expires, created time.Time
 		var accepted *time.Time
-		if err := rows.Scan(&inv.ID, &inv.WorkspaceID, &inv.Email, &inv.Role, &inv.InvitedBy, &expires, &accepted, &created); err != nil {
+		if err := rows.Scan(&inv.ID, &inv.WorkspaceID, &inv.Email, &inv.Role, &inv.RoleID, &inv.InvitedBy, &expires, &accepted, &created); err != nil {
 			return nil, err
 		}
 		inv.Role = strings.ToLower(inv.Role)
@@ -476,9 +472,9 @@ func (s *Service) ListInvitations(ctx context.Context, callerID, workspaceID str
 	return out, rows.Err()
 }
 
-// RevokeInvitation cancels a pending invitation. Admin or owner only.
+// RevokeInvitation cancels a pending invitation (members.invite).
 func (s *Service) RevokeInvitation(ctx context.Context, callerID, workspaceID, invitationID string) error {
-	if err := s.AssertMember(ctx, callerID, workspaceID, "admin"); err != nil {
+	if err := s.Require(ctx, callerID, workspaceID, authz.MembersInvite, ""); err != nil {
 		return err
 	}
 	ct, err := s.db.Exec(ctx,
@@ -493,45 +489,49 @@ func (s *Service) RevokeInvitation(ctx context.Context, callerID, workspaceID, i
 	return nil
 }
 
-// ChangeMemberRole changes a member's workspace role, enforcing: caller is
-// admin+, cannot set a role above their own, only an owner may touch (or grant)
-// the owner role, and the last owner can never be demoted.
+// ChangeMemberRole gives a member another role (a role id of the workspace or
+// a legacy name). The caller needs members.assign and may only move a member
+// they could hand out to a role they could hand out (F42: no escalation; only
+// holders of the protected owner role touch it); the last owner can never be
+// demoted. Authorization is re-done under row locks inside the transaction.
 func (s *Service) ChangeMemberRole(ctx context.Context, callerID, workspaceID, targetUserID, newRole string) error {
-	newRole = strings.ToLower(strings.TrimSpace(newRole))
-	if _, ok := roleRank[newRole]; !ok {
+	if strings.TrimSpace(newRole) == "" {
 		return ErrBadRequest
 	}
-	// Fast fail for obvious non-members (non-authoritative; the binding check is
-	// re-done under a row lock inside the tx below).
-	if err := s.AssertMember(ctx, callerID, workspaceID, "admin"); err != nil {
+	// Fast fail (non-authoritative; re-checked under a row lock below).
+	if err := s.Require(ctx, callerID, workspaceID, authz.MembersAssign, ""); err != nil {
 		return err
 	}
-
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
 		return err
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 
-	// Authoritative authorization INSIDE the tx with the caller's row locked, so a
-	// concurrent demotion of the caller cannot be bypassed by a stale role read.
-	callerRole, ok := lockedRole(ctx, tx, callerID, workspaceID)
-	if !ok || roleRank[callerRole] < roleRank["admin"] {
-		return ErrForbidden
+	caller, ok, err := roleOfMember(ctx, tx, callerID, workspaceID, true)
+	if err != nil {
+		return err
 	}
-	targetRole, ok := s.memberRole(ctx, targetUserID, workspaceID)
+	if !ok || !caller.Actions.Has(authz.MembersAssign) {
+		return &ActionError{Action: authz.MembersAssign}
+	}
+	target, ok, err := roleOfMember(ctx, tx, targetUserID, workspaceID, false)
+	if err != nil {
+		return err
+	}
 	if !ok {
 		return ErrNotFound
 	}
-	if roleRank[newRole] > roleRank[callerRole] {
-		return ErrForbidden // cannot grant a role above your own
+	next, err := resolveRole(ctx, tx, workspaceID, newRole)
+	if err != nil {
+		return err
 	}
-	if (targetRole == "owner" || newRole == "owner") && callerRole != "owner" {
-		return ErrForbidden // only an owner may manage owners
+	if !mayHandOut(caller, target) || !mayHandOut(caller, next) {
+		return ErrForbidden // cannot manage someone, or grant a role, above you
 	}
 	// Demoting an owner: lock the active-owner set and re-check the count inside
 	// the tx so concurrent demotions can't both pass and orphan the workspace.
-	if targetRole == "owner" && roleRank[newRole] < roleRank["owner"] {
+	if target.Protected && !next.Protected {
 		n, err := lockActiveOwners(ctx, tx, workspaceID)
 		if err != nil {
 			return err
@@ -541,14 +541,19 @@ func (s *Service) ChangeMemberRole(ctx context.Context, callerID, workspaceID, t
 		}
 	}
 	ct, err := tx.Exec(ctx,
-		`UPDATE "workspace_members" SET role=$1, "updated_at"=now()
-		 WHERE "workspace_id"=$2 AND "user_id"=$3 AND status='ACTIVE'`,
-		strings.ToUpper(newRole), workspaceID, targetUserID)
+		`UPDATE "workspace_members" SET role=$1, "role_id"=$2, "updated_at"=now()
+		 WHERE "workspace_id"=$3 AND "user_id"=$4 AND status='ACTIVE'`,
+		strings.ToUpper(next.Base()), next.ID, workspaceID, targetUserID)
 	if err != nil {
 		return err
 	}
 	if ct.RowsAffected() == 0 {
 		return ErrNotFound
+	}
+	if err := logRoleEvent(ctx, tx, workspaceID, callerID, "member.role", "",
+		map[string]any{"userId": targetUserID, "roleId": target.ID},
+		map[string]any{"userId": targetUserID, "roleId": next.ID}); err != nil {
+		return err
 	}
 	return tx.Commit(ctx)
 }
@@ -560,7 +565,7 @@ func (s *Service) RemoveMember(ctx context.Context, callerID, workspaceID, targe
 	// Fast fail for a non-self caller who is obviously not an admin (the binding
 	// check is re-done under a row lock inside the tx).
 	if callerID != targetUserID {
-		if err := s.AssertMember(ctx, callerID, workspaceID, "admin"); err != nil {
+		if err := s.Require(ctx, callerID, workspaceID, authz.MembersRemove, ""); err != nil {
 			return err
 		}
 	}
@@ -570,27 +575,30 @@ func (s *Service) RemoveMember(ctx context.Context, callerID, workspaceID, targe
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 
-	targetRole, ok := s.memberRole(ctx, targetUserID, workspaceID)
+	target, ok, err := roleOfMember(ctx, tx, targetUserID, workspaceID, false)
+	if err != nil {
+		return err
+	}
 	if !ok {
 		return ErrNotFound
 	}
 	// Authoritative authorization INSIDE the tx with the caller's row locked: a
-	// concurrent demotion of the caller can't be bypassed by a stale role read.
+	// concurrent change of the caller's role can't be bypassed by a stale read.
 	if callerID != targetUserID {
-		callerRole, ok := lockedRole(ctx, tx, callerID, workspaceID)
-		if !ok || roleRank[callerRole] < roleRank["admin"] {
-			return ErrForbidden
+		caller, ok, err := roleOfMember(ctx, tx, callerID, workspaceID, true)
+		if err != nil {
+			return err
 		}
-		if roleRank[targetRole] > roleRank[callerRole] {
-			return ErrForbidden // cannot remove someone with a higher role
+		if !ok || !caller.Actions.Has(authz.MembersRemove) {
+			return &ActionError{Action: authz.MembersRemove}
 		}
-		if targetRole == "owner" && callerRole != "owner" {
-			return ErrForbidden
+		if !mayHandOut(caller, target) {
+			return ErrForbidden // cannot remove someone above you (or an owner, unless owner)
 		}
 	}
 	// Removing an owner: lock the active-owner set and re-check inside the tx so
 	// concurrent removals can't both pass and leave the workspace ownerless.
-	if targetRole == "owner" {
+	if target.Protected {
 		n, err := lockActiveOwners(ctx, tx, workspaceID)
 		if err != nil {
 			return err

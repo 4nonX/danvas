@@ -58,6 +58,10 @@ func mountUploads(api chi.Router, up *uploads.Service, acct *accounts.Service) {
 func uploadsProblem(w http.ResponseWriter, r *http.Request, err error) {
 	// Each branch carries a stable `code` so the frontend can translate the
 	// failure (F38 FR-9); the English detail stays as the fallback wording.
+	if a, ok := accounts.IsActionError(err); ok {
+		actionProblem(w, r, a)
+		return
+	}
 	switch {
 	case errors.Is(err, uploads.ErrForbidden):
 		problemWithCode(w, r, http.StatusForbidden, "Forbidden", "not a member of this workspace", "upload_forbidden")

@@ -12,6 +12,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"hycanvas/backend/internal/authz"
 	"hycanvas/backend/internal/ai"
 	"hycanvas/backend/internal/brand"
 	"hycanvas/backend/internal/stock"
@@ -153,8 +154,14 @@ func planGeneration(ctx context.Context, acct *accounts.Service, userID string, 
 	if ws == "" {
 		return plan, &generateReject{http.StatusBadRequest, "missing_workspaceid", "missing workspaceId"}
 	}
-	if err := acct.AssertMember(ctx, userID, ws, "member"); err != nil {
-		return plan, &generateReject{http.StatusForbidden, "not_workspace_member", "not a member of this workspace"}
+	// It generates with AI and creates a design: both actions (F42).
+	for _, a := range []authz.Action{authz.AIUse, authz.DesignCreate} {
+		if err := acct.Require(ctx, userID, ws, a, ""); err != nil {
+			if _, ok := accounts.IsActionError(err); ok {
+				return plan, &generateReject{http.StatusForbidden, "action_not_allowed", "your role does not allow " + string(a)}
+			}
+			return plan, &generateReject{http.StatusForbidden, "not_workspace_member", "not a member of this workspace"}
+		}
 	}
 
 	prompt := strings.TrimSpace(in.Prompt)

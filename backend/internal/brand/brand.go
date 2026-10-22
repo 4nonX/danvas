@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"errors"
 	"strings"
+	"hycanvas/backend/internal/accounts"
 
 	"hycanvas/backend/internal/authz"
 )
@@ -123,14 +124,11 @@ func (s *Service) assertMember(ctx context.Context, userID, workspaceID string) 
 	return nil
 }
 
-// canManageBrand reports whether the caller holds manage-brand in the workspace
-// (owner/admin via the built-in role table, FR-12).
+// canManageBrand reports whether the caller's role allows managing the
+// workspace's brand kits (brand.kits, F42; FR-12).
 func (s *Service) canManageBrand(ctx context.Context, userID, workspaceID string) bool {
-	role := s.workspaceRole(ctx, userID, workspaceID)
-	if role == "" {
-		return false
-	}
-	return authz.Resolve(authz.ResolveInput{WorkspaceRole: role}).Has(authz.CapManageBrand)
+	mr, err := accounts.LoadMemberRole(ctx, s.db, userID, workspaceID)
+	return err == nil && mr.Actions.Has(authz.BrandKits)
 }
 
 func (s *Service) assertCanManage(ctx context.Context, userID, workspaceID string) error {

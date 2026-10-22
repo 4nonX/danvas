@@ -22,6 +22,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"hycanvas/backend/internal/authz"
+	"hycanvas/backend/internal/accounts"
 
 	"github.com/google/uuid"
 
@@ -45,9 +47,31 @@ var (
 	ErrImportSize = errors.New("imported file too large")
 )
 
-// Access enforces workspace membership (satisfied by *accounts.Service).
+// Access enforces workspace membership and role actions (satisfied by
+// *accounts.Service).
 type Access interface {
 	AssertMember(ctx context.Context, userID, workspaceID, minRole string) error
+	Require(ctx context.Context, userID, workspaceID string, a authz.Action, creatorID string) error
+}
+
+// allow checks the caller's role allows the action (F42). The error is
+// ErrForbidden wrapping the action error, so the API can name the action.
+func (s *Service) allow(ctx context.Context, userID, workspaceID string, a authz.Action, creatorID string) error {
+	if err := s.access.Require(ctx, userID, workspaceID, a, creatorID); err != nil {
+		return forbidden(err)
+	}
+	return nil
+}
+
+// uploaderOf returns who uploaded an asset ("" when unknown): the owner for a
+// scoped action.
+func (s *Service) uploaderOf(ctx context.Context, id string) string {
+	var by *string
+	_ = s.db.QueryRow(ctx, `SELECT "uploaded_by_id"::text FROM "assets" WHERE id = $1`, id).Scan(&by)
+	if by == nil {
+		return ""
+	}
+	return *by
 }
 
 // Service is the uploads module.
@@ -179,8 +203,8 @@ func (s *Service) toUploaded(a assetRow) UploadedAsset {
 
 // Upload accepts a base64 file, validates + stores it, and records the asset.
 func (s *Service) Upload(ctx context.Context, userID, workspaceID, filename, dataBase64 string, folderID *string, thumbnail string) (UploadedAsset, error) {
-	if err := s.access.AssertMember(ctx, userID, workspaceID, "member"); err != nil {
-		return UploadedAsset{}, ErrForbidden
+	if err := s.allow(ctx, userID, workspaceID, authz.AssetUpload, ""); err != nil {
+		return UploadedAsset{}, err
 	}
 	buf, err := base64.StdEncoding.DecodeString(dataBase64)
 	if err != nil || len(buf) == 0 {
@@ -269,8 +293,8 @@ func (s *Service) StoreBuiltin(ctx context.Context, workspaceID, ownerID, filena
 // workspaces. The caller checks access to the source; the target needs
 // membership, and quotas apply as for an upload.
 func (s *Service) CopyToWorkspace(ctx context.Context, userID, srcWS, assetID, dstWS string) (UploadedAsset, error) {
-	if err := s.access.AssertMember(ctx, userID, dstWS, "member"); err != nil {
-		return UploadedAsset{}, ErrForbidden
+	if err := s.allow(ctx, userID, dstWS, authz.AssetUpload, ""); err != nil {
+		return UploadedAsset{}, err
 	}
 	a, err := s.getAsset(ctx, assetID)
 	if err != nil {
@@ -320,8 +344,8 @@ func (s *Service) InWorkspace(ctx context.Context, workspaceID string, ids []str
 // over a connection pinned to its vetted IP, so a DNS rebind between the
 // check and the request cannot reach a private address.
 func (s *Service) ImportFromURL(ctx context.Context, userID, workspaceID, rawURL string, folderID *string) (UploadedAsset, error) {
-	if err := s.access.AssertMember(ctx, userID, workspaceID, "member"); err != nil {
-		return UploadedAsset{}, ErrForbidden
+	if err := s.allow(ctx, userID, workspaceID, authz.AssetUpload, ""); err != nil {
+		return UploadedAsset{}, err
 	}
 	buf, err := s.fetchImage(ctx, rawURL)
 	if err != nil {
@@ -558,8 +582,8 @@ func (s *Service) UpdateAsset(ctx context.Context, userID, id string, filename *
 	if err != nil {
 		return UploadedAsset{}, err
 	}
-	if err := s.access.AssertMember(ctx, userID, rec.WorkspaceID, "member"); err != nil {
-		return UploadedAsset{}, ErrForbidden
+	if err := s.allow(ctx, userID, rec.WorkspaceID, authz.AssetEdit, s.uploaderOf(ctx, id)); err != nil {
+		return UploadedAsset{}, err
 	}
 	patch := assetPatch{filename: filename}
 	if tags != nil {
@@ -605,8 +629,8 @@ func (s *Service) Remove(ctx context.Context, userID, id string) error {
 	if err != nil {
 		return err
 	}
-	if err := s.access.AssertMember(ctx, userID, rec.WorkspaceID, "member"); err != nil {
-		return ErrForbidden
+	if err := s.allow(ctx, userID, rec.WorkspaceID, authz.AssetDelete, s.uploaderOf(ctx, id)); err != nil {
+		return err
 	}
 	_ = s.storage.Delete(rec.StorageKey)
 	// The preview proxy (when one was generated) goes with the asset.
@@ -632,8 +656,8 @@ func (s *Service) ListFolders(ctx context.Context, userID, workspaceID string) (
 }
 
 func (s *Service) CreateFolder(ctx context.Context, userID, workspaceID, name string, parentID *string) (FolderView, error) {
-	if err := s.access.AssertMember(ctx, userID, workspaceID, "member"); err != nil {
-		return FolderView{}, ErrForbidden
+	if err := s.allow(ctx, userID, workspaceID, authz.AssetUpload, ""); err != nil {
+		return FolderView{}, err
 	}
 	pid, err := s.resolveFolder(ctx, workspaceID, parentID)
 	if err != nil {
@@ -651,8 +675,8 @@ func (s *Service) RenameFolder(ctx context.Context, userID, id, name string) (Fo
 	if err != nil {
 		return FolderView{}, err
 	}
-	if err := s.access.AssertMember(ctx, userID, f.WorkspaceID, "member"); err != nil {
-		return FolderView{}, ErrForbidden
+	if err := s.allow(ctx, userID, f.WorkspaceID, authz.AssetUpload, ""); err != nil {
+		return FolderView{}, err
 	}
 	updated, err := s.renameFolder(ctx, id, strings.TrimSpace(name))
 	if err != nil {
@@ -668,8 +692,8 @@ func (s *Service) DeleteFolder(ctx context.Context, userID, id string) error {
 	if err != nil {
 		return err
 	}
-	if err := s.access.AssertMember(ctx, userID, f.WorkspaceID, "member"); err != nil {
-		return ErrForbidden
+	if err := s.allow(ctx, userID, f.WorkspaceID, authz.AssetUpload, ""); err != nil {
+		return err
 	}
 	folders, err := s.listFolders(ctx, f.WorkspaceID)
 	if err != nil {
@@ -825,4 +849,13 @@ func (s *Service) openContentOf(ctx context.Context, workspaceID, id string) (io
 
 func toFolderView(f folderRow) FolderView {
 	return FolderView{ID: f.ID, WorkspaceID: f.WorkspaceID, Name: f.Name, ParentID: f.ParentID, CreatedAt: f.CreatedAt.UTC().Format(isoFmt)}
+}
+
+// forbidden maps a role check failure: a missing action keeps its name for
+// the API (wrapped in ErrForbidden), anything else is plain ErrForbidden.
+func forbidden(err error) error {
+	if _, ok := accounts.IsActionError(err); ok {
+		return fmt.Errorf("%w: %w", ErrForbidden, err)
+	}
+	return ErrForbidden
 }

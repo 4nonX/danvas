@@ -2,6 +2,7 @@ package convert
 
 import (
 	"context"
+	"hycanvas/backend/internal/authz"
 
 	"hycanvas/backend/internal/accounts"
 	"hycanvas/backend/internal/persistence"
@@ -30,7 +31,8 @@ func (s *Service) WhiteboardToDeck(ctx context.Context, userID, designID string)
 	if err != nil {
 		return nil, err
 	}
-	if err := s.acct.AssertMember(ctx, userID, ws, "member"); err != nil {
+	// It makes a new deck from the board (F42: design.create).
+	if err := s.acct.Require(ctx, userID, ws, authz.DesignCreate, ""); err != nil {
 		return nil, err
 	}
 	loaded, err := s.persist.LoadFile(ctx, designID, ws)

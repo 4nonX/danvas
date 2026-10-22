@@ -21,6 +21,7 @@ import (
 	// CGO-free, minimal-container binary (no reliance on system zoneinfo). Used to
 	// validate user-profile timezones and for any server-side local-time rendering.
 	_ "time/tzdata"
+	"hycanvas/backend/internal/workspacecli"
 
 	"hycanvas/backend/internal/accountdata"
 	"hycanvas/backend/internal/accounts"
@@ -86,6 +87,11 @@ func main() {
 	// runs its own env loading and never boots the server.
 	if len(os.Args) > 1 && os.Args[1] == "storage" {
 		os.Exit(storagecli.Run(os.Args[2:], os.Stdin, os.Stdout, os.Stderr))
+	}
+	// `hycanvas workspace grant-owner <workspace> <email>`: recovery when no
+	// one can administer a workspace any more (F42). Never boots the server.
+	if len(os.Args) > 1 && os.Args[1] == "workspace" {
+		os.Exit(workspacecli.Run(os.Args[2:], os.Stdout, os.Stderr))
 	}
 
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
@@ -197,6 +203,14 @@ func main() {
 		mfaSecret = cfg.JWTSecret
 	}
 	acct := accounts.NewService(pool, cfg.JWTSecret).WithMFASecret(mfaSecret)
+	// Workspace roles (F42): seed every workspace that has none and give every
+	// membership written by an older release its role. Idempotent; a failure
+	// leaves those members on their legacy rights, which checks still honour.
+	if n, err := acct.BackfillRoles(context.Background()); err != nil {
+		logger.Error("workspace roles: backfill incomplete", "workspaces", n, "err", err)
+	} else {
+		logger.Info("workspace roles up to date", "workspaces", n)
+	}
 	persist := persistence.NewService(pool).WithStorage(store)
 	titles := commentsPersist{persist}
 	homeSvc := home.NewService(pool, persist, acct)

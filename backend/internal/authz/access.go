@@ -65,7 +65,10 @@ type CustomRole struct {
 }
 
 type ResolveInput struct {
-	WorkspaceRole  WorkspaceRole // "" when not a member
+	WorkspaceRole WorkspaceRole // "" when not a member (pre-F42 callers)
+	// Member is what the caller's workspace role contributes, from its actions
+	// (F42); it takes the place of WorkspaceRole. nil when not a member.
+	Member         *MemberAccess
 	Grants         []AccessMode
 	Link           AccessMode // "" when none
 	CustomRoles    []CustomRole
@@ -95,7 +98,9 @@ func capMode(mode, ceiling AccessMode) AccessMode {
 // Resolve computes the caller's effective mode + capabilities for one design.
 func Resolve(in ResolveInput) DesignAccess {
 	var sources []AccessMode
-	if in.WorkspaceRole != "" {
+	if in.Member != nil {
+		sources = append(sources, in.Member.BaseMode)
+	} else if in.WorkspaceRole != "" {
 		sources = append(sources, roleBaseMode[in.WorkspaceRole])
 	}
 	sources = append(sources, in.Grants...)
@@ -134,7 +139,9 @@ func Resolve(in ResolveInput) DesignAccess {
 				caps[c] = true
 			}
 		}
-		if in.WorkspaceRole != "" {
+		if in.Member != nil {
+			add(in.Member.Capabilities)
+		} else if in.WorkspaceRole != "" {
 			add(builtinRoleCapabilities[in.WorkspaceRole])
 		}
 		for _, r := range in.CustomRoles {

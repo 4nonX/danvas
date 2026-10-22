@@ -153,6 +153,7 @@ func NewRouter(d Deps) http.Handler {
 			mountAuth(api, d.Accounts, d.Secure, d.Auth, d.Captcha)
 			mountWorkspaces(api, d.Accounts)
 			mountMembers(api, d.Accounts)
+			mountRoles(api, d.Accounts)
 		}
 		// F40: API keys. The auth middleware's key branch activates only when
 		// the service is wired; the tenancy guard needs the design->workspace

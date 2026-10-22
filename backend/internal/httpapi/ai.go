@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"hycanvas/backend/internal/authz"
 	"hycanvas/backend/internal/accounts"
 	"hycanvas/backend/internal/ai"
 	"hycanvas/backend/internal/aistudio"
@@ -203,6 +204,13 @@ func aiAssert(r *http.Request, acct *accounts.Service, workspaceID, minRole stri
 	return acct.AssertMember(r.Context(), u.ID, workspaceID, minRole) == nil
 }
 
+// aiAllow checks that the caller's role allows the action (F42): ai.use to
+// generate, ai.configure to change providers, policy and search.
+func aiAllow(r *http.Request, acct *accounts.Service, workspaceID string, a authz.Action) bool {
+	u := userFrom(r.Context())
+	return acct.Require(r.Context(), u.ID, workspaceID, a, "") == nil
+}
+
 func aiGetConfigHandler(svc *ai.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
@@ -222,7 +230,7 @@ func aiGetConfigHandler(svc *ai.Service, acct *accounts.Service) http.HandlerFun
 func aiSetConfigHandler(svc *ai.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		if !aiAssert(r, acct, id, "admin") {
+		if !aiAllow(r, acct, id, authz.AIConfigure) {
 			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "admin access required", "admin_access_required")
 			return
 		}
@@ -287,7 +295,7 @@ func decodeCandidate(r *http.Request, dst any) (present bool, err error) {
 func aiTestConfigHandler(svc *ai.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		if !aiAssert(r, acct, id, "admin") {
+		if !aiAllow(r, acct, id, authz.AIConfigure) {
 			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "admin access required", "admin_access_required")
 			return
 		}
@@ -333,7 +341,7 @@ type aiModelsBody struct {
 func aiListModelsHandler(svc *ai.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		if !aiAssert(r, acct, id, "admin") {
+		if !aiAllow(r, acct, id, authz.AIConfigure) {
 			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "admin access required", "admin_access_required")
 			return
 		}
@@ -368,7 +376,7 @@ func aiListModelsHandler(svc *ai.Service, acct *accounts.Service) http.HandlerFu
 func aiListImageModelsHandler(svc *ai.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		if !aiAssert(r, acct, id, "admin") {
+		if !aiAllow(r, acct, id, authz.AIConfigure) {
 			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "admin access required", "admin_access_required")
 			return
 		}
@@ -392,7 +400,7 @@ func aiListImageModelsHandler(svc *ai.Service, acct *accounts.Service) http.Hand
 func aiDeleteConfigHandler(svc *ai.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		if !aiAssert(r, acct, id, "admin") {
+		if !aiAllow(r, acct, id, authz.AIConfigure) {
 			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "admin access required", "admin_access_required")
 			return
 		}
@@ -460,7 +468,7 @@ func aiGetImageConfigHandler(svc *ai.Service, acct *accounts.Service) http.Handl
 func aiSetImageConfigHandler(svc *ai.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		if !aiAssert(r, acct, id, "admin") {
+		if !aiAllow(r, acct, id, authz.AIConfigure) {
 			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "admin access required", "admin_access_required")
 			return
 		}
@@ -481,7 +489,7 @@ func aiSetImageConfigHandler(svc *ai.Service, acct *accounts.Service) http.Handl
 func aiDeleteImageConfigHandler(svc *ai.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		if !aiAssert(r, acct, id, "admin") {
+		if !aiAllow(r, acct, id, authz.AIConfigure) {
 			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "admin access required", "admin_access_required")
 			return
 		}
@@ -499,7 +507,7 @@ func aiDeleteImageConfigHandler(svc *ai.Service, acct *accounts.Service) http.Ha
 func aiTestImageConfigHandler(svc *ai.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		if !aiAssert(r, acct, id, "admin") {
+		if !aiAllow(r, acct, id, authz.AIConfigure) {
 			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "admin access required", "admin_access_required")
 			return
 		}
@@ -543,7 +551,7 @@ func aiGetPolicyHandler(svc *ai.Service, acct *accounts.Service) http.HandlerFun
 func aiSetPolicyHandler(svc *ai.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		if !aiAssert(r, acct, id, "admin") {
+		if !aiAllow(r, acct, id, authz.AIConfigure) {
 			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "admin access required", "admin_access_required")
 			return
 		}
@@ -592,7 +600,7 @@ func aiTextHandler(svc *ai.Service, acct *accounts.Service) http.HandlerFunc {
 			problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "invalid body", "invalid_body")
 			return
 		}
-		if !aiAssert(r, acct, body.WorkspaceID, "member") {
+		if !aiAllow(r, acct, body.WorkspaceID, authz.AIUse) {
 			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "not a member of this workspace", "not_workspace_member")
 			return
 		}
@@ -621,7 +629,7 @@ func aiTextStructuredHandler(svc *ai.Service, acct *accounts.Service) http.Handl
 			problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "invalid body", "invalid_body")
 			return
 		}
-		if !aiAssert(r, acct, body.WorkspaceID, "member") {
+		if !aiAllow(r, acct, body.WorkspaceID, authz.AIUse) {
 			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "not a member of this workspace", "not_workspace_member")
 			return
 		}
@@ -645,7 +653,7 @@ func aiImageHandler(svc *ai.Service, acct *accounts.Service, up *uploads.Service
 			problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "invalid body", "invalid_body")
 			return
 		}
-		if !aiAssert(r, acct, body.WorkspaceID, "member") {
+		if !aiAllow(r, acct, body.WorkspaceID, authz.AIUse) {
 			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "not a member of this workspace", "not_workspace_member")
 			return
 		}
@@ -670,7 +678,7 @@ func aiDescribeImageHandler(svc *ai.Service, acct *accounts.Service) http.Handle
 			problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "invalid body", "invalid_body")
 			return
 		}
-		if !aiAssert(r, acct, body.WorkspaceID, "member") {
+		if !aiAllow(r, acct, body.WorkspaceID, authz.AIUse) {
 			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "not a member of this workspace", "not_workspace_member")
 			return
 		}
@@ -696,7 +704,7 @@ func aiEditImageHandler(svc *ai.Service, acct *accounts.Service, up *uploads.Ser
 			problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "invalid body", "invalid_body")
 			return
 		}
-		if !aiAssert(r, acct, body.WorkspaceID, "member") {
+		if !aiAllow(r, acct, body.WorkspaceID, authz.AIUse) {
 			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "not a member of this workspace", "not_workspace_member")
 			return
 		}

@@ -11,11 +11,15 @@ package home
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
+	"hycanvas/backend/internal/accounts"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+
+	"hycanvas/backend/internal/authz"
 )
 
 var (
@@ -63,6 +67,37 @@ func (s *Service) member(ctx context.Context, userID, workspaceID, role string) 
 		return ErrForbidden
 	}
 	return nil
+}
+
+// allow checks the caller's role allows the action (F42); creatorID makes a
+// scoped action pass for "own". The error is ErrForbidden, wrapping the
+// action error so the API can name the missing action.
+func (s *Service) allow(ctx context.Context, userID, workspaceID string, a authz.Action, creatorID string) error {
+	if err := s.access.Require(ctx, userID, workspaceID, a, creatorID); err != nil {
+		return forbidden(err)
+	}
+	return nil
+}
+
+// creators maps rows of a table (designs or projects) to who created them.
+func (s *Service) creators(ctx context.Context, table, workspaceID string, ids []string) (map[string]string, error) {
+	out := map[string]string{}
+	if len(ids) == 0 {
+		return out, nil
+	}
+	rows, err := s.db.Query(ctx, `SELECT id::text, COALESCE("created_by_id"::text, '') FROM `+table+` WHERE "workspace_id" = $1 AND id = ANY($2::uuid[])`, workspaceID, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var id, by string
+		if err := rows.Scan(&id, &by); err != nil {
+			return nil, err
+		}
+		out[id] = by
+	}
+	return out, rows.Err()
 }
 
 // folderWorkspace returns the workspace a folder belongs to.
@@ -123,7 +158,7 @@ func (s *Service) ListFolders(ctx context.Context, userID, workspaceID string) (
 
 // CreateFolder makes a folder under parentID (nil = workspace root).
 func (s *Service) CreateFolder(ctx context.Context, userID, workspaceID, name string, parentID *string) (Folder, error) {
-	if err := s.member(ctx, userID, workspaceID, "member"); err != nil {
+	if err := s.allow(ctx, userID, workspaceID, authz.FolderCreate, ""); err != nil {
 		return Folder{}, err
 	}
 	n, err := cleanName(name)
@@ -152,7 +187,11 @@ func (s *Service) UpdateFolder(ctx context.Context, userID, id string, name *str
 	if err != nil {
 		return err
 	}
-	if err := s.member(ctx, userID, ws, "member"); err != nil {
+	by, err := s.creators(ctx, `"projects"`, ws, []string{id})
+	if err != nil {
+		return err
+	}
+	if err := s.allow(ctx, userID, ws, authz.FolderEdit, by[id]); err != nil {
 		return err
 	}
 	if name != nil {
@@ -212,12 +251,35 @@ func (s *Service) moveFolders(ctx context.Context, q DBTX, workspaceID string, i
 // Move puts designs and folders into target (nil = workspace root) as one
 // step: either everything moves or nothing does.
 func (s *Service) Move(ctx context.Context, userID, workspaceID string, designIDs, folderIDs []string, target *string) error {
-	if err := s.member(ctx, userID, workspaceID, "member"); err != nil {
+	if err := s.member(ctx, userID, workspaceID, "viewer"); err != nil {
 		return err
 	}
 	for _, id := range append(append([]string{}, designIDs...), folderIDs...) {
 		if _, err := uuid.Parse(id); err != nil {
 			return ErrInvalid
+		}
+	}
+	// Each moved folder needs folder.edit and each moved design design.edit,
+	// scoped to who created it (F42).
+	for _, c := range []struct {
+		table string
+		ids   []string
+		a     authz.Action
+	}{{`"projects"`, folderIDs, authz.FolderEdit}, {`"designs"`, designIDs, authz.DesignEdit}} {
+		by, err := s.creators(ctx, c.table, workspaceID, c.ids)
+		if err != nil {
+			return err
+		}
+		for _, id := range c.ids {
+			if err := s.allow(ctx, userID, workspaceID, c.a, by[id]); err != nil {
+				return err
+			}
+		}
+	}
+	if len(designIDs)+len(folderIDs) == 0 {
+		// Nothing to move: still only for roles that may organize folders.
+		if err := s.allow(ctx, userID, workspaceID, authz.FolderEdit, ""); err != nil {
+			return err
 		}
 	}
 	if err := s.checkParent(ctx, workspaceID, target); err != nil {
@@ -254,7 +316,11 @@ func (s *Service) DeleteFolder(ctx context.Context, userID, id string) error {
 	if err != nil {
 		return err
 	}
-	if err := s.member(ctx, userID, ws, "member"); err != nil {
+	by, err := s.creators(ctx, `"projects"`, ws, []string{id})
+	if err != nil {
+		return err
+	}
+	if err := s.allow(ctx, userID, ws, authz.FolderDelete, by[id]); err != nil {
 		return err
 	}
 	b, ok := s.db.(Beginner)
@@ -280,4 +346,13 @@ func (s *Service) DeleteFolder(ctx context.Context, userID, id string) error {
 		return err
 	}
 	return tx.Commit(ctx)
+}
+
+// forbidden maps a role check failure: a missing action keeps its name for
+// the API (wrapped in ErrForbidden), anything else is plain ErrForbidden.
+func forbidden(err error) error {
+	if _, ok := accounts.IsActionError(err); ok {
+		return fmt.Errorf("%w: %w", ErrForbidden, err)
+	}
+	return ErrForbidden
 }

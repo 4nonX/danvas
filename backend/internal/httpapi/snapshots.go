@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"hycanvas/backend/internal/authz"
 	"hycanvas/backend/internal/accounts"
 	"hycanvas/backend/internal/brand"
 	"hycanvas/backend/internal/persistence"
@@ -64,7 +65,7 @@ func snapshotHandler(p *persistence.Service, br *brand.Service, acct *accounts.S
 			return
 		}
 		id := chi.URLParam(r, "id")
-		ws, err := authorizeDesign(r, p, acct, id, "member")
+		ws, err := authorizeDesignAction(r, p, acct, id, authz.DesignEdit)
 		if err != nil {
 			authProblem(w, r, err)
 			return

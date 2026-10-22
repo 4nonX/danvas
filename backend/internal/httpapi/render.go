@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"hycanvas/backend/internal/authz"
 	"hycanvas/backend/internal/accounts"
 	"hycanvas/backend/internal/persistence"
 	"hycanvas/backend/internal/render"
@@ -28,7 +29,7 @@ func mountRender(api chi.Router, p *persistence.Service, acct *accounts.Service,
 func renderVideoHandler(p *persistence.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		ws, err := authorizeDesign(r, p, acct, id, "viewer")
+		ws, err := authorizeDesignAction(r, p, acct, id, authz.DesignDownload)
 		if err != nil {
 			authProblem(w, r, err)
 			return
@@ -73,7 +74,7 @@ func atoiOr(s string, def int) int {
 func renderRasterHandler(p *persistence.Service, acct *accounts.Service, up *uploads.Service, format string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		ws, err := authorizeDesign(r, p, acct, id, "viewer")
+		ws, err := authorizeDesignAction(r, p, acct, id, authz.DesignDownload)
 		if err != nil {
 			authProblem(w, r, err)
 			return
@@ -148,7 +149,7 @@ func pdfImageSource(r *http.Request, up *uploads.Service, ws string) render.Imag
 func renderPDFHandler(p *persistence.Service, acct *accounts.Service, up *uploads.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		ws, err := authorizeDesign(r, p, acct, id, "viewer")
+		ws, err := authorizeDesignAction(r, p, acct, id, authz.DesignDownload)
 		if err != nil {
 			authProblem(w, r, err)
 			return
@@ -188,7 +189,7 @@ func renderPDFHandler(p *persistence.Service, acct *accounts.Service, up *upload
 func renderSVGHandler(p *persistence.Service, acct *accounts.Service, up *uploads.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		ws, err := authorizeDesign(r, p, acct, id, "viewer")
+		ws, err := authorizeDesignAction(r, p, acct, id, authz.DesignDownload)
 		if err != nil {
 			authProblem(w, r, err)
 			return

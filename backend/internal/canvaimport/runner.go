@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"hycanvas/backend/internal/authz"
 	"hycanvas/backend/internal/canva"
 	"hycanvas/backend/internal/home"
 	"hycanvas/backend/internal/persistence"
@@ -41,9 +42,10 @@ type Designs interface {
 	Create(ctx context.Context, ws, title string, from persistence.DesignFile, authorID *string) (persistence.DesignRecord, error)
 }
 
-// Access checks that the owner may still add designs to the workspace.
+// Access checks that the owner may still add designs to the workspace
+// (design.create, F42).
 type Access interface {
-	AssertMember(ctx context.Context, userID, ws, minRole string) error
+	Require(ctx context.Context, userID, ws string, a authz.Action, creatorID string) error
 }
 
 // Converter turns exports into design file JSON (internal/pptxconv).
@@ -145,7 +147,7 @@ const maxPicks = 5000
 // root) for the caller. untitled names untitled designs and folders in the
 // caller's language.
 func (s *Service) Start(ctx context.Context, ws, userID string, targetFolderID *string, picks []Pick, untitled string) (Run, error) {
-	if err := s.access.AssertMember(ctx, userID, ws, "member"); err != nil {
+	if err := s.access.Require(ctx, userID, ws, authz.DesignCreate, ""); err != nil {
 		return Run{}, ErrForbidden
 	}
 	if len(picks) == 0 || len(picks) > maxPicks {
@@ -417,7 +419,7 @@ func (x *execution) run() (string, *halt) {
 		}
 		return &halt{code: HaltError, detail: err.Error()}
 	}
-	if err := x.s.access.AssertMember(x.ctx, user, ws, "member"); err != nil {
+	if err := x.s.access.Require(x.ctx, user, ws, authz.DesignCreate, ""); err != nil {
 		return "", &halt{code: HaltAccessLost}
 	}
 
@@ -510,7 +512,7 @@ func (x *execution) run() (string, *halt) {
 			continue
 		}
 		// The owner may have lost access to the workspace while this ran.
-		if err := x.s.access.AssertMember(x.ctx, user, ws, "member"); err != nil {
+		if err := x.s.access.Require(x.ctx, user, ws, authz.DesignCreate, ""); err != nil {
 			return "", &halt{code: HaltAccessLost}
 		}
 		x.p.Current = label

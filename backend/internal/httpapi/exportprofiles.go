@@ -26,6 +26,10 @@ func mountExportProfiles(api chi.Router, p *exportprofiles.Service, acct *accoun
 }
 
 func exportProfileProblem(w http.ResponseWriter, r *http.Request, err error) {
+	if a, ok := accounts.IsActionError(err); ok {
+		actionProblem(w, r, a)
+		return
+	}
 	switch {
 	case errors.Is(err, exportprofiles.ErrForbidden):
 		problemWithCode(w, r, http.StatusForbidden, "Forbidden", "not allowed to manage these export profiles", "export_profile_forbidden")

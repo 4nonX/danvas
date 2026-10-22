@@ -25,6 +25,7 @@ import (
 	"errors"
 	"regexp"
 	"strings"
+	"hycanvas/backend/internal/authz"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -50,6 +51,7 @@ type DBTX interface {
 
 type Access interface {
 	AssertMember(ctx context.Context, userID, workspaceID, minRole string) error
+	Require(ctx context.Context, userID, workspaceID string, a authz.Action, creatorID string) error
 }
 
 type Designs interface {
@@ -133,7 +135,7 @@ func (s *Service) Prepare(ctx context.Context, userID string, in Input) (string,
 	if in.TargetWorkspaceID == "" || len(in.DesignIDs)+len(in.FolderIDs) == 0 {
 		return "", ErrBadRequest
 	}
-	if s.access.AssertMember(ctx, userID, in.TargetWorkspaceID, "member") != nil {
+	if s.access.Require(ctx, userID, in.TargetWorkspaceID, authz.DesignCreate, "") != nil {
 		return "", ErrForbidden
 	}
 	src := ""
@@ -164,14 +166,28 @@ func (s *Service) Prepare(ctx context.Context, userID string, in Input) (string,
 			return "", err
 		}
 	}
-	// Moving changes the source (its designs go to the trash): members only.
-	// A copy needs to read it: viewers too.
-	role := "viewer"
-	if in.Move {
-		role = "member"
-	}
-	if s.access.AssertMember(ctx, userID, src, role) != nil {
+	// A copy needs to read the source: any member. Moving puts the source's
+	// designs in the trash (F42: design.trash): each design for its creator,
+	// and a whole folder only with design.trash on everything (it carries
+	// other people's designs with it).
+	if s.access.AssertMember(ctx, userID, src, "viewer") != nil {
 		return "", ErrForbidden
+	}
+	if in.Move {
+		for _, id := range in.DesignIDs {
+			var creator *string
+			_ = s.db.QueryRow(ctx, `SELECT "created_by_id"::text FROM "designs" WHERE id::text = $1`, id).Scan(&creator)
+			by := ""
+			if creator != nil {
+				by = *creator
+			}
+			if s.access.Require(ctx, userID, src, authz.DesignTrash, by) != nil {
+				return "", ErrForbidden
+			}
+		}
+		if len(in.FolderIDs) > 0 && s.access.Require(ctx, userID, src, authz.DesignTrash, "") != nil {
+			return "", ErrForbidden
+		}
 	}
 	if in.TargetFolderID != nil && *in.TargetFolderID != "" {
 		var ws string

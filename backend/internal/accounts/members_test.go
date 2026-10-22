@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"testing"
+	"errors"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -93,8 +94,8 @@ func TestMembersAndInvites_DB(t *testing.T) {
 		t.Fatalf("expected 2 members, got %d (%v)", len(members), err)
 	}
 
-	// A plain member cannot invite (needs admin+).
-	if _, _, err := svc.Invite(ctx, invitee.ID, ws.ID, "x+"+uuid.NewString()+"@example.com", "member"); err != ErrForbidden {
+	// A plain member cannot invite (their role lacks members.invite).
+	if _, _, err := svc.Invite(ctx, invitee.ID, ws.ID, "x+"+uuid.NewString()+"@example.com", "member"); !errors.Is(err, ErrForbidden) {
 		t.Fatalf("member invite must be forbidden, got %v", err)
 	}
 

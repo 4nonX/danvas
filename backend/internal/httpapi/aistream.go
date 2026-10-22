@@ -16,6 +16,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"hycanvas/backend/internal/authz"
 	"hycanvas/backend/internal/accounts"
 	"hycanvas/backend/internal/aistudio"
 )
@@ -37,7 +38,7 @@ func aiStudioGenerateStreamHandler(svc *aistudio.Service, acct *accounts.Service
 			problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "invalid body", "invalid_body")
 			return
 		}
-		if !aiAssert(r, acct, body.WorkspaceID, "member") {
+		if !aiAllow(r, acct, body.WorkspaceID, authz.AIUse) {
 			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "not a member of this workspace", "not_workspace_member")
 			return
 		}

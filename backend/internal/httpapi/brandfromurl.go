@@ -24,6 +24,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"golang.org/x/net/html"
 
+	"hycanvas/backend/internal/authz"
 	"hycanvas/backend/internal/accounts"
 	"hycanvas/backend/internal/aistudio"
 )
@@ -340,7 +341,7 @@ func brandFromURLHandler(studio *aistudio.Service, acct *accounts.Service) http.
 			problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "missing url", "missing_url")
 			return
 		}
-		if !aiAssert(r, acct, body.WorkspaceID, "member") {
+		if !aiAllow(r, acct, body.WorkspaceID, authz.AIUse) {
 			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "not a member of this workspace", "not_workspace_member")
 			return
 		}

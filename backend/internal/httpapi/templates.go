@@ -33,6 +33,10 @@ func mountTemplates(api chi.Router, tm *templates.Service, acct *accounts.Servic
 }
 
 func templatesProblem(w http.ResponseWriter, r *http.Request, err error) {
+	if a, ok := accounts.IsActionError(err); ok {
+		actionProblem(w, r, a)
+		return
+	}
 	switch {
 	case errors.Is(err, templates.ErrForbidden):
 		problemWithCode(w, r, http.StatusForbidden, "Forbidden", "you do not have permission for this action", "forbidden_action")

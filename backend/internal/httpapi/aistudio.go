@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"hycanvas/backend/internal/authz"
 	"hycanvas/backend/internal/accounts"
 	"hycanvas/backend/internal/ai"
 	"hycanvas/backend/internal/aistudio"
@@ -98,7 +99,7 @@ func aiStudioOutlineHandler(svc *aistudio.Service, acct *accounts.Service) http.
 			problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "invalid body", "invalid_body")
 			return
 		}
-		if !aiAssert(r, acct, body.WorkspaceID, "member") {
+		if !aiAllow(r, acct, body.WorkspaceID, authz.AIUse) {
 			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "not a member of this workspace", "not_workspace_member")
 			return
 		}
@@ -127,7 +128,7 @@ func aiStudioSvgHandler(svc *aistudio.Service, acct *accounts.Service) http.Hand
 			problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "invalid body", "invalid_body")
 			return
 		}
-		if !aiAssert(r, acct, body.WorkspaceID, "member") {
+		if !aiAllow(r, acct, body.WorkspaceID, authz.AIUse) {
 			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "not a member of this workspace", "not_workspace_member")
 			return
 		}
@@ -150,7 +151,7 @@ func aiStudioChartHandler(svc *aistudio.Service, acct *accounts.Service) http.Ha
 			problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "invalid body", "invalid_body")
 			return
 		}
-		if !aiAssert(r, acct, body.WorkspaceID, "member") {
+		if !aiAllow(r, acct, body.WorkspaceID, authz.AIUse) {
 			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "not a member of this workspace", "not_workspace_member")
 			return
 		}
@@ -175,7 +176,7 @@ func aiStudioAssistantHandler(svc *aistudio.Service, acct *accounts.Service) htt
 			problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "invalid body", "invalid_body")
 			return
 		}
-		if !aiAssert(r, acct, body.WorkspaceID, "member") {
+		if !aiAllow(r, acct, body.WorkspaceID, authz.AIUse) {
 			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "not a member of this workspace", "not_workspace_member")
 			return
 		}
@@ -199,7 +200,7 @@ func aiStudioStyleHandler(svc *aistudio.Service, acct *accounts.Service) http.Ha
 			problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "invalid body", "invalid_body")
 			return
 		}
-		if !aiAssert(r, acct, body.WorkspaceID, "member") {
+		if !aiAllow(r, acct, body.WorkspaceID, authz.AIUse) {
 			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "not a member of this workspace", "not_workspace_member")
 			return
 		}
@@ -222,7 +223,7 @@ func aiStudioCritiqueHandler(svc *aistudio.Service, acct *accounts.Service) http
 			problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "invalid body", "invalid_body")
 			return
 		}
-		if !aiAssert(r, acct, body.WorkspaceID, "member") {
+		if !aiAllow(r, acct, body.WorkspaceID, authz.AIUse) {
 			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "not a member of this workspace", "not_workspace_member")
 			return
 		}
@@ -251,7 +252,7 @@ func aiStudioReviewPageHandler(svc *aistudio.Service, acct *accounts.Service) ht
 			problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "invalid body", "invalid_body")
 			return
 		}
-		if !aiAssert(r, acct, body.WorkspaceID, "member") {
+		if !aiAllow(r, acct, body.WorkspaceID, authz.AIUse) {
 			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "not a member of this workspace", "not_workspace_member")
 			return
 		}
@@ -286,7 +287,7 @@ func aiStudioGenerateHandler(svc *aistudio.Service, acct *accounts.Service, reg 
 			problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "invalid body", "invalid_body")
 			return
 		}
-		if !aiAssert(r, acct, body.WorkspaceID, "member") {
+		if !aiAllow(r, acct, body.WorkspaceID, authz.AIUse) {
 			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "not a member of this workspace", "not_workspace_member")
 			return
 		}
@@ -315,7 +316,7 @@ func aiStudioVariationsHandler(svc *aistudio.Service, acct *accounts.Service, re
 			problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "invalid body", "invalid_body")
 			return
 		}
-		if !aiAssert(r, acct, body.WorkspaceID, "member") {
+		if !aiAllow(r, acct, body.WorkspaceID, authz.AIUse) {
 			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "not a member of this workspace", "not_workspace_member")
 			return
 		}
@@ -353,7 +354,7 @@ func aiSessionsListHandler(svc *aistudio.Service, acct *accounts.Service, p *per
 func aiSessionsCreateHandler(svc *aistudio.Service, acct *accounts.Service, p *persistence.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		designID := chi.URLParam(r, "id")
-		ws, err := authorizeDesign(r, p, acct, designID, "member")
+		ws, err := authorizeDesignAction(r, p, acct, designID, authz.AIUse)
 		if err != nil {
 			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "not permitted", "not_permitted")
 			return
@@ -387,7 +388,7 @@ func aiTurnsListHandler(svc *aistudio.Service, acct *accounts.Service, p *persis
 func aiTurnsCreateHandler(svc *aistudio.Service, acct *accounts.Service, p *persistence.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		designID := chi.URLParam(r, "id")
-		ws, err := authorizeDesign(r, p, acct, designID, "member")
+		ws, err := authorizeDesignAction(r, p, acct, designID, authz.AIUse)
 		if err != nil {
 			problemWithCode(w, r, http.StatusForbidden, "Forbidden", "not permitted", "not_permitted")
 			return

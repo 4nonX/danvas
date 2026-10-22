@@ -26,6 +26,10 @@ func mountPrintProfiles(api chi.Router, p *printprofiles.Service, acct *accounts
 }
 
 func printProfileProblem(w http.ResponseWriter, r *http.Request, err error) {
+	if a, ok := accounts.IsActionError(err); ok {
+		actionProblem(w, r, a)
+		return
+	}
 	switch {
 	case errors.Is(err, printprofiles.ErrForbidden):
 		problemWithCode(w, r, http.StatusForbidden, "Forbidden", "workspace admins manage print profiles", "print_profile_forbidden")

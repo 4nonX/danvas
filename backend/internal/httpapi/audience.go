@@ -21,6 +21,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"hycanvas/backend/internal/authz"
 	"hycanvas/backend/internal/accounts"
 	"hycanvas/backend/internal/audience"
 	"hycanvas/backend/internal/persistence"
@@ -240,7 +241,7 @@ func audienceStateHandler(aud *audience.Service, sh *sharing.Service, acct *acco
 func presenterStateHandler(aud *audience.Service, p *persistence.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		if _, err := authorizeDesign(r, p, acct, id, "member"); err != nil {
+		if _, err := authorizeDesignAction(r, p, acct, id, authz.DesignPresent); err != nil {
 			authProblem(w, r, err)
 			return
 		}
@@ -256,7 +257,7 @@ func presenterStateHandler(aud *audience.Service, p *persistence.Service, acct *
 func presenterModerateHandler(aud *audience.Service, p *persistence.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		if _, err := authorizeDesign(r, p, acct, id, "member"); err != nil {
+		if _, err := authorizeDesignAction(r, p, acct, id, authz.DesignPresent); err != nil {
 			authProblem(w, r, err)
 			return
 		}
@@ -279,7 +280,7 @@ func presenterModerateHandler(aud *audience.Service, p *persistence.Service, acc
 func presenterCreatePollHandler(aud *audience.Service, p *persistence.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		if _, err := authorizeDesign(r, p, acct, id, "member"); err != nil {
+		if _, err := authorizeDesignAction(r, p, acct, id, authz.DesignPresent); err != nil {
 			authProblem(w, r, err)
 			return
 		}
@@ -303,7 +304,7 @@ func presenterCreatePollHandler(aud *audience.Service, p *persistence.Service, a
 func presenterPollOpenHandler(aud *audience.Service, p *persistence.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		if _, err := authorizeDesign(r, p, acct, id, "member"); err != nil {
+		if _, err := authorizeDesignAction(r, p, acct, id, authz.DesignPresent); err != nil {
 			authProblem(w, r, err)
 			return
 		}
@@ -327,7 +328,7 @@ func presenterPollOpenHandler(aud *audience.Service, p *persistence.Service, acc
 func presenterLiveHandler(aud *audience.Service, p *persistence.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		if _, err := authorizeDesign(r, p, acct, id, "member"); err != nil {
+		if _, err := authorizeDesignAction(r, p, acct, id, authz.DesignPresent); err != nil {
 			authProblem(w, r, err)
 			return
 		}
@@ -349,7 +350,7 @@ func presenterLiveHandler(aud *audience.Service, p *persistence.Service, acct *a
 func presenterClearHandler(aud *audience.Service, p *persistence.Service, acct *accounts.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		if _, err := authorizeDesign(r, p, acct, id, "member"); err != nil {
+		if _, err := authorizeDesignAction(r, p, acct, id, authz.DesignPresent); err != nil {
 			authProblem(w, r, err)
 			return
 		}

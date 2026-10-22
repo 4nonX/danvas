@@ -5,6 +5,8 @@ package httpapi
 import (
 	"encoding/json"
 	"net/http"
+
+	"hycanvas/backend/internal/authz"
 )
 
 type problemDoc struct {
@@ -14,6 +16,8 @@ type problemDoc struct {
 	Detail   string `json:"detail,omitempty"`
 	Instance string `json:"instance,omitempty"`
 	Code     string `json:"code,omitempty"`
+	// Action names the workspace action a role lacks (code action_not_allowed).
+	Action string `json:"action,omitempty"`
 }
 
 // ProblemCode writes a problem+json response carrying a stable machine code
@@ -57,4 +61,20 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(v)
+}
+
+// actionProblem is the 403 of a role without the action (F42): the code is
+// fixed, the action is in its own field so the client can name it.
+func actionProblem(w http.ResponseWriter, r *http.Request, a authz.Action) {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(http.StatusForbidden)
+	_ = json.NewEncoder(w).Encode(problemDoc{
+		Type:     "about:blank",
+		Title:    "Forbidden",
+		Status:   http.StatusForbidden,
+		Detail:   "your role does not allow " + string(a),
+		Instance: r.URL.Path,
+		Code:     "action_not_allowed",
+		Action:   string(a),
+	})
 }

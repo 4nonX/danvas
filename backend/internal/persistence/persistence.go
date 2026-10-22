@@ -82,6 +82,17 @@ func (s *Service) GetWorkspaceID(ctx context.Context, designID string) (string, 
 	return ws, err
 }
 
+// GetOwnership returns a design's workspace and who created it ("" when
+// unknown), trashed designs included: the inputs of a scoped permission check.
+func (s *Service) GetOwnership(ctx context.Context, designID string) (workspaceID, creatorID string, err error) {
+	var creator *string
+	err = s.db.QueryRow(ctx, `SELECT "workspace_id", "created_by_id" FROM "designs" WHERE id = $1`, designID).Scan(&workspaceID, &creator)
+	if creator != nil {
+		creatorID = *creator
+	}
+	return workspaceID, creatorID, err
+}
+
 const iso = "2006-01-02T15:04:05.000Z07:00"
 
 func isoPtr(t *time.Time) *string {

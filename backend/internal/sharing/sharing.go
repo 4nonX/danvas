@@ -20,6 +20,7 @@ import (
 	"net/mail"
 	"strings"
 	"time"
+	"hycanvas/backend/internal/accounts"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -298,6 +299,27 @@ func (s *Service) membershipRole(ctx context.Context, userID, workspaceID string
 	return authz.WorkspaceRole(strings.ToLower(role))
 }
 
+// memberActions is the caller's role actions in a workspace (F42); ok is
+// false for a non-member.
+func (s *Service) memberActions(ctx context.Context, userID, workspaceID string) (authz.ActionSet, bool) {
+	mr, err := accounts.LoadMemberRole(ctx, s.db, userID, workspaceID)
+	if err != nil {
+		return nil, false
+	}
+	return mr.Actions, true
+}
+
+// memberAccess is what the caller's role contributes to a design's access
+// (nil for a non-member).
+func (s *Service) memberAccess(ctx context.Context, userID, workspaceID string) *authz.MemberAccess {
+	actions, ok := s.memberActions(ctx, userID, workspaceID)
+	if !ok {
+		return nil
+	}
+	ma := authz.DesignAccessFor(actions)
+	return &ma
+}
+
 func (s *Service) userEmail(ctx context.Context, userID string) string {
 	var email string
 	if err := s.db.QueryRow(ctx, `SELECT email FROM "users" WHERE id = $1`, userID).Scan(&email); err != nil {
@@ -341,7 +363,7 @@ func (s *Service) resolveForUser(ctx context.Context, designID, userID string, l
 	if err != nil {
 		return DesignAccessView{}, ErrNotFound
 	}
-	role := s.membershipRole(ctx, userID, workspaceID)
+	member := s.memberAccess(ctx, userID, workspaceID)
 	email := s.userEmail(ctx, userID)
 	var emails []string
 	if email != "" {
@@ -382,7 +404,7 @@ func (s *Service) resolveForUser(ctx context.Context, designID, userID string, l
 	}
 
 	access := authz.Resolve(authz.ResolveInput{
-		WorkspaceRole:  role,
+		Member:         member,
 		Grants:         grants,
 		Link:           linkMode,
 		CustomRoles:    customRoles,
@@ -430,12 +452,11 @@ func (s *Service) assertCanShare(ctx context.Context, designID, userID string) e
 	return nil
 }
 
-// assertCanManageRoles requires the `manage-roles` capability via the caller's
-// workspace role (FR-8).
+// assertCanManageRoles requires roles.manage in the caller's workspace role
+// (FR-8, F42).
 func (s *Service) assertCanManageRoles(ctx context.Context, workspaceID, userID string) error {
-	role := s.membershipRole(ctx, userID, workspaceID)
-	access := authz.Resolve(authz.ResolveInput{WorkspaceRole: role})
-	if !access.Has(authz.CapManageRoles) {
+	actions, ok := s.memberActions(ctx, userID, workspaceID)
+	if !ok || !actions.Has(authz.RolesManage) {
 		return ErrForbidden
 	}
 	return nil

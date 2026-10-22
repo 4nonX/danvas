@@ -12,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 
+	"hycanvas/backend/internal/authz"
 	"hycanvas/backend/internal/persistence"
 )
 
@@ -22,9 +23,10 @@ type DBTX interface {
 	Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error)
 }
 
-// Access is the membership check (satisfied by *accounts.Service).
+// Access is the membership and role check (satisfied by *accounts.Service).
 type Access interface {
 	AssertMember(ctx context.Context, userID, workspaceID, minRole string) error
+	Require(ctx context.Context, userID, workspaceID string, a authz.Action, creatorID string) error
 }
 
 // HomeItem matches the @hc/authz HomeItem JSON shape.
