@@ -14,6 +14,7 @@ For the product-wide north star (the goals and differentiators we hold ourselves
 | AI media | [23-ai-media.md](23-ai-media.md) | Not started (blocked on the video media pipeline and audio/video model endpoints) |
 | Presentations | [28-presentations.md](28-presentations.md) | Core + a long interop/AI/live tail shipped (PPTX export, deck-to-video MP4, present-and-record, live audience Q&A/polls/reactions, whole-deck translation, AI speaker notes, doc/URL/file ingestion, tagged PDF); PPTX import now ships too (full round-trip); masters/layouts UI and live-data charts/bulk merge remain |
 | Roles and permissions | [42-roles-and-permissions.md](42-roles-and-permissions.md) | Stage 1 shipped in 0.6.0 (actions, permissions and roles per workspace with full CRUD, guard rails, log, recovery command); folder defaults, design roles folded in and folder restrictions remain |
+| Barcodes | [43-barcodes.md](43-barcodes.md) | Shipped in 0.6.1 (linear codes, PZN and Data Matrix as exact vector geometry in one ink, output check, QR drawn without overlap); server-side encoding for filling from data comes with the serial print export |
 | Import from Canva | [41-canva-import.md](41-canva-import.md) | Built, FR-1 to FR-10 (per-instance draft Canva integration, folder-tree import via PPTX, PNG fallback, paced under Canva's export limits); tested against a stub of Canva's API, not yet against the live one (AC-1 to AC-5 open) |
 | AI platform (generation API, MCP, catalog, template-from-PPTX, reflow) | [40-ai-platform-tasks.md](40-ai-platform-tasks.md) | Not started (execution board written 2026-08-26; five phases, E01-E17, no design-file schema bumps planned) |
 | Whiteboard | [30-whiteboard.md](30-whiteboard.md) | Core, infinite canvas, ink, the full facilitation suite, and the Phase 3 AI canvas (diagram-from-prompt, clustering, summarize, Mermaid round-trip) shipped; agent deep-end and guest rate limiting remain |
@@ -33,6 +34,11 @@ A version is a single global counter mirrored in Go (`backend/internal/persisten
 | 22 | F28 completion C02+C03 | `PageTransition.easing` (plain string, engine-clamped) and `Page.transitionOut`, per-transition easing + exit transitions |
 | 23 | F28 completion C11+C12+C13+C15 | `Keyframe.color/width/height`, `KeyframeTrack.path/orient`, `AnimationClip.spring`, `NodeAnimation.trigger` - animation depth channels |
 | 24 | F28 completion C16 | `Interaction.actionV2` (plain-string kind + optional target), the play-media / run-animation interaction actions |
+| 25 | shipped | `GridNode.colWidths/rowHeights`, photo-grid track sizes (backfilled) |
+| 26 | shipped | `GridNode.masonry`, masonry collages (backfilled) |
+| 27 | shipped | `templateLock` on every node, template protection (backfilled) |
+| 28 | shipped | `Page.printMarks`, crop marks (backfilled) |
+| 29 | shipped | `DesignFile.measureUnit`, the measurement unit (backfilled) |
 
 This table was already wrong once, which is the case for keeping it. F38
 shipped `DesignFile.language` as v18 in August 2026 without reclaiming the

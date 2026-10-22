@@ -10,7 +10,7 @@
 // The previous print-on-demand ordering wizard was removed: it could not
 // complete an order. A print-shop file is available via Download.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Printer } from "lucide-react";
 import type { DesignFile } from "@hc/schema";
 import { useEditor } from "@/store/editor";
@@ -22,7 +22,8 @@ import { cappedPrintDpi, describePrintSettings, normalizePrintSettings, paperLab
 import { oversizedPages, PRINT_PAPERS, printHtml, type PrintPage } from "@/lib/printDocument";
 import { BleedInput, MarkInputs } from "./PrintSettings";
 import { ProfileBar } from "./ProfileBar";
-import type { ExportTarget } from "./ExportDialog";
+import { issueText, type ExportTarget } from "./ExportDialog";
+import { exportIssues, type ExportIssue } from "@/lib/exportIssues";
 import { tr } from "@/lib/i18n";
 
 type Job = { doc: DesignFile; pages: number[] };
@@ -83,6 +84,31 @@ async function openPrint(pages: PrintPage[], s: PrintSettings, title: string): P
   cw.print();
   // Fallback cleanup for browsers that never fire onafterprint.
   setTimeout(cleanup, 60000);
+}
+
+/** Barcodes the chosen resolution draws with too few pixels per module (or
+ *  that may not scan for another reason), listed under the resolution. */
+function BarcodePrintCheck({ jobs, dpi }: { jobs: Job[]; dpi: number }) {
+  const rev = useEditor((s) => s.rev);
+  const [issues, setIssues] = useState<ExportIssue[]>([]);
+  const key = jobs.map((j) => j.pages.join(",")).join("|");
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const out: ExportIssue[] = [];
+      for (const j of jobs) out.push(...(await exportIssues(j.doc, j.pages, { vector: false, rasterDpi: dpi })).filter((i) => i.kind.startsWith("barcode-")));
+      if (!cancelled) setIssues(out);
+    })();
+    return () => { cancelled = true; };
+    // `jobs` is rebuilt every render; its pages and the editor revision say when it changed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, dpi, rev]);
+  if (!issues.length) return null;
+  return (
+    <ul className="mt-1.5 flex flex-col gap-1 text-[11px] font-medium text-amber-700">
+      {issues.map((i) => <li key={`${i.kind}|${i.subject}`}>{issueText(i)}</li>)}
+    </ul>
+  );
 }
 
 export function PrintDialog({ open, onClose, designs, workspaceId: workspaceIdProp }: { open: boolean; onClose: () => void; designs?: ExportTarget[]; workspaceId?: string | null }): React.ReactElement | null {
@@ -194,6 +220,7 @@ export function PrintDialog({ open, onClose, designs, workspaceId: workspaceIdPr
             ))}
           </div>
           {cappedDpi !== null && <p className="mt-1.5 text-[11px] font-medium text-amber-700">{tr("editor.print_resolution_capped", { dpi: cappedDpi, chosen: settings.dpi })}</p>}
+          <BarcodePrintCheck jobs={jobs} dpi={cappedDpi ?? settings.dpi} />
         </div>
 
         <div className="mb-4 flex flex-col gap-2 rounded-lg border border-neutral-200 p-2.5">

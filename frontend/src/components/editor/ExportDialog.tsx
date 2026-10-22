@@ -49,7 +49,7 @@ import { initialPrintOverride, printAdditions, printSheet, pxToMm, withPrintOver
 import { pageBleed } from "@hc/engine";
 import { imagePdfBlob, rasterBlob, renderPageCanvas, tiffBlob } from "@/lib/exportFormats";
 import { hycBlob } from "@/lib/hycFile";
-import { exportIssues, HAIRLINE_PT, PRINT_MIN_PPI, SMALL_TEXT_PT, type ExportIssue } from "@/lib/exportIssues";
+import { BARCODE_MIN_PX, exportIssues, HAIRLINE_PT, PRINT_MIN_PPI, SMALL_TEXT_PT, type ExportIssue } from "@/lib/exportIssues";
 import { describeSettings, normalizeSettings, sameSettings, type ExportSettings } from "@/lib/exportProfiles";
 import { ProfileBar } from "./ProfileBar";
 import { ProofView } from "./ProofView";
@@ -300,7 +300,8 @@ function issueWhere(i: ExportIssue): string {
   }).join("; ");
 }
 
-function issueText(i: ExportIssue): string {
+/** One issue as a sentence (shared with the print dialog). */
+export function issueText(i: ExportIssue): string {
   const where = issueWhere(i);
   if (i.kind === "font") return tr("editor.export_issue_font", { subject: i.subject, where });
   if (i.kind === "font-outline") return tr("editor.export_issue_font_outline", { subject: i.subject, where });
@@ -309,6 +310,12 @@ function issueText(i: ExportIssue): string {
   if (i.kind === "edge-no-bleed") return tr("editor.export_issue_edge_no_bleed", { where });
   if (i.kind === "edge-not-extended") return tr("editor.export_issue_edge_not_extended", { where });
   if (i.kind === "image-resolution") return tr("editor.export_issue_image_resolution", { subject: i.subject, ppi: i.ppi ?? 0, min: PRINT_MIN_PPI, where });
+  if (i.kind === "barcode-invalid") return tr("editor.export_issue_barcode_invalid", { subject: i.subject, where });
+  if (i.kind === "barcode-small") return tr("editor.export_issue_barcode_small", { subject: i.subject, where });
+  if (i.kind === "barcode-quiet") return tr("editor.export_issue_barcode_quiet", { subject: i.subject, where });
+  if (i.kind === "barcode-light") return tr("editor.export_issue_barcode_light", { subject: i.subject, where });
+  if (i.kind === "barcode-inks") return tr("editor.export_issue_barcode_inks", { subject: i.subject, where });
+  if (i.kind === "barcode-raster") return tr("editor.export_issue_barcode_raster", { subject: i.subject, min: BARCODE_MIN_PX, where });
   return tr("editor.export_issue_image", { subject: i.subject, where });
 }
 
@@ -550,6 +557,8 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
             print: printOut,
             printCheck: { cmyk: conv ? (r, g, b) => conv!.cmyk(r, g, b) : null, blackOnly: vectorPrint && blackOnly, bleed },
             backgroundLabel: tr("editor.export_issue_page_background"),
+            // Output pixels per inch of the raster formats (barcode modules need enough of them).
+            rasterDpi: vectorOut ? undefined : format === "tiff" ? tiffDpi : (t.doc.dpi ?? 96) * scale,
           });
           if (prepressed.length) list.push({ kind: "edge-not-extended", subject: "", where: prepressed });
           if (list.length) out.push({ design: t.design, list });
@@ -560,7 +569,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
       if (!cancelled) setIssues(out);
     })();
     return () => { cancelled = true; };
-  }, [open, rendersDesign, vectorOut, printOut, pagesKey, designs, bulk, rev, cmykCapable, printColor, profileId, intent, vectorPrint, blackOnly, printSource, overrideBleed, withBleed, sheetCapable, extendBleed, roundMm, override]);
+  }, [open, rendersDesign, vectorOut, printOut, pagesKey, designs, bulk, rev, cmykCapable, printColor, profileId, intent, vectorPrint, blackOnly, printSource, overrideBleed, withBleed, sheetCapable, extendBleed, roundMm, override, format, tiffDpi, scale]);
   const shownIssues = rendersDesign ? issues : [];
 
   // Dialog focus contract: on open, remember the opener and move focus onto the

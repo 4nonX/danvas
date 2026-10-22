@@ -20,6 +20,7 @@
     "@hc/aistudio": "*",
     "@hc/audio": "*",
     "@hc/authz": "*",
+    "@hc/barcode": "*",
     "@hc/brandkit": "*",
     "@hc/color": "*",
     "@hc/commandmenu": "*",

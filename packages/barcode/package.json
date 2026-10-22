@@ -1,0 +1,23 @@
+{
+  "name": "@hc/barcode",
+  "version": "0.1.0",
+  "license": "AGPL-3.0-only",
+  "private": true,
+  "description": "HyCanvas barcodes: encodes EAN, UPC, Code 128, GS1-128, Code 39, PZN and Data Matrix and lays them out as exact print geometry (framework-agnostic)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "bwip-js": "4.11.4"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "vitest": "4.1.11",
+    "zxing-wasm": "3.1.6"
+  }
+}

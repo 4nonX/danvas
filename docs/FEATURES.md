@@ -7,6 +7,7 @@ A living checklist of what ships today versus what is planned. Shipped items are
 ### Editor core
 - [x] Scene-graph engine on Canvas2D (framework-agnostic; browser, worker, headless server)
 - [x] Shapes, lines, arrows, frames, grids, tables, 9 chart types, QR codes
+- [x] Barcodes: EAN-13/8, UPC-A, Code 128, GS1-128, Code 39, PZN, Data Matrix, GS1 Data Matrix; live validation, exact vector bars in one ink, quiet zones, printer-dot rounding, bar width reduction, output check ([spec 43](roadmap/43-barcodes.md))
 - [x] Text: presets, font pairings, searchable catalog, custom font upload (embedded)
 - [x] Fills (solid/gradient/image/pattern), stroke, corner radius, opacity, effects (shadow/lift/hollow/glow/neon/echo/splice/outline/blur) with per-effect level controls
 - [x] Image filters, Light/Color/Detail adjust, crop, remove background, rasterize

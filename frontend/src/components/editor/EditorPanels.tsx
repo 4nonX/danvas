@@ -5,12 +5,13 @@
 import { prepareSvgFonts } from "@/lib/svgFlatten";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type FormEvent } from "react";
-import { Square, SquareRoundCorner, Circle, Triangle, Pentagon, Hexagon, Star, Diamond, Octagon, Frame, QrCode, Type, Upload, Search, Table as TableIcon, BarChart3, LineChart, AreaChart, PieChart, Donut, ScatterChart, Radar, Wand2, ImagePlus, Settings2, Trash2, Folder, FolderPlus, Pencil, X, Tag, ChevronLeft, Link as LinkIcon, Mic, Video, MonitorUp, CircleStop, Spline, Clock, LayoutGrid, Shapes, Sparkles, Stethoscope, AlignStartVertical, Play, ChevronDown, Send, Plus, RotateCcw, FileDown, FileText, Paperclip, Layers, Copy, ArrowDown } from "lucide-react";
+import { Square, SquareRoundCorner, Circle, Triangle, Pentagon, Hexagon, Star, Diamond, Octagon, Frame, QrCode, Barcode, Type, Upload, Search, Table as TableIcon, BarChart3, LineChart, AreaChart, PieChart, Donut, ScatterChart, Radar, Wand2, ImagePlus, Settings2, Trash2, Folder, FolderPlus, Pencil, X, Tag, ChevronLeft, Link as LinkIcon, Mic, Video, MonitorUp, CircleStop, Spline, Clock, LayoutGrid, Shapes, Sparkles, Stethoscope, AlignStartVertical, Play, ChevronDown, Send, Plus, RotateCcw, FileDown, FileText, Paperclip, Layers, Copy, ArrowDown } from "lucide-react";
 import { migrate, type AssetRef, type ChartType, type Node, type Fill, type Color, type Theme } from "@hc/schema";
 import { searchFonts, type FontCatalogEntry } from "@hc/text";
 import { toHex, fromHex, relativeLuminance } from "@hc/color";
 import { formatBytes } from "@/lib/format";
 import { qrModules } from "@/lib/qr";
+import { InsertBarcodeDialog } from "./BarcodePanel";
 import { stickers, stickerCategories, type Sticker } from "@/lib/stickers";
 import { parseModelJson } from "@/lib/magicDesign";
 import {
@@ -532,6 +533,7 @@ export function ElementsPanel() {
   const addNode = useEditor((s) => s.addNode);
   const insertTable = useEditor((s) => s.insertTable);
   const insertChart = useEditor((s) => s.insertChart);
+  const [barcodeOpen, setBarcodeOpen] = useState(false);
   // Insert helpers: the store already centers the new node in the current
   // viewport and selects it, so afterInsert only confirms with a subtle toast
   // (no zoom - the view stays put).
@@ -606,6 +608,7 @@ export function ElementsPanel() {
           addNode("qr", { name: tr("editor.qr_code"), value: t, ecLevel: "M", foreground: { srgb: { r: 0, g: 0, b: 0, a: 1 } }, background: { srgb: { r: 1, g: 1, b: 1, a: 1 } }, modules: qrModules(t, "M"), transform: CENTER, size: { width: 220, height: 220 } } as Partial<Node>);
           afterInsert(toast, tr("editor.qr_code"));
         } },
+        { label: tr("editor.barcode"), icon: Barcode, run: () => setBarcodeOpen(true) },
       ],
     },
   ];
@@ -766,6 +769,7 @@ export function ElementsPanel() {
           </div>
         </CollapsibleSection>
       </div>
+      <InsertBarcodeDialog open={barcodeOpen} onClose={() => setBarcodeOpen(false)} />
     </PanelShell>
   );
 }

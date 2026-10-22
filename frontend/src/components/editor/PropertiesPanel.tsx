@@ -46,6 +46,7 @@ import { imageAssetPalette } from "@/lib/imagePalette";
 import { directUploadWithProgress, oc, resolveAssetUrl } from "@/lib/sdk";
 import { MagicResizeButton } from "./MagicResizeDialog";
 import { TYPE_ICON, layerLabel } from "./LayerPanel";
+import { BarcodeSection } from "./BarcodePanel";
 import { useToast } from "@/components/ui/Toast";
 import { tr } from "@/lib/i18n";
 import { fromUnit, MEASURE_UNITS, measureUnitOf, parseLength, strokeUnitOf, unitInputText, type MeasureUnit } from "@/lib/units";
@@ -54,6 +55,7 @@ import { designProfileId, listProfileOptions, type ProfileOption } from "@/lib/p
 import { cmykToScreen, setScreenProofProfile } from "@/lib/print/printColor";
 import { ManageProfilesLinks } from "@/components/editor/ManageProfilesLinks";
 import { userMessage } from "@/lib/errors";
+import { barcodeOf } from "@/lib/barcode";
 
 type IconType = ComponentType<{ size?: number | string; strokeWidth?: number; className?: string }>;
 
@@ -1841,6 +1843,11 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
           </Section>
         );
       })()}
+      {single && barcodeOf(single.node) && (
+        <Section title={tr("editor.barcode")} order={ORDER.type}>
+          <BarcodeSection id={single.node.id} spec={barcodeOf(single.node)!} />
+        </Section>
+      )}
       {single && single.node.type === "qr" && (() => {
         const id = single.node.id;
         const qr = single.node as unknown as { value: string; logoAssetId?: string; logoScale?: number };

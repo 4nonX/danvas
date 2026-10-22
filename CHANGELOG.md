@@ -2,6 +2,21 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.6.1 (2026-10-22)
+
+### Added
+
+- **Barcodes**: Elements > Barcode inserts EAN-13, EAN-8, UPC-A, Code 128, GS1-128, Code 39, PZN (pharmacy product number), Data Matrix and GS1 Data Matrix. The content is checked while typed, with the reason when it cannot be encoded, and check digits are computed when left out. Bars are exact vector rectangles at whole multiples of the module width, in 100 % black ink by default or any colour (exact CMYK and spot colours included), with the quiet zones inside the element and an optional text line in any font. Sizes are set in mm; dragging the handles changes the module width and bar height instead of stretching the code. Optional: a printer resolution that rounds the module width to whole printer dots (thermal and label printers) and a bar width reduction for presses that spread ink.
+- The download menu and the print dialog list barcodes that may not scan: modules below the minimum, no quiet zones, light bars, bars in several inks, too few pixels per module in raster files and prints.
+
+### Fixed
+
+- QR codes in print files: each dark module was drawn slightly larger than its cell (to hide seams on screen), so dark areas grew. Modules are now drawn at their exact size as one shape, in the editor, in every export and on the server. Nothing changes on screen.
+
+### Upgrading
+
+- No database change and no change to the file format: a barcode is a group of a path and text with its settings in the group's data, so earlier versions open and print it exactly.
+
 ## 0.6.0 (2026-10-22)
 
 ### Added

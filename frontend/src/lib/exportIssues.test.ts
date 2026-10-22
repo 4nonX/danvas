@@ -143,4 +143,21 @@ describe("print checks", () => {
     expect(found(await exportIssues(doc, [0], { vector: false, print: true, printCheck: { bleed: false }, backgroundLabel: "Background" }))).toEqual(["edge-no-bleed:Background", "edge-no-bleed:edge"]);
     expect(await exportIssues(doc, [0], { vector: false, print: true, printCheck: { bleed: true } })).toEqual([]);
   });
+
+  it("flags barcodes that may not scan", async () => {
+    const { buildBarcode, defaultSpec, loadBarcode } = await import("./barcode");
+    const mod = await loadBarcode();
+    const code = (name: string, patch: Record<string, unknown>) => {
+      const spec = { ...defaultSpec(mod, "ean13", "400638133393"), text: false, ...patch } as Parameters<typeof buildBarcode>[1];
+      const built = buildBarcode(mod, spec, 96);
+      if (!built.ok) throw new Error(built.detail);
+      return { id: name, name, type: "group", transform: T(0, 0, 1), size: { width: built.width, height: built.height }, opacity: 1, blendMode: "normal", children: built.children, data: { barcode: spec } };
+    };
+    const blue = { srgb: { r: 0.1, g: 0.3, b: 0.7, a: 1 } };
+    const doc = design([code("fine", {}), code("tiny", { moduleMm: 0.2 }), code("tight", { quietZones: false }), code("pale", { color: { srgb: { r: 0.8, g: 0.8, b: 0.8, a: 1 } } }), code("blue", { color: blue })]);
+    expect(found(await exportIssues(doc, [0], { vector: true, print: true, printCheck: { cmyk, blackOnly: true, bleed: true } }))).toEqual(["barcode-inks:blue", "barcode-light:pale", "barcode-quiet:tight", "barcode-small:tiny"]);
+    // A raster file needs two pixels per module: 0.33 mm at 96 dpi is 1.25.
+    expect(found(await exportIssues(design([code("fine", {})]), [0], { vector: false, rasterDpi: 96 }))).toEqual(["barcode-raster:fine"]);
+    expect(await exportIssues(design([code("fine", {})]), [0], { vector: false, rasterDpi: 300 })).toEqual([]);
+  });
 });

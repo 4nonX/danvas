@@ -106,6 +106,9 @@ import { pageGap, pageOffsets, pageTop } from "@/lib/pageLayout";
 import type { MagicDesignSpec } from "@/lib/magicDesign";
 import { accentRuleRect, extractLayoutSet, fallbackLayoutFill, layoutDesign, reflowPage, slotTypeScale, variantCandidate, verifyLayoutCapacities, type AiDesignSpec, type DeckResult, type ExtractedLayoutSet, type ExtractPageLike } from "@hc/aistudio";
 import { qrModules } from "@/lib/qr";
+import { barcodeOf, buildBarcode, loadBarcode, symbologyLabel, type BarcodeSpec } from "@/lib/barcode";
+import type { EncodeError } from "@hc/barcode";
+import { fonts } from "@/lib/fontProvider";
 import { frameMaskFor } from "@/lib/maskPath";
 import { flattenSvgToNodes, prepareSvgFonts } from "@/lib/svgFlatten";
 import { svgImageNodes, svgSourceOf } from "@/lib/svgImage";
@@ -1168,6 +1171,16 @@ interface EditorState {
   setQrLogo(id: string, assetId: string | null, url?: string): void;
   /** Center-logo size as a fraction (0.08..0.4) of the QR's min dimension. */
   setQrLogoScale(id: string, scale: number): void;
+  /** Insert a barcode (F43) built from `spec`, or return why its value cannot
+   *  be encoded (nothing is inserted then). */
+  insertBarcode(spec: BarcodeSpec): Promise<EncodeError | null>;
+  /** Encode a barcode again from changed settings, in one undo step. An
+   *  invalid value leaves the barcode as it is and returns the reason. */
+  updateBarcode(id: string, spec: BarcodeSpec): Promise<EncodeError | null>;
+  /** After a barcode was scaled with the handles: turn the scale into module
+   *  width and bar height and encode it again at scale 1, so it is never
+   *  distorted. No-op for anything else. */
+  bakeBarcodeScale(id: string): Promise<void>;
   /** Set a video node's trim/volume/loop/mute, undoable. */
   setVideoProps(id: string, patch: Partial<{ trimStartMs: number; trimEndMs: number; volume: number; muted: boolean; loop: boolean }>): void;
   /** Place an image into a frame (clipped to the frame), undoable. */
@@ -6875,6 +6888,68 @@ export const useEditor = create<EditorState>((set, get) => {
       const before = node.logoScale;
       const v = Math.min(0.4, Math.max(0.08, scale));
       perform(() => { node.logoScale = v; }, () => { node.logoScale = before; });
+    },
+    insertBarcode: async (spec) => {
+      const built = buildBarcode(await loadBarcode(), spec, get().doc.dpi);
+      if (!built.ok) return built;
+      if (built.children.some((c) => c.type === "text")) fonts.ensure(spec.fontFamily);
+      get().addNode("group", {
+        name: symbologyLabel()[spec.symbology],
+        children: built.children,
+        size: { width: built.width, height: built.height },
+        data: { barcode: spec },
+      } as Partial<Node>);
+      return null;
+    },
+    updateBarcode: async (id, spec) => {
+      const mod = await loadBarcode();
+      const loc = locate(get().doc, id);
+      if (!loc || !barcodeOf(loc.node) || contentBlocked(id)) return null;
+      const built = buildBarcode(mod, spec, get().doc.dpi);
+      if (!built.ok) return built;
+      if (built.children.some((c) => c.type === "text")) fonts.ensure(spec.fontFamily);
+      const node = loc.node as Node & { children: Node[] };
+      const before = { children: [...node.children], width: node.size.width, height: node.size.height, data: node.data, scaleX: node.transform.scaleX, scaleY: node.transform.scaleY };
+      const data = { ...(node.data ?? {}), barcode: spec };
+      perform(
+        () => {
+          node.children.splice(0, node.children.length, ...built.children);
+          node.size.width = built.width;
+          node.size.height = built.height;
+          node.transform.scaleX = 1;
+          node.transform.scaleY = 1;
+          node.data = data;
+        },
+        () => {
+          node.children.splice(0, node.children.length, ...before.children);
+          node.size.width = before.width;
+          node.size.height = before.height;
+          node.transform.scaleX = before.scaleX;
+          node.transform.scaleY = before.scaleY;
+          if (before.data === undefined) delete node.data; else node.data = before.data;
+        },
+      );
+      return null;
+    },
+    bakeBarcodeScale: async (id) => {
+      const loc = locate(get().doc, id);
+      const spec = barcodeOf(loc?.node);
+      if (!loc || !spec) return;
+      const sx = Math.abs(loc.node.transform.scaleX ?? 1);
+      const sy = Math.abs(loc.node.transform.scaleY ?? 1);
+      if (Math.abs(sx - 1) < 1e-6 && Math.abs(sy - 1) < 1e-6) return;
+      const mod = await loadBarcode();
+      const linear = mod.RULES[spec.symbology].kind === "linear";
+      // Width handles set the module width, height handles the bar height; a
+      // matrix code stays square, so its module width follows the larger change.
+      const moduleScale = linear ? sx : (Math.abs(sx - 1) >= Math.abs(sy - 1) ? sx : sy);
+      const next: BarcodeSpec = {
+        ...spec,
+        moduleMm: spec.moduleMm * moduleScale,
+        barHeightMm: linear ? spec.barHeightMm * sy : spec.barHeightMm,
+        textSizeMm: spec.textSizeMm ? spec.textSizeMm * sy : undefined,
+      };
+      await get().updateBarcode(id, next);
     },
     setFrameShape: (id, mask, radius) => {
       const loc = locate(get().doc, id);

@@ -108,6 +108,19 @@ Objects of a design can be protected, so that designs made from it keep them as 
 
 ## Editor
 
+### Barcodes
+
+**Elements**, **Barcode** inserts a barcode for labels and packaging: EAN-13, EAN-8, UPC-A, Code 128, GS1-128, Code 39, PZN (the German pharmacy product number, printed as Code 39 with `PZN - 12345678` below it), Data Matrix (square or rectangular) and GS1 Data Matrix. The dialog checks the content while you type and says what is wrong (a check digit, the length, a character the type cannot carry, an invalid GS1 identifier or date); leave the check digit out and it is computed. QR codes stay where they were (**QR code**).
+
+- **Exact**: every bar is drawn at a whole multiple of the module width X, in the size you set in mm, with the quiet zones the type requires inside the element. Bars are 100 % black ink (`0 / 0 / 0 / 100`) by default, or any colour of the colour field, exact CMYK and spot colours included; the background is transparent unless you add one.
+- **Size**: X and, for linear codes, the bar height in the properties panel. Dragging the handles changes X and the bar height and encodes the code again, so it is never stretched. For EAN and UPC the panel shows the size as a percentage of the nominal 0.33 mm.
+- **Text line**: shown or hidden, in any font the design can use (upload OCR-B to the workspace for the classic look), at a size that follows X unless you set one. EAN and UPC digits sit under the halves of the code, with the guard bars extended between them.
+- **Printers**: under **Print** in the panel, a printer resolution (203, 300 or 600 dpi) rounds X to whole printer dots so every bar of a thermal or label printer comes out the same width, and a bar width reduction narrows every bar for presses that spread ink.
+- **Checked before printing**: the download menu and the print dialog list barcodes whose module is below what scanners read reliably (EAN and UPC: 0.264 mm, GS1 Data Matrix: 0.255 mm, other codes: 0.19 mm), without quiet zones, with light bars, with bars in several inks of a CMYK file, or with fewer than 2 pixels per module in a raster file or print.
+- **Compatible**: a barcode is stored as an ordinary group of a vector path and text, with its settings alongside. Every export draws it, and earlier danvas versions open, show and print it exactly; double-click selects the whole barcode instead of entering it.
+
+QR codes are now drawn without the slight enlargement of each module they had before: on screen nothing changes, in print files every module has its exact size.
+
 ### Replace object
 
 Select an image or a vector graphic (a placed logo, icon or SVG) and choose **Replace** in the toolbar above the canvas or in the element's "..." menu. Pick a brand kit logo (dark-background versions included), a workspace upload, or a file from your device.

@@ -49,6 +49,7 @@ import { useTemplateLock } from "@/store/templateLock";
 import { useComments } from "@/store/comments";
 import { designSurfaceDir } from "@/lib/locale";
 import { tr } from "@/lib/i18n";
+import { barcodeOf } from "@/lib/barcode";
 
 
 // The crop overlay assumes an axis-aligned, unit-scaled node (it positions an
@@ -220,6 +221,18 @@ function clickTargetId(doc: Parameters<typeof locate>[0], hitId: string, entered
     }
   }
   return { id: topAncestorId(doc, hitId), stay: false };
+}
+
+/** The barcode group a node is or belongs to, if any. */
+function barcodeAncestor(doc: Parameters<typeof locate>[0], id: string): string | null {
+  let cur: string | undefined = id;
+  for (let i = 0; cur && i < 64; i++) {
+    const loc = locate(doc, cur);
+    if (!loc) return null;
+    if (barcodeOf(loc.node)) return cur;
+    cur = loc.parent?.id;
+  }
+  return null;
 }
 
 /** The open document's kind ("design" when unset), read live from the store. */
@@ -1366,6 +1379,15 @@ export function Canvas() {
         const id = useEditor.getState().addTextAt(page.x - 120, page.y - 22);
         setEditing(id);
       }
+      return;
+    }
+    // A barcode is one object: double-click selects it whole (its settings are
+    // in the properties panel) and never enters it to its generated parts.
+    const code = barcodeAncestor(useEditor.getState().doc, hit.id);
+    if (code) {
+      useEditor.getState().select([code]);
+      const parent = locate(useEditor.getState().doc, code)?.parent;
+      useEditor.getState().setEnteredGroup(parent?.type === "group" ? parent.id : null);
       return;
     }
     const loc = locate(useEditor.getState().doc, hit.id);

@@ -299,6 +299,33 @@ func TestRasterQR(t *testing.T) {
 	}
 }
 
+// TestRasterQRExactModules: modules are painted at their exact cells, not
+// enlarged, and a run of neighbours has no seam between them. 3 modules plus
+// the 8-module quiet zone in 110 px puts every cell on whole 10 px.
+func TestRasterQRExactModules(t *testing.T) {
+	node := map[string]any{
+		"type": "qr", "value": "x", "ecLevel": "M",
+		"transform":  map[string]any{"x": 0.0, "y": 0.0, "scaleX": 1.0, "scaleY": 1.0, "rotation": 0.0},
+		"size":       map[string]any{"width": 110.0, "height": 110.0},
+		"foreground": map[string]any{"srgb": map[string]any{"r": 0.0, "g": 0.0, "b": 0.0, "a": 1.0}},
+		"background": map[string]any{"srgb": map[string]any{"r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0}},
+		"modules": []any{
+			[]any{true, true, true},
+			[]any{true, false, true},
+			[]any{false, false, false},
+		},
+	}
+	data, err := ToPNG(page(110, 110, node), 0, 1)
+	if err != nil {
+		t.Fatalf("ToPNG: %v", err)
+	}
+	dark := scanImage(t, data, func(r, g, b, a uint32) bool { return r < 0x8000 })
+	grey := scanImage(t, data, func(r, g, b, a uint32) bool { return r > 0x0400 && r < 0xfb00 })
+	if dark != 500 || grey != 0 {
+		t.Fatalf("want 5 modules of exactly 10x10 px and no partial pixels, got dark=%d grey=%d", dark, grey)
+	}
+}
+
 // TestRasterQRLogo: a QR node with an embedded logo (logoSrc) draws the logo
 // centered over the modules.
 func TestRasterQRLogo(t *testing.T) {

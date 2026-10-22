@@ -204,17 +204,35 @@ func (rc *rctx) rasterQR(m mat, node map[string]any) {
 	// Background over the whole node box.
 	rc.fillPolyPaint(transformPts(m, [][2]float64{{0, 0}, {w, 0}, {w, h}, {0, h}}),
 		map[string]any{"type": "solid", "color": qrColor(node["background"], 1, 1, 1)}, avgScale(m))
+	// Every run of dark modules in a row at its exact cells, all in one
+	// rasterizer: shared edges add up inside it, so there are no seams and no
+	// module is enlarged (mirrors render2d drawQr).
 	fg := rc.colorFrom(asObj(node["foreground"]), pdfColor{ok: true})
-	for r := 0; r < n; r++ {
-		cols := asArr(rows[r])
-		for c := 0; c < len(cols); c++ {
-			if !asBool(cols[c]) {
-				continue
+	if fg.A != 0 {
+		ras := vector.NewRasterizer(rc.w, rc.h)
+		for r := 0; r < n; r++ {
+			cols := asArr(rows[r])
+			for c := 0; c < len(cols); {
+				if !asBool(cols[c]) {
+					c++
+					continue
+				}
+				start := c
+				for c < len(cols) && asBool(cols[c]) {
+					c++
+				}
+				x0 := ox + float64(start)*cell
+				x1 := ox + float64(c)*cell
+				y0 := oy + float64(r)*cell
+				pts := transformPts(m, [][2]float64{{x0, y0}, {x1, y0}, {x1, y0 + cell}, {x0, y0 + cell}})
+				ras.MoveTo(float32(pts[0][0]), float32(pts[0][1]))
+				for _, p := range pts[1:] {
+					ras.LineTo(float32(p[0]), float32(p[1]))
+				}
+				ras.ClosePath()
 			}
-			x0 := ox + float64(c)*cell
-			y0 := oy + float64(r)*cell
-			rc.fillPath(transformPts(m, [][2]float64{{x0, y0}, {x0 + cell + 0.5, y0}, {x0 + cell + 0.5, y0 + cell + 0.5}, {x0, y0 + cell + 0.5}}), fg)
 		}
+		ras.Draw(rc.dst, rc.dst.Bounds(), image.NewUniform(fg), image.Point{})
 	}
 	// Center logo (bytes inlined by the export handler as node["logoSrc"]); the
 	// EC level was bumped to "H" when the logo was set, so covered modules recover.

@@ -2,8 +2,8 @@
 // because its font is unknown or did not load, images that did not load,
 // (vector formats) text that becomes a picture because the export has no
 // font file to outline it from, and (print formats) images placed larger than
-// their pixels carry. The download dialog lists these before the
-// file is made, so nobody finds them on the printed sheet.
+// their pixels carry, and barcodes that may not scan. The download dialog
+// lists these before the file is made, so nobody finds them on the printed sheet.
 //
 // Call after whenRenderable(doc): "loading" counts as fine here, the export
 // itself waits the same way.
@@ -12,8 +12,10 @@ import type { DesignFile, ImageNode, Node } from "@hc/schema";
 import { computeEffectivePpi, createScene, type SceneNode } from "@hc/engine";
 import { imageAssets } from "@/lib/assetProvider";
 import { faceOf, fonts, type RunFont } from "@/lib/fontProvider";
+import { barcodeOf, loadBarcode, symbologyLabel } from "@/lib/barcode";
 
-export type ExportIssueKind = "font" | "font-outline" | "image" | "image-resolution" | "hairline" | "small-rich-text" | "edge-no-bleed" | "edge-not-extended";
+export type ExportIssueKind = "font" | "font-outline" | "image" | "image-resolution" | "hairline" | "small-rich-text" | "edge-no-bleed" | "edge-not-extended"
+  | "barcode-invalid" | "barcode-small" | "barcode-quiet" | "barcode-light" | "barcode-inks" | "barcode-raster";
 
 /** Below this effective resolution an image looks soft in print. */
 export const PRINT_MIN_PPI = 150;
@@ -22,6 +24,8 @@ export const HAIRLINE_PT = 0.25;
 /** Text below this size (points) in several inks blurs when the plates are
  *  slightly out of register. */
 export const SMALL_TEXT_PT = 8;
+/** A raster export needs at least this many pixels per barcode module. */
+export const BARCODE_MIN_PX = 2;
 
 export interface ExportIssue {
   kind: ExportIssueKind;
@@ -141,12 +145,61 @@ function printChecks(doc: DesignFile, pages: number[], check: PrintCheck, add: (
   }
 }
 
+/** Barcodes that may not scan: a value that no longer encodes, modules
+ *  below the symbology's minimum at their printed size, no quiet zones, bars
+ *  too light, bars in several inks of a CMYK file, and for raster outputs
+ *  modules narrower than BARCODE_MIN_PX pixels. */
+async function barcodeChecks(doc: DesignFile, pages: number[], o: { printCheck?: PrintCheck; rasterDpi?: number }, add: (kind: ExportIssueKind, subject: string, page: number, element: string) => void) {
+  // Most designs have none: look for one before building any scene.
+  const has = (nodes: Node[]): boolean => nodes.some((n) => !!barcodeOf(n) || has((n as unknown as { children?: Node[] }).children ?? []));
+  if (!pages.some((i) => doc.pages[i] && has(doc.pages[i].children))) return;
+  const found: { sn: SceneNode; page: number }[] = [];
+  for (const i of pages) {
+    if (!doc.pages[i]) continue;
+    const visit = (sn: SceneNode) => {
+      if (barcodeOf(sn.node)) { found.push({ sn, page: i + 1 }); return; }
+      for (const ch of sn.children ?? []) visit(ch);
+    };
+    for (const ch of createScene(doc, i).root.children ?? []) visit(ch);
+  }
+  if (!found.length) return;
+  const mod = await loadBarcode();
+  const names = symbologyLabel();
+  for (const { sn, page } of found) {
+    const spec = barcodeOf(sn.node)!;
+    const element = labelOf(sn.node);
+    const name = names[spec.symbology] ?? spec.symbology;
+    if ((sn.node as { hidden?: boolean }).hidden) continue;
+    const enc = mod.encode(spec.symbology, spec.value, { rectangular: spec.rectangular });
+    if (!enc.ok) { add("barcode-invalid", name, page, element); continue; }
+    const t = sn.worldTransform;
+    const scale = Math.sqrt(Math.abs(t[0] * t[3] - t[1] * t[2])) || 1;
+    const rules = mod.RULES[spec.symbology];
+    const moduleMm = spec.moduleMm * scale;
+    if (moduleMm < rules.minModuleMm - 1e-6) add("barcode-small", `${name} ${Math.round(moduleMm * 1000) / 1000} mm`, page, element);
+    if (!spec.quietZones) add("barcode-quiet", name, page, element);
+    const c = spec.color.srgb;
+    const lum = 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+    if (lum > 0.4) add("barcode-light", name, page, element);
+    const cmyk = o.printCheck?.cmyk;
+    if (cmyk && !spec.color.spot?.name) {
+      const pureBlack = !spec.color.cmyk && o.printCheck?.blackOnly && c.r <= 0.002 && c.g <= 0.002 && c.b <= 0.002;
+      const values = spec.color.cmyk ? [spec.color.cmyk.c, spec.color.cmyk.m, spec.color.cmyk.y, spec.color.cmyk.k] : cmyk(c.r, c.g, c.b);
+      if (!pureBlack && values.filter((v) => v >= 0.1).length >= 2) add("barcode-inks", name, page, element);
+    }
+    if (o.rasterDpi) {
+      const px = (moduleMm / 25.4) * o.rasterDpi;
+      if (px < BARCODE_MIN_PX - 1e-6) add("barcode-raster", `${name} ${Math.round(px * 10) / 10} px`, page, element);
+    }
+  }
+}
+
 /** The problems an export of `pages` of `doc` would have. `vector` adds the
  *  font-file check of the vector formats (PDF, EPS, SVG), `print` the image
  *  resolution check of the print formats, `printCheck` the print preflight
  *  (hairlines, small text in several inks, artwork at the edge without
  *  bleed). */
-export async function exportIssues(doc: DesignFile, pages: number[], o: { vector: boolean; print?: boolean; printCheck?: PrintCheck; backgroundLabel?: string }): Promise<ExportIssue[]> {
+export async function exportIssues(doc: DesignFile, pages: number[], o: { vector: boolean; print?: boolean; printCheck?: PrintCheck; backgroundLabel?: string; rasterDpi?: number }): Promise<ExportIssue[]> {
   const issues = new Map<string, ExportIssue>();
   const add = (kind: ExportIssueKind, subject: string, page: number, element: string) => {
     const key = `${kind}|${subject}`;
@@ -210,5 +263,6 @@ export async function exportIssues(doc: DesignFile, pages: number[], o: { vector
     }));
   }
   if (o.print && o.printCheck) printChecks(doc, pages, o.printCheck, add, o.backgroundLabel ?? "background");
+  await barcodeChecks(doc, pages, o, add);
   return [...issues.values()];
 }

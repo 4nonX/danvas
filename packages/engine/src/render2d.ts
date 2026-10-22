@@ -1445,12 +1445,22 @@ function drawQr(ctx: CanvasLike, node: Node, w: number, h: number, assets?: Asse
   const oy = (h - cell * total) / 2 + quiet * cell;
   ctx.fillStyle = qr.background ? colorToCss(qr.background) : "#ffffff";
   ctx.fillRect(0, 0, w, h);
+  // Every run of dark modules in a row is one rectangle at its exact cells,
+  // and all of them are one path filled once: neighbours share edges inside
+  // the path, so the screen shows no seams and a print file gets every module
+  // at its true size (one enlarged rectangle per module made dark areas grow).
   ctx.fillStyle = qr.foreground ? colorToCss(qr.foreground) : "#000000";
+  ctx.beginPath();
   for (let r = 0; r < n; r++) {
-    for (let c = 0; c < n; c++) {
-      if (m[r][c]) ctx.fillRect(ox + c * cell, oy + r * cell, cell + 0.5, cell + 0.5);
+    let c = 0;
+    while (c < n) {
+      if (!m[r][c]) { c++; continue; }
+      const start = c;
+      while (c < n && m[r][c]) c++;
+      ctx.rect(ox + start * cell, oy + r * cell, (c - start) * cell, cell);
     }
   }
+  ctx.fill();
   // Center logo (the node's EC level is bumped to "H" when a logo is set, so the
   // covered modules stay recoverable). A background-colored pad keeps contrast.
   const logoId = qr.logoAssetId;

@@ -27,6 +27,7 @@ import { templateLockBlocking, useEditor } from "@/store/editor";
 import { usePresence } from "@/store/presence";
 import { useBrand } from "@/store/brand";
 import type { CanvasApi } from "@/lib/useEditorCanvas";
+import { barcodeOf } from "@/lib/barcode";
 
 // True when any of `ids` is uneditable: collab-locked by another user (FR-8)
 // OR a brand-template locked region for this caller.
@@ -284,6 +285,9 @@ function SelectionGizmo({ api, ids }: { api: CanvasApi; ids: string[] }) {
       after.push({ ...loc.node.transform });
     }
     if (nodes.length) store.pushApplied([{ kind: "transform", nodes, before, after }]);
+    // A scaled barcode is encoded again at its new module width and bar
+    // height instead of staying stretched.
+    if (d.mode === "resize") for (const id of nodes) if (barcodeOf(locate(store.doc, id)?.node)) void store.bakeBarcodeScale(id);
   }
 
   const handles: { fx: number; fy: number; cursor: string }[] = [
