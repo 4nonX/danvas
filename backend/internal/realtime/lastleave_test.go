@@ -25,8 +25,10 @@ func TestLastLeaveHookFiresWhenRoomEmpties(t *testing.T) {
 	var fired atomic.Int32
 	var gotDesign atomic.Value
 	hub := NewHub(nil).WithLastLeaveHook(func(designID string) {
-		fired.Add(1)
+		// Store before counting: the test reads the design as soon as it
+		// sees the count, so the other order raced (seen once in CI).
 		gotDesign.Store(designID)
+		fired.Add(1)
 	}, 20*time.Millisecond)
 
 	a := hub.Join(PeerIdentity{ClientID: "a", UserID: "ua", Role: RoleEditor}, "d1", 1000)
