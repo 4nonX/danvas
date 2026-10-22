@@ -103,5 +103,9 @@
   "dashboard.print_profile_not_usable": "This file is not a usable CMYK colour profile. Colour profiles are .icc files for a printing condition, e.g. PSO Coated v3.",
   "errors.api_print_profile_forbidden": "Only workspace admins can manage colour profiles.",
   "errors.api_print_profile_not_found": "That colour profile no longer exists.",
-  "errors.api_print_profile_not_cmyk": "This file is not an ICC CMYK colour profile."
+  "errors.api_print_profile_not_cmyk": "This file is not an ICC CMYK colour profile.",
+  "roles.action_print_color_profiles": "Manage colour profiles",
+  "roles.hint_brand_kits": "Create and change brand kits: colours, fonts, logos.",
+  "roles.hint_print_color_profiles": "Add and remove the workspace's ICC colour profiles.",
+  "roles.seed_permission_organize_folders": "Organise folders"
 }

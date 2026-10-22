@@ -59,7 +59,8 @@ The changes are summarized by area below; what changed in each release is in the
 
 ### Workspaces and members
 
-- A team workspace can take in everyone who signs in with single sign-on, at the member or viewer role, now and at every later sign-in. Higher roles are never lowered, and people removed are not added back unless invited.
+- Roles and permissions of your own per workspace: actions (what danvas checks) bundled into permissions, permissions into roles, all of them created, edited and deleted on one page. Nobody hands out more than they hold, the owner role is protected, every change is logged, and a command-line recovery restores a lost owner.
+- A team workspace can take in everyone who signs in with single sign-on, at any role but the owner's, now and at every later sign-in. Higher roles are never lowered, and people removed are not added back unless invited.
 - Pending invitations to people who are members by now offer to apply the invited role instead of sending the invitation again.
 
 ### Brand kits and fonts

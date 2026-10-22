@@ -1,38 +1,35 @@
 // Workspace member management (team invitations): roster
 // with role changes + removal, invite-by-email, and pending invitations with
-// resend/revoke. The backend (accounts members) enforces the real authority +
-// last-owner invariants; this UI hides clearly-disallowed controls and surfaces
-// server errors via toast. Personal workspaces are single-user, so management is
+// resend/revoke. Roles are the workspace's own (F42): the selects list them,
+// and what the caller may do or hand out follows their role's actions. The
+// backend (accounts members) enforces the real authority + last-owner
+// invariants; this UI hides clearly-disallowed controls and surfaces server
+// errors via toast. Personal workspaces are single-user, so management is
 // hidden.
 
 import { useCallback, useEffect, useState } from "react";
 import { Trash2, Mail, Clock, Crown, Shield, Plus, ChevronDown, Users, UserPlus, Pencil, AlertTriangle, LogIn } from "lucide-react";
-import { ApiError, type Capability, type CustomRoleView, type WorkspaceInvitation, type WorkspaceMemberView, type WorkspaceRole } from "@hc/sdk";
+import { ApiError, type Capability, type CustomRoleView, type WorkspaceInvitation, type WorkspaceMemberView, type WorkspaceRole, type WorkspaceRoleView, type WorkspaceRolesView } from "@hc/sdk";
+import { coversActions } from "@hc/authz";
+import Link from "next/link";
 import { oc } from "@/lib/sdk";
+import { roleHint, roleName } from "@/lib/roles";
+import { refreshWorkspaceActions } from "@/store/workspaceActions";
+import { dashboardPath } from "./views";
 import { useToast } from "@/components/ui/Toast";
 import { Button } from "@/components/ui/Button";
 import { tr } from "@/lib/i18n";
 
-const roleRank: Record<WorkspaceRole, number> = { viewer: 1, member: 2, admin: 3, owner: 4 };
-const ROLES: WorkspaceRole[] = ["viewer", "member", "admin", "owner"];
-const roleLabel = (): Record<WorkspaceRole, string> => ({ viewer: tr("dashboard.viewer"), member: tr("dashboard.member"), admin: tr("dashboard.admin"), owner: tr("dashboard.owner") });
+const rank: Record<WorkspaceRole, number> = { viewer: 1, member: 2, admin: 3, owner: 4 };
 
-// One-line description of each role, shown under the invite picker so the inviter
-// knows what they're granting.
-const roleDesc = (): Record<WorkspaceRole, string> => ({
-  owner: tr("dashboard.full_access_plus_workspace_settings_and_dele"),
-  admin: tr("dashboard.manage_members_content_and_brand_settings"),
-  member: tr("dashboard.create_edit_and_share_designs"),
-  viewer: tr("dashboard.view_and_comment_only"),
-});
-
-// Color-coded role chip styling, by authority.
-const ROLE_BADGE: Record<WorkspaceRole, string> = {
-  owner: "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200",
-  admin: "bg-brand-50 text-brand-ink ring-1 ring-inset ring-brand-200",
-  member: "bg-neutral-100 text-neutral-700 ring-1 ring-inset ring-neutral-200",
-  viewer: "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200",
-};
+// Chip styling: the owner role in amber, the seeded admin role in the accent,
+// every other role neutral (a team's own roles have no fixed authority).
+function badgeClass(r: WorkspaceRoleView | undefined): string {
+  if (r?.protected) return "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200";
+  if (r?.seedKey === "admin") return "bg-brand-50 text-brand-ink ring-1 ring-inset ring-brand-200";
+  if (r?.seedKey === "viewer") return "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200";
+  return "bg-neutral-100 text-neutral-700 ring-1 ring-inset ring-neutral-200";
+}
 
 // Capabilities a custom role can grant, with friendly labels.
 const capabilities = (): { id: Capability; label: string }[] => [
@@ -95,11 +92,11 @@ function SectionHeader({
   );
 }
 
-function RoleBadge({ role }: { role: WorkspaceRole }) {
+function RoleBadge({ role }: { role: WorkspaceRoleView | undefined }) {
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${ROLE_BADGE[role]}`}>
-      {role === "owner" && <Crown size={12} />}
-      {roleLabel()[role]}
+    <span className={`inline-flex max-w-[11rem] items-center gap-1 truncate rounded-full px-2.5 py-1 text-xs font-medium ${badgeClass(role)}`}>
+      {role?.protected && <Crown size={12} />}
+      {role ? roleName(role) : "?"}
     </span>
   );
 }
@@ -113,9 +110,9 @@ function RoleSelect({
   ariaLabel,
   size = "md",
 }: {
-  value: WorkspaceRole;
-  roles: WorkspaceRole[];
-  onChange: (r: WorkspaceRole) => void;
+  value: string;
+  roles: WorkspaceRoleView[];
+  onChange: (roleId: string) => void;
   ariaLabel: string;
   size?: "md" | "sm";
 }) {
@@ -128,13 +125,13 @@ function RoleSelect({
     <div className="relative">
       <select
         value={value}
-        onChange={(e) => onChange(e.target.value as WorkspaceRole)}
+        onChange={(e) => onChange(e.target.value)}
         aria-label={ariaLabel}
         className={`${dims} w-full appearance-none border border-neutral-200 bg-surface text-neutral-700 outline-none transition hover:border-neutral-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-100`}
       >
         {roles.map((r) => (
-          <option key={r} value={r}>
-            {roleLabel()[r]}
+          <option key={r.id} value={r.id}>
+            {roleName(r)}
           </option>
         ))}
       </select>
@@ -155,14 +152,12 @@ export function MembersPanel({
   workspaceId,
   workspaceName,
   workspaceKind,
-  myRole,
   myUserId,
   onExit,
 }: {
   workspaceId: string | null;
   workspaceName: string;
   workspaceKind: string;
-  myRole: WorkspaceRole;
   myUserId: string;
   onExit?: () => void; // the caller left or deleted this workspace -> leave the page
 }) {
@@ -171,7 +166,9 @@ export function MembersPanel({
   const [members, setMembers] = useState<WorkspaceMemberView[]>([]);
   const [invites, setInvites] = useState<WorkspaceInvitation[]>([]);
   const [email, setEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState<WorkspaceRole>("member");
+  const [inviteRole, setInviteRole] = useState<string>("");
+  // The workspace's roles and what the caller's role allows (F42).
+  const [rolesView, setRolesView] = useState<WorkspaceRolesView | null>(null);
   const [busy, setBusy] = useState(false);
   // Delete-workspace confirmation (owner-only, non-personal). The user must type
   // the workspace name to arm the destructive action.
@@ -180,8 +177,18 @@ export function MembersPanel({
   const [deleting, setDeleting] = useState(false);
 
   const isPersonal = workspaceKind === "personal";
-  const canManage = myRole === "admin" || myRole === "owner";
-  const myRank = roleRank[myRole];
+  const mine = rolesView?.myActions ?? {};
+  const roles = rolesView?.roles ?? [];
+  const roleById = new Map(roles.map((r) => [r.id, r]));
+  const myRoleView = rolesView ? roleById.get(rolesView.myRoleId) : undefined;
+  const canInvite = !!mine["members.invite"];
+  const canAssign = !!mine["members.assign"];
+  const canRemove = !!mine["members.remove"];
+  const canSso = !!mine["members.sso"];
+  const canManageRoles = !!mine["roles.manage"];
+  // Only what the caller holds may be handed out; the owner role by owners.
+  const mayHandOut = (r: WorkspaceRoleView | undefined) => !!r && (r.protected ? !!myRoleView?.protected : coversActions(mine, r.actions));
+  const roleOf = (m: { role: WorkspaceRole; roleId?: string }) => (m.roleId && roleById.get(m.roleId)) || roles.find((r) => r.seedKey === m.role);
 
   async function deleteWorkspace() {
     if (!workspaceId || deleteConfirm !== workspaceName) return;
@@ -200,15 +207,16 @@ export function MembersPanel({
   const reload = useCallback(async () => {
     if (!workspaceId || isPersonal) return;
     try {
-      const m = await oc.workspaceMembers(workspaceId);
+      const [m, rv] = await Promise.all([oc.workspaceMembers(workspaceId), oc.workspaceRoles(workspaceId).catch(() => null)]);
       setMembers(m);
-      if (canManage) {
+      if (rv) setRolesView(rv);
+      if (rv?.myActions["members.invite"]) {
         setInvites(await oc.workspaceInvitations(workspaceId).catch(() => []));
       }
     } catch {
       toast.error(tr("dashboard.could_not_load_members"));
     }
-  }, [workspaceId, isPersonal, canManage, toast]);
+  }, [workspaceId, isPersonal, toast]);
 
   useEffect(() => {
     if (!workspaceId || isPersonal) return;
@@ -216,10 +224,13 @@ export function MembersPanel({
     void (async () => {
       setLoading(true);
       try {
-        const m = await oc.workspaceMembers(workspaceId);
+        const [m, rv] = await Promise.all([oc.workspaceMembers(workspaceId), oc.workspaceRoles(workspaceId).catch(() => null)]);
         if (cancelled) return;
         setMembers(m);
-        if (canManage) {
+        setRolesView(rv);
+        const memberRole = rv?.roles.find((r) => r.seedKey === "member") ?? rv?.roles.find((r) => !r.protected);
+        if (memberRole) setInviteRole((cur) => cur || memberRole.id);
+        if (rv?.myActions["members.invite"]) {
           const inv = await oc.workspaceInvitations(workspaceId).catch(() => []);
           if (!cancelled) setInvites(inv);
         }
@@ -232,14 +243,14 @@ export function MembersPanel({
     return () => {
       cancelled = true;
     };
-  }, [workspaceId, isPersonal, canManage, toast]);
+  }, [workspaceId, isPersonal, toast]);
 
   async function sendInvite(toEmail = email, role = inviteRole, isResend = false) {
     const addr = toEmail.trim();
     if (!workspaceId || !addr) return;
     setBusy(true);
     try {
-      await oc.invite(workspaceId, { email: addr, role });
+      await oc.invite(workspaceId, { email: addr, roleId: role });
       if (!isResend) setEmail("");
       toast.success(isResend ? tr("dashboard.invitation_resent", { email: addr }) : tr("dashboard.invitation_sent", { email: addr }));
       await reload();
@@ -253,12 +264,14 @@ export function MembersPanel({
     }
   }
 
-  async function changeRole(m: WorkspaceMemberView, role: WorkspaceRole) {
-    if (!workspaceId || role === m.role) return;
+  async function changeRole(m: WorkspaceMemberView, roleId: string) {
+    if (!workspaceId || roleId === roleOf(m)?.id) return;
     try {
-      await oc.changeMemberRole(workspaceId, m.userId, role);
-      toast.success(tr("dashboard.member_role_changed", { name: m.name || m.email, role: roleLabel()[role] }));
+      await oc.changeMemberRole(workspaceId, m.userId, roleId);
+      const r = roleById.get(roleId);
+      toast.success(tr("dashboard.member_role_changed", { name: m.name || m.email, role: r ? roleName(r) : "" }));
       await reload();
+      if (m.userId === myUserId) await refreshWorkspaceActions(workspaceId);
     } catch {
       toast.error(tr("dashboard.could_not_change_the_role"));
     }
@@ -287,9 +300,14 @@ export function MembersPanel({
     if (!workspaceId) return;
     setBusy(true);
     try {
-      if (roleRank[inv.role] > roleRank[m.role]) await oc.changeMemberRole(workspaceId, m.userId, inv.role);
+      const invited = roleOf(inv);
+      const current = roleOf(m);
+      // Like before: the invited role only when it ranks higher.
+      const raise = !!invited && rank[inv.role] > rank[m.role];
+      if (raise && invited) await oc.changeMemberRole(workspaceId, m.userId, invited.id);
       await oc.revokeInvitation(workspaceId, inv.id);
-      toast.success(tr("dashboard.member_role_changed", { name: m.name || m.email, role: roleLabel()[roleRank[inv.role] > roleRank[m.role] ? inv.role : m.role] }));
+      const shown = raise ? invited : current;
+      toast.success(tr("dashboard.member_role_changed", { name: m.name || m.email, role: shown ? roleName(shown) : "" }));
       await reload();
     } catch {
       toast.error(tr("dashboard.could_not_change_the_role"));
@@ -309,20 +327,17 @@ export function MembersPanel({
     }
   }
 
-  // Whether the caller may manage (change role / remove) the given member.
-  const canManageTarget = (m: WorkspaceMemberView) => {
-    if (!canManage) return false;
-    if (m.userId === myUserId) return false; // self handled by "Leave"
-    if (roleRank[m.role] > myRank) return false; // cannot manage someone higher
-    if (m.role === "owner" && myRole !== "owner") return false;
-    return true;
+  // Whether the caller may manage (change role / remove) the given member:
+  // never themselves (that is "Leave"), never someone above them.
+  const canManageTarget = (m: WorkspaceMemberView) => m.userId !== myUserId && (canAssign || canRemove) && mayHandOut(roleOf(m));
+  // The roles this caller may assign: those they could hand out, plus the
+  // member's current one so the select shows it.
+  const assignableRoles = (m: WorkspaceMemberView) => {
+    const cur = roleOf(m);
+    return roles.filter((r) => mayHandOut(r) || r.id === cur?.id);
   };
-  // The roles this caller may assign (never above their own; owner only by owner).
-  const assignableRoles = (m: WorkspaceMemberView) =>
-    ROLES.filter((r) => roleRank[r] <= myRank && (r !== "owner" || myRole === "owner")).concat(
-      ROLES.includes(m.role) && !(roleRank[m.role] <= myRank) ? [m.role] : [],
-    );
-  const invitableRoles = ROLES.filter((r) => roleRank[r] <= myRank);
+  const invitableRoles = roles.filter((r) => mayHandOut(r));
+  const inviteRoleView = roleById.get(inviteRole);
   const alone = members.length <= 1;
 
   return (
@@ -337,10 +352,18 @@ export function MembersPanel({
         </div>
       ) : (
         <div className="space-y-7">
-          {/* Invite (admins/owners only). */}
-          {canManage && (
+          {/* Invite (members.invite). */}
+          {canInvite && (
             <section>
-              <SectionHeader icon={UserPlus} label={tr("dashboard.invite_people")} />
+              <SectionHeader
+                icon={UserPlus}
+                label={tr("dashboard.invite_people")}
+                action={
+                  <Link href={dashboardPath("roles")} className="flex items-center gap-1 text-xs font-semibold text-brand-ink hover:text-brand-800">
+                    <Shield size={14} /> {canManageRoles ? tr("roles.manage_roles") : tr("roles.view_roles")}
+                  </Link>
+                }
+              />
               <div className="flex items-stretch gap-2">
                 <div className="relative min-w-0 flex-1">
                   <Mail size={16} className="pointer-events-none absolute start-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
@@ -356,7 +379,7 @@ export function MembersPanel({
                     className="h-11 w-full rounded-xl border border-neutral-200 bg-surface ps-10 pe-3 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
                   />
                 </div>
-                <div className="w-32 shrink-0">
+                <div className="w-40 shrink-0">
                   <RoleSelect value={inviteRole} roles={invitableRoles} onChange={setInviteRole} ariaLabel={tr("dashboard.invite_role")} />
                 </div>
                 <Button className="h-11 shrink-0 px-5" disabled={busy || !email.trim()} onClick={() => void sendInvite()}>
@@ -364,13 +387,13 @@ export function MembersPanel({
                 </Button>
               </div>
               <p className="mt-2 text-xs text-neutral-500">
-                <span className="font-medium text-neutral-600">{roleLabel()[inviteRole]}:</span> {roleDesc()[inviteRole]} {tr("dashboard.invite_email_hint")}
+                {inviteRoleView && <span className="font-medium text-neutral-600">{roleName(inviteRoleView)}:</span>} {inviteRoleView ? roleHint(inviteRoleView) : ""} {tr("dashboard.invite_email_hint")}
               </p>
             </section>
           )}
 
-          {/* Everyone signing in through SSO joins (admins/owners only). */}
-          {canManage && workspaceId && <SsoJoinSection workspaceId={workspaceId} onChanged={() => void reload()} />}
+          {/* Everyone signing in through SSO joins (members.sso). */}
+          {canSso && workspaceId && <SsoJoinSection workspaceId={workspaceId} roles={roles.filter((r) => !r.protected && mayHandOut(r))} onChanged={() => void reload()} />}
 
           {/* Roster. */}
           <section>
@@ -393,17 +416,21 @@ export function MembersPanel({
                         <div className="truncate text-xs text-neutral-500">{m.email}</div>
                       </div>
                       {manageable ? (
-                        <div className="w-28 shrink-0">
-                          <RoleSelect
-                            value={m.role}
-                            roles={assignableRoles(m)}
-                            onChange={(r) => void changeRole(m, r)}
-                            ariaLabel={tr("dashboard.role_for", { name: m.name || m.email })}
-                            size="sm"
-                          />
-                        </div>
+                        canAssign ? (
+                          <div className="w-36 shrink-0">
+                            <RoleSelect
+                              value={roleOf(m)?.id ?? ""}
+                              roles={assignableRoles(m)}
+                              onChange={(r) => void changeRole(m, r)}
+                              ariaLabel={tr("dashboard.role_for", { name: m.name || m.email })}
+                              size="sm"
+                            />
+                          </div>
+                        ) : (
+                          <RoleBadge role={roleOf(m)} />
+                        )
                       ) : (
-                        <RoleBadge role={m.role} />
+                        <RoleBadge role={roleOf(m)} />
                       )}
                       {self && !alone ? (
                         <button
@@ -413,7 +440,7 @@ export function MembersPanel({
                         >
                           {tr("dashboard.leave")}
                         </button>
-                      ) : manageable ? (
+                      ) : manageable && canRemove ? (
                         <button
                           onClick={() => void removeMember(m)}
                           aria-label={tr("dashboard.remove_member_named", { name: m.name || m.email })}
@@ -432,8 +459,8 @@ export function MembersPanel({
             )}
           </section>
 
-          {/* Pending invitations (admins/owners only). */}
-          {canManage && invites.length > 0 && (
+          {/* Pending invitations (members.invite). */}
+          {canInvite && invites.length > 0 && (
             <section>
               <SectionHeader icon={Clock} label={tr("dashboard.pending_invitations")} count={invites.length} />
               <ul className="divide-y divide-neutral-100 overflow-hidden rounded-xl border border-neutral-200">
@@ -448,8 +475,8 @@ export function MembersPanel({
                       <div className="truncate text-sm font-medium text-neutral-800">{inv.email}</div>
                       <div className="truncate text-xs text-neutral-500">
                         {member
-                          ? tr("dashboard.invite_to_member", { role: roleLabel()[member.role], invited: roleLabel()[inv.role] })
-                          : tr("dashboard.invited_as_role_expires", { role: roleLabel()[inv.role], expiry: relativeExpiry(inv.expiresAt) })}
+                          ? tr("dashboard.invite_to_member", { role: roleOf(member) ? roleName(roleOf(member)!) : "", invited: roleOf(inv) ? roleName(roleOf(inv)!) : "" })
+                          : tr("dashboard.invited_as_role_expires", { role: roleOf(inv) ? roleName(roleOf(inv)!) : "", expiry: relativeExpiry(inv.expiresAt) })}
                       </div>
                     </div>
                     {member ? (
@@ -462,7 +489,7 @@ export function MembersPanel({
                       </button>
                     ) : (
                       <button
-                        onClick={() => void sendInvite(inv.email, inv.role, true)}
+                        onClick={() => void sendInvite(inv.email, roleOf(inv)?.id ?? inviteRole, true)}
                         disabled={busy}
                         className="shrink-0 rounded-lg px-2.5 py-1 text-xs font-medium text-brand-ink transition-colors hover:bg-brand-50 disabled:opacity-50"
                       >
@@ -482,15 +509,15 @@ export function MembersPanel({
             </section>
           )}
 
-          {/* Custom roles (admins/owners only). */}
-          {canManage && workspaceId && (
+          {/* Roles for single designs (attached to share grants; roles.manage). */}
+          {canManageRoles && workspaceId && (
             <section className="border-t border-neutral-100 pt-5">
               <CustomRolesSection workspaceId={workspaceId} />
             </section>
           )}
 
-          {/* Danger zone: delete the workspace (owner only). */}
-          {myRole === "owner" && workspaceId && (
+          {/* Danger zone: delete the workspace (the owner role only). */}
+          {myRoleView?.protected && workspaceId && (
             <section className="border-t border-neutral-100 pt-5">
               <SectionHeader icon={AlertTriangle} label={tr("dashboard.danger_zone")} />
               <div className="rounded-xl border border-red-200 bg-red-50/40 p-4">
@@ -539,29 +566,31 @@ export function MembersPanel({
  *  a fixed role (member or viewer). Switching it on adds everyone who already
  *  has an SSO account; the server never lowers a higher role, and people
  *  removed from the workspace are not added back. */
-function SsoJoinSection({ workspaceId, onChanged }: { workspaceId: string; onChanged: () => void }) {
+function SsoJoinSection({ workspaceId, roles, onChanged }: { workspaceId: string; roles: WorkspaceRoleView[]; onChanged: () => void }) {
   const toast = useToast();
-  const [role, setRole] = useState<"" | "member" | "viewer" | null>(null);
-  const [pick, setPick] = useState<"member" | "viewer">("member");
+  // What the server holds (null while loading), mapped to a role id at render
+  // time: an older server sends only the base role name.
+  const [join, setJoin] = useState<{ role: string; roleId?: string } | null>(null);
+  const [picked, setPicked] = useState<string>("");
   const [busy, setBusy] = useState(false);
   useEffect(() => {
     let cancelled = false;
     oc.getSsoJoin(workspaceId).then(
-      (j) => {
-        if (cancelled) return;
-        setRole(j.role);
-        if (j.role) setPick(j.role);
-      },
-      () => { if (!cancelled) setRole(""); },
+      (j) => { if (!cancelled) setJoin({ role: j.role, roleId: j.roleId }); },
+      () => { if (!cancelled) setJoin({ role: "" }); },
     );
     return () => { cancelled = true; };
   }, [workspaceId]);
+  // The role id people join with ("" = off); null while loading.
+  const role = join === null ? null : join.role ? join.roleId || roles.find((r) => r.seedKey === join.role)?.id || "" : "";
+  const pick = picked || role || (roles.find((r) => r.seedKey === "member") ?? roles[0])?.id || "";
+  const setPick = setPicked;
 
-  async function apply(next: "" | "member" | "viewer") {
+  async function apply(next: string) {
     setBusy(true);
     try {
       const r = await oc.setSsoJoin(workspaceId, next);
-      setRole(r.role);
+      setJoin({ role: r.role, roleId: r.roleId ?? next });
       if (r.role && r.added > 0) toast.success(tr("dashboard.sso_join_added", { count: r.added }));
       if (!r.role) toast.success(tr("dashboard.sso_join_off"));
       onChanged();
@@ -591,9 +620,8 @@ function SsoJoinSection({ workspaceId, onChanged }: { workspaceId: string; onCha
         <div className="w-36 shrink-0">
           <RoleSelect
             value={pick}
-            roles={["member", "viewer"]}
-            onChange={(r) => {
-              const next = r === "viewer" ? "viewer" : "member";
+            roles={roles}
+            onChange={(next) => {
               setPick(next);
               if (on && next !== role) void apply(next);
             }}

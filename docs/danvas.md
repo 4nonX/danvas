@@ -61,13 +61,34 @@ Tick several designs (and folders) and the bar at the bottom offers download and
 
 ### Everyone through single sign-on
 
-On an instance that signs people in through an identity provider (OIDC), a team workspace can take in everyone who signs in that way: under **Members**, an owner or admin ticks **Add everyone who signs in with single sign-on** and picks the role (member or viewer). Everyone who already has an SSO account joins at once; anyone signing in through SSO later joins at sign-in. Higher roles stay as they are. Someone you remove is not added back automatically; inviting them again brings them back. Switching it off keeps everyone who is already in.
+On an instance that signs people in through an identity provider (OIDC), a team workspace can take in everyone who signs in that way: under **Members**, someone whose role may set up SSO sign-in ticks **Add everyone who signs in with single sign-on** and picks the role (any role of the workspace except the owner role, and only one whose rights they hold themselves). Everyone who already has an SSO account joins at once; anyone signing in through SSO later joins at sign-in. Higher roles stay as they are. Someone you remove is not added back automatically; inviting them again brings them back. Switching it off keeps everyone who is already in.
 
 ### Invitations
 
-Owners and admins invite people by email under **Members**; the invitation also shows up in danvas under the bell for anyone who already has an account there. For the email to go out, the instance needs a mail server (see `SMTP_*` in [`deploy/README.md`](../deploy/README.md)).
+People whose role may invite (by default owners and admins) invite by email under **Members**, with any role whose rights they hold themselves; the invitation also shows up in danvas under the bell for anyone who already has an account there. For the email to go out, the instance needs a mail server (see `SMTP_*` in [`deploy/README.md`](../deploy/README.md)).
 
 If someone has become a member in the meantime (for example through single sign-on above), their pending invitation says so and offers **Apply role**: they get the invited role, if it is higher than the one they have, and the invitation is withdrawn. Sending it again is refused with that explanation, since members need no invitation; their role is changed in the list.
+
+### Roles and permissions
+
+Who may do what in a team workspace is set on the dashboard under **Roles and permissions** (in the left bar). It has three layers:
+
+- **Actions** are the single things danvas checks, for example rename a design, delete it for good, upload a file, publish a template, manage colour profiles, set up the AI provider, invite people. danvas defines them; the tab **Actions** lists each with a sentence and the permissions that contain it. Many actions can apply to one's own items only or to everything in the workspace.
+- **Permissions** bundle actions under a name ("Print data" = colour profiles, export profiles and print presets). Each action in a permission is set to **Own items only** or **Everything in the workspace** where it has that choice.
+- **Roles** are sets of permissions. Every member, every invitation and the SSO sign-in above get one role.
+
+Every workspace starts with four roles: **Owner** (every right, including deleting the workspace), **Admin**, **Member** and **Viewer**, which allow exactly what the four fixed roles allowed before 0.6.0. Roles and permissions can be created, edited, duplicated and deleted, the seeded ones too. When a role still has members, deleting it asks which role they move to.
+
+The rules, checked by the server on every request:
+
+- You can only hand out what your own role holds: a permission only with actions you have, a role only with permissions you hold, and you can only give someone (or invite them with, or set for SSO) a role whose rights you hold. Nobody changes their own role.
+- The **Owner** role always has every right. It can be renamed, never changed or deleted, and only owners give it to someone or take it away. The last owner of a workspace cannot be removed or demoted.
+- A right your role lacks is refused with a message naming it, and the matching button is not shown.
+- Every change to roles and permissions, and every role given to a member, is listed under **Log** (for roles that may see it).
+
+The switch **Who may change them** beside the workspace's export profiles and print presets still works: it adds or removes that right for the **Member** role. Any other role gets it on the roles page. **Roles for single designs** on the Members page are something else: named sets of rights on one design, given when it is shared.
+
+If a workspace has lost its last owner (for example the only owner left the company and their account was removed), the server's administrator can give an existing user the owner role on the command line: `hycanvas workspace grant-owner <workspace id or slug> <email>` (in the container: `docker compose exec app /app/hycanvas workspace grant-owner ...`). It is recorded in the log.
 
 ### Templates
 
@@ -226,7 +247,7 @@ An export profile is a named set of download settings: format, size, colour prof
 - Change anything and the menu says so; **Update** writes the change into the profile, **Save as new** keeps it as a new one (name, description, "Just me" or "Whole workspace", default).
 - **Manage: Mine · Workspace** opens the full list: your own under **Settings**, **Export profiles**, the workspace's on its **Members** page (see [Where profiles are kept](#where-profiles-are-kept)). There **New** creates one, **Edit** changes every setting of a profile in one dialog (format, PDF type, colour, colour profile and intent, ink limit, black ink, PDF/X-4, registration marks, die line, bleed and crop marks, extending into the bleed, whole millimetres, zip), a click renames or describes it, and it can be made the default, duplicated, copied from the workspace into one's own, or deleted.
 - The download menu opens with the user's default, else the workspace's. Names are unique per owner, ignoring case.
-- Who may create, change and delete the workspace's profiles is set on the same **Members** page: owners and admins (the default) or every member who may edit. Everyone uses them.
+- Who may create, change and delete the workspace's profiles follows the roles ([Roles and permissions](#roles-and-permissions)): by default owners and admins. The switch on the same **Members** page also gives it to the Member role. Everyone uses them.
 
 A profile can hold bleed and crop marks "as on the pages" or "set for this output": the second applies one bleed and one set of marks to the export without changing the design.
 
@@ -249,7 +270,7 @@ Colour profiles, export profiles and print presets each exist twice: **your own*
 |---|---|---|
 | Where to manage them | **Settings** (in the menu under your name): **Export profiles**, **Print presets**, **Color profiles** | Dashboard, **Members** in the left bar, section **Print and export**: **Color profiles**, **Export profiles**, **Print presets** |
 | Who sees and uses them | only you, in every workspace you work in (your personal one too) | every member of that workspace, only there |
-| Create, edit, delete | you | colour profiles: owners and admins; export profiles and print presets: owners and admins, or every member who may edit (set on the same page) |
+| Create, edit, delete | you | whoever's role holds the matching right (see [Roles and permissions](#roles-and-permissions)); by default owners and admins, and for export profiles and print presets also the Member role when switched on there |
 | Default | **Use as my default** (colour profiles: **Make default**): applies to you only and comes before the workspace's default | **Use as the workspace default** (colour profiles: **Make default**): applies to every member who has no default of their own |
 
 In the download menu, the print dialog and the page panel both kinds are listed together, yours as **Mine** and the workspace's under its name. Beside each picker, **Manage: Mine · Workspace** opens your own list in **Settings** or the workspace's on its **Members** page, at the right section. Each list creates, edits (every setting, with **Edit**), renames, sets the default and deletes; colour profiles are created by uploading an `.icc` file. **Copy to mine** turns a workspace profile into one of your own, to change it for yourself without changing it for everyone.

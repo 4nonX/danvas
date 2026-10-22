@@ -225,6 +225,9 @@ describe("api error codes", () => {
     for (const m of src.matchAll(/\b(?:problemWithCode|ProblemCode)\([\s\S]*?"([a-z0-9_]+)"\s*\)/g)) {
       codes.add(m[1]);
     }
+    // A problem document built directly (actionProblem, which also names the
+    // refused action) carries its code as a struct field.
+    for (const m of src.matchAll(/\bCode:\s*"([a-z0-9_]+)"/g)) codes.add(m[1]);
   }
 
   it("finds the codes at all", () => {

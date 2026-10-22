@@ -8,7 +8,11 @@ Each workspace defines who may do what, in three layers:
 
 This replaces the fixed role ladder (viewer < member < admin < owner) that every check compares against today, and the per-feature switches around it (export profiles and print presets "managed by", fixed owner/admin rules for fonts, colour profiles, AI, Canva, API keys). It implements FR-15 of [38](38-accessibility-i18n-security-compliance-selfhost-nfr.md) at workspace scope. Roles, permissions and the page to manage them ship together in one release.
 
-## Where it stands today
+## Status
+
+Stage 1 shipped in 0.6.0. Differences to the text below: the route-to-action mapping was checked by an audit when the checks moved, not by a test that fails for a route without an action (FR-1); the golden test compares the seeded roles with the old fixed roles per action and per design capability, not per route (AC-1); the page shows effective actions per role, not per member (FR-7); and the dashboard hides the workspace settings, members and roles controls by action, while the content controls (create, delete, upload, folders) still show for everyone who may edit and are refused by the server. Stage 2 and 3 are open.
+
+## Where it stood before
 
 - Four fixed roles (`Role` enum `OWNER`, `ADMIN`, `MEMBER`, `VIEWER` on `workspace_members.role`), compared by rank in `accounts.AssertMember(minRole)` and its wrappers: roughly 120 checks, each with its minimum role written into the handler.
 - A capability layer (`authz.Resolve`, nine design capabilities) used for per-design features only: sharing, comments, approvals, whiteboard, brand, template locks, realtime. Its built-in sets derive from the four roles.

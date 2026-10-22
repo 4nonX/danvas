@@ -2,6 +2,24 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.6.0 (2026-10-22)
+
+### Added
+
+- **Roles and permissions** on the dashboard of every team workspace. Actions (the single things danvas checks, such as renaming a design, deleting it for good, uploading, publishing templates, managing colour profiles or setting up AI) are bundled into permissions, and permissions into roles; actions can apply to one's own items only or to everything. Roles and permissions are created, edited, duplicated and deleted on that page, and a role still in use is deleted by naming the role its members move to. Every member, invitation and the SSO sign-in get one of these roles: the selects on the Members page now list the workspace's roles, the ones added there too. A log lists every change.
+- Rules the server enforces: nobody hands out a right their own role lacks, nobody changes their own role, the Owner role always has every right (it can be renamed, not changed or deleted, and only owners give it), and the last owner stays. A refused request names the missing right.
+- `hycanvas workspace grant-owner <workspace> <email>` restores an owner from the server's command line when a workspace has none left.
+
+### Changed
+
+- Every workspace gets the roles Owner, Admin, Member and Viewer, which allow exactly what the fixed roles allowed before; existing members, invitations and SSO settings keep their role. New workspaces, the first on a fresh instance too, are created with them and their creator as owner.
+- The switch for who may change the workspace's export profiles and print presets now sets that right on the Member role.
+- **Custom roles** on the Members page are now called **Roles for single designs**, to set them apart from the workspace roles. They work as before.
+
+### Upgrading
+
+- The migration adds tables and nullable columns only. The first start seeds the roles of every workspace from its members' current roles. A rollback to 0.5.9 keeps working: it ignores the new tables and reads each member's role as before (a member of a role added in 0.6.0 is read at that role's nearest fixed level).
+
 ## 0.5.9 (2026-10-21)
 
 ### Fixed

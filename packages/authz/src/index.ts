@@ -8,6 +8,7 @@
 export * from "./types";
 export * from "./roles";
 export * from "./access";
+export * from "./actions";
 export * from "./identity";
 export * from "./session";
 export * from "./invitation";

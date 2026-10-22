@@ -45,13 +45,13 @@ import {
   List,
   Users,
   Moon,
-  Sun, Sparkles, Wand2, Paperclip, Loader2, X, Folder as FolderIcon, FolderPlus, FolderInput, Check, Download, Share2, Link2, ArrowRightLeft, Printer, CopyPlus, Scaling } from "lucide-react";
+  Sun, Sparkles, Wand2, Paperclip, Loader2, X, Folder as FolderIcon, FolderPlus, FolderInput, Check, Download, Share2, Link2, ArrowRightLeft, Printer, CopyPlus, Scaling, KeyRound } from "lucide-react";
 import { createBlankDesign } from "@hc/schema";
 import { hycAccept, downloadHycFile, importedTitle, parseHycFile, readFileText } from "@/lib/hycFile";
 import { dialTones } from "@hc/aistudio";
 import { designFromFile, designImportAccept } from "@/lib/importDesignFile";
 
-import { ApiError, type AiProviderPreset, type DesignFolder, type DesignRecord, type HomeItem, type MyTask, type StorageUsageView, type TaskStatus, type TemplateCollectionSummary, type TemplateSummary, type WorkspaceRole } from "@hc/sdk";
+import { ApiError, type AiProviderPreset, type DesignFolder, type DesignRecord, type HomeItem, type MyTask, type StorageUsageView, type TaskStatus, type TemplateCollectionSummary, type TemplateSummary } from "@hc/sdk";
 import { formatBytes } from "@/lib/format";
 import { useDateFormat } from "@/lib/datetime";
 import { resolvedTheme, setThemePreference } from "@/lib/theme";
@@ -69,6 +69,9 @@ import { dashboardPath, type DashboardView } from "./views";
 import { DesignThumb } from "./DesignThumb";
 import { BulkShareDialog } from "./BulkShareDialog";
 import { ReformatDialog } from "./ReformatDialog";
+import { RolesPage } from "./RolesPage";
+import { useMyActions } from "@/store/workspaceActions";
+import { hasAction, type Action } from "@hc/authz";
 import Link from "next/link";
 import { settingsPath } from "@/components/settings/tabs";
 import { ExportDialog, type ExportTarget } from "@/components/editor/ExportDialog";
@@ -474,6 +477,9 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   const [printLoading, setPrintLoading] = useState(false);
   const [shareDesignId, setShareDesignId] = useState<string | null>(null);
   const [bulkShare, setBulkShare] = useState<{ id: string; title: string }[] | null>(null);
+  // What the caller's role allows in the active workspace (F42).
+  const myActions = useMyActions();
+  const can = (a: Action) => hasAction(myActions, a);
   const [reformat, setReformat] = useState<{ id: string; title: string }[] | null>(null);
   // Bumped when designs change outside the editor, so their cards redraw.
   const [thumbRev, setThumbRev] = useState(0);
@@ -1247,6 +1253,9 @@ export function DashboardApp({ view }: { view: DashboardView }) {
           <RailItem icon={CheckSquare} label={tr("dashboard.my_tasks")} active={view === "tasks"} collapsed={railCollapsed} onClick={() => gotoView("tasks")} />
           <RailItem icon={LayoutTemplate} label={tr("dashboard.templates")} active={view === "templates"} collapsed={railCollapsed} onClick={() => gotoView("templates")} />
           <RailItem icon={Users} label={tr("dashboard.members")} active={view === "members"} collapsed={railCollapsed} onClick={() => gotoView("members")} />
+          {activeWs?.kind !== "personal" && (
+            <RailItem icon={KeyRound} label={tr("roles.title")} active={view === "roles"} collapsed={railCollapsed} onClick={() => gotoView("roles")} />
+          )}
           <RailItem icon={Trash2} label={tr("dashboard.trash")} active={view === "trash"} collapsed={railCollapsed} onClick={() => gotoView("trash")} />
         </nav>
 
@@ -1944,6 +1953,12 @@ export function DashboardApp({ view }: { view: DashboardView }) {
             </section>
           )}
 
+          {view === "roles" && activeWorkspaceId && (
+            <section>
+              <h2 className="mb-2 px-2 text-xl font-semibold text-neutral-900">{tr("roles.title")}</h2>
+              <RolesPage key={activeWorkspaceId} workspaceId={activeWorkspaceId} />
+            </section>
+          )}
           {view === "members" && (
             <section>
               <h2 className="mb-4 px-2 text-xl font-semibold text-neutral-900">{tr("dashboard.members")}</h2>
@@ -1951,7 +1966,6 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                 workspaceId={activeWorkspaceId}
                 workspaceName={activeWs?.name ?? tr("dashboard.this_workspace")}
                 workspaceKind={activeWs?.kind ?? "personal"}
-                myRole={(activeWs?.role ?? "viewer") as WorkspaceRole}
                 myUserId={user?.id ?? ""}
                 onExit={() => { gotoView("home"); void refreshWorkspaces(); }}
               />
@@ -1967,7 +1981,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                   server's own viewer-to-read, admin-to-write split. */}
               <WorkspaceAiPanel
                 workspaceId={activeWorkspaceId}
-                canEdit={activeWs?.role === "owner" || activeWs?.role === "admin"}
+                canEdit={can("ai.configure")}
               />
               {/* Print profiles: every member exports with them, an admin
                   uploads them (the server enforces the same split). */}
@@ -1976,7 +1990,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
               {activeWorkspaceId && (
                 <WorkspaceFontsPanel
                   workspaceId={activeWorkspaceId}
-                  canEdit={activeWs?.role === "owner" || activeWs?.role === "admin"}
+                  canEdit={can("fonts.manage")}
                 />
               )}
               {/* Import from Canva: the admin registers the workspace's Canva
@@ -1984,10 +1998,10 @@ export function DashboardApp({ view }: { view: DashboardView }) {
               {activeWorkspaceId && (
                 <WorkspaceCanvaPanel
                   workspaceId={activeWorkspaceId}
-                  canEdit={activeWs?.role === "owner" || activeWs?.role === "admin"}
+                  canEdit={can("canva.configure")}
                 />
               )}
-              {activeWorkspaceId && (activeWs?.role === "owner" || activeWs?.role === "admin") && (
+              {activeWorkspaceId && can("apiKeys.manage") && (
                 <ApiKeysPanel workspaceId={activeWorkspaceId} />
               )}
               {/* Print and export: the workspace's colour profiles, export
@@ -2005,7 +2019,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                     <PrintProfilesPanel
                       scope="workspace"
                       workspaceId={activeWorkspaceId}
-                      canEdit={activeWs?.role === "owner" || activeWs?.role === "admin"}
+                      canEdit={can("print.colorProfiles")}
                     />
                   </div>
                   {/* Who may manage the export profiles and print presets is
@@ -2217,7 +2231,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
         <CanvaImportDialog
           workspaceId={activeWorkspaceId}
           targetFolderId={currentFolder}
-          isAdmin={activeWs?.role === "owner" || activeWs?.role === "admin"}
+          isAdmin={can("canva.configure")}
           onOpenSettings={() => { closeCanva(); gotoView("members"); }}
           errorMessage={(e) => importErrorMessage(e, tr("dashboard.canva_import_failed"))}
           onClose={() => {

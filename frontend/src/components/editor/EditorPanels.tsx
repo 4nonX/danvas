@@ -6055,18 +6055,19 @@ export function AiPanel({ workspaceId, designId = null }: { workspaceId: string 
     if (!workspaceId) return;
     let cancelled = false;
     void (async () => {
-      // Saving the provider is admin-only, so the role resolves WITH the
-      // config: settling it afterwards made an admin see the read-only "ask an
-      // admin" note flash before their form appeared. A failed lookup leaves
-      // the form hidden rather than offering a save that would be refused.
-      const [loaded, role, eff] = await Promise.all([
+      // Saving the provider needs ai.configure (F42), so the role's actions
+      // resolve WITH the config: settling them afterwards made an admin see
+      // the read-only "ask an admin" note flash before their form appeared. A
+      // failed lookup leaves the form hidden rather than offering a save that
+      // would be refused.
+      const [loaded, canConfigure, eff] = await Promise.all([
         oc.getAiConfig(workspaceId).then(
           (c) => ({ ok: true as const, c }),
           () => ({ ok: false as const, c: null }),
         ),
-        oc.listWorkspaces().then(
-          (ws) => ws.find((w) => w.id === workspaceId)?.role,
-          () => undefined,
+        oc.myWorkspaceActions(workspaceId).then(
+          (mine) => mine.actions["ai.configure"] !== undefined,
+          () => false,
         ),
         oc.getAiEffective(workspaceId).catch(() => null),
       ]);
@@ -6077,7 +6078,7 @@ export function AiPanel({ workspaceId, designId = null }: { workspaceId: string 
       setConfig(c);
       setPersonalConfig(mine);
       setPersonalAllowed(eff?.personalKeysAllowed ?? true);
-      setCanAdminWorkspace(role === "owner" || role === "admin");
+      setCanAdminWorkspace(canConfigure);
       setShowConfig(loaded.ok && !c?.hasKey && !mine);
       setLoading(false);
     })();

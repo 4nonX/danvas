@@ -11,10 +11,12 @@
 // `expect(...).toThrow(/pattern/)` tests all keep working unchanged. `code` is
 // a catalog key under `errors.*` that `userMessage` resolves at render time.
 //
-// This module is a LEAF on purpose (imports only i18n): it is thrown from
+// This module is a LEAF on purpose (imports only i18n and the action labels): it is thrown from
 // lib/ code that must not drag UI modules in.
 
 import { tr } from "./i18n";
+import { actionLabel } from "./roles";
+import type { Action } from "@hc/sdk";
 
 export class CodedError extends Error {
   /** Catalog key under `errors.*`, resolved at display time. */
@@ -39,10 +41,12 @@ export class CodedError extends Error {
  * catalog entry lands, with the server's English detail as the fallback.
  */
 export function apiCodeMessage(body: unknown): string | null {
-  const code = (body as { code?: string } | null | undefined)?.code;
+  const { code, action } = (body as { code?: string; action?: string } | null | undefined) ?? {};
   if (!code) return null;
   const key = `errors.api_${code}`;
-  const translated = tr(key);
+  // F42: a refused action names it, so the message can say what was refused.
+  const label = action ? actionLabel()[action as Action] ?? action : "";
+  const translated = tr(key, { action: label });
   return translated === key ? null : translated;
 }
 

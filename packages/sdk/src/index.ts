@@ -3,7 +3,7 @@
 // integrators (bearer token). See docs 15/04/11/36.
 
 import type { Color, DesignFile } from "@hc/schema";
-import type { AccessMode, Capability, HomeItem, Membership, TimeFormat, User, WeekStart, Workspace, WorkspaceRole } from "@hc/authz";
+import type { AccessMode, ActionDef, ActionSet, Capability, HomeItem, Membership, TimeFormat, User, WeekStart, Workspace, WorkspaceRole } from "@hc/authz";
 import type { BrandLintViolation } from "@hc/brandkit";
 
 // Re-export the shared domain types so the SDK is a single import surface for
@@ -12,7 +12,7 @@ export type { DesignFile } from "@hc/schema";
 export type { HomeItem, Membership, TimeFormat, User, WeekStart, Workspace, WorkspaceKind, WorkspaceRole } from "@hc/authz";
 // Sharing + permissions vocabulary lives in @hc/authz so client and
 // server share it verbatim.
-export type { AccessMode, Capability } from "@hc/authz";
+export type { AccessMode, Action, ActionArea, ActionDef, ActionScope, ActionSet, Capability } from "@hc/authz";
 // Brand-governance violation + applyable-fix model lives in
 // @hc/brandkit so the editor's live lint and the SDK gate share one shape.
 export type { BrandLintViolation, BrandLintFix } from "@hc/brandkit";
@@ -101,9 +101,69 @@ export interface WorkspaceMemberView {
   email: string;
   name: string;
   avatarUrl?: string;
+  /** The legacy rank derived from the role (older clients); see roleId. */
   role: WorkspaceRole;
+  /** The member's workspace role (F42). */
+  roleId?: string;
   status: "invited" | "active" | "suspended";
   joinedAt?: string;
+}
+
+/** The caller's role in a workspace and what it allows (F42). */
+export interface MyWorkspaceRole {
+  roleId: string;
+  seedKey?: string;
+  protected: boolean;
+  legacyRole: WorkspaceRole;
+  actions: ActionSet;
+}
+
+/** A permission: a named bundle of actions with their scope (F42). An empty
+ *  name on a seeded one means "its seeded name, translated". */
+export interface WorkspacePermissionView {
+  id: string;
+  seedKey?: string;
+  name: string;
+  description: string;
+  actions: ActionSet;
+  roleIds: string[];
+  updatedAt: string;
+}
+
+/** A role: a named set of permissions (F42). */
+export interface WorkspaceRoleView {
+  id: string;
+  seedKey?: string;
+  name: string;
+  description: string;
+  protected: boolean;
+  permissionIds: string[];
+  actions: ActionSet;
+  baseRole: WorkspaceRole;
+  memberCount: number;
+  updatedAt: string;
+}
+
+/** Everything the "Roles and permissions" page needs. */
+export interface WorkspaceRolesView {
+  actions: ActionDef[];
+  permissions: WorkspacePermissionView[];
+  roles: WorkspaceRoleView[];
+  myRoleId: string;
+  myActions: ActionSet;
+  canManage: boolean;
+}
+
+/** One entry of the role change log. */
+export interface RoleEventView {
+  id: string;
+  kind: string;
+  actorId?: string;
+  actorName?: string;
+  targetId?: string;
+  before?: unknown;
+  after?: unknown;
+  createdAt: string;
 }
 
 /** A workspace API key as the management UI sees it (F40): label, display
@@ -128,6 +188,7 @@ export interface WorkspaceInvitation {
   workspaceName?: string;
   email: string;
   role: WorkspaceRole;
+  roleId?: string;
   invitedBy: string;
   expiresAt: string;
   acceptedAt?: string | null;
@@ -1566,17 +1627,17 @@ export class HyCanvasClient {
   themes(): Promise<{ id: string; name: string; style: string; colors: string[]; fontHeading: string; fontBody: string }[]> {
     return this.request("GET", "/v1/themes");
   }
-  /** Whether the workspace takes in everyone signing in through SSO, and at
-   *  which role ("" = off). */
-  getSsoJoin(workspaceId: string): Promise<{ role: "" | "member" | "viewer" }> {
+  /** Whether the workspace takes in everyone signing in through SSO, and with
+   *  which role (role "" = off; roleId names the role, F42). */
+  getSsoJoin(workspaceId: string): Promise<{ role: "" | WorkspaceRole; roleId?: string }> {
     return this.request("GET", `/v1/workspaces/${workspaceId}/sso-join`);
   }
-  /** Switch it (owners and admins; "" = off). Switching on adds everyone who
+  /** Switch it (members.sso; roleId "" = off). Switching on adds everyone who
    *  already signs in through SSO; `added` says how many. */
-  setSsoJoin(workspaceId: string, role: "" | "member" | "viewer"): Promise<{ role: "" | "member" | "viewer"; added: number }> {
-    return this.request("PUT", `/v1/workspaces/${workspaceId}/sso-join`, { role });
+  setSsoJoin(workspaceId: string, roleId: string): Promise<{ role: "" | WorkspaceRole; roleId?: string; added: number }> {
+    return this.request("PUT", `/v1/workspaces/${workspaceId}/sso-join`, roleId ? { roleId } : { role: "" });
   }
-  invite(workspaceId: string, input: { email: string; role?: WorkspaceRole }): Promise<{ invitation: WorkspaceInvitation; token: string }> {
+  invite(workspaceId: string, input: { email: string; role?: WorkspaceRole; roleId?: string }): Promise<{ invitation: WorkspaceInvitation; token: string }> {
     return this.request("POST", `/v1/workspaces/${workspaceId}/invitations`, input);
   }
   acceptInvitation(token: string): Promise<Membership> {
@@ -1596,8 +1657,41 @@ export class HyCanvasClient {
   revokeInvitation(workspaceId: string, invitationId: string): Promise<void> {
     return this.request("DELETE", `/v1/workspaces/${workspaceId}/invitations/${invitationId}`);
   }
-  changeMemberRole(workspaceId: string, userId: string, role: WorkspaceRole): Promise<void> {
-    return this.request("PATCH", `/v1/workspaces/${workspaceId}/members/${userId}`, { role });
+  /** Give a member another role: a role id (F42) or a legacy role name. */
+  changeMemberRole(workspaceId: string, userId: string, role: string): Promise<void> {
+    return this.request("PATCH", `/v1/workspaces/${workspaceId}/members/${userId}`, /^[0-9a-f-]{36}$/i.test(role) ? { roleId: role } : { role });
+  }
+
+  // --- workspace roles and permissions (F42) ------------------------
+  /** The caller's role in the workspace and what it allows. */
+  myWorkspaceActions(workspaceId: string): Promise<MyWorkspaceRole> {
+    return this.request("GET", `/v1/workspaces/${workspaceId}/me/actions`);
+  }
+  workspaceRoles(workspaceId: string): Promise<WorkspaceRolesView> {
+    return this.request("GET", `/v1/workspaces/${workspaceId}/workspace-roles`);
+  }
+  createWorkspaceRole(workspaceId: string, input: { name: string; description?: string; permissionIds?: string[] }): Promise<{ id: string }> {
+    return this.request("POST", `/v1/workspaces/${workspaceId}/workspace-roles`, input);
+  }
+  updateWorkspaceRole(roleId: string, patch: { name?: string; description?: string; permissionIds?: string[] }): Promise<void> {
+    return this.request("PATCH", `/v1/workspace-roles/${roleId}`, patch);
+  }
+  /** Delete a role; its members (and pending invitations, the SSO setting)
+   *  move to reassignTo, required when the role is in use. */
+  deleteWorkspaceRole(roleId: string, reassignTo?: string): Promise<void> {
+    return this.request("DELETE", `/v1/workspace-roles/${roleId}${reassignTo ? `?reassignTo=${encodeURIComponent(reassignTo)}` : ""}`);
+  }
+  createWorkspacePermission(workspaceId: string, input: { name: string; description?: string; actions: ActionSet }): Promise<{ id: string }> {
+    return this.request("POST", `/v1/workspaces/${workspaceId}/workspace-permissions`, input);
+  }
+  updateWorkspacePermission(permissionId: string, patch: { name?: string; description?: string; actions?: ActionSet }): Promise<void> {
+    return this.request("PATCH", `/v1/workspace-permissions/${permissionId}`, patch);
+  }
+  deleteWorkspacePermission(permissionId: string): Promise<void> {
+    return this.request("DELETE", `/v1/workspace-permissions/${permissionId}`);
+  }
+  roleEvents(workspaceId: string, limit = 200): Promise<RoleEventView[]> {
+    return this.request("GET", `/v1/workspaces/${workspaceId}/role-events?limit=${limit}`);
   }
   removeMember(workspaceId: string, userId: string): Promise<void> {
     return this.request("DELETE", `/v1/workspaces/${workspaceId}/members/${userId}`);

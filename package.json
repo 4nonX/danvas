@@ -1,6 +1,6 @@
 {
   "name": "hycanvas",
-  "version": "0.5.9",
+  "version": "0.6.0",
   "license": "AGPL-3.0-only",
   "private": true,
   "description": "danvas - a self-hostable design platform, based on HyCanvas by HyScaler",

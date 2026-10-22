@@ -8,7 +8,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { Copy, CopyPlus, FileDown, Pencil, Plus, Printer, Star, Trash2 } from "lucide-react";
 import type { ExportProfile, ExportProfileKind, ExportProfileView } from "@hc/sdk";
+import Link from "next/link";
 import { oc } from "@/lib/sdk";
+import { dashboardPath } from "@/components/dashboard/views";
 import { useToast } from "@/components/ui/Toast";
 import { userMessage } from "@/lib/errors";
 import { describeSettings, defaultExportSettings, freeName, normalizeSettings } from "@/lib/exportProfiles";
@@ -132,6 +134,13 @@ export function ProfileManager(props: Props) {
             <option value="admins">{tr("editor.managed_by_admins")}</option>
             <option value="members">{tr("editor.managed_by_members")}</option>
           </select>
+          {/* F42: the switch sets the Member role's bundle; any other role is set on the roles page. */}
+          <span className="basis-full text-[11px] text-neutral-500">
+            {tr("roles.managed_by_hint")}{" "}
+            <Link href={dashboardPath("roles")} className="font-semibold text-brand-ink hover:text-brand-800">
+              {tr("roles.title")}
+            </Link>
+          </span>
         </label>
       )}
 
