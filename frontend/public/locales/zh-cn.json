@@ -4994,7 +4994,7 @@
   "editor.approval_person_rejected": "{name} 已拒绝",
   "editor.approval_print_proof": "印刷校样",
   "editor.approval_print_proof_hint": "检查将要印刷的内容：软打样、分色和总油墨覆盖率",
-  "editor.approval_no_profile": "没有可用于印刷校样的色彩配置文件。",
+  "editor.approval_no_profile": "没有可用于印刷校样的颜色配置文件。",
   "editor.print_approval_needed": "此工作区仅在设计获批后才生成印刷文件。",
   "editor.print_approval_needed_n.one": "{count} 个设计尚未获批。此工作区仅在所有设计获批后才生成印刷文件。",
   "editor.print_approval_needed_n.other": "{count} 个设计尚未获批。此工作区仅在所有设计获批后才生成印刷文件。",

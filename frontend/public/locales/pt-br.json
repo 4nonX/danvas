@@ -4995,13 +4995,13 @@
   "editor.approval_print_proof": "Prova de impressão",
   "editor.approval_print_proof_hint": "Confira o que seria impresso: prova em tela, separações e cobertura total de tinta",
   "editor.approval_no_profile": "Nenhum perfil de cor disponível para a prova de impressão.",
-  "editor.print_approval_needed": "Este workspace só gera arquivos de impressão quando o design está aprovado.",
-  "editor.print_approval_needed_n.one": "{count} design ainda não está aprovado. Este workspace só gera arquivos de impressão quando todos os designs estão aprovados.",
-  "editor.print_approval_needed_n.other": "{count} designs ainda não estão aprovados. Este workspace só gera arquivos de impressão quando todos os designs estão aprovados.",
+  "editor.print_approval_needed": "Este espaço de trabalho só gera arquivos de impressão quando o design está aprovado.",
+  "editor.print_approval_needed_n.one": "{count} design ainda não está aprovado. Este espaço de trabalho só gera arquivos de impressão quando todos os designs estão aprovados.",
+  "editor.print_approval_needed_n.other": "{count} designs ainda não estão aprovados. Este espaço de trabalho só gera arquivos de impressão quando todos os designs estão aprovados.",
   "dashboard.print_approval": "Aprovação para impressão",
   "dashboard.print_approval_hint": "Quando ativado, os arquivos de impressão de um design (PDF de impressão, TIFF, EPS, imprimir) só são gerados depois da aprovação. Um design aprovado fica bloqueado para edição, então imprime-se exatamente o que foi aprovado. Quem decide as aprovações não é bloqueado.",
   "dashboard.print_approval_toggle": "Arquivos de impressão só após aprovação",
   "dashboard.print_approval_admins_only": "Só funções que gerenciam funções podem alterar isto.",
   "dashboard.print_approval_save_failed": "Não foi possível salvar a configuração de aprovação para impressão.",
-  "errors.api_print_approval_required": "Este workspace só gera arquivos de impressão de um design depois que ele é aprovado."
+  "errors.api_print_approval_required": "Este espaço de trabalho só gera arquivos de impressão de um design depois que ele é aprovado."
 }
