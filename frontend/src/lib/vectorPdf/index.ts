@@ -11,7 +11,9 @@ import { num, PdfCanvas, PdfResources, type ColorOut, type PdfPageStats, type Pd
 import { SvgCanvas } from "./svgCanvas";
 import { tr } from "@/lib/i18n";
 import { resolveAssetUrl } from "@/lib/sdk";
-import { clipToBleed, drawDieLine, drawPrintMarks, pdfBoxes, printSheet, sheetViewport, type PrintExtras, type PrintParts, type PrintSheet } from "@/lib/print/sheet";
+import { clipToBleed, drawDieLine, drawPrintMarks, MARK_DEFAULTS, pdfBoxes, printParts, printSheet, sheetViewport, type PrintExtras, type PrintParts, type PrintSheet } from "@/lib/print/sheet";
+import type { ImposeSettings } from "@/lib/print/impose";
+import { formOf, imposeSheets } from "./impose";
 import type { CmykConverter } from "@/lib/print/cms";
 
 export { num, type ColorOut } from "./pdfCanvas";
@@ -102,6 +104,9 @@ export interface VectorPdfOptions {
   pdfx?: boolean;
   /** Registration-colour marks and a die line. */
   extras?: PrintExtras;
+  /** Several pages on one sheet (F45): the layout and the sheet size in mm
+   *  (portrait). Not with `tagged`. */
+  impose?: { settings: ImposeSettings; sheetMm: [number, number] };
 }
 
 export interface DrawPagesOptions {
@@ -285,11 +290,13 @@ export async function exportVectorSvg(doc: DesignFile, pageIndex: number, opts: 
 /** Render the given pages of a design to one vector PDF. */
 export async function exportVectorPdf(doc: DesignFile, pageIndexes: number[], opts: VectorPdfOptions = {}): Promise<VectorPdfResult> {
   const conv = opts.converter ?? null;
+  const impose = opts.impose && !opts.tagged ? opts.impose : null;
+  // On a sheet the items keep their bleed; the sheet has the cut marks.
+  const print = impose ? { bleed: printParts(opts.print ?? false).bleed, marks: false } : opts.print;
   const { dpi, pages, resources, stats } = await drawPages(doc, pageIndexes, {
-    assets: opts.assets, tagged: opts.tagged, print: opts.print, extras: opts.extras,
+    assets: opts.assets, tagged: opts.tagged, print, extras: opts.extras,
     color: conv ? { cmyk: (r, g, b) => conv.cmyk(r, g, b), blackOnly: opts.blackOnly ?? true, overprintBlack: !!opts.overprintBlack } : undefined,
   });
-  const contents = pages.map((p) => ({ content: p.content, p }));
   const pdfx = !!opts.pdfx && !!conv && !opts.tagged;
 
   const w = new PdfWriter(pdfx ? "1.6" : "1.7");
@@ -343,6 +350,13 @@ export async function exportVectorPdf(doc: DesignFile, pageIndexes: number[], op
   for (const tf of resources.textFonts.values()) {
     if (tf.glyphs.size) fontRefs.push(`/${tf.name} ${await writeTextFont(w, tf)} 0 R`);
   }
+  // Imposition: one Form XObject per drawn page, placed in the sheets' slots.
+  const forms = impose ? pages.map((p, i) => ({ id: w.alloc(), ...formOf(p, dpi, `Fm${i}`) })) : [];
+  for (const f of forms) imageRefs.push(`/${f.form.name} ${f.id} 0 R`);
+  const markStroke = !impose ? "" : conv && opts.extras?.registration
+    ? `/${resources.separation({ name: "All", cmyk: [1, 1, 1, 1] })} CS 1 SCN` // i18n-ignore: the registration separation
+    : conv ? "0 0 0 1 K" : "0 G";
+  const imposed = impose ? imposeSheets(forms.map((f) => f.form), impose.settings, impose.sheetMm, { stroke: markStroke, weight: MARK_DEFAULTS.weightPt }) : null;
   // Layers (a die line): one optional content group each.
   const layerRefs: { name: string; id: number }[] = [];
   for (const [title, name] of resources.layers) {
@@ -351,6 +365,7 @@ export async function exportVectorPdf(doc: DesignFile, pageIndexes: number[], op
     layerRefs.push({ name, id });
   }
   const spaces = resources.colorSpaceDict();
+  for (const f of forms) w.stream(f.id, `/Type /XObject /Subtype /Form /BBox [0 0 ${num(f.form.width)} ${num(f.form.height)}] /Resources ${resId} 0 R /Filter /FlateDecode`, await deflate(enc.encode(f.stream)));
   w.obj(resId, `<< /ExtGState << ${resources.extGStateDict()} >> /XObject << ${imageRefs.join(" ")} >> /Shading << ${resources.shadings.map((s) => `/${s.name} ${s.dict}`).join(" ")} >>${spaces ? ` /ColorSpace << ${spaces} >>` : ""}${layerRefs.length ? ` /Properties << ${layerRefs.map((l) => `/${l.name} ${l.id} 0 R`).join(" ")} >>` : ""}${fontRefs.length ? ` /Font << ${fontRefs.join(" ")} >>` : ""} >>`);
 
   const kids: number[] = [];
@@ -361,14 +376,19 @@ export async function exportVectorPdf(doc: DesignFile, pageIndexes: number[], op
   const docElem = tagged ? w.alloc() : 0;
   const sects: number[] = [];
   const nums: string[] = [];
-  for (const [i, { content, p }] of contents.entries()) {
-    // The sheet: the page (TrimBox, where it is cut), its bleed (BleedBox)
-    // and the room for crop marks (MediaBox). Without print additions all
-    // three are the page.
-    const boxes = pdfBoxes(p.sheet, dpi);
-    const hPt = boxes.height;
-    const k = 72 / (dpi * p.zoom);
-    const stream = `${num(k)} 0 0 ${num(-k)} 0 ${num(hPt)} cm\n${content}`;
+  // What each PDF page shows: a design page on its own sheet, or an imposed
+  // sheet of several (whose boxes are all the sheet).
+  const outPages = imposed
+    ? imposed.sheets.map((sh) => ({ stream: sh.stream, boxes: { media: [0, 0, sh.width, sh.height], bleed: [0, 0, sh.width, sh.height], trim: [0, 0, sh.width, sh.height] }, p: pages[0] }))
+    : pages.map((p) => {
+      // The sheet: the page (TrimBox, where it is cut), its bleed (BleedBox)
+      // and the room for crop marks (MediaBox). Without print additions all
+      // three are the page.
+      const boxes = pdfBoxes(p.sheet, dpi);
+      const k = 72 / (dpi * p.zoom);
+      return { stream: `${num(k)} 0 0 ${num(-k)} 0 ${num(boxes.height)} cm\n${p.content}`, boxes, p };
+    });
+  for (const [i, { stream, boxes, p }] of outPages.entries()) {
     const cid = w.alloc();
     w.stream(cid, "/Filter /FlateDecode", await deflate(enc.encode(stream)));
     const pid = w.alloc();
@@ -396,7 +416,7 @@ export async function exportVectorPdf(doc: DesignFile, pageIndexes: number[], op
   if (tagged) {
     const parentTree = w.alloc();
     w.obj(parentTree, `<< /Nums [${nums.join(" ")}] >>`);
-    w.obj(structRoot, `<< /Type /StructTreeRoot /K [${docElem} 0 R] /ParentTree ${parentTree} 0 R /ParentTreeNextKey ${contents.length} >>`);
+    w.obj(structRoot, `<< /Type /StructTreeRoot /K [${docElem} 0 R] /ParentTree ${parentTree} 0 R /ParentTreeNextKey ${outPages.length} >>`);
     w.obj(docElem, `<< /Type /StructElem /S /Document /P ${structRoot} 0 R /K [${sects.map((id) => `${id} 0 R`).join(" ")}] >>`);
     w.obj(catalogId, `<< /Type /Catalog /Pages ${pagesId} 0 R /MarkInfo << /Marked true >> /StructTreeRoot ${structRoot} 0 R /Lang ${pdfString(docLang(doc, opts.lang))} /ViewerPreferences << /DisplayDocTitle true >> >>`);
   } else {
@@ -405,10 +425,11 @@ export async function exportVectorPdf(doc: DesignFile, pageIndexes: number[], op
     w.obj(catalogId, `<< /Type /Catalog /Pages ${pagesId} 0 R${ocProps}${frame.catalog} >>`);
     w.obj(infoId, frame.info);
     const first = pages[0]?.pg;
+    const sheet = imposed?.plans[0];
     return {
       blob: w.finish(catalogId, infoId, frame.fileId),
-      widthMm: first ? (first.width / dpi) * 25.4 : 0,
-      heightMm: first ? (first.height / dpi) * 25.4 : 0,
+      widthMm: sheet ? sheet.sheetW : first ? (first.width / dpi) * 25.4 : 0,
+      heightMm: sheet ? sheet.sheetH : first ? (first.height / dpi) * 25.4 : 0,
       stats,
     };
   }

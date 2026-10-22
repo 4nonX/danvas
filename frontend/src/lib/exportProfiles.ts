@@ -7,6 +7,7 @@
 
 import type { ExportProfile, ExportProfileKind, FolderDefaults } from "@hc/sdk";
 import type { PrintOverride } from "@/lib/print/sheet";
+import { defaultImposeSettings, normalizeImpose, type ImposeSettings } from "@/lib/print/impose";
 import type { RenderingIntent } from "@/lib/print/cms";
 import { tr } from "@/lib/i18n";
 
@@ -49,6 +50,8 @@ export interface ExportSettings {
   /** Extend artwork at the page edge into the bleed (when there is one). */
   extendBleed: boolean;
   print: ProfilePrint;
+  /** Several pages on one sheet (vector and image PDF; F45). */
+  impose: ImposeSettings;
 }
 
 const FORMATS: ExportFormat[] = ["png", "jpg", "pdf", "svg", "apng", "gif", "lottie", "mp4", "pptx", "md", "hyc", "tiff", "eps"];
@@ -63,6 +66,7 @@ export function defaultExportSettings(): ExportSettings {
     roundMm: false,
     extendBleed: true,
     print: { source: "page", bleed: true, marks: true },
+    impose: defaultImposeSettings(),
   };
 }
 
@@ -118,6 +122,7 @@ export function normalizeSettings(raw: unknown): ExportSettings {
     roundMm: bool(r.roundMm, d.roundMm),
     extendBleed: bool(r.extendBleed, d.extendBleed),
     print,
+    impose: normalizeImpose(r.impose),
   };
 }
 
@@ -171,6 +176,7 @@ export function describeSettings(s: ExportSettings, iccName: (id: string) => str
   }
   const vectorPrint = f === "eps" || (f === "pdf" && s.pdfMode === "vector");
   if (vectorPrint && s.dieLine.on && s.dieLine.name.trim()) parts.push(tr("editor.profile_die_line", { name: s.dieLine.name.trim() }));
+  if (f === "pdf" && s.pdfMode !== "tagged" && s.impose.on) parts.push(tr("editor.profile_imposed", { sheet: imposeSheetLabel(s.impose) }));
   return parts.join(" · ");
 }
 
@@ -191,6 +197,13 @@ export async function folderDefaultFor(folderIds: (string | null | undefined)[],
   const first = found[0];
   if (!first || found.some((e) => !e || e.profileId !== first.profileId)) return null;
   return { profileId: first.profileId, folderName: first.folderName };
+}
+
+/** The sheet of an imposition as the interface names it. */
+export function imposeSheetLabel(s: ImposeSettings): string {
+  // i18n-ignore: paper format names are the same in every language
+  const names: Record<string, string> = { a4: "A4", a3: "A3", sra3: "SRA3", letter: "Letter" };
+  return s.sheet === "custom" ? `${s.widthMm} x ${s.heightMm} mm` : names[s.sheet]; // i18n-ignore: a size
 }
 
 /** A name not yet taken among `taken` (ignoring case): "Name (2)", "(3)"... */

@@ -266,6 +266,16 @@ An export profile is a named set of download settings: format, size, colour prof
 
 A profile can hold bleed and crop marks "as on the pages" or "set for this output": the second applies one bleed and one set of marks to the export without changing the design.
 
+### Several on one sheet
+
+Business cards, labels and badges can go several to a printer sheet, ready to print and cut: **Several on one sheet** in the download menu (vector PDF and image PDF, on A4, A3, SRA3, Letter or a custom sheet) and in the print dialog (on the paper chosen there, A4, A3 or Letter).
+
+- The grid is centred on the sheet inside the printer's margin (5 mm unless set) and, with cut marks, the room for them. The sheet turns to landscape, and items turn a quarter, when that fits more; the dialog shows how many fit, how many sheets it makes, and a picture of the sheet.
+- **Gap** 0 puts neighbours edge to edge, sharing the cut; with a gap, every item keeps its bleed up to half the gap, so neighbours never overlap. Towards the outside of the grid every item keeps its full bleed.
+- **Cut marks** sit at every cut line outside the grid (in registration colour in the vector PDF); the items' own crop marks are left out. A die line stays on every item.
+- **Repeat each page** fills one sheet per page (ten cards of one person); **In order** fills the slots with the pages in turn (a page per person, serial print).
+- In the vector PDF every page is stored once and placed in each slot, so the file stays small and the artwork is exactly the single-page export. Export profiles and print presets keep the setting.
+
 ### Printing
 
 **Print** opens the system print dialog with the design drawn as for a download. It is in the editor next to **Download** (and Ctrl+P, File > Print) and, for one design or a whole selection, in the dashboard's design menu and selection bar.

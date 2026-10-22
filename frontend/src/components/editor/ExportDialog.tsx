@@ -52,6 +52,8 @@ import { hycBlob } from "@/lib/hycFile";
 import { BARCODE_MIN_PX, exportIssues, HAIRLINE_PT, PRINT_MIN_PPI, SMALL_TEXT_PT, type ExportIssue } from "@/lib/exportIssues";
 import { describeSettings, normalizeSettings, sameSettings, type ExportSettings } from "@/lib/exportProfiles";
 import { ProfileBar } from "./ProfileBar";
+import { ImposeFields } from "./ImposeFields";
+import { defaultImposeSettings, sheetSizeMm, type ImposeSettings } from "@/lib/print/impose";
 import { ProofView } from "./ProofView";
 import { OutputCheckView } from "./OutputCheckView";
 import { whenRenderable } from "@/lib/loadDesignForExport";
@@ -362,6 +364,8 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
   // Prepress for any format: whole-mm finished size, artwork into the bleed.
   const [roundMm, setRoundMm] = useState(false);
   const [extendBleed, setExtendBleed] = useState(true);
+  // Several pages on one sheet (F45; vector and image PDF).
+  const [impose, setImpose] = useState<ImposeSettings>(() => defaultImposeSettings());
   const [proofOpen, setProofOpen] = useState(false);
   // The output check needs Ghostscript on the instance.
   const [checkOpen, setCheckOpen] = useState(false);
@@ -437,6 +441,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
     v: 1, format, pdfMode, scale, transparent, quality, zip: zipBatch, tiffDpi,
     color: printColor, iccProfileId: profileId, intent, blackOnly, overprintBlack, pdfx, registration, dieLine, tacLimit, roundMm, extendBleed,
     print: printSource === "fixed" ? { source: "fixed", override } : { source: "page", bleed: withBleed, marks: withMarks },
+    impose,
   };
   function applySettings(raw: ExportSettings) {
     const s = normalizeSettings(raw);
@@ -454,6 +459,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
     setTacLimit(s.tacLimit);
     setRoundMm(s.roundMm);
     setExtendBleed(s.extendBleed);
+    setImpose(s.impose);
     setOverprintBlack(s.overprintBlack);
     setPdfx(s.pdfx);
     setRegistration(s.registration);
@@ -663,6 +669,10 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
   // Pixel size of the first exported page at the chosen size, with its bleed
   // and marks when they are included.
   const dim = rasterDimensions({ width: tiffSheet.sheetWidth, height: tiffSheet.sheetHeight }, { scale }, doc.dpi ?? 96);
+  // Imposition applies to the PDF that is drawn page by page (vector or image).
+  const imposable = format === "pdf" && !taggedPdf;
+  const imposeOpt = imposable && impose.on ? { settings: impose, sheetMm: sheetSizeMm(impose) } : undefined;
+  const imposePage = { widthMm: pxToMm(sizedPage.width, doc.dpi ?? 96), heightMm: pxToMm(sizedPage.height, doc.dpi ?? 96), bleedMm: pxToMm(tiffSheet.bleed, doc.dpi ?? 96) };
 
   function togglePage(i: number) {
     setSelected((prev) => (prev.includes(i) ? prev.filter((x) => x !== i) : [...prev, i]));
@@ -813,7 +823,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
       const converter = await makeConverter();
       try {
         const out = await exportVectorPdf(doc, pages, {
-          assets: imageAssets, title: doc.title, print: useSheet, extras: printExtras,
+          assets: imageAssets, title: doc.title, print: useSheet, extras: printExtras, impose: imposeOpt,
           converter, blackOnly, overprintBlack: !!converter && blackOnly && overprintBlack, pdfx: !!converter && pdfx,
         });
         emit(out.blob, `${safeBase}.pdf`);
@@ -826,7 +836,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
       // or RGB, with the sheet's page boxes.
       const converter = await makeConverter();
       try {
-        const blob = await imagePdfBlob(doc, pages, { scale, converter, pdfx, print: useSheet, title: doc.title });
+        const blob = await imagePdfBlob(doc, pages, { scale, converter, pdfx, print: useSheet, title: doc.title, impose: imposeOpt });
         if (blob) {
           emit(blob, `${safeBase}.pdf`);
           if (!quiet) toast.success(tr("editor.downloaded_file", { file: `${safeBase}.pdf` }));
@@ -1364,6 +1374,10 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
               </label>
             )}
           </div>
+        )}
+
+        {imposable && (
+          <ImposeFields value={impose} onChange={setImpose} sheetMm={sheetSizeMm(impose)} page={imposePage} pageCount={designs ? designs.reduce((n, d) => n + d.doc.pages.length, 0) : pages.length} chooseSheet />
         )}
 
         {/* Print-shop extras of the vector print files: marks on every plate,

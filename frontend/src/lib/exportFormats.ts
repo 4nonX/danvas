@@ -7,7 +7,8 @@
 import type { DesignFile } from "@hc/schema";
 import { createScene, renderScene, type CanvasLike, type Render2DOptions, type Viewport } from "@hc/engine";
 import { imageAssets } from "@/lib/assetProvider";
-import { clipToBleed, drawPrintMarks, printSheet, sheetViewport, type PrintParts } from "@/lib/print/sheet";
+import { clipToBleed, drawPrintMarks, printSheet, sheetViewport, type PrintParts, type PrintSheet } from "@/lib/print/sheet";
+import type { ImposeSettings } from "@/lib/print/impose";
 import { setJpegDpi, setPngDpi } from "@/lib/print/rasterMeta";
 import type { CmykConverter } from "@/lib/print/cms";
 
@@ -89,10 +90,22 @@ export async function tiffBlob(doc: DesignFile, index: number, o: { dpi: number;
 }
 
 /** The image PDF: one picture per page at `scale`, CMYK through the
- *  converter or RGB, with the sheets' page boxes, optionally PDF/X-4. */
-export async function imagePdfBlob(doc: DesignFile, pages: number[], o: { scale: number; converter: CmykConverter | null; pdfx?: boolean; print?: PrintParts | false; title?: string; assets?: Assets }): Promise<Blob | null> {
+ *  converter or RGB, with the sheets' page boxes, optionally PDF/X-4. With
+ *  `impose`, one picture per imposed sheet (F45). */
+export async function imagePdfBlob(doc: DesignFile, pages: number[], o: { scale: number; converter: CmykConverter | null; pdfx?: boolean; print?: PrintParts | false; title?: string; assets?: Assets; impose?: { settings: ImposeSettings; sheetMm: [number, number] } }): Promise<Blob | null> {
   const { exportImagePdf } = await import("@/lib/vectorPdf");
   const dpi = doc.dpi ?? 96;
+  if (o.impose) {
+    const { imposeCanvases } = await import("@/lib/print/imposeRaster");
+    const sheets = imposeCanvases(doc, pages, o.impose.settings, o.impose.sheetMm, dpi * o.scale, !!o.print && o.print.bleed);
+    if (!sheets.length) return null;
+    return exportImagePdf(sheets.map((s) => {
+      // The sheet is trim, bleed and media box at once.
+      const w = (s.widthMm / 25.4) * dpi, h = (s.heightMm / 25.4) * dpi;
+      const sheet: PrintSheet = { width: w, height: h, bleed: 0, margin: 0, sheetWidth: w, sheetHeight: h, marks: [], stroke: { color: "#000000", width: 0, dash: [], cap: "butt" } };
+      return { rgba: s.canvas.getContext("2d")!.getImageData(0, 0, s.canvas.width, s.canvas.height).data, width: s.canvas.width, height: s.canvas.height, sheet };
+    }), dpi, { title: o.title, converter: o.converter, pdfx: !!o.converter && !!o.pdfx });
+  }
   const imgs = [];
   for (const i of pages) {
     const canvas = renderPageCanvas(doc, i, o.scale, true, o.print ?? false, o.assets);

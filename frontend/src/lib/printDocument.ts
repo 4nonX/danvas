@@ -25,6 +25,11 @@ const PAPER_MM: Record<Exclude<PrintPaper, "design">, [number, number]> = {
   letter: [215.9, 279.4],
 };
 
+/** A standard paper in portrait, mm. */
+export function paperSizeMm(paper: Exclude<PrintPaper, "design">): [number, number] {
+  return PAPER_MM[paper];
+}
+
 /** How much shorter than the paper each page's box is (see printHtml). */
 const SAFETY_MM = 0.5;
 

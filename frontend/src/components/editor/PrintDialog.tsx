@@ -19,7 +19,8 @@ import { useToast } from "@/components/ui/Toast";
 import { renderPageCanvas } from "@/lib/exportFormats";
 import { initialPrintOverride, printSheet, pxToMm, withPrintOverride, type PrintOverride } from "@/lib/print/sheet";
 import { cappedPrintDpi, describePrintSettings, normalizePrintSettings, paperLabel, PRINT_DPIS, printDpiLabel, printScale, samePrintSettings, type PrintSettings } from "@/lib/printPresets";
-import { oversizedPages, PRINT_PAPERS, printHtml, type PrintPage } from "@/lib/printDocument";
+import { oversizedPages, paperSizeMm, PRINT_PAPERS, printHtml, type PrintPage } from "@/lib/printDocument";
+import { ImposeFields } from "./ImposeFields";
 import { BleedInput, MarkInputs } from "./PrintSettings";
 import { ProfileBar } from "./ProfileBar";
 import { issueText, type ExportTarget } from "./ExportDialog";
@@ -44,9 +45,29 @@ function sheets(jobs: Job[], s: PrintSettings, override: PrintOverride) {
   });
 }
 
-/** Render every page as an image of its print sheet. */
+/** Whether the pages go several to a sheet of the paper (F45). */
+const imposing = (s: PrintSettings) => s.impose.on && s.paper !== "design";
+
+/** Render every page as an image of its print sheet, or the imposed sheets. */
 async function renderPages(list: ReturnType<typeof sheets>, s: PrintSettings): Promise<PrintPage[]> {
   const out: PrintPage[] = [];
+  if (imposing(s) && s.paper !== "design") {
+    const { imposeCanvases } = await import("@/lib/print/imposeRaster");
+    // One imposition per design (a sheet never mixes designs).
+    const byDoc = new Map<DesignFile, { pages: number[]; bleed: boolean }>();
+    for (const p of list) {
+      const e = byDoc.get(p.doc) ?? { pages: [], bleed: p.parts.bleed };
+      e.pages.push(p.index);
+      byDoc.set(p.doc, e);
+    }
+    for (const [doc, e] of byDoc) {
+      for (const sh of imposeCanvases(doc, e.pages, s.impose, paperSizeMm(s.paper), s.dpi, e.bleed)) {
+        const blob: Blob | null = await new Promise((res) => sh.canvas.toBlob(res, "image/png"));
+        if (blob) out.push({ url: URL.createObjectURL(blob), widthMm: sh.widthMm, heightMm: sh.heightMm });
+      }
+    }
+    return out;
+  }
   for (const p of list) {
     const scale = printScale(p.sheet.sheetWidth, p.sheet.sheetHeight, p.dpi, s.dpi);
     const canvas = renderPageCanvas(p.doc, p.index, scale, true, p.parts);
@@ -77,7 +98,8 @@ async function openPrint(pages: PrintPage[], s: PrintSettings, title: string): P
   if (!cw || !cd) { cleanup(); throw new Error("no print frame"); }
   cw.onafterprint = cleanup;
   cd.open();
-  cd.write(printHtml(pages, { size: s.size, paper: s.paper, title }));
+  // An imposed sheet is the paper itself: always at actual size.
+  cd.write(printHtml(pages, { size: imposing(s) ? "actual" : s.size, paper: s.paper, title }));
   cd.close();
   // Print only once every page image is decoded, or pages come out blank.
   await Promise.all(Array.from(cd.images).map((img) => img.decode().catch(() => undefined)));
@@ -251,6 +273,17 @@ export function PrintDialog({ open, onClose, designs, workspaceId: workspaceIdPr
           {cappedDpi !== null && <p className="mt-1.5 text-[11px] font-medium text-amber-700">{tr("editor.print_resolution_capped", { dpi: cappedDpi, chosen: settings.dpi })}</p>}
           <BarcodePrintCheck jobs={jobs} dpi={cappedDpi ?? settings.dpi} />
         </div>
+
+        {settings.paper !== "design" && (
+          <ImposeFields
+            value={settings.impose}
+            onChange={(impose) => set({ impose })}
+            sheetMm={paperSizeMm(settings.paper)}
+            page={sheetList[0] ? { widthMm: pxToMm(sheetList[0].sheet.width, sheetList[0].dpi), heightMm: pxToMm(sheetList[0].sheet.height, sheetList[0].dpi), bleedMm: pxToMm(sheetList[0].sheet.bleed, sheetList[0].dpi) } : null}
+            pageCount={sheetList.length}
+            chooseSheet={false}
+          />
+        )}
 
         <div className="mb-4 flex flex-col gap-2 rounded-lg border border-neutral-200 p-2.5">
           <span className="text-xs font-medium text-neutral-700">{tr("editor.print_sheet_include")}</span>

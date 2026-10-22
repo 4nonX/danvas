@@ -6,6 +6,7 @@
 import { normalizeProfilePrint, type ProfilePrint } from "@/lib/exportProfiles";
 import { PRINT_PAPERS, type PrintPaper } from "@/lib/printDocument";
 import { tr } from "@/lib/i18n";
+import { defaultImposeSettings, normalizeImpose, type ImposeSettings } from "@/lib/print/impose";
 
 export interface PrintSettings {
   v: 1;
@@ -20,6 +21,8 @@ export interface PrintSettings {
   /** Raster resolution sent to the printer. */
   dpi: (typeof PRINT_DPIS)[number];
   print: ProfilePrint;
+  /** Several pages on one sheet of the paper (a standard paper only; F45). */
+  impose: ImposeSettings;
 }
 
 /** The usual printer resolutions: 203 and 300 dpi are the dot grids of label
@@ -56,7 +59,7 @@ export function cappedPrintDpi(sheets: { sheetWidth: number; sheetHeight: number
 }
 
 export function defaultPrintSettings(): PrintSettings {
-  return { v: 1, pages: "all", size: "actual", paper: "a4", dpi: 200, print: { source: "page", bleed: false, marks: false } };
+  return { v: 1, pages: "all", size: "actual", paper: "a4", dpi: 200, print: { source: "page", bleed: false, marks: false }, impose: defaultImposeSettings() };
 }
 
 /** A stored preset's settings as a complete, valid object. */
@@ -71,6 +74,7 @@ export function normalizePrintSettings(raw: unknown): PrintSettings {
     paper: PRINT_PAPERS.includes(r.paper as PrintPaper) ? (r.paper as PrintPaper) : d.paper,
     dpi: PRINT_DPIS.includes(r.dpi as 150) ? (r.dpi as PrintSettings["dpi"]) : d.dpi,
     print,
+    impose: normalizeImpose(r.impose),
   };
 }
 
@@ -90,6 +94,7 @@ const mm = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: 2
 export function describePrintSettings(s: PrintSettings): string {
   const parts = [paperLabel(s.paper), s.size === "actual" ? tr("editor.print_size_actual") : tr("editor.print_size_fit"), `${s.dpi} dpi`];
   if (s.pages === "current") parts.push(tr("editor.current_page"));
+  if (s.impose.on && s.paper !== "design") parts.push(tr("editor.profile_imposed", { sheet: paperLabel(s.paper) }));
   if (s.print.source === "fixed") {
     const o = s.print.override;
     if (o.bleed) parts.push(tr("editor.profile_bleed_mm", { mm: mm(o.bleedMm) }));
