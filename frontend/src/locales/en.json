@@ -4987,5 +4987,21 @@
   "errors.api_sheet_too_large": "The spreadsheet is larger than 20 MB.",
   "errors.api_sheet_unsupported": "Only Excel files (.xlsx) can be read this way; save as .xlsx or CSV.",
   "errors.api_sheet_unreadable": "The spreadsheet could not be read.",
-  "editor.serial_example_column": "Column name"
+  "editor.serial_example_column": "Column name",
+  "editor.approval_pending_progress": "Approval pending: {approved} of {total} approved",
+  "editor.approval_requested_by": "Requested by {name}",
+  "editor.approval_person_approved": "{name} approved",
+  "editor.approval_person_rejected": "{name} rejected",
+  "editor.approval_print_proof": "Print proof",
+  "editor.approval_print_proof_hint": "Check what would print: soft proof, separations and total ink coverage",
+  "editor.approval_no_profile": "No colour profile is available for the print proof.",
+  "editor.print_approval_needed": "This workspace makes print files only once the design is approved.",
+  "editor.print_approval_needed_n.one": "{count} design is not approved yet. This workspace makes print files only once every design is approved.",
+  "editor.print_approval_needed_n.other": "{count} designs are not approved yet. This workspace makes print files only once every design is approved.",
+  "dashboard.print_approval": "Print approval",
+  "dashboard.print_approval_hint": "When on, print files of a design (print PDF, TIFF, EPS, printing) are made only once its approval is granted. An approved design is locked against edits, so what was approved is what prints. Whoever decides approvals is not held up.",
+  "dashboard.print_approval_toggle": "Print files only after approval",
+  "dashboard.print_approval_admins_only": "Only roles that manage roles can change this.",
+  "dashboard.print_approval_save_failed": "Could not save the print approval setting.",
+  "errors.api_print_approval_required": "This workspace makes print files of a design only once it is approved."
 }

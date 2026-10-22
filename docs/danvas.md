@@ -297,6 +297,16 @@ Business cards, labels and badges can go several to a printer sheet, ready to pr
 - **Bleed and crop marks**: as on the pages, or set for this print.
 - **Print presets** store these settings like export profiles store a download's: personal or per workspace, with a default, their own list under **Settings**, **Print presets** and on the workspace's **Members** page (**Edit** there changes pages, paper, size on paper, resolution, bleed and crop marks), and their own setting for who manages the workspace's.
 
+### Print files only after approval
+
+A workspace can require that print files of a design are made only once it is approved: **Print files only after approval** on the workspace's page under **Print and export** (switched by roles that manage roles, seen by every member).
+
+- Held back until the design's approval is granted: the print PDF, TIFF and EPS in the download menu, printing, and the API's `render.pdf`. PNG, JPG, SVG and the accessible (tagged) PDF stay free for sharing drafts.
+- The download menu and the print dialog say why their buttons are off (for a selection, how many designs still wait) and offer **Request approval**.
+- An approved design is locked against edits, so what was approved is what prints. **Reopen** unlocks it and holds print files back again.
+- Roles that decide approvals (owners and admins by default) are not held up.
+- **Print proof** in the approval banner shows the design as it would print before anyone approves it: the soft proof through the design's colour profile, single plates and ink coverage against the TAC limit, with bleed.
+
 ### Where profiles are kept
 
 Colour profiles, export profiles and print presets each exist twice: **your own** and **the workspace's**. Your own are for you alone; the workspace's are shared by everyone in it, for example one export profile per print shop.

@@ -4987,5 +4987,21 @@
   "errors.api_sheet_too_large": "スプレッドシートが20 MBを超えています。",
   "errors.api_sheet_unsupported": "この方法で読み込めるのはExcelファイル（.xlsx）のみです。.xlsxまたはCSVで保存してください。",
   "errors.api_sheet_unreadable": "スプレッドシートを読み込めませんでした。",
-  "editor.serial_example_column": "列名"
+  "editor.serial_example_column": "列名",
+  "editor.approval_pending_progress": "承認待ち: {total} 人中 {approved} 人が承認",
+  "editor.approval_requested_by": "依頼者: {name}",
+  "editor.approval_person_approved": "{name} が承認",
+  "editor.approval_person_rejected": "{name} が却下",
+  "editor.approval_print_proof": "印刷プルーフ",
+  "editor.approval_print_proof_hint": "印刷される内容を確認: ソフトプルーフ、版分解、総インキ量",
+  "editor.approval_no_profile": "印刷プルーフに使えるカラープロファイルがありません。",
+  "editor.print_approval_needed": "このワークスペースでは、デザインが承認されてから印刷用ファイルを作成します。",
+  "editor.print_approval_needed_n.one": "{count} 件のデザインがまだ承認されていません。このワークスペースでは、すべてのデザインが承認されてから印刷用ファイルを作成します。",
+  "editor.print_approval_needed_n.other": "{count} 件のデザインがまだ承認されていません。このワークスペースでは、すべてのデザインが承認されてから印刷用ファイルを作成します。",
+  "dashboard.print_approval": "印刷前の承認",
+  "dashboard.print_approval_hint": "オンにすると、デザインの印刷用ファイル（印刷用 PDF、TIFF、EPS、印刷）は承認後にのみ作成されます。承認済みのデザインは編集がロックされるため、承認された内容がそのまま印刷されます。承認を決定する人は制限されません。",
+  "dashboard.print_approval_toggle": "承認後のみ印刷用ファイルを作成",
+  "dashboard.print_approval_admins_only": "ロールを管理できるロールのみ変更できます。",
+  "dashboard.print_approval_save_failed": "印刷前の承認設定を保存できませんでした。",
+  "errors.api_print_approval_required": "このワークスペースでは、デザインが承認されてから印刷用ファイルを作成します。"
 }

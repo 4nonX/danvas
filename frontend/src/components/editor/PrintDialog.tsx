@@ -21,6 +21,7 @@ import { initialPrintOverride, printSheet, pxToMm, withPrintOverride, type Print
 import { cappedPrintDpi, describePrintSettings, normalizePrintSettings, paperLabel, PRINT_DPIS, printDpiLabel, printScale, samePrintSettings, type PrintSettings } from "@/lib/printPresets";
 import { oversizedPages, paperSizeMm, PRINT_PAPERS, printHtml, type PrintPage } from "@/lib/printDocument";
 import { ImposeFields } from "./ImposeFields";
+import { usePrintClearance } from "@/lib/printApproval";
 import { BleedInput, MarkInputs } from "./PrintSettings";
 import { ProfileBar } from "./ProfileBar";
 import { issueText, type ExportTarget } from "./ExportDialog";
@@ -150,7 +151,7 @@ function BarcodePrintCheck({ jobs, dpi }: { jobs: Job[]; dpi: number }) {
   );
 }
 
-export function PrintDialog({ open, onClose, designs, workspaceId: workspaceIdProp }: { open: boolean; onClose: () => void; designs?: ExportTarget[]; workspaceId?: string | null }): React.ReactElement | null {
+export function PrintDialog({ open, onClose, designs, workspaceId: workspaceIdProp, onRequestApproval }: { open: boolean; onClose: () => void; designs?: ExportTarget[]; workspaceId?: string | null; onRequestApproval?: () => void }): React.ReactElement | null {
   const toast = useToast();
   const editorDoc = useEditor((s) => s.doc);
   const activePage = useEditor((s) => s.activePage);
@@ -158,6 +159,10 @@ export function PrintDialog({ open, onClose, designs, workspaceId: workspaceIdPr
   const brandWorkspaceId = useBrand((s) => s.workspaceId);
   const editorFolderId = useBrand((s) => s.folderId);
   const workspaceId = workspaceIdProp ?? brandWorkspaceId;
+  // Printing waits for the designs' approval when the workspace says so (F47).
+  const brandDesignId = useBrand((s) => s.designId);
+  const approvalIds = designs ? designs.map((d) => d.id) : brandDesignId ? [brandDesignId] : [];
+  const clearance = usePrintClearance(open, workspaceId, approvalIds);
   const [settings, setSettings] = useState<PrintSettings>(() => normalizePrintSettings({}));
   const [override, setOverride] = useState<PrintOverride>(() => initialPrintOverride((designs ?? [{ doc: editorDoc }]).map((d) => d.doc)));
   const [busy, setBusy] = useState(false);
@@ -333,11 +338,22 @@ export function PrintDialog({ open, onClose, designs, workspaceId: workspaceIdPr
         {/* What the browser hands the printer driver, and what to check there. */}
         <p className="mb-3 rounded-lg bg-neutral-50 p-2 text-[11px] leading-snug text-neutral-500">{tr("editor.print_driver_hint")}</p>
 
+        {clearance.blocked && (
+          <div className="mb-3 flex flex-col gap-1.5 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-900">
+            <span>{designs && designs.length > 1 ? tr("editor.print_approval_needed_n", { count: clearance.waiting }) : tr("editor.print_approval_needed")}</span>
+            {onRequestApproval && (
+              <button type="button" onClick={() => { onClose(); onRequestApproval(); }} className="self-start rounded-md bg-amber-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-amber-700">
+                {tr("editor.request_approval")}
+              </button>
+            )}
+          </div>
+        )}
+
         <div className="flex items-center justify-between gap-2 text-sm">
           <span className="text-[11px] text-neutral-400">{tr("editor.print_n_sheets", { count: sheetCount })}</span>
           <div className="flex gap-2">
             <button onClick={onClose} className="rounded-lg px-3 py-1.5 text-neutral-600 hover:bg-neutral-100">{tr("editor.cancel")}</button>
-            <button onClick={() => void go()} disabled={busy} className="flex items-center gap-2 rounded-lg bg-brand-600 px-3 py-1.5 font-medium text-white hover:bg-brand-700 disabled:opacity-50">
+            <button onClick={() => void go()} disabled={busy || clearance.blocked} className="flex items-center gap-2 rounded-lg bg-brand-600 px-3 py-1.5 font-medium text-white hover:bg-brand-700 disabled:opacity-50">
               <Printer size={15} /> {busy ? tr("editor.preparing") : tr("editor.print")}
             </button>
           </div>

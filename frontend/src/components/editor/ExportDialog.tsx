@@ -53,6 +53,7 @@ import { BARCODE_MIN_PX, exportIssues, HAIRLINE_PT, PRINT_MIN_PPI, SMALL_TEXT_PT
 import { describeSettings, normalizeSettings, sameSettings, type ExportSettings } from "@/lib/exportProfiles";
 import { ProfileBar } from "./ProfileBar";
 import { ImposeFields } from "./ImposeFields";
+import { usePrintClearance } from "@/lib/printApproval";
 import { defaultImposeSettings, sheetSizeMm, type ImposeSettings } from "@/lib/print/impose";
 import { ProofView } from "./ProofView";
 import { OutputCheckView } from "./OutputCheckView";
@@ -321,7 +322,7 @@ export function issueText(i: ExportIssue): string {
   return tr("editor.export_issue_image", { subject: i.subject, where });
 }
 
-export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdProp }: { open: boolean; onClose: () => void; designs?: ExportTarget[]; workspaceId?: string | null }) {
+export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdProp, onRequestApproval }: { open: boolean; onClose: () => void; designs?: ExportTarget[]; workspaceId?: string | null; onRequestApproval?: () => void }) {
   const toast = useToast();
   const storeActivePage = useEditor((s) => s.activePage);
   const activePage = designs ? 0 : storeActivePage;
@@ -352,6 +353,9 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
   // (the brand store is only set in the editor).
   const brandWorkspaceId = useBrand((s) => s.workspaceId);
   const workspaceId = workspaceIdProp ?? brandWorkspaceId;
+  // Print files only after approval (F47): the designs this menu is for.
+  const approvalIds = useMemo(() => (designs ? designs.map((d) => d.id) : brandDesignId ? [brandDesignId] : []), [designs, brandDesignId]);
+  const clearance = usePrintClearance(open, workspaceId, approvalIds);
   const editorFolderId = useBrand((s) => s.folderId);
   const folderIds = useMemo(() => (designs ? designs.map((d) => d.folderId ?? null) : [editorFolderId]), [designs, editorFolderId]);
   const [printColor, setPrintColor] = useState<"cmyk" | "rgb">("cmyk");
@@ -598,6 +602,9 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
 
   const gateActive = !!gate && gate.policy !== "off" && gate.violations.length > 0;
   const blocked = !!gate && gate.blocked; // policy 'block' with violations
+  // Print files wait for the designs' approval when the workspace says so.
+  const printFile = (format === "pdf" && !taggedPdf) || format === "tiff" || format === "eps";
+  const approvalBlocked = printFile && clearance.blocked;
   const showWarn = gateActive && gate!.policy === "warn" && !warnDismissed;
 
   const fmt = formats().find((f) => f.value === format)!;
@@ -1577,10 +1584,20 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
             )}
           </div>
         )}
+        {approvalBlocked && (
+          <div className="mb-2 flex flex-col gap-1.5 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-900">
+            <span>{designs && designs.length > 1 ? tr("editor.print_approval_needed_n", { count: clearance.waiting }) : tr("editor.print_approval_needed")}</span>
+            {onRequestApproval && (
+              <button type="button" onClick={() => { onClose(); onRequestApproval(); }} className="self-start rounded-md bg-amber-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-amber-700">
+                {tr("editor.request_approval")}
+              </button>
+            )}
+          </div>
+        )}
         <button
           onClick={() => void run()}
-          disabled={busy || blocked}
-          title={blocked ? tr("editor.resolve_brand_violations_to_download") : undefined}
+          disabled={busy || blocked || approvalBlocked}
+          title={blocked ? tr("editor.resolve_brand_violations_to_download") : approvalBlocked ? tr("editor.print_approval_needed") : undefined}
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:opacity-50"
         >
           <Download size={16} />

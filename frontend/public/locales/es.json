@@ -4987,5 +4987,21 @@
   "errors.api_sheet_too_large": "La hoja de cálculo supera los 20 MB.",
   "errors.api_sheet_unsupported": "Solo se pueden leer así archivos de Excel (.xlsx); guarda como .xlsx o CSV.",
   "errors.api_sheet_unreadable": "No se pudo leer la hoja de cálculo.",
-  "editor.serial_example_column": "Nombre de columna"
+  "editor.serial_example_column": "Nombre de columna",
+  "editor.approval_pending_progress": "Aprobación pendiente: {approved} de {total} aprobados",
+  "editor.approval_requested_by": "Solicitado por {name}",
+  "editor.approval_person_approved": "{name} aprobó",
+  "editor.approval_person_rejected": "{name} rechazó",
+  "editor.approval_print_proof": "Prueba de impresión",
+  "editor.approval_print_proof_hint": "Comprueba lo que se imprimiría: prueba en pantalla, separaciones y cobertura total de tinta",
+  "editor.approval_no_profile": "No hay ningún perfil de color disponible para la prueba de impresión.",
+  "editor.print_approval_needed": "Este espacio de trabajo solo genera archivos de impresión cuando el diseño está aprobado.",
+  "editor.print_approval_needed_n.one": "{count} diseño aún no está aprobado. Este espacio de trabajo solo genera archivos de impresión cuando todos los diseños están aprobados.",
+  "editor.print_approval_needed_n.other": "{count} diseños aún no están aprobados. Este espacio de trabajo solo genera archivos de impresión cuando todos los diseños están aprobados.",
+  "dashboard.print_approval": "Aprobación para imprimir",
+  "dashboard.print_approval_hint": "Si está activado, los archivos de impresión de un diseño (PDF de impresión, TIFF, EPS, imprimir) solo se generan una vez concedida su aprobación. Un diseño aprobado queda bloqueado para edición, así que se imprime exactamente lo aprobado. Quien decide las aprobaciones no queda bloqueado.",
+  "dashboard.print_approval_toggle": "Archivos de impresión solo tras aprobación",
+  "dashboard.print_approval_admins_only": "Solo los roles que gestionan roles pueden cambiar esto.",
+  "dashboard.print_approval_save_failed": "No se pudo guardar el ajuste de aprobación para imprimir.",
+  "errors.api_print_approval_required": "Este espacio de trabajo solo genera archivos de impresión de un diseño cuando está aprobado."
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 
@@ -23,6 +24,46 @@ func mountExportProfiles(api chi.Router, p *exportprofiles.Service, acct *accoun
 	api.With(requireAuth(acct)).Put("/workspaces/{id}/export-profiles/settings", exportProfileSettingsHandler(p))
 	api.With(requireAuth(acct)).Patch("/export-profiles/{id}", updateExportProfileHandler(p))
 	api.With(requireAuth(acct)).Delete("/export-profiles/{id}", deleteExportProfileHandler(p))
+	api.With(requireAuth(acct)).Get("/workspaces/{id}/print-policy", printPolicyHandler(p))
+	api.With(requireAuth(acct)).Put("/workspaces/{id}/print-policy", setPrintPolicyHandler(p))
+}
+
+// printPolicyHandler returns the workspace's print rule (F47) and which of
+// the designs in ?designs=a,b are approved.
+func printPolicyHandler(p *exportprofiles.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var ids []string
+		if v := r.URL.Query().Get("designs"); v != "" {
+			ids = strings.Split(v, ",")
+			if len(ids) > 500 {
+				ids = ids[:500]
+			}
+		}
+		v, err := p.GetPrintPolicy(r.Context(), userFrom(r.Context()).ID, chi.URLParam(r, "id"), ids)
+		if err != nil {
+			exportProfileProblem(w, r, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, v)
+	}
+}
+
+func setPrintPolicyHandler(p *exportprofiles.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			RequireApproval bool `json:"requireApproval"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "invalid body", "invalid_body")
+			return
+		}
+		v, err := p.SetPrintPolicy(r.Context(), userFrom(r.Context()).ID, chi.URLParam(r, "id"), body.RequireApproval)
+		if err != nil {
+			exportProfileProblem(w, r, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, v)
+	}
 }
 
 func exportProfileProblem(w http.ResponseWriter, r *http.Request, err error) {

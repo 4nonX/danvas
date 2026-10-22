@@ -4987,5 +4987,21 @@
   "errors.api_sheet_too_large": "Le classeur dépasse 20 Mo.",
   "errors.api_sheet_unsupported": "Seuls les fichiers Excel (.xlsx) peuvent être lus ainsi ; enregistrez au format .xlsx ou CSV.",
   "errors.api_sheet_unreadable": "Impossible de lire le classeur.",
-  "editor.serial_example_column": "Nom de colonne"
+  "editor.serial_example_column": "Nom de colonne",
+  "editor.approval_pending_progress": "Approbation en attente : {approved} sur {total} approuvés",
+  "editor.approval_requested_by": "Demandée par {name}",
+  "editor.approval_person_approved": "{name} a approuvé",
+  "editor.approval_person_rejected": "{name} a refusé",
+  "editor.approval_print_proof": "Épreuve d’impression",
+  "editor.approval_print_proof_hint": "Vérifier ce qui serait imprimé : épreuve écran, séparations et encrage total",
+  "editor.approval_no_profile": "Aucun profil couleur n’est disponible pour l’épreuve d’impression.",
+  "editor.print_approval_needed": "Cet espace de travail ne produit des fichiers d’impression qu’une fois le design approuvé.",
+  "editor.print_approval_needed_n.one": "{count} design n’est pas encore approuvé. Cet espace de travail ne produit des fichiers d’impression qu’une fois chaque design approuvé.",
+  "editor.print_approval_needed_n.other": "{count} designs ne sont pas encore approuvés. Cet espace de travail ne produit des fichiers d’impression qu’une fois chaque design approuvé.",
+  "dashboard.print_approval": "Approbation avant impression",
+  "dashboard.print_approval_hint": "Si activé, les fichiers d’impression d’un design (PDF d’impression, TIFF, EPS, impression) ne sont produits qu’une fois son approbation accordée. Un design approuvé est verrouillé, on imprime donc exactement ce qui a été approuvé. Les personnes qui décident des approbations ne sont pas bloquées.",
+  "dashboard.print_approval_toggle": "Fichiers d’impression uniquement après approbation",
+  "dashboard.print_approval_admins_only": "Seuls les rôles qui gèrent les rôles peuvent modifier ceci.",
+  "dashboard.print_approval_save_failed": "Impossible d’enregistrer le réglage d’approbation avant impression.",
+  "errors.api_print_approval_required": "Cet espace de travail ne produit les fichiers d’impression d’un design qu’une fois celui-ci approuvé."
 }

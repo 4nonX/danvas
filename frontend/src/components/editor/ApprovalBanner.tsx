@@ -11,7 +11,7 @@
 // downgrade/upgrade is handled by the editor shell (it refetches on a role flip).
 
 import { useCallback, useEffect, useState } from "react";
-import { CheckCircle2, Clock, Lock, ShieldCheck, X } from "lucide-react";
+import { CheckCircle2, Clock, Eye, Lock, ShieldCheck, X } from "lucide-react";
 import type { ApprovalPolicy, DesignApprovalView, MentionablePerson } from "@hc/sdk";
 import { oc } from "@/lib/sdk";
 import { Modal } from "@/components/ui/Modal";
@@ -19,6 +19,11 @@ import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import { useToast } from "@/components/ui/Toast";
 import { tr } from "@/lib/i18n";
+import { useEditor } from "@/store/editor";
+import { useBrand } from "@/store/brand";
+import { designProfileId, listProfileOptions } from "@/lib/print/profiles";
+import { defaultTacLimit } from "@/lib/print/proof";
+import { ProofView } from "./ProofView";
 
 interface Props {
   designId: string;
@@ -46,6 +51,11 @@ export function ApprovalBanner({ designId, requestOpen, onRequestClose, onLockCh
   // Reject-note prompt state (which decision is asking for a note).
   const [rejecting, setRejecting] = useState(false);
   const [note, setNote] = useState("");
+
+  // Print proof (F47): the profile it is shown with, null while closed.
+  const [proof, setProof] = useState<{ id: string; name: string } | null>(null);
+  const doc = useEditor((s) => s.doc);
+  const workspaceId = useBrand((s) => s.workspaceId);
 
   // Apply a freshly-fetched approval view to local state + report the lock up.
   const apply = useCallback(
@@ -152,6 +162,15 @@ export function ApprovalBanner({ designId, requestOpen, onRequestClose, onLockCh
     });
   }
 
+  // The print proof of the design: its colour profile, else the default one.
+  async function openProof() {
+    const options = await listProfileOptions(workspaceId);
+    const id = designProfileId(options, doc.colorProfile);
+    const option = options.find((o) => o.id === id);
+    if (!id || !option) { toast.error(tr("editor.approval_no_profile")); return; }
+    setProof({ id, name: option.name });
+  }
+
   const approval = view?.approval;
   const actions = view?.actions;
   const pending = approval?.status === "pending";
@@ -173,18 +192,22 @@ export function ApprovalBanner({ designId, requestOpen, onRequestClose, onLockCh
               <p className={`text-sm font-medium ${locked ? "text-emerald-900" : "text-amber-900"}`}>
                 {locked
                   ? tr("editor.approved_editing_is_locked")
-                  : `Approval pending - ${approval.approvedCount} of ${approval.approverCount} approved`}
+                  : tr("editor.approval_pending_progress", { approved: approval.approvedCount, total: approval.approverCount })}
               </p>
               <p className="truncate text-xs text-neutral-500">
-                Requested by {approval.requester.name}
+                {tr("editor.approval_requested_by", { name: approval.requester.name })}
                 {approval.decisions.length > 0 &&
                   " · " +
                     approval.decisions
-                      .map((d) => `${d.approverName} ${d.decision === "approve" ? "approved" : "rejected"}`)
+                      .map((d) => (d.decision === "approve" ? tr("editor.approval_person_approved", { name: d.approverName }) : tr("editor.approval_person_rejected", { name: d.approverName })))
                       .join(", ")}
               </p>
             </div>
             <div className="ms-auto flex shrink-0 items-center gap-1.5">
+              {/* What would print: soft proof, plates and ink coverage (F47). */}
+              <Button variant="secondary" size="sm" onClick={() => void openProof()} disabled={busy} title={tr("editor.approval_print_proof_hint")}>
+                <Eye size={15} /> {tr("editor.approval_print_proof")}
+              </Button>
               {pending && actions?.canDecide && (
                 <>
                   <Button size="sm" onClick={() => void decide("approve")} disabled={busy}>
@@ -203,6 +226,21 @@ export function ApprovalBanner({ designId, requestOpen, onRequestClose, onLockCh
             </div>
           </div>
         </div>
+      )}
+
+      {proof && (
+        <ProofView
+          open
+          onClose={() => setProof(null)}
+          doc={doc}
+          pages={doc.pages.map((_, i) => i)}
+          parts={{ bleed: true, marks: false }}
+          profileId={proof.id}
+          profileName={proof.name}
+          intent="relative"
+          blackOnly
+          tacLimit={defaultTacLimit(proof.name)}
+        />
       )}
 
       {/* Reject-note prompt. */}

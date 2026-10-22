@@ -1189,7 +1189,7 @@ export function EditorApp() {
 
       <CommandMenu onExport={() => setExportOpen(true)} onShortcuts={() => setShortcutsOpen(true)} workspaceId={workspaceId} />
       <ShortcutsHelp open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
-      <ExportDialog open={exportOpen} onClose={() => setExportOpen(false)} />
+      <ExportDialog open={exportOpen} onClose={() => setExportOpen(false)} onRequestApproval={designId && canApprove ? () => setApprovalRequestOpen(true) : undefined} />
       {shareOpen && designId && (
         <ShareDialog key={designId} open onClose={() => { setShareOpen(false); setShareFocusRequests(false); }} designId={designId} focusRequests={shareFocusRequests} />
       )}
@@ -1198,7 +1198,7 @@ export function EditorApp() {
       <TemplateLockCard />
       {publishOpen && <PublishDialog open onClose={() => setPublishOpen(false)} designId={designId ?? undefined} workspaceId={workspaceId ?? undefined} />}
       {websiteOpen && <WebsiteDialog open onClose={() => setWebsiteOpen(false)} designId={designId ?? undefined} workspaceId={workspaceId ?? undefined} />}
-      {printOpen && <PrintDialog open onClose={() => setPrintOpen(false)} />}
+      {printOpen && <PrintDialog open onClose={() => setPrintOpen(false)} onRequestApproval={designId && canApprove ? () => setApprovalRequestOpen(true) : undefined} />}
       {serialOpen && <SerialPrintDialog open onClose={() => setSerialOpen(false)} />}
       {a11yOpen && <AccessibilityDialog open onClose={() => setA11yOpen(false)} />}
       <input

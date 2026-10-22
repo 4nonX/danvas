@@ -4987,5 +4987,21 @@
   "errors.api_sheet_too_large": "स्प्रेडशीट 20 MB से बड़ी है।",
   "errors.api_sheet_unsupported": "इस तरह केवल Excel फ़ाइलें (.xlsx) पढ़ी जा सकती हैं; .xlsx या CSV के रूप में सहेजें।",
   "errors.api_sheet_unreadable": "स्प्रेडशीट पढ़ी नहीं जा सकी।",
-  "editor.serial_example_column": "कॉलम का नाम"
+  "editor.serial_example_column": "कॉलम का नाम",
+  "editor.approval_pending_progress": "अनुमोदन लंबित: {total} में से {approved} ने अनुमोदित किया",
+  "editor.approval_requested_by": "{name} द्वारा अनुरोधित",
+  "editor.approval_person_approved": "{name} ने अनुमोदित किया",
+  "editor.approval_person_rejected": "{name} ने अस्वीकार किया",
+  "editor.approval_print_proof": "प्रिंट प्रूफ़",
+  "editor.approval_print_proof_hint": "जाँचें कि क्या छपेगा: सॉफ़्ट प्रूफ़, सेपरेशन और कुल इंक कवरेज",
+  "editor.approval_no_profile": "प्रिंट प्रूफ़ के लिए कोई कलर प्रोफ़ाइल उपलब्ध नहीं है।",
+  "editor.print_approval_needed": "यह वर्कस्पेस डिज़ाइन के अनुमोदित होने के बाद ही प्रिंट फ़ाइलें बनाता है।",
+  "editor.print_approval_needed_n.one": "{count} डिज़ाइन अभी अनुमोदित नहीं है। यह वर्कस्पेस हर डिज़ाइन के अनुमोदित होने के बाद ही प्रिंट फ़ाइलें बनाता है।",
+  "editor.print_approval_needed_n.other": "{count} डिज़ाइन अभी अनुमोदित नहीं हैं। यह वर्कस्पेस हर डिज़ाइन के अनुमोदित होने के बाद ही प्रिंट फ़ाइलें बनाता है।",
+  "dashboard.print_approval": "प्रिंट से पहले अनुमोदन",
+  "dashboard.print_approval_hint": "चालू होने पर, किसी डिज़ाइन की प्रिंट फ़ाइलें (प्रिंट PDF, TIFF, EPS, प्रिंट करना) अनुमोदन मिलने के बाद ही बनती हैं। अनुमोदित डिज़ाइन संपादन के लिए लॉक रहता है, इसलिए वही छपता है जो अनुमोदित हुआ। अनुमोदन तय करने वालों पर यह रोक नहीं लगती।",
+  "dashboard.print_approval_toggle": "प्रिंट फ़ाइलें केवल अनुमोदन के बाद",
+  "dashboard.print_approval_admins_only": "केवल भूमिकाएँ प्रबंधित करने वाली भूमिकाएँ इसे बदल सकती हैं।",
+  "dashboard.print_approval_save_failed": "प्रिंट अनुमोदन सेटिंग सहेजी नहीं जा सकी।",
+  "errors.api_print_approval_required": "यह वर्कस्पेस किसी डिज़ाइन की प्रिंट फ़ाइलें उसके अनुमोदित होने के बाद ही बनाता है।"
 }

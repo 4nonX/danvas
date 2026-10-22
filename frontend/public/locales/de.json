@@ -4987,5 +4987,21 @@
   "errors.api_sheet_too_large": "Die Tabellendatei ist größer als 20 MB.",
   "errors.api_sheet_unsupported": "Nur Excel-Dateien (.xlsx) können so gelesen werden; speichern Sie als .xlsx oder CSV.",
   "errors.api_sheet_unreadable": "Die Tabellendatei konnte nicht gelesen werden.",
-  "editor.serial_example_column": "Spaltenname"
+  "editor.serial_example_column": "Spaltenname",
+  "editor.approval_pending_progress": "Genehmigung ausstehend: {approved} von {total} genehmigt",
+  "editor.approval_requested_by": "Angefordert von {name}",
+  "editor.approval_person_approved": "{name} hat genehmigt",
+  "editor.approval_person_rejected": "{name} hat abgelehnt",
+  "editor.approval_print_proof": "Druckvorschau prüfen",
+  "editor.approval_print_proof_hint": "Prüfen, was gedruckt würde: Soft-Proof, Farbauszüge und Gesamtfarbauftrag",
+  "editor.approval_no_profile": "Für die Druckvorschau ist kein Farbprofil verfügbar.",
+  "editor.print_approval_needed": "In diesem Workspace entstehen Druckdateien erst, wenn das Design genehmigt ist.",
+  "editor.print_approval_needed_n.one": "{count} Design ist noch nicht genehmigt. In diesem Workspace entstehen Druckdateien erst, wenn jedes Design genehmigt ist.",
+  "editor.print_approval_needed_n.other": "{count} Designs sind noch nicht genehmigt. In diesem Workspace entstehen Druckdateien erst, wenn jedes Design genehmigt ist.",
+  "dashboard.print_approval": "Druckfreigabe",
+  "dashboard.print_approval_hint": "Wenn aktiv, entstehen Druckdateien eines Designs (Druck-PDF, TIFF, EPS, Drucken) erst nach erteilter Genehmigung. Ein genehmigtes Design ist für Änderungen gesperrt, gedruckt wird also genau das Genehmigte. Wer Genehmigungen erteilt, wird nicht aufgehalten.",
+  "dashboard.print_approval_toggle": "Druckdateien nur nach Genehmigung",
+  "dashboard.print_approval_admins_only": "Nur Rollen mit Rollenverwaltung können das ändern.",
+  "dashboard.print_approval_save_failed": "Die Einstellung zur Druckfreigabe konnte nicht gespeichert werden.",
+  "errors.api_print_approval_required": "In diesem Workspace entstehen Druckdateien eines Designs erst, wenn es genehmigt ist."
 }

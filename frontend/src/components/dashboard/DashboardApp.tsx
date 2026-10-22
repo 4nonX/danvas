@@ -93,6 +93,7 @@ import { MembersPanel } from "./MembersPanel";
 import { ApiKeysPanel } from "./ApiKeysPanel";
 import { WorkspaceAiPanel } from "./WorkspaceAiPanel";
 import { PrintProfilesPanel } from "./PrintProfilesPanel";
+import { PrintApprovalPanel } from "./PrintApprovalPanel";
 import { WorkspaceFontsPanel } from "./WorkspaceFontsPanel";
 import { WorkspaceCanvaPanel } from "./WorkspaceCanvaPanel";
 import { loadWorkspaceFonts } from "@/lib/workspaceFonts";
@@ -2032,6 +2033,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                       set right there (owners and admins by default). */}
                   <div id="export-profiles" className="scroll-mt-4"><ProfileManager kind="export" scope="workspace" workspaceId={activeWorkspaceId} /></div>
                   <div id="print-presets" className="scroll-mt-4"><ProfileManager kind="print" scope="workspace" workspaceId={activeWorkspaceId} /></div>
+                  <div id="print-approval" className="scroll-mt-4"><PrintApprovalPanel workspaceId={activeWorkspaceId} /></div>
                 </div>
               )}
             </section>

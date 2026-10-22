@@ -4987,5 +4987,21 @@
   "errors.api_sheet_too_large": "电子表格超过20 MB。",
   "errors.api_sheet_unsupported": "只能以这种方式读取 Excel 文件（.xlsx）；请另存为 .xlsx 或 CSV。",
   "errors.api_sheet_unreadable": "无法读取该电子表格。",
-  "editor.serial_example_column": "列名"
+  "editor.serial_example_column": "列名",
+  "editor.approval_pending_progress": "待审批：{total} 人中已有 {approved} 人批准",
+  "editor.approval_requested_by": "由 {name} 发起",
+  "editor.approval_person_approved": "{name} 已批准",
+  "editor.approval_person_rejected": "{name} 已拒绝",
+  "editor.approval_print_proof": "印刷校样",
+  "editor.approval_print_proof_hint": "检查将要印刷的内容：软打样、分色和总油墨覆盖率",
+  "editor.approval_no_profile": "没有可用于印刷校样的色彩配置文件。",
+  "editor.print_approval_needed": "此工作区仅在设计获批后才生成印刷文件。",
+  "editor.print_approval_needed_n.one": "{count} 个设计尚未获批。此工作区仅在所有设计获批后才生成印刷文件。",
+  "editor.print_approval_needed_n.other": "{count} 个设计尚未获批。此工作区仅在所有设计获批后才生成印刷文件。",
+  "dashboard.print_approval": "印刷前审批",
+  "dashboard.print_approval_hint": "开启后，设计的印刷文件（印刷 PDF、TIFF、EPS、打印）仅在审批通过后生成。已批准的设计会锁定编辑，因此印刷的正是批准的内容。负责审批的人不受限制。",
+  "dashboard.print_approval_toggle": "仅在审批后生成印刷文件",
+  "dashboard.print_approval_admins_only": "只有可管理角色的角色才能更改此项。",
+  "dashboard.print_approval_save_failed": "无法保存印刷前审批设置。",
+  "errors.api_print_approval_required": "此工作区仅在设计获批后才生成其印刷文件。"
 }

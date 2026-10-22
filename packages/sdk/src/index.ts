@@ -1157,6 +1157,15 @@ export interface FolderDefaults {
   canEdit: boolean;
 }
 
+/** A workspace's print rule (F47) as the caller sees it, and which of the
+ *  asked-for designs are approved. */
+export interface PrintPolicy {
+  requireApproval: boolean;
+  canChange: boolean;
+  canBypass: boolean;
+  approved: string[];
+}
+
 export interface DesignFolder {
   id: string;
   workspaceId: string;
@@ -2643,6 +2652,17 @@ export class HyCanvasClient {
   }
 
   // Design folders (dashboard "Projects"): a nested tree per workspace.
+  /** The workspace's print rule and which of `designIds` are approved (F47). */
+  getPrintPolicy(workspaceId: string, designIds: string[] = []): Promise<PrintPolicy> {
+    const q = designIds.length ? `?designs=${designIds.map(encodeURIComponent).join(",")}` : "";
+    return this.request("GET", `/v1/workspaces/${encodeURIComponent(workspaceId)}/print-policy${q}`);
+  }
+
+  /** Print files only after approval: on or off (roles.manage). */
+  setPrintPolicy(workspaceId: string, requireApproval: boolean): Promise<PrintPolicy> {
+    return this.request("PUT", `/v1/workspaces/${encodeURIComponent(workspaceId)}/print-policy`, { requireApproval });
+  }
+
   /** A folder's print defaults (F44). */
   folderDefaults(folderId: string): Promise<FolderDefaults> {
     return this.request("GET", `/v1/folders/${encodeURIComponent(folderId)}/defaults`);

@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"strconv"
@@ -9,6 +10,7 @@ import (
 
 	"hycanvas/backend/internal/accounts"
 	"hycanvas/backend/internal/authz"
+	"hycanvas/backend/internal/exportprofiles"
 	"hycanvas/backend/internal/persistence"
 	"hycanvas/backend/internal/render"
 	"hycanvas/backend/internal/uploads"
@@ -18,9 +20,9 @@ import (
 // engine serializes a design's page to a downloadable format. SVG is wired here;
 // PDF/PNG/JPG/video follow as the engine grows. Membership-gated like the rest
 // of the persistence surface.
-func mountRender(api chi.Router, p *persistence.Service, acct *accounts.Service, up *uploads.Service) {
+func mountRender(api chi.Router, p *persistence.Service, acct *accounts.Service, up *uploads.Service, gate PrintGate) {
 	api.With(requireAuth(acct)).Get("/designs/{id}/render.svg", renderSVGHandler(p, acct, up))
-	api.With(requireAuth(acct)).Get("/designs/{id}/render.pdf", renderPDFHandler(p, acct, up))
+	api.With(requireAuth(acct)).Get("/designs/{id}/render.pdf", renderPDFHandler(p, acct, up, gate))
 	api.With(requireAuth(acct)).Get("/designs/{id}/render.png", renderRasterHandler(p, acct, up, "png"))
 	api.With(requireAuth(acct)).Get("/designs/{id}/render.jpg", renderRasterHandler(p, acct, up, "jpg"))
 	api.With(requireAuth(acct)).Get("/designs/{id}/render.mp4", renderVideoHandler(p, acct))
@@ -146,13 +148,29 @@ func pdfImageSource(r *http.Request, up *uploads.Service, ws string) render.Imag
 	}
 }
 
-func renderPDFHandler(p *persistence.Service, acct *accounts.Service, up *uploads.Service) http.HandlerFunc {
+// PrintGate refuses a print file of a design that the workspace wants
+// approved first (F47); nil when there is no such rule to check.
+type PrintGate interface {
+	CheckPrint(ctx context.Context, userID, workspaceID, designID string) error
+}
+
+func renderPDFHandler(p *persistence.Service, acct *accounts.Service, up *uploads.Service, gate PrintGate) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 		ws, err := authorizeDesignAction(r, p, acct, id, authz.DesignDownload)
 		if err != nil {
 			authProblem(w, r, err)
 			return
+		}
+		if gate != nil {
+			if err := gate.CheckPrint(r.Context(), userFrom(r.Context()).ID, ws, id); err != nil {
+				if errors.Is(err, exportprofiles.ErrApprovalRequired) {
+					problemWithCode(w, r, http.StatusForbidden, "Forbidden", "this workspace prints a design only once it is approved", "print_approval_required")
+				} else {
+					problemWithCode(w, r, http.StatusInternalServerError, "Internal Server Error", "request failed", "request_failed")
+				}
+				return
+			}
 		}
 		// `?page=all` exports the whole deck as one tagged document (doc 28
 		// FR-22). Any other value keeps the original per-page behavior, so an
