@@ -14,8 +14,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"hycanvas/backend/internal/authz"
 	"hycanvas/backend/internal/accounts"
+	"hycanvas/backend/internal/authz"
 	"hycanvas/backend/internal/docexport"
 	"hycanvas/backend/internal/jobs"
 	"hycanvas/backend/internal/persistence"

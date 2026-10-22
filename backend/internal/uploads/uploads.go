@@ -14,6 +14,8 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"hycanvas/backend/internal/accounts"
+	"hycanvas/backend/internal/authz"
 	"io"
 	"net"
 	"net/http"
@@ -22,8 +24,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"hycanvas/backend/internal/authz"
-	"hycanvas/backend/internal/accounts"
 
 	"github.com/google/uuid"
 

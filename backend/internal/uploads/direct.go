@@ -24,11 +24,11 @@ import (
 	"crypto/subtle"
 	"encoding/hex"
 	"errors"
+	"hycanvas/backend/internal/authz"
 	"io"
 	"log/slog"
 	"strings"
 	"time"
-	"hycanvas/backend/internal/authz"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"

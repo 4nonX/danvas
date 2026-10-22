@@ -17,10 +17,10 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
+	"hycanvas/backend/internal/accounts"
 	"net/mail"
 	"strings"
 	"time"
-	"hycanvas/backend/internal/accounts"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"

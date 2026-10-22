@@ -15,10 +15,10 @@ import (
 	_ "embed"
 	"encoding/json"
 	"errors"
+	"hycanvas/backend/internal/authz"
 	"math"
 	"sort"
 	"strings"
-	"hycanvas/backend/internal/authz"
 )
 
 //go:embed seed.json

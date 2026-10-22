@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
+	"hycanvas/backend/internal/authz"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -12,7 +13,6 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	"hycanvas/backend/internal/authz"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -38,7 +38,7 @@ func pngBytes() []byte {
 // fakeAccess satisfies Access for import tests that never reach the DB.
 type fakeAccess struct{}
 
-func (fakeAccess) AssertMember(context.Context, string, string, string) error { return nil }
+func (fakeAccess) AssertMember(context.Context, string, string, string) error          { return nil }
 func (fakeAccess) Require(context.Context, string, string, authz.Action, string) error { return nil }
 
 func testServerPort(t *testing.T, srv *httptest.Server) string {

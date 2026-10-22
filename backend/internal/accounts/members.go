@@ -10,9 +10,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"hycanvas/backend/internal/authz"
 	"strings"
 	"time"
-	"hycanvas/backend/internal/authz"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -65,7 +65,7 @@ type Member struct {
 	Email     string  `json:"email"`
 	Name      string  `json:"name"`
 	AvatarURL *string `json:"avatarUrl,omitempty"`
-	Role      string  `json:"role"`   // lowercase legacy rank (derived from the role)
+	Role      string  `json:"role"` // lowercase legacy rank (derived from the role)
 	RoleID    string  `json:"roleId,omitempty"`
 	Status    string  `json:"status"` // lowercase
 	JoinedAt  *string `json:"joinedAt,omitempty"`

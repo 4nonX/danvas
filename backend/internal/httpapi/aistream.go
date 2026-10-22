@@ -16,9 +16,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"hycanvas/backend/internal/authz"
 	"hycanvas/backend/internal/accounts"
 	"hycanvas/backend/internal/aistudio"
+	"hycanvas/backend/internal/authz"
 )
 
 func mountAIStream(api chi.Router, svc *aistudio.Service, acct *accounts.Service) {

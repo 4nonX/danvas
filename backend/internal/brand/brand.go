@@ -17,8 +17,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"strings"
 	"hycanvas/backend/internal/accounts"
+	"strings"
 
 	"hycanvas/backend/internal/authz"
 )

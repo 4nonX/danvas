@@ -2,9 +2,9 @@ package accounts
 
 import (
 	"context"
+	"errors"
 	"os"
 	"testing"
-	"errors"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"

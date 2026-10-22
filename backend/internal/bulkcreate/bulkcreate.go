@@ -9,10 +9,10 @@ package bulkcreate
 import (
 	"context"
 	"errors"
+	"hycanvas/backend/internal/authz"
 	"regexp"
 	"strconv"
 	"strings"
-	"hycanvas/backend/internal/authz"
 
 	"hycanvas/backend/internal/accounts"
 	"hycanvas/backend/internal/persistence"

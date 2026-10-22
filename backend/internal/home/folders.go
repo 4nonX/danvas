@@ -12,9 +12,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"hycanvas/backend/internal/accounts"
 	"strings"
 	"time"
-	"hycanvas/backend/internal/accounts"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"

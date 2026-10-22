@@ -17,8 +17,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
-	"hycanvas/backend/internal/authz"
 	"hycanvas/backend/internal/accounts"
+	"hycanvas/backend/internal/authz"
 	"hycanvas/backend/internal/canva"
 )
 

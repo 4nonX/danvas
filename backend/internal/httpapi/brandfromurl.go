@@ -24,9 +24,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"golang.org/x/net/html"
 
-	"hycanvas/backend/internal/authz"
 	"hycanvas/backend/internal/accounts"
 	"hycanvas/backend/internal/aistudio"
+	"hycanvas/backend/internal/authz"
 )
 
 func mountBrandFromURL(api chi.Router, studio *aistudio.Service, acct *accounts.Service) {

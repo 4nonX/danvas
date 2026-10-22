@@ -15,10 +15,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"hycanvas/backend/internal/authz"
 	"hycanvas/backend/internal/accounts"
 	"hycanvas/backend/internal/ai"
 	"hycanvas/backend/internal/aistudio"
+	"hycanvas/backend/internal/authz"
 )
 
 func mountSearch(api chi.Router, svc *ai.Service, studio *aistudio.Service, acct *accounts.Service) {
