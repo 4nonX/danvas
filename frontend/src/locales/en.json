@@ -5003,5 +5003,18 @@
   "dashboard.print_approval_toggle": "Print files only after approval",
   "dashboard.print_approval_admins_only": "Only roles that manage roles can change this.",
   "dashboard.print_approval_save_failed": "Could not save the print approval setting.",
-  "errors.api_print_approval_required": "This workspace makes print files of a design only once it is approved."
+  "errors.api_print_approval_required": "This workspace makes print files of a design only once it is approved.",
+  "editor.trim_size": "Finished size",
+  "editor.trim_size_width": "Finished width",
+  "editor.trim_size_height": "Finished height",
+  "editor.trim_size_any": "any",
+  "editor.trim_size_clear": "Any size",
+  "editor.trim_size_desc": "The size the print shop expects, for example 50 × 100 mm. Designs of another size are pointed out before the download.",
+  "editor.trim_turned_landscape": "{size}, landscape instead of portrait",
+  "editor.trim_turned_portrait": "{size}, portrait instead of landscape",
+  "editor.trim_off_n.one": "{count} design is not {size}",
+  "editor.trim_off_n.other": "{count} designs are not {size}",
+  "editor.trim_off_one": "This design is not {size} but {got}.",
+  "editor.trim_off_editor_hint": "Change its size with “{resize}”, or several designs at once with “{reformat}” in the dashboard.",
+  "editor.profile_trim_size": "finished size {size}"
 }

@@ -53,6 +53,8 @@ import { BARCODE_MIN_PX, exportIssues, HAIRLINE_PT, PRINT_MIN_PPI, SMALL_TEXT_PT
 import { describeSettings, normalizeSettings, sameSettings, type ExportSettings } from "@/lib/exportProfiles";
 import { ProfileBar } from "./ProfileBar";
 import { ImposeFields } from "./ImposeFields";
+import { TrimSizeFields } from "./TrimSizeFields";
+import { mismatchText, trimMismatch, trimSizeText, type TrimSize } from "@/lib/trimSize";
 import { usePrintClearance } from "@/lib/printApproval";
 import { defaultImposeSettings, sheetSizeMm, type ImposeSettings } from "@/lib/print/impose";
 import { ProofView } from "./ProofView";
@@ -322,7 +324,7 @@ export function issueText(i: ExportIssue): string {
   return tr("editor.export_issue_image", { subject: i.subject, where });
 }
 
-export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdProp, onRequestApproval }: { open: boolean; onClose: () => void; designs?: ExportTarget[]; workspaceId?: string | null; onRequestApproval?: () => void }) {
+export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdProp, onRequestApproval, onReformat }: { open: boolean; onClose: () => void; designs?: ExportTarget[]; workspaceId?: string | null; onRequestApproval?: () => void; onReformat?: (designIds: string[], size: TrimSize) => void }) {
   const toast = useToast();
   const storeActivePage = useEditor((s) => s.activePage);
   const activePage = designs ? 0 : storeActivePage;
@@ -368,6 +370,8 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
   // Prepress for any format: whole-mm finished size, artwork into the bleed.
   const [roundMm, setRoundMm] = useState(false);
   const [extendBleed, setExtendBleed] = useState(true);
+  // The finished size the profile is made for (F48); null: any size.
+  const [trimSize, setTrimSize] = useState<TrimSize | null>(null);
   // Several pages on one sheet (F45; vector and image PDF).
   const [impose, setImpose] = useState<ImposeSettings>(() => defaultImposeSettings());
   const [proofOpen, setProofOpen] = useState(false);
@@ -446,6 +450,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
     color: printColor, iccProfileId: profileId, intent, blackOnly, overprintBlack, pdfx, registration, dieLine, tacLimit, roundMm, extendBleed,
     print: printSource === "fixed" ? { source: "fixed", override } : { source: "page", bleed: withBleed, marks: withMarks },
     impose,
+    trimSize,
   };
   function applySettings(raw: ExportSettings) {
     const s = normalizeSettings(raw);
@@ -464,6 +469,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
     setRoundMm(s.roundMm);
     setExtendBleed(s.extendBleed);
     setImpose(s.impose);
+    setTrimSize(s.trimSize);
     setOverprintBlack(s.overprintBlack);
     setPdfx(s.pdfx);
     setRegistration(s.registration);
@@ -583,6 +589,18 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
     return () => { cancelled = true; };
   }, [open, rendersDesign, vectorOut, printOut, pagesKey, designs, bulk, rev, cmykCapable, printColor, profileId, intent, vectorPrint, blackOnly, printSource, overrideBleed, withBleed, sheetCapable, extendBleed, roundMm, override, format, tiffDpi, scale]);
   const shownIssues = rendersDesign ? issues : [];
+  // Designs not in the profile's finished size (F48): warned, not blocked.
+  const trimOff = useMemo(() => {
+    if (!open || !rendersDesign || !trimSize) return [];
+    const targets = bulk
+      ? designs!.map((d) => ({ id: d.id, title: d.doc.title || tr("editor.untitled"), doc: d.doc, pages: d.doc.pages.map((_, i) => i) }))
+      : [{ id: designs?.[0]?.id ?? "", title: "", doc: designs?.[0]?.doc ?? useEditor.getState().doc, pages: pagesKey.split(",").map(Number) }];
+    return targets.flatMap((t) => {
+      const m = trimMismatch(t.doc, t.pages, trimSize, sheetCapable && roundMm);
+      return m ? [{ id: t.id, title: t.title, text: mismatchText(m, trimSize) }] : [];
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, rendersDesign, trimSize, bulk, designs, pagesKey, rev, sheetCapable, roundMm]);
 
   // Dialog focus contract: on open, remember the opener and move focus onto the
   // panel; on close, return focus so keyboard users don't drop to <body>.
@@ -1364,6 +1382,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
         })()}
         {sheetCapable && (
           <div className="mb-3 flex flex-col gap-2 rounded-lg border border-neutral-200 p-2.5">
+            <TrimSizeFields value={trimSize} onChange={setTrimSize} />
             <label className="flex cursor-pointer items-start justify-between gap-3 text-xs text-neutral-700">
               <span>
                 {tr("editor.round_to_mm")}
@@ -1525,6 +1544,26 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
           </div>
         )}
 
+        {trimSize && trimOff.length > 0 && (
+          <div className="mb-3 rounded-xl bg-amber-50 p-2.5 text-xs text-amber-800">
+            <div className="mb-1 flex items-center gap-1.5 font-semibold">
+              <AlertTriangle size={14} />
+              {bulk ? tr("editor.trim_off_n", { count: trimOff.length, size: trimSizeText(trimSize) }) : tr("editor.trim_off_one", { size: trimSizeText(trimSize), got: trimOff[0].text })}
+            </div>
+            {bulk && (
+              <ul className="max-h-24 list-disc overflow-y-auto ps-4 text-[11px]">
+                {trimOff.map((d) => <li key={d.id}>{d.title} ({d.text})</li>)}
+              </ul>
+            )}
+            {onReformat && designs ? (
+              <button type="button" onClick={() => { onClose(); onReformat(trimOff.map((d) => d.id), trimSize); }} className="mt-1.5 rounded-md bg-amber-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-amber-700">
+                {tr("dashboard.reformat")}
+              </button>
+            ) : !designs ? (
+              <p className="mt-1 text-[11px]">{tr("editor.trim_off_editor_hint", { resize: tr("editor.resize"), reformat: tr("dashboard.reformat") })}</p>
+            ) : null}
+          </div>
+        )}
         {shownIssues.length > 0 && (
           <div className="mb-3 rounded-xl bg-amber-50 p-2.5 text-xs text-amber-800">
             <div className="mb-1 flex items-center gap-1.5 font-semibold"><AlertTriangle size={14} /> {tr("editor.export_check_title")}</div>

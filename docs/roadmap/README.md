@@ -19,6 +19,7 @@ For the product-wide north star (the goals and differentiators we hold ourselves
 | Imposition | [45-imposition.md](45-imposition.md) | Shipped in 0.7.0 |
 | Serial print | [46-serial-print.md](46-serial-print.md) | Shipped in 0.7.0 |
 | Print approval | [47-print-approval.md](47-print-approval.md) | Shipped in 0.7.0 |
+| Finished size in the export profile | [48-profile-finished-size.md](48-profile-finished-size.md) | Shipped in 0.7.0 |
 | Import from Canva | [41-canva-import.md](41-canva-import.md) | Built, FR-1 to FR-10 (per-instance draft Canva integration, folder-tree import via PPTX, PNG fallback, paced under Canva's export limits); tested against a stub of Canva's API, not yet against the live one (AC-1 to AC-5 open) |
 | AI platform (generation API, MCP, catalog, template-from-PPTX, reflow) | [40-ai-platform-tasks.md](40-ai-platform-tasks.md) | Not started (execution board written 2026-08-26; five phases, E01-E17, no design-file schema bumps planned) |
 | Whiteboard | [30-whiteboard.md](30-whiteboard.md) | Core, infinite canvas, ink, the full facilitation suite, and the Phase 3 AI canvas (diagram-from-prompt, clustering, summarize, Mermaid round-trip) shipped; agent deep-end and guest rate limiting remain |

@@ -55,6 +55,7 @@ The changes are summarized by area below; what changed in each release is in the
 - Several on one sheet (imposition): business cards and labels on A4, A3, SRA3, Letter or any sheet, with cut marks, in the vector PDF, the image PDF and printing.
 - Print and export defaults per dashboard folder: a folder of labels opens the download menu and the print dialog with the label settings, for everyone.
 - Print files only after approval: a workspace can hold back print PDFs, TIFF, EPS and printing until a design is approved; the approver checks the print proof (soft proof, plates, ink coverage) before approving.
+- Export profiles know their finished size: the download menu names designs of another size, or lying the wrong way, before a wrong file goes to the print shop.
 - Barcodes for labels and packaging: EAN-13, EAN-8, UPC-A, Code 128, GS1-128, Code 39, PZN, Data Matrix, GS1 Data Matrix and QR Code, checked while typed (check digits, lengths, GS1 identifiers and dates), drawn as exact vector bars in 100 % black ink or any exact colour, sized in mm with their quiet zones, optionally rounded to a label printer's dots, and listed in the output check when they may not scan.
 
 ### Templates

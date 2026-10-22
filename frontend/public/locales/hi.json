@@ -5003,5 +5003,18 @@
   "dashboard.print_approval_toggle": "प्रिंट फ़ाइलें केवल अनुमोदन के बाद",
   "dashboard.print_approval_admins_only": "केवल भूमिकाएँ प्रबंधित करने वाली भूमिकाएँ इसे बदल सकती हैं।",
   "dashboard.print_approval_save_failed": "प्रिंट अनुमोदन सेटिंग सहेजी नहीं जा सकी।",
-  "errors.api_print_approval_required": "यह वर्कस्पेस किसी डिज़ाइन की प्रिंट फ़ाइलें उसके अनुमोदित होने के बाद ही बनाता है।"
+  "errors.api_print_approval_required": "यह वर्कस्पेस किसी डिज़ाइन की प्रिंट फ़ाइलें उसके अनुमोदित होने के बाद ही बनाता है।",
+  "editor.trim_size": "फ़िनिश्ड आकार",
+  "editor.trim_size_width": "फ़िनिश्ड चौड़ाई",
+  "editor.trim_size_height": "फ़िनिश्ड ऊँचाई",
+  "editor.trim_size_any": "कोई भी",
+  "editor.trim_size_clear": "कोई भी आकार",
+  "editor.trim_size_desc": "वह आकार जो प्रिंटर चाहता है, जैसे 50 × 100 mm। किसी दूसरे आकार के डिज़ाइन डाउनलोड से पहले बताए जाते हैं।",
+  "editor.trim_turned_landscape": "{size}, पोर्ट्रेट की जगह लैंडस्केप",
+  "editor.trim_turned_portrait": "{size}, लैंडस्केप की जगह पोर्ट्रेट",
+  "editor.trim_off_n.one": "{count} डिज़ाइन {size} नहीं है",
+  "editor.trim_off_n.other": "{count} डिज़ाइन {size} नहीं हैं",
+  "editor.trim_off_one": "यह डिज़ाइन {size} नहीं, बल्कि {got} है।",
+  "editor.trim_off_editor_hint": "“{resize}” से आकार बदलें, या डैशबोर्ड में “{reformat}” से कई डिज़ाइन एक साथ बदलें।",
+  "editor.profile_trim_size": "फ़िनिश्ड आकार {size}"
 }

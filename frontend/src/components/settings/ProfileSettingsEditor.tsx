@@ -17,6 +17,7 @@ import { PRINT_PAPERS } from "@/lib/printDocument";
 import { listProfileOptions, type ProfileOption } from "@/lib/print/profiles";
 import type { PrintOverride } from "@/lib/print/sheet";
 import { tr } from "@/lib/i18n";
+import { TrimSizeFields } from "@/components/editor/TrimSizeFields";
 
 const FORMATS: ExportFormat[] = ["pdf", "png", "jpg", "svg", "tiff", "eps", "pptx", "md", "hyc", "apng", "gif", "lottie", "mp4"];
 const OVERRIDE_DEFAULT: PrintOverride = { bleed: true, bleedMm: 3, marks: false, style: "solid", weightPt: 0.25, lengthMm: 5, offsetMm: 3 };
@@ -171,6 +172,7 @@ function ExportFields({ s, set, icc }: { s: ExportSettings; set: (patch: Partial
 
       {sheetCapable && (
         <>
+          <TrimSizeFields value={s.trimSize} onChange={(trimSize) => set({ trimSize })} />
           <PrintSourceFields value={s.print} onChange={(print) => set({ print })} designs />
           <Check checked={s.extendBleed} onChange={(v) => set({ extendBleed: v })} label={tr("editor.extend_into_bleed")} desc={tr("editor.extend_into_bleed_desc")} />
           <Check checked={s.roundMm} onChange={(v) => set({ roundMm: v })} label={tr("editor.round_to_mm")} desc={tr("editor.round_to_mm_desc")} />

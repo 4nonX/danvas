@@ -5003,5 +5003,18 @@
   "dashboard.print_approval_toggle": "Fichiers d’impression uniquement après approbation",
   "dashboard.print_approval_admins_only": "Seuls les rôles qui gèrent les rôles peuvent modifier ceci.",
   "dashboard.print_approval_save_failed": "Impossible d’enregistrer le réglage d’approbation avant impression.",
-  "errors.api_print_approval_required": "Cet espace de travail ne produit les fichiers d’impression d’un design qu’une fois celui-ci approuvé."
+  "errors.api_print_approval_required": "Cet espace de travail ne produit les fichiers d’impression d’un design qu’une fois celui-ci approuvé.",
+  "editor.trim_size": "Format fini",
+  "editor.trim_size_width": "Largeur du format fini",
+  "editor.trim_size_height": "Hauteur du format fini",
+  "editor.trim_size_any": "libre",
+  "editor.trim_size_clear": "Format libre",
+  "editor.trim_size_desc": "Le format attendu par l’imprimeur, par exemple 50 × 100 mm. Les designs d’un autre format sont signalés avant le téléchargement.",
+  "editor.trim_turned_landscape": "{size}, paysage au lieu de portrait",
+  "editor.trim_turned_portrait": "{size}, portrait au lieu de paysage",
+  "editor.trim_off_n.one": "{count} design n’est pas en {size}",
+  "editor.trim_off_n.other": "{count} designs ne sont pas en {size}",
+  "editor.trim_off_one": "Ce design n’est pas en {size} mais en {got}.",
+  "editor.trim_off_editor_hint": "Changez sa taille avec « {resize} », ou plusieurs designs à la fois avec « {reformat} » dans le tableau de bord.",
+  "editor.profile_trim_size": "format fini {size}"
 }

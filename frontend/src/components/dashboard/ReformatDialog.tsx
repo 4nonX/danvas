@@ -21,7 +21,7 @@ import { rewriteDesign } from "@/lib/rewriteDesign";
 
 type Row = { id: string; title: string; doc?: DesignFile; error?: string; state?: "saving" | "done" | "failed" };
 
-export function ReformatDialog({ designs, onClose, onDone }: { designs: { id: string; title: string }[]; onClose: () => void; onDone: () => void }) {
+export function ReformatDialog({ designs, onClose, onDone, initialSizeMm }: { designs: { id: string; title: string }[]; onClose: () => void; onDone: () => void; initialSizeMm?: { w: number; h: number } }) {
   const toast = useToast();
   const [rows, setRows] = useState<Row[]>(() => designs.map((d) => ({ ...d })));
   const [unit, setUnit] = useState<MeasureUnit>("mm");
@@ -32,7 +32,8 @@ export function ReformatDialog({ designs, onClose, onDone }: { designs: { id: st
   const [running, setRunning] = useState(false);
   const [finished, setFinished] = useState(false);
 
-  // Load every design; the first one sets the starting size and unit.
+  // Load every design; the first one sets the starting size and unit, unless
+  // the size is given (an export profile's finished size, F48).
   useEffect(() => {
     let cancelled = false;
     void (async () => {
@@ -41,7 +42,12 @@ export function ReformatDialog({ designs, onClose, onDone }: { designs: { id: st
         try {
           const doc = await oc.getDesignFile(d.id);
           if (cancelled) return;
-          if (first) {
+          if (first && initialSizeMm) {
+            first = false;
+            setUnit("mm");
+            setW(unitInputText((initialSizeMm.w * 96) / 25.4, "mm", 96));
+            setH(unitInputText((initialSizeMm.h * 96) / 25.4, "mm", 96));
+          } else if (first) {
             first = false;
             const u = measureUnitOf(doc);
             const p = doc.pages[0];
@@ -55,6 +61,7 @@ export function ReformatDialog({ designs, onClose, onDone }: { designs: { id: st
       }
     })();
     return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [designs]);
 
   // Sizes are typed in the unit; each design keeps its own resolution.

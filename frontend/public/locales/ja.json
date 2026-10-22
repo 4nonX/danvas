@@ -5003,5 +5003,18 @@
   "dashboard.print_approval_toggle": "承認後のみ印刷用ファイルを作成",
   "dashboard.print_approval_admins_only": "ロールを管理できるロールのみ変更できます。",
   "dashboard.print_approval_save_failed": "印刷前の承認設定を保存できませんでした。",
-  "errors.api_print_approval_required": "このワークスペースでは、デザインが承認されてから印刷用ファイルを作成します。"
+  "errors.api_print_approval_required": "このワークスペースでは、デザインが承認されてから印刷用ファイルを作成します。",
+  "editor.trim_size": "仕上がりサイズ",
+  "editor.trim_size_width": "仕上がりの幅",
+  "editor.trim_size_height": "仕上がりの高さ",
+  "editor.trim_size_any": "指定なし",
+  "editor.trim_size_clear": "サイズ指定なし",
+  "editor.trim_size_desc": "印刷所が求めるサイズ（例: 50 × 100 mm）。ほかのサイズのデザインはダウンロード前に表示されます。",
+  "editor.trim_turned_landscape": "{size}（縦ではなく横）",
+  "editor.trim_turned_portrait": "{size}（横ではなく縦）",
+  "editor.trim_off_n.one": "{count} 件のデザインが {size} ではありません",
+  "editor.trim_off_n.other": "{count} 件のデザインが {size} ではありません",
+  "editor.trim_off_one": "このデザインは {size} ではなく {got} です。",
+  "editor.trim_off_editor_hint": "「{resize}」でサイズを変更するか、ダッシュボードの「{reformat}」で複数のデザインをまとめて変更します。",
+  "editor.profile_trim_size": "仕上がり {size}"
 }

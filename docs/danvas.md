@@ -264,6 +264,8 @@ An export profile is a named set of download settings: format, size, colour prof
 - The download menu opens with the user's default, else the workspace's. Names are unique per owner, ignoring case.
 - Who may create, change and delete the workspace's profiles follows the roles ([Roles and permissions](#roles-and-permissions)): by default owners and admins. The switch on the same **Members** page also gives it to the Member role. Everyone uses them.
 
+A profile can name its **finished size** (for example 50 × 100 mm, in the prepress options of the download menu or in **Edit**). The download menu then names every design whose exported pages are not that size (more than 0.5 mm off; with whole millimetres, the rounded size), and those that only lie the wrong way ("landscape instead of portrait"). It only warns. From the dashboard, **Change format…** in the warning opens the format dialog for exactly those designs, set to the finished size, and returns to the download afterwards.
+
 A profile can hold bleed and crop marks "as on the pages" or "set for this output": the second applies one bleed and one set of marks to the export without changing the design.
 
 ### Serial print

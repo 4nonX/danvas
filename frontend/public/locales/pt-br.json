@@ -5003,5 +5003,18 @@
   "dashboard.print_approval_toggle": "Arquivos de impressão só após aprovação",
   "dashboard.print_approval_admins_only": "Só funções que gerenciam funções podem alterar isto.",
   "dashboard.print_approval_save_failed": "Não foi possível salvar a configuração de aprovação para impressão.",
-  "errors.api_print_approval_required": "Este espaço de trabalho só gera arquivos de impressão de um design depois que ele é aprovado."
+  "errors.api_print_approval_required": "Este espaço de trabalho só gera arquivos de impressão de um design depois que ele é aprovado.",
+  "editor.trim_size": "Formato final",
+  "editor.trim_size_width": "Largura do formato final",
+  "editor.trim_size_height": "Altura do formato final",
+  "editor.trim_size_any": "qualquer",
+  "editor.trim_size_clear": "Qualquer tamanho",
+  "editor.trim_size_desc": "O tamanho que a gráfica espera, por exemplo 50 × 100 mm. Designs de outro tamanho são apontados antes do download.",
+  "editor.trim_turned_landscape": "{size}, paisagem em vez de retrato",
+  "editor.trim_turned_portrait": "{size}, retrato em vez de paisagem",
+  "editor.trim_off_n.one": "{count} design não tem {size}",
+  "editor.trim_off_n.other": "{count} designs não têm {size}",
+  "editor.trim_off_one": "Este design não tem {size}, e sim {got}.",
+  "editor.trim_off_editor_hint": "Mude o tamanho com “{resize}”, ou vários designs de uma vez com “{reformat}” no painel.",
+  "editor.profile_trim_size": "formato final {size}"
 }

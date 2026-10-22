@@ -5003,5 +5003,18 @@
   "dashboard.print_approval_toggle": "Druckdateien nur nach Genehmigung",
   "dashboard.print_approval_admins_only": "Nur Rollen mit Rollenverwaltung können das ändern.",
   "dashboard.print_approval_save_failed": "Die Einstellung zur Druckfreigabe konnte nicht gespeichert werden.",
-  "errors.api_print_approval_required": "In diesem Arbeitsbereich entstehen Druckdateien eines Designs erst, wenn es genehmigt ist."
+  "errors.api_print_approval_required": "In diesem Arbeitsbereich entstehen Druckdateien eines Designs erst, wenn es genehmigt ist.",
+  "editor.trim_size": "Endformat",
+  "editor.trim_size_width": "Breite des Endformats",
+  "editor.trim_size_height": "Höhe des Endformats",
+  "editor.trim_size_any": "beliebig",
+  "editor.trim_size_clear": "Beliebiges Format",
+  "editor.trim_size_desc": "Das Format, das die Druckerei erwartet, zum Beispiel 50 × 100 mm. Designs in einem anderen Format werden vor dem Download genannt.",
+  "editor.trim_turned_landscape": "{size}, quer statt hochkant",
+  "editor.trim_turned_portrait": "{size}, hochkant statt quer",
+  "editor.trim_off_n.one": "{count} Design hat nicht {size}",
+  "editor.trim_off_n.other": "{count} Designs haben nicht {size}",
+  "editor.trim_off_one": "Dieses Design hat nicht {size}, sondern {got}.",
+  "editor.trim_off_editor_hint": "Die Größe mit „{resize}“ ändern, oder mehrere Designs auf einmal mit „{reformat}“ im Dashboard.",
+  "editor.profile_trim_size": "Endformat {size}"
 }

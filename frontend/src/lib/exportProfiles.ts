@@ -10,6 +10,7 @@ import type { PrintOverride } from "@/lib/print/sheet";
 import { defaultImposeSettings, normalizeImpose, type ImposeSettings } from "@/lib/print/impose";
 import type { RenderingIntent } from "@/lib/print/cms";
 import { tr } from "@/lib/i18n";
+import { normalizeTrimSize, trimSizeText, type TrimSize } from "@/lib/trimSize";
 
 export type ExportFormat = "png" | "jpg" | "pdf" | "svg" | "apng" | "gif" | "lottie" | "mp4" | "pptx" | "md" | "hyc" | "tiff" | "eps";
 export type PdfMode = "vector" | "image" | "tagged";
@@ -52,6 +53,9 @@ export interface ExportSettings {
   print: ProfilePrint;
   /** Several pages on one sheet (vector and image PDF; F45). */
   impose: ImposeSettings;
+  /** The finished size the profile is made for, in mm; the menu warns about
+   *  designs of another size (F48). Null: any size. */
+  trimSize: TrimSize | null;
 }
 
 const FORMATS: ExportFormat[] = ["png", "jpg", "pdf", "svg", "apng", "gif", "lottie", "mp4", "pptx", "md", "hyc", "tiff", "eps"];
@@ -67,6 +71,7 @@ export function defaultExportSettings(): ExportSettings {
     extendBleed: true,
     print: { source: "page", bleed: true, marks: true },
     impose: defaultImposeSettings(),
+    trimSize: null,
   };
 }
 
@@ -123,6 +128,7 @@ export function normalizeSettings(raw: unknown): ExportSettings {
     extendBleed: bool(r.extendBleed, d.extendBleed),
     print,
     impose: normalizeImpose(r.impose),
+    trimSize: normalizeTrimSize(r.trimSize),
   };
 }
 
@@ -163,6 +169,7 @@ export function describeSettings(s: ExportSettings, iccName: (id: string) => str
     if (s.color === "cmyk" && s.tacLimit !== null) parts.push(`TAC ${s.tacLimit} %`);
   }
   const sheetCapable = cmykCapable || f === "png" || f === "jpg" || f === "svg";
+  if (s.trimSize) parts.push(tr("editor.profile_trim_size", { size: trimSizeText(s.trimSize) }));
   if (sheetCapable && s.roundMm) parts.push(tr("editor.profile_round_mm"));
   if (sheetCapable) {
     if (s.print.source === "fixed") {

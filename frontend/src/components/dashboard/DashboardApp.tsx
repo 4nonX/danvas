@@ -485,6 +485,9 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   const myActions = useMyActions();
   const can = (a: Action) => hasAction(myActions, a);
   const [reformat, setReformat] = useState<{ id: string; title: string }[] | null>(null);
+  // Change format from the download menu (F48): the profile's finished size,
+  // and the download to go back to once the designs are changed.
+  const [reformatFrom, setReformatFrom] = useState<{ sizeMm: { w: number; h: number }; downloadIds: string[]; done: boolean } | null>(null);
   // Bumped when designs change outside the editor, so their cards redraw.
   const [thumbRev, setThumbRev] = useState(0);
   const titleOf = (id: string) => items.find((i) => i.id === id)?.title ?? favorites.find((i) => i.id === id)?.title ?? tr("editor.untitled");
@@ -2185,7 +2188,18 @@ export function DashboardApp({ view }: { view: DashboardView }) {
         </div>
       )}
 
-      {exportTargets && <ExportDialog open onClose={() => setExportTargets(null)} designs={exportTargets} workspaceId={activeWorkspaceId} />}
+      {exportTargets && (
+        <ExportDialog
+          open
+          onClose={() => setExportTargets(null)}
+          designs={exportTargets}
+          workspaceId={activeWorkspaceId}
+          onReformat={(ids, sizeMm) => {
+            setReformatFrom({ sizeMm, downloadIds: exportTargets.map((t) => t.id), done: false });
+            setReformat(ids.map((id) => ({ id, title: titleOf(id) })));
+          }}
+        />
+      )}
       {printTargets && <PrintDialog open onClose={() => setPrintTargets(null)} designs={printTargets} workspaceId={activeWorkspaceId} />}
       {defaultsFor && activeWorkspaceId && <FolderDefaultsDialog folder={defaultsFor} workspaceId={activeWorkspaceId} onClose={() => setDefaultsFor(null)} />}
       {transferReq && activeWorkspaceId && (
@@ -2213,8 +2227,18 @@ export function DashboardApp({ view }: { view: DashboardView }) {
       {reformat && (
         <ReformatDialog
           designs={reformat}
-          onClose={() => setReformat(null)}
-          onDone={() => { setThumbRev((n) => n + 1); void load(searched).then(setItems).catch(() => {}); }}
+          initialSizeMm={reformatFrom?.sizeMm}
+          onClose={() => {
+            setReformat(null);
+            // Back to the download it came from, with the changed designs.
+            if (reformatFrom?.done) void downloadDesigns(reformatFrom.downloadIds);
+            setReformatFrom(null);
+          }}
+          onDone={() => {
+            setReformatFrom((f) => (f ? { ...f, done: true } : f));
+            setThumbRev((n) => n + 1);
+            void load(searched).then(setItems).catch(() => {});
+          }}
         />
       )}
 

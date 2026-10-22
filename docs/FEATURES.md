@@ -89,6 +89,7 @@ A living checklist of what ships today versus what is planned. Shipped items are
 - [x] Imposition: several on one sheet (A4/A3/SRA3/Letter/custom), best fit with turning, gap, cut marks, repeat or in order; vector PDF via forms, image PDF and printing ([spec 45](roadmap/45-imposition.md))
 - [x] Print and export defaults per folder, inherited by subfolders, before personal defaults ([spec 44](roadmap/44-folder-print-defaults.md))
 - [x] Print files only after approval: workspace rule, print PDF/TIFF/EPS/printing and the server's render.pdf held back until the design is approved, approvers exempt, print proof (soft proof, plates, TAC) in the approval banner ([spec 47](roadmap/47-print-approval.md))
+- [x] Finished size in the export profile: designs of another size (or turned) named in the download menu, Change format for exactly those ([spec 48](roadmap/48-profile-finished-size.md))
 - [x] Export profiles and print presets: named settings, personal or per workspace, with defaults and full management (create, edit every setting, rename, default, duplicate, delete; own in Settings, the workspace's on its Members page)
 - [x] Print from the editor and the dashboard (one design or a selection): paper handed to the driver (each page's own size, or A4/A3/Letter), actual size or fitted, 150 to 1200 dpi (203 dpi for label printers), bleed and crop marks
 - [x] Website generator (static HTML, SEO, nav, file export), local generation only
