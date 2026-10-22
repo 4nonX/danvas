@@ -4893,5 +4893,12 @@
   "editor.print_dpi_laser": "{dpi} ppp · impresoras láser",
   "editor.print_barcode_dpi": "Los códigos de barras de estas páginas están preparados para {dpi} ppp; imprime con esa resolución para que todas las barras salgan del mismo ancho.",
   "editor.barcode_printer_other": "Otra…",
-  "editor.barcode_printer_dpi_custom": "Resolución"
+  "editor.barcode_printer_dpi_custom": "Resolución",
+  "editor.barcode_hint_qrcode": "Una dirección web o cualquier texto",
+  "editor.barcode_ec_level": "Corrección de errores",
+  "editor.barcode_ec_l": "L (7 %, la más pequeña)",
+  "editor.barcode_ec_m": "M (15 %, estándar)",
+  "editor.barcode_ec_q": "Q (25 %)",
+  "editor.barcode_ec_h": "H (30 %, la más robusta)",
+  "editor.barcode_to_shapes": "Convertir en formas"
 }

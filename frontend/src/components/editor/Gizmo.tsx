@@ -284,10 +284,18 @@ function SelectionGizmo({ api, ids }: { api: CanvasApi; ids: string[] }) {
       before.push(t0);
       after.push({ ...loc.node.transform });
     }
-    if (nodes.length) store.pushApplied([{ kind: "transform", nodes, before, after }]);
     // A scaled barcode is encoded again at its new module width and bar
-    // height instead of staying stretched.
-    if (d.mode === "resize") for (const id of nodes) if (barcodeOf(locate(store.doc, id)?.node)) void store.bakeBarcodeScale(id);
+    // height instead of staying stretched; that step also undoes the drag.
+    const codes = d.mode === "resize" ? nodes.filter((id) => barcodeOf(locate(store.doc, id)?.node)) : [];
+    const plain = nodes.map((id, i) => ({ id, b: before[i], a: after[i] })).filter((x) => !codes.includes(x.id));
+    if (plain.length) store.pushApplied([{ kind: "transform", nodes: plain.map((x) => x.id), before: plain.map((x) => x.b), after: plain.map((x) => x.a) }]);
+    for (const id of codes) {
+      const i = nodes.indexOf(id);
+      void store.bakeBarcodeScale(id, before[i]).then((baked) => {
+        // Nothing to re-encode (or it failed): record the drag as usual.
+        if (!baked) store.pushApplied([{ kind: "transform", nodes: [id], before: [before[i]], after: [after[i]] }]);
+      });
+    }
   }
 
   const handles: { fx: number; fy: number; cursor: string }[] = [

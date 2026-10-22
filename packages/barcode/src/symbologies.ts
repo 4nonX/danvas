@@ -2,7 +2,7 @@
 // smallest module width that still scans reliably, and the sizes a new code
 // starts with. Lengths are in millimetres, quiet zones in modules.
 
-export const SYMBOLOGIES = ["ean13", "ean8", "upca", "code128", "gs1-128", "code39", "pzn", "datamatrix", "gs1datamatrix"] as const;
+export const SYMBOLOGIES = ["ean13", "ean8", "upca", "code128", "gs1-128", "code39", "pzn", "datamatrix", "gs1datamatrix", "qrcode"] as const;
 export type Symbology = (typeof SYMBOLOGIES)[number];
 
 export interface SymbologyRules {
@@ -33,6 +33,9 @@ export const RULES: Record<Symbology, SymbologyRules> = {
   // GS1 healthcare: Data Matrix X from 0.255 mm.
   datamatrix: { kind: "matrix", quiet: [1, 1], minModuleMm: 0.19, defaultModuleMm: 0.5, defaultHeightMm: 0, retail: false, gs1: false },
   gs1datamatrix: { kind: "matrix", quiet: [1, 1], minModuleMm: 0.255, defaultModuleMm: 0.5, defaultHeightMm: 0, retail: false, gs1: true },
+  // ISO/IEC 18004: a quiet zone of 4 modules. Phone cameras read modules
+  // from about 0.33 mm reliably.
+  qrcode: { kind: "matrix", quiet: [4, 4], minModuleMm: 0.33, defaultModuleMm: 0.5, defaultHeightMm: 0, retail: false, gs1: false },
 };
 
 export function isSymbology(s: unknown): s is Symbology {

@@ -16,6 +16,7 @@ import { useTemplateLock } from "@/store/templateLock";
 import { effectiveLock, lockOf, locksBelow } from "@/lib/templateLock";
 import { layerDropIndex } from "@/lib/layerOrder";
 import { tr } from "@/lib/i18n";
+import { barcodeOf } from "@/lib/barcode";
 
 /** The end-of-list drop target's id in the drag state. */
 const BACK = "\u0000back";
@@ -53,6 +54,8 @@ export function layerLabel(node: Node): string {
 }
 
 function childrenOf(node: Node): Node[] | null {
+  // A barcode is one layer: its parts are generated and replaced on every change.
+  if (barcodeOf(node)) return null;
   const kids = (node as unknown as { children?: unknown }).children;
   return Array.isArray(kids) ? (kids as Node[]) : null;
 }

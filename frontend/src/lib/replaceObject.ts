@@ -21,6 +21,7 @@ import { createNode, type AssetRef, type DesignFile, type Node, type Transform }
 import { createScene, fromTransform, renderScene, type CanvasLike, type Viewport } from "@hc/engine";
 import { imageAssets } from "@/lib/assetProvider";
 import { flattenSvgToNodes, prepareSvgFonts } from "@/lib/svgFlatten";
+import { barcodeOf } from "@/lib/barcode";
 
 export type ReplaceMode = "auto" | "optical" | "contain" | "cover";
 
@@ -40,7 +41,8 @@ export interface Visible {
 
 /** Node types the toolbar offers to replace. */
 export function isReplaceable(node: Node | null | undefined): boolean {
-  return !!node && (node.type === "image" || node.type === "group" || node.type === "path");
+  // A barcode is changed through its own settings, not swapped for artwork.
+  return !!node && !barcodeOf(node) && (node.type === "image" || node.type === "group" || node.type === "path");
 }
 
 // --- measuring ------------------------------------------------------------------

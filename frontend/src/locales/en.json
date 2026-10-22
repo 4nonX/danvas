@@ -4893,5 +4893,12 @@
   "editor.print_dpi_laser": "{dpi} dpi · laser printers",
   "editor.print_barcode_dpi": "The barcodes on these pages are set up for {dpi} dpi; print at that resolution so every bar comes out the same width.",
   "editor.barcode_printer_other": "Other…",
-  "editor.barcode_printer_dpi_custom": "Resolution"
+  "editor.barcode_printer_dpi_custom": "Resolution",
+  "editor.barcode_hint_qrcode": "A web address or any text",
+  "editor.barcode_ec_level": "Error correction",
+  "editor.barcode_ec_l": "L (7 %, smallest)",
+  "editor.barcode_ec_m": "M (15 %, standard)",
+  "editor.barcode_ec_q": "Q (25 %)",
+  "editor.barcode_ec_h": "H (30 %, most robust)",
+  "editor.barcode_to_shapes": "Convert to shapes"
 }

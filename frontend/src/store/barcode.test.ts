@@ -54,4 +54,20 @@ describe("barcodes in the editor", () => {
     expect(barcodeOf(after)!.moduleMm).toBeCloseTo(0.5, 9);
     expect(barcodeOf(after)!.barHeightMm).toBeCloseTo(15, 9);
   });
+
+  it("undoes the drag and the re-encoding in one step", async () => {
+    await useEditor.getState().insertBarcode(defaultSpec(mod, "code128", "Charge 0815"));
+    const g = code()!;
+    const start = { ...g.transform };
+    const width = g.size.width;
+    // What the handles do: move the anchor and scale.
+    Object.assign(g.transform, { x: start.x - 40, scaleX: 1.5, scaleY: 1.5 });
+    expect(await useEditor.getState().bakeBarcodeScale(g.id, start)).toBe(true);
+    expect(code()!.size.width).toBeGreaterThan(width);
+    useEditor.getState().undo();
+    expect(code()!.transform).toEqual(start);
+    expect(code()!.size.width).toBeCloseTo(width, 9);
+    // Nothing scaled: nothing to bake, the caller records the move itself.
+    expect(await useEditor.getState().bakeBarcodeScale(g.id, start)).toBe(false);
+  });
 });

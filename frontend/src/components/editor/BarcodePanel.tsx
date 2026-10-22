@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 import { ColorField } from "./ColorField";
 import { useEditor } from "@/store/editor";
-import { BLACK_INK, barcodeErrorText, buildBarcode, defaultSpec, loadBarcode, symbologyLabel, type BarcodeSpec, type Symbology } from "@/lib/barcode";
+import { BLACK_INK, barcodeErrorText, buildBarcode, defaultSpec, encodeOptionsOf, loadBarcode, symbologyLabel, type BarcodeSpec, type Symbology } from "@/lib/barcode";
 import { tr } from "@/lib/i18n";
 import { printDpiLabel } from "@/lib/printPresets";
 
@@ -54,6 +54,7 @@ const valueHint = (): Record<Symbology, string> => ({
   pzn: tr("editor.barcode_hint_pzn"),
   datamatrix: tr("editor.barcode_hint_datamatrix"),
   gs1datamatrix: tr("editor.barcode_hint_gs1"),
+  qrcode: tr("editor.barcode_hint_qrcode"),
 });
 
 /** A length in mm: shown with up to three decimals, typed with a decimal
@@ -129,7 +130,7 @@ function PrinterDpiField({ value, onChange }: { value: number | undefined; onCha
 
 /** The value's check: what will be encoded, or why it cannot be. */
 function ValueStatus({ mod, spec }: { mod: BarcodeModule | null; spec: BarcodeSpec }) {
-  const res = useMemo(() => (mod ? mod.encode(spec.symbology, spec.value, { rectangular: spec.rectangular }) : null), [mod, spec.symbology, spec.value, spec.rectangular]);
+  const res = useMemo(() => (mod ? mod.encode(spec.symbology, spec.value, encodeOptionsOf(spec)) : null), [mod, spec]);
   if (!res) return null;
   if (!res.ok) {
     return (
@@ -186,7 +187,7 @@ export function BarcodeSettings({ spec, onChange, mod, idPrefix }: { spec: Barco
             if (!mod) return;
             // A new type starts with that type's sizes; the value stays.
             const d = defaultSpec(mod, s, spec.value);
-            set({ symbology: s, moduleMm: d.moduleMm, barHeightMm: d.barHeightMm, text: d.text, textSizeMm: undefined, rectangular: undefined });
+            set({ symbology: s, moduleMm: d.moduleMm, barHeightMm: d.barHeightMm, text: d.text, textSizeMm: undefined, rectangular: undefined, ecLevel: undefined });
           }}
           className={selectCls}
         >
@@ -217,10 +218,21 @@ export function BarcodeSettings({ spec, onChange, mod, idPrefix }: { spec: Barco
         <input type="checkbox" checked={spec.quietZones} onChange={(e) => set({ quietZones: e.target.checked })} />
         {tr("editor.barcode_quiet_zones")}
       </label>
-      {!linear && (
+      {(spec.symbology === "datamatrix" || spec.symbology === "gs1datamatrix") && (
         <label className="flex items-center gap-2 text-xs text-neutral-600">
           <input type="checkbox" checked={!!spec.rectangular} onChange={(e) => set({ rectangular: e.target.checked || undefined })} />
           {tr("editor.barcode_rectangular")}
+        </label>
+      )}
+      {spec.symbology === "qrcode" && (
+        <label className={labelCls}>
+          {tr("editor.barcode_ec_level")}
+          <select value={spec.ecLevel ?? "M"} onChange={(e) => set({ ecLevel: e.target.value as BarcodeSpec["ecLevel"] })} className={selectCls}>
+            <option value="L">{tr("editor.barcode_ec_l")}</option>
+            <option value="M">{tr("editor.barcode_ec_m")}</option>
+            <option value="Q">{tr("editor.barcode_ec_q")}</option>
+            <option value="H">{tr("editor.barcode_ec_h")}</option>
+          </select>
         </label>
       )}
       <label className="flex items-center gap-2 text-xs text-neutral-600">
@@ -307,7 +319,7 @@ export function InsertBarcodeDialog({ open, onClose }: { open: boolean; onClose:
   const [busy, setBusy] = useState(false);
   if (open && mod && !spec) setSpec(defaultSpec(mod, "ean13", ""));
   if (!open) return null;
-  const check = mod && spec ? mod.encode(spec.symbology, spec.value, { rectangular: spec.rectangular }) : null;
+  const check = mod && spec ? mod.encode(spec.symbology, spec.value, encodeOptionsOf(spec)) : null;
   const insert = async () => {
     if (!spec) return;
     setBusy(true);

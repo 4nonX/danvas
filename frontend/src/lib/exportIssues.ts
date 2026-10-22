@@ -12,7 +12,7 @@ import type { DesignFile, ImageNode, Node } from "@hc/schema";
 import { computeEffectivePpi, createScene, type SceneNode } from "@hc/engine";
 import { imageAssets } from "@/lib/assetProvider";
 import { faceOf, fonts, type RunFont } from "@/lib/fontProvider";
-import { barcodeOf, loadBarcode, symbologyLabel } from "@/lib/barcode";
+import { barcodeOf, encodeOptionsOf, loadBarcode, symbologyLabel } from "@/lib/barcode";
 
 export type ExportIssueKind = "font" | "font-outline" | "image" | "image-resolution" | "hairline" | "small-rich-text" | "edge-no-bleed" | "edge-not-extended"
   | "barcode-invalid" | "barcode-small" | "barcode-quiet" | "barcode-light" | "barcode-inks" | "barcode-raster";
@@ -170,7 +170,7 @@ async function barcodeChecks(doc: DesignFile, pages: number[], o: { printCheck?:
     const element = labelOf(sn.node);
     const name = names[spec.symbology] ?? spec.symbology;
     if ((sn.node as { hidden?: boolean }).hidden) continue;
-    const enc = mod.encode(spec.symbology, spec.value, { rectangular: spec.rectangular });
+    const enc = mod.encode(spec.symbology, spec.value, encodeOptionsOf(spec));
     if (!enc.ok) { add("barcode-invalid", name, page, element); continue; }
     const t = sn.worldTransform;
     const scale = Math.sqrt(Math.abs(t[0] * t[3] - t[1] * t[2])) || 1;

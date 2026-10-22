@@ -4893,5 +4893,12 @@
   "editor.print_dpi_laser": "{dpi} dpi · लेज़र प्रिंटर",
   "editor.print_barcode_dpi": "इन पेजों के बारकोड {dpi} dpi के लिए सेट हैं; इसी रिज़ॉल्यूशन पर प्रिंट करें ताकि हर बार की चौड़ाई एक जैसी रहे।",
   "editor.barcode_printer_other": "अन्य…",
-  "editor.barcode_printer_dpi_custom": "रिज़ॉल्यूशन"
+  "editor.barcode_printer_dpi_custom": "रिज़ॉल्यूशन",
+  "editor.barcode_hint_qrcode": "कोई वेब पता या कोई भी टेक्स्ट",
+  "editor.barcode_ec_level": "त्रुटि सुधार",
+  "editor.barcode_ec_l": "L (7 %, सबसे छोटा)",
+  "editor.barcode_ec_m": "M (15 %, मानक)",
+  "editor.barcode_ec_q": "Q (25 %)",
+  "editor.barcode_ec_h": "H (30 %, सबसे मज़बूत)",
+  "editor.barcode_to_shapes": "आकृतियों में बदलें"
 }

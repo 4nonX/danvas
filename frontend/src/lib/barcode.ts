@@ -27,6 +27,8 @@ export interface BarcodeSpec {
   printerDpi?: number;
   /** Data Matrix: rectangular instead of square. */
   rectangular?: boolean;
+  /** QR code: error correction level (default M). */
+  ecLevel?: "L" | "M" | "Q" | "H";
   color: Color;
   /** Absent or null: transparent, the label shows through. */
   background?: Color | null;
@@ -44,6 +46,9 @@ export function loadBarcode(): Promise<BarcodeModule> {
   loading ??= import("@hc/barcode").catch((e) => { loading = null; throw e; });
   return loading;
 }
+
+/** What the encoder needs besides symbology and value. */
+export const encodeOptionsOf = (spec: BarcodeSpec) => ({ rectangular: spec.rectangular, ecLevel: spec.ecLevel });
 
 /** The barcode a node is, if it is one. */
 export function barcodeOf(node: Node | null | undefined): BarcodeSpec | null {
@@ -82,7 +87,7 @@ const solid = (color: Color) => ({ type: "solid" as const, color });
 /** The group's children for a spec at the document's dpi, or why the value
  *  cannot be encoded. */
 export function buildBarcode(mod: BarcodeModule, spec: BarcodeSpec, dpi: number): BuiltBarcode | EncodeError {
-  const pattern = mod.encode(spec.symbology, spec.value, { rectangular: spec.rectangular });
+  const pattern = mod.encode(spec.symbology, spec.value, encodeOptionsOf(spec));
   if (!pattern.ok) return pattern;
   const l = mod.layout(pattern, {
     moduleMm: spec.moduleMm,
@@ -131,6 +136,13 @@ export function buildBarcode(mod: BarcodeModule, spec: BarcodeSpec, dpi: number)
   return { ok: true, pattern, layout: l, children, width: l.width, height: l.height };
 }
 
+/** "Ungroup" for a group; for a barcode, what ungrouping really does: its
+ *  parts become ordinary shapes and text that print the same but can no
+ *  longer be encoded again. */
+export function ungroupLabel(node: Node | null | undefined): string {
+  return barcodeOf(node) ? tr("editor.barcode_to_shapes") : tr("editor.ungroup");
+}
+
 /** The reason a value cannot be encoded, in the user's language. */
 export function barcodeErrorText(e: EncodeError): string {
   const m: Record<EncodeError["code"], string> = {
@@ -156,4 +168,5 @@ export const symbologyLabel = (): Record<Symbology, string> => ({
   pzn: tr("editor.barcode_pzn"),
   datamatrix: "Data Matrix",
   gs1datamatrix: "GS1 Data Matrix",
+  qrcode: "QR Code",
 });

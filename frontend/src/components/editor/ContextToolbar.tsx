@@ -29,6 +29,7 @@ import {
   pageBgOf, recentColorList, rememberColor, runColorHex,
 } from "./PropertiesPanel";
 import { useWorkspaceFontFamilies } from "@/lib/workspaceFonts";
+import { barcodeOf, ungroupLabel } from "@/lib/barcode";
 import { openReplace, ReplaceModeChips } from "./ReplaceObjectDialog";
 
 const btn =
@@ -497,6 +498,14 @@ export function ContextToolbar({ propsOpen, onToggleProps }: { propsOpen: boolea
         {more(<>{effects}{animation}{position}{compact && painter}</>)}
         {!compact && sep}
         {!compact && painter}
+      </>
+    );
+  } else if (node && type === "group" && barcodeOf(node)) {
+    // A barcode's colours and size are set in its properties section;
+    // recolouring or replacing its parts here would be undone on the next change.
+    items = (
+      <>
+        <button type="button" className={btn} onClick={() => st.ungroupSelection()}><Ungroup size={15} />{ungroupLabel(node)}</button>
       </>
     );
   } else if (node && type === "group") {

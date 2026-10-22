@@ -4893,5 +4893,12 @@
   "editor.print_dpi_laser": "{dpi} dpi · imprimantes laser",
   "editor.print_barcode_dpi": "Les codes-barres de ces pages sont réglés pour {dpi} dpi ; imprimez à cette résolution pour que chaque barre ait la même largeur.",
   "editor.barcode_printer_other": "Autre…",
-  "editor.barcode_printer_dpi_custom": "Résolution"
+  "editor.barcode_printer_dpi_custom": "Résolution",
+  "editor.barcode_hint_qrcode": "Une adresse web ou un texte quelconque",
+  "editor.barcode_ec_level": "Correction d’erreurs",
+  "editor.barcode_ec_l": "L (7 %, le plus petit)",
+  "editor.barcode_ec_m": "M (15 %, standard)",
+  "editor.barcode_ec_q": "Q (25 %)",
+  "editor.barcode_ec_h": "H (30 %, le plus robuste)",
+  "editor.barcode_to_shapes": "Convertir en formes"
 }

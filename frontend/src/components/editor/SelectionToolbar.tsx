@@ -15,6 +15,7 @@ import { isReplaceable } from "@/lib/replaceObject";
 import { openReplace } from "./ReplaceObjectDialog";
 import { useTemplateLock } from "@/store/templateLock";
 import { effectiveLock } from "@/lib/templateLock";
+import { ungroupLabel } from "@/lib/barcode";
 
 const PAD = 60; // keep the bar from spilling off the canvas edges
 
@@ -121,7 +122,7 @@ export function SelectionToolbar({ api }: { api: CanvasApi }) {
           <MenuItem icon={SendToBack} label={tr("editor.send_to_back")} onClick={run(() => st.orderSelection("back"))} />
           {(canGroup || isSingleGroup || canReplace) && <div className="my-1 h-px bg-neutral-100" />}
           {canGroup && <MenuItem icon={GroupIcon} label={tr("editor.group")} onClick={run(() => st.group())} />}
-          {isSingleGroup && <MenuItem icon={Ungroup} label={tr("editor.ungroup")} onClick={run(() => st.ungroupSelection())} />}
+          {isSingleGroup && <MenuItem icon={Ungroup} label={ungroupLabel(locate(st.doc, selection[0])?.node)} onClick={run(() => st.ungroupSelection())} />}
           {canReplace && <MenuItem icon={Replace} label={tr("editor.replace")} onClick={run(() => openReplace(selection[0]))} />}
           <div className="my-1 h-px bg-neutral-100" />
           <MenuItem icon={Move} label={tr("editor.position")} onClick={run(() => st.requestRail("position"))} />

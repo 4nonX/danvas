@@ -23,8 +23,9 @@ Shipped in 0.6.1, with these differences to the text below: the module width is 
 | PZN | German pharmacy product number (PZN-8, as Code 39 with leading `-`) | 7 digits plus the check digit (computed when left out) |
 | Data Matrix (ECC 200) | small labels, square or rectangular | text or bytes |
 | GS1 Data Matrix | pharmaceutical and medical packaging (GTIN, batch, expiry, serial) | `(01)…(17)…(10)…(21)…` |
+| QR Code | links, any text | text (UTF-8), error correction L, M, Q or H |
 
-QR codes stay their own node type; this spec only fixes how they are drawn (FR-9). Encoding uses bwip-js (MIT, a port of Barcode Writer in Pure PostScript, which follows the ISO and GS1 specifications and validates check digits, lengths, application identifiers and dates). Only its encoder is used (`raw`: the bar and space widths of a linear code, the module matrix of a 2D code); danvas draws the geometry itself.
+The older QR node type stays for web links with a centre logo; this spec also fixes how it is drawn (FR-9). Encoding uses bwip-js (MIT, a port of Barcode Writer in Pure PostScript, which follows the ISO and GS1 specifications and validates check digits, lengths, application identifiers and dates). Only its encoder is used (`raw`: the bar and space widths of a linear code, the module matrix of a 2D code); danvas draws the geometry itself.
 
 ## Requirements
 

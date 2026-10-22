@@ -55,7 +55,7 @@ import { designProfileId, listProfileOptions, type ProfileOption } from "@/lib/p
 import { cmykToScreen, setScreenProofProfile } from "@/lib/print/printColor";
 import { ManageProfilesLinks } from "@/components/editor/ManageProfilesLinks";
 import { userMessage } from "@/lib/errors";
-import { barcodeOf } from "@/lib/barcode";
+import { barcodeOf, ungroupLabel } from "@/lib/barcode";
 
 type IconType = ComponentType<{ size?: number | string; strokeWidth?: number; className?: string }>;
 
@@ -1054,7 +1054,7 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
                 )}
                 {single?.node.type === "group" && (
                   <button onClick={() => st.ungroupSelection()} className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-neutral-100 py-1.5 text-xs font-medium text-neutral-600 transition hover:bg-neutral-200">
-                    <Ungroup size={14} /> {tr("editor.ungroup")}
+                    <Ungroup size={14} /> {ungroupLabel(single.node)}
                   </button>
                 )}
               </div>

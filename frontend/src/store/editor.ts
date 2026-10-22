@@ -1176,11 +1176,12 @@ interface EditorState {
   insertBarcode(spec: BarcodeSpec): Promise<EncodeError | null>;
   /** Encode a barcode again from changed settings, in one undo step. An
    *  invalid value leaves the barcode as it is and returns the reason. */
-  updateBarcode(id: string, spec: BarcodeSpec): Promise<EncodeError | null>;
+  updateBarcode(id: string, spec: BarcodeSpec, beforeTransform?: Transform): Promise<EncodeError | null>;
   /** After a barcode was scaled with the handles: turn the scale into module
    *  width and bar height and encode it again at scale 1, so it is never
-   *  distorted. No-op for anything else. */
-  bakeBarcodeScale(id: string): Promise<void>;
+   *  distorted. With the transform from before the drag, undo returns to it
+   *  in the same step. Resolves true when it baked (and recorded) anything. */
+  bakeBarcodeScale(id: string, beforeTransform?: Transform): Promise<boolean>;
   /** Set a video node's trim/volume/loop/mute, undoable. */
   setVideoProps(id: string, patch: Partial<{ trimStartMs: number; trimEndMs: number; volume: number; muted: boolean; loop: boolean }>): void;
   /** Place an image into a frame (clipped to the frame), undoable. */
@@ -6901,7 +6902,7 @@ export const useEditor = create<EditorState>((set, get) => {
       } as Partial<Node>);
       return null;
     },
-    updateBarcode: async (id, spec) => {
+    updateBarcode: async (id, spec, beforeTransform) => {
       const mod = await loadBarcode();
       const loc = locate(get().doc, id);
       if (!loc || !barcodeOf(loc.node) || contentBlocked(id)) return null;
@@ -6909,35 +6910,38 @@ export const useEditor = create<EditorState>((set, get) => {
       if (!built.ok) return built;
       if (built.children.some((c) => c.type === "text")) fonts.ensure(spec.fontFamily);
       const node = loc.node as Node & { children: Node[] };
-      const before = { children: [...node.children], width: node.size.width, height: node.size.height, data: node.data, scaleX: node.transform.scaleX, scaleY: node.transform.scaleY };
+      const before = { children: [...node.children], width: node.size.width, height: node.size.height, data: node.data, transform: { ...(beforeTransform ?? node.transform) } };
+      const after = { ...node.transform, scaleX: 1, scaleY: 1 };
+      const assign = (t: Transform) => {
+        for (const k of Object.keys(node.transform) as (keyof Transform)[]) delete node.transform[k];
+        Object.assign(node.transform, t);
+      };
       const data = { ...(node.data ?? {}), barcode: spec };
       perform(
         () => {
           node.children.splice(0, node.children.length, ...built.children);
           node.size.width = built.width;
           node.size.height = built.height;
-          node.transform.scaleX = 1;
-          node.transform.scaleY = 1;
+          assign(after);
           node.data = data;
         },
         () => {
           node.children.splice(0, node.children.length, ...before.children);
           node.size.width = before.width;
           node.size.height = before.height;
-          node.transform.scaleX = before.scaleX;
-          node.transform.scaleY = before.scaleY;
+          assign(before.transform);
           if (before.data === undefined) delete node.data; else node.data = before.data;
         },
       );
       return null;
     },
-    bakeBarcodeScale: async (id) => {
+    bakeBarcodeScale: async (id, beforeTransform) => {
       const loc = locate(get().doc, id);
       const spec = barcodeOf(loc?.node);
-      if (!loc || !spec) return;
+      if (!loc || !spec) return false;
       const sx = Math.abs(loc.node.transform.scaleX ?? 1);
       const sy = Math.abs(loc.node.transform.scaleY ?? 1);
-      if (Math.abs(sx - 1) < 1e-6 && Math.abs(sy - 1) < 1e-6) return;
+      if (Math.abs(sx - 1) < 1e-6 && Math.abs(sy - 1) < 1e-6) return false;
       const mod = await loadBarcode();
       const linear = mod.RULES[spec.symbology].kind === "linear";
       // Width handles set the module width, height handles the bar height; a
@@ -6949,7 +6953,7 @@ export const useEditor = create<EditorState>((set, get) => {
         barHeightMm: linear ? spec.barHeightMm * sy : spec.barHeightMm,
         textSizeMm: spec.textSizeMm ? spec.textSizeMm * sy : undefined,
       };
-      await get().updateBarcode(id, next);
+      return (await get().updateBarcode(id, next, beforeTransform)) === null && barcodeOf(locate(get().doc, id)?.node) === next;
     },
     setFrameShape: (id, mask, radius) => {
       const loc = locate(get().doc, id);

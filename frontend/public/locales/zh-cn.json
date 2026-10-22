@@ -4893,5 +4893,12 @@
   "editor.print_dpi_laser": "{dpi} dpi · 激光打印机",
   "editor.print_barcode_dpi": "这些页面上的条码按 {dpi} dpi 设置；请以该分辨率打印，使每根条的宽度一致。",
   "editor.barcode_printer_other": "其他…",
-  "editor.barcode_printer_dpi_custom": "分辨率"
+  "editor.barcode_printer_dpi_custom": "分辨率",
+  "editor.barcode_hint_qrcode": "网址或任意文本",
+  "editor.barcode_ec_level": "纠错级别",
+  "editor.barcode_ec_l": "L（7%，最小）",
+  "editor.barcode_ec_m": "M（15%，标准）",
+  "editor.barcode_ec_q": "Q（25%）",
+  "editor.barcode_ec_h": "H（30%，最稳健）",
+  "editor.barcode_to_shapes": "转换为形状"
 }

@@ -4893,5 +4893,12 @@
   "editor.print_dpi_laser": "{dpi} dpi · Laserdrucker",
   "editor.print_barcode_dpi": "Die Barcodes auf diesen Seiten sind für {dpi} dpi eingerichtet; drucken Sie mit dieser Auflösung, damit jeder Balken gleich breit wird.",
   "editor.barcode_printer_other": "Andere…",
-  "editor.barcode_printer_dpi_custom": "Auflösung"
+  "editor.barcode_printer_dpi_custom": "Auflösung",
+  "editor.barcode_hint_qrcode": "Eine Webadresse oder beliebiger Text",
+  "editor.barcode_ec_level": "Fehlerkorrektur",
+  "editor.barcode_ec_l": "L (7 %, am kleinsten)",
+  "editor.barcode_ec_m": "M (15 %, Standard)",
+  "editor.barcode_ec_q": "Q (25 %)",
+  "editor.barcode_ec_h": "H (30 %, am robustesten)",
+  "editor.barcode_to_shapes": "In Formen umwandeln"
 }

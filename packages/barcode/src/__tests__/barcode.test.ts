@@ -75,6 +75,8 @@ describe("round trip through a decoder", () => {
     ["datamatrix", "Grüße", "Grüße", "DataMatrix"],
     ["datamatrix", "Preis 3,50 € ^ Rabatt", "Preis 3,50 € ^ Rabatt", "DataMatrix"],
     ["gs1datamatrix", "(01)04150123456782(21)12345(10)ABC(17)271231", "(01)04150123456782(21)12345(10)ABC(17)271231", "DataMatrix"],
+    ["qrcode", "https://example.org/charge/0815", "https://example.org/charge/0815", "QRCode"],
+    ["qrcode", "Grüße, 3,50 €", "Grüße, 3,50 €", "QRCode"],
   ];
   for (const [symbology, input, text, format] of cases) {
     for (const k of [2, 3, 4]) {
@@ -85,6 +87,18 @@ describe("round trip through a decoder", () => {
       });
     }
   }
+
+  it("decodes QR codes at every error correction level", async () => {
+    for (const ecLevel of ["L", "M", "Q", "H"] as const) {
+      const p = ok(encode("qrcode", "PZN 04711146 Charge 0815", { ecLevel }));
+      const l = layout(p, { moduleMm: 0.5, barHeightMm: 0, quietZones: true, text: false }, dpiFor(0.5, 3));
+      const found = await readBarcodes(raster(l), { formats: [] });
+      expect(found.map((f) => f.text)).toEqual(["PZN 04711146 Charge 0815"]);
+    }
+    // Higher levels need more modules for the same content.
+    const size = (e: "L" | "H") => { const p = ok(encode("qrcode", "PZN 04711146 Charge 0815", { ecLevel: e })); return p.kind === "matrix" ? p.cols : 0; };
+    expect(size("H")).toBeGreaterThan(size("L"));
+  });
 
   it("decodes rectangular Data Matrix", async () => {
     const { p, found } = await decode("datamatrix", "Charge 0815", 4, true);

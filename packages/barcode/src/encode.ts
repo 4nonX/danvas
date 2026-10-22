@@ -66,6 +66,8 @@ export type Pattern = LinearPattern | MatrixPattern;
 export interface EncodeOptions {
   /** Data Matrix: the rectangular shapes instead of square ones. */
   rectangular?: boolean;
+  /** QR code: error correction level (default M, about 15 % recoverable). */
+  ecLevel?: "L" | "M" | "Q" | "H";
 }
 
 const fail = (code: EncodeErrorCode, detail: string): EncodeError => ({ ok: false, code, detail });
@@ -161,6 +163,9 @@ function prepare(symbology: Symbology, value: string, opts: EncodeOptions): { te
     }
     case "gs1datamatrix":
       return { text: value.trim(), options: opts.rectangular ? "format=rectangle" : "" };
+    case "qrcode":
+      // UTF-8, as phones and scanners expect it.
+      return { text: value, options: `eclevel=${opts.ecLevel ?? "M"}` };
   }
 }
 

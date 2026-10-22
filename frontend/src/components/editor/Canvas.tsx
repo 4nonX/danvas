@@ -49,7 +49,7 @@ import { useTemplateLock } from "@/store/templateLock";
 import { useComments } from "@/store/comments";
 import { designSurfaceDir } from "@/lib/locale";
 import { tr } from "@/lib/i18n";
-import { barcodeOf } from "@/lib/barcode";
+import { barcodeOf, ungroupLabel } from "@/lib/barcode";
 
 
 // The crop overlay assumes an axis-aligned, unit-scaled node (it positions an
@@ -3418,7 +3418,7 @@ export function Canvas() {
                 <div role="separator" className="my-1 h-px bg-neutral-100" />
                 {ctxItem(<BoxSelect size={15} />, tr("editor.select_all_of_type"), () => st.selectSameType())}
                 {selection.length > 1 && ctxItem(<Group size={15} />, tr("editor.group"), () => st.group(), "⌘G")}
-                {isGroup && ctxItem(<Ungroup size={15} />, tr("editor.ungroup"), () => st.ungroupSelection(), "⇧⌘G")}
+                {isGroup && ctxItem(<Ungroup size={15} />, ungroupLabel(locate(st.doc, selection[0])?.node), () => st.ungroupSelection(), "⇧⌘G")}
                 {ctxItem(<ArrowUp size={15} />, tr("editor.bring_forward"), () => st.orderSelection("forward"), "⌘]")}
                 {ctxItem(<ArrowDown size={15} />, tr("editor.send_backward"), () => st.orderSelection("backward"), "⌘[")}
                 {ctxItem(<ChevronsUp size={15} />, tr("editor.bring_to_front"), () => st.orderSelection("front"))}

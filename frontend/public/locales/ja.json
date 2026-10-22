@@ -4893,5 +4893,12 @@
   "editor.print_dpi_laser": "{dpi} dpi · レーザープリンター",
   "editor.print_barcode_dpi": "このページのバーコードは {dpi} dpi 用に設定されています。すべてのバーを同じ幅で印刷するには、この解像度で印刷してください。",
   "editor.barcode_printer_other": "その他…",
-  "editor.barcode_printer_dpi_custom": "解像度"
+  "editor.barcode_printer_dpi_custom": "解像度",
+  "editor.barcode_hint_qrcode": "Web アドレスまたは任意のテキスト",
+  "editor.barcode_ec_level": "誤り訂正",
+  "editor.barcode_ec_l": "L（7 %、最小）",
+  "editor.barcode_ec_m": "M（15 %、標準）",
+  "editor.barcode_ec_q": "Q（25 %）",
+  "editor.barcode_ec_h": "H（30 %、最も堅牢）",
+  "editor.barcode_to_shapes": "図形に変換"
 }
