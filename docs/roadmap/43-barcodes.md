@@ -4,7 +4,7 @@ A native barcode element for print work: product and pharmacy labels, batch and 
 
 ## Status
 
-Shipped in 0.6.1, with these differences to the text below: the module width is entered in mm, and for EAN and UPC the magnification is shown beside it rather than entered (FR-3); re-encoding on the server for filling from data (FR-12) is not built yet and belongs to the serial print export; the bar width reduction applies to linear codes only (FR-5). Encoding is checked by decoding every symbology back (zxing) from the generated geometry and from the server's render.
+Shipped in 0.7.0, with these differences to the text below: the module width is entered in mm, and for EAN and UPC the magnification is shown beside it rather than entered (FR-3); re-encoding on the server for filling from data (FR-12) is not built yet and belongs to the serial print export; the bar width reduction applies to linear codes only (FR-5). Encoding is checked by decoding every symbology back (zxing) from the generated geometry and from the server's render.
 
 ## Where it stood before
 
