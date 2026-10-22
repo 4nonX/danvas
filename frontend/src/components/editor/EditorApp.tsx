@@ -617,7 +617,7 @@ export function EditorApp() {
         // Wire the brand store to this design: resolves the
         // active kit + the caller's manage-brand flag for the Brand panel and
         // the locked pickers (FR-4). Best-effort; falls back to no-brand.
-        useBrand.getState().setDesign(id, rec.workspaceId);
+        useBrand.getState().setDesign(id, rec.workspaceId, rec.folderId ?? null);
         // Template locks: who may lift them here, and whom a blocked user asks.
         useTemplateLock.getState().setDesign(id, rec.workspaceId);
         // The workspace font library, so its families render and show in the pickers.

@@ -17,6 +17,8 @@ interface BrandState {
   /** The design this brand belongs to, or null when no saved design is open. */
   designId: string | null;
   workspaceId: string | null;
+  /** The open design's dashboard folder, for its print defaults (F44). */
+  folderId: string | null;
   /** The active resolved kit, or null (no brand assigned/default/deleted). */
   kit: BrandKit | null;
   /** Whether the caller has manage-brand (admins are unconstrained). */
@@ -29,7 +31,7 @@ interface BrandState {
   /** The pinned kit version (number) or null when the design tracks latest. */
   pinnedVersion: number | null;
 
-  setDesign(designId: string | null, workspaceId: string | null): void;
+  setDesign(designId: string | null, workspaceId: string | null, folderId?: string | null): void;
   refresh(): Promise<void>;
   /** Replace the active kit locally (after an edit) without a round-trip. */
   setKit(kit: BrandKit | null): void;
@@ -48,14 +50,15 @@ interface BrandState {
 export const useBrand = create<BrandState>((set, get) => ({
   designId: null,
   workspaceId: null,
+  folderId: null,
   kit: null,
   canManage: false,
   loading: false,
   lockedRegions: [],
   pinnedVersion: null,
 
-  setDesign: (designId, workspaceId) => {
-    set({ designId, workspaceId, kit: null, canManage: false, lockedRegions: [], pinnedVersion: null });
+  setDesign: (designId, workspaceId, folderId = null) => {
+    set({ designId, workspaceId, folderId, kit: null, canManage: false, lockedRegions: [], pinnedVersion: null });
     if (designId) void get().refresh();
   },
 

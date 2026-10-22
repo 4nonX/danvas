@@ -4900,5 +4900,20 @@
   "editor.barcode_ec_m": "M (15 %, standard)",
   "editor.barcode_ec_q": "Q (25 %)",
   "editor.barcode_ec_h": "H (30 %, le plus robuste)",
-  "editor.barcode_to_shapes": "Convertir en formes"
+  "editor.barcode_to_shapes": "Convertir en formes",
+  "editor.profile_from_folder": "Par défaut du dossier « {folder} »",
+  "dashboard.folder_defaults_menu": "Valeurs par défaut d’impression et d’export",
+  "dashboard.folder_defaults_title": "Impression et export par défaut : {name}",
+  "dashboard.folder_defaults_hint": "Les designs de ce dossier et de ses sous-dossiers ouvrent le menu de téléchargement et la boîte d’impression avec ces réglages. Ils passent avant le réglage par défaut de chacun.",
+  "dashboard.folder_defaults_loading": "Chargement…",
+  "dashboard.folder_defaults_read_only": "Votre rôle ne peut pas modifier ces valeurs (le droit « Définir les valeurs par défaut des dossiers »).",
+  "dashboard.folder_defaults_done": "Terminé",
+  "dashboard.folder_defaults_load_failed": "Impossible de charger les valeurs du dossier.",
+  "dashboard.folder_defaults_save_failed": "Impossible d’enregistrer la valeur par défaut.",
+  "dashboard.folder_default_export": "Profil d’export",
+  "dashboard.folder_default_print": "Préréglage d’impression",
+  "dashboard.folder_default_none": "Aucun (le réglage par défaut de chacun)",
+  "dashboard.folder_default_inherit": "De « {folder} » : {name}",
+  "dashboard.folder_default_no_profiles": "L’espace de travail n’a pas encore de profil d’export. Enregistrez-en un dans le menu de téléchargement, pour l’espace de travail.",
+  "dashboard.folder_default_no_presets": "L’espace de travail n’a pas encore de préréglage d’impression. Enregistrez-en un dans la boîte d’impression, pour l’espace de travail."
 }

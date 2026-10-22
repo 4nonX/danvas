@@ -4,7 +4,7 @@
 // only render it and report what the user did.
 
 import { useState, type DragEvent, type ReactNode } from "react";
-import { ChevronRight, Folder as FolderIcon, FolderOpen, FolderPlus, MoreHorizontal, Pencil, Trash2, FolderInput, Check, LayoutTemplate, Copy, CopyPlus, ArrowRightLeft } from "lucide-react";
+import { ChevronRight, Folder as FolderIcon, FolderOpen, FolderPlus, MoreHorizontal, Pencil, Trash2, FolderInput, Check, LayoutTemplate, Copy, CopyPlus, ArrowRightLeft, Printer } from "lucide-react";
 import type { DesignFolder } from "@hc/sdk";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
@@ -97,7 +97,7 @@ export function useDropTarget(onDrop: (items: DragItems) => void) {
 
 /** A folder in the Projects grid: open on click, drop designs/folders on it. */
 export function FolderTile({
-  folder, subfolders, selected, menuOpen, onOpen, onToggleMenu, onRename, onMove, onTransfer, onDelete, onDropItems, onDragStart, onToggleSelect,
+  folder, subfolders, selected, menuOpen, onOpen, onToggleMenu, onRename, onMove, onTransfer, onDefaults, onDelete, onDropItems, onDragStart, onToggleSelect,
 }: {
   folder: DesignFolder;
   subfolders: number;
@@ -109,6 +109,8 @@ export function FolderTile({
   onMove: () => void;
   /** Copy or move the folder to another workspace (absent: not offered). */
   onTransfer?: (mode: "copy" | "move", here?: boolean) => void;
+  /** The folder's print defaults (absent: not offered). */
+  onDefaults?: () => void;
   onDelete: () => void;
   onDropItems: (items: DragItems) => void;
   onDragStart: (e: DragEvent) => void;
@@ -165,6 +167,7 @@ export function FolderTile({
             {onTransfer && <FolderMenuRow icon={CopyPlus} onClick={() => onTransfer("copy", true)}>{tr("dashboard.copy_to_folder")}</FolderMenuRow>}
             {onTransfer && <FolderMenuRow icon={Copy} onClick={() => onTransfer("copy")}>{tr("dashboard.copy_to_workspace")}</FolderMenuRow>}
             {onTransfer && <FolderMenuRow icon={ArrowRightLeft} onClick={() => onTransfer("move")}>{tr("dashboard.move_to_workspace")}</FolderMenuRow>}
+            {onDefaults && <FolderMenuRow icon={Printer} onClick={onDefaults}>{tr("dashboard.folder_defaults_menu")}</FolderMenuRow>}
             <FolderMenuRow icon={Trash2} danger onClick={onDelete}>{tr("dashboard.delete_folder")}</FolderMenuRow>
           </div>
         )}

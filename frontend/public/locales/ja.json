@@ -4900,5 +4900,20 @@
   "editor.barcode_ec_m": "M（15 %、標準）",
   "editor.barcode_ec_q": "Q（25 %）",
   "editor.barcode_ec_h": "H（30 %、最も堅牢）",
-  "editor.barcode_to_shapes": "図形に変換"
+  "editor.barcode_to_shapes": "図形に変換",
+  "editor.profile_from_folder": "フォルダー「{folder}」の既定",
+  "dashboard.folder_defaults_menu": "印刷とエクスポートの既定",
+  "dashboard.folder_defaults_title": "印刷とエクスポートの既定：{name}",
+  "dashboard.folder_defaults_hint": "このフォルダーとサブフォルダーのデザインは、ダウンロードメニューと印刷ダイアログをこの設定で開きます。各自の既定より優先されます。",
+  "dashboard.folder_defaults_loading": "読み込み中…",
+  "dashboard.folder_defaults_read_only": "あなたのロールではこの既定を変更できません（権限「フォルダーの既定値を設定」）。",
+  "dashboard.folder_defaults_done": "完了",
+  "dashboard.folder_defaults_load_failed": "フォルダーの既定を読み込めませんでした。",
+  "dashboard.folder_defaults_save_failed": "既定を保存できませんでした。",
+  "dashboard.folder_default_export": "エクスポートプロファイル",
+  "dashboard.folder_default_print": "印刷プリセット",
+  "dashboard.folder_default_none": "なし（各自の既定）",
+  "dashboard.folder_default_inherit": "「{folder}」から：{name}",
+  "dashboard.folder_default_no_profiles": "ワークスペースにはまだエクスポートプロファイルがありません。ダウンロードメニューでワークスペース用に保存してください。",
+  "dashboard.folder_default_no_presets": "ワークスペースにはまだ印刷プリセットがありません。印刷ダイアログでワークスペース用に保存してください。"
 }

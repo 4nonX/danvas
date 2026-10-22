@@ -264,7 +264,7 @@ const FOCUSABLE =
 /** Export outside the editor (dashboard): the designs to export, already
  *  loaded. One design gets the full dialog; several export every page of
  *  each into one zip, a folder per design. */
-export interface ExportTarget { id: string; doc: DesignFile }
+export interface ExportTarget { id: string; doc: DesignFile; folderId?: string | null }
 
 // The design with a fixed bleed and marks, kept per design and setting, so
 // the proof view does not redo its work on every render of the menu.
@@ -350,6 +350,8 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
   // (the brand store is only set in the editor).
   const brandWorkspaceId = useBrand((s) => s.workspaceId);
   const workspaceId = workspaceIdProp ?? brandWorkspaceId;
+  const editorFolderId = useBrand((s) => s.folderId);
+  const folderIds = useMemo(() => (designs ? designs.map((d) => d.folderId ?? null) : [editorFolderId]), [designs, editorFolderId]);
   const [printColor, setPrintColor] = useState<"cmyk" | "rgb">("cmyk");
   const [profiles, setProfiles] = useState<ProfileOption[] | null>(null);
   const [profileId, setProfileId] = useState<string | null>(null);
@@ -1032,6 +1034,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
           kind="export"
           open={open}
           workspaceId={workspaceId}
+          folderIds={folderIds}
           current={currentSettings}
           normalize={normalizeSettings}
           same={sameExport}

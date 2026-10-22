@@ -4900,5 +4900,20 @@
   "editor.barcode_ec_m": "M（15%，标准）",
   "editor.barcode_ec_q": "Q（25%）",
   "editor.barcode_ec_h": "H（30%，最稳健）",
-  "editor.barcode_to_shapes": "转换为形状"
+  "editor.barcode_to_shapes": "转换为形状",
+  "editor.profile_from_folder": "文件夹“{folder}”的默认值",
+  "dashboard.folder_defaults_menu": "打印和导出默认值",
+  "dashboard.folder_defaults_title": "打印和导出默认值：{name}",
+  "dashboard.folder_defaults_hint": "此文件夹及其子文件夹中的设计会以这些设置打开下载菜单和打印对话框。它们优先于每个人自己的默认值。",
+  "dashboard.folder_defaults_loading": "正在加载…",
+  "dashboard.folder_defaults_read_only": "你的角色无法更改这些默认值（权限“设置文件夹默认值”）。",
+  "dashboard.folder_defaults_done": "完成",
+  "dashboard.folder_defaults_load_failed": "无法加载文件夹的默认值。",
+  "dashboard.folder_defaults_save_failed": "无法保存默认值。",
+  "dashboard.folder_default_export": "导出配置",
+  "dashboard.folder_default_print": "打印预设",
+  "dashboard.folder_default_none": "无（每个人自己的默认值）",
+  "dashboard.folder_default_inherit": "来自“{folder}”：{name}",
+  "dashboard.folder_default_no_profiles": "工作区还没有导出配置。请在下载菜单中为工作区保存一个。",
+  "dashboard.folder_default_no_presets": "工作区还没有打印预设。请在打印对话框中为工作区保存一个。"
 }

@@ -1,14 +1,15 @@
 // The profile picker of the download menu (export profiles) and the print
 // dialog (print presets): choose saved settings, see what they do, update
 // the chosen one or save the menu's settings as a new one. Opening the menu
-// starts from the default (the user's, else the workspace's). The full list
+// starts from the default: the designs' folder's (F44), else the user's,
+// else the workspace's. The full list
 // with rename, describe, duplicate, default and delete is on the settings
 // pages (ProfileManager).
 
 import { useEffect, useId, useState } from "react";
 import type { ExportProfile, ExportProfileKind, ExportProfileView } from "@hc/sdk";
 import { oc } from "@/lib/sdk";
-import { defaultProfile, freeName } from "@/lib/exportProfiles";
+import { defaultProfile, folderDefaultFor, freeName } from "@/lib/exportProfiles";
 import { useToast } from "@/components/ui/Toast";
 import { userMessage } from "@/lib/errors";
 import { ManageProfilesLinks } from "@/components/editor/ManageProfilesLinks";
@@ -18,6 +19,8 @@ export interface ProfileBarProps<T> {
   kind: ExportProfileKind;
   open: boolean;
   workspaceId: string | null;
+  /** The dashboard folders of the designs the menu is for (null: none). */
+  folderIds?: (string | null)[];
   /** The menu's settings now. */
   current: T;
   normalize: (raw: unknown) => T;
@@ -33,11 +36,14 @@ async function loadView(kind: ExportProfileKind, workspaceId: string | null): Pr
   return { profiles: await oc.listPersonalExportProfiles(kind), managedBy: "admins", canManageWorkspace: false, canConfigure: false };
 }
 
-export function ProfileBar<T>({ kind, open, workspaceId, current, normalize, same, describe, onApply }: ProfileBarProps<T>) {
+export function ProfileBar<T>({ kind, open, workspaceId, folderIds = [], current, normalize, same, describe, onApply }: ProfileBarProps<T>) {
   const toast = useToast();
   const id = useId();
   const [view, setView] = useState<ExportProfileView | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
+  // The folder default the menu opened with, to say where it comes from.
+  const [fromFolder, setFromFolder] = useState<{ profileId: string; folderName: string } | null>(null);
+  const folderKey = folderIds.join("|");
   const [form, setForm] = useState<{ name: string; description: string; scope: "personal" | "workspace"; isDefault: boolean } | null>(null);
   const [busy, setBusy] = useState(false);
   const print = kind === "print";
@@ -48,11 +54,15 @@ export function ProfileBar<T>({ kind, open, workspaceId, current, normalize, sam
   useEffect(() => {
     if (!open) return;
     let cancelled = false;
-    void loadView(kind, workspaceId).then(
-      (v) => {
+    void Promise.all([
+      loadView(kind, workspaceId),
+      workspaceId ? folderDefaultFor(folderIds, kind, (f) => oc.folderDefaults(f)) : Promise.resolve(null),
+    ]).then(
+      ([v, folder]) => {
         if (cancelled) return;
         setView(v);
-        const def = defaultProfile(v.profiles);
+        const def = defaultProfile(v.profiles, folder?.profileId);
+        setFromFolder(folder && def?.id === folder.profileId ? folder : null);
         if (def) {
           setActiveId(def.id);
           onApply(normalize(def.settings));
@@ -61,8 +71,8 @@ export function ProfileBar<T>({ kind, open, workspaceId, current, normalize, sam
       () => { if (!cancelled) setView(null); },
     );
     return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- onApply/normalize only set the menu's state; reload on open/workspace/kind is the intent
-  }, [open, workspaceId, kind]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- onApply/normalize only set the menu's state; reload on open, workspace, kind or folders is the intent
+  }, [open, workspaceId, kind, folderKey]);
 
   if (!view) return null;
 
@@ -139,6 +149,9 @@ export function ProfileBar<T>({ kind, open, workspaceId, current, normalize, sam
         {ws.length > 0 && <optgroup label={tr("editor.export_profiles_workspace")}>{ws.map((p) => <option key={p.id} value={p.id}>{label(p)}</option>)}</optgroup>}
         {mine.length > 0 && <optgroup label={tr("editor.export_profiles_personal")}>{mine.map((p) => <option key={p.id} value={p.id}>{label(p)}</option>)}</optgroup>}
       </select>
+      {active && fromFolder?.profileId === active.id && (
+        <p className="text-[11px] font-medium text-brand-ink">{tr("editor.profile_from_folder", { folder: fromFolder.folderName })}</p>
+      )}
       {active && saved && (
         <p className="text-[11px] leading-snug text-neutral-500">
           {active.description && <span className="block text-neutral-700">{active.description}</span>}

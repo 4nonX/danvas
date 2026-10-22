@@ -75,6 +75,7 @@ import { hasAction, type Action } from "@hc/authz";
 import Link from "next/link";
 import { settingsPath } from "@/components/settings/tabs";
 import { ExportDialog, type ExportTarget } from "@/components/editor/ExportDialog";
+import { FolderDefaultsDialog } from "./FolderDefaultsDialog";
 import { PrintDialog } from "@/components/editor/PrintDialog";
 import { ProfileManager } from "@/components/settings/ProfileManager";
 import { ShareDialog } from "@/components/editor/ShareDialog";
@@ -474,6 +475,8 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   const [exportTargets, setExportTargets] = useState<ExportTarget[] | null>(null);
   const [exportLoading, setExportLoading] = useState(false);
   const [printTargets, setPrintTargets] = useState<ExportTarget[] | null>(null);
+  // The folder whose print defaults are open (F44).
+  const [defaultsFor, setDefaultsFor] = useState<DesignFolder | null>(null);
   const [printLoading, setPrintLoading] = useState(false);
   const [shareDesignId, setShareDesignId] = useState<string | null>(null);
   const [bulkShare, setBulkShare] = useState<{ id: string; title: string }[] | null>(null);
@@ -484,11 +487,13 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   // Bumped when designs change outside the editor, so their cards redraw.
   const [thumbRev, setThumbRev] = useState(0);
   const titleOf = (id: string) => items.find((i) => i.id === id)?.title ?? favorites.find((i) => i.id === id)?.title ?? tr("editor.untitled");
+  // The designs' folders pick their print defaults (F44).
+  const withFolders = (targets: ExportTarget[]) => targets.map((t) => ({ ...t, folderId: items.find((i) => i.id === t.id)?.folderId ?? null }));
   const printDesigns = async (ids: string[]) => {
     if (!ids.length || printLoading) return;
     setPrintLoading(true);
     try {
-      setPrintTargets(await loadDesignsForExport(ids));
+      setPrintTargets(withFolders(await loadDesignsForExport(ids)));
     } catch (e) {
       toast.error(userMessage(e, tr("dashboard.print_prepare_failed")));
     } finally {
@@ -499,7 +504,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     if (!ids.length || exportLoading) return;
     setExportLoading(true);
     try {
-      setExportTargets(await loadDesignsForExport(ids));
+      setExportTargets(withFolders(await loadDesignsForExport(ids)));
     } catch (e) {
       toast.error(userMessage(e, tr("dashboard.download_prepare_failed")));
     } finally {
@@ -1405,6 +1410,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                               onRename={() => void renameFolder(f)}
                               onMove={() => { setFolderMenu(null); setMoveReq(dragPayload("folders", f.id)); }}
                               onTransfer={(mode, here) => { setFolderMenu(null); setTransferReq({ items: dragPayload("folders", f.id), mode, here }); }}
+                              onDefaults={activeWorkspaceId ? () => { setFolderMenu(null); setDefaultsFor(f); } : undefined}
                               onDelete={() => void deleteFolder(f)}
                               onDropItems={(it) => void moveItems(it, f.id)}
                               onDragStart={(e) => setDragItems(e, dragPayload("folders", f.id))}
@@ -2179,6 +2185,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
 
       {exportTargets && <ExportDialog open onClose={() => setExportTargets(null)} designs={exportTargets} workspaceId={activeWorkspaceId} />}
       {printTargets && <PrintDialog open onClose={() => setPrintTargets(null)} designs={printTargets} workspaceId={activeWorkspaceId} />}
+      {defaultsFor && activeWorkspaceId && <FolderDefaultsDialog folder={defaultsFor} workspaceId={activeWorkspaceId} onClose={() => setDefaultsFor(null)} />}
       {transferReq && activeWorkspaceId && (
         <TransferDialog
           items={transferReq.items}

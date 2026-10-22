@@ -205,6 +205,8 @@ export interface DesignRecord {
   updatedAt: string;
   deletedAt: string | null;
   purgeAfter: string | null;
+  /** The dashboard folder the design is in (F44); absent at the workspace root. */
+  folderId?: string | null;
 }
 
 /** A version's author, resolved for the history time machine. */
@@ -1144,6 +1146,15 @@ export interface DesignTransferResult {
   /** Workspace font families the designs use that the target lacks. */
   missingFonts: string[];
   moved: boolean;
+}
+
+/** A folder's print defaults (F44): its own (kind to profile id) and what
+ *  its designs open with, own or inherited from a folder above. */
+export interface FolderDefaults {
+  folderId: string;
+  own: Partial<Record<ExportProfileKind, string>>;
+  effective: Partial<Record<ExportProfileKind, { profileId: string; folderId: string; folderName: string }>>;
+  canEdit: boolean;
 }
 
 export interface DesignFolder {
@@ -2627,6 +2638,16 @@ export class HyCanvasClient {
   }
 
   // Design folders (dashboard "Projects"): a nested tree per workspace.
+  /** A folder's print defaults (F44). */
+  folderDefaults(folderId: string): Promise<FolderDefaults> {
+    return this.request("GET", `/v1/folders/${encodeURIComponent(folderId)}/defaults`);
+  }
+
+  /** Set (or clear, with null) a folder's default export profile or print preset. */
+  setFolderDefault(folderId: string, kind: ExportProfileKind, profileId: string | null): Promise<FolderDefaults> {
+    return this.request("PUT", `/v1/folders/${encodeURIComponent(folderId)}/defaults`, { kind, profileId });
+  }
+
   listDesignFolders(workspaceId: string): Promise<DesignFolder[]> {
     return this.request("GET", `/v1/workspaces/${workspaceId}/folders`);
   }

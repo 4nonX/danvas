@@ -134,6 +134,7 @@ export function PrintDialog({ open, onClose, designs, workspaceId: workspaceIdPr
   const activePage = useEditor((s) => s.activePage);
   useEditor((s) => s.rev); // re-read the live doc on edits
   const brandWorkspaceId = useBrand((s) => s.workspaceId);
+  const editorFolderId = useBrand((s) => s.folderId);
   const workspaceId = workspaceIdProp ?? brandWorkspaceId;
   const [settings, setSettings] = useState<PrintSettings>(() => normalizePrintSettings({}));
   const [override, setOverride] = useState<PrintOverride>(() => initialPrintOverride((designs ?? [{ doc: editorDoc }]).map((d) => d.doc)));
@@ -202,6 +203,7 @@ export function PrintDialog({ open, onClose, designs, workspaceId: workspaceIdPr
           kind="print"
           open={open}
           workspaceId={workspaceId}
+          folderIds={designs ? designs.map((d) => d.folderId ?? null) : [editorFolderId]}
           current={current}
           normalize={normalizePrintSettings}
           same={samePrintSettings}

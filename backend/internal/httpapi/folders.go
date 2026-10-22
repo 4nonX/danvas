@@ -18,6 +18,42 @@ func mountFolders(api chi.Router, h *home.Service, acct *accounts.Service) {
 	api.With(requireAuth(acct)).Post("/workspaces/{id}/folders/move", moveToFolderHandler(h))
 	api.With(requireAuth(acct)).Patch("/folders/{id}", updateDesignFolderHandler(h))
 	api.With(requireAuth(acct)).Delete("/folders/{id}", deleteDesignFolderHandler(h))
+	api.With(requireAuth(acct)).Get("/folders/{id}/defaults", folderDefaultsHandler(h))
+	api.With(requireAuth(acct)).Put("/folders/{id}/defaults", setFolderDefaultHandler(h))
+}
+
+// folderDefaultsHandler returns a folder's print defaults (F44).
+func folderDefaultsHandler(h *home.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		u := userFrom(r.Context())
+		d, err := h.GetFolderDefaults(r.Context(), u.ID, chi.URLParam(r, "id"))
+		if err != nil {
+			folderProblem(w, r, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, d)
+	}
+}
+
+// setFolderDefaultHandler sets or clears (profileId null) one kind's default.
+func setFolderDefaultHandler(h *home.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			Kind      string  `json:"kind"`
+			ProfileID *string `json:"profileId"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "invalid body", "invalid_body")
+			return
+		}
+		u := userFrom(r.Context())
+		d, err := h.SetFolderDefault(r.Context(), u.ID, chi.URLParam(r, "id"), body.Kind, body.ProfileID)
+		if err != nil {
+			folderProblem(w, r, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, d)
+	}
 }
 
 func folderProblem(w http.ResponseWriter, r *http.Request, err error) {

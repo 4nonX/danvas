@@ -4900,5 +4900,20 @@
   "editor.barcode_ec_m": "M (15 %, standard)",
   "editor.barcode_ec_q": "Q (25 %)",
   "editor.barcode_ec_h": "H (30 %, most robust)",
-  "editor.barcode_to_shapes": "Convert to shapes"
+  "editor.barcode_to_shapes": "Convert to shapes",
+  "editor.profile_from_folder": "Default of the folder “{folder}”",
+  "dashboard.folder_defaults_menu": "Print and export defaults",
+  "dashboard.folder_defaults_title": "Print and export defaults: {name}",
+  "dashboard.folder_defaults_hint": "Designs in this folder and its subfolders open the download menu and the print dialog with these. They come before anyone's own default.",
+  "dashboard.folder_defaults_loading": "Loading…",
+  "dashboard.folder_defaults_read_only": "Your role cannot change these defaults (the right \"Set folder defaults\").",
+  "dashboard.folder_defaults_done": "Done",
+  "dashboard.folder_defaults_load_failed": "Could not load the folder's defaults.",
+  "dashboard.folder_defaults_save_failed": "Could not save the default.",
+  "dashboard.folder_default_export": "Export profile",
+  "dashboard.folder_default_print": "Print preset",
+  "dashboard.folder_default_none": "None (each person's own default)",
+  "dashboard.folder_default_inherit": "From “{folder}”: {name}",
+  "dashboard.folder_default_no_profiles": "The workspace has no export profiles yet. Save one in the download menu, for the workspace.",
+  "dashboard.folder_default_no_presets": "The workspace has no print presets yet. Save one in the print dialog, for the workspace."
 }

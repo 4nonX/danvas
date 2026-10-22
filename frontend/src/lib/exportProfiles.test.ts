@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { ExportProfile } from "@hc/sdk";
-import { defaultExportSettings, defaultProfile, describeSettings, freeName, normalizeSettings, sameSettings } from "./exportProfiles";
+import type { ExportProfile, FolderDefaults } from "@hc/sdk";
+import { defaultExportSettings, defaultProfile, describeSettings, folderDefaultFor, freeName, normalizeSettings, sameSettings } from "./exportProfiles";
 import { cappedPrintDpi, describePrintSettings, normalizePrintSettings, printScale, PRINT_MAX_DIM, samePrintSettings } from "./printPresets";
 import { oversizedPages, paperFor, printHtml } from "./printDocument";
 
@@ -48,6 +48,28 @@ describe("export profile settings", () => {
     expect(defaultProfile([ws, mine])?.id).toBe("m");
     expect(defaultProfile([ws, profile({ id: "n" })])?.id).toBe("w");
     expect(defaultProfile([profile({ id: "n" })])).toBeNull();
+  });
+
+  it("starts from the folder's default before the user's (F44)", () => {
+    const ws = profile({ id: "w", scope: "workspace", isDefault: true });
+    const mine = profile({ id: "m", isDefault: true });
+    const label = profile({ id: "label", scope: "workspace" });
+    expect(defaultProfile([ws, mine, label], "label")?.id).toBe("label");
+    // A folder default that is gone from the list falls back as before.
+    expect(defaultProfile([ws, mine], "deleted")?.id).toBe("m");
+  });
+
+  it("uses a folder default only when every design's folder resolves to it", async () => {
+    const eff = (profileId: string | null, folderName = "Labels"): FolderDefaults => ({ folderId: "f", own: {}, canEdit: false, effective: profileId ? { export: { profileId, folderId: "f", folderName } } : {} });
+    const byFolder: Record<string, FolderDefaults> = { a: eff("p1"), b: eff("p1", "Small labels"), c: eff("p2"), d: eff(null) };
+    const load = async (f: string) => byFolder[f];
+    expect(await folderDefaultFor(["a", "a"], "export", load)).toEqual({ profileId: "p1", folderName: "Labels" });
+    expect((await folderDefaultFor(["a", "b"], "export", load))?.profileId).toBe("p1");
+    expect(await folderDefaultFor(["a", "c"], "export", load)).toBeNull();
+    expect(await folderDefaultFor(["a", null], "export", load)).toBeNull();
+    expect(await folderDefaultFor(["d"], "export", load)).toBeNull();
+    expect(await folderDefaultFor(["a"], "print", load)).toBeNull();
+    expect(await folderDefaultFor([], "export", load)).toBeNull();
   });
 
   it("keeps the prepress options: whole-mm size off and extension into the bleed on unless set", () => {

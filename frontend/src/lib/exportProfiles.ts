@@ -5,7 +5,7 @@
 // the menu, and describes it in a line, so everyone can tell what a profile
 // does without opening it.
 
-import type { ExportProfile } from "@hc/sdk";
+import type { ExportProfile, ExportProfileKind, FolderDefaults } from "@hc/sdk";
 import type { PrintOverride } from "@/lib/print/sheet";
 import type { RenderingIntent } from "@/lib/print/cms";
 import { tr } from "@/lib/i18n";
@@ -174,10 +174,23 @@ export function describeSettings(s: ExportSettings, iccName: (id: string) => str
   return parts.join(" · ");
 }
 
-/** The profile the menu starts from: the user's default, else the
- *  workspace's, else none. */
-export function defaultProfile(profiles: ExportProfile[]): ExportProfile | null {
-  return profiles.find((p) => p.scope === "personal" && p.isDefault) ?? profiles.find((p) => p.scope === "workspace" && p.isDefault) ?? null;
+/** The profile the menu starts from: the folder's default (F44) when the
+ *  designs' folder names one that is in the list, else the user's default,
+ *  else the workspace's, else none. */
+export function defaultProfile(profiles: ExportProfile[], folderProfileId?: string | null): ExportProfile | null {
+  const fromFolder = folderProfileId ? profiles.find((p) => p.id === folderProfileId) : undefined;
+  return fromFolder ?? profiles.find((p) => p.scope === "personal" && p.isDefault) ?? profiles.find((p) => p.scope === "workspace" && p.isDefault) ?? null;
+}
+
+/** The folder default of one kind that every design opens with: only when
+ *  all of them are in folders resolving to the same profile (F44 FR-7). */
+export async function folderDefaultFor(folderIds: (string | null | undefined)[], kind: ExportProfileKind, load: (folderId: string) => Promise<FolderDefaults>): Promise<{ profileId: string; folderName: string } | null> {
+  if (!folderIds.length || folderIds.some((f) => !f)) return null;
+  const distinct = [...new Set(folderIds as string[])];
+  const found = await Promise.all(distinct.map((f) => load(f).then((d) => d.effective[kind] ?? null, () => null)));
+  const first = found[0];
+  if (!first || found.some((e) => !e || e.profileId !== first.profileId)) return null;
+  return { profileId: first.profileId, folderName: first.folderName };
 }
 
 /** A name not yet taken among `taken` (ignoring case): "Name (2)", "(3)"... */

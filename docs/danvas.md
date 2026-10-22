@@ -18,6 +18,8 @@ The sidebar shows the folders as a tree below **Projects**:
 - What you opened is remembered per workspace. The way to the folder you are in shows by itself.
 - While a search is showing, the tree lists folders only.
 
+**Print and export defaults** in a folder's menu name the workspace export profile and print preset its designs, and those of its subfolders, open the download menu and the print dialog with: a folder of labels opens with the label settings for everyone. A subfolder without its own default uses the nearest folder above it that has one. Setting them takes the right **Set folder defaults** (owners and admins by default); everyone else sees them read-only. A folder default comes before anyone's own default; the picker then says which folder it comes from. Several designs on the dashboard use it only when all of them resolve to the same one.
+
 ### Copying and moving to folders and workspaces
 
 A design or a folder can be copied to another folder of the same workspace, or copied or moved to another workspace, for example from your personal workspace to the team's once it is finished. In its menu choose **Copy to folder…**, **Copy to workspace…** or **Move to workspace…**; with several designs and folders selected (the box at a card's top left), **Copy to folder…** and **To workspace…** in the selection bar do the same for all of them. All three open one dialog: **Copy** or **Move**, the workspace and the folder there; **Copy to folder…** starts on this workspace, marked "(this workspace)".
@@ -284,7 +286,7 @@ Colour profiles, export profiles and print presets each exist twice: **your own*
 | Where to manage them | **Settings** (in the menu under your name): **Export profiles**, **Print presets**, **Color profiles** | Dashboard, **Members** in the left bar, section **Print and export**: **Color profiles**, **Export profiles**, **Print presets** |
 | Who sees and uses them | only you, in every workspace you work in (your personal one too) | every member of that workspace, only there |
 | Create, edit, delete | you | whoever's role holds the matching right (see [Roles and permissions](#roles-and-permissions)); by default owners and admins, and for export profiles and print presets also the Member role when switched on there |
-| Default | **Use as my default** (colour profiles: **Make default**): applies to you only and comes before the workspace's default | **Use as the workspace default** (colour profiles: **Make default**): applies to every member who has no default of their own |
+| Default | **Use as my default** (colour profiles: **Make default**): applies to you only and comes before the workspace's default | **Use as the workspace default** (colour profiles: **Make default**): applies to every member who has no default of their own; a folder can also name one of them for its designs, which comes before everyone's own ([Folders](#folders)) |
 
 In the download menu, the print dialog and the page panel both kinds are listed together, yours as **Mine** and the workspace's under its name. Beside each picker, **Manage: Mine · Workspace** opens your own list in **Settings** or the workspace's on its **Members** page, at the right section. Each list creates, edits (every setting, with **Edit**), renames, sets the default and deletes; colour profiles are created by uploading an `.icc` file. **Copy to mine** turns a workspace profile into one of your own, to change it for yourself without changing it for everyone.
 

@@ -4900,5 +4900,20 @@
   "editor.barcode_ec_m": "M (15%, padrão)",
   "editor.barcode_ec_q": "Q (25%)",
   "editor.barcode_ec_h": "H (30%, o mais robusto)",
-  "editor.barcode_to_shapes": "Converter em formas"
+  "editor.barcode_to_shapes": "Converter em formas",
+  "editor.profile_from_folder": "Padrão da pasta “{folder}”",
+  "dashboard.folder_defaults_menu": "Padrões de impressão e exportação",
+  "dashboard.folder_defaults_title": "Padrões de impressão e exportação: {name}",
+  "dashboard.folder_defaults_hint": "Os designs desta pasta e das subpastas abrem o menu de download e a caixa de impressão com estas configurações. Elas vêm antes do padrão próprio de cada pessoa.",
+  "dashboard.folder_defaults_loading": "Carregando…",
+  "dashboard.folder_defaults_read_only": "Seu papel não pode alterar estes padrões (o direito “Definir padrões de pastas”).",
+  "dashboard.folder_defaults_done": "Concluído",
+  "dashboard.folder_defaults_load_failed": "Não foi possível carregar os padrões da pasta.",
+  "dashboard.folder_defaults_save_failed": "Não foi possível salvar o padrão.",
+  "dashboard.folder_default_export": "Perfil de exportação",
+  "dashboard.folder_default_print": "Predefinição de impressão",
+  "dashboard.folder_default_none": "Nenhum (o padrão próprio de cada pessoa)",
+  "dashboard.folder_default_inherit": "De “{folder}”: {name}",
+  "dashboard.folder_default_no_profiles": "O espaço de trabalho ainda não tem perfis de exportação. Salve um no menu de download, para o espaço de trabalho.",
+  "dashboard.folder_default_no_presets": "O espaço de trabalho ainda não tem predefinições de impressão. Salve uma na caixa de impressão, para o espaço de trabalho."
 }

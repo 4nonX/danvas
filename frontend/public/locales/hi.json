@@ -4900,5 +4900,20 @@
   "editor.barcode_ec_m": "M (15 %, मानक)",
   "editor.barcode_ec_q": "Q (25 %)",
   "editor.barcode_ec_h": "H (30 %, सबसे मज़बूत)",
-  "editor.barcode_to_shapes": "आकृतियों में बदलें"
+  "editor.barcode_to_shapes": "आकृतियों में बदलें",
+  "editor.profile_from_folder": "फ़ोल्डर “{folder}” का डिफ़ॉल्ट",
+  "dashboard.folder_defaults_menu": "प्रिंट और एक्सपोर्ट डिफ़ॉल्ट",
+  "dashboard.folder_defaults_title": "प्रिंट और एक्सपोर्ट डिफ़ॉल्ट: {name}",
+  "dashboard.folder_defaults_hint": "इस फ़ोल्डर और इसके सबफ़ोल्डर के डिज़ाइन डाउनलोड मेनू और प्रिंट डायलॉग इन्हीं सेटिंग्स से खोलते हैं। ये हर व्यक्ति के अपने डिफ़ॉल्ट से पहले आते हैं।",
+  "dashboard.folder_defaults_loading": "लोड हो रहा है…",
+  "dashboard.folder_defaults_read_only": "आपकी भूमिका ये डिफ़ॉल्ट नहीं बदल सकती (अधिकार “फ़ोल्डर डिफ़ॉल्ट सेट करें”)।",
+  "dashboard.folder_defaults_done": "हो गया",
+  "dashboard.folder_defaults_load_failed": "फ़ोल्डर के डिफ़ॉल्ट लोड नहीं हो सके।",
+  "dashboard.folder_defaults_save_failed": "डिफ़ॉल्ट सहेजा नहीं जा सका।",
+  "dashboard.folder_default_export": "एक्सपोर्ट प्रोफ़ाइल",
+  "dashboard.folder_default_print": "प्रिंट प्रीसेट",
+  "dashboard.folder_default_none": "कोई नहीं (हर व्यक्ति का अपना डिफ़ॉल्ट)",
+  "dashboard.folder_default_inherit": "“{folder}” से: {name}",
+  "dashboard.folder_default_no_profiles": "वर्कस्पेस में अभी कोई एक्सपोर्ट प्रोफ़ाइल नहीं है। डाउनलोड मेनू में वर्कस्पेस के लिए एक सहेजें।",
+  "dashboard.folder_default_no_presets": "वर्कस्पेस में अभी कोई प्रिंट प्रीसेट नहीं है। प्रिंट डायलॉग में वर्कस्पेस के लिए एक सहेजें।"
 }

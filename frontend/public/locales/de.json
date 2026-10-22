@@ -4900,5 +4900,20 @@
   "editor.barcode_ec_m": "M (15 %, Standard)",
   "editor.barcode_ec_q": "Q (25 %)",
   "editor.barcode_ec_h": "H (30 %, am robustesten)",
-  "editor.barcode_to_shapes": "In Formen umwandeln"
+  "editor.barcode_to_shapes": "In Formen umwandeln",
+  "editor.profile_from_folder": "Standard des Ordners „{folder}“",
+  "dashboard.folder_defaults_menu": "Standards für Druck und Export",
+  "dashboard.folder_defaults_title": "Standards für Druck und Export: {name}",
+  "dashboard.folder_defaults_hint": "Designs in diesem Ordner und seinen Unterordnern öffnen Download-Menü und Druckdialog mit diesen Einstellungen. Sie gehen dem eigenen Standard jeder Person vor.",
+  "dashboard.folder_defaults_loading": "Wird geladen…",
+  "dashboard.folder_defaults_read_only": "Ihre Rolle kann diese Standards nicht ändern (Recht „Ordner-Standards festlegen“).",
+  "dashboard.folder_defaults_done": "Fertig",
+  "dashboard.folder_defaults_load_failed": "Die Standards des Ordners konnten nicht geladen werden.",
+  "dashboard.folder_defaults_save_failed": "Der Standard konnte nicht gespeichert werden.",
+  "dashboard.folder_default_export": "Exportprofil",
+  "dashboard.folder_default_print": "Druckvorgabe",
+  "dashboard.folder_default_none": "Keiner (der eigene Standard jeder Person)",
+  "dashboard.folder_default_inherit": "Von „{folder}“: {name}",
+  "dashboard.folder_default_no_profiles": "Der Arbeitsbereich hat noch keine Exportprofile. Speichern Sie eines im Download-Menü für den Arbeitsbereich.",
+  "dashboard.folder_default_no_presets": "Der Arbeitsbereich hat noch keine Druckvorgaben. Speichern Sie eine im Druckdialog für den Arbeitsbereich."
 }

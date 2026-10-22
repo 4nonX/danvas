@@ -4900,5 +4900,20 @@
   "editor.barcode_ec_m": "M (15 %, estándar)",
   "editor.barcode_ec_q": "Q (25 %)",
   "editor.barcode_ec_h": "H (30 %, la más robusta)",
-  "editor.barcode_to_shapes": "Convertir en formas"
+  "editor.barcode_to_shapes": "Convertir en formas",
+  "editor.profile_from_folder": "Predeterminado de la carpeta «{folder}»",
+  "dashboard.folder_defaults_menu": "Valores predeterminados de impresión y exportación",
+  "dashboard.folder_defaults_title": "Impresión y exportación predeterminadas: {name}",
+  "dashboard.folder_defaults_hint": "Los diseños de esta carpeta y sus subcarpetas abren el menú de descarga y el diálogo de impresión con estos ajustes. Tienen prioridad sobre el predeterminado propio de cada persona.",
+  "dashboard.folder_defaults_loading": "Cargando…",
+  "dashboard.folder_defaults_read_only": "Tu rol no puede cambiar estos valores (el derecho «Definir valores predeterminados de carpetas»).",
+  "dashboard.folder_defaults_done": "Listo",
+  "dashboard.folder_defaults_load_failed": "No se pudieron cargar los valores de la carpeta.",
+  "dashboard.folder_defaults_save_failed": "No se pudo guardar el valor predeterminado.",
+  "dashboard.folder_default_export": "Perfil de exportación",
+  "dashboard.folder_default_print": "Ajuste de impresión",
+  "dashboard.folder_default_none": "Ninguno (el predeterminado propio de cada persona)",
+  "dashboard.folder_default_inherit": "De «{folder}»: {name}",
+  "dashboard.folder_default_no_profiles": "El espacio de trabajo aún no tiene perfiles de exportación. Guarda uno en el menú de descarga, para el espacio de trabajo.",
+  "dashboard.folder_default_no_presets": "El espacio de trabajo aún no tiene ajustes de impresión. Guarda uno en el diálogo de impresión, para el espacio de trabajo."
 }

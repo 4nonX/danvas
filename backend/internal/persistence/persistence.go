@@ -51,8 +51,8 @@ type DesignRecord struct {
 	PurgeAfter      *string `json:"purgeAfter"`
 	SourceDesignID  *string `json:"sourceDesignId"`
 	SourceVersionID *string `json:"sourceVersionId"`
-	// FolderID is the dashboard folder (designs.project_id); only the
-	// workspace listing fills it.
+	// FolderID is the dashboard folder (designs.project_id), so the editor
+	// can find the folder's print defaults (F44).
 	FolderID *string `json:"folderId,omitempty"`
 }
 
@@ -106,7 +106,7 @@ func isoPtr(t *time.Time) *string {
 // GetRecord returns the design metadata record.
 func (s *Service) GetRecord(ctx context.Context, designID string) (*DesignRecord, error) {
 	const q = `SELECT id, "workspace_id", title, "schema_version", "doc_kind", "current_snapshot_id",
-		"created_at", "updated_at", "deleted_at", "purge_after", "source_design_id", "source_version_id"
+		"created_at", "updated_at", "deleted_at", "purge_after", "source_design_id", "source_version_id", "project_id"
 		FROM "designs" WHERE id = $1`
 	var (
 		r                  DesignRecord
@@ -115,7 +115,7 @@ func (s *Service) GetRecord(ctx context.Context, designID string) (*DesignRecord
 	)
 	if err := s.db.QueryRow(ctx, q, designID).Scan(
 		&r.ID, &r.WorkspaceID, &r.Title, &r.SchemaVersion, &r.DocKind, &r.CurrentSnapshot,
-		&created, &updated, &deletedAt, &purgeAt, &r.SourceDesignID, &r.SourceVersionID,
+		&created, &updated, &deletedAt, &purgeAt, &r.SourceDesignID, &r.SourceVersionID, &r.FolderID,
 	); err != nil {
 		return nil, err
 	}

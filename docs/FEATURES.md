@@ -85,6 +85,7 @@ A living checklist of what ships today versus what is planned. Shipped items are
 - [x] Exact print colors: CMYK values and named spot colors in the color picker, written unchanged to vector PDF and EPS (spot colors as separations, CMYK gradients); kept by brand colors and group recoloring
 - [x] ICC color profiles: built in, per workspace (admins) and personal (Settings), with defaults; a color profile per design for the screen display of print colors and the download default
 - [x] Print-file checks: proof in the browser (soft proof through the ICC profile, single plates, ink coverage against a TAC limit, out-of-gamut colours) and output check of the real file (structure in the browser, plates separated by Ghostscript on the server); preflight hints for hairlines, small text in several inks, artwork at the edge without bleed
+- [x] Print and export defaults per folder, inherited by subfolders, before personal defaults ([spec 44](roadmap/44-folder-print-defaults.md))
 - [x] Export profiles and print presets: named settings, personal or per workspace, with defaults and full management (create, edit every setting, rename, default, duplicate, delete; own in Settings, the workspace's on its Members page)
 - [x] Print from the editor and the dashboard (one design or a selection): paper handed to the driver (each page's own size, or A4/A3/Letter), actual size or fitted, 150 to 1200 dpi (203 dpi for label printers), bleed and crop marks
 - [x] Website generator (static HTML, SEO, nav, file export), local generation only
