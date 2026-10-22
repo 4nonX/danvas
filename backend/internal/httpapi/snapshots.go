@@ -59,6 +59,9 @@ func snapshotHandler(p *persistence.Service, br *brand.Service, acct *accounts.S
 			File  persistence.DesignFile `json:"file"`
 			Label string                 `json:"label"`
 			Kind  string                 `json:"kind"`
+			// Aside: keep the file as a named version only; the current file
+			// stays (F49, a browser's outdated offline changes).
+			Aside bool `json:"aside"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.File == nil {
 			problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "missing file", "missing_file")
@@ -106,7 +109,12 @@ func snapshotHandler(p *persistence.Service, br *brand.Service, acct *accounts.S
 		if body.Label != "" {
 			label = &body.Label
 		}
-		rec, err := p.Snapshot(r.Context(), id, ws, body.File, kind, label, &u.ID)
+		var rec persistence.SnapshotRecord
+		if body.Aside {
+			rec, err = p.SnapshotAside(r.Context(), id, ws, body.File, label, &u.ID)
+		} else {
+			rec, err = p.Snapshot(r.Context(), id, ws, body.File, kind, label, &u.ID)
+		}
 		if err != nil {
 			persistenceProblem(w, r, err)
 			return

@@ -55,6 +55,7 @@ import { ApprovalBanner } from "./ApprovalBanner";
 import { NotificationsBell } from "@/components/notifications/NotificationsBell";
 import { PromptHost } from "@/components/ui/PromptHost";
 import { useRealtime, getDesignDoc, resyncFromLiveDoc } from "@/lib/useRealtime";
+import { noteOpened, noteServerState } from "@/lib/offlineCopy";
 import { useAutoSnapshot, checkpointMaxBytes } from "@/lib/useAutoSnapshot";
 import { onCommentChanged, onRoleChanged } from "@/lib/realtime";
 import { useViewBeat } from "@/lib/useViewBeat";
@@ -546,7 +547,9 @@ export function EditorApp() {
 
   // Realtime presence: connect only once a real backend design id is loaded
   // (never for the unsaved/local doc). Disconnects on unmount/route change.
-  useRealtime(designId);
+  // An outdated offline copy with changes of its own was kept as a version.
+  const onOfflineKept = useCallback(() => toast.toast(tr("editor.offline_changes_kept"), "info"), [toast]);
+  useRealtime(designId, onOfflineKept);
 
   // Automatic snapshots (FR-11): idle / interval-cap / tab-hidden, silent, with
   // the save time surfaced in the status text. Manual Save is unchanged.
@@ -589,6 +592,9 @@ export function EditorApp() {
       try {
         const [rec, file] = await Promise.all([oc.getDesign(id), oc.getDesignFile(id)]);
         if (cancelled) return;
+        // The server state the offline copy is checked against (F49); a copy,
+        // since edits change the loaded document in place.
+        noteOpened(id, rec.currentSnapshotId, structuredClone(file));
         loadDoc(file);
         setDesignId(id);
         setWorkspaceId(rec.workspaceId);
@@ -924,7 +930,8 @@ export function EditorApp() {
         toast.error("The design is still loading; try again in a moment.");
         return;
       }
-      await oc.saveSnapshot(designId, { file, kind: "checkpoint" });
+      const saved = await oc.saveSnapshot(designId, { file, kind: "checkpoint" });
+      noteServerState(designId, saved?.id, file); // F49: the offline copy matches the server
       if (!mounted.current) return;
       // Mark the doc clean at the just-saved revision so the dirty indicator and
       // the unload guard clear; record the wall-clock time for the status text.

@@ -19,6 +19,7 @@ import { oc } from "@/lib/sdk";
 import { useEditor } from "@/store/editor";
 import { usePresence } from "@/store/presence";
 import { getDesignDoc } from "@/lib/useRealtime";
+import { noteServerState } from "@/lib/offlineCopy";
 
 const IDLE_MS = 4000; // snapshot this long after the last edit
 const MAX_INTERVAL_MS = 90_000; // ...and at least this often during nonstop editing
@@ -86,7 +87,8 @@ export function useAutoSnapshot(designId: string | null, onSaved?: () => void) {
         // of truth); fall back to the local store doc otherwise. Mirrors save().
         const file = doc?.snapshot() ?? ed.doc;
         if (!Array.isArray(file.pages) || file.pages.length === 0) return; // never persist a blank doc
-        await oc.saveSnapshot(designId, { file, kind: "auto" });
+        const saved = await oc.saveSnapshot(designId, { file, kind: "auto" });
+        noteServerState(designId, saved?.id, file); // this browser's copy is the server's file now (F49)
         if (disposed) return;
         lastSavedAt = Date.now();
         // Mark clean only if no edits landed during the await, so we never hide a

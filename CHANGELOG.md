@@ -17,11 +17,12 @@ All notable changes to danvas are listed here, newest first. Versions follow the
 
 ### Fixed
 
+- **Outdated offline copies**: a browser's offline copy of a design no longer replaces a newer state of it. When nobody else was in a design that had changed elsewhere since (another device, someone else, Change format), the editor showed this browser's older copy and the automatic save wrote it back. Now the copy is checked against the server when the design opens: an outdated copy without changes of its own is dropped, one with changes of its own is kept as a named version "Offline changes from this browser" in the history (a notice says so) and the design shows its current state. Offline edits on an unchanged design merge and save as before. A copy open in another tab is left alone.
 - QR codes in print files: each dark module was drawn slightly larger than its cell (to hide seams on screen), so dark areas grew. Modules are now drawn at their exact size as one shape, in the editor, in every export and on the server. Nothing changes on screen.
 
 ### Upgrading
 
-- One new table for the folder defaults (additive; a rollback ignores it). No change to the file format: a barcode is a group of a path and text with its settings in the group's data, so earlier versions open and print it exactly.
+- One new table for the folder defaults and one new column for the print approval rule (`workspace_export_settings.require_approval_for_print`, off by default); both additive, a rollback ignores them. The snapshot API takes `aside: true` to keep a file as a version without making it current. No change to the file format: a barcode is a group of a path and text with its settings in the group's data, so earlier versions open and print it exactly.
 
 ## 0.6.0 (2026-10-22)
 

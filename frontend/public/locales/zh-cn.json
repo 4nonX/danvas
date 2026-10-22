@@ -5016,5 +5016,7 @@
   "editor.trim_off_n.other": "{count} 个设计不是 {size}",
   "editor.trim_off_one": "此设计不是 {size}，而是 {got}。",
   "editor.trim_off_editor_hint": "使用“{resize}”更改尺寸，或在仪表板中用“{reformat}”一次更改多个设计。",
-  "editor.profile_trim_size": "成品尺寸 {size}"
+  "editor.profile_trim_size": "成品尺寸 {size}",
+  "editor.offline_changes_label": "此浏览器的离线更改（{date}）",
+  "editor.offline_changes_kept": "此浏览器中还有此设计较早的离线更改。它们已作为版本保存在历史记录中；设计显示的是当前状态。"
 }

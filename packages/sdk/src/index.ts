@@ -345,6 +345,19 @@ export type SnapshotKind = "auto" | "checkpoint" | "named" | "restore" | "branch
  *  the snapshot route rejects it with 422. */
 export type SavableSnapshotKind = Exclude<SnapshotKind, "branch">;
 
+/** A stored snapshot, as saving one returns it. */
+export interface SnapshotRecord {
+  /** The snapshot id: the design's `currentSnapshotId` once it is current. */
+  id: string;
+  designId: string;
+  checksum: string;
+  schemaVersion: number;
+  sizeBytes: number;
+  authorId: string | null;
+  createdAt: string;
+  kind: SnapshotKind;
+}
+
 export interface TemplateSummary {
   id: string;
   title: string;
@@ -1747,7 +1760,10 @@ export class HyCanvasClient {
   getDesignFile(id: string, opts?: { trashed?: boolean }): Promise<DesignFile> {
     return this.request("GET", `/v1/designs/${id}/file${opts?.trashed ? "?trashed=1" : ""}`);
   }
-  saveSnapshot(id: string, input: { file: DesignFile; label?: string; kind?: SavableSnapshotKind }): Promise<DesignRecord> {
+  /** Save a version of the design; it becomes the current file. With
+   *  `aside` it is only kept in the history as a named version and the
+   *  current file stays (a browser's outdated offline changes). */
+  saveSnapshot(id: string, input: { file: DesignFile; label?: string; kind?: SavableSnapshotKind; aside?: boolean }): Promise<SnapshotRecord> {
     return this.request("POST", `/v1/designs/${id}/snapshots`, input);
   }
   /** A page of a design's version history, newest first. Each

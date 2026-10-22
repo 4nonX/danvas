@@ -5016,5 +5016,7 @@
   "editor.trim_off_n.other": "{count} 件のデザインが {size} ではありません",
   "editor.trim_off_one": "このデザインは {size} ではなく {got} です。",
   "editor.trim_off_editor_hint": "「{resize}」でサイズを変更するか、ダッシュボードの「{reformat}」で複数のデザインをまとめて変更します。",
-  "editor.profile_trim_size": "仕上がり {size}"
+  "editor.profile_trim_size": "仕上がり {size}",
+  "editor.offline_changes_label": "このブラウザーのオフライン変更（{date}）",
+  "editor.offline_changes_kept": "このブラウザーには、このデザインの古いオフライン変更が残っていました。履歴にバージョンとして保存し、デザインは現在の状態で表示しています。"
 }

@@ -5016,5 +5016,7 @@
   "editor.trim_off_n.other": "{count} डिज़ाइन {size} नहीं हैं",
   "editor.trim_off_one": "यह डिज़ाइन {size} नहीं, बल्कि {got} है।",
   "editor.trim_off_editor_hint": "“{resize}” से आकार बदलें, या डैशबोर्ड में “{reformat}” से कई डिज़ाइन एक साथ बदलें।",
-  "editor.profile_trim_size": "फ़िनिश्ड आकार {size}"
+  "editor.profile_trim_size": "फ़िनिश्ड आकार {size}",
+  "editor.offline_changes_label": "इस ब्राउज़र के ऑफ़लाइन बदलाव ({date})",
+  "editor.offline_changes_kept": "इस ब्राउज़र में इस डिज़ाइन के पुराने ऑफ़लाइन बदलाव बचे थे। वे इतिहास में एक संस्करण के रूप में सुरक्षित हैं; डिज़ाइन अपनी वर्तमान स्थिति दिखाता है।"
 }

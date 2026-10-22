@@ -41,6 +41,20 @@ func (s *Service) requireDesign(ctx context.Context, designID, workspaceID strin
 // writeSnapshot serializes the file, stores the content-addressed blob, and
 // records snapshot + version, then points the design at the new snapshot.
 func (s *Service) writeSnapshot(ctx context.Context, designID string, file DesignFile, kind SnapshotKind, label, authorID *string) (snapshotRow, versionRow, error) {
+	snap, ver, err := s.writeVersion(ctx, designID, file, kind, label, authorID)
+	if err != nil {
+		return snapshotRow{}, versionRow{}, err
+	}
+	sv := schemaVersionOf(file)
+	if _, err := s.updateDesign(ctx, designID, designPatch{currentSnapshotID: &snap.ID, schemaVersion: &sv}); err != nil {
+		return snapshotRow{}, versionRow{}, err
+	}
+	return snap, ver, nil
+}
+
+// writeVersion stores the file as a snapshot and a version entry without
+// making it the design's current file.
+func (s *Service) writeVersion(ctx context.Context, designID string, file DesignFile, kind SnapshotKind, label, authorID *string) (snapshotRow, versionRow, error) {
 	if s.storage == nil {
 		return snapshotRow{}, versionRow{}, ErrNoStorage
 	}
@@ -63,9 +77,6 @@ func (s *Service) writeSnapshot(ctx context.Context, designID string, file Desig
 	}
 	ver, err := s.createVersion(ctx, createVersionInput{designID: designID, snapshotID: snap.ID, label: label, authorID: authorID})
 	if err != nil {
-		return snapshotRow{}, versionRow{}, err
-	}
-	if _, err := s.updateDesign(ctx, designID, designPatch{currentSnapshotID: &snap.ID, schemaVersion: &sv}); err != nil {
 		return snapshotRow{}, versionRow{}, err
 	}
 	return snap, ver, nil
@@ -231,6 +242,28 @@ func (s *Service) Snapshot(ctx context.Context, designID, workspaceID string, fi
 		}
 	}
 	snap, _, err := s.writeSnapshot(ctx, designID, stored, kind, label, authorID)
+	if err != nil {
+		return SnapshotRecord{}, err
+	}
+	return toSnapshotRecord(snap), nil
+}
+
+// SnapshotAside records the file as a named version in the design's history
+// without making it the current file (F49): a browser's offline changes to a
+// design that has since changed elsewhere are kept there, restorable, while
+// the newer current file stays.
+func (s *Service) SnapshotAside(ctx context.Context, designID, workspaceID string, file DesignFile, label, authorID *string) (SnapshotRecord, error) {
+	if s.storage == nil {
+		return SnapshotRecord{}, ErrNoStorage
+	}
+	if _, err := s.requireDesign(ctx, designID, workspaceID, false); err != nil {
+		return SnapshotRecord{}, err
+	}
+	stored := withID(file, designID)
+	if err := validateForWrite(stored); err != nil {
+		return SnapshotRecord{}, err
+	}
+	snap, _, err := s.writeVersion(ctx, designID, stored, KindNamed, label, authorID)
 	if err != nil {
 		return SnapshotRecord{}, err
 	}

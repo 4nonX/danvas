@@ -5016,5 +5016,7 @@
   "editor.trim_off_n.other": "{count} diseños no miden {size}",
   "editor.trim_off_one": "Este diseño no mide {size}, sino {got}.",
   "editor.trim_off_editor_hint": "Cambia su tamaño con «{resize}», o varios diseños a la vez con «{reformat}» en el panel.",
-  "editor.profile_trim_size": "formato final {size}"
+  "editor.profile_trim_size": "formato final {size}",
+  "editor.offline_changes_label": "Cambios sin conexión de este navegador ({date})",
+  "editor.offline_changes_kept": "Este navegador tenía cambios sin conexión más antiguos de este diseño. Se guardan como versión en el historial; el diseño muestra su estado actual."
 }

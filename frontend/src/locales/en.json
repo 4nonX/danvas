@@ -5016,5 +5016,7 @@
   "editor.trim_off_n.other": "{count} designs are not {size}",
   "editor.trim_off_one": "This design is not {size} but {got}.",
   "editor.trim_off_editor_hint": "Change its size with “{resize}”, or several designs at once with “{reformat}” in the dashboard.",
-  "editor.profile_trim_size": "finished size {size}"
+  "editor.profile_trim_size": "finished size {size}",
+  "editor.offline_changes_label": "Offline changes from this browser ({date})",
+  "editor.offline_changes_kept": "This browser still had older offline changes to this design. They are kept as a version in the history; the design shows its current state."
 }

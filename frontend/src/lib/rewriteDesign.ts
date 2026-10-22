@@ -14,6 +14,7 @@ import type { DesignFile } from "@hc/schema";
 import { fromDoc, reconcile } from "@hc/realtime";
 import { oc } from "@/lib/sdk";
 import { checkpointFrameOf, foldUpdates } from "@/lib/historyFold";
+import { dropOfflineCopy, offlineDbName } from "@/lib/offlineCopy";
 
 const CHECKPOINT_MAX = 20 * 1024 * 1024 - 4096; // the server's cap
 
@@ -39,15 +40,7 @@ export async function rewriteDesign(id: string, file: DesignFile, label: string)
     }
   }
   await oc.saveSnapshot(id, { file: content, label, kind: "named" });
-  dropOfflineCopy(id);
-}
-
-/** Forget this browser's offline CRDT state of a design (the editor keeps it
- *  in IndexedDB under this name), so its next session starts from the server. */
-function dropOfflineCopy(id: string) {
-  try {
-    if (typeof indexedDB !== "undefined") indexedDB.deleteDatabase(`oc-design-${id}`);
-  } catch {
-    // Storage blocked: nothing was kept either.
-  }
+  // Forget this browser's offline CRDT state of the design, so its next
+  // session starts from the server.
+  void dropOfflineCopy(offlineDbName(id));
 }

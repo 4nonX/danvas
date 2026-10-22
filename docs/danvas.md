@@ -110,6 +110,16 @@ Objects of a design can be protected, so that designs made from it keep them as 
 
 ## Editor
 
+### Offline copies
+
+The browser keeps a copy of every design it opened, so work done without a connection survives a reload and is saved once the connection is back. When a design opens, that copy is compared with the server's current state first:
+
+- The design has not changed elsewhere since this browser last saved it: the copy is used, with any offline edits, as before.
+- It has changed elsewhere (another device, someone else, **Change format**) and the copy holds nothing unsaved: the copy is dropped and the current state shows.
+- It has changed elsewhere and the copy has changes that never reached the server: they are kept as a version **Offline changes from this browser** in the version history, from where they can be restored or compared, a notice says so, and the current state shows.
+
+A design open in another tab of the same browser is left alone; its tab keeps working. Without a connection nothing can be compared, and the copy is used as before.
+
 ### Barcodes
 
 **Elements**, **Barcode** inserts a barcode for labels and packaging: EAN-13, EAN-8, UPC-A, Code 128, GS1-128, Code 39, PZN (the German pharmacy product number, printed as Code 39 with `PZN - 12345678` below it), Data Matrix (square or rectangular), GS1 Data Matrix and QR Code (with its error correction level). The dialog checks the content while you type and says what is wrong (a check digit, the length, a character the type cannot carry, an invalid GS1 identifier or date); leave the check digit out and it is computed. The older **QR code** element stays for web links with a logo in the middle; for print, a QR code from **Barcode** has the same exact sizing, black ink and checks as the other codes.

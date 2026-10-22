@@ -61,5 +61,5 @@ export function trimSizeText(s: { w: number; h: number }): string {
 export function mismatchText(m: TrimMismatch, size: TrimSize): string {
   const got = trimSizeText({ w: m.wMm, h: m.hMm });
   if (!m.turned) return got;
-  return tr(size.h > size.w ? "editor.trim_turned_landscape" : "editor.trim_turned_portrait", { size: got });
+  return size.h > size.w ? tr("editor.trim_turned_landscape", { size: got }) : tr("editor.trim_turned_portrait", { size: got });
 }

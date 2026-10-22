@@ -5016,5 +5016,7 @@
   "editor.trim_off_n.other": "{count} designs ne sont pas en {size}",
   "editor.trim_off_one": "Ce design n’est pas en {size} mais en {got}.",
   "editor.trim_off_editor_hint": "Changez sa taille avec « {resize} », ou plusieurs designs à la fois avec « {reformat} » dans le tableau de bord.",
-  "editor.profile_trim_size": "format fini {size}"
+  "editor.profile_trim_size": "format fini {size}",
+  "editor.offline_changes_label": "Modifications hors ligne de ce navigateur ({date})",
+  "editor.offline_changes_kept": "Ce navigateur avait encore des modifications hors ligne plus anciennes de ce design. Elles sont conservées comme version dans l’historique ; le design affiche son état actuel."
 }

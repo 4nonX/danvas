@@ -15,6 +15,8 @@ import { DesignDoc } from "@/lib/ydoc";
 import { oc } from "@/lib/sdk";
 import { useEditor } from "@/store/editor";
 import { usePresence } from "@/store/presence";
+import { settleOfflineCopy } from "@/lib/offlineCopy";
+import { tr } from "@/lib/i18n";
 
 // The single active client, shared with the Canvas overlay for cursor frames.
 let activeClient: RealtimeClient | null = null;
@@ -90,13 +92,17 @@ export function resyncFromLiveDoc(): void {
  * Connect realtime for `designId` (no-op when null, i.e. the unsaved local doc).
  * Returns nothing; reads/writes the editor + presence stores directly.
  */
-export function useRealtime(designId: string | null): void {
+export function useRealtime(designId: string | null, onOfflineKept?: () => void): void {
   // Set true for exactly the duration of a programmatic viewport mirror (following
   // a peer), so the editor-store subscription can tell that synchronous change
   // apart from a genuine user pan/zoom that should break follow. A boolean flag
   // (not a value match) is robust when setViewport CLAMPS the zoom, which would
   // otherwise make the committed viewport differ from the value we recorded.
   const mirroring = useRef(false);
+  const onOfflineKeptRef = useRef(onOfflineKept);
+  useEffect(() => {
+    onOfflineKeptRef.current = onOfflineKept;
+  }, [onOfflineKept]);
 
   // Connect / disconnect on design id OR branch change. Slice B: stand up the
   // per-design Y.Doc binding (store bridge), then open the socket carrying both
@@ -135,11 +141,25 @@ export function useRealtime(designId: string | null): void {
     }
     switchedLineage.current = lastDesign.current === designId && lastBranch.current !== branch;
     lastBranch.current = branch;
-    const doc = new DesignDoc(designId, branch);
+    // Opening a design: its offline copy is checked against the server's file
+    // before it is bound (F49), so an outdated copy never replaces it.
+    const settle = !branch && !switchedLineage.current;
+    const doc = new DesignDoc(designId, branch, { deferOffline: settle });
     activeDoc = doc;
     const client = connectRealtime(designId, doc, branch);
     activeClient = client;
     let cancelled = false;
+    if (settle) {
+      void settleOfflineCopy(
+        designId,
+        async (file) => {
+          await oc.saveSnapshot(designId, { file, kind: "named", aside: true, label: tr("editor.offline_changes_label", { date: new Date().toLocaleString() }) });
+        },
+        () => { if (!cancelled) onOfflineKeptRef.current?.(); },
+      ).then((bind) => {
+        if (bind && !cancelled && doc === activeDoc) doc.bindOffline();
+      });
+    }
     if (branch) {
       void (async () => {
         try {

@@ -33,6 +33,7 @@ import { IndexeddbPersistence } from "y-indexeddb";
 import { reconcile, fromDoc, fromDocWithPageReuse, localOrigin } from "@hc/realtime";
 import { designRootKey, type DesignFile } from "@hc/schema";
 import { liveSelection, useEditor, type CollabUndo } from "@/store/editor";
+import { holdOfflineCopy, offlineDbName } from "@/lib/offlineCopy";
 
 // base64 of a Uint8Array (browser btoa over a binary string). Chunked so a multi-
 // MB full-state checkpoint doesn't do per-byte string growth on the main thread.
@@ -83,6 +84,8 @@ export class DesignDoc {
   // IndexedDB, so edits made offline survive a reload and merge with the server
   // room on reconnect (Yjs CRDT, no data loss). Null in non-browser/SSR.
   private idb: IndexeddbPersistence | null = null;
+  // Marks the offline copy in use by this tab while bound (F49).
+  private releaseCopy: (() => void) | null = null;
   // F16 per-user collaborative undo: a Yjs UndoManager scoped to THIS client's
   // edits (localOrigin). Undo reverts only our own changes and merges cleanly
   // with concurrent peer edits; registered into the editor store as the active
@@ -120,8 +123,9 @@ export class DesignDoc {
    *  right after a lineage switch (in either direction) never seeds from the
    *  store, which still holds the lineage just left; it seeds from the
    *  lineage's folded journal via {@link applyJournalFrames} or from room
-   *  sync/IndexedDB. */
-  constructor(readonly designId: string, readonly branch: string | null = null) {
+   *  sync/IndexedDB. `deferOffline` leaves the offline copy unbound until
+   *  {@link bindOffline}, so it can be checked against the server first (F49). */
+  constructor(readonly designId: string, readonly branch: string | null = null, opts: { deferOffline?: boolean } = {}) {
     this.lastRev = useEditor.getState().rev;
     // Whose state is in the store right now? Seeding a room from the store is
     // only safe when the store holds THIS lineage's document. It does not after
@@ -246,18 +250,22 @@ export class DesignDoc {
       reconcile(s.doc, this.ydoc);
     });
 
-    // Bind IndexedDB persistence (browser only). It auto-loads any stored state
-    // into the Y.Doc (origin = the persistence instance, so the Y->Local handler
-    // rebuilds the store from it) and auto-persists every change.
-    if (typeof indexedDB !== "undefined") {
-      try {
-        // A branch doc persists under its own namespace: its CRDT state is a
-        // different lineage and must never merge into main's offline store.
-        const idbName = branch ? `oc-design-${designId}::${branch}` : `oc-design-${designId}`;
-        this.idb = new IndexeddbPersistence(idbName, this.ydoc);
-      } catch {
-        this.idb = null; // private-mode / blocked storage: degrade to online-only
-      }
+    if (!opts.deferOffline) this.bindOffline();
+  }
+
+  /** Bind IndexedDB persistence (browser only). It auto-loads any stored state
+   *  into the Y.Doc (origin = the persistence instance, so the Y->Local handler
+   *  rebuilds the store from it) and auto-persists every change. Once only. */
+  bindOffline(): void {
+    if (this.disposed || this.idb || typeof indexedDB === "undefined") return;
+    try {
+      // A branch doc persists under its own namespace: its CRDT state is a
+      // different lineage and must never merge into main's offline store.
+      const name = offlineDbName(this.designId, this.branch);
+      this.idb = new IndexeddbPersistence(name, this.ydoc);
+      this.releaseCopy = holdOfflineCopy(name);
+    } catch {
+      this.idb = null; // private-mode / blocked storage: degrade to online-only
     }
   }
 
@@ -439,6 +447,7 @@ export class DesignDoc {
     this.updateHandlers.clear();
     // Close the IndexedDB connection (keeps the persisted data for next open).
     this.idb?.destroy();
+    this.releaseCopy?.();
     this.ydoc.destroy();
   }
 }
