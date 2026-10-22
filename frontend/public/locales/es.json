@@ -4875,7 +4875,6 @@
   "editor.barcode_print": "Impresión",
   "editor.barcode_printer_dpi": "Resolución de la impresora",
   "editor.barcode_printer_none": "Cualquier impresora",
-  "editor.barcode_printer_dpi_value": "{dpi} dpi",
   "editor.barcode_printer_dpi_hint": "Para impresoras de etiquetas y térmicas: el ancho del módulo se redondea a puntos de impresora enteros, así todas las barras se imprimen con el mismo ancho.",
   "editor.barcode_reduction_short": "Reducción",
   "editor.barcode_reduction_hint": "Reducción del ancho de barra: estrecha cada barra en esta medida para prensas en las que la tinta se expande (consulta a tu imprenta; normalmente 0).",
@@ -4886,5 +4885,13 @@
   "editor.export_issue_barcode_quiet": "El código {subject} no tiene zonas de silencio: deja libre el espacio a su alrededor o los escáneres pueden no leerlo ({where}).",
   "editor.export_issue_barcode_light": "Las barras del código {subject} son claras; los escáneres necesitan barras oscuras sobre fondo claro ({where}).",
   "editor.export_issue_barcode_inks": "Las barras del código {subject} se imprimen con varias tintas, lo que puede difuminar sus bordes; lo más seguro es solo tinta negra ({where}).",
-  "editor.export_issue_barcode_raster": "{subject} por módulo con esta resolución: por debajo de {min} px un código de barras puede no leerse. Elige una resolución mayor o un formato vectorial ({where})."
+  "editor.export_issue_barcode_raster": "{subject} por módulo con esta resolución: por debajo de {min} px un código de barras puede no leerse. Elige una resolución mayor o un formato vectorial ({where}).",
+  "editor.print_dpi_value": "{dpi} ppp",
+  "editor.print_dpi_draft": "{dpi} ppp · borrador",
+  "editor.print_dpi_label_printer": "{dpi} ppp · impresoras de etiquetas y térmicas",
+  "editor.print_dpi_label_or_office": "{dpi} ppp · impresoras de etiquetas y de oficina",
+  "editor.print_dpi_laser": "{dpi} ppp · impresoras láser",
+  "editor.print_barcode_dpi": "Los códigos de barras de estas páginas están preparados para {dpi} ppp; imprime con esa resolución para que todas las barras salgan del mismo ancho.",
+  "editor.barcode_printer_other": "Otra…",
+  "editor.barcode_printer_dpi_custom": "Resolución"
 }

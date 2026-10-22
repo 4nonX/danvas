@@ -18,11 +18,24 @@ export interface PrintSettings {
    *  roll printers, Save as PDF) or a standard sheet. */
   paper: PrintPaper;
   /** Raster resolution sent to the printer. */
-  dpi: 150 | 200 | 300 | 600;
+  dpi: (typeof PRINT_DPIS)[number];
   print: ProfilePrint;
 }
 
-export const PRINT_DPIS = [150, 200, 300, 600] as const;
+/** The usual printer resolutions: 203 and 300 dpi are the dot grids of label
+ *  and thermal printers (8 and 11.8 dots per mm), 600 and 1200 dpi office
+ *  lasers. Printing at a printer's own resolution keeps every barcode bar a
+ *  whole number of its dots. */
+export const PRINT_DPIS = [150, 200, 203, 300, 600, 1200] as const;
+
+/** A resolution as offered in the pickers, with what it is for where that helps. */
+export function printDpiLabel(dpi: number): string {
+  if (dpi === 150) return tr("editor.print_dpi_draft", { dpi });
+  if (dpi === 203) return tr("editor.print_dpi_label_printer", { dpi });
+  if (dpi === 300) return tr("editor.print_dpi_label_or_office", { dpi });
+  if (dpi === 1200) return tr("editor.print_dpi_laser", { dpi });
+  return tr("editor.print_dpi_value", { dpi });
+}
 
 /** Longest side, in pixels, a page is rendered at for printing (browser memory). */
 export const PRINT_MAX_DIM = 7000;

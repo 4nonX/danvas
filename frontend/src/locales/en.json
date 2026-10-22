@@ -4875,7 +4875,6 @@
   "editor.barcode_print": "Print",
   "editor.barcode_printer_dpi": "Printer resolution",
   "editor.barcode_printer_none": "Any printer",
-  "editor.barcode_printer_dpi_value": "{dpi} dpi",
   "editor.barcode_printer_dpi_hint": "For label and thermal printers: the module width is rounded to whole printer dots, so every bar prints the same width.",
   "editor.barcode_reduction_short": "Reduction",
   "editor.barcode_reduction_hint": "Bar width reduction: narrows every bar by this much for presses that spread ink (ask your print shop; usually 0).",
@@ -4886,5 +4885,13 @@
   "editor.export_issue_barcode_quiet": "The {subject} code has no quiet zones: keep the space around it free, or scanners may miss it ({where}).",
   "editor.export_issue_barcode_light": "The bars of the {subject} code are light; scanners need dark bars on a light ground ({where}).",
   "editor.export_issue_barcode_inks": "The bars of the {subject} code print in several inks, which can blur their edges; black ink alone is safest ({where}).",
-  "editor.export_issue_barcode_raster": "{subject} per module at this resolution: below {min} px a barcode may not scan. Choose a higher resolution or a vector format ({where})."
+  "editor.export_issue_barcode_raster": "{subject} per module at this resolution: below {min} px a barcode may not scan. Choose a higher resolution or a vector format ({where}).",
+  "editor.print_dpi_value": "{dpi} dpi",
+  "editor.print_dpi_draft": "{dpi} dpi · draft",
+  "editor.print_dpi_label_printer": "{dpi} dpi · label and thermal printers",
+  "editor.print_dpi_label_or_office": "{dpi} dpi · label and office printers",
+  "editor.print_dpi_laser": "{dpi} dpi · laser printers",
+  "editor.print_barcode_dpi": "The barcodes on these pages are set up for {dpi} dpi; print at that resolution so every bar comes out the same width.",
+  "editor.barcode_printer_other": "Other…",
+  "editor.barcode_printer_dpi_custom": "Resolution"
 }

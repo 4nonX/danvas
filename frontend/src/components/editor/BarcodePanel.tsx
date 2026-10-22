@@ -14,17 +14,21 @@ import { ColorField } from "./ColorField";
 import { useEditor } from "@/store/editor";
 import { BLACK_INK, barcodeErrorText, buildBarcode, defaultSpec, loadBarcode, symbologyLabel, type BarcodeSpec, type Symbology } from "@/lib/barcode";
 import { tr } from "@/lib/i18n";
+import { printDpiLabel } from "@/lib/printPresets";
 
 type BarcodeModule = Awaited<ReturnType<typeof loadBarcode>>;
 
 const inputCls = "w-full rounded-lg border border-neutral-200 bg-surface px-2 py-1.5 text-sm text-neutral-800 outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-100";
 const selectCls = inputCls;
 const labelCls = "flex flex-col gap-1 text-[11px] text-neutral-400";
-const PRINTER_DPI = [203, 300, 600];
+/** Printer resolutions a barcode can be rounded to (label printers and office lasers). */
+const PRINTER_DPI = [203, 300, 600, 1200];
 // i18n-ignore: the ink value, the same in every language
 const K100_LABEL = "K 100";
 // i18n-ignore: the unit symbol
 const MM = "mm";
+// i18n-ignore: the unit symbol
+const DPI = "dpi";
 
 /** The encoder, once loaded. */
 function useBarcodeModule(): BarcodeModule | null {
@@ -75,6 +79,51 @@ function MmField({ label, value, onCommit, placeholder, min = 0 }: { label: stri
       />
       <span className="shrink-0 text-[11px] text-neutral-400">{MM}</span>
     </label>
+  );
+}
+
+/** The printer resolution: none, a usual one, or any other typed in. */
+function PrinterDpiField({ value, onChange }: { value: number | undefined; onChange: (dpi: number | undefined) => void }) {
+  const [other, setOther] = useState(value !== undefined && !PRINTER_DPI.includes(value));
+  const choice = other ? "other" : value === undefined ? "" : String(value);
+  return (
+    <>
+      <label className={labelCls}>
+        {tr("editor.barcode_printer_dpi")}
+        <select
+          value={choice}
+          onChange={(e) => {
+            const v = e.target.value;
+            if (v === "other") { setOther(true); return; }
+            setOther(false);
+            onChange(v ? Number(v) : undefined);
+          }}
+          className={selectCls}
+        >
+          <option value="">{tr("editor.barcode_printer_none")}</option>
+          {PRINTER_DPI.map((d) => <option key={d} value={d}>{printDpiLabel(d)}</option>)}
+          <option value="other">{tr("editor.barcode_printer_other")}</option>
+        </select>
+      </label>
+      {other && (
+        <label className="flex h-8 items-center gap-1.5 rounded-md border border-neutral-200 bg-surface px-2 text-[13px] transition focus-within:border-brand-400 focus-within:ring-2 focus-within:ring-brand-100">
+          <span className="shrink-0 text-xs font-medium text-neutral-400">{tr("editor.barcode_printer_dpi_custom")}</span>
+          <input
+            key={value ?? ""}
+            defaultValue={value ?? ""}
+            inputMode="numeric"
+            onBlur={(e) => {
+              const n = Math.round(Number(e.target.value.replace(",", ".")));
+              if (Number.isFinite(n) && n >= 72 && n <= 4800) { if (n !== value) onChange(n); }
+              else e.target.value = value ? String(value) : "";
+            }}
+            onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+            className="w-full min-w-0 bg-transparent text-neutral-800 outline-none"
+          />
+          <span className="shrink-0 text-[11px] text-neutral-400">{DPI}</span>
+        </label>
+      )}
+    </>
   );
 }
 
@@ -216,13 +265,7 @@ export function BarcodeSettings({ spec, onChange, mod, idPrefix }: { spec: Barco
       <details className="rounded-lg border border-neutral-200 px-2.5 py-2">
         <summary className="cursor-pointer text-xs font-medium text-neutral-600">{tr("editor.barcode_print")}</summary>
         <div className="mt-2 flex flex-col gap-2">
-          <label className={labelCls}>
-            {tr("editor.barcode_printer_dpi")}
-            <select value={spec.printerDpi ?? ""} onChange={(e) => set({ printerDpi: e.target.value ? Number(e.target.value) : undefined })} className={selectCls}>
-              <option value="">{tr("editor.barcode_printer_none")}</option>
-              {PRINTER_DPI.map((d) => <option key={d} value={d}>{tr("editor.barcode_printer_dpi_value", { dpi: d })}</option>)}
-            </select>
-          </label>
+          <PrinterDpiField value={spec.printerDpi} onChange={(printerDpi) => set({ printerDpi })} />
           <p className="text-[11px] text-neutral-500">{tr("editor.barcode_printer_dpi_hint")}</p>
           {linear && (
             <>

@@ -75,7 +75,9 @@ describe("editing a print preset", () => {
   it("shows paper, size and resolution and saves them", async () => {
     const onSave = vi.fn(async () => {});
     render(<ProfileSettingsEditor profile={profile({ v: 1, pages: "all", size: "actual", paper: "design", dpi: 300, print: { source: "page", bleed: false, marks: false } })} print workspaceId={null} onSave={onSave} onClose={() => {}} />);
-    fireEvent.change(screen.getByDisplayValue("300 dpi"), { target: { value: "600" } });
+    // The resolution picker: the select holding 300.
+    const dpi = screen.getAllByRole("combobox").find((el) => (el as HTMLSelectElement).value === "300")!;
+    fireEvent.change(dpi, { target: { value: "600" } });
     fireEvent.click(screen.getByText("editor.export_profile_save"));
     await waitFor(() => expect(onSave).toHaveBeenCalled());
     expect(((onSave.mock.calls[0] as unknown[])[0] as { dpi: number; paper: string }).dpi).toBe(600);

@@ -90,6 +90,15 @@ describe("print presets", () => {
     expect(cappedPrintDpi([], 600)).toBeNull();
   });
 
+  it("offers the label printers' 203 dpi and 1200 dpi, and renders a label at exactly them", () => {
+    expect(normalizePrintSettings({ v: 1, dpi: 203 }).dpi).toBe(203);
+    expect(normalizePrintSettings({ v: 1, dpi: 1200 }).dpi).toBe(1200);
+    // A 50 x 100 mm label at 96 px per inch is 189 x 378 px: small enough for 1200 dpi.
+    const label = { sheetWidth: 189, sheetHeight: 378, docDpi: 96 };
+    expect(printScale(label.sheetWidth, label.sheetHeight, 96, 203) * 96).toBeCloseTo(203, 6);
+    expect(cappedPrintDpi([label], 1200)).toBeNull();
+  });
+
   it("hands the driver each page's own paper size, or a standard sheet turned to fit", () => {
     const pages = [{ url: "blob:a", widthMm: 93, heightMm: 43 }, { url: "blob:b", widthMm: 210, heightMm: 297 }, { url: "blob:c", widthMm: 93, heightMm: 43 }];
     const own = printHtml(pages, { size: "actual", paper: "design", title: "Etiketten <x>" });

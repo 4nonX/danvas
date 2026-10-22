@@ -4875,7 +4875,6 @@
   "editor.barcode_print": "Impression",
   "editor.barcode_printer_dpi": "Résolution de l’imprimante",
   "editor.barcode_printer_none": "Toute imprimante",
-  "editor.barcode_printer_dpi_value": "{dpi} dpi",
   "editor.barcode_printer_dpi_hint": "Pour les imprimantes d’étiquettes et thermiques : la largeur du module est arrondie à un nombre entier de points d’imprimante, ainsi chaque barre s’imprime à la même largeur.",
   "editor.barcode_reduction_short": "Réduction",
   "editor.barcode_reduction_hint": "Réduction de largeur de barre : affine chaque barre de cette valeur pour les presses où l’encre s’étale (demandez à votre imprimeur ; en général 0).",
@@ -4886,5 +4885,13 @@
   "editor.export_issue_barcode_quiet": "Le code {subject} n’a pas de zones de silence : laissez l’espace libre autour, sinon les lecteurs risquent de ne pas le lire ({where}).",
   "editor.export_issue_barcode_light": "Les barres du code {subject} sont claires ; les lecteurs ont besoin de barres foncées sur un fond clair ({where}).",
   "editor.export_issue_barcode_inks": "Les barres du code {subject} s’impriment en plusieurs encres, ce qui peut flouter leurs bords ; l’encre noire seule est le plus sûr ({where}).",
-  "editor.export_issue_barcode_raster": "{subject} par module à cette résolution : sous {min} px, un code-barres risque de ne pas être lu. Choisissez une résolution plus élevée ou un format vectoriel ({where})."
+  "editor.export_issue_barcode_raster": "{subject} par module à cette résolution : sous {min} px, un code-barres risque de ne pas être lu. Choisissez une résolution plus élevée ou un format vectoriel ({where}).",
+  "editor.print_dpi_value": "{dpi} dpi",
+  "editor.print_dpi_draft": "{dpi} dpi · brouillon",
+  "editor.print_dpi_label_printer": "{dpi} dpi · imprimantes d’étiquettes et thermiques",
+  "editor.print_dpi_label_or_office": "{dpi} dpi · imprimantes d’étiquettes et de bureau",
+  "editor.print_dpi_laser": "{dpi} dpi · imprimantes laser",
+  "editor.print_barcode_dpi": "Les codes-barres de ces pages sont réglés pour {dpi} dpi ; imprimez à cette résolution pour que chaque barre ait la même largeur.",
+  "editor.barcode_printer_other": "Autre…",
+  "editor.barcode_printer_dpi_custom": "Résolution"
 }

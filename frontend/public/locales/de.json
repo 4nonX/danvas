@@ -4875,7 +4875,6 @@
   "editor.barcode_print": "Druck",
   "editor.barcode_printer_dpi": "Druckerauflösung",
   "editor.barcode_printer_none": "Beliebiger Drucker",
-  "editor.barcode_printer_dpi_value": "{dpi} dpi",
   "editor.barcode_printer_dpi_hint": "Für Etiketten- und Thermodrucker: Die Modulbreite wird auf ganze Druckerpunkte gerundet, so wird jeder Balken gleich breit gedruckt.",
   "editor.barcode_reduction_short": "Reduktion",
   "editor.barcode_reduction_hint": "Balkenbreitenreduktion: macht jeden Balken um diesen Betrag schmaler, für Druckverfahren, bei denen die Farbe breitläuft (fragen Sie Ihre Druckerei; meist 0).",
@@ -4886,5 +4885,13 @@
   "editor.export_issue_barcode_quiet": "Der {subject}-Code hat keine Ruhezonen: Halten Sie den Raum um ihn frei, sonst lesen Scanner ihn womöglich nicht ({where}).",
   "editor.export_issue_barcode_light": "Die Balken des {subject}-Codes sind hell; Scanner brauchen dunkle Balken auf hellem Grund ({where}).",
   "editor.export_issue_barcode_inks": "Die Balken des {subject}-Codes werden in mehreren Druckfarben gedruckt, was ihre Kanten unscharf machen kann; nur Schwarz ist am sichersten ({where}).",
-  "editor.export_issue_barcode_raster": "{subject} pro Modul bei dieser Auflösung: Unter {min} px wird ein Barcode womöglich nicht gelesen. Wählen Sie eine höhere Auflösung oder ein Vektorformat ({where})."
+  "editor.export_issue_barcode_raster": "{subject} pro Modul bei dieser Auflösung: Unter {min} px wird ein Barcode womöglich nicht gelesen. Wählen Sie eine höhere Auflösung oder ein Vektorformat ({where}).",
+  "editor.print_dpi_value": "{dpi} dpi",
+  "editor.print_dpi_draft": "{dpi} dpi · Entwurf",
+  "editor.print_dpi_label_printer": "{dpi} dpi · Etiketten- und Thermodrucker",
+  "editor.print_dpi_label_or_office": "{dpi} dpi · Etiketten- und Bürodrucker",
+  "editor.print_dpi_laser": "{dpi} dpi · Laserdrucker",
+  "editor.print_barcode_dpi": "Die Barcodes auf diesen Seiten sind für {dpi} dpi eingerichtet; drucken Sie mit dieser Auflösung, damit jeder Balken gleich breit wird.",
+  "editor.barcode_printer_other": "Andere…",
+  "editor.barcode_printer_dpi_custom": "Auflösung"
 }

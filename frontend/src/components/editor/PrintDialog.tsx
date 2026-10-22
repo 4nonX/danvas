@@ -12,18 +12,19 @@
 
 import { useEffect, useState } from "react";
 import { Printer } from "lucide-react";
-import type { DesignFile } from "@hc/schema";
+import type { DesignFile, Node } from "@hc/schema";
 import { useEditor } from "@/store/editor";
 import { useBrand } from "@/store/brand";
 import { useToast } from "@/components/ui/Toast";
 import { renderPageCanvas } from "@/lib/exportFormats";
 import { initialPrintOverride, printSheet, pxToMm, withPrintOverride, type PrintOverride } from "@/lib/print/sheet";
-import { cappedPrintDpi, describePrintSettings, normalizePrintSettings, paperLabel, PRINT_DPIS, printScale, samePrintSettings, type PrintSettings } from "@/lib/printPresets";
+import { cappedPrintDpi, describePrintSettings, normalizePrintSettings, paperLabel, PRINT_DPIS, printDpiLabel, printScale, samePrintSettings, type PrintSettings } from "@/lib/printPresets";
 import { oversizedPages, PRINT_PAPERS, printHtml, type PrintPage } from "@/lib/printDocument";
 import { BleedInput, MarkInputs } from "./PrintSettings";
 import { ProfileBar } from "./ProfileBar";
 import { issueText, type ExportTarget } from "./ExportDialog";
 import { exportIssues, type ExportIssue } from "@/lib/exportIssues";
+import { barcodeOf } from "@/lib/barcode";
 import { tr } from "@/lib/i18n";
 
 type Job = { doc: DesignFile; pages: number[] };
@@ -86,6 +87,22 @@ async function openPrint(pages: PrintPage[], s: PrintSettings, title: string): P
   setTimeout(cleanup, 60000);
 }
 
+/** The printer resolution the designs' barcodes are set up for (the first
+ *  one found), or null. */
+function barcodePrinterDpi(docs: DesignFile[]): number | null {
+  const find = (nodes: Node[]): number | null => {
+    for (const n of nodes) {
+      const d = barcodeOf(n)?.printerDpi;
+      if (d) return d;
+      const kids = (n as unknown as { children?: Node[] }).children;
+      if (Array.isArray(kids)) { const k = find(kids); if (k) return k; }
+    }
+    return null;
+  };
+  for (const doc of docs) for (const p of doc.pages) { const d = find(p.children); if (d) return d; }
+  return null;
+}
+
 /** Barcodes the chosen resolution draws with too few pixels per module (or
  *  that may not scan for another reason), listed under the resolution. */
 function BarcodePrintCheck({ jobs, dpi }: { jobs: Job[]; dpi: number }) {
@@ -121,6 +138,14 @@ export function PrintDialog({ open, onClose, designs, workspaceId: workspaceIdPr
   const [settings, setSettings] = useState<PrintSettings>(() => normalizePrintSettings({}));
   const [override, setOverride] = useState<PrintOverride>(() => initialPrintOverride((designs ?? [{ doc: editorDoc }]).map((d) => d.doc)));
   const [busy, setBusy] = useState(false);
+  // Barcodes set up for one printer resolution print best at exactly that
+  // resolution: it is chosen when the dialog opens (a preset may change it).
+  const [seenOpen, setSeenOpen] = useState(false);
+  if (open !== seenOpen) {
+    setSeenOpen(open);
+    const d = open ? barcodePrinterDpi(designs ? designs.map((x) => x.doc) : [editorDoc]) : null;
+    if (d !== null && (PRINT_DPIS as readonly number[]).includes(d)) setSettings((s) => ({ ...s, dpi: d as PrintSettings["dpi"] }));
+  }
 
   if (!open) return null;
 
@@ -140,6 +165,7 @@ export function PrintDialog({ open, onClose, designs, workspaceId: workspaceIdPr
   const sheetList = sheets(jobs, current, override);
   const sheetCount = sheetList.length;
   const tooBig = oversizedPages(sheetList, settings.paper, settings.size);
+  const barcodeDpi = barcodePrinterDpi(jobs.map((j) => j.doc));
   const cappedDpi = cappedPrintDpi(sheetList.map((p) => ({ sheetWidth: p.sheet.sheetWidth, sheetHeight: p.sheet.sheetHeight, docDpi: p.dpi })), settings.dpi);
 
   async function go() {
@@ -213,12 +239,13 @@ export function PrintDialog({ open, onClose, designs, workspaceId: workspaceIdPr
         </div>
 
         <div className="mb-3">
-          <span className="mb-1.5 block text-xs font-medium text-neutral-500">{tr("editor.print_resolution")}</span>
-          <div className="flex gap-1">
-            {PRINT_DPIS.map((d) => (
-              <button key={d} type="button" onClick={() => set({ dpi: d })} className={seg(settings.dpi === d)}>{d} dpi</button>
-            ))}
-          </div>
+          <label htmlFor="print-dpi" className="mb-1.5 block text-xs font-medium text-neutral-500">{tr("editor.print_resolution")}</label>
+          <select id="print-dpi" value={settings.dpi} onChange={(e) => set({ dpi: Number(e.target.value) as PrintSettings["dpi"] })} className="h-8 w-full rounded-lg border border-neutral-200 bg-surface px-2 text-xs text-neutral-800 outline-none focus:border-brand-400">
+            {PRINT_DPIS.map((d) => <option key={d} value={d}>{printDpiLabel(d)}</option>)}
+          </select>
+          {barcodeDpi !== null && barcodeDpi !== settings.dpi && (
+            <p className="mt-1.5 text-[11px] font-medium text-amber-700">{tr("editor.print_barcode_dpi", { dpi: barcodeDpi })}</p>
+          )}
           {cappedDpi !== null && <p className="mt-1.5 text-[11px] font-medium text-amber-700">{tr("editor.print_resolution_capped", { dpi: cappedDpi, chosen: settings.dpi })}</p>}
           <BarcodePrintCheck jobs={jobs} dpi={cappedDpi ?? settings.dpi} />
         </div>

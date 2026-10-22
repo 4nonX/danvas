@@ -4875,7 +4875,6 @@
   "editor.barcode_print": "Impressão",
   "editor.barcode_printer_dpi": "Resolução da impressora",
   "editor.barcode_printer_none": "Qualquer impressora",
-  "editor.barcode_printer_dpi_value": "{dpi} dpi",
   "editor.barcode_printer_dpi_hint": "Para impressoras de etiquetas e térmicas: a largura do módulo é arredondada para pontos inteiros da impressora, assim todas as barras saem com a mesma largura.",
   "editor.barcode_reduction_short": "Redução",
   "editor.barcode_reduction_hint": "Redução da largura das barras: estreita cada barra nesse valor para impressoras em que a tinta se espalha (consulte sua gráfica; normalmente 0).",
@@ -4886,5 +4885,13 @@
   "editor.export_issue_barcode_quiet": "O código {subject} não tem zonas de silêncio: deixe livre o espaço ao redor, ou os leitores podem não lê-lo ({where}).",
   "editor.export_issue_barcode_light": "As barras do código {subject} são claras; os leitores precisam de barras escuras sobre fundo claro ({where}).",
   "editor.export_issue_barcode_inks": "As barras do código {subject} são impressas com várias tintas, o que pode borrar as bordas; só tinta preta é o mais seguro ({where}).",
-  "editor.export_issue_barcode_raster": "{subject} por módulo nesta resolução: abaixo de {min} px um código de barras pode não ser lido. Escolha uma resolução maior ou um formato vetorial ({where})."
+  "editor.export_issue_barcode_raster": "{subject} por módulo nesta resolução: abaixo de {min} px um código de barras pode não ser lido. Escolha uma resolução maior ou um formato vetorial ({where}).",
+  "editor.print_dpi_value": "{dpi} dpi",
+  "editor.print_dpi_draft": "{dpi} dpi · rascunho",
+  "editor.print_dpi_label_printer": "{dpi} dpi · impressoras de etiquetas e térmicas",
+  "editor.print_dpi_label_or_office": "{dpi} dpi · impressoras de etiquetas e de escritório",
+  "editor.print_dpi_laser": "{dpi} dpi · impressoras a laser",
+  "editor.print_barcode_dpi": "Os códigos de barras destas páginas estão configurados para {dpi} dpi; imprima nessa resolução para que todas as barras saiam com a mesma largura.",
+  "editor.barcode_printer_other": "Outra…",
+  "editor.barcode_printer_dpi_custom": "Resolução"
 }

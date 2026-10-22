@@ -8,6 +8,7 @@ All notable changes to danvas are listed here, newest first. Versions follow the
 
 - **Barcodes**: Elements > Barcode inserts EAN-13, EAN-8, UPC-A, Code 128, GS1-128, Code 39, PZN (pharmacy product number), Data Matrix and GS1 Data Matrix. The content is checked while typed, with the reason when it cannot be encoded, and check digits are computed when left out. Bars are exact vector rectangles at whole multiples of the module width, in 100 % black ink by default or any colour (exact CMYK and spot colours included), with the quiet zones inside the element and an optional text line in any font. Sizes are set in mm; dragging the handles changes the module width and bar height instead of stretching the code. Optional: a printer resolution that rounds the module width to whole printer dots (thermal and label printers) and a bar width reduction for presses that spread ink.
 - The download menu and the print dialog list barcodes that may not scan: modules below the minimum, no quiet zones, light bars, bars in several inks, too few pixels per module in raster files and prints.
+- Printing at **203 dpi** (the dot grid of most label and thermal printers) and **1200 dpi**. The resolution is now a list in the print dialog and in print presets, with what each is for; when barcodes on the pages are set up for a printer resolution, the dialog starts at it.
 
 ### Fixed
 

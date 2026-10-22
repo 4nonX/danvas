@@ -12,7 +12,7 @@ import { useToast } from "@/components/ui/Toast";
 import { userMessage } from "@/lib/errors";
 import { BleedInput, MarkInputs, NumField } from "@/components/editor/PrintSettings";
 import { FORMAT_LABEL, normalizeSettings, type ExportFormat, type ExportSettings, type ProfilePrint } from "@/lib/exportProfiles";
-import { normalizePrintSettings, paperLabel, PRINT_DPIS, type PrintSettings } from "@/lib/printPresets";
+import { normalizePrintSettings, paperLabel, PRINT_DPIS, printDpiLabel, type PrintSettings } from "@/lib/printPresets";
 import { PRINT_PAPERS } from "@/lib/printDocument";
 import { listProfileOptions, type ProfileOption } from "@/lib/print/profiles";
 import type { PrintOverride } from "@/lib/print/sheet";
@@ -203,7 +203,7 @@ function PrintFields({ s, set }: { s: PrintSettings; set: (patch: Partial<PrintS
       </Field>
       <Field label={tr("editor.print_resolution")}>
         <select value={s.dpi} onChange={(e) => set({ dpi: Number(e.target.value) as PrintSettings["dpi"] })} className={select}>
-          {PRINT_DPIS.map((d) => <option key={d} value={d}>{d} dpi</option>)}
+          {PRINT_DPIS.map((d) => <option key={d} value={d}>{printDpiLabel(d)}</option>)}
         </select>
       </Field>
       <PrintSourceFields value={s.print} onChange={(print) => set({ print })} designs={false} />

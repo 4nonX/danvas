@@ -4875,7 +4875,6 @@
   "editor.barcode_print": "印刷",
   "editor.barcode_printer_dpi": "プリンターの解像度",
   "editor.barcode_printer_none": "プリンター指定なし",
-  "editor.barcode_printer_dpi_value": "{dpi} dpi",
   "editor.barcode_printer_dpi_hint": "ラベルプリンター・感熱プリンター用: モジュール幅をプリンタードットの整数倍に丸め、すべてのバーを同じ幅で印刷します。",
   "editor.barcode_reduction_short": "補正",
   "editor.barcode_reduction_hint": "バー幅補正: インキが広がる印刷機向けに、すべてのバーをこの量だけ細くします（印刷所に確認してください。通常は 0）。",
@@ -4886,5 +4885,13 @@
   "editor.export_issue_barcode_quiet": "{subject} コードにクワイエットゾーンがありません。周囲の余白を空けないと、読み取れない場合があります（{where}）。",
   "editor.export_issue_barcode_light": "{subject} コードのバーが明るすぎます。スキャナーには明るい地に暗いバーが必要です（{where}）。",
   "editor.export_issue_barcode_inks": "{subject} コードのバーが複数のインキで印刷され、輪郭がにじむことがあります。黒インキ単色が最も安全です（{where}）。",
-  "editor.export_issue_barcode_raster": "この解像度では1モジュールあたり {subject} です。{min} px 未満だとバーコードが読み取れない場合があります。より高い解像度かベクター形式を選んでください（{where}）。"
+  "editor.export_issue_barcode_raster": "この解像度では1モジュールあたり {subject} です。{min} px 未満だとバーコードが読み取れない場合があります。より高い解像度かベクター形式を選んでください（{where}）。",
+  "editor.print_dpi_value": "{dpi} dpi",
+  "editor.print_dpi_draft": "{dpi} dpi · 下書き",
+  "editor.print_dpi_label_printer": "{dpi} dpi · ラベル・サーマルプリンター",
+  "editor.print_dpi_label_or_office": "{dpi} dpi · ラベル・オフィスプリンター",
+  "editor.print_dpi_laser": "{dpi} dpi · レーザープリンター",
+  "editor.print_barcode_dpi": "このページのバーコードは {dpi} dpi 用に設定されています。すべてのバーを同じ幅で印刷するには、この解像度で印刷してください。",
+  "editor.barcode_printer_other": "その他…",
+  "editor.barcode_printer_dpi_custom": "解像度"
 }

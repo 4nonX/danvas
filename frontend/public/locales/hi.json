@@ -4875,7 +4875,6 @@
   "editor.barcode_print": "प्रिंट",
   "editor.barcode_printer_dpi": "प्रिंटर रिज़ॉल्यूशन",
   "editor.barcode_printer_none": "कोई भी प्रिंटर",
-  "editor.barcode_printer_dpi_value": "{dpi} dpi",
   "editor.barcode_printer_dpi_hint": "लेबल और थर्मल प्रिंटर के लिए: मॉड्यूल की चौड़ाई पूरे प्रिंटर डॉट तक राउंड की जाती है, ताकि हर बार एक ही चौड़ाई में छपे।",
   "editor.barcode_reduction_short": "कमी",
   "editor.barcode_reduction_hint": "बार चौड़ाई कमी: स्याही फैलाने वाली प्रेस के लिए हर बार को इतना पतला करती है (अपनी प्रिंट शॉप से पूछें; आमतौर पर 0)।",
@@ -4886,5 +4885,13 @@
   "editor.export_issue_barcode_quiet": "{subject} कोड में क्वाइट ज़ोन नहीं हैं: इसके आसपास की जगह खाली रखें, वरना स्कैनर इसे पढ़ने से चूक सकते हैं ({where})।",
   "editor.export_issue_barcode_light": "{subject} कोड के बार हल्के हैं; स्कैनर को हल्की पृष्ठभूमि पर गहरे बार चाहिए ({where})।",
   "editor.export_issue_barcode_inks": "{subject} कोड के बार कई स्याहियों में छपते हैं, जिससे उनके किनारे धुंधले हो सकते हैं; केवल काली स्याही सबसे सुरक्षित है ({where})।",
-  "editor.export_issue_barcode_raster": "इस रिज़ॉल्यूशन पर प्रति मॉड्यूल {subject}: {min} px से कम पर बारकोड शायद स्कैन न हो। अधिक रिज़ॉल्यूशन या वेक्टर फ़ॉर्मैट चुनें ({where})।"
+  "editor.export_issue_barcode_raster": "इस रिज़ॉल्यूशन पर प्रति मॉड्यूल {subject}: {min} px से कम पर बारकोड शायद स्कैन न हो। अधिक रिज़ॉल्यूशन या वेक्टर फ़ॉर्मैट चुनें ({where})।",
+  "editor.print_dpi_value": "{dpi} dpi",
+  "editor.print_dpi_draft": "{dpi} dpi · ड्राफ़्ट",
+  "editor.print_dpi_label_printer": "{dpi} dpi · लेबल और थर्मल प्रिंटर",
+  "editor.print_dpi_label_or_office": "{dpi} dpi · लेबल और ऑफ़िस प्रिंटर",
+  "editor.print_dpi_laser": "{dpi} dpi · लेज़र प्रिंटर",
+  "editor.print_barcode_dpi": "इन पेजों के बारकोड {dpi} dpi के लिए सेट हैं; इसी रिज़ॉल्यूशन पर प्रिंट करें ताकि हर बार की चौड़ाई एक जैसी रहे।",
+  "editor.barcode_printer_other": "अन्य…",
+  "editor.barcode_printer_dpi_custom": "रिज़ॉल्यूशन"
 }
