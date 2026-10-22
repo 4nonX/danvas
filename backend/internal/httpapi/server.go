@@ -254,6 +254,7 @@ func NewRouter(d Deps) http.Handler {
 		if d.Accounts != nil {
 			mountExtractURL(api, d.Accounts)
 			mountExtractFile(api, d.Accounts)
+			mountSheetRows(api, d.Accounts)
 			mountBrandFromURL(api, d.AIStudio, d.Accounts)
 		}
 		if d.Accounts != nil && d.Audience != nil && d.Sharing != nil && d.Persistence != nil {

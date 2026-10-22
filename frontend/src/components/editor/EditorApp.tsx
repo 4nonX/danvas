@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState, type ComponentType } from "re
 import { useRouter } from "next/router";
 import { isAiBusy, requestAi, subscribeOpenProperties } from "@/lib/aiRequests";
 import type { Node as DesignNode } from "@hc/schema";
-import { ChevronLeft, ChevronDown, Check, Cloud, CloudUpload, Undo2, Redo2, Download, Play, MonitorPlay, Ruler, Grid3x3, Magnet, Save, LayoutTemplate, History, Eye, Share2, MessageSquare, ShieldCheck, Activity, BarChart3, MoreHorizontal, Send, Globe, Printer, PanelRightClose, PanelRightOpen, Keyboard, Info, X, Accessibility, Maximize2, Minimize2, LayoutGrid, FileDown, Film, Table2 } from "lucide-react";
+import { ChevronLeft, ChevronDown, Check, Cloud, CloudUpload, Undo2, Redo2, Download, Play, MonitorPlay, Ruler, Grid3x3, Magnet, Save, LayoutTemplate, History, Eye, Share2, MessageSquare, ShieldCheck, Activity, BarChart3, MoreHorizontal, Send, Globe, Printer, PanelRightClose, PanelRightOpen, Keyboard, Info, X, Accessibility, Maximize2, Minimize2, LayoutGrid, FileDown, Film, Table2, FileSpreadsheet } from "lucide-react";
 import type { AccessMode } from "@hc/sdk";
 import { ApiError } from "@hc/sdk";
 import { oc } from "@/lib/sdk";
@@ -38,6 +38,7 @@ import { useTemplateLock } from "@/store/templateLock";
 import { PublishDialog } from "./PublishDialog";
 import { WebsiteDialog } from "./WebsiteDialog";
 import { PrintDialog } from "./PrintDialog";
+import { SerialPrintDialog } from "./SerialPrintDialog";
 import { AccessibilityDialog } from "./AccessibilityDialog";
 import { PropertiesPanel } from "./PropertiesPanel";
 import { ToolRail } from "./ToolRail";
@@ -355,6 +356,7 @@ export function EditorApp() {
   const [publishOpen, setPublishOpen] = useState(false);
   const [websiteOpen, setWebsiteOpen] = useState(false);
   const [printOpen, setPrintOpen] = useState(false);
+  const [serialOpen, setSerialOpen] = useState(false);
   const [a11yOpen, setA11yOpen] = useState(false);
   const [presenting, setPresenting] = useState(false);
   // Whiteboard focus (full-screen) mode: hides the chrome so only the board
@@ -1051,6 +1053,7 @@ export function EditorApp() {
                     { icon: Send as TopIcon, label: tr("editor.publish_to_social"), onClick: () => setPublishOpen(true) },
                     { icon: Globe as TopIcon, label: tr("editor.publish_as_website"), onClick: () => setWebsiteOpen(true) },
                     { icon: Printer as TopIcon, label: tr("editor.print"), onClick: () => setPrintOpen(true) },
+                    { icon: FileSpreadsheet as TopIcon, label: tr("editor.serial_menu"), onClick: () => setSerialOpen(true) },
                   ]
                 : []),
               ...(docKind === "design" && pageCount > 1
@@ -1196,6 +1199,7 @@ export function EditorApp() {
       {publishOpen && <PublishDialog open onClose={() => setPublishOpen(false)} designId={designId ?? undefined} workspaceId={workspaceId ?? undefined} />}
       {websiteOpen && <WebsiteDialog open onClose={() => setWebsiteOpen(false)} designId={designId ?? undefined} workspaceId={workspaceId ?? undefined} />}
       {printOpen && <PrintDialog open onClose={() => setPrintOpen(false)} />}
+      {serialOpen && <SerialPrintDialog open onClose={() => setSerialOpen(false)} />}
       {a11yOpen && <AccessibilityDialog open onClose={() => setA11yOpen(false)} />}
       <input
         ref={mergeCsvRef}

@@ -266,6 +266,16 @@ An export profile is a named set of download settings: format, size, colour prof
 
 A profile can hold bleed and crop marks "as on the pages" or "set for this output": the second applies one bleed and one set of marks to the export without changing the design.
 
+### Serial print
+
+**File > Serial print** fills the open design from a table, one copy per row: name badges, business cards, labels with batch numbers, expiry dates and codes. The design itself does not change.
+
+- **Data**: a CSV or text file (comma, semicolon or tab, UTF-8 or the encoding Excel uses for CSV on Windows), an Excel file (.xlsx, any worksheet), or cells pasted from a spreadsheet. From Excel, dates arrive in their date format and numbers keep their leading zeros, as the spreadsheet shows them. The first row holds the column names unless switched off.
+- **What fills what**: write `{{Column name}}` anywhere in a text, in any style; or choose a column for a whole text, a barcode or a QR code. Elements named like a column take it by themselves.
+- **Codes per row**: barcodes and QR codes are encoded again for every row. A row whose code cannot be encoded (a wrong check digit, a wrong length) is left out and listed with the reason, so no label is printed with a wrong code.
+- **Rows and preview**: all rows or a range (up to 5000 per document), with a preview of the design filled from any row.
+- **Output**: **Download** opens the download menu with the filled document (one PDF; with **Several on one sheet** and **In order**, the labels fill the sheets in row order), **Print** the print dialog.
+
 ### Several on one sheet
 
 Business cards, labels and badges can go several to a printer sheet, ready to print and cut: **Several on one sheet** in the download menu (vector PDF and image PDF, on A4, A3, SRA3, Letter or a custom sheet) and in the print dialog (on the paper chosen there, A4, A3 or Letter).

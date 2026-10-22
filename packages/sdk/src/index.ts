@@ -2424,6 +2424,11 @@ export class HyCanvasClient {
   aiExtractUrl(input: { url: string }): Promise<{ title: string; text: string }> {
     return this.request("POST", "/v1/ai/extract-url", input);
   }
+  /** A spreadsheet (.xlsx) as rows of cells, each as Excel shows it (dates in
+   *  their format, leading zeros kept), for the serial print. Nothing is stored. */
+  sheetRows(input: { filename: string; dataBase64: string; locale?: string }): Promise<{ sheets: { name: string; rows: string[][] }[] }> {
+    return this.request("POST", "/v1/data/sheet-rows", input);
+  }
   /** Extract text from an office document (.docx/.pptx/.xlsx) for generation
    *  grounding: paragraphs, slide texts in deck order, or tab-separated sheet
    *  rows. Nothing is stored server-side. */

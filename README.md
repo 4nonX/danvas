@@ -51,6 +51,7 @@ The changes are summarized by area below; what changed in each release is in the
 - Color picker: an eyedropper that works in every browser (falls back to sampling the canvas), opacity that applies to fills and group colors, centered popovers, and the same picker in every sidebar color field.
 - Group color swatches: recolor every use of a color inside a group or selection at once.
 - Copy and paste style works on groups and carries text colors.
+- Serial print: a design filled from a CSV, Excel file or pasted cells, one copy per row, with barcodes encoded per row, into one print PDF or print job.
 - Several on one sheet (imposition): business cards and labels on A4, A3, SRA3, Letter or any sheet, with cut marks, in the vector PDF, the image PDF and printing.
 - Print and export defaults per dashboard folder: a folder of labels opens the download menu and the print dialog with the label settings, for everyone.
 - Barcodes for labels and packaging: EAN-13, EAN-8, UPC-A, Code 128, GS1-128, Code 39, PZN, Data Matrix, GS1 Data Matrix and QR Code, checked while typed (check digits, lengths, GS1 identifiers and dates), drawn as exact vector bars in 100 % black ink or any exact colour, sized in mm with their quiet zones, optionally rounded to a label printer's dots, and listed in the output check when they may not scan.

@@ -15,9 +15,11 @@ import { join } from "node:path";
 const SRC = join(__dirname, "..");
 
 // aiAttachments posts to the document-EXTRACTION endpoint, not asset upload:
-// a different route with its own 20 MiB cap, so base64 is fine there.
+// a different route with its own 20 MiB cap, so base64 is fine there. The
+// serial print's spreadsheet read (serialPrint.ts) is the same kind: a read
+// endpoint with a 20 MiB cap that stores nothing.
 // sdk.ts is where the legacy helper itself lives.
-const ALLOWED = ["lib/aiAttachments.ts", "lib/sdk.ts"];
+const ALLOWED = ["lib/aiAttachments.ts", "lib/serialPrint.ts", "lib/sdk.ts"];
 
 function walk(dir: string, out: string[] = []): string[] {
   for (const name of readdirSync(dir)) {
