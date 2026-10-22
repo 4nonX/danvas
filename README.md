@@ -27,7 +27,7 @@ danvas is distributed under the same license as HyCanvas from v0.3.17 onwards, t
 
 ## What is different from HyCanvas
 
-The changes are summarized by area below; what changed in each release is in the [changelog](CHANGELOG.md).
+The changes are summarized by area below. How to use each one is explained in the [danvas guide](docs/danvas.md); what changed in which release is in the [changelog](CHANGELOG.md).
 
 ### Identity and installation
 
@@ -41,53 +41,63 @@ The changes are summarized by area below; what changed in each release is in the
 
 ### Editor
 
-- Reworked editor layout: a contextual toolbar above the canvas, a creation dock at the bottom, File and View menus in the header, reworked properties and selection panels, a Position panel, and entering groups by double-click.
-- Crop for every element: edge and corner handles on images, and clipping crops for shapes, text, groups, scaled and rotated elements. The crop frame turns independently of the element (a handle above it, or its angle typed in), so a tilted graphic can be cut to a straight rectangle; the element stays in place. The middle handles of an image move its frame over the picture (the picture keeps its size and place); Shift scales picture and frame together.
-- Replace object: swap an element for another one in place, sized by its visible content.
+- Reworked editor layout: a contextual toolbar above the canvas, a creation dock at the bottom, File and View menus in the header, reworked properties and selection panels, a Position panel, and entering groups by double-click ([guide](docs/danvas.md#editor-layout)).
+- Crop for every element: edge and corner handles on images, and clipping crops for shapes, text, groups, scaled and rotated elements. The crop frame turns independently of the element (a handle above it, or its angle typed in), so a tilted graphic can be cut to a straight rectangle; the element stays in place. The middle handles of an image move its frame over the picture (the picture keeps its size and place); Shift scales picture and frame together ([guide](docs/danvas.md#cropping)).
+- Replace object: swap an element for another one in place, sized by its visible content ([guide](docs/danvas.md#replace-object)).
 - Moving an image over a plain shape no longer swallows it into the shape's fill; only frames take a moved image.
-- Vectorize: traces raster images into editable vector shapes, with accurate straight edges, kept thin lines and an optional learned 4x upscaling step (Real-ESRGAN, in the browser) before tracing.
-- SVG images can be turned into editable shapes in place ("Make editable"), keeping their exact position, fit and crop.
-- Background removal is a toolbar button with live progress, non-destructive (the original stays, a mask is stored) and restorable. The cut-out keeps the photo's full resolution, and its edge is fitted to the photo's own edges, so large photos stay sharp.
-- Color picker: an eyedropper that works in every browser (falls back to sampling the canvas), opacity that applies to fills and group colors, centered popovers, and the same picker in every sidebar color field.
-- Group color swatches: recolor every use of a color inside a group or selection at once.
-- Copy and paste style works on groups and carries text colors.
-- Serial print: a design filled from a CSV, Excel file or pasted cells, one copy per row, with barcodes encoded per row, into one print PDF or print job.
-- Several on one sheet (imposition): business cards and labels on A4, A3, SRA3, Letter or any sheet, with cut marks, in the vector PDF, the image PDF and printing.
-- Print and export defaults per dashboard folder: a folder of labels opens the download menu and the print dialog with the label settings, for everyone.
-- Print files only after approval: a workspace can hold back print PDFs, TIFF, EPS and printing until a design is approved; the approver checks the print proof (soft proof, plates, ink coverage) before approving.
-- Export profiles know their finished size: the download menu names designs of another size, or lying the wrong way, before a wrong file goes to the print shop.
-- Barcodes for labels and packaging: EAN-13, EAN-8, UPC-A, Code 128, GS1-128, Code 39, PZN, Data Matrix, GS1 Data Matrix and QR Code, checked while typed (check digits, lengths, GS1 identifiers and dates), drawn as exact vector bars in 100 % black ink or any exact colour, sized in mm with their quiet zones, optionally rounded to a label printer's dots, and listed in the output check when they may not scan.
+- Vectorize: traces raster images into editable vector shapes, with accurate straight edges, kept thin lines and an optional learned 4x upscaling step (Real-ESRGAN, in the browser) before tracing. SVG images can be turned into editable shapes in place ("Make editable"), keeping their exact position, fit and crop ([guide](docs/danvas.md#vectorize-and-make-editable)).
+- Background removal is a toolbar button with live progress, non-destructive (the original stays, a mask is stored) and restorable. The cut-out keeps the photo's full resolution, and its edge is fitted to the photo's own edges, so large photos stay sharp ([guide](docs/danvas.md#remove-background)).
+- Color picker: an eyedropper that works in every browser (falls back to sampling the canvas), opacity that applies to fills and group colors, centered popovers, and the same picker in every sidebar color field. Group color swatches recolor every use of a color inside a group or selection at once; copy and paste style works on groups and carries text colors ([guide](docs/danvas.md#color)).
+- Offline copies are checked against the server when a design opens: an outdated copy never replaces a newer design, and offline changes that never reached the server are kept as a version ([guide](docs/danvas.md#offline-copies)).
+
+### Print and prepress
+
+danvas is built for print work: labels, packaging, business cards, signage. How the pieces fit together, from the first page to the file for the print shop, is in [From design to print shop](docs/danvas.md#from-design-to-print-shop).
+
+- **Exact sizes**: each design has a measurement unit (mm, cm, in, pt, px) and keeps sizes exactly, so a 50 x 100 mm label is 50 x 100 mm in every file ([guide](docs/danvas.md#units-and-exact-sizes)).
+- **Exact print colors**: CMYK values and named spot colors (HKS, Pantone, white ink, varnish) that vector PDF and EPS carry as given ([guide](docs/danvas.md#exact-print-colors)).
+- **Color management**: ICC profiles built in, per workspace (uploaded by admins) and personal, a color profile per design, conversion through Little CMS ([guide](docs/danvas.md#color-profiles)).
+- **Barcodes**: EAN-13, EAN-8, UPC-A, Code 128, GS1-128, Code 39, PZN, Data Matrix, GS1 Data Matrix and QR Code, checked while typed (check digits, lengths, GS1 identifiers and dates), drawn as exact vector bars in 100 % black ink or any exact colour, sized in mm with their quiet zones, optionally rounded to a label printer's dots, and listed in the output check when they may not scan ([guide](docs/danvas.md#barcodes)).
+- **Print files**: vector PDF, image PDF, TIFF and EPS (PostScript Level 3) in CMYK or RGB. PDFs carry the profile as output intent and can be marked PDF/X-4; vector PDF and EPS offer black in black ink only with black overprint, crop marks in registration colour, and a die line in a spot colour of its own. PNG and JPG state their resolution in the file ([guide](docs/danvas.md#files-for-print-shops)).
+- **Bleed and crop marks** per page or for one export, in every image and print format; PDFs with TrimBox and BleedBox. Artwork at the edge is extended into the bleed, finished sizes can be rounded to whole millimetres ([guide](docs/danvas.md#bleed-and-crop-marks)).
+- **Change format** gives any selection of designs a new size in one go, optionally with the content turned a quarter for sideways labels, saved as a version ([guide](docs/danvas.md#changing-the-format-of-designs)).
+- **Proof and output check**: a soft proof with each plate, the ink coverage against the print shop's limit and the colours out of gamut, computed in the browser; and a check of the real file, its plates separated by Ghostscript on the server ([guide](docs/danvas.md#proof-and-output-check)).
+- **Export profiles and print presets**: named download and print settings, personal or shared per workspace, with a default and a one-line summary of what each does. A profile can name its finished size, and the download menu then points out designs of another size or lying the wrong way ([guide](docs/danvas.md#export-profiles)).
+- **Defaults per folder**: a dashboard folder names the export profile and print preset its designs open with, inherited by subfolders, so a folder of labels always downloads and prints with the label settings ([guide](docs/danvas.md#folders)).
+- **Printing** from the editor and, for one design or a selection, from the dashboard: actual size or fitted to the paper, 150 to 1200 dpi (203 dpi for label and thermal printers), bleed and crop marks ([guide](docs/danvas.md#printing)).
+- **Serial print**: a design filled from a CSV, Excel file or pasted cells, one copy per row, with `{{Column}}` placeholders and barcodes encoded per row, into one print PDF or print job; rows with a code that cannot be encoded are left out and listed ([guide](docs/danvas.md#serial-print)).
+- **Several on one sheet** (imposition): business cards and labels on A4, A3, SRA3, Letter or any sheet, best fit with turning, gap and cut marks, in the vector PDF, the image PDF and printing ([guide](docs/danvas.md#several-on-one-sheet)).
+
+### Approvals
+
+- Request approval of a design from chosen people, approved by any one or by all of them; the approved design is locked against edits until it is reopened ([guide](docs/danvas.md#approvals)).
+- The approval banner shows the print proof (soft proof, plates, ink coverage), so the approver sees what would print before approving.
+- Print files only after approval: a workspace can hold back print PDFs, TIFF, EPS, printing and the API's print PDF until a design is approved; those who decide approvals are not held up ([guide](docs/danvas.md#print-files-only-after-approval)).
 
 ### Templates
 
-- Template protection: objects of a template can be protected ("content only" or "fully") for every copy made from it, also in other workspaces. Only people who may manage template protection in the workspace that set it can lift it, and the server checks every save and collaboration checkpoint against the stored design.
+- Template protection: objects of a template can be protected ("content only" or "fully") for every copy made from it, also in other workspaces. Only people who may manage template protection in the workspace that set it can lift it, and the server checks every save and collaboration checkpoint against the stored design ([guide](docs/danvas.md#template-protection)).
 - Templates can be deleted by the person who created them and by owners and admins of their workspace.
 
 ### Workspaces and members
 
-- Roles and permissions of your own per workspace: actions (what danvas checks) bundled into permissions, permissions into roles, all of them created, edited and deleted on one page. Nobody hands out more than they hold, the owner role is protected, every change is logged, and a command-line recovery restores a lost owner.
-- A team workspace can take in everyone who signs in with single sign-on, at any role but the owner's, now and at every later sign-in. Higher roles are never lowered, and people removed are not added back unless invited.
-- Pending invitations to people who are members by now offer to apply the invited role instead of sending the invitation again.
+- Roles and permissions of your own per workspace: actions (what danvas checks) bundled into permissions, permissions into roles, all of them created, edited and deleted on one page. Nobody hands out more than they hold, the owner role is protected, every change is logged, and a command-line recovery restores a lost owner ([guide](docs/danvas.md#roles-and-permissions)).
+- A team workspace can take in everyone who signs in with single sign-on, at any role but the owner's, now and at every later sign-in. Higher roles are never lowered, and people removed are not added back unless invited ([guide](docs/danvas.md#everyone-through-single-sign-on)).
+- Pending invitations to people who are members by now offer to apply the invited role instead of sending the invitation again ([guide](docs/danvas.md#invitations)).
 
 ### Brand kits and fonts
 
 - A workspace font library: upload font files once, use them in every font picker, embedded in vector exports.
 - Brand kits with any number of named font roles, an icon collection, and colors and fonts that apply into groups.
-- Brand kits export to and import from a `.brandkit.zip` that carries the logos, images and font files; a name that is already taken asks whether to replace the kit or import under another name. The format is documented in [docs/brand-kit-format.md](docs/brand-kit-format.md).
+- Brand kits export to and import from a `.brandkit.zip` that carries the logos, images and font files; a name that is already taken asks whether to replace the kit or import under another name. The format is documented in [docs/brand-kit-format.md](docs/brand-kit-format.md) ([guide](docs/danvas.md#brand-kits-and-fonts)).
 
-### Import and export
+### Dashboard, import and export
 
-- PPTX import keeps exported designs editable: picture fills with crop and transparency, freeform paths, real groups, font weights encoded in font names.
-- Bulk import of files and whole folder trees into dashboard folders.
-- Designs and folders copy to another folder, or copy or move to another workspace with the uploads and workspace fonts they use, from their menu or for a whole selection.
+- Dashboard: folders (as a tree in the sidebar that opens and closes and lists each folder's designs), one Import menu for files, folders and Canva, previews that show the page as a sheet and redraw once images and fonts load, and download and share for one design or a whole selection (every page of every design into one zip; one person's access or view links for all selected designs at once) ([guide](docs/danvas.md#dashboard)).
+- Designs and folders copy to another folder, or copy or move to another workspace with the uploads and workspace fonts they use, from their menu or for a whole selection ([guide](docs/danvas.md#copying-and-moving-to-folders-and-workspaces)).
+- PPTX import keeps exported designs editable: picture fills with crop and transparency, freeform paths, real groups, font weights encoded in font names. Bulk import of files and whole folder trees into dashboard folders ([guide](docs/danvas.md#importing)).
 - Import from Canva through Canva's API: pick designs and whole folders in a Canva account and they arrive with their folder tree, editable through PowerPoint export where Canva allows it, as page images otherwise ([setup](docs/dashboard.md#import-from-canva)). The server runs the import: it carries on with the browser closed and after a restart, paces itself under Canva's limits, pauses at Canva's daily limit and continues by itself, and skips what is already there. Its owner follows it in the dashboard's sidebar and under Import from Canva, where the recent imports and their failed designs stay available.
-- Print exports: vector PDF, image PDF, TIFF and EPS (PostScript Level 3) in CMYK through ICC color management (Little CMS) or RGB, with workspace print profiles uploaded by admins. PDFs carry the profile as output intent and can be marked PDF/X-4; vector PDF and EPS offer black in black ink only with black overprint, crop marks in registration colour, and a die line in a spot colour of its own. PNG and JPG state their resolution in the file.
-- Bleed and crop marks per page, set in the page panel or the download menu and switched on or off separately: the bleed shows in the editor, and every image and print export (PNG, JPG, SVG, PDF, TIFF, EPS) can carry it, PDFs with TrimBox and BleedBox, plus crop marks in a chosen line type, color and weight.
-- Prepress: a print shop's bleed, crop marks and die line, set once in the download menu or an export profile, fit every selected design whatever its size, with artwork at the edge extended into the bleed and finished sizes in whole millimetres on export; Change format gives any selection of designs a new size, optionally with the content turned a quarter (sideways labels). Each design has a measurement unit (mm, cm, in, pt, px) and keeps sizes exactly, so a 50 x 100 mm label is 50 x 100 mm in every file; colors can be set as exact CMYK values or as named spot colors (HKS, Pantone, white ink, varnish) that vector PDF and EPS carry as given; ICC color profiles of your own besides the workspace's, and a color profile per design.
-- Proof and output check for print files: a soft proof with each plate, the ink coverage against the print shop's limit and the colours out of gamut, computed in the browser; and a check of the real file, its structure in the browser and its plates separated by Ghostscript on the server.
-- Export profiles and print presets: named download and print settings, personal or shared per workspace, with a default, a summary of what each does, and full management: your own in your settings, the workspace's on its Members page (see [Where profiles are kept](docs/danvas.md#where-profiles-are-kept)). Printing from the editor and, for one design or a selection, from the dashboard, at actual size or fitted to the paper, at 150 to 1200 dpi (203 dpi for label and thermal printers), with bleed and crop marks.
-- One rendering engine for exports: SVG, vector PDF, tagged (accessible) PDF and MP4 are drawn by the same engine as the editor, so they match it exactly. The tagged PDF adds a structure tree, alt text and a real-text layer; MP4 is encoded in the browser.
-- Dashboard: folders (as a tree in the sidebar that opens and closes and lists each folder's designs), one Import menu for files, folders and Canva, previews that show the page as a sheet and redraw once images and fonts load, and download and share for one design or a whole selection (every page of every design into one zip; one person's access or view links for all selected designs at once).
+- One rendering engine for exports: SVG, vector PDF, tagged (accessible) PDF and MP4 are drawn by the same engine as the editor, so they match it exactly. The tagged PDF adds a structure tree, alt text and a real-text layer; MP4 is encoded in the browser ([guide](docs/danvas.md#export)).
 
 ### Tools
 

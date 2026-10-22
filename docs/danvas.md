@@ -2,6 +2,60 @@
 
 The other pages in this folder are HyScaler's documentation of HyCanvas and describe everything danvas inherits. This page covers what danvas adds on top and how to use it. The list of changes by area is in the [root README](../README.md#what-is-different-from-hycanvas); what changed in which release is in the [changelog](../CHANGELOG.md).
 
+## Contents
+
+- [From design to print shop](#from-design-to-print-shop)
+- [Dashboard](#dashboard)
+  - [Folders](#folders)
+  - [Copying and moving to folders and workspaces](#copying-and-moving-to-folders-and-workspaces)
+  - [Changing the format of designs](#changing-the-format-of-designs)
+  - [Importing](#importing)
+  - [Download and share for a selection](#download-and-share-for-a-selection)
+  - [Everyone through single sign-on](#everyone-through-single-sign-on)
+  - [Invitations](#invitations)
+  - [Roles and permissions](#roles-and-permissions)
+  - [Templates](#templates)
+- [Template protection](#template-protection)
+- [Approvals](#approvals)
+- [Editor](#editor)
+  - [Editor layout](#editor-layout)
+  - [Offline copies](#offline-copies)
+  - [Barcodes](#barcodes)
+  - [Replace object](#replace-object)
+  - [Cropping](#cropping)
+  - [Vectorize and Make editable](#vectorize-and-make-editable)
+  - [Remove background](#remove-background)
+  - [Color](#color)
+  - [Units and exact sizes](#units-and-exact-sizes)
+  - [Exact print colors](#exact-print-colors)
+  - [Color profiles](#color-profiles)
+- [Brand kits and fonts](#brand-kits-and-fonts)
+- [Export](#export)
+  - [Files for print shops](#files-for-print-shops)
+  - [Proof and output check](#proof-and-output-check)
+  - [Bleed and crop marks](#bleed-and-crop-marks)
+  - [Export profiles](#export-profiles)
+  - [Serial print](#serial-print)
+  - [Several on one sheet](#several-on-one-sheet)
+  - [Printing](#printing)
+  - [Print files only after approval](#print-files-only-after-approval)
+  - [Where profiles are kept](#where-profiles-are-kept)
+- [Running an instance](#running-an-instance)
+- [Tools](#tools)
+
+## From design to print shop
+
+How the print features fit together, with a label as the example (50 x 100 mm, CMYK, die-cut, with a barcode). Each step links to its section.
+
+1. **Size**: create the design in its finished size in mm; the page panel sets the measurement unit, and every file keeps the size exactly ([Units and exact sizes](#units-and-exact-sizes)). Designs already made in another size get the new one with **Change format…** in the dashboard ([Changing the format of designs](#changing-the-format-of-designs)).
+2. **Colours**: give colours as exact CMYK values or as named spot colours for white ink or varnish ([Exact print colors](#exact-print-colors)). The design's colour profile shows on screen how they print ([Color profiles](#color-profiles)).
+3. **Barcodes**: insert the code from **Elements**, in 100 % black, sized in mm, and set the label printer's resolution when it prints there ([Barcodes](#barcodes)).
+4. **Bleed, marks and die line**: set the print shop's bleed and crop marks per page or once for the export, and the die line as its own spot colour ([Bleed and crop marks](#bleed-and-crop-marks), [Files for print shops](#files-for-print-shops)).
+5. **One profile for the print shop**: save these download settings as an export profile for the workspace, with the print shop's colour profile, ink limit and the finished size, so a design in the wrong size is pointed out ([Export profiles](#export-profiles)). Make it the default of the labels folder, so everyone downloads with it ([Folders](#folders)). For the office or label printer, a print preset does the same for printing ([Printing](#printing)).
+6. **Check**: the download menu lists what the file would lose, barcodes that may not scan and designs not in the finished size. **Proof** shows the plates and the ink coverage; **Check output** separates the real file ([Proof and output check](#proof-and-output-check)).
+7. **Approve**: ask the person who signs off for approval; they look at the print proof in the banner and approve. A workspace can require this before any print file is made ([Approvals](#approvals), [Print files only after approval](#print-files-only-after-approval)).
+8. **Output**: download the print PDF for the print shop; fill the label from a table for batch numbers and codes ([Serial print](#serial-print)); put several on one sheet for a sheet printer ([Several on one sheet](#several-on-one-sheet)); or print directly ([Printing](#printing)).
+
 ## Dashboard
 
 ### Folders
@@ -108,7 +162,27 @@ Objects of a design can be protected, so that designs made from it keep them as 
 - **Enforced by the server**: a save, a version restore or a collaboration checkpoint that changes protected objects is refused for someone who may not, so the protection holds outside the editor too. Live edits relayed between collaborators are not checked one by one; a forbidden change still cannot be saved.
 - When a workspace deletes its last template, people outside it can no longer add its protected objects to a design that has none yet. The confirmation says so.
 
+## Approvals
+
+A design can be signed off before it is used, printed or published.
+
+- **Request**: **File**, **Request approval** (for people who may edit or share the design). Pick the approvers and whether **any approver** or **all approvers** must approve. They are notified.
+- **The banner** at the top of the design shows the state to everyone who opens it: who asked, how many have approved, and each decision. Approvers find **Approve** and **Reject with a note** there.
+- **Print proof**: **Print proof** in the banner opens the soft proof of every page with bleed, the single plates and the ink coverage against the profile's limit, so the approver sees what would print before approving ([Proof and output check](#proof-and-output-check)).
+- **Approved means locked**: once granted, the design is read-only for everyone. An owner, an admin or an approver can **Reopen for editing**; that withdraws the approval, and the design needs a new one.
+- **Decisions**: with **any approver**, the first approval grants it; with **all approvers**, every one of them must approve. One rejection ends the request either way. The requester is notified of the outcome; after a rejection the design stays editable and a new request can follow.
+- **Who may**: requesting and deciding are permissions of their own in the workspace's roles ([Roles and permissions](#roles-and-permissions)).
+- **Print only after approval**: a workspace can require the approval before print files are made ([Print files only after approval](#print-files-only-after-approval)).
+
 ## Editor
+
+### Editor layout
+
+- **Header**: the design's title, **File** for everything about the document (save, download, print, serial print, share, save as template, version history, activity, request approval, the danvas file) and **View** (rulers and guides, grid, snapping).
+- **Contextual toolbar**, floating above the canvas: its controls follow the selection (text, image, shape, group, several elements; with nothing selected, the page), for example text style, crop, replace, flip, group and ungroup. Lock, duplicate, delete and more sit in a small bar at the selected element.
+- **Creation dock** in the bottom bar: select, text, shapes, lines and arrows, pen, pencil and comment. Related tools share a slot whose flyout opens upward; the slot shows the tool used last. Images, elements, barcodes and uploads come from the side panels.
+- **Position** panel, opened from the toolbar: **Arrange** (layer order, alignment and flipping of the selection) and **Layers**. The properties panel stays available for the less common settings.
+- **Groups**: a double-click enters a group to select what is inside it; a barcode is always selected as a whole.
 
 ### Offline copies
 
