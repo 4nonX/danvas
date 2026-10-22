@@ -90,7 +90,8 @@ A living checklist of what ships today versus what is planned. Shipped items are
 - [x] Social publish planner, local/mock only
 
 ### Accounts, workspaces, platform
-- [x] Roles (owner/admin/member/viewer) + custom roles; invitations
+- [x] Roles and permissions per workspace: code-defined actions bundled into admin-defined permissions (own items or everything) and roles, full CRUD on one page, seeded Owner/Admin/Member/Viewer, no escalation, protected owner role, change log, command-line owner recovery ([spec 42](roadmap/42-roles-and-permissions.md))
+- [x] Roles for single designs (named capability sets on a share); invitations and SSO join with any workspace role
 - [x] Cookie sessions, MFA (TOTP), OIDC SSO
 - [x] Per-workspace + per-user storage quotas with UI meters
 - [x] Copy designs and folders to another folder of the same workspace; copy or move them to another workspace, uploads and library fonts included

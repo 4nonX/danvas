@@ -136,6 +136,16 @@ The stack folder may live inside another git repository, such as a GitOps reposi
 
 Installs from before the published images built the image on the host and mirrored the model into `data/static-data`. `./update.sh` moves them to the published image; `data/static-data` is no longer used and can be deleted.
 
+## Restoring a workspace owner
+
+If a workspace has no owner left (for example the only owner's account was removed), give an existing user the owner role from the server, in the stack folder:
+
+```bash
+docker compose exec app /app/hycanvas workspace grant-owner <workspace id or slug> <email>
+```
+
+The user must already have an account; they are added to the workspace if they are not a member yet. The change is listed in the workspace's role log. There is deliberately no API or button for this.
+
 ## What to back up
 
 - `data/pgdata` (or the dumps in `backups/`): the database with designs, accounts, brand kits and fonts
