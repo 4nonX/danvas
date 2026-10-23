@@ -5022,5 +5022,6 @@
   "errors.api_ai_provider_unavailable": "O provedor de IA está sobrecarregado ou relatou um erro do lado dele. Tente novamente em alguns minutos.",
   "errors.api_ai_provider_timeout": "O provedor de IA não respondeu a tempo. Tente novamente ou peça menos de uma vez.",
   "errors.api_ai_provider_content_refused": "O provedor de IA recusou a solicitação pelas regras de conteúdo dele. Reformule a solicitação ou use outro material.",
-  "errors.api_ai_request_too_large": "A solicitação é grande demais para o modelo. Peça menos de uma vez ou escolha nas configurações de IA um modelo com contexto maior."
+  "errors.api_ai_request_too_large": "A solicitação é grande demais para o modelo. Peça menos de uma vez ou escolha nas configurações de IA um modelo com contexto maior.",
+  "errors.api_ai_provider_key_unscoped": "O provedor de IA exige uma chave que pertença a um workspace ou projeto. Crie a chave dentro de um workspace no console do provedor (escolha um ao criá-la) e informe-a aqui."
 }

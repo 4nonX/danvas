@@ -29,6 +29,10 @@ var (
 	ErrContentRefused = errors.New("the provider refused the request under its content rules")
 	// ErrRequestTooLarge: more than the model takes at once (context length).
 	ErrRequestTooLarge = errors.New("the request is too large for the model")
+	// ErrKeyUnscoped: the provider knows the key but will not take it without
+	// a workspace or project it belongs to (Anthropic's keys that are not
+	// scoped to a workspace answer 400). The fix is a key made inside one.
+	ErrKeyUnscoped = errors.New("the provider needs a key that belongs to a workspace or project")
 )
 
 // upstreamDetail reads a provider's error body: the human-readable reason for
@@ -90,6 +94,8 @@ func classifyRefusal(status int, code, body string) error {
 	c := strings.ToLower(code)
 	perMinute := containsAny(body, "perminute", "per minute", "per_minute", "per min", "requests per", "tokens per")
 	switch {
+	case containsAny(body, "not scoped to a workspace", "anthropic-workspace-id", "not scoped to a project", "must be scoped to"):
+		return ErrKeyUnscoped
 	// A per-minute limit is a rate limit even where the provider words it as
 	// "quota" (Google's free tier says "exceeded your current quota" for both).
 	case status == http.StatusTooManyRequests && perMinute && !containsAny(c, "insufficient_quota", "billing"):

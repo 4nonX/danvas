@@ -5022,5 +5022,6 @@
   "errors.api_ai_provider_unavailable": "AI 提供商过载或报告了其自身的错误。请几分钟后重试。",
   "errors.api_ai_provider_timeout": "AI 提供商未能及时响应。请重试，或一次请求更少的内容。",
   "errors.api_ai_provider_content_refused": "AI 提供商根据其内容规则拒绝了该请求。请换种说法或使用其他素材。",
-  "errors.api_ai_request_too_large": "请求对该模型来说过大。请一次请求更少的内容，或在 AI 设置中选择上下文更大的模型。"
+  "errors.api_ai_request_too_large": "请求对该模型来说过大。请一次请求更少的内容，或在 AI 设置中选择上下文更大的模型。",
+  "errors.api_ai_provider_key_unscoped": "AI 提供商要求使用属于某个工作区或项目的密钥。请在提供商控制台中于某个工作区内创建密钥（创建时选择工作区），然后在此填写。"
 }

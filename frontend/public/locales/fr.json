@@ -5022,5 +5022,6 @@
   "errors.api_ai_provider_unavailable": "Le fournisseur d’IA est surchargé ou a signalé une erreur de son côté. Réessayez dans quelques minutes.",
   "errors.api_ai_provider_timeout": "Le fournisseur d’IA n’a pas répondu à temps. Réessayez ou demandez moins à la fois.",
   "errors.api_ai_provider_content_refused": "Le fournisseur d’IA a refusé la demande en vertu de ses règles de contenu. Reformulez la demande ou utilisez d’autres éléments.",
-  "errors.api_ai_request_too_large": "La demande est trop volumineuse pour le modèle. Demandez moins à la fois ou choisissez dans les réglages d’IA un modèle avec un contexte plus grand."
+  "errors.api_ai_request_too_large": "La demande est trop volumineuse pour le modèle. Demandez moins à la fois ou choisissez dans les réglages d’IA un modèle avec un contexte plus grand.",
+  "errors.api_ai_provider_key_unscoped": "Le fournisseur d’IA exige une clé rattachée à un espace de travail ou à un projet. Créez la clé dans un espace de travail de la console du fournisseur (choisissez-en un à la création) et saisissez-la ici."
 }

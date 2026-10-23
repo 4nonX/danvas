@@ -169,7 +169,10 @@ func (s *Service) getJSON(ctx context.Context, rawURL string, headers map[string
 // limit, an unreachable host).
 func noCatalog(cfg CallConfig, err error) (ModelList, error) {
 	var se *httpStatusError
-	if errors.As(err, &se) {
+	if errors.As(err, &se) && classifyRefusal(se.status, se.code, se.body) == nil {
+		// A refusal with a named cause (no credit, a key without a
+		// workspace) is the account's problem, not a missing catalog, and
+		// is reported like any call's.
 		switch se.status {
 		case http.StatusBadRequest, http.StatusNotFound, http.StatusMethodNotAllowed:
 			return ModelList{Models: []ModelInfo{}}, nil

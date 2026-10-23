@@ -135,6 +135,8 @@ func aiFailure(err error) (status int, title, detail, code string) {
 		}
 		// The cause the provider named, whatever status it used for it.
 		switch {
+		case errors.Is(err, ai.ErrKeyUnscoped):
+			return http.StatusBadGateway, "Bad Gateway", "the AI provider needs a key that belongs to a workspace or project; create the key inside a workspace in the provider's console and enter it here", "ai_provider_key_unscoped"
 		case errors.Is(err, ai.ErrQuotaExhausted):
 			return http.StatusBadGateway, "Bad Gateway", "the AI provider account has no credit or quota left; top up or check the plan in the provider's billing settings (waiting does not help)", "ai_provider_quota_exhausted"
 		case errors.Is(err, ai.ErrContentRefused):
@@ -210,6 +212,8 @@ func aiProblem(w http.ResponseWriter, r *http.Request, err error) {
 		problemWithCode(w, r, status, title, detail, "ai_provider_model_forbidden")
 	case "ai_provider_rate_limited":
 		problemWithCode(w, r, status, title, detail, "ai_provider_rate_limited")
+	case "ai_provider_key_unscoped":
+		problemWithCode(w, r, status, title, detail, "ai_provider_key_unscoped")
 	case "ai_provider_unavailable":
 		problemWithCode(w, r, status, title, detail, "ai_provider_unavailable")
 	case "ai_provider_timeout":
