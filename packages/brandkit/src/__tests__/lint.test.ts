@@ -89,11 +89,11 @@ describe("lintDesign", () => {
     expect((v[0].fix as { to: Color }).to.srgb).toEqual({ r: 0, g: 0, b: 0, a: 1 });
   });
 
-  it("does not flag colors when lockColors is off", () => {
+  it("flags off-brand colors whatever the locks", () => {
     const file = withBg(rgb(0.3, 0.7, 0.2));
-    expect(
-      lintDesign(file, makeKit({ lockColors: false })).filter((x) => x.kind === "off-brand-color"),
-    ).toEqual([]);
+    const v = lintDesign(file, makeKit({ lockColors: false })).filter((x) => x.kind === "off-brand-color");
+    expect(v).toHaveLength(1);
+    expect(v[0].params?.hex).toBeTruthy();
   });
 
   it("flags an off-brand font and offers a swap_font fix to the brand body font", () => {
@@ -108,7 +108,9 @@ describe("lintDesign", () => {
     // light-grey text on white background fails AA.
     const file = withBg(rgb(1, 1, 1));
     file.pages[0].children = [textNode({ font: "Inter", color: rgb(0.85, 0.85, 0.85) })];
-    const v = lintDesign(file, makeKit()).filter((x) => x.kind === "low-contrast");
+    // Only when the kit asks for the contrast check.
+    expect(lintDesign(file, makeKit()).filter((x) => x.kind === "low-contrast")).toEqual([]);
+    const v = lintDesign(file, makeKit({ checkContrast: true })).filter((x) => x.kind === "low-contrast");
     expect(v).toHaveLength(1);
     expect(v[0].fix?.kind).toBe("fix_contrast");
   });
@@ -128,6 +130,35 @@ describe("lintDesign", () => {
     expect(v).toHaveLength(1);
     expect(v[0].kind).toBe("logo-misuse");
     expect(v[0].fix).toEqual({ kind: "restore_logo", reason: "aspect" });
+  });
+
+  it("measures contrast against the panel behind a text, and leaves a text over a picture alone", () => {
+    const file = withBg(rgb(1, 1, 1));
+    file.pages[0].children = [
+      createNode("shape", { id: "panel", shape: "rect", transform: { x: 50, y: 50, scaleX: 1, scaleY: 1, rotation: 0 }, size: { width: 400, height: 200 }, fills: [{ type: "solid", color: rgb(0.1, 0.2, 0.5) }] } as unknown as Partial<Node>),
+      createNode("image", { id: "photo", source: { assetId: "p", naturalWidth: 10, naturalHeight: 10 }, transform: { x: 500, y: 300, scaleX: 1, scaleY: 1, rotation: 0 }, size: { width: 300, height: 200 } } as unknown as Partial<Node>),
+      textNode({ id: "onPanel", color: rgb(1, 1, 1) }), // at 100,100 300x60: on the dark panel
+      { ...textNode({ id: "onPhoto", color: rgb(1, 1, 1) }), transform: { x: 520, y: 350, scaleX: 1, scaleY: 1, rotation: 0 } } as Node,
+      { ...textNode({ id: "onPage", color: rgb(1, 1, 1) }), transform: { x: 100, y: 450, scaleX: 1, scaleY: 1, rotation: 0 } } as Node,
+    ];
+    const v = lintDesign(file, makeKit({ checkContrast: true })).filter((x) => x.kind === "low-contrast");
+    expect(v.map((x) => x.nodeId)).toEqual(["onPage"]);
+  });
+
+  it("knows every named version of a logo as the logo", () => {
+    const kit = makeKit();
+    kit.logos = [{ ...kit.logos[0], versions: { colour: "logo-asset", white: "logo-white" } }];
+    const file = withBg(rgb(1, 1, 1));
+    file.pages[0].children = [
+      createNode("image", {
+        id: "logo",
+        source: { assetId: "logo-white", naturalWidth: 200, naturalHeight: 200 },
+        fit: "contain",
+        transform: { x: 100, y: 100, scaleX: 1, scaleY: 2, rotation: 0 },
+        size: { width: 200, height: 200 },
+      } as unknown as Partial<Node>),
+    ];
+    expect(lintDesign(file, kit).filter((x) => x.id.startsWith("logo-aspect"))).toHaveLength(1);
   });
 
   it("flags a logo below its minimum size", () => {

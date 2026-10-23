@@ -155,6 +155,9 @@ func brandUpdateHandler(br *brand.Service) http.HandlerFunc {
 		if v, ok := raw["controls"]; ok {
 			in.ControlsRaw = v
 		}
+		if v, ok := raw["logoVersions"]; ok {
+			in.LogoVersions = v
+		}
 		u := userFrom(r.Context())
 		kit, err := br.UpdateKit(r.Context(), chi.URLParam(r, "id"), u.ID, in)
 		if err != nil {

@@ -10,6 +10,7 @@ import type { BrandKit } from "@hc/sdk";
 import { resolveAssetUrl } from "@/lib/sdk";
 import { BRAND_GRAPHIC_DRAG, categoryName, graphicName, isSvgAsset } from "@/lib/brandGraphics";
 import { tr } from "@/lib/i18n";
+import { ArtworkPreview } from "@/components/ui/ArtworkPreview";
 
 export interface GraphicInfo { url: string; filename: string | null; mimeType: string | null; thumbnail?: string | null }
 
@@ -74,10 +75,9 @@ export function BrandGraphicsSection({ kit, assets, onPlace }: {
                 onClick={() => onPlace(id, name)}
                 title={name}
                 aria-label={tr("brand.place_graphic", { name })}
-                className="flex aspect-square items-center justify-center overflow-hidden rounded-lg border border-neutral-200 bg-neutral-50 p-1.5 hover:border-brand-300"
+                className="flex aspect-square overflow-hidden rounded-lg border border-neutral-200 hover:border-brand-300"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={resolveAssetUrl(a.thumbnail || a.url)} alt="" className="max-h-full max-w-full object-contain" draggable={false} />
+                <ArtworkPreview src={resolveAssetUrl(a.thumbnail || a.url)} className="h-full w-full p-1.5" tile={8} draggable={false} />
               </button>
             );
           })}

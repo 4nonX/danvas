@@ -1241,10 +1241,21 @@ export interface BrandFont {
 export interface BrandLogo {
   id: string;
   label: string;
+  /** The logo's main file: its first version for a light ground. */
   assetId: string;
+  /** dark: its first version for a dark ground. */
   variants?: { dark?: string; light?: string };
+  /** One file per named version of the kit (BrandKit.logoVersions), by id. */
+  versions?: Record<string, string>;
   clearSpaceRatio?: number;
   minSizePx?: number;
+}
+/** A version every logo of a kit comes in (colour, black, white, ...). */
+export interface BrandLogoVersion {
+  id: string;
+  name: string;
+  /** The ground it is made for. */
+  ground: "light" | "dark";
 }
 export interface BrandVoice {
   tone: string[];
@@ -1268,6 +1279,8 @@ export interface BrandControls {
   lockFonts: boolean;
   restrictTemplates: boolean;
   lintPolicy: "off" | "warn" | "block";
+  /** Adds the WCAG AA text contrast check to the brand check. */
+  checkContrast?: boolean;
 }
 /** A workspace brand kit. `version` is the current version
  *  number, incremented on every write and recorded in {@link BrandKitVersion}. */
@@ -1284,6 +1297,8 @@ export interface BrandKit {
   voice: BrandVoice | null;
   collections: BrandCollection[];
   controls: BrandControls;
+  /** The versions its logos come in; empty until the kit names them. */
+  logoVersions?: BrandLogoVersion[];
   createdAt: string;
   updatedAt: string;
 }
@@ -1353,6 +1368,7 @@ export interface BrandKitPatch {
   voice?: BrandVoice | null;
   collections?: BrandCollection[];
   controls?: Partial<BrandControls>;
+  logoVersions?: BrandLogoVersion[];
 }
 
 /** Thrown on a non-2xx response; carries the status and parsed problem body. */

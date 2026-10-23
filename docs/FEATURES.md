@@ -51,6 +51,7 @@ A living checklist of what ships today versus what is planned. Shipped items are
 - [x] Brand graphics: a Brand page in the dashboard with named categories, multi-file upload, rename, move, replace and remove; placed from the editor's brand panel by click or drag, SVGs as editable vectors ([spec 50](roadmap/50-brand-graphics.md))
 - [x] One Brand page for the whole brand (colours, fonts with the workspace font library, logos, graphics, settings), brands created empty, from a logo, a website or a kit file, and deleted without touching designs; the editor's brand panel applies the brand; a separate right for the brand library ([spec 50](roadmap/50-brand-graphics.md))
 - [x] Save as template from the dashboard, for one design or a selection
+- [x] Logo versions per brand (named, for light or dark grounds, configurable), logos grouped with their versions; a brand check that checks brand compliance whatever the locks, with an optional WCAG contrast check measured against what is behind the text
 - [x] Multi-instance scale (Redis fan-out, cross-instance roster, CAS lock authority)
 - [x] Comments (threads, pins, @mentions, reactions, resolve, convert-to-task)
 - [x] Version history (auto/named checkpoints, restore, branch, CRDT scrub timeline)

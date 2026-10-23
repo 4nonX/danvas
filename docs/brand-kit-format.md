@@ -113,6 +113,8 @@ Only `format`, `formatVersion` and `name` are required. Every list may be left o
 | `logos[].lightFile` | path | Optional version for light backgrounds, where it differs from `file`. |
 | `logos[].clearSpaceRatio` | number | Optional free space around the logo, as a share of its size. |
 | `logos[].minSizePx` | number | Optional smallest size in pixels. |
+| `logos[].versionFiles` | object | Optional: the logo's file in each version of `logoVersions`, by version id, for example `{"colour": "logos/wordmark.svg", "white": "logos/wordmark-white.svg"}`. Keep `file` (and `darkFile`) as well: they are what a reader without versions uses. |
+| `logoVersions` | list | Optional: the versions every logo comes in, in order. Each is `{"id": "...", "name": "...", "ground": "light" or "dark"}`; `ground` says which background it is made for. A kit without it has the logo and its version for dark backgrounds. |
 | `collections[].kind` | `"icons"`, `"photos"` or `"graphics"` | The collection. |
 | `collections[].name` | text | Optional name of the category (for example `Silhouettes`). A collection without one shows under its kind's name. |
 | `collections[].files` | list of paths | Its files. The same file may appear in several places; it is uploaded once. |
@@ -121,6 +123,7 @@ Only `format`, `formatVersion` and `name` are required. Every list may be left o
 | `controls.lockFonts` | true or false | Members may use only the kit's fonts. |
 | `controls.restrictTemplates` | true or false | Members start from brand templates only. |
 | `controls.lintPolicy` | `"off"`, `"warn"` or `"block"` | How the brand check treats exports. |
+| `controls.checkContrast` | true or false | The brand check also checks text contrast (WCAG AA). Default false. |
 | `fileNames` | object | Optional: a file's original name by its path, for example `{"graphics/klee.svg": "Klee - Silhouette.svg"}`. Imported files get this name; files not listed are named after their path. |
 
 Controls left out keep their current value on a replace and their default on a new kit.

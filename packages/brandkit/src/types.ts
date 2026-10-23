@@ -35,6 +35,8 @@ export interface LintLogo {
   label: string;
   assetId: string;
   variants?: { dark?: string; light?: string };
+  /** One file per named version of the kit; every one counts as the logo. */
+  versions?: Record<string, string>;
   clearSpaceRatio?: number;
   minSizePx?: number;
 }
@@ -45,6 +47,8 @@ export interface LintControls {
   lockFonts: boolean;
   /** off: never lint; warn: surface but allow export; block: gate export. */
   lintPolicy: "off" | "warn" | "block";
+  /** Adds the WCAG AA text contrast check; off unless set. */
+  checkContrast?: boolean;
 }
 
 /** The minimal kit view the linter reads. The backend + SDK BrandKit are
@@ -86,5 +90,7 @@ export interface BrandLintViolation {
   nodeId?: string;
   pageId?: string;
   message: string;
+  /** The values in the message (hex, font, ratio, size), for translation. */
+  params?: Record<string, string>;
   fix?: BrandLintFix;
 }

@@ -16,6 +16,7 @@ import {
   moveCategory, moveGraphic, removeGraphic, renameCategory, renamedFilename, replaceGraphic, type Collections,
 } from "@/lib/brandGraphics";
 import { tr } from "@/lib/i18n";
+import { ArtworkPreview } from "@/components/ui/ArtworkPreview";
 import type { BrandAsset, BrandAssets } from "./types";
 
 export function BrandGraphicsTab({ workspaceId, kit, assets, setAssets, canEdit, onSaved }: {
@@ -207,16 +208,15 @@ export function BrandGraphicsTab({ workspaceId, kit, assets, setAssets, canEdit,
               const name = graphicName(a?.filename) || tr("brand.unnamed");
               return (
                 <li key={`${c}:${id}`} className="group flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-surface">
-                  <div className="grid aspect-square place-items-center bg-neutral-100 p-3">
-                    {a?.url
-                      // eslint-disable-next-line @next/next/no-img-element
-                      ? <img src={resolveAssetUrl(a.thumbnail || a.url)} alt={name} className="max-h-full max-w-full object-contain" />
-                      : <span className="text-xs text-neutral-400">{tr("brand.file_missing")}</span>}
-                  </div>
-                  <div className="flex items-center gap-1 border-t border-neutral-200 px-2 py-1.5">
-                    <span className="min-w-0 flex-1 truncate text-xs font-medium text-neutral-800" title={name}>{name}</span>
+                  {a?.url
+                    ? <ArtworkPreview src={resolveAssetUrl(a.thumbnail || a.url)} alt={name} className="aspect-square p-3" />
+                    : <div className="grid aspect-square place-items-center bg-neutral-100 p-3"><span className="text-xs text-neutral-400">{tr("brand.file_missing")}</span></div>}
+                  {/* The name gets the whole width (two lines at most); the
+                      actions sit on their own row below it. */}
+                  <div className="flex flex-col gap-0.5 border-t border-neutral-200 px-2 py-1.5">
+                    <span className="line-clamp-2 break-words text-xs font-medium leading-snug text-neutral-800" title={name}>{name}</span>
                     {canEdit && (
-                      <span className="flex shrink-0 opacity-70 group-hover:opacity-100">
+                      <span className="-mx-1 flex justify-end opacity-70 group-hover:opacity-100 group-focus-within:opacity-100">
                         <button type="button" className={iconBtn} title={tr("brand.rename_graphic")} aria-label={tr("brand.rename_graphic")} onClick={() => void renameGraphic(id)}><Pencil size={13} /></button>
                         <button type="button" className={iconBtn} title={tr("brand.move_graphic")} aria-label={tr("brand.move_graphic")} onClick={() => void moveTo(c, id)}><FolderInput size={13} /></button>
                         <button type="button" className={iconBtn} title={tr("brand.replace_graphic")} aria-label={tr("brand.replace_graphic")} onClick={() => { replacing.current = { cat: c, assetId: id }; replaceRef.current?.click(); }}><RefreshCw size={13} /></button>

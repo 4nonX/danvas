@@ -122,6 +122,30 @@ describe("brand kit export and import", () => {
     expect(uploaded.map((u) => u.name).sort()).toEqual(["Wordmark Ä.svg", "icon.png", "wordmark-dark.svg"]);
   });
 
+  it("keeps the logo versions through the file", async () => {
+    const logoVersions = [
+      { id: "colour", name: "Farbe", ground: "light" as const },
+      { id: "white", name: "Weiß", ground: "dark" as const },
+    ];
+    const res = await exportKit(kit({
+      logoVersions,
+      logos: [{ id: "l-1", label: "Wordmark", assetId: "a-logo", variants: { dark: "a-logo-dark" }, versions: { colour: "a-logo", white: "a-logo-dark" } }],
+    }), sources);
+    const parsed = await readKitFile(new Uint8Array(await res.blob.arrayBuffer()));
+    expect(parsed.manifest.logoVersions).toEqual(logoVersions);
+    const { t } = target();
+    const content = await uploadKitContent(parsed, t);
+    expect(content.logoVersions).toEqual(logoVersions);
+    const [l] = content.logos;
+    // The same files as the main and the dark file, one upload each.
+    expect(l.versions).toEqual({ colour: l.assetId, white: l.variants?.dark });
+  });
+
+  it("refuses a logo version the file does not name", () => {
+    expect(() => checkManifest({ format: KIT_FORMAT, formatVersion: 1, name: "X", logos: [{ label: "L", file: "logos/l.svg", versionFiles: { black: "logos/b.svg" } }] }))
+      .toThrow(/not in logoVersions/);
+  });
+
   it("reads a file without names as before", async () => {
     const manifest = { format: KIT_FORMAT, formatVersion: 1, name: "Old", collections: [{ kind: "icons", files: ["icons/a.svg"] }] };
     const zip = zipFiles([{ name: "brandkit.json", data: bytes(JSON.stringify(manifest)) }, { name: "icons/a.svg", data: bytes("<svg/>") }]);

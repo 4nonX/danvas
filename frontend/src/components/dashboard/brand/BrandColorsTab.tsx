@@ -18,7 +18,11 @@ export function BrandColorsTab({ kit, canEdit, save }: {
   save: (patch: BrandKitPatch, done?: string) => Promise<boolean>;
 }) {
   const toast = useToast();
-  const [hex, setHex] = useState("#9b2c72");
+  // Starts at the brand's first colour (a neighbour is the usual addition).
+  const [hex, setHex] = useState(() => {
+    const first = kit.palettes.flatMap((p) => p.colors)[0];
+    return first ? hexOf(first.value) : "#000000";
+  });
   const clean = hex.trim().toLowerCase();
   const valid = /^#[0-9a-f]{6}$/.test(clean);
   const total = kit.palettes.reduce((n, p) => n + p.colors.length, 0);
@@ -99,7 +103,7 @@ export function BrandColorsTab({ kit, canEdit, save }: {
             onChange={(e) => setHex(e.target.value.startsWith("#") || e.target.value === "" ? e.target.value : `#${e.target.value}`)}
             onKeyDown={(e) => { if (e.key === "Enter") void add(); }}
             aria-label={tr("editor.hex")}
-            placeholder="#9b2c72"
+            placeholder="#000000"
             spellCheck={false}
             className="min-w-0 flex-1 rounded-lg border border-neutral-200 bg-surface px-2 py-1.5 font-mono text-xs uppercase outline-none focus:border-brand-400"
           />

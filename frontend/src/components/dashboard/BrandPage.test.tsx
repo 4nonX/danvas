@@ -14,13 +14,13 @@ const toastApi = { success: vi.fn(), error: vi.fn(), toast: vi.fn() };
 vi.mock("@/components/ui/Toast", () => ({ useToast: () => toastApi }));
 
 // Dialogs answer what each test sets.
-const answers = { prompt: [] as (string | null)[], confirm: true, choose: null as string | null };
+const answers = { prompt: [] as (string | null)[], confirm: true, choose: null as string | null, chooseFn: null as (() => string | null) | null };
 vi.mock("@/lib/fontProvider", () => ({ fonts: { ensure: () => {}, onChange: () => () => {} } }));
 vi.mock("@/lib/workspaceFonts", () => ({ useWorkspaceFontFamilies: () => [], loadWorkspaceFonts: async () => {} }));
 vi.mock("@/lib/promptDialog", () => ({
   promptText: async () => answers.prompt.shift() ?? null,
   confirmAction: async () => answers.confirm,
-  chooseAction: async () => answers.choose,
+  chooseAction: async () => (answers.chooseFn ? answers.chooseFn() : answers.choose),
 }));
 
 let kit: BrandKit;
@@ -70,6 +70,7 @@ beforeEach(() => {
   answers.prompt = [];
   answers.confirm = true;
   answers.choose = null;
+  answers.chooseFn = null;
 });
 afterEach(cleanup);
 
@@ -175,11 +176,37 @@ describe("brand page (F50)", () => {
     fireEvent.click(screen.getByLabelText("brand.rename_logo"));
     await waitFor(() => expect((updates.at(-1) as BrandKit).logos[0].label).toBe("Bildmarke"));
     // Another file for the logo, picked in a dialog.
-    fireEvent.click(screen.getByLabelText("brand.replace_logo"));
+    fireEvent.click(screen.getByLabelText(/^brand.replace_logo: Bildmarke/));
     fireEvent.click(await screen.findByTitle("Klee - Silhouette schwarz.svg"));
     await waitFor(() => expect((updates.at(-1) as BrandKit).logos[0].assetId).toBe("a-klee"));
+    // Its version for dark grounds, from the empty tile.
+    fireEvent.click(screen.getByLabelText(/^brand.set_version_file: Bildmarke/));
+    fireEvent.click(await screen.findByTitle("Mohn - Silhouette schwarz.svg"));
+    await waitFor(() => expect((updates.at(-1) as BrandKit).logos[0].variants?.dark).toBe("a-mohn"));
     fireEvent.click(screen.getByLabelText("editor.remove_logo"));
     await waitFor(() => expect((updates.at(-1) as BrandKit).logos).toEqual([]));
+  });
+
+  it("names logo versions and moves a separate logo into another as one of its versions", async () => {
+    kit.logos = [
+      { id: "l1", label: "Wortmarke", assetId: "a-icon" },
+      { id: "l2", label: "Wortmarke schwarz", assetId: "a-klee" },
+    ];
+    render(<BrandPage workspaceId="ws" canEditKit />);
+    await waitFor(() => expect(category("Silhouetten")).toBeTruthy());
+    fireEvent.click(screen.getByRole("tab", { name: /brand.settings/ }));
+    fireEvent.click(screen.getByText("brand.use_suggested_versions"));
+    await waitFor(() => expect((updates.at(-1) as BrandKit).logoVersions?.map((v) => [v.name, v.ground])).toEqual([
+      ["brand.logo_version_colour", "light"], ["brand.logo_version_black", "light"], ["brand.logo_version_white", "dark"],
+    ]));
+    const [colour, black] = kit.logoVersions!;
+    expect(kit.logos[0].versions).toEqual({ [colour.id]: "a-icon" });
+    fireEvent.click(screen.getByRole("tab", { name: /editor.logos/ }));
+    // Choose the target logo, then the version.
+    let asked = 0;
+    answers.chooseFn = () => (asked++ === 0 ? "l1" : black.id);
+    fireEvent.click(screen.getAllByLabelText("brand.move_logo")[1]);
+    await waitFor(() => expect((updates.at(-1) as BrandKit).logos.map((l) => [l.id, l.versions])).toEqual([["l1", { [colour.id]: "a-icon", [black.id]: "a-klee" }]]));
   });
 
   it("creates a new brand and deletes one", async () => {

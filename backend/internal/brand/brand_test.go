@@ -394,6 +394,9 @@ func TestBrandLibraryRight_DB(t *testing.T) {
 	if _, err := svc.UpdateKit(ctx, kit.ID, member.ID, UpdateInput{Name: ptr("Hijack")}); err != ErrForbidden {
 		t.Fatalf("rename with brand.library only: want Forbidden, got %v", err)
 	}
+	if _, err := svc.UpdateKit(ctx, kit.ID, member.ID, UpdateInput{LogoVersions: json.RawMessage(`[]`)}); err != ErrForbidden {
+		t.Fatalf("logo versions with brand.library only: want Forbidden, got %v", err)
+	}
 	if _, err := svc.CreateKit(ctx, ws.ID, member.ID, "Second", nil); err != ErrForbidden {
 		t.Fatalf("create with brand.library only: want Forbidden, got %v", err)
 	}
@@ -403,5 +406,75 @@ func TestBrandLibraryRight_DB(t *testing.T) {
 	// brand.kits covers the collections too.
 	if _, err := svc.UpdateKit(ctx, kit.ID, owner.ID, UpdateInput{Collections: collections, Palettes: palettes}); err != nil {
 		t.Fatalf("owner: %v", err)
+	}
+}
+
+// Logo versions (F50): a kit names the versions its logos come in; they are
+// stored, kept in the version history, and a restore to a version from before
+// them clears them again. Every version of a logo counts as the logo.
+func TestBrandLogoVersions_DB(t *testing.T) {
+	dsn := os.Getenv("DATABASE_URL")
+	if dsn == "" {
+		t.Skip("DATABASE_URL not set; skipping DB integration test")
+	}
+	ctx := context.Background()
+	conn, err := pgx.Connect(ctx, stripSchema(dsn))
+	if err != nil {
+		t.Fatalf("connect: %v", err)
+	}
+	defer conn.Close(ctx)
+	tx, err := conn.Begin(ctx)
+	if err != nil {
+		t.Fatalf("begin: %v", err)
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+
+	acct := accounts.NewService(tx, "test-jwt-secret")
+	owner, ws, _, err := acct.Signup(ctx, "blv-owner+"+uuid.NewString()+"@example.com", "a-strong-password", "Owner")
+	if err != nil {
+		t.Fatalf("signup: %v", err)
+	}
+	svc := NewService(tx)
+	kit, err := svc.CreateKit(ctx, ws.ID, owner.ID, "Acme", nil)
+	if err != nil {
+		t.Fatalf("create kit: %v", err)
+	}
+	if string(kit.LogoVersions) != "[]" {
+		t.Fatalf("a new kit has no logo versions, got %s", kit.LogoVersions)
+	}
+	versions := json.RawMessage(`[{"id":"colour","name":"Farbe","ground":"light"},{"id":"black","name":"Schwarz","ground":"light"},{"id":"white","name":"Weiß","ground":"dark"}]`)
+	logos := json.RawMessage(`[{"id":"l1","label":"Wortmarke","assetId":"a-colour","variants":{"dark":"a-white"},"versions":{"colour":"a-colour","black":"a-black","white":"a-white"}}]`)
+	updated, err := svc.UpdateKit(ctx, kit.ID, owner.ID, UpdateInput{LogoVersions: versions, Logos: logos})
+	if err != nil {
+		t.Fatalf("update: %v", err)
+	}
+	var got []map[string]any
+	if err := json.Unmarshal(updated.LogoVersions, &got); err != nil || len(got) != 3 || got[2]["ground"] != "dark" {
+		t.Fatalf("logo versions not stored: %s", updated.LogoVersions)
+	}
+	var stored []struct {
+		Versions map[string]string `json:"versions"`
+	}
+	if err := json.Unmarshal(updated.Logos, &stored); err != nil || len(stored) != 1 || stored[0].Versions["black"] != "a-black" {
+		t.Fatalf("a logo's versions are kept: %s", updated.Logos)
+	}
+	// The brand check knows every version as the logo.
+	row, err := svc.requireKit(ctx, kit.ID)
+	if err != nil {
+		t.Fatalf("kit row: %v", err)
+	}
+	lk := parseLintKit(&row)
+	for _, id := range []string{"a-colour", "a-black", "a-white"} {
+		if !lk.logoIDs[id] {
+			t.Errorf("%s should count as the logo", id)
+		}
+	}
+	// Back to version 1, from before the versions: they are cleared.
+	restored, err := svc.RestoreVersion(ctx, kit.ID, owner.ID, 1)
+	if err != nil {
+		t.Fatalf("restore: %v", err)
+	}
+	if string(restored.LogoVersions) != "[]" {
+		t.Fatalf("restore to a version without logo versions clears them, got %s", restored.LogoVersions)
 	}
 }

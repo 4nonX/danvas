@@ -1,6 +1,7 @@
 // The Brand page's settings: the brand's name and whether it is the
 // workspace's standard brand, its rules (locks, the check before export), its
-// voice for generated copy, the kit file, the version history, and deleting
+// voice for generated copy, the versions its logos come in, the kit file, the
+// version history, and deleting
 // it. Everyone sees them; brand.kits changes them.
 
 import { useState } from "react";
@@ -11,6 +12,7 @@ import { ControlToggle, VersionHistory } from "@/components/brand/kitEditors";
 import { BrandKitTransfer } from "@/components/brand/BrandKitTransfer";
 import { tr } from "@/lib/i18n";
 import { SectionTitle } from "./SectionTitle";
+import { LogoVersionsEditor } from "./LogoVersionsEditor";
 
 const lines = (v: string) => v.split("\n").map((s) => s.trim()).filter(Boolean);
 
@@ -59,6 +61,8 @@ export function BrandSettingsTab({ workspaceId, kit, kits, canEdit, save, onMake
         </div>
       </section>
 
+      <LogoVersionsEditor kit={kit} canEdit={canEdit} save={save} />
+
       <section>
         <SectionTitle icon={ShieldCheck} label={tr("brand.rules")} />
         <p className="mb-3 px-2 text-sm text-neutral-500">{tr("brand.rules_hint")}</p>
@@ -66,6 +70,7 @@ export function BrandSettingsTab({ workspaceId, kit, kits, canEdit, save, onMake
           <ControlToggle label={tr("editor.lock_colors_to_palette")} checked={kit.controls.lockColors} disabled={!canEdit || busy} onChange={(v) => void control({ lockColors: v })} />
           <ControlToggle label={tr("editor.lock_fonts_to_approved_set")} checked={kit.controls.lockFonts} disabled={!canEdit || busy} onChange={(v) => void control({ lockFonts: v })} />
           <ControlToggle label={tr("editor.restrict_to_brand_templates")} checked={kit.controls.restrictTemplates} disabled={!canEdit || busy} onChange={(v) => void control({ restrictTemplates: v })} />
+          <ControlToggle label={tr("brand.check_contrast")} checked={!!kit.controls.checkContrast} disabled={!canEdit || busy} onChange={(v) => void control({ checkContrast: v })} />
           <label className="mt-1">
             <span className={label}>{tr("brand.lint_policy")}</span>
             <select value={kit.controls.lintPolicy} disabled={!canEdit || busy} onChange={(e) => void control({ lintPolicy: e.target.value as BrandControls["lintPolicy"] })} className={`${field} h-9`}>

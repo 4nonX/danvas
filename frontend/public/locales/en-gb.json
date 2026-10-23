@@ -112,5 +112,10 @@
   "brand.colors_hint": "The brand's colours with their print values. Add a colour by picker or hex value; colours from a design's selection or page are added from the brand panel in the editor.",
   "brand.colors_hint_read_only": "The brand's colours with their print values. Use them in the editor from the brand panel.",
   "brand.remove_color": "Remove colour",
-  "roles.hint_brand_library": "Upload, rename, move and remove a brand's categories and graphics. Colours, fonts and logos stay as they are."
+  "roles.hint_brand_library": "Upload, rename, move and remove a brand's categories and graphics. Colours, fonts and logos stay as they are.",
+  "brand.logo_version_colour": "Colour",
+  "brand.use_suggested_versions": "Use colour, black and white",
+  "brand.lint_color": "Colour {hex} is not one of the brand's colours.",
+  "brand.lint_logo_recolor": "The logo has been recoloured. Use one of its versions instead.",
+  "editor.reskinned": "Re-skinned: {colors} colours, {fonts} fonts."
 }

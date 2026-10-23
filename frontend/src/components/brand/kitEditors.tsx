@@ -15,6 +15,7 @@ import { CodedError, userMessage } from "@/lib/errors";
 import { fonts } from "@/lib/fontProvider";
 import { useWorkspaceFontFamilies } from "@/lib/workspaceFonts";
 import { tr } from "@/lib/i18n";
+import { ArtworkPreview } from "@/components/ui/ArtworkPreview";
 
 const FONT_CATEGORIES: FontCategory[] = ["sans-serif", "serif", "display", "handwriting", "monospace"];
 
@@ -71,7 +72,7 @@ export function VersionHistory({ kitId, onRestored }: { kitId: string; onRestore
       const updated = await oc.restoreBrandKitVersion(kitId, version);
       await onRestored(updated);
       await load();
-      toast.success(`Restored to v${version}.`);
+      toast.success(tr("brand.version_restored", { version }));
     } catch {
       toast.error(tr("editor.couldnt_restore_that_version"));
     } finally {
@@ -228,11 +229,10 @@ export function UploadPicker({ workspaceId, assetUrls, onPick, allowUpload = fal
         <button
           key={a.id}
           onClick={() => onPick(a.id, a.filename ?? tr("editor.logo"), a.url)}
-          className="flex aspect-square items-center justify-center overflow-hidden rounded border border-neutral-200 hover:border-brand-300"
+          className="flex aspect-square overflow-hidden rounded border border-neutral-200 hover:border-brand-300"
           title={a.filename ?? "asset"}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={resolveAssetUrl(assetUrls[a.id] ?? a.url)} alt={a.filename ?? ""} className="max-h-full max-w-full object-contain" />
+          <ArtworkPreview src={resolveAssetUrl(assetUrls[a.id] ?? a.url)} alt={a.filename ?? ""} className="h-full w-full p-1" tile={8} />
         </button>
       ))}
     </div>

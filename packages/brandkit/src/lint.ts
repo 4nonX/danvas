@@ -2,12 +2,13 @@
 // LintBrandKit: it walks every page/node, then emits violations of five kinds
 // with applyable fixes where a safe correction exists:
 //
-//   off-brand-color  a fill/stroke/text color with no near brand swatch
-//                     (when lockColors is on); fix = snap to nearest swatch.
-//   off-brand-font   a text family not in the brand font set (when lockFonts
-//                     is on); fix = swap to the role-matched brand family.
-//   low-contrast     text whose color fails WCAG AA over its background;
-//                     fix = nudge the fill to a passing foreground (@hc/color).
+//   off-brand-color  a fill/stroke/text color with no near brand swatch,
+//                     whatever the locks; fix = snap to nearest swatch.
+//   off-brand-font   a text family not in the brand font set, whatever the
+//                     locks; fix = swap to the role-matched brand family.
+//   low-contrast     when the kit asks for it (checkContrast): text whose
+//                     color fails WCAG AA over what is behind it (ground.ts);
+//                     fix = nudge the fill to a passing foreground.
 //   logo-misuse      a brand logo image placed recolored / non-uniformly
 //                     scaled (distorted) / below its min size / inside its
 //                     clear space; fix = restore (manual where ambiguous).
@@ -20,6 +21,7 @@
 
 import type { Color, DesignFile, Fill, Node, Page } from "@hc/schema";
 import { contrastRatio, deltaE, fixToAA, nearestPaletteColor } from "@hc/color";
+import { textGrounds } from "./ground";
 import type { BrandLintViolation, LintBrandKit, LintFont } from "./types";
 
 /** Max perceptual deltaE for a color to count as "matching" a brand swatch.
@@ -162,12 +164,7 @@ function pageBackgroundColor(page: Page): Color | null {
   return cs[0] ?? null;
 }
 
-/** The nearest enclosing background color for a text node: its own solid fill is
- *  not the background, so we use the page background (a pragmatic, dependency-
- *  free choice; per-node z-stacking is out of scope for the lint heuristic). */
-function backgroundFor(page: Page): Color {
-  return pageBackgroundColor(page) ?? { srgb: { r: 1, g: 1, b: 1, a: 1 } };
-}
+
 
 // --- the linter -------------------------------------------------------------
 
@@ -191,12 +188,13 @@ export function lintDesign(file: DesignFile, kit: LintBrandKit): BrandLintViolat
       l.assetId,
       l.variants?.dark,
       l.variants?.light,
+      ...Object.values(l.versions ?? {}),
     ]).filter((x): x is string => !!x),
   );
   const logoById = new Map(kit.logos.map((l) => [l.assetId, l]));
 
   // --- colors + fonts (FR-7 off-brand) --------------------------------------
-  if (kit.controls.lockColors && palette.length > 0) {
+  if (palette.length > 0) {
     const colors: ColorUse[] = [];
     for (const page of file.pages) {
       const bg = pageBackgroundColor(page);
@@ -218,12 +216,13 @@ export function lintDesign(file: DesignFile, kit: LintBrandKit): BrandLintViolat
         nodeId,
         pageId,
         message: `Color ${hex} is not in the brand palette.`,
+        params: { hex, ...(near ? { nearest: hexOf(near.color) } : {}) },
         fix: near ? { kind: "snap_color", from: hex, to: near.color } : undefined,
       });
     }
   }
 
-  if (kit.controls.lockFonts && families.size > 0) {
+  if (families.size > 0) {
     const fonts: FontUse[] = [];
     for (const page of file.pages)
       walk(page.children, page.id, (n, pid) => collectNodeFonts(n, pid, fonts));
@@ -240,6 +239,7 @@ export function lintDesign(file: DesignFile, kit: LintBrandKit): BrandLintViolat
         nodeId,
         pageId,
         message: `Font "${family}" is not an approved brand font.`,
+        params: { font: family },
         fix:
           swapFont && swapFont.fontFamily.trim().toLowerCase() !== family.trim().toLowerCase()
             ? { kind: "swap_font", from: family, to: swapFont.fontFamily }
@@ -249,10 +249,12 @@ export function lintDesign(file: DesignFile, kit: LintBrandKit): BrandLintViolat
   }
 
   // --- low contrast (FR-7) --------------------------------------------------
-  for (const page of file.pages) {
-    const bg = backgroundFor(page);
+  for (const page of kit.controls.checkContrast ? file.pages : []) {
+    const grounds = textGrounds(page, pageBackgroundColor(page));
     walk(page.children, page.id, (node, pid) => {
       if (node.type !== "text") return;
+      const bg = grounds.get(node.id);
+      if (!bg) return;
       const n = node as unknown as {
         id: string;
         content?: { runs: { style: { fill?: Fill; color?: Color } }[] }[];
@@ -280,6 +282,7 @@ export function lintDesign(file: DesignFile, kit: LintBrandKit): BrandLintViolat
         nodeId: n.id,
         pageId: pid,
         message: `Text contrast ${ratio.toFixed(1)}:1 is below WCAG AA (4.5:1).`,
+        params: { ratio: ratio.toFixed(1) },
         fix: { kind: "fix_contrast", color: fixToAA(fg, bg, AA_NORMAL) },
       });
     });

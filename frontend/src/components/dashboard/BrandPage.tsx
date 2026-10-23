@@ -4,7 +4,8 @@
 // may change follows its actions (F42): brand.kits the brand itself (and its
 // library), brand.library only the graphics, fonts.manage the workspace's
 // font files. New brands start empty, from a logo, from a website or from a
-// kit file. Each change is one kit update, so it shows in the version history.
+// kit file, with the suggested logo versions. Each change is one kit update,
+// so it shows in the version history.
 
 import { useCallback, useEffect, useState } from "react";
 import { ImageIcon, Loader2, Palette, Plus, Settings2, Shapes, Type as TypeIcon } from "lucide-react";
@@ -24,6 +25,8 @@ import { BrandLogosTab } from "./brand/BrandLogosTab";
 import { BrandGraphicsTab } from "./brand/BrandGraphicsTab";
 import { BrandSettingsTab } from "./brand/BrandSettingsTab";
 import type { BrandAssets } from "./brand/types";
+import { defaultLogoVersions } from "./brand/LogoVersionsEditor";
+import { LEGACY_VERSIONS, relinkLogos } from "@/lib/logoVersions";
 
 export const brandTabs = ["colors", "fonts", "logos", "graphics", "settings"] as const;
 export type BrandTab = (typeof brandTabs)[number];
@@ -104,6 +107,13 @@ export function BrandPage({ workspaceId, canEditKit, canEditLibrary = canEditKit
     setKitId(k.id);
     setCreating(false);
     setTab("colors");
+    // A new brand starts with the suggested logo versions (colour, black,
+    // white); its logos so far move into them. Changeable under Settings.
+    if (!k.logoVersions?.length) {
+      const versions = defaultLogoVersions();
+      void oc.updateBrandKit(k.id, { logoVersions: versions, logos: relinkLogos(k.logos, LEGACY_VERSIONS, versions) })
+        .then((u) => setKits((ks) => ks?.map((x) => (x.id === u.id ? u : x)) ?? ks), () => {});
+    }
   }, [setTab]);
 
   async function createEmpty() {

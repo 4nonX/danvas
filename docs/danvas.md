@@ -282,9 +282,9 @@ In the dashboard's left rail, **Brand**: one page for the workspace's brands, wi
 - **Brands**: choose one at the top when there are several. **New brand** starts one empty, from a logo (its colours become the palette), from a company website (logo, colours and fonts as a draft to review) or from a kit file.
 - **Colors**: every palette with its swatches, their print values and their role (for example primary, accent). Add a colour by picker or hex value, change its role, remove it. Colours from a design's selection or page are added in the editor's brand panel, where the design is open.
 - **Fonts**: the kit's font roles (heading, body, prices, ...), each naming a font. Below them the **workspace fonts**: font files uploaded once, then in every font picker and embedded in vector exports (this list used to be on the Members page).
-- **Logos**: each logo on a light and on a dark ground. Add one from the uploads or a new file, rename it, give it a version for dark backgrounds (generated decks draw it on deep pages, the brand check accepts it as the logo), change or remove that version, remove the logo.
+- **Logos**: one row per logo with its versions side by side, each on the ground it is made for. Which versions there are (for example colour, black and white) the brand sets under **Settings**, **Logo versions**: named, each for a light or a dark ground, ordered, added and removed; a new brand starts with colour, black and white, and a brand that has not named any has the logo and its version for dark backgrounds. Add a logo from the uploads or a new file, give a version a file, replace or remove it, rename the logo, or make a logo kept as a separate entry ("Logo (black)") a version of another logo. Generated decks draw a version for dark grounds on deep pages, and the brand check accepts every version as the logo.
 - **Graphics**: see [Brand graphics](#brand-graphics).
-- **Settings**: the name, **Make standard** (designs without a brand of their own use the standard brand), the rules (lock colors to the palette, lock fonts to the approved set, restrict to brand templates, the brand check before export: off, warn or block), the voice for generated copy (tone, what to say and what to avoid, a sample), the kit file, the version history with restore, and **Delete brand**.
+- **Settings**: the name, **Make standard** (designs without a brand of their own use the standard brand), the logo versions, the rules (lock colors to the palette, lock fonts to the approved set, restrict to brand templates, check text contrast, the brand check before export: off, warn or block), the voice for generated copy (tone, what to say and what to avoid, a sample), the kit file, the version history with restore, and **Delete brand**.
 
 Who changes what is set under [Roles and permissions](#roles-and-permissions):
 
@@ -292,6 +292,8 @@ Who changes what is set under [Roles and permissions](#roles-and-permissions):
 - **Maintain the brand library** (`brand.library`): categories and graphics only; colours, fonts, logos and settings stay as they are. Owners and admins have it; give it to another role to let people keep the graphics up to date without changing the brand.
 - **Manage workspace fonts** (`fonts.manage`): the font files.
 - Everyone else sees the page.
+
+**Brand check** (in the editor's brand panel, and before a download under **Warn** or **Block**): it reports colours that are not the brand's (a tint, shade or blend of a brand colour counts as the brand's), fonts that are not the brand's, misused logos (distorted, recoloured, below their minimum size) and, when the rule is on, text whose contrast is below WCAG AA (4.5:1), measured against what is behind the text; a text over a picture, a gradient or a pattern is left alone. The locks only stop off-brand colours and fonts from being saved; the check reports them either way.
 
 In the editor, the brand panel applies the brand: colours to the selection or the page, fonts to text, logos and graphics placed by click or drag. It links to the Brand page for changes.
 

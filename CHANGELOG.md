@@ -2,17 +2,31 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
-## 0.9.1 (2026-10-23)
+## 1.0.0 (2026-10-23)
+
+### Added
+
+- **Logo versions.** A brand names the versions its logos come in, under **Brand**, **Settings**, **Logo versions**: for example colour, black and white, each for a light or a dark ground, in any number and order. What one workspace uses need not suit another, so every brand sets its own; a new brand starts with colour, black and white. The **Logos** tab shows one row per logo with its versions side by side, each on its ground: add a file to a version, replace or remove it, rename the logo, or turn a logo kept as a separate entry ("Logo (black)") into a version of another one. The editor's brand panel and **Replace object** show each logo with all its versions. Generated decks still use the version for dark grounds, and the brand check accepts every version as the logo. A brand that has not named versions keeps the logo and its version for dark grounds, as before. The kit file carries the versions.
+- **Text contrast check is optional**: **Check text contrast (WCAG AA)** under the brand's rules, off unless turned on.
+
+### Changed
+
+- **The brand check checks the brand.** It reports colours that are not the brand's (a tint, shade or blend of a brand colour counts as the brand's) and fonts that are not the brand's whether or not they are locked; the locks still stop such changes when saving. Its findings are shown in the reader's language.
+- **Graphics on the Brand page** show their full name (up to two lines) with the actions below it.
 
 ### Fixed
 
-- **Templates**: a template saved for everyone (public) did not show on the Templates page of the workspace it came from, or only after reloading the browser page. Public templates were stored without their workspace, so the workspace's gallery left them out; the home page's unfiltered list then sometimes replaced the gallery's list as it loaded, which is why a reload could show them. A public template now keeps the workspace it was saved from: it shows in that gallery, and the workspace's admins may file it in a collection and delete it. Other workspaces see it as before. The Templates page no longer has its list replaced by the home page's.
-
-- **Brand page, Logos**: setting or changing a logo's version for dark backgrounds seemed to do nothing: the file picker opened below the whole grid, out of view with several logos. It now opens as a dialog. New: **Replace file** gives a logo another file; designs that already use the logo keep the old one.
+- **Text contrast** was measured against the page background, so white text on a coloured panel was reported at 1.0:1. It is now measured against what is really behind the text; a text over a picture, a gradient or a pattern is left alone rather than guessed.
+- **Light pictures in pick lists** (a white logo in **Replace object**, the uploads picker, the graphics) vanished on the white tiles. Each picture now shows on a transparency board, a dark one for light artwork.
+- **Templates**: a template saved for everyone (public) did not show on the Templates page of the workspace it came from, or only after reloading the browser page. Public templates were stored without their workspace, so the workspace's gallery left them out, and the home page's unfiltered list sometimes replaced the gallery's as it loaded. A public template now keeps the workspace it was saved from: it shows in that gallery, and the workspace's admins may file it in a collection and delete it. Other workspaces see it as before.
+- **Brand page, Logos**: picking a file for a logo opened below the whole grid, out of view, so the button seemed to do nothing. It now opens as a dialog.
+- The colour field for adding brand colours started at a fixed magenta from the original product; it now starts at the brand's first colour.
 
 ### Upgrading
 
-- No database change, no change to the file format. Public templates saved before keep no workspace and show only in the unfiltered lists; saving them again, or setting their `templates.workspace_id`, puts them in the workspace's gallery.
+- One new column, `brand_kits.logo_versions` (JSONB, empty by default): additive, a rollback ignores it. Logos keep their main and dark file in the existing fields, so everything that reads only those, older versions included, sees the right files; an older version that edits a brand's logos keeps those files but may drop the named versions. No change to the design file format.
+- Brands whose rules leave colours and fonts unlocked now see colour and font findings in the brand check; under the rule **Block** these block downloads like any other finding.
+- Public templates saved before keep no workspace and show only in the unfiltered lists; saving them again, or setting their `templates.workspace_id`, puts them in the workspace's gallery.
 
 ## 0.9.0 (2026-10-23)
 

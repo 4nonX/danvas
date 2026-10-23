@@ -10,8 +10,10 @@ import { locate } from "@hc/editor";
 import { Modal } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
 import { tr } from "@/lib/i18n";
+import { ArtworkPreview } from "@/components/ui/ArtworkPreview";
 import { directUploadWithProgress, oc, resolveAssetUrl } from "@/lib/sdk";
 import { useBrand } from "@/store/brand";
+import { kitVersions, logoFiles, versionName } from "@/lib/logoVersions";
 import { templateLockBlocking, useEditor } from "@/store/editor";
 import {
   finishReplacement,
@@ -173,12 +175,16 @@ export function ReplaceObjectDialog({ workspaceId }: { workspaceId: string | nul
   };
 
   const byId = new Map((assets ?? []).map((a) => [a.id, a]));
-  const logoTiles: { key: string; asset: UploadedAsset; label: string }[] = [];
-  for (const l of kit?.logos ?? []) {
-    const main = byId.get(l.assetId);
-    if (main) logoTiles.push({ key: l.id, asset: main, label: l.label });
-    const dark = l.variants?.dark ? byId.get(l.variants.dark) : undefined;
-    if (dark) logoTiles.push({ key: `${l.id}-dark`, asset: dark, label: tr("editor.replace_dark_variant", { name: l.label }) });
+  // Every version of every logo (colour, black, white, ...), on its ground.
+  const logoTiles: { key: string; asset: UploadedAsset; label: string; dark: boolean }[] = [];
+  if (kit) {
+    const versions = kitVersions(kit);
+    for (const l of kit.logos) {
+      const files = logoFiles(l, versions).filter((f) => f.assetId && byId.has(f.assetId));
+      for (const f of files) {
+        logoTiles.push({ key: `${l.id}-${f.version.id}`, asset: byId.get(f.assetId!)!, label: files.length > 1 ? `${l.label} (${versionName(f.version)})` : l.label, dark: f.version.ground === "dark" });
+      }
+    }
   }
   const logoIds = new Set(logoTiles.map((t) => t.asset.id));
   const uploads = (assets ?? []).filter((a) => !logoIds.has(a.id));
@@ -192,10 +198,15 @@ export function ReplaceObjectDialog({ workspaceId }: { workspaceId: string | nul
       onClick={() => void pick({ url: resolveAssetUrl(asset.url), name: label })}
       className={`light group flex aspect-square flex-col overflow-hidden rounded-lg border border-neutral-200 text-start transition hover:border-brand-400 disabled:opacity-50 ${dark ? "bg-neutral-800" : "bg-white"}`}
     >
-      <span className="flex min-h-0 flex-1 items-center justify-center p-2">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={asset.thumbnail ?? resolveAssetUrl(asset.url)} alt="" className="max-h-full max-w-full object-contain" />
-      </span>
+      {dark ? (
+        <span className="flex min-h-0 flex-1 items-center justify-center p-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={asset.thumbnail ?? resolveAssetUrl(asset.url)} alt="" className="max-h-full max-w-full object-contain" />
+        </span>
+      ) : (
+        // A light upload (a white logo) shows on a dark board, not white on white.
+        <ArtworkPreview src={asset.thumbnail ?? resolveAssetUrl(asset.url)} className="min-h-0 flex-1 p-2" tile={8} />
+      )}
       <span className="truncate border-t border-neutral-200 bg-white px-1.5 py-1 text-[10px] text-neutral-600">{label}</span>
     </button>
   );
@@ -211,7 +222,7 @@ export function ReplaceObjectDialog({ workspaceId }: { workspaceId: string | nul
             {logoTiles.length > 0 && (
               <section>
                 <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("editor.logos")}</h3>
-                <div className="grid grid-cols-4 gap-2">{logoTiles.map((t) => tile(t.key, t.asset, t.label, t.key.endsWith("-dark")))}</div>
+                <div className="grid grid-cols-4 gap-2">{logoTiles.map((t) => tile(t.key, t.asset, t.label, t.dark))}</div>
               </section>
             )}
             <section>

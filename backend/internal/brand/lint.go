@@ -1,7 +1,9 @@
 // Brand linter + pre-export gate (doc 18 FR-7/FR-8), porting @hc/brandkit
 // lint.ts + gate.ts. A pure rule engine over the design file (map[string]any)
-// and a resolved kit: off-brand color/font (when locked), low-contrast text,
-// logo misuse, and margin spacing. The gate turns the violations into an
+// and a resolved kit: off-brand color and font (whenever the kit names
+// colours or fonts; locks only add enforcement on save), logo misuse, margin
+// spacing, and, when the kit asks for it, low-contrast text measured against
+// what lies behind it (lint_ground.go). The gate turns the violations into an
 // export-blocking decision under lintPolicy "block". Reuses the color/kit
 // extraction helpers in enforcement.go so the live lint and the persist gate
 // agree. The editor runs the same rules client-side.
@@ -24,13 +26,16 @@ const (
 
 // LintViolation is one finding (matches the SDK BrandLintViolation).
 type LintViolation struct {
-	ID       string         `json:"id"`
-	Kind     string         `json:"kind"`
-	Severity string         `json:"severity"`
-	NodeID   string         `json:"nodeId"`
-	PageID   string         `json:"pageId"`
-	Message  string         `json:"message"`
-	Fix      map[string]any `json:"fix,omitempty"`
+	ID       string `json:"id"`
+	Kind     string `json:"kind"`
+	Severity string `json:"severity"`
+	NodeID   string `json:"nodeId"`
+	PageID   string `json:"pageId"`
+	Message  string `json:"message"`
+	// Params are the values in the message (hex, font, ratio, size), so the
+	// client can say it in the reader's language.
+	Params map[string]string `json:"params,omitempty"`
+	Fix    map[string]any    `json:"fix,omitempty"`
 }
 
 // GateResult is the pre-export decision (matches the SDK BrandLintResult).
@@ -89,7 +94,12 @@ func parseLintKit(row *BrandKitRow) lintKit {
 	_ = json.Unmarshal(bk.Logos, &logos)
 	for _, l := range logos {
 		variants := asObjMap(l["variants"])
-		for _, id := range []string{strAt(l["assetId"]), strAt(variants["dark"]), strAt(variants["light"])} {
+		ids := []string{strAt(l["assetId"]), strAt(variants["dark"]), strAt(variants["light"])}
+		// Every named version of the logo counts as the logo.
+		for _, v := range asObjMap(l["versions"]) {
+			ids = append(ids, strAt(v))
+		}
+		for _, id := range ids {
 			if id != "" {
 				k.logoIDs[id] = true
 			}
@@ -155,8 +165,9 @@ func lintFile(file map[string]any, kit lintKit) []LintViolation {
 	}
 	pages := asArrAny(file["pages"])
 
-	// Off-brand colors.
-	if kit.controls.LockColors && len(kit.palette) > 0 {
+	// Off-brand colors: whatever the locks, a colour that is not the brand's
+	// (nor a tint, shade or blend of it) is reported.
+	if len(kit.palette) > 0 {
 		seen := map[string]bool{}
 		for _, pr := range pages {
 			page := asObjMap(pr)
@@ -184,14 +195,15 @@ func lintFile(file map[string]any, kit lintKit) []LintViolation {
 				out = append(out, LintViolation{
 					ID: key, Kind: "off-brand-color", Severity: "warn", NodeID: u.nodeID, PageID: pageID,
 					Message: fmt.Sprintf("Color %s is not in the brand palette.", hex),
+					Params:  map[string]string{"hex": hex, "nearest": hexOf(near)},
 					Fix:     map[string]any{"kind": "snap_color", "from": hex, "to": hexOf(near)},
 				})
 			}
 		}
 	}
 
-	// Off-brand fonts.
-	if kit.controls.LockFonts && len(kit.families) > 0 {
+	// Off-brand fonts, whatever the locks.
+	if len(kit.families) > 0 {
 		seen := map[string]bool{}
 		for _, pr := range pages {
 			page := asObjMap(pr)
@@ -211,6 +223,7 @@ func lintFile(file map[string]any, kit lintKit) []LintViolation {
 				v := LintViolation{
 					ID: key, Kind: "off-brand-font", Severity: "warn", NodeID: f.nodeID, PageID: pageID,
 					Message: fmt.Sprintf("Font %q is not an approved brand font.", f.family),
+					Params:  map[string]string{"font": f.family},
 				}
 				if kit.swapFont != "" && !strings.EqualFold(strings.TrimSpace(kit.swapFont), strings.TrimSpace(f.family)) {
 					v.Fix = map[string]any{"kind": "swap_font", "from": f.family, "to": kit.swapFont}
@@ -220,32 +233,39 @@ func lintFile(file map[string]any, kit lintKit) []LintViolation {
 		}
 	}
 
-	// Low-contrast text (advisory whenever a kit is present).
-	for _, pr := range pages {
-		page := asObjMap(pr)
-		pageID := strAt(page["id"])
-		bg := rgb{1, 1, 1}
-		if c, ok := pageBackground(page); ok {
-			bg = c
-		}
-		walkTyped(asArrAny(page["children"]), func(n map[string]any) {
-			if n["type"] != "text" {
-				return
-			}
-			fg, ok := firstTextColor(n)
-			if !ok {
-				return
-			}
-			ratio := color.ContrastRatio(fg.r, fg.g, fg.b, bg.r, bg.g, bg.b)
-			if ratio >= aaNormal {
-				return
-			}
-			out = append(out, LintViolation{
-				ID: "contrast:" + strAt(n["id"]), Kind: "low-contrast", Severity: "warn",
-				NodeID: strAt(n["id"]), PageID: pageID,
-				Message: fmt.Sprintf("Text contrast %.1f:1 is below WCAG AA (4.5:1).", ratio),
+	// Low-contrast text, when the kit asks for it: against the colour that
+	// is really behind the text; a text over an image, a gradient or a
+	// pattern is left alone.
+	if kit.controls.CheckContrast {
+		for _, pr := range pages {
+			page := asObjMap(pr)
+			pageID := strAt(page["id"])
+			grounds := textGrounds(page)
+			walkTyped(asArrAny(page["children"]), func(n map[string]any) {
+				if n["type"] != "text" {
+					return
+				}
+				bg, ok := grounds[strAt(n["id"])]
+				if !ok {
+					return
+				}
+				fg, ok := firstTextColor(n)
+				if !ok {
+					return
+				}
+				ratio := color.ContrastRatio(fg.r, fg.g, fg.b, bg.r, bg.g, bg.b)
+				if ratio >= aaNormal {
+					return
+				}
+				r := fmt.Sprintf("%.1f", ratio)
+				out = append(out, LintViolation{
+					ID: "contrast:" + strAt(n["id"]), Kind: "low-contrast", Severity: "warn",
+					NodeID: strAt(n["id"]), PageID: pageID,
+					Message: fmt.Sprintf("Text contrast %s:1 is below WCAG AA (4.5:1).", r),
+					Params:  map[string]string{"ratio": r},
+				})
 			})
-		})
+		}
 	}
 
 	// Logo misuse.
@@ -285,6 +305,7 @@ func lintFile(file map[string]any, kit lintKit) []LintViolation {
 						out = append(out, LintViolation{
 							ID: "logo-size:" + nodeID, Kind: "logo-misuse", Severity: "warn", NodeID: nodeID, PageID: pageID,
 							Message: fmt.Sprintf("Logo is below its minimum size (%.0fpx).", min),
+							Params:  map[string]string{"size": fmt.Sprintf("%.0f", min)},
 							Fix:     map[string]any{"kind": "restore_logo", "reason": "min_size"},
 						})
 					}
@@ -310,6 +331,7 @@ func lintFile(file map[string]any, kit lintKit) []LintViolation {
 						ID: "spacing:" + strAt(n["id"]), Kind: "spacing", Severity: "info",
 						NodeID: strAt(n["id"]), PageID: pageID,
 						Message: fmt.Sprintf("Element extends into the %.0fpx brand margin.", margin),
+						Params:  map[string]string{"size": fmt.Sprintf("%.0f", margin)},
 					})
 				}
 			})

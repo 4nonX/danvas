@@ -26,7 +26,12 @@ export interface KitFileColor { id?: string; role: string; name?: string; hex: s
 export interface KitFilePalette { id?: string; name: string; colors: KitFileColor[] }
 export interface KitFileFont { id?: string; role: string; family: string; defaultStyle?: BrandFont["defaultStyle"] }
 export interface KitFileFontFile { family: string; weight: number; style: "normal" | "italic"; file: string }
-export interface KitFileLogo { id?: string; label: string; file: string; darkFile?: string; lightFile?: string; clearSpaceRatio?: number; minSizePx?: number }
+export interface KitFileLogo {
+  id?: string; label: string; file: string; darkFile?: string; lightFile?: string; clearSpaceRatio?: number; minSizePx?: number;
+  /** One file per version of the kit (logoVersions), by version id. */
+  versionFiles?: Record<string, string>;
+}
+export interface KitFileLogoVersion { id: string; name: string; ground: "light" | "dark" }
 export interface KitFileCollection { id?: string; kind: BrandCollection["kind"]; name?: string; files: string[] }
 
 /** The manifest, `brandkit.json` at the root of the archive. */
@@ -39,6 +44,8 @@ export interface KitFile {
   fonts: KitFileFont[];
   fontFiles: KitFileFontFile[];
   logos: KitFileLogo[];
+  /** The versions the logos come in (colour, black, white, ...). Optional. */
+  logoVersions?: KitFileLogoVersion[];
   collections: KitFileCollection[];
   voice: Omit<BrandVoice, "modelProfileId"> | null;
   controls?: Partial<BrandControls>;
@@ -150,12 +157,19 @@ export async function exportKit(kit: BrandKit, src: ExportSources, now = new Dat
     if (!file) continue;
     const darkFile = await put(l.variants?.dark, "logos", `${l.label || "logo"}-dark`);
     const lightFile = await put(l.variants?.light, "logos", `${l.label || "logo"}-light`);
+    const versionFiles: Record<string, string> = {};
+    for (const [vid, assetId] of Object.entries(l.versions ?? {})) {
+      const vname = kit.logoVersions?.find((v) => v.id === vid)?.name || vid;
+      const f = await put(assetId, "logos", `${l.label || "logo"}-${vname}`);
+      if (f) versionFiles[vid] = f;
+    }
     logos.push({
       id: l.id, label: l.label, file,
       ...(darkFile ? { darkFile } : {}),
       ...(lightFile ? { lightFile } : {}),
       ...(l.clearSpaceRatio !== undefined ? { clearSpaceRatio: l.clearSpaceRatio } : {}),
       ...(l.minSizePx !== undefined ? { minSizePx: l.minSizePx } : {}),
+      ...(Object.keys(versionFiles).length ? { versionFiles } : {}),
     });
   }
 
@@ -201,6 +215,7 @@ export async function exportKit(kit: BrandKit, src: ExportSources, now = new Dat
     fonts: kit.fonts.map((f) => ({ id: f.id, role: f.role, family: f.fontFamily, ...(f.defaultStyle ? { defaultStyle: f.defaultStyle } : {}) })),
     fontFiles,
     logos,
+    ...(kit.logoVersions?.length ? { logoVersions: kit.logoVersions.map((v) => ({ id: v.id, name: v.name, ground: v.ground })) } : {}),
     collections,
     // The AI model profile exists only in the source workspace.
     voice: kit.voice ? { tone: kit.voice.tone, doSay: kit.voice.doSay, dontSay: kit.voice.dontSay, ...(kit.voice.sampleCopy ? { sampleCopy: kit.voice.sampleCopy } : {}) } : null,
@@ -246,6 +261,15 @@ const cmykOf = (v: unknown, where: string): Cmyk => {
 
 /** Normalize a path inside the archive: forward slashes, no leading `./`. */
 const norm = (p: string) => p.replace(/\\/g, "/").replace(/^(\.\/)+/, "").replace(/^\/+/, "");
+
+/** A logo's version files: version id -> path, or undefined when absent. */
+const versionFilesOf = (v: unknown, where: string): Record<string, string> | undefined => {
+  if (v === undefined || v === null) return undefined;
+  if (!isObj(v)) throw bad(`${where} must be an object`);
+  const out: Record<string, string> = {};
+  for (const [k, f] of Object.entries(v)) out[k] = norm(str(f, `${where}["${k}"]`));
+  return Object.keys(out).length ? out : undefined;
+};
 
 /** Check a manifest and bring it into the typed shape. Throws a CodedError
  *  naming the first problem. */
@@ -312,8 +336,20 @@ export function checkManifest(raw: unknown): KitFile {
       lightFile: lightFile ? norm(lightFile) : undefined,
       clearSpaceRatio: optNum(l.clearSpaceRatio, `logos[${i}].clearSpaceRatio`),
       minSizePx: optNum(l.minSizePx, `logos[${i}].minSizePx`),
+      versionFiles: versionFilesOf(l.versionFiles, `logos[${i}].versionFiles`),
     };
   });
+
+  const logoVersions = arr(raw.logoVersions, "logoVersions").map((v, i) => {
+    if (!isObj(v)) throw bad(`logoVersions[${i}] must be an object`);
+    if (v.ground !== "light" && v.ground !== "dark") throw bad(`logoVersions[${i}].ground must be "light" or "dark"`);
+    return { id: str(v.id, `logoVersions[${i}].id`), name: optStr(v.name, `logoVersions[${i}].name`) ?? "", ground: v.ground } as KitFileLogoVersion;
+  });
+  for (const [i, l] of logos.entries()) {
+    for (const vid of Object.keys(l.versionFiles ?? {})) {
+      if (!logoVersions.some((v) => v.id === vid)) throw bad(`logos[${i}].versionFiles names "${vid}", which is not in logoVersions`);
+    }
+  }
 
   const collections = arr(raw.collections, "collections").map((c, i) => {
     if (!isObj(c)) throw bad(`collections[${i}] must be an object`);
@@ -364,6 +400,7 @@ export function checkManifest(raw: unknown): KitFile {
     format: KIT_FORMAT, formatVersion: v, name,
     exportedAt: optStr(raw.exportedAt, "exportedAt"),
     palettes, fonts, fontFiles, logos, collections, voice, controls,
+    ...(logoVersions.length ? { logoVersions } : {}),
     ...(fileNames ? { fileNames } : {}),
   };
 }
@@ -372,7 +409,12 @@ export function checkManifest(raw: unknown): KitFile {
 export function referencedFiles(m: KitFile): string[] {
   const out = new Set<string>();
   for (const f of m.fontFiles) out.add(f.file);
-  for (const l of m.logos) { out.add(l.file); if (l.darkFile) out.add(l.darkFile); if (l.lightFile) out.add(l.lightFile); }
+  for (const l of m.logos) {
+    out.add(l.file);
+    if (l.darkFile) out.add(l.darkFile);
+    if (l.lightFile) out.add(l.lightFile);
+    for (const f of Object.values(l.versionFiles ?? {})) out.add(f);
+  }
   for (const c of m.collections) for (const f of c.files) out.add(f);
   return [...out];
 }
@@ -480,7 +522,7 @@ export interface ImportTarget {
  *  goes out and comes back keeps its palette, font and logo ids. */
 export async function uploadKitContent(parsed: ParsedKitFile, to: ImportTarget): Promise<Required<Omit<BrandKitPatch, "name" | "isDefault">>> {
   const m = parsed.manifest;
-  const paths = [...m.logos.flatMap((l) => [l.file, l.darkFile, l.lightFile]), ...m.collections.flatMap((c) => c.files)].filter((p): p is string => !!p);
+  const paths = [...m.logos.flatMap((l) => [l.file, l.darkFile, l.lightFile, ...Object.values(l.versionFiles ?? {})]), ...m.collections.flatMap((c) => c.files)].filter((p): p is string => !!p);
   const unique = [...new Set(paths)];
   const total = unique.length + m.fontFiles.length;
   let done = 0;
@@ -534,11 +576,13 @@ export async function uploadKitContent(parsed: ParsedKitFile, to: ImportTarget):
       ...(Object.keys(variants).length ? { variants } : {}),
       ...(l.clearSpaceRatio !== undefined ? { clearSpaceRatio: l.clearSpaceRatio } : {}),
       ...(l.minSizePx !== undefined ? { minSizePx: l.minSizePx } : {}),
+      ...(l.versionFiles ? { versions: Object.fromEntries(Object.entries(l.versionFiles).map(([vid, f]) => [vid, ids.get(f)!])) } : {}),
     };
   });
   const collections: BrandCollection[] = m.collections.map((c) => ({ id: c.id ?? newId("c"), kind: c.kind, ...(c.name ? { name: c.name } : {}), assetIds: c.files.map((f) => ids.get(f)!) }));
   const voice: BrandVoice | null = m.voice ? { tone: m.voice.tone, doSay: m.voice.doSay, dontSay: m.voice.dontSay, ...(m.voice.sampleCopy ? { sampleCopy: m.voice.sampleCopy } : {}) } : null;
-  return { palettes, fonts, logos, collections, voice, controls: m.controls ?? {} };
+  const logoVersions = (m.logoVersions ?? []).map((v) => ({ id: v.id, name: v.name, ground: v.ground }));
+  return { palettes, fonts, logos, collections, voice, controls: m.controls ?? {}, logoVersions };
 }
 
 /** Hex SHA-256 of some bytes, or undefined where the browser offers none

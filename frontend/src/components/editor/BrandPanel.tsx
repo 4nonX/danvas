@@ -25,6 +25,7 @@ import { useEditor, type ReskinResult, type ReskinOverrides, type BrandFixTarget
 import { useBrand, brandHexColors, brandFontFamilies, brandColorOf } from "@/store/brand";
 import { useCan } from "@/store/workspaceActions";
 import { srgbFromHexFull } from "@/components/brand/kitEditors";
+import { kitVersions, logoFiles, versionName } from "@/lib/logoVersions";
 import { selectionColors } from "@/lib/selectionColors";
 import { printColorLabel } from "@/lib/print/printColor";
 import { fonts } from "@/lib/fontProvider";
@@ -38,6 +39,20 @@ function fixTargetOf(v: BrandLintViolation): BrandFixTarget | null {
   if (!v.fix || !v.nodeId) return null;
   if (v.fix.kind === "restore_logo") return null;
   return { nodeId: v.nodeId, fix: v.fix };
+}
+
+/** A finding in the reader's language, from its kind and values; the
+ *  server's English text where the kind is not known here. */
+function lintMessage(v: BrandLintViolation): string {
+  const p = v.params ?? {};
+  if (v.kind === "off-brand-color" && p.hex) return tr("brand.lint_color", { hex: p.hex.toUpperCase() });
+  if (v.kind === "off-brand-font" && p.font) return tr("brand.lint_font", { font: p.font });
+  if (v.kind === "low-contrast" && p.ratio) return tr("brand.lint_contrast", { ratio: p.ratio });
+  if (v.kind === "spacing" && p.size) return tr("brand.lint_spacing", { size: p.size });
+  if (v.id.startsWith("logo-aspect:")) return tr("brand.lint_logo_aspect");
+  if (v.id.startsWith("logo-recolor:")) return tr("brand.lint_logo_recolor");
+  if (v.id.startsWith("logo-size:") && p.size) return tr("brand.lint_logo_size", { size: p.size });
+  return v.message;
 }
 
 /** Human label for a violation kind, for grouping. */
@@ -189,7 +204,7 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
     if (result.colors.length === 0 && result.fonts.length === 0)
       toast.toast(tr("editor.design_is_already_on_brand"), "info");
     else
-      toast.success(`Re-skinned: ${result.colors.length} colors, ${result.fonts.length} fonts.`);
+      toast.success(tr("editor.reskinned", { colors: result.colors.length, fonts: result.fonts.length }));
   }, [kit, toast]);
 
   // Apply brand: set defaults going forward (page bg = first brand color, the
@@ -256,7 +271,7 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
     const targets = violations.map(fixTargetOf).filter((t): t is BrandFixTarget => t !== null);
     if (!targets.length) { toast.toast(tr("editor.no_safe_auto_fixes_available"), "info"); return; }
     const n = useEditor.getState().applyBrandFixes(targets);
-    if (n > 0) { toast.success(`Applied ${n} fix${n === 1 ? "" : "es"}.`); void runLint(); }
+    if (n > 0) { toast.success(tr("editor.fixes_applied", { count: n })); void runLint(); }
   }, [violations, runLint, toast]);
 
   // --- pin / track update check (FR-10) -------------------------------------
@@ -434,41 +449,30 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
             )}
           </CollapsibleSection>
 
-          {/* Logos (FR-1): placed from here, managed on the Brand page. */}
+          {/* Logos (FR-1): each with its versions (colour, black, white, ...)
+              on their grounds, placed from here, managed on the Brand page. */}
           {kit.logos.length > 0 && (
             <CollapsibleSection title={tr("editor.logos")} icon={ImageIcon} badge={kit.logos.length}>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="flex flex-col gap-2">
                 {kit.logos.map((l) => {
-                  const dark = l.variants?.dark && assetUrls[l.variants.dark] ? l.variants.dark : null;
+                  const files = logoFiles(l, kitVersions(kit)).filter((f) => f.assetId && assetUrls[f.assetId]);
+                  if (!files.length) return null;
                   return (
-                    // Pinned light: the tiles preview the logo on light and on dark
-                    // grounds, whatever the app theme is. Both halves are the same
-                    // size, so the two versions read as equals.
                     <div key={l.id} className="light overflow-hidden rounded-lg border border-neutral-200">
-                      <button
-                        onClick={() => void placeIcon(l.assetId)}
-                        title={`${tr("editor.place_logo")}: ${l.label}`}
-                        className="flex aspect-[3/2] w-full items-center justify-center bg-neutral-50 p-2 hover:bg-brand-50"
-                      >
-                        {assetUrls[l.assetId] ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={resolveAssetUrl(assetUrls[l.assetId])} alt={l.label} className="max-h-full max-w-full object-contain" />
-                        ) : (
-                          <span className="truncate text-[10px] text-neutral-400">{l.label}</span>
-                        )}
-                      </button>
-                      {/* The version for dark grounds: generated decks draw it on every
-                          deep page, and the brand check accepts it as the logo. */}
-                      {dark && (
-                        <button
-                          onClick={() => void placeIcon(dark)}
-                          title={`${tr("editor.place_logo")}: ${l.label} (${tr("editor.logo_on_dark")})`}
-                          className="flex aspect-[3/2] w-full items-center justify-center border-t border-neutral-200 bg-neutral-900 p-2 hover:bg-neutral-800"
-                        >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={resolveAssetUrl(assetUrls[dark])} alt={`${l.label} ${tr("editor.logo_on_dark")}`} className="max-h-full max-w-full object-contain" />
-                        </button>
-                      )}
+                      <div className="grid" style={{ gridTemplateColumns: `repeat(${files.length}, minmax(0, 1fr))` }}>
+                        {files.map(({ version: v, assetId }) => (
+                          <button
+                            key={v.id}
+                            onClick={() => void placeIcon(assetId!)}
+                            title={`${tr("editor.place_logo")}: ${l.label} (${versionName(v)})`}
+                            className={`flex aspect-[3/2] items-center justify-center p-1.5 ${v.ground === "dark" ? "bg-neutral-900 hover:bg-neutral-800" : "bg-neutral-50 hover:bg-brand-50"}`}
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={resolveAssetUrl(assetUrls[assetId!])} alt={`${l.label} ${versionName(v)}`} className="max-h-full max-w-full object-contain" />
+                          </button>
+                        ))}
+                      </div>
+                      <div className="truncate border-t border-neutral-200 bg-white px-2 py-1 text-[11px] text-neutral-600" title={l.label}>{l.label}</div>
                     </div>
                   );
                 })}
@@ -636,7 +640,7 @@ function LintSection({
                   return (
                     <li key={v.id} className="rounded-lg border border-neutral-100 bg-neutral-50 px-2 py-1.5 text-xs">
                       <button onClick={() => onHighlight(v)} disabled={!v.nodeId} className="block w-full text-start text-neutral-600 hover:text-brand-ink disabled:cursor-default disabled:hover:text-neutral-600" title={v.nodeId ? tr("editor.highlight_on_canvas") : undefined}>
-                        {v.message}
+                        {lintMessage(v)}
                       </button>
                       <button onClick={() => onFix(v)} className="mt-1 text-[11px] font-medium text-brand-ink hover:underline">
                         {canFix ? tr("editor.fix") : tr("editor.how_to_fix")}
@@ -649,7 +653,7 @@ function LintSection({
           ))}
           {fixable > 0 && (
             <button onClick={onFixAll} className="flex items-center justify-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700">
-              <Wand2 size={14} /> Fix all safe issues ({fixable})
+              <Wand2 size={14} /> {tr("editor.fix_all_safe_issues", { count: fixable })}
             </button>
           )}
         </div>
@@ -859,7 +863,8 @@ function ReskinMapping({
 }
 
 function AddBrandColors({ existing, onAdd }: { existing: string[]; onAdd: (colors: (string | { hex: string; color: Color })[]) => void }) {
-  const [hex, setHex] = useState("#9b2c72");
+  // Starts at the brand's first colour (a neighbour is the usual addition).
+  const [hex, setHex] = useState(existing[0] ?? "#000000");
   const selection = useEditor((s) => s.selection);
   const rev = useEditor((s) => s.rev);
   const toast = useToast();
@@ -912,7 +917,7 @@ function AddBrandColors({ existing, onAdd }: { existing: string[]; onAdd: (color
           onChange={(e) => setHex(e.target.value.startsWith("#") || e.target.value === "" ? e.target.value : `#${e.target.value}`)}
           onKeyDown={(e) => { if (e.key === "Enter" && valid) { onAdd([clean]); } }}
           aria-label={tr("editor.hex")}
-          placeholder="#9b2c72"
+          placeholder="#000000"
           spellCheck={false}
           className="min-w-0 flex-1 rounded-lg border border-neutral-200 px-2 py-1.5 font-mono text-xs uppercase outline-none focus:border-brand-400"
         />

@@ -54,6 +54,9 @@ type BrandControls struct {
 	LockFonts         bool   `json:"lockFonts"`
 	RestrictTemplates bool   `json:"restrictTemplates"`
 	LintPolicy        string `json:"lintPolicy"`
+	// CheckContrast adds the WCAG AA text contrast check to the brand
+	// check; off unless the kit turns it on.
+	CheckContrast bool `json:"checkContrast"`
 }
 
 // defaultControls is the control set a fresh kit starts with (nothing locked;
@@ -77,8 +80,11 @@ type BrandKit struct {
 	Voice       json.RawMessage `json:"voice"`
 	Collections json.RawMessage `json:"collections"`
 	Controls    BrandControls   `json:"controls"`
-	CreatedAt   string          `json:"createdAt"`
-	UpdatedAt   string          `json:"updatedAt"`
+	// LogoVersions: the versions each logo comes in, [{id, name, ground}]
+	// with ground "light" or "dark"; [] until the kit names them.
+	LogoVersions json.RawMessage `json:"logoVersions"`
+	CreatedAt    string          `json:"createdAt"`
+	UpdatedAt    string          `json:"updatedAt"`
 }
 
 // BrandKitVersion is the API view of a stored version snapshot.
@@ -94,15 +100,16 @@ type BrandKitVersion struct {
 // UpdateInput patches a kit. The *Set / non-nil fields select which columns to
 // write; ControlsRaw (when non-nil) is a partial merged over the current controls.
 type UpdateInput struct {
-	Name        *string
-	IsDefault   *bool
-	Palettes    json.RawMessage
-	Fonts       json.RawMessage
-	Logos       json.RawMessage
-	Voice       json.RawMessage
-	VoiceSet    bool
-	Collections json.RawMessage
-	ControlsRaw json.RawMessage
+	Name         *string
+	IsDefault    *bool
+	Palettes     json.RawMessage
+	Fonts        json.RawMessage
+	Logos        json.RawMessage
+	Voice        json.RawMessage
+	VoiceSet     bool
+	Collections  json.RawMessage
+	ControlsRaw  json.RawMessage
+	LogoVersions json.RawMessage
 }
 
 // --- capability helpers --------------------------------------------------
@@ -152,7 +159,7 @@ func (s *Service) assertAnyAction(ctx context.Context, userID, workspaceID strin
 // collections, the library that brand.library maintains (F50).
 func (in UpdateInput) onlyLibrary() bool {
 	return in.Collections != nil && in.Name == nil && in.IsDefault == nil && in.Palettes == nil &&
-		in.Fonts == nil && in.Logos == nil && in.Voice == nil && !in.VoiceSet && in.ControlsRaw == nil
+		in.Fonts == nil && in.Logos == nil && in.Voice == nil && !in.VoiceSet && in.ControlsRaw == nil && in.LogoVersions == nil
 }
 
 // --- views ---------------------------------------------------------------
@@ -166,7 +173,8 @@ func view(row BrandKitRow) BrandKit {
 		ID: row.ID, WorkspaceID: row.WorkspaceID, Name: row.Name, Version: row.Version,
 		IsDefault: row.IsDefault, Palettes: jsonOrEmpty(row.Palettes), Fonts: jsonOrEmpty(row.Fonts),
 		Logos: jsonOrEmpty(row.Logos), Voice: jsonOrNull(row.Voice), Collections: jsonOrEmpty(row.Collections),
-		Controls: controls, CreatedAt: row.CreatedAt.UTC().Format(isoFmt), UpdatedAt: row.UpdatedAt.UTC().Format(isoFmt),
+		LogoVersions: jsonOrEmpty(row.LogoVersions),
+		Controls:     controls, CreatedAt: row.CreatedAt.UTC().Format(isoFmt), UpdatedAt: row.UpdatedAt.UTC().Format(isoFmt),
 	}
 }
 
@@ -284,6 +292,7 @@ func (s *Service) UpdateKit(ctx context.Context, kitID, userID string, in Update
 		name: name, version: kit.Version + 1, isDefault: in.IsDefault,
 		palettes: in.Palettes, fonts: in.Fonts, logos: in.Logos,
 		voice: in.Voice, voiceSet: in.VoiceSet, collections: in.Collections, controls: controlsRaw,
+		logoVersions: in.LogoVersions,
 	})
 	if err != nil {
 		return BrandKit{}, err
@@ -335,6 +344,8 @@ func (s *Service) RestoreVersion(ctx context.Context, kitID, userID string, vers
 		name: &prior.Name, version: kit.Version + 1,
 		palettes: prior.Palettes, fonts: prior.Fonts, logos: prior.Logos,
 		voice: prior.Voice, voiceSet: true, collections: prior.Collections, controls: controlsRaw,
+		// A version from before logo versions had none.
+		logoVersions: jsonOrEmpty(prior.LogoVersions),
 	})
 	if err != nil {
 		return BrandKit{}, err

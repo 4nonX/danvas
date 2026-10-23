@@ -36,16 +36,19 @@ type BrandKitRow struct {
 	Voice       json.RawMessage
 	Collections json.RawMessage
 	Controls    json.RawMessage
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	// LogoVersions names the versions every logo of the kit comes in
+	// (colour, black, white, ...); empty for a kit that never set them.
+	LogoVersions json.RawMessage
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
-const kitCols = `id,"workspace_id",name,version,"is_default",palettes,fonts,logos,voice,collections,controls,"created_at","updated_at"`
+const kitCols = `id,"workspace_id",name,version,"is_default",palettes,fonts,logos,voice,collections,controls,"logo_versions","created_at","updated_at"`
 
 func scanKit(row pgx.Row) (BrandKitRow, error) {
 	var k BrandKitRow
 	err := row.Scan(&k.ID, &k.WorkspaceID, &k.Name, &k.Version, &k.IsDefault,
-		&k.Palettes, &k.Fonts, &k.Logos, &k.Voice, &k.Collections, &k.Controls, &k.CreatedAt, &k.UpdatedAt)
+		&k.Palettes, &k.Fonts, &k.Logos, &k.Voice, &k.Collections, &k.Controls, &k.LogoVersions, &k.CreatedAt, &k.UpdatedAt)
 	return k, err
 }
 
@@ -94,16 +97,17 @@ func (s *Service) deleteKit(ctx context.Context, id string) error {
 }
 
 type updatePatch struct {
-	name        *string
-	version     int // 0 = leave unchanged
-	isDefault   *bool
-	palettes    json.RawMessage
-	fonts       json.RawMessage
-	logos       json.RawMessage
-	voice       json.RawMessage
-	voiceSet    bool
-	collections json.RawMessage
-	controls    json.RawMessage
+	name         *string
+	version      int // 0 = leave unchanged
+	isDefault    *bool
+	palettes     json.RawMessage
+	fonts        json.RawMessage
+	logos        json.RawMessage
+	voice        json.RawMessage
+	voiceSet     bool
+	collections  json.RawMessage
+	controls     json.RawMessage
+	logoVersions json.RawMessage
 }
 
 func (s *Service) update(ctx context.Context, id string, p updatePatch) (BrandKitRow, error) {
@@ -139,6 +143,9 @@ func (s *Service) update(ctx context.Context, id string, p updatePatch) (BrandKi
 	}
 	if p.controls != nil {
 		add("controls", p.controls)
+	}
+	if p.logoVersions != nil {
+		add(`"logo_versions"`, p.logoVersions)
 	}
 	q := `UPDATE "brand_kits" SET ` + join(set, ", ") + ` WHERE id = $1 RETURNING ` + kitCols
 	k, err := scanKit(s.db.QueryRow(ctx, q, args...))
