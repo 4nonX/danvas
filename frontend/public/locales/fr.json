@@ -5216,5 +5216,17 @@
   "errors.api_color_library_forbidden": "Vous ne pouvez pas gérer les bibliothèques de couleurs de cet espace de travail.",
   "errors.api_color_library_invalid": "La bibliothèque de couleurs n'est pas valide (aucune couleur, trop de couleurs ou une valeur hors limites).",
   "errors.api_color_library_not_found": "Cette bibliothèque de couleurs n'existe plus.",
-  "errors.api_color_library_too_large": "La bibliothèque de couleurs est trop volumineuse."
+  "errors.api_color_library_too_large": "La bibliothèque de couleurs est trop volumineuse.",
+  "editor.grid_settings": "Grille",
+  "editor.grid_settings_menu": "Réglages de la grille…",
+  "editor.grid_show": "Afficher la grille",
+  "editor.grid_spacing": "Écart entre les lignes",
+  "editor.grid_unit": "Unité",
+  "editor.grid_in_design_unit": "Dans ce design : {length}",
+  "editor.grid_subdivisions": "Subdivisions",
+  "editor.grid_subdivisions_hint": "Lignes plus fines entre deux lignes principales (1 = aucune). Elles apparaissent dès que le zoom est suffisant ; les objets s'alignent sur les lignes les plus fines affichées.",
+  "editor.grid_snap": "Aligner sur la grille",
+  "editor.grid_snap_hint": "Tant que la grille est affichée, les objets déplacés s'y alignent par leur bord le plus proche. Maintenez Maj pour déplacer librement.",
+  "editor.grid_kept_hint": "Les règles, la grille et les barres de défilement sont conservées pour vous dans ce navigateur ; les designs ne changent pas.",
+  "editor.scrollbars": "Barres de défilement"
 }

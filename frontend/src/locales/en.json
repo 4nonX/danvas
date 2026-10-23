@@ -5216,5 +5216,17 @@
   "errors.api_color_library_forbidden": "You may not manage the color libraries of this workspace.",
   "errors.api_color_library_invalid": "The color library is not valid (no colors, too many, or a value out of range).",
   "errors.api_color_library_not_found": "That color library no longer exists.",
-  "errors.api_color_library_too_large": "The color library is too large."
+  "errors.api_color_library_too_large": "The color library is too large.",
+  "editor.grid_settings": "Grid",
+  "editor.grid_settings_menu": "Grid settings…",
+  "editor.grid_show": "Show grid",
+  "editor.grid_spacing": "Distance between lines",
+  "editor.grid_unit": "Unit",
+  "editor.grid_in_design_unit": "In this design: {length}",
+  "editor.grid_subdivisions": "Subdivisions",
+  "editor.grid_subdivisions_hint": "Finer lines between two main lines (1 = none). They show once you zoom in far enough; objects snap to the finest lines shown.",
+  "editor.grid_snap": "Snap to the grid",
+  "editor.grid_snap_hint": "While the grid is shown, moved objects snap with their nearer edge to it. Hold Shift to move freely.",
+  "editor.grid_kept_hint": "Rulers, grid and scrollbars are kept for you in this browser; designs do not change.",
+  "editor.scrollbars": "Scrollbars"
 }

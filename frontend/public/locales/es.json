@@ -5216,5 +5216,17 @@
   "errors.api_color_library_forbidden": "No puedes gestionar las bibliotecas de color de este espacio de trabajo.",
   "errors.api_color_library_invalid": "La biblioteca de color no es válida (sin colores, demasiados o un valor fuera de rango).",
   "errors.api_color_library_not_found": "Esa biblioteca de color ya no existe.",
-  "errors.api_color_library_too_large": "La biblioteca de color es demasiado grande."
+  "errors.api_color_library_too_large": "La biblioteca de color es demasiado grande.",
+  "editor.grid_settings": "Cuadrícula",
+  "editor.grid_settings_menu": "Ajustes de cuadrícula…",
+  "editor.grid_show": "Mostrar cuadrícula",
+  "editor.grid_spacing": "Distancia entre líneas",
+  "editor.grid_unit": "Unidad",
+  "editor.grid_in_design_unit": "En este diseño: {length}",
+  "editor.grid_subdivisions": "Subdivisiones",
+  "editor.grid_subdivisions_hint": "Líneas más finas entre dos líneas principales (1 = ninguna). Aparecen al acercar lo suficiente; los objetos se ajustan a las líneas más finas visibles.",
+  "editor.grid_snap": "Ajustar a la cuadrícula",
+  "editor.grid_snap_hint": "Mientras la cuadrícula está visible, los objetos movidos se ajustan a ella por su borde más cercano. Mantén Mayús para moverlos libremente.",
+  "editor.grid_kept_hint": "Las reglas, la cuadrícula y las barras de desplazamiento se guardan para ti en este navegador; los diseños no cambian.",
+  "editor.scrollbars": "Barras de desplazamiento"
 }

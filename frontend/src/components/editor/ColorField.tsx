@@ -126,7 +126,7 @@ export function ColorField({
       const r = wrapRef.current?.getBoundingClientRect();
       const el = popRef.current;
       if (!r || !el) return;
-      const pw = el.offsetWidth || 240;
+      const pw = el.offsetWidth || 288;
       const ph = el.offsetHeight || 420;
       // Centered under the trigger, clamped to the viewport.
       const left = Math.min(Math.max(8, r.left + r.width / 2 - pw / 2), Math.max(8, window.innerWidth - pw - 8));
@@ -253,7 +253,10 @@ export function ColorField({
           ref={popRef}
           role="dialog"
           aria-label={title ?? tr("editor.edit_color")}
-          className="fixed z-[1000] w-64 max-w-[calc(100vw-1rem)] rounded-xl border border-neutral-200 bg-surface p-3 shadow-xl"
+          // Floating: a panel that opened this picker must not take a click
+          // in it for a click outside (see isInFloating).
+          data-oc-floating=""
+          className="fixed z-[1000] w-72 max-w-[calc(100vw-1rem)] rounded-xl border border-neutral-200 bg-surface p-3 shadow-xl"
           style={{ left: -9999, top: -9999, visibility: "hidden" }}
         >
           {/* Saturation / value square */}
@@ -314,9 +317,9 @@ export function ColorField({
           {/* Print colour: automatic (through the export's profile), exact
               CMYK, or a spot colour on a plate of its own. */}
           <div className="mt-3 border-t border-neutral-100 pt-2.5">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-col gap-1">
               <span className="text-[11px] font-medium text-neutral-500">{tr("editor.print_ink")}</span>
-              <div role="radiogroup" aria-label={tr("editor.print_ink")} className="flex rounded-md bg-neutral-100 p-0.5">
+              <div role="radiogroup" aria-label={tr("editor.print_ink")} className="flex w-full rounded-md bg-neutral-100 p-0.5">
                 {(["auto", "cmyk", "spot"] as const).map((m) => (
                   <button
                     key={m}
@@ -324,7 +327,7 @@ export function ColorField({
                     role="radio"
                     aria-checked={printMode === m}
                     onClick={() => choosePrintMode(m)}
-                    className={`rounded px-1.5 py-0.5 text-[10px] font-medium transition ${printMode === m ? "bg-surface text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-800"}`}
+                    className={`min-w-0 flex-1 truncate rounded px-1.5 py-0.5 text-[10px] font-medium transition ${printMode === m ? "bg-surface text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-800"}`}
                   >{{ auto: tr("editor.print_color_auto"), cmyk: tr("editor.print_color_cmyk"), spot: tr("editor.print_color_spot") }[m]}</button>
                 ))}
               </div>
@@ -387,6 +390,14 @@ export function ColorField({
       )}
     </div>
   );
+}
+
+/** True when a DOM target lies in a floating picker (the colour popover is
+ *  rendered at the end of <body>): a panel's outside-click handler must leave
+ *  such clicks alone, or picking a colour closes the panel holding the field
+ *  before the click lands. */
+export function isInFloating(target: EventTarget | null): boolean {
+  return !!(target as Element | null)?.closest?.("[data-oc-floating]");
 }
 
 /** A horizontal colour track (hue / alpha) with a round thumb; drag or click. */

@@ -182,7 +182,8 @@ A design can be signed off before it is used, printed or published.
 
 ### Editor layout
 
-- **Header**: the design's title, **File** for everything about the document (save, download, print, serial print, share, save as template, version history, activity, request approval, the danvas file) and **View** (rulers and guides, grid, snapping).
+- **Header**: the design's title, **File** for everything about the document (save, download, print, serial print, share, save as template, version history, activity, request approval, the danvas file) and **View** (rulers and guides, grid, grid settings, snapping, scrollbars).
+- **Rulers, grid and scrollbars**, from **View**: the rulers along the top and left edge measure the active page in the design's unit; drag a guide out of a ruler, drag it back to remove it. The grid lies over every page in view. **Grid settings…** sets the distance between its lines in any unit (for example 5 mm on a design measured in px: it becomes the same 5 mm at the design's dpi) and subdivisions, finer lines between the main ones that show once you zoom in far enough. While the grid is shown and snapping is on, a moved object snaps with its nearer edge to the finest lines shown; Shift moves freely. The scrollbars at the right and bottom edge pan over all pages and what sticks out of them; drag a bar, or click beside it to move most of a screen. These settings are kept for you in your browser and change no design.
 - **Contextual toolbar**, floating above the canvas: its controls follow the selection (text, image, shape, group, several elements; with nothing selected, the page), for example text style, crop, replace, flip, group and ungroup. Lock, duplicate, delete and more sit in a small bar at the selected element.
 - **Creation dock** in the bottom bar: select, text, shapes, lines and arrows, pen, pencil and comment. Related tools share a slot whose flyout opens upward; the slot shows the tool used last. Images, elements, barcodes and uploads come from the side panels.
 - **Position** panel, opened from the toolbar: **Arrange** (layer order, alignment and flipping of the selection) and **Layers**. The properties panel stays available for the less common settings.
@@ -241,6 +242,7 @@ The model works on a 1024 pixel copy of the photo. Its edge is then fitted to th
 - The eyedropper works in every browser (it falls back to sampling the canvas).
 - Opacity applies to fills and to group colors.
 - Group color swatches recolor every use of a color inside a group or selection at once.
+- Pasted elements keep their spot: on another page at exactly the position they had on their own page, on their own page slightly offset from the original (after a cut, in place). **Paste in place** never offsets.
 - Copy and paste style works on groups and carries text colors.
 
 ### Units and exact sizes

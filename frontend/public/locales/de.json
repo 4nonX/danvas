@@ -5216,5 +5216,17 @@
   "errors.api_color_library_forbidden": "Du darfst die Farbbibliotheken dieses Arbeitsbereichs nicht verwalten.",
   "errors.api_color_library_invalid": "Die Farbbibliothek ist ungültig (keine Farben, zu viele oder ein Wert außerhalb des Bereichs).",
   "errors.api_color_library_not_found": "Diese Farbbibliothek gibt es nicht mehr.",
-  "errors.api_color_library_too_large": "Die Farbbibliothek ist zu groß."
+  "errors.api_color_library_too_large": "Die Farbbibliothek ist zu groß.",
+  "editor.grid_settings": "Raster",
+  "editor.grid_settings_menu": "Raster einstellen…",
+  "editor.grid_show": "Raster anzeigen",
+  "editor.grid_spacing": "Linienabstand",
+  "editor.grid_unit": "Einheit",
+  "editor.grid_in_design_unit": "In diesem Design: {length}",
+  "editor.grid_subdivisions": "Unterteilungen",
+  "editor.grid_subdivisions_hint": "Feinere Linien zwischen zwei Hauptlinien (1 = keine). Sie erscheinen, sobald weit genug hineingezoomt ist; Objekte rasten an den feinsten sichtbaren Linien ein.",
+  "editor.grid_snap": "Am Raster einrasten",
+  "editor.grid_snap_hint": "Solange das Raster sichtbar ist, rasten verschobene Objekte mit der näheren Kante daran ein. Mit gedrückter Umschalttaste frei verschieben.",
+  "editor.grid_kept_hint": "Lineale, Raster und Scrollbalken bleiben für dich in diesem Browser gespeichert; Designs ändern sich dadurch nicht.",
+  "editor.scrollbars": "Scrollbalken"
 }

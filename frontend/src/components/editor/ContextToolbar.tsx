@@ -18,7 +18,7 @@ import { useBrand, colorsLockedFor, fontsLockedFor, brandHexColors, brandFontFam
 import { fonts } from "@/lib/fontProvider";
 import { tr } from "@/lib/i18n";
 import { isPhysical, measureUnitOf } from "@/lib/units";
-import { ColorField } from "./ColorField";
+import { ColorField, isInFloating } from "./ColorField";
 import { selectionColors } from "@/lib/selectionColors";
 import { svgSourceOf } from "@/lib/svgImage";
 import { removeImageBackground, useBgRemoval } from "@/lib/backgroundRemoval";
@@ -57,6 +57,7 @@ function Pop({ label, title, children, width = 240, square, closeOnClick }: { la
   useEffect(() => {
     if (!open) return;
     const onDown = (e: PointerEvent) => {
+      if (isInFloating(e.target)) return; // a colour picker opened from this panel
       if (ref.current && !ref.current.contains(e.target as globalThis.Node)) setOpen(false);
     };
     window.addEventListener("pointerdown", onDown);

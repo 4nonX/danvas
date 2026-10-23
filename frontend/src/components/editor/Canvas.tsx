@@ -26,6 +26,9 @@ import {
 import { useCallbackRef } from "@/lib/useCallbackRef";
 import { rulerTicks } from "@/lib/rulerTicks";
 import { measureUnitOf, NUDGE_STEPS, fromUnit, shortLength, snapLength, unitRulerTicks } from "@/lib/units";
+import { gridLines, gridStep, snapToGrid } from "@/lib/viewPrefs";
+import { pageOffsets } from "@/lib/pageLayout";
+import { CanvasScrollbars } from "./CanvasScrollbars";
 import { overlay } from "@/lib/theme.generated";
 import { useEditorCanvas, type CanvasApi } from "@/lib/useEditorCanvas";
 import { useEditor, ocClipPrefix, templateLockBlocking } from "@/store/editor";
@@ -1259,7 +1262,11 @@ export function Canvas() {
   const activePage = useEditor((s) => s.activePage);
   const showRulers = useEditor((s) => s.showRulers);
   const showGrid = useEditor((s) => s.showGrid);
-  const gridSize = useEditor((s) => s.gridSize);
+  const showScrollbars = useEditor((s) => s.showScrollbars);
+  const grid = useEditor((s) => s.grid);
+  const docDpi = useEditor((s) => s.doc.dpi);
+  // The grid in design px: main lines, and the finest lines objects snap to.
+  const gridPx = gridStep(grid, docDpi ?? 96);
   const snapGuides = useEditor((s) => s.snapGuides);
   useEditor((s) => s.rev);
   const penDraft = useRef<{ id: string } | null>(null);
@@ -1951,11 +1958,10 @@ export function Canvas() {
         const gx2: number[] = [];
         const gy2: number[] = [];
         let statics: Rect[] = [];
-        if (showGrid && gridSize > 0) {
-          const tx = Math.round(box.x / gridSize) * gridSize;
-          const ty = Math.round(box.y / gridSize) * gridSize;
-          if (Math.abs(tx - box.x) <= threshold) sdx = tx - box.x;
-          if (Math.abs(ty - box.y) <= threshold) sdy = ty - box.y;
+        if (showGrid && gridPx.minor > 0) {
+          // The nearer edge on each axis onto the finest grid line drawn.
+          const res = snapToGrid(box, gridPx.minor, threshold);
+          sdx = res.dx; sdy = res.dy;
         } else {
           const movingSet = new Set(movedIds);
           statics = pageNode.children
@@ -2940,20 +2946,41 @@ export function Canvas() {
           }}
         />
       )}
-      {/* Grid overlay (page-bounded, subtle, on top of content as a guide). */}
-      {showGrid && apg && gridSize > 0 && apg.width / gridSize < 400 && apg.height / gridSize < 400 && (() => {
-        const x0 = api.toScreen({ x: 0, y: 0 });
-        const x1 = api.toScreen({ x: apg.width, y: apg.height });
+      {/* Grid overlay on every page in view (page-bounded, subtle, on top of
+          content as a guide): main lines, and the subdivisions while they are
+          far enough apart to read. Objects snap to the finest lines drawn. */}
+      {showGrid && apg && (() => {
+        const doc = useEditor.getState().doc;
+        const offs = pageOffsets(doc);
+        const active = Math.min(useEditor.getState().activePage, doc.pages.length - 1);
+        const vp = api.viewport();
         const lines: React.ReactElement[] = [];
-        for (let gx = 0; gx <= apg.width + 0.5; gx += gridSize) {
-          const sx = api.toScreen({ x: gx, y: 0 }).x;
-          lines.push(<line key={`vg${gx}`} x1={sx} y1={x0.y} x2={sx} y2={x1.y} stroke={overlay.guideSubtle} strokeOpacity={0.12} strokeWidth={1} />);
-        }
-        for (let gy = 0; gy <= apg.height + 0.5; gy += gridSize) {
-          const sy = api.toScreen({ x: 0, y: gy }).y;
-          lines.push(<line key={`hg${gy}`} x1={x0.x} y1={sy} x2={x1.x} y2={sy} stroke={overlay.guideSubtle} strokeOpacity={0.12} strokeWidth={1} />);
-        }
-        return <svg className="pointer-events-none absolute inset-0 h-full w-full overflow-visible">{lines}</svg>;
+        doc.pages.forEach((pg, i) => {
+          const dy = (offs[i] ?? 0) - (offs[active] ?? 0);
+          const tl = api.toScreen({ x: 0, y: dy });
+          const br = api.toScreen({ x: pg.width, y: dy + pg.height });
+          if (br.y < 0 || tl.y > vp.height || br.x < 0 || tl.x > vp.width) return;
+          const xs = gridLines(pg.width, gridPx, vp.zoom);
+          const ys = gridLines(pg.height, gridPx, vp.zoom);
+          if (!xs || !ys) return;
+          const y0 = Math.max(tl.y, 0), y1 = Math.min(br.y, vp.height);
+          const x0 = Math.max(tl.x, 0), x1 = Math.min(br.x, vp.width);
+          for (const [list, major] of [[xs.minors, false], [xs.majors, true]] as const) {
+            for (const gx of list) {
+              const sx = api.toScreen({ x: gx, y: dy }).x;
+              if (sx < -1 || sx > vp.width + 1) continue;
+              lines.push(<line key={`v${i}-${gx}`} x1={sx} y1={y0} x2={sx} y2={y1} stroke={overlay.guideSubtle} strokeOpacity={major ? 0.28 : 0.12} strokeWidth={1} />);
+            }
+          }
+          for (const [list, major] of [[ys.minors, false], [ys.majors, true]] as const) {
+            for (const gy of list) {
+              const sy = api.toScreen({ x: 0, y: dy + gy }).y;
+              if (sy < -1 || sy > vp.height + 1) continue;
+              lines.push(<line key={`h${i}-${gy}`} x1={x0} y1={sy} x2={x1} y2={sy} stroke={overlay.guideSubtle} strokeOpacity={major ? 0.28 : 0.12} strokeWidth={1} />);
+            }
+          }
+        });
+        return lines.length ? <svg className="pointer-events-none absolute inset-0 h-full w-full overflow-visible">{lines}</svg> : null;
       })()}
       {/* Manual guides (draggable; drop on a ruler to delete). */}
       {apg && (() => {
@@ -3009,6 +3036,7 @@ export function Canvas() {
           </div>
         </>
       )}
+      {showScrollbars && <CanvasScrollbars inset={showRulers && apg ? RULER : 0} />}
       {marquee && (
         <div
           className="pointer-events-none absolute border border-[color:var(--color-selection)] bg-[color:var(--color-selection)]/10"

@@ -8,7 +8,18 @@ All notable changes to danvas are listed here, newest first. Versions follow the
 
 - **Colour list beside print exports.** For a CMYK print file, **Add a color list (PDF)** in the download menu puts a PDF beside the export, for several designs one in each design's folder. Per colour: where it is used, the CMYK the print file carries (through the chosen profile, or the exact CMYK or spot colour given), the Lab it prints as on the profile's paper, the brand colour with its Pantone reference, and the nearest colour of a colour library with its distance (CIEDE2000). It answers a print shop asking which Pantone shades a design uses; the print file does not change.
 - **Colour libraries per workspace**: on the Members page under **Print and export**, upload a colour book (`.ase`, `.acb`) or a house colour list (`.csv`). The file is read in the browser, only the colour entries are stored. No colour book ships with danvas; a workspace uploads the ones it holds a licence for. Managing them takes the colour profile right, every member can use them.
+- **Scrollbars on the canvas**, at the right and bottom edge: they pan over all pages and what sticks out of them; drag a bar or click beside it. **View**, **Scrollbars** turns them off.
+- **Grid settings**: **View**, **Grid settings…** sets the distance between the grid lines in any unit (mm, cm, in, pt, px) and subdivisions between them. The grid now lies over every page in view, and a moved object snaps with its nearer edge to the finest lines shown (before, only its top left corner snapped, to a fixed 50 px grid).
+- **Rulers, grid, snapping and scrollbars stay as you left them**, kept per user in the browser; no design changes.
 - **Pantone reference per brand colour** on the Brand page's **Colors** tab: the colour book name the brand gives a colour. It is a label for the colour list and travels in the kit file (`pantone`); printing still goes by the colour's values.
+
+### Changed
+
+- **Pasting onto another page** puts the copy at exactly the spot it had on its own page. On the page of the original it still lands slightly offset, so it does not hide behind the original; after a cut it goes back in place.
+
+### Fixed
+
+- **Colour picker in the toolbar panels** (the border colour, for example): picking a preset or clicking into the colour field closed the panel and the picker before the colour was taken, so only dragging worked. Clicks in the picker now count as inside the panel. The picker is a little wider, so the R, G, B and % fields show their values and the print colour switch (automatic, CMYK, spot colour) no longer sticks out.
 
 ### Upgrading
 

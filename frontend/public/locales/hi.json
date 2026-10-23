@@ -5216,5 +5216,17 @@
   "errors.api_color_library_forbidden": "आप इस वर्कस्पेस की रंग लाइब्रेरी प्रबंधित नहीं कर सकते।",
   "errors.api_color_library_invalid": "रंग लाइब्रेरी मान्य नहीं है (कोई रंग नहीं, बहुत अधिक, या कोई मान सीमा से बाहर)।",
   "errors.api_color_library_not_found": "वह रंग लाइब्रेरी अब मौजूद नहीं है।",
-  "errors.api_color_library_too_large": "रंग लाइब्रेरी बहुत बड़ी है।"
+  "errors.api_color_library_too_large": "रंग लाइब्रेरी बहुत बड़ी है।",
+  "editor.grid_settings": "ग्रिड",
+  "editor.grid_settings_menu": "ग्रिड सेटिंग…",
+  "editor.grid_show": "ग्रिड दिखाएँ",
+  "editor.grid_spacing": "रेखाओं के बीच दूरी",
+  "editor.grid_unit": "इकाई",
+  "editor.grid_in_design_unit": "इस डिज़ाइन में: {length}",
+  "editor.grid_subdivisions": "उप-विभाजन",
+  "editor.grid_subdivisions_hint": "दो मुख्य रेखाओं के बीच बारीक रेखाएँ (1 = कोई नहीं)। पर्याप्त ज़ूम करने पर दिखती हैं; ऑब्जेक्ट सबसे बारीक दिखाई देने वाली रेखाओं पर स्नैप होते हैं।",
+  "editor.grid_snap": "ग्रिड पर स्नैप करें",
+  "editor.grid_snap_hint": "ग्रिड दिखने पर खिसकाए गए ऑब्जेक्ट अपने नज़दीकी किनारे से उस पर स्नैप होते हैं। स्वतंत्र रूप से खिसकाने के लिए Shift दबाए रखें।",
+  "editor.grid_kept_hint": "रूलर, ग्रिड और स्क्रॉलबार आपके लिए इसी ब्राउज़र में सहेजे जाते हैं; डिज़ाइन नहीं बदलते।",
+  "editor.scrollbars": "स्क्रॉलबार"
 }

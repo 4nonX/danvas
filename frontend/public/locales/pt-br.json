@@ -5216,5 +5216,17 @@
   "errors.api_color_library_forbidden": "Você não pode gerenciar as bibliotecas de cores deste espaço de trabalho.",
   "errors.api_color_library_invalid": "A biblioteca de cores não é válida (sem cores, cores demais ou um valor fora do intervalo).",
   "errors.api_color_library_not_found": "Essa biblioteca de cores não existe mais.",
-  "errors.api_color_library_too_large": "A biblioteca de cores é grande demais."
+  "errors.api_color_library_too_large": "A biblioteca de cores é grande demais.",
+  "editor.grid_settings": "Grade",
+  "editor.grid_settings_menu": "Configurar grade…",
+  "editor.grid_show": "Mostrar grade",
+  "editor.grid_spacing": "Distância entre linhas",
+  "editor.grid_unit": "Unidade",
+  "editor.grid_in_design_unit": "Neste design: {length}",
+  "editor.grid_subdivisions": "Subdivisões",
+  "editor.grid_subdivisions_hint": "Linhas mais finas entre duas linhas principais (1 = nenhuma). Aparecem quando o zoom é suficiente; os objetos se encaixam nas linhas mais finas visíveis.",
+  "editor.grid_snap": "Encaixar na grade",
+  "editor.grid_snap_hint": "Enquanto a grade está visível, os objetos movidos se encaixam nela pela borda mais próxima. Segure Shift para mover livremente.",
+  "editor.grid_kept_hint": "Réguas, grade e barras de rolagem ficam salvas para você neste navegador; os designs não mudam.",
+  "editor.scrollbars": "Barras de rolagem"
 }

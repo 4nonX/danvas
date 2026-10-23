@@ -5216,5 +5216,17 @@
   "errors.api_color_library_forbidden": "你无权管理此工作区的颜色库。",
   "errors.api_color_library_invalid": "颜色库无效（没有颜色、颜色过多或数值超出范围）。",
   "errors.api_color_library_not_found": "该颜色库已不存在。",
-  "errors.api_color_library_too_large": "颜色库过大。"
+  "errors.api_color_library_too_large": "颜色库过大。",
+  "editor.grid_settings": "网格",
+  "editor.grid_settings_menu": "网格设置…",
+  "editor.grid_show": "显示网格",
+  "editor.grid_spacing": "线间距",
+  "editor.grid_unit": "单位",
+  "editor.grid_in_design_unit": "在此设计中：{length}",
+  "editor.grid_subdivisions": "细分",
+  "editor.grid_subdivisions_hint": "两条主线之间的细线（1 = 无）。放大到足够程度时显示；对象会吸附到显示的最细网格线。",
+  "editor.grid_snap": "吸附到网格",
+  "editor.grid_snap_hint": "显示网格时，移动的对象会以较近的边吸附到网格。按住 Shift 可自由移动。",
+  "editor.grid_kept_hint": "标尺、网格和滚动条设置保存在此浏览器中；设计不会改变。",
+  "editor.scrollbars": "滚动条"
 }

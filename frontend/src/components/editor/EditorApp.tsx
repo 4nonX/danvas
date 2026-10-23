@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState, type ComponentType } from "re
 import { useRouter } from "next/router";
 import { isAiBusy, requestAi, subscribeOpenProperties } from "@/lib/aiRequests";
 import type { Node as DesignNode } from "@hc/schema";
-import { ChevronLeft, ChevronDown, Check, Cloud, CloudUpload, Undo2, Redo2, Download, Play, MonitorPlay, Ruler, Grid3x3, Magnet, Save, LayoutTemplate, History, Eye, Share2, MessageSquare, ShieldCheck, Activity, BarChart3, MoreHorizontal, Send, Globe, Printer, PanelRightClose, PanelRightOpen, Keyboard, Info, X, Accessibility, Maximize2, Minimize2, LayoutGrid, FileDown, Film, Table2, FileSpreadsheet } from "lucide-react";
+import { ChevronLeft, ChevronDown, Check, Cloud, CloudUpload, Undo2, Redo2, Download, Play, MonitorPlay, Ruler, Grid3x3, Magnet, SlidersHorizontal, GalleryVertical, Save, LayoutTemplate, History, Eye, Share2, MessageSquare, ShieldCheck, Activity, BarChart3, MoreHorizontal, Send, Globe, Printer, PanelRightClose, PanelRightOpen, Keyboard, Info, X, Accessibility, Maximize2, Minimize2, LayoutGrid, FileDown, Film, Table2, FileSpreadsheet } from "lucide-react";
 import type { AccessMode } from "@hc/sdk";
 import { ApiError } from "@hc/sdk";
 import { oc } from "@/lib/sdk";
@@ -26,6 +26,7 @@ import { EditorFileDropProvider } from "./EditorFileDrop";
 import { ZoomControl } from "./ZoomControl";
 import { CommandMenu } from "./CommandMenu";
 import { ShortcutsHelp } from "./ShortcutsHelp";
+import { GridSettingsDialog } from "./GridSettingsDialog";
 import { ExportDialog } from "./ExportDialog";
 import { SlideOverview } from "./SlideOverview";
 import { ShareDialog } from "./ShareDialog";
@@ -299,6 +300,7 @@ export function EditorApp() {
   const docKind = useEditor((s) => ((s.doc.meta as { kind?: string } | undefined)?.kind ?? "design"));
   const showRulers = useEditor((s) => s.showRulers);
   const showGrid = useEditor((s) => s.showGrid);
+  const showScrollbars = useEditor((s) => s.showScrollbars);
   const snapEnabled = useEditor((s) => s.snapEnabled);
   const undo = useEditor((s) => s.undo);
   const redo = useEditor((s) => s.redo);
@@ -347,6 +349,7 @@ export function EditorApp() {
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [exportOpen, setExportOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [gridOpen, setGridOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   // When the Share dialog is opened from an access-request notification deep
   // link, scroll its pending-requests inbox into view.
@@ -1083,7 +1086,9 @@ export function EditorApp() {
             items={[
               { icon: Ruler as TopIcon, label: tr("editor.rulers_guides"), onClick: () => useEditor.getState().toggleRulers(), checked: showRulers },
               { icon: Grid3x3 as TopIcon, label: tr("editor.grid"), onClick: () => useEditor.getState().toggleGrid(), checked: showGrid },
+              { icon: SlidersHorizontal as TopIcon, label: tr("editor.grid_settings_menu"), onClick: () => setGridOpen(true) },
               { icon: Magnet as TopIcon, label: tr("editor.snapping"), onClick: () => useEditor.getState().toggleSnap(), checked: snapEnabled },
+              { icon: GalleryVertical as TopIcon, label: tr("editor.scrollbars"), onClick: () => useEditor.getState().toggleScrollbars(), checked: showScrollbars },
               ...(docKind === "design" && pageCount > 1
                 ? [{ icon: LayoutGrid as TopIcon, label: tr("editor.slide_overview"), onClick: () => setOverviewOpen(true), sepBefore: true }]
                 : []),
@@ -1196,6 +1201,7 @@ export function EditorApp() {
 
       <CommandMenu onExport={() => setExportOpen(true)} onShortcuts={() => setShortcutsOpen(true)} workspaceId={workspaceId} />
       <ShortcutsHelp open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+      <GridSettingsDialog open={gridOpen} onClose={() => setGridOpen(false)} />
       <ExportDialog open={exportOpen} onClose={() => setExportOpen(false)} onRequestApproval={designId && canApprove ? () => setApprovalRequestOpen(true) : undefined} />
       {shareOpen && designId && (
         <ShareDialog key={designId} open onClose={() => { setShareOpen(false); setShareFocusRequests(false); }} designId={designId} focusRequests={shareFocusRequests} />

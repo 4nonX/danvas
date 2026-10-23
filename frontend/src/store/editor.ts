@@ -103,6 +103,7 @@ import { imageAssets } from "@/lib/assetProvider";
 import { measuredTextHeight } from "@/lib/textFit";
 import { conformal, frameCorners, frameRotatable, rebaseInFrame, rotatePt, transformOf, turnSign } from "@/lib/cropFrame";
 import { pageGap, pageOffsets, pageTop } from "@/lib/pageLayout";
+import { cleanGrid, loadViewPrefs, saveViewPrefs, type GridSettings } from "@/lib/viewPrefs";
 import type { MagicDesignSpec } from "@/lib/magicDesign";
 import { accentRuleRect, extractLayoutSet, fallbackLayoutFill, layoutDesign, reflowPage, slotTypeScale, variantCandidate, verifyLayoutCapacities, type AiDesignSpec, type DeckResult, type ExtractedLayoutSet, type ExtractPageLike } from "@hc/aistudio";
 import { qrModules } from "@/lib/qr";
@@ -426,9 +427,11 @@ interface EditorState {
   setTextEditApply(fn: ((char: Partial<CharStyle>) => boolean) | null): void;
   presenting: boolean; // fullscreen present mode is open (suppresses canvas keys)
   // View aids (UI only, not part of the document)
+  // (kept per user in this browser, see lib/viewPrefs)
   showRulers: boolean;
   showGrid: boolean;
-  gridSize: number; // page units between grid lines
+  grid: GridSettings; // spacing (with its unit) and subdivisions
+  showScrollbars: boolean;
   snapEnabled: boolean; // smart guides + grid snapping during moves
   guides: Record<string, { x: number[]; y: number[] }>; // manual guides per page id
   snapGuides: { x: number[]; y: number[] } | null; // transient smart-guide preview (shared by move/resize)
@@ -702,7 +705,8 @@ interface EditorState {
   toggleRulers(): void;
   toggleGrid(): void;
   toggleSnap(): void;
-  setGridSize(n: number): void;
+  toggleScrollbars(): void;
+  setGrid(g: Partial<GridSettings>): void;
   /** Add a manual guide on the active page (x = vertical line, y = horizontal). */
   addGuide(axis: "x" | "y", pos: number): void;
   /** Move a manual guide by index; pass null pos to remove it. */
@@ -1926,6 +1930,18 @@ export const useEditor = create<EditorState>((set, get) => {
     return n > 0 ? Math.min(get().activePage, n - 1) : 0;
   };
 
+  // How far a paste moves from where it was copied: `offset` when an
+  // original is on the target page (the copy would hide behind it), else
+  // nothing, so a copy taken to another page sits at the same spot there.
+  const pasteShift = (copied: readonly Node[], page: Page | undefined, offset: number) =>
+    offset && page && copied.some((n) => locate(get().doc, n.id)?.page === page) ? offset : 0;
+
+  // Keep the view aids for the next visit (this browser only).
+  const persistView = () => {
+    const s = get();
+    saveViewPrefs({ showRulers: s.showRulers, showGrid: s.showGrid, showScrollbars: s.showScrollbars, snapEnabled: s.snapEnabled, grid: s.grid });
+  };
+
   // Index of the page whose subtree contains a node id, or -1. Used to scroll the
   // viewport into the right page's stacked band when jumping to an arbitrary node.
   const pageIndexOfNode = (doc: DesignFile, id: string): number => {
@@ -2021,11 +2037,12 @@ export const useEditor = create<EditorState>((set, get) => {
     editingTextId: null,
     textEditApply: null,
     presenting: false,
-    // Hidden by default (Canva-like); the top bar's ruler button shows them.
-    showRulers: false,
-    showGrid: false,
-    gridSize: 50,
-    snapEnabled: true,
+    // As the user left them (rulers and grid hidden by default; the View
+    // menu shows them).
+    ...(() => {
+      const v = loadViewPrefs();
+      return { showRulers: v.showRulers, showGrid: v.showGrid, grid: v.grid, showScrollbars: v.showScrollbars, snapEnabled: v.snapEnabled };
+    })(),
     guides: {},
     snapGuides: null,
     playing: false,
@@ -3642,10 +3659,11 @@ export const useEditor = create<EditorState>((set, get) => {
     setEditingText: (id) => set({ editingTextId: id }),
     setTextEditApply: (fn) => set({ textEditApply: fn }),
     setPresenting: (on) => set({ presenting: on }),
-    toggleRulers: () => set((s) => ({ showRulers: !s.showRulers })),
-    toggleGrid: () => set((s) => ({ showGrid: !s.showGrid })),
-    toggleSnap: () => set((s) => ({ snapEnabled: !s.snapEnabled })),
-    setGridSize: (n) => set({ gridSize: Math.max(2, Math.round(n)) }),
+    toggleRulers: () => { set((s) => ({ showRulers: !s.showRulers })); persistView(); },
+    toggleGrid: () => { set((s) => ({ showGrid: !s.showGrid })); persistView(); },
+    toggleSnap: () => { set((s) => ({ snapEnabled: !s.snapEnabled })); persistView(); },
+    toggleScrollbars: () => { set((s) => ({ showScrollbars: !s.showScrollbars })); persistView(); },
+    setGrid: (g) => { set((s) => ({ grid: cleanGrid({ ...s.grid, ...g }) })); persistView(); },
     addGuide: (axis, pos) => {
       const pid = get().doc.pages[curPageIndex()]?.id;
       if (!pid) return;
@@ -5611,10 +5629,13 @@ export const useEditor = create<EditorState>((set, get) => {
     },
     paste: (offset = 24) => {
       if (!clipboardNodes?.length) return;
+      const page = get().doc.pages[curPageIndex()];
+      // On another page the copy lands where it was on its own page; next to
+      // the original (offset) only where the original would hide it.
+      const shift = pasteShift(clipboardNodes, page, offset);
       // A copy is the user's own object: it drops any template lock.
       const { nodes } = remapIds(stripTemplateLocks(structuredClone(clipboardNodes)));
-      if (offset) nodes.forEach((n) => { n.transform = { ...n.transform, x: n.transform.x + offset, y: n.transform.y + offset }; });
-      const page = get().doc.pages[curPageIndex()];
+      if (shift) nodes.forEach((n) => { n.transform = { ...n.transform, x: n.transform.x + shift, y: n.transform.y + shift }; });
       const ids = nodes.map((n) => n.id);
       const prev = get().selection;
       perform(
@@ -5632,9 +5653,10 @@ export const useEditor = create<EditorState>((set, get) => {
       // string type so a malformed paste can't corrupt the page.
       const safe = (incoming ?? []).filter((n): n is Node => !!n && typeof (n as { type?: unknown }).type === "string");
       if (!safe.length) return;
-      const { nodes } = remapIds(stripTemplateLocks(structuredClone(safe)));
-      nodes.forEach((n) => { n.transform = { ...n.transform, x: n.transform.x + 24, y: n.transform.y + 24 }; });
       const page = get().doc.pages[curPageIndex()];
+      const shift = pasteShift(safe, page, 24);
+      const { nodes } = remapIds(stripTemplateLocks(structuredClone(safe)));
+      if (shift) nodes.forEach((n) => { n.transform = { ...n.transform, x: n.transform.x + shift, y: n.transform.y + shift }; });
       const ids = nodes.map((n) => n.id);
       const prev = get().selection;
       perform(

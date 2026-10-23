@@ -5216,5 +5216,17 @@
   "errors.api_color_library_forbidden": "このワークスペースのカラーライブラリを管理する権限がありません。",
   "errors.api_color_library_invalid": "カラーライブラリが無効です (色がない、多すぎる、または範囲外の値があります)。",
   "errors.api_color_library_not_found": "そのカラーライブラリはもう存在しません。",
-  "errors.api_color_library_too_large": "カラーライブラリが大きすぎます。"
+  "errors.api_color_library_too_large": "カラーライブラリが大きすぎます。",
+  "editor.grid_settings": "グリッド",
+  "editor.grid_settings_menu": "グリッドの設定…",
+  "editor.grid_show": "グリッドを表示",
+  "editor.grid_spacing": "線の間隔",
+  "editor.grid_unit": "単位",
+  "editor.grid_in_design_unit": "このデザインでは: {length}",
+  "editor.grid_subdivisions": "分割数",
+  "editor.grid_subdivisions_hint": "主線の間の細い線です (1 = なし)。十分に拡大すると表示され、オブジェクトは表示中の最も細かい線にスナップします。",
+  "editor.grid_snap": "グリッドにスナップ",
+  "editor.grid_snap_hint": "グリッド表示中は、移動したオブジェクトが近い方の辺でグリッドにスナップします。Shift を押しながらで自由に移動できます。",
+  "editor.grid_kept_hint": "定規、グリッド、スクロールバーの設定はこのブラウザに保存されます。デザインは変わりません。",
+  "editor.scrollbars": "スクロールバー"
 }
