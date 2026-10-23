@@ -49,6 +49,7 @@ import {
   type PrintMarks,
   moveInReadingOrder,
   repairCornerRadius,
+  repairContainers,
   roundedCorners,
 } from "@hc/schema";
 import { contrastRatio, fixToAA, fromHex, nearestPaletteColor, seriesColorAt, toHex } from "@hc/color";
@@ -1663,6 +1664,9 @@ function normalizeLoadedDoc(file: DesignFile): DesignFile {
   // A radius an earlier writer left as a bare number becomes the per-corner
   // record on the way in (in place, so the page spread below carries it).
   repairCornerRadius(file);
+  // A group that lost its children list (an id clash in a realtime merge)
+  // comes back empty instead of stopping the editor from opening.
+  repairContainers(file);
   const pages = file.pages ?? [];
   const fin = (n: unknown): n is number => typeof n === "number" && Number.isFinite(n) && n > 0;
   // Prefer an existing valid page size (a deck's pages share one size).

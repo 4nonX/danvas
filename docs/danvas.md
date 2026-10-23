@@ -11,6 +11,7 @@ The other pages in this folder are HyScaler's documentation of HyCanvas and desc
   - [Changing the format of designs](#changing-the-format-of-designs)
   - [Importing](#importing)
   - [Download and share for a selection](#download-and-share-for-a-selection)
+  - [Moving designs to another instance](#moving-designs-to-another-instance)
   - [Everyone through single sign-on](#everyone-through-single-sign-on)
   - [Invitations](#invitations)
   - [Roles and permissions](#roles-and-permissions)
@@ -117,6 +118,15 @@ You can also drop files onto the Projects view.
 ### Download and share for a selection
 
 Tick several designs (and folders) and the bar at the bottom offers download and share for all of them at once: every page of every design into one zip, or one person's access or view links for all selected designs.
+
+### Moving designs to another instance
+
+A danvas package (`.danvas.zip`) takes designs from one danvas instance to another with everything they need.
+
+- **Export**: select designs and folders on the dashboard and choose **danvas package** in the selection bar. The package holds the designs in the open format, every upload they use, the workspace fonts they name (the font files: pass the package on only where their licences allow) and the folder structure below what you selected. Any member who can see the designs can export them.
+- **Import**: on the other instance, open the folder the designs should go to, then **Import**, **danvas package**. The dialog shows what the package holds; **Import** adds the uploads to the workspace's uploads and the fonts to its fonts (fonts need the right to manage workspace fonts; without it the designs show a fallback font and the dialog names the fonts), recreates the folders (an existing folder of the same name is used), and creates the designs pointing at the new uploads. A design whose title already exists in its folder is skipped, so an interrupted import can simply be run again.
+- **What stays behind**: version history, comments, share links and approvals belong to the source instance. A design's brand kit assignment is dropped, since the target has its own brands; a brand kit moves as its own kit file ([Brand kits and fonts](#brand-kits-and-fonts)).
+- A single `.hyc` file (**File**, **danvas file**) still works for one design, but keeps its uploads as references to the instance it came from and carries no fonts.
 
 ### Everyone through single sign-on
 
@@ -242,6 +252,7 @@ The model works on a 1024 pixel copy of the photo. Its edge is then fitted to th
 - The eyedropper works in every browser (it falls back to sampling the canvas).
 - Opacity applies to fills and to group colors.
 - Group color swatches recolor every use of a color inside a group or selection at once.
+- **Size & position** (properties panel): besides the number fields, a size slider scales the element proportionally (logarithmic, from tiny to twice the page) and a rotation knob turns it (drag around the knob, Shift for 15° steps, double-click for 0°, arrow keys for 1°), about the rotation point set beside it. A drag is one undo step.
 - Pasted elements keep their spot: on another page at exactly the position they had on their own page, on their own page slightly offset from the original (after a cut, in place). **Paste in place** never offsets.
 - Copy and paste style works on groups and carries text colors.
 
@@ -283,7 +294,7 @@ A brand kit is where a workspace keeps what its designs are made from: colours, 
 In the dashboard's left rail, **Brand**: one page for the workspace's brands, with the tabs the editor's brand panel uses.
 
 - **Brands**: choose one at the top when there are several. **New brand** starts one empty, from a logo (its colours become the palette), from a company website (logo, colours and fonts as a draft to review) or from a kit file.
-- **Colors**: every palette with its swatches, their print values, their role (for example primary, accent) and their **Pantone reference**. Add a colour by picker or hex value, change its role, remove it. The Pantone reference is the colour book name the brand gives the colour (for example PANTONE 7741 C); it goes into the colour list of print exports and the kit file, and changes nothing in print: a colour that is to print as a Pantone ink of its own is set as a spot colour ([Exact print colors](#exact-print-colors)). Colours from a design's selection or page are added in the editor's brand panel, where the design is open.
+- **Colors**: every palette with its swatches, their print values, their role (for example primary, accent) and their **Pantone reference**. Add a colour by picker or hex value into the palette chosen beside the field, change its role, move it to another palette, remove it. Palettes (for example "Main brand", "Website", "Function colours") are added with **New palette** and renamed, reordered or deleted from the buttons beside their name; deleting a palette takes its colours out of the brand, not out of designs. The Pantone reference is the colour book name the brand gives the colour (for example PANTONE 7741 C); it goes into the colour list of print exports and the kit file, and changes nothing in print: a colour that is to print as a Pantone ink of its own is set as a spot colour ([Exact print colors](#exact-print-colors)). Colours from a design's selection or page are added in the editor's brand panel, where the design is open.
 - **Fonts**: the kit's font roles (heading, body, prices, ...), each naming a font. Below them the **workspace fonts**: font files uploaded once, then in every font picker and embedded in vector exports (this list used to be on the Members page).
 - **Logos**: one row per logo with its versions side by side, each on the ground it is made for. Which versions there are (for example colour, black and white) the brand sets under **Settings**, **Logo versions**: named, each for a light or a dark ground, ordered, added and removed; a new brand starts with colour, black and white, and a brand that has not named any has the logo and its version for dark backgrounds. Add a logo from the uploads or a new file, give a version a file, replace or remove it, rename the logo, or make a logo kept as a separate entry ("Logo (black)") a version of another logo. Generated decks draw a version for dark grounds on deep pages, and the brand check accepts every version as the logo.
 - **Graphics**: see [Brand graphics](#brand-graphics).

@@ -18,6 +18,7 @@ import { generateAltText, generateChartAltText } from "@/lib/altText";
 import { builtinThemes, themeStyleLabel, themeStyleOrder } from "@/lib/themeCatalog";
 import { colorHarmony, harmonySchemes, type HarmonyScheme, extractPalette, toHex } from "@hc/color";
 import { evalExpression, locate, rotateAboutPoint } from "@hc/editor";
+import { RotationKnob, SizeSlider, sizeRange } from "./GeoControls";
 import { isLowResolution, computeEffectivePpi, renderTransition } from "@hc/engine";
 import type { CanvasLike as CanvasLikeCtx } from "@hc/engine";
 import { prefersReducedMotion } from "@/lib/theme";
@@ -827,8 +828,11 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
 
   const commitGeo = (patch: { x?: number; y?: number; w?: number; h?: number; rotation?: number }) => {
     if (!single || single.node.locked) return;
-    const t = single.node.transform;
-    const sz = single.node.size;
+    // The node as it is now: a drag applies several changes between renders,
+    // and each must start from the one before.
+    const node = locate(useEditor.getState().doc, single.node.id)?.node ?? single.node;
+    const t = node.transform;
+    const sz = node.size;
     let nextT = { ...t, x: patch.x ?? t.x, y: patch.y ?? t.y };
     const nextSz = { width: Math.max(1, patch.w ?? sz.width), height: Math.max(1, patch.h ?? sz.height) };
     // An angle edit pivots about the node's rotation origin (center by
@@ -839,22 +843,22 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
     }
     // Text lays out to node.box, so a panel W/H edit must reflow the box too
     // (mirrors the resize gizmo). The store commits transform + size + box as one step.
-    if (single.node.type === "text") {
+    if (node.type === "text") {
       useEditor.getState().applyTextGeometry(single.node.id, nextT, nextSz);
       return;
     }
     // A line draws from its points, so W/H edits must scale the polyline too.
-    if (single.node.type === "line") {
+    if (node.type === "line") {
       useEditor.getState().applyLineGeometry(single.node.id, nextT, nextSz);
       return;
     }
     // A photo grid lays its cells out from the grid box, so W/H edits re-lay them.
-    if (single.node.type === "grid") {
+    if (node.type === "grid") {
       useEditor.getState().applyGridGeometry(single.node.id, nextT, nextSz);
       return;
     }
     // A frame's fill image is sized to the frame box, so W/H edits scale it too.
-    if (single.node.type === "frame") {
+    if (node.type === "frame") {
       useEditor.getState().applyFrameGeometry(single.node.id, nextT, nextSz);
       return;
     }
@@ -866,6 +870,25 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
       beforeSizes: [{ ...sz }],
       afterSizes: [nextSz],
     });
+  };
+
+  // A drag on the size slider or the rotation knob: changes apply live without
+  // history, and the end puts the start back silently and commits the result,
+  // so the whole drag is one undo step.
+  type GeoPatch = { w?: number; h?: number; rotation?: number };
+  const liveGeo = (patch: GeoPatch) => {
+    useEditor.getState().runWithoutHistory(() => commitGeo(patch));
+  };
+  const doneGeo = (patch: GeoPatch, start: GeoPatch) => {
+    useEditor.getState().runWithoutHistory(() => commitGeo(start));
+    commitGeo(patch);
+  };
+  // Proportional size from the width the slider sets: the height keeps the
+  // element's ratio (proportional steps never change it).
+  const ratio = () => {
+    if (!single) return 1;
+    const n = locate(useEditor.getState().doc, single.node.id)?.node ?? single.node;
+    return n.size.height / Math.max(1, n.size.width);
   };
 
   // Opacity/blend reflect the first selected node (accurate when uniform, and far
@@ -1007,6 +1030,25 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
                 </div>
                 {og && <button onClick={() => useEditor.getState().setRotationOrigin(id, undefined)} className="text-[11px] text-neutral-400 hover:text-neutral-700" title={tr("editor.reset_to_center")}>↺</button>}
               </div>
+            </div>
+            {/* Drag controls: proportional size, and a knob for the angle. */}
+            <div className="mt-1 flex items-center gap-2.5">
+              <span className="w-12 shrink-0 text-[11px] text-neutral-500">{tr("editor.size")}</span>
+              <SizeSlider
+                label={tr("editor.size_slider")}
+                value={single.node.size.width}
+                range={sizeRange(doc.pages[activePage]?.width ?? 1000, doc.pages[activePage]?.height ?? 1000, single.node.size.width)}
+                disabled={locked}
+                onLive={(w) => liveGeo({ w, h: w * ratio() })}
+                onDone={(w, w0) => { const k = ratio(); doneGeo({ w, h: w * k }, { w: w0, h: w0 * k }); }}
+              />
+              <RotationKnob
+                label={tr("editor.rotation")}
+                value={single.node.transform.rotation}
+                disabled={locked}
+                onLive={(r) => liveGeo({ rotation: r })}
+                onDone={(r, r0) => doneGeo({ rotation: r }, { rotation: r0 })}
+              />
             </div>
           </Section>
         );

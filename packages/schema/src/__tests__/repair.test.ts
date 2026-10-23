@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createBlankDesign, createNode, repairCornerRadius, validate } from "../index";
+import { createBlankDesign, createNode, repairContainers, repairCornerRadius, validate } from "../index";
 import type { GroupNode, ShapeNode } from "../schema";
 
 function deckWithNumericRadius() {
@@ -32,5 +32,24 @@ describe("repairCornerRadius", () => {
     repairCornerRadius(repairCornerRadius(file));
     expect(rule.cornerRadius).toEqual({ topLeft: 4, topRight: 4, bottomRight: 4, bottomLeft: 4 });
     expect((rule as unknown as { futureKey: string }).futureKey).toBe("kept");
+  });
+});
+
+describe("repairContainers", () => {
+  it("gives a group, frame or grid without children an empty list, also nested, and keeps everything else", () => {
+    const file = createBlankDesign({ title: "t", width: 100, height: 100 });
+    const broken = { id: "g", type: "group", name: "Symbol", transform: { x: 1, y: 2, scaleX: 1, scaleY: 1, rotation: 0 }, size: { width: 10, height: 10 }, opacity: 1, blendMode: "normal" };
+    const outer = { ...broken, id: "outer", children: [{ ...broken, id: "inner" }] };
+    file.pages[0].children.push(broken as never, outer as never);
+    const out = repairContainers(file);
+    expect(out).toBe(file);
+    const [g, o] = file.pages[0].children as unknown as { id: string; name: string; children: { children: unknown[] }[] }[];
+    expect(g.children).toEqual([]);
+    expect(g.name).toBe("Symbol");
+    expect(o.children[0].children).toEqual([]);
+    expect(validate(file).ok).toBe(true);
+    // Idempotent, and a sound file is left as it is.
+    const again = JSON.stringify(file);
+    expect(JSON.stringify(repairContainers(file))).toBe(again);
   });
 });

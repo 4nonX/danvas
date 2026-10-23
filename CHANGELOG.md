@@ -2,6 +2,22 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 1.2.0 (2026-10-23)
+
+### Added
+
+- **danvas packages, to take designs to another danvas instance.** Select designs and folders on the dashboard and choose **danvas package**: a `.danvas.zip` downloads with the designs (in the open `.hyc` format), every upload they use, the workspace fonts they name, and their folders. On the other instance, **Projects**, **Import**, **danvas package** brings them into the open folder: the uploads are added to the workspace, the fonts too (when the role may add fonts), the designs are pointed at the new uploads and land in their folders. A design whose title is already in its folder is skipped, so importing again adds nothing twice. Version history, comments and share links stay on the source; a brand kit assignment is dropped (brands travel as their own kit file). A `.hyc` alone keeps its uploads as references to the instance it came from and no fonts, which is what the package adds.
+- **Palettes on the Brand page**: under **Colors**, palettes are added (**New palette**), renamed, moved up and down and deleted, a new colour goes into the palette chosen beside the colour field, and a colour moves to another palette with its role, print values and Pantone reference. Empty palettes show to those who can fill them. Designs keep their colours whatever happens to a palette.
+- **Size slider and rotation knob** under **Size & position** in the properties panel, beside the number fields. The slider scales the element proportionally (the height keeps its ratio), on a logarithmic scale from a tiny size to twice the page, so small elements are as easy to set as large ones. The knob's marker points at the angle; drag around it to turn (Shift: 15° steps), double-click for 0°, arrow keys for 1° (Shift: 15°). It turns about the rotation point set beside it, like the angle field. Both change the element live while dragging, and a whole drag is one undo step.
+
+### Fixed
+
+- **A design that would not open** after the paste mix-up fixed in 1.1.1: where two elements had shared an id, the realtime merge could leave a group without its list of contents, and the editor stopped with "Application error" on opening. Such a group now opens empty (what was in it is in the version history, from before the paste), so the design opens again and an earlier version can be restored.
+
+### Upgrading
+
+- No database change, no change to the file format.
+
 ## 1.1.1 (2026-10-23)
 
 ### Fixed

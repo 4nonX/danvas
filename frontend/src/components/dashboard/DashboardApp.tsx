@@ -45,7 +45,7 @@ import {
   List,
   Users,
   Moon,
-  Sun, Sparkles, Wand2, Paperclip, Loader2, X, Folder as FolderIcon, FolderPlus, FolderInput, Check, Download, Share2, Link2, ArrowRightLeft, Printer, CopyPlus, Scaling, KeyRound, Shapes } from "lucide-react";
+  Sun, Sparkles, Wand2, Paperclip, Loader2, X, Folder as FolderIcon, FolderPlus, FolderInput, Check, Download, Share2, Link2, ArrowRightLeft, Printer, CopyPlus, Scaling, KeyRound, Shapes, Package } from "lucide-react";
 import { createBlankDesign } from "@hc/schema";
 import { hycAccept, downloadHycFile, importedTitle, parseHycFile, readFileText } from "@/lib/hycFile";
 import { dialTones } from "@hc/aistudio";
@@ -85,6 +85,7 @@ import { CanvaImportDialog } from "./CanvaImport";
 import { runActive, useCanvaImport } from "@/store/canvaImport";
 import { CanvaImportDetailsHost, CanvaImportRail } from "./CanvaImportStatus";
 import { BulkImportDialog, entriesFromDrop, entriesFromInput, hasOsFiles, type ImportEntry } from "./BulkImport";
+import { PackageExportDialog, PackageImportDialog } from "./DesignPackage";
 import { fromUnit, MEASURE_UNITS, parseLength, unitInputText, type MeasureUnit } from "@/lib/units";
 import { PRINT_FORMATS } from "@/lib/printFormats";
 import { childrenMap, DropZone, folderPath, FolderPathBar, FolderTile, MoveToFolderDialog, RailFolderTree, setDragItems, subtreeIds, type DragItems } from "./Folders";
@@ -422,6 +423,11 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   const [bulkEntries, setBulkEntries] = useState<ImportEntry[] | null>(null);
   const [osDrop, setOsDrop] = useState(false);
   const bulkFilesRef = useRef<HTMLInputElement>(null);
+  // danvas packages (.danvas.zip): designs with their uploads and fonts, for
+  // another danvas instance.
+  const packageFileRef = useRef<HTMLInputElement>(null);
+  const [packageImport, setPackageImport] = useState<File | null>(null);
+  const [packageExport, setPackageExport] = useState<{ designIds: string[]; folderIds: string[] } | null>(null);
   const bulkFolderRef = useRef<HTMLInputElement>(null);
   // Import from Canva (doc 41). Canva's consent screen sends the browser back
   // with ?canva=connected (open the dialog again), failed or declined.
@@ -1391,10 +1397,12 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                         <ImportMenuRow icon={FileUp} label={tr("dashboard.import_files")} hint={tr("dashboard.import_files_hint")} onClick={() => { setImportMenu(false); bulkFilesRef.current?.click(); }} />
                         <ImportMenuRow icon={FolderInput} label={tr("dashboard.import_folder")} hint={tr("dashboard.import_folder_hint")} onClick={() => { setImportMenu(false); bulkFolderRef.current?.click(); }} />
                         <ImportMenuRow icon={Link2} label={tr("dashboard.import_from_canva")} hint={tr("dashboard.import_from_canva_hint")} busy={canvaBusy} onClick={() => { setImportMenu(false); setCanvaPicked(true); }} />
+                        <ImportMenuRow icon={Package} label={tr("dashboard.import_package")} hint={tr("dashboard.import_package_hint")} onClick={() => { setImportMenu(false); packageFileRef.current?.click(); }} />
                       </div>
                     )}
                   </div>
                   <input ref={bulkFilesRef} type="file" multiple accept={designImportAccept} hidden onChange={(e) => { startBulk(entriesFromInput(e.target.files)); e.target.value = ""; }} />
+                  <input ref={packageFileRef} type="file" accept=".zip,application/zip" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) setPackageImport(f); e.target.value = ""; }} />
                   <input
                     ref={(el) => { bulkFolderRef.current = el; if (el) el.setAttribute("webkitdirectory", ""); }}
                     type="file"
@@ -2173,6 +2181,9 @@ export function DashboardApp({ view }: { view: DashboardView }) {
           <button type="button" onClick={() => setTransferReq({ items: { designIds: [...selDesigns], folderIds: [...selFolders] }, mode: "copy" })} className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-sm text-neutral-700 transition hover:bg-neutral-100">
             <ArrowRightLeft size={15} /> {tr("dashboard.to_workspace")}
           </button>
+          <button type="button" onClick={() => setPackageExport({ designIds: [...selDesigns], folderIds: [...selFolders] })} title={tr("dashboard.export_package_hint")} className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-sm text-neutral-700 transition hover:bg-neutral-100">
+            <Package size={15} /> {tr("dashboard.export_package")}
+          </button>
           {selDesigns.size > 0 && (
             <>
               <button type="button" disabled={exportLoading} onClick={() => void downloadDesigns([...selDesigns])} className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-sm text-neutral-700 transition hover:bg-neutral-100 disabled:opacity-50">
@@ -2283,6 +2294,23 @@ export function DashboardApp({ view }: { view: DashboardView }) {
           errorMessage={(e) => importErrorMessage(e, tr("dashboard.could_not_import_the_file"))}
           onClose={() => {
             setBulkEntries(null);
+            void load(searched).then(setItems);
+            reloadFolders();
+          }}
+        />
+      )}
+
+      {packageExport && activeWorkspaceId && (
+        <PackageExportDialog workspaceId={activeWorkspaceId} designIds={packageExport.designIds} folderIds={packageExport.folderIds} onClose={() => setPackageExport(null)} />
+      )}
+      {packageImport && activeWorkspaceId && (
+        <PackageImportDialog
+          file={packageImport}
+          workspaceId={activeWorkspaceId}
+          targetFolderId={currentFolder}
+          onChanged={reloadFolders}
+          onClose={() => {
+            setPackageImport(null);
             void load(searched).then(setItems);
             reloadFolders();
           }}

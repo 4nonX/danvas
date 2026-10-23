@@ -23,3 +23,29 @@ export function repairCornerRadius(file: DesignFile): DesignFile {
   }
   return file;
 }
+
+/** A container (group, frame, photo grid) without its `children` list. A
+ *  realtime merge of two nodes that shared an id (pasted copies got ids from
+ *  a counter that restarted at every page load, before 2026-10-23) could drop
+ *  a group's keys, and the server's structural check let the file through;
+ *  every walker reads `children` as a list, so the editor did not open. The
+ *  container comes back empty (what it holds now), and a mask or boolean
+ *  that lost its nested node list is left to the validator. */
+export function repairContainers(file: DesignFile): DesignFile {
+  const walk = (nodes: unknown) => {
+    if (!Array.isArray(nodes)) return;
+    for (const node of nodes) {
+      if (!node || typeof node !== "object") continue;
+      const n = node as { type?: unknown; children?: unknown; child?: unknown; operands?: unknown };
+      if ((n.type === "group" || n.type === "frame" || n.type === "grid") && !Array.isArray(n.children)) n.children = [];
+      walk(n.children);
+      if (n.child && typeof n.child === "object") walk([n.child]);
+      walk(n.operands);
+    }
+  };
+  for (const page of file.pages ?? []) {
+    if (!Array.isArray(page.children)) (page as { children: unknown }).children = [];
+    walk(page.children);
+  }
+  return file;
+}

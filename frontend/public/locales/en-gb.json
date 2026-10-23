@@ -148,5 +148,9 @@
   "errors.api_color_library_forbidden": "You may not manage the colour libraries of this workspace.",
   "errors.api_color_library_invalid": "The colour library is not valid (no colours, too many, or a value out of range).",
   "errors.api_color_library_not_found": "That colour library no longer exists.",
-  "errors.api_color_library_too_large": "The colour library is too large."
+  "errors.api_color_library_too_large": "The colour library is too large.",
+  "dashboard.package_export_hint": "Import it on the other instance under Projects, Import, danvas package. Version history, comments and share links stay here. Font files are passed on with the package: only share it where the fonts' licences allow.",
+  "brand.delete_palette_message.one": "“{name}” holds {count} colour. It is taken out of the brand; designs that use it do not change.",
+  "brand.delete_palette_message.other": "“{name}” holds {count} colours. They are taken out of the brand; designs that use them do not change.",
+  "brand.palette_empty": "No colours yet: add one below."
 }
