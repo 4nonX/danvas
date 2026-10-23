@@ -12,7 +12,12 @@ All notable changes to danvas are listed here, newest first. Versions follow the
 ### Changed
 
 - **The brand check checks the brand.** It reports colours that are not the brand's (a tint, shade or blend of a brand colour counts as the brand's) and fonts that are not the brand's whether or not they are locked; the locks still stop such changes when saving. Its findings are shown in the reader's language.
+- Exported PowerPoint files name danvas as their creator and theme; the editor's start placeholder and the embed code's fallback title say danvas.
 - **Graphics on the Brand page** show their full name (up to two lines) with the actions below it.
+
+### Removed
+
+- **The original product's starter brand kit** and its artwork (logos, mark, app tile and their sources) are no longer shipped, and `BRAND_STARTER_KIT` is no longer read. It was off by default; brands are made on the Brand page. Kits seeded from it earlier stay as they are.
 
 ### Fixed
 

@@ -37,7 +37,7 @@ The changes are summarized by area below. How to use each one is explained in th
 - The interface follows the browser's language unless the instance or the user sets one.
 - An installation kit in [`deploy/`](deploy/README.md): a compose file that builds from source, a documented `.env` template, `install.sh`, `update.sh` (database backup, rebuild, version check) and a model mirror script.
 - `STATIC_DATA_DIR` serves large client assets (the background-removal model) from the instance instead of a third-party CDN.
-- `BUILTIN_TEMPLATES=off` hides the built-in starter templates; HyCanvas's starter brand kit is opt-in (`BRAND_STARTER_KIT=hycanvas`).
+- `BUILTIN_TEMPLATES=off` hides the built-in starter templates.
 
 ### Editor
 

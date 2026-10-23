@@ -310,7 +310,7 @@ type Service struct {
 // WorkspaceHook runs after a workspace has been created and committed: the
 // personal workspace of a signup or a first OIDC login, and a team, org or
 // classroom workspace from CreateWorkspace. It receives the workspace and its
-// owner and cannot fail the request; today it seeds the starter brand kit.
+// owner and cannot fail the request.
 type WorkspaceHook func(ctx context.Context, workspaceID, ownerID string)
 
 func NewService(db DBTX, jwtSecret string) *Service {

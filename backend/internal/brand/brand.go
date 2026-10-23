@@ -36,10 +36,10 @@ type Service struct {
 	db     DBTX
 	access Access
 	store  DesignStore
-	// starterAssets stores the starter kit's logo artwork (starter.go); nil
-	// seeds the kit without logos.
-	starterAssets StarterAssets
 }
+
+// untitledKitName is the name CreateKit gives a kit made without one.
+const untitledKitName = "Untitled brand kit"
 
 // NewService wires the brand service (kit-management). Call WithDesignScope to
 // enable the design-scoped operations.

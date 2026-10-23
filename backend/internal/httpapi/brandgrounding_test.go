@@ -77,27 +77,31 @@ func TestBrandGroundingFromKitToleratesEmptyAndBadKits(t *testing.T) {
 	}
 }
 
-// The starter kit grounds a deck the way its spec intends: plum then magenta
-// lead the palette, both faces are the brand face, the lockup is the logo
-// with its paper version for deep pages, and the voice clause carries the
-// tone and the do and don't lists.
-func TestBrandGroundingFromTheStarterKit(t *testing.T) {
-	starter, err := brand.BuildStarterKit(func(file string) string { return "id-" + file })
-	if err != nil {
-		t.Fatalf("BuildStarterKit: %v", err)
+// A kit grounds a deck the way it is set up: its palette leads, the heading
+// and body roles give the faces, the logo comes with its version for deep
+// pages (the dark file its logo versions keep in step), and the voice clause
+// carries the tone and the do and don't lists.
+func TestBrandGroundingFromAKit(t *testing.T) {
+	kit := brand.BrandKit{
+		Palettes: json.RawMessage(`[{"id":"p1","name":"Main","colors":[
+			{"id":"s1","role":"primary","value":{"srgb":{"r":0.125,"g":0.376,"b":0.239,"a":1}}},
+			{"id":"s2","role":"accent","value":{"srgb":{"r":0.376,"g":0.604,"b":0.773,"a":1}}}]}]`),
+		Fonts: json.RawMessage(`[{"id":"f1","role":"heading","fontFamily":"Playfair Display"},{"id":"f2","role":"body","fontFamily":"Titillium Web"}]`),
+		Logos: json.RawMessage(`[{"id":"l1","label":"Wordmark","assetId":"a-colour","minSizePx":96,"variants":{"dark":"a-white"},
+			"versions":{"colour":"a-colour","white":"a-white"}}]`),
+		Voice: json.RawMessage(`{"tone":["warm","plain"],"doSay":["speak to the reader"],"dontSay":["jargon"]}`),
 	}
-	kit := brand.BrandKit{Palettes: starter.Palettes, Fonts: starter.Fonts, Logos: starter.Logos, Voice: starter.Voice}
 	g := brandGroundingFromKit(kit, func(id string) string { return "/assets/" + id }, func(string) float64 { return 5 })
-	if len(g.Palette) != 8 || g.Palette[0] != "#9b2c72" || g.Palette[1] != "#d6409a" {
+	if len(g.Palette) < 2 || g.Palette[0] != "#20603d" || g.Palette[1] != "#609ac5" {
 		t.Fatalf("palette = %v", g.Palette)
 	}
-	if g.Fonts == nil || g.Fonts.Heading != "Plus Jakarta Sans" || g.Fonts.Body != "Plus Jakarta Sans" {
+	if g.Fonts == nil || g.Fonts.Heading != "Playfair Display" || g.Fonts.Body != "Titillium Web" {
 		t.Fatalf("fonts = %+v", g.Fonts)
 	}
-	if g.Logo == nil || g.Logo.AssetID != "id-hycanvas-logo-ink.png" || g.Logo.MinSizePx != 96 || g.Logo.Dark == nil || g.Logo.Dark.AssetID != "id-hycanvas-logo-paper.png" {
+	if g.Logo == nil || g.Logo.AssetID != "a-colour" || g.Logo.MinSizePx != 96 || g.Logo.Dark == nil || g.Logo.Dark.AssetID != "a-white" {
 		t.Fatalf("logo = %+v", g.Logo)
 	}
-	for _, want := range []string{"Write in this brand voice. Tone: confident, plain-spoken, warm, specific.", " Do: lead with what the reader can make;", " Don't: compare HyCanvas with other design tools;"} {
+	for _, want := range []string{"Tone: warm, plain.", "Do: speak to the reader", "Don't: jargon"} {
 		if !strings.Contains(g.Clause, want) {
 			t.Fatalf("clause %q lacks %q", g.Clause, want)
 		}

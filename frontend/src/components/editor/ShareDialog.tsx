@@ -87,7 +87,7 @@ function LinkLabelInline({ label, disabled, onSave }: { label: string; disabled:
 function embedSnippet(token: string, page: { width: number; height: number } | undefined, title: string): string {
   const w = 960;
   const h = page && page.width > 0 ? Math.max(120, Math.round((w * page.height) / page.width)) : 540;
-  const safeTitle = (title.trim() || "HyCanvas").replace(/"/g, "&quot;"); // i18n-ignore: brand name
+  const safeTitle = (title.trim() || "danvas").replace(/"/g, "&quot;"); // i18n-ignore: brand name
   return `<iframe src="${linkUrl(token)}?embed=1" width="${w}" height="${h}" style="border:0;border-radius:12px;max-width:100%" allowfullscreen loading="lazy" title="${safeTitle}"></iframe>`;
 }
 

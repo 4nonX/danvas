@@ -103,7 +103,6 @@ Main settings in `.env`:
 | `INSTANCE_SOURCE_URL` | where the sign-in page's "Source code" link points, an https URL. Set it when you run a modified version: the AGPL-3.0 requires offering your users your source (empty: the danvas repository at the running version) |
 | `GHOSTSCRIPT_PATH` | the Ghostscript binary the download menu's output check separates print files with (empty: `gs`, which the image includes; without it the check is not offered) |
 | `BUILTIN_TEMPLATES` | `off` hides the built-in starter templates |
-| `BRAND_STARTER_KIT` | `hycanvas` seeds HyCanvas's own brand kit into new workspaces (off by default) |
 | `OIDC_*` | optional single sign-on (Authentik, Keycloak, Google, ...) |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM`, `SMTP_FROM_NAME` | optional email delivery for invitations, shares, password resets and sign-in links. Without `SMTP_HOST` nothing is sent. Port 465 uses implicit TLS, otherwise STARTTLS; a login is only sent over an encrypted connection. With Gmail or Google Workspace: `smtp.gmail.com`, port 587, the mailbox address and an app password; `SMTP_FROM` may be one of that mailbox's addresses set up under "Send mail as". |
 

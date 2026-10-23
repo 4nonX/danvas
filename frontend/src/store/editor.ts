@@ -1633,7 +1633,7 @@ function sampleDesign(): DesignFile {
         {
           runs: [
             {
-              text: "HyCanvas", // i18n-ignore: boot placeholder
+              text: "danvas", // i18n-ignore: boot placeholder
               style: {
                 fontFamily: "system",
                 fontStyle: "Bold",
