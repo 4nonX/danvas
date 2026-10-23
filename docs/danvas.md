@@ -307,7 +307,7 @@ The workspace's own graphics (plant silhouettes, drawings, line icons) belong to
 - **Upload**: **Upload graphics** in a category, or drop files on the page: many at once, SVG, PNG, JPEG, WebP or GIF. The file name, without its extension, is the graphic's name.
 - **Edit**: each graphic can be renamed, moved to another category, given another file (it keeps its place), or removed from the kit. Removing only takes it out of the kit: the file stays in the uploads, and designs that use it are unchanged.
 - **Search** finds graphics by name across all categories.
-- **Place**: in the editor's brand panel, **Graphics** lists the kit's categories with a search. Click a graphic, or drag it onto the page. An SVG goes in as editable vector shapes named after the graphic, so any fill colour applies, CMYK and spot colours included; other images go in as images.
+- **Place**: in the editor's brand panel, **Graphics** lists the kit's categories with a search. Click a graphic, or drag it onto the page. A placed graphic can be grabbed anywhere in its box, not only on its strokes. An SVG goes in as editable vector shapes named after the graphic, so any fill colour applies, CMYK and spot colours included; other images go in as images.
 - Every change is one update of the kit, listed in its version history, and the kit file carries the categories and the graphics' names.
 
 ## Export

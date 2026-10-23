@@ -5933,7 +5933,9 @@ export const useEditor = create<EditorState>((set, get) => {
         size: { width: vbW, height: vbH },
         // Provenance (stock asset id + license) rides in the same undo step so
         // the attribution compiler can derive credits from the design itself.
-        ...(provenance ? { data: { provenance } } : {}),
+        // hitBox: the placed graphic is grabbed anywhere in its box, not only
+        // on its strokes (a thin silhouette would let clicks fall through).
+        data: { ...(provenance ? { provenance } : {}), hitBox: true },
       } as Partial<Node>);
       let pageIndex: number;
       if (opts?.at) {

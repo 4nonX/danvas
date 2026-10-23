@@ -464,6 +464,14 @@ class SceneImpl implements Scene {
       }
       if (sn === this.root) return null; // the implicit page root is not selectable
       if (ignoreLocked && node.locked) return null;
+      // A placed graphic (an icon, a brand graphic, a logo; data.hitBox) is
+      // one object: its whole box is the click target, so a thin silhouette
+      // can be grabbed between its strokes instead of the panel under it.
+      if (node.type === "group" && (node.data as { hitBox?: unknown } | undefined)?.hitBox === true) {
+        const inv = invert(mat(sn));
+        const l = inv ? applyToPoint(inv, point) : null;
+        if (l && l.x >= 0 && l.y >= 0 && l.x <= node.size.width && l.y <= node.size.height) return node;
+      }
       // Groups have no own surface; only their children are hittable. A mask is
       // the same: it is selectable only where its subject actually paints, so
       // an empty corner of its box is not an invisible click target.
