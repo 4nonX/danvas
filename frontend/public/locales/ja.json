@@ -3004,7 +3004,7 @@
   "errors.api_ai_provider_failed": "AIプロバイダーへのリクエストに失敗しました。",
   "errors.api_ai_provider_model_not_found": "AIプロバイダーが設定されたモデルまたはエンドポイントを認識できません。AI設定でモデル名とベースURLを確認してください。",
   "errors.api_ai_provider_model_forbidden": "AI プロバイダーがこのキーに対して設定されたモデルを拒否しました。キーが使用できるモデルを選ぶか、プロバイダーのコンソールでアクセスを許可してください。",
-  "errors.api_ai_provider_quota_exhausted": "AIプロバイダーのアカウント残高がありません。チャージするか、AI設定でプロバイダーを切り替えてください。",
+  "errors.api_ai_provider_quota_exhausted": "AI プロバイダーのアカウントにクレジットまたはクォータが残っていません。プロバイダーの請求設定でチャージするかプランを確認してください。待っても解決しません。",
   "errors.api_ai_provider_rate_limited": "AIプロバイダーがリクエストをレート制限しました。少し待ってからもう一度お試しください。",
   "errors.api_ai_secret_required": "このプロバイダーはリクエストに署名するため、アクセスキーとシークレットキーの両方が必要です。",
   "errors.api_already_workspace_member": "この人はすでにメンバーです。",
@@ -5018,5 +5018,9 @@
   "editor.trim_off_editor_hint": "「{resize}」でサイズを変更するか、ダッシュボードの「{reformat}」で複数のデザインをまとめて変更します。",
   "editor.profile_trim_size": "仕上がり {size}",
   "editor.offline_changes_label": "このブラウザーのオフライン変更（{date}）",
-  "editor.offline_changes_kept": "このブラウザーには、このデザインの古いオフライン変更が残っていました。履歴にバージョンとして保存し、デザインは現在の状態で表示しています。"
+  "editor.offline_changes_kept": "このブラウザーには、このデザインの古いオフライン変更が残っていました。履歴にバージョンとして保存し、デザインは現在の状態で表示しています。",
+  "errors.api_ai_provider_unavailable": "AI プロバイダーが過負荷か、プロバイダー側でエラーが発生しました。数分後にもう一度お試しください。",
+  "errors.api_ai_provider_timeout": "AI プロバイダーが時間内に応答しませんでした。もう一度試すか、一度に依頼する量を減らしてください。",
+  "errors.api_ai_provider_content_refused": "AI プロバイダーがコンテンツポリシーによりリクエストを拒否しました。表現を変えるか、別の素材を使ってください。",
+  "errors.api_ai_request_too_large": "リクエストがモデルに対して大きすぎます。一度に依頼する量を減らすか、AI 設定でより大きなコンテキストのモデルを選んでください。"
 }

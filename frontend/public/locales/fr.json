@@ -3004,7 +3004,7 @@
   "errors.api_ai_provider_failed": "La requête au fournisseur d'IA a échoué.",
   "errors.api_ai_provider_model_not_found": "Le fournisseur d'IA ne reconnaît pas le modèle ou le point de terminaison configuré. Vérifiez le nom du modèle et l'URL de base dans les réglages IA.",
   "errors.api_ai_provider_model_forbidden": "Le fournisseur d'IA a refusé le modèle configuré pour cette clé. Choisissez un modèle que la clé peut utiliser, ou accordez-lui l'accès dans la console du fournisseur.",
-  "errors.api_ai_provider_quota_exhausted": "Le compte du fournisseur d'IA n'a plus de crédit. Rechargez-le ou changez de fournisseur dans les réglages IA.",
+  "errors.api_ai_provider_quota_exhausted": "Le compte du fournisseur d’IA n’a plus de crédit ni de quota. Rechargez-le ou vérifiez l’offre dans la facturation du fournisseur ; attendre n’y change rien.",
   "errors.api_ai_provider_rate_limited": "Le fournisseur d'IA a limité le débit des requêtes. Patientez un instant puis réessayez.",
   "errors.api_ai_secret_required": "Ce fournisseur signe ses requêtes et a besoin d'une clé d'accès et d'une clé secrète.",
   "errors.api_already_workspace_member": "Cette personne est déjà membre.",
@@ -5018,5 +5018,9 @@
   "editor.trim_off_editor_hint": "Changez sa taille avec « {resize} », ou plusieurs designs à la fois avec « {reformat} » dans le tableau de bord.",
   "editor.profile_trim_size": "format fini {size}",
   "editor.offline_changes_label": "Modifications hors ligne de ce navigateur ({date})",
-  "editor.offline_changes_kept": "Ce navigateur avait encore des modifications hors ligne plus anciennes de ce design. Elles sont conservées comme version dans l’historique ; le design affiche son état actuel."
+  "editor.offline_changes_kept": "Ce navigateur avait encore des modifications hors ligne plus anciennes de ce design. Elles sont conservées comme version dans l’historique ; le design affiche son état actuel.",
+  "errors.api_ai_provider_unavailable": "Le fournisseur d’IA est surchargé ou a signalé une erreur de son côté. Réessayez dans quelques minutes.",
+  "errors.api_ai_provider_timeout": "Le fournisseur d’IA n’a pas répondu à temps. Réessayez ou demandez moins à la fois.",
+  "errors.api_ai_provider_content_refused": "Le fournisseur d’IA a refusé la demande en vertu de ses règles de contenu. Reformulez la demande ou utilisez d’autres éléments.",
+  "errors.api_ai_request_too_large": "La demande est trop volumineuse pour le modèle. Demandez moins à la fois ou choisissez dans les réglages d’IA un modèle avec un contexte plus grand."
 }

@@ -593,6 +593,11 @@ var errProviderFailed = errors.New("provider request failed")
 // key.
 var errProviderTransport = fmt.Errorf("%w: no response", errProviderFailed)
 
+// errProviderTimeout is a transport failure that ran out of time: the host
+// answered nothing within the deadline. Still an errProviderTransport, so the
+// existing checks hold; badGateway tells it apart from a wrong host.
+var errProviderTimeout = fmt.Errorf("%w (timed out)", errProviderTransport)
+
 // httpStatusError carries the provider's HTTP status so a caller can decide
 // whether a failure is negotiable (a 4xx rejecting an unsupported request
 // parameter) without ever echoing the provider's body. It IS an
@@ -603,6 +608,11 @@ type httpStatusError struct {
 	// inside this package (logged, and read by badGateway to tell a refused
 	// model from a refused credential) and is never returned to a client.
 	reason string
+	// code is the provider's machine error code ("insufficient_quota",
+	// "rate_limit_error", "RESOURCE_EXHAUSTED") and body its lowercased error
+	// body; both stay in this package and feed classifyRefusal.
+	code string
+	body string
 }
 
 func (e *httpStatusError) Error() string {
@@ -620,6 +630,11 @@ func isNegotiable4xx(err error) bool {
 	}
 	switch se.status {
 	case http.StatusUnauthorized, http.StatusForbidden, http.StatusTooManyRequests:
+		return false
+	}
+	// An empty account, a content refusal or an oversized request answered
+	// with 400 stays refused without the parameter too.
+	if classifyRefusal(se.status, se.code, se.body) != nil {
 		return false
 	}
 	return se.status >= 400 && se.status < 500
@@ -693,6 +708,10 @@ func (s *Service) do(httpReq *http.Request, timeout time.Duration) ([]byte, erro
 	defer cancel()
 	res, err := s.client.Do(httpReq.WithContext(ctx))
 	if err != nil {
+		var ne interface{ Timeout() bool }
+		if errors.Is(err, context.DeadlineExceeded) || (errors.As(err, &ne) && ne.Timeout()) {
+			return nil, errProviderTimeout
+		}
 		return nil, errProviderTransport
 	}
 	defer res.Body.Close()
@@ -702,9 +721,9 @@ func (s *Service) do(httpReq *http.Request, timeout time.Duration) ([]byte, erro
 	// bare 403 cannot tell an operator a rejected key from a missing IAM
 	// permission from a signature mismatch.
 	if res.StatusCode < 200 || res.StatusCode >= 300 {
-		reason := upstreamReason(res.Body)
-		slog.Warn("ai provider rejected the request", "host", httpReq.URL.Host, "status", res.StatusCode, "reason", reason)
-		return nil, &httpStatusError{status: res.StatusCode, reason: reason}
+		reason, code, body := upstreamDetail(res.Body)
+		slog.Warn("ai provider rejected the request", "host", httpReq.URL.Host, "status", res.StatusCode, "code", code, "reason", reason)
+		return nil, &httpStatusError{status: res.StatusCode, reason: reason, code: code, body: body}
 	}
 	if cl, err := strconv.ParseInt(res.Header.Get("content-length"), 10, 64); err == nil && cl > maxResponseBytes {
 		return nil, errProviderFailed
@@ -714,35 +733,6 @@ func (s *Service) do(httpReq *http.Request, timeout time.Duration) ([]byte, erro
 		return nil, errProviderFailed
 	}
 	return body, nil
-}
-
-// upstreamReason reads the human-readable reason out of a provider's error
-// body: the "message" most APIs carry (AWS, Anthropic and OpenAI-compatible
-// dialects alike), else the body's first line. Bounded and stripped of
-// control characters so a log line stays one line; never returned to a
-// client.
-func upstreamReason(r io.Reader) string {
-	raw, _ := io.ReadAll(io.LimitReader(r, 4096))
-	var j struct {
-		Message string `json:"message"`
-		Msg     string `json:"Message"`
-		Error   struct {
-			Message string `json:"message"`
-		} `json:"error"`
-	}
-	_ = json.Unmarshal(raw, &j)
-	reason := firstNonEmptyString(j.Message, j.Msg, j.Error.Message, string(raw))
-	reason = strings.Map(func(r rune) rune {
-		if r < 0x20 || r == 0x7f {
-			return ' '
-		}
-		return r
-	}, reason)
-	reason = strings.Join(strings.Fields(reason), " ")
-	if len(reason) > 240 {
-		reason = reason[:240] + "..."
-	}
-	return reason
 }
 
 func firstNonEmptyString(vals ...string) string {

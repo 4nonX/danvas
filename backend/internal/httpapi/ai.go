@@ -118,6 +118,9 @@ func aiFailure(err error) (status int, title, detail, code string) {
 		// The upstream status (attached by the ai package, body never echoed)
 		// separates the self-fixable failures: a rejected key, an exhausted
 		// account, a mistyped model, a rate limit.
+		if errors.Is(err, ai.ErrProviderTimeout) {
+			return http.StatusBadGateway, "Bad Gateway", "the AI provider did not answer in time; try again, or ask for less at once", "ai_provider_timeout"
+		}
 		if errors.Is(err, ai.ErrProviderUnreachable) {
 			return http.StatusBadGateway, "Bad Gateway", "could not reach the AI provider; check the base URL, and that the server can reach that host", "ai_provider_unreachable"
 		}
@@ -130,6 +133,19 @@ func aiFailure(err error) (status int, title, detail, code string) {
 		if errors.Is(err, ai.ErrModelForbidden) {
 			return http.StatusBadGateway, "Bad Gateway", "the AI provider refused the configured model for this key; choose a model the key is allowed to use, or grant it access in the provider's console", "ai_provider_model_forbidden"
 		}
+		// The cause the provider named, whatever status it used for it.
+		switch {
+		case errors.Is(err, ai.ErrQuotaExhausted):
+			return http.StatusBadGateway, "Bad Gateway", "the AI provider account has no credit or quota left; top up or check the plan in the provider's billing settings (waiting does not help)", "ai_provider_quota_exhausted"
+		case errors.Is(err, ai.ErrContentRefused):
+			return http.StatusBadGateway, "Bad Gateway", "the AI provider refused the request under its content rules; rephrase the request or use other material", "ai_provider_content_refused"
+		case errors.Is(err, ai.ErrRequestTooLarge):
+			return http.StatusBadGateway, "Bad Gateway", "the request is too large for the model; ask for less at once or choose a model with a larger context", "ai_request_too_large"
+		case errors.Is(err, ai.ErrRateLimited):
+			return http.StatusBadGateway, "Bad Gateway", "the AI provider rate-limited the request; wait a moment and try again", "ai_provider_rate_limited"
+		case errors.Is(err, ai.ErrProviderBusy):
+			return http.StatusBadGateway, "Bad Gateway", "the AI provider is overloaded or failed on its side; try again in a few minutes", "ai_provider_unavailable"
+		}
 		var up *ai.UpstreamError
 		upstream := 0
 		if errors.As(err, &up) {
@@ -139,13 +155,16 @@ func aiFailure(err error) (status int, title, detail, code string) {
 		case http.StatusUnauthorized, http.StatusForbidden:
 			return http.StatusBadGateway, "Bad Gateway", "the AI provider rejected the workspace API key; check the key in AI settings", "ai_provider_auth_failed"
 		case http.StatusPaymentRequired:
-			return http.StatusBadGateway, "Bad Gateway", "the AI provider account is out of credit; top up or switch providers in AI settings", "ai_provider_quota_exhausted"
+			return http.StatusBadGateway, "Bad Gateway", "the AI provider account has no credit or quota left; top up or check the plan in the provider's billing settings (waiting does not help)", "ai_provider_quota_exhausted"
 		// 405 is a base URL one path segment off (the host answers, but not
 		// on that route), which is the same fix as an unknown endpoint.
 		case http.StatusNotFound, http.StatusMethodNotAllowed:
 			return http.StatusBadGateway, "Bad Gateway", "the AI provider does not recognize the configured model or endpoint; check the model name and base URL in AI settings", "ai_provider_model_not_found"
 		case http.StatusTooManyRequests:
 			return http.StatusBadGateway, "Bad Gateway", "the AI provider rate-limited the request; wait a moment and try again", "ai_provider_rate_limited"
+		}
+		if upstream >= 500 {
+			return http.StatusBadGateway, "Bad Gateway", "the AI provider is overloaded or failed on its side; try again in a few minutes", "ai_provider_unavailable"
 		}
 		return http.StatusBadGateway, "Bad Gateway", "the AI provider request failed", "ai_provider_failed"
 	}
@@ -191,6 +210,14 @@ func aiProblem(w http.ResponseWriter, r *http.Request, err error) {
 		problemWithCode(w, r, status, title, detail, "ai_provider_model_forbidden")
 	case "ai_provider_rate_limited":
 		problemWithCode(w, r, status, title, detail, "ai_provider_rate_limited")
+	case "ai_provider_unavailable":
+		problemWithCode(w, r, status, title, detail, "ai_provider_unavailable")
+	case "ai_provider_timeout":
+		problemWithCode(w, r, status, title, detail, "ai_provider_timeout")
+	case "ai_provider_content_refused":
+		problemWithCode(w, r, status, title, detail, "ai_provider_content_refused")
+	case "ai_request_too_large":
+		problemWithCode(w, r, status, title, detail, "ai_request_too_large")
 	case "ai_provider_failed":
 		problemWithCode(w, r, status, title, detail, "ai_provider_failed")
 	default:

@@ -3229,7 +3229,7 @@
   "errors.api_ai_provider_failed": "The AI provider request failed.",
   "errors.api_ai_provider_model_forbidden": "The AI provider refused the configured model for this key. Choose a model the key is allowed to use, or grant it access in the provider's console.",
   "errors.api_ai_provider_model_not_found": "The AI provider doesn't recognize the configured model or endpoint. Check the model name and base URL in AI settings.",
-  "errors.api_ai_provider_quota_exhausted": "The AI provider account is out of credit. Top up or switch providers in AI settings.",
+  "errors.api_ai_provider_quota_exhausted": "The AI provider account has no credit or quota left. Top it up or check the plan in the provider's billing settings; waiting does not help.",
   "errors.api_ai_provider_rate_limited": "The AI provider rate-limited the request. Wait a moment and try again.",
   "errors.api_ai_provider_unreachable": "Could not reach the AI provider. Check the base URL, and that the server can reach that host.",
   "errors.api_ai_reply_truncated": "The AI reply was cut off before it finished. Ask for fewer pages or less detail per page.",
@@ -5018,5 +5018,9 @@
   "editor.trim_off_editor_hint": "Change its size with “{resize}”, or several designs at once with “{reformat}” in the dashboard.",
   "editor.profile_trim_size": "finished size {size}",
   "editor.offline_changes_label": "Offline changes from this browser ({date})",
-  "editor.offline_changes_kept": "This browser still had older offline changes to this design. They are kept as a version in the history; the design shows its current state."
+  "editor.offline_changes_kept": "This browser still had older offline changes to this design. They are kept as a version in the history; the design shows its current state.",
+  "errors.api_ai_provider_unavailable": "The AI provider is overloaded or reported an error on its side. Try again in a few minutes.",
+  "errors.api_ai_provider_timeout": "The AI provider did not answer in time. Try again, or ask for less at once.",
+  "errors.api_ai_provider_content_refused": "The AI provider refused the request under its content rules. Rephrase the request or use other material.",
+  "errors.api_ai_request_too_large": "The request is too large for the model. Ask for less at once, or choose a model with a larger context in AI settings."
 }

@@ -3004,7 +3004,7 @@
   "errors.api_ai_provider_failed": "AI服务商请求失败。",
   "errors.api_ai_provider_model_not_found": "AI 服务商无法识别所配置的模型或端点。请在 AI 设置中检查模型名称和基础 URL。",
   "errors.api_ai_provider_model_forbidden": "AI 提供商拒绝了此密钥所配置的模型。请选择该密钥可使用的模型，或在提供商控制台中授予访问权限。",
-  "errors.api_ai_provider_quota_exhausted": "AI 服务商账户余额不足。请充值，或在 AI 设置中更换服务商。",
+  "errors.api_ai_provider_quota_exhausted": "AI 提供商账户已没有余额或配额。请在提供商的账单设置中充值或检查套餐；等待无济于事。",
   "errors.api_ai_provider_rate_limited": "AI 服务商对请求进行了限流。请稍候再试。",
   "errors.api_ai_secret_required": "该提供商会对请求进行签名，需要同时提供访问密钥和私密密钥。",
   "errors.api_already_workspace_member": "此人已是成员。",
@@ -5018,5 +5018,9 @@
   "editor.trim_off_editor_hint": "使用“{resize}”更改尺寸，或在仪表板中用“{reformat}”一次更改多个设计。",
   "editor.profile_trim_size": "成品尺寸 {size}",
   "editor.offline_changes_label": "此浏览器的离线更改（{date}）",
-  "editor.offline_changes_kept": "此浏览器中还有此设计较早的离线更改。它们已作为版本保存在历史记录中；设计显示的是当前状态。"
+  "editor.offline_changes_kept": "此浏览器中还有此设计较早的离线更改。它们已作为版本保存在历史记录中；设计显示的是当前状态。",
+  "errors.api_ai_provider_unavailable": "AI 提供商过载或报告了其自身的错误。请几分钟后重试。",
+  "errors.api_ai_provider_timeout": "AI 提供商未能及时响应。请重试，或一次请求更少的内容。",
+  "errors.api_ai_provider_content_refused": "AI 提供商根据其内容规则拒绝了该请求。请换种说法或使用其他素材。",
+  "errors.api_ai_request_too_large": "请求对该模型来说过大。请一次请求更少的内容，或在 AI 设置中选择上下文更大的模型。"
 }

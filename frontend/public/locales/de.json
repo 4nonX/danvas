@@ -3004,7 +3004,7 @@
   "errors.api_ai_provider_failed": "Die Anfrage an den KI-Anbieter ist fehlgeschlagen.",
   "errors.api_ai_provider_model_not_found": "Der KI-Anbieter kennt das konfigurierte Modell oder den Endpunkt nicht. Prüfe Modellname und Basis-URL in den KI-Einstellungen.",
   "errors.api_ai_provider_model_forbidden": "Der KI-Anbieter hat das konfigurierte Modell für diesen Schlüssel abgelehnt. Wähle ein Modell, das der Schlüssel verwenden darf, oder erteile ihm Zugriff in der Konsole des Anbieters.",
-  "errors.api_ai_provider_quota_exhausted": "Das Konto beim KI-Anbieter hat kein Guthaben mehr. Lade es auf oder wechsle den Anbieter in den KI-Einstellungen.",
+  "errors.api_ai_provider_quota_exhausted": "Beim KI-Anbieter ist kein Guthaben oder Kontingent mehr übrig. Lade das Konto auf oder prüfe den Tarif in der Abrechnung des Anbieters; Warten hilft hier nicht.",
   "errors.api_ai_provider_rate_limited": "Der KI-Anbieter hat die Anfrage wegen zu vieler Aufrufe abgelehnt. Warte einen Moment und versuche es erneut.",
   "errors.api_ai_secret_required": "Dieser Anbieter signiert seine Anfragen und benötigt sowohl einen Zugriffsschlüssel als auch einen geheimen Schlüssel.",
   "errors.api_already_workspace_member": "Diese Person ist bereits Mitglied.",
@@ -5018,5 +5018,9 @@
   "editor.trim_off_editor_hint": "Die Größe mit „{resize}“ ändern, oder mehrere Designs auf einmal mit „{reformat}“ im Dashboard.",
   "editor.profile_trim_size": "Endformat {size}",
   "editor.offline_changes_label": "Offline-Änderungen aus diesem Browser ({date})",
-  "editor.offline_changes_kept": "Dieser Browser hatte noch ältere Offline-Änderungen an diesem Design. Sie sind als Version im Verlauf gesichert; das Design zeigt seinen aktuellen Stand."
+  "editor.offline_changes_kept": "Dieser Browser hatte noch ältere Offline-Änderungen an diesem Design. Sie sind als Version im Verlauf gesichert; das Design zeigt seinen aktuellen Stand.",
+  "errors.api_ai_provider_unavailable": "Der KI-Anbieter ist überlastet oder hat einen Fehler auf seiner Seite gemeldet. Versuche es in ein paar Minuten erneut.",
+  "errors.api_ai_provider_timeout": "Der KI-Anbieter hat nicht rechtzeitig geantwortet. Versuche es erneut oder frage weniger auf einmal an.",
+  "errors.api_ai_provider_content_refused": "Der KI-Anbieter hat die Anfrage aufgrund seiner Inhaltsrichtlinien abgelehnt. Formuliere die Anfrage anders oder verwende anderes Material.",
+  "errors.api_ai_request_too_large": "Die Anfrage ist für das Modell zu groß. Frage weniger auf einmal an oder wähle in den KI-Einstellungen ein Modell mit größerem Kontext."
 }

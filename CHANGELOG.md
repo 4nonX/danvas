@@ -2,6 +2,16 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.7.1 (2026-10-23)
+
+### Fixed
+
+- **AI error messages name the real cause, for every provider.** Providers report an empty account in different ways: OpenAI with 429 like a rate limit, Anthropic with 400, Google with 429 for both a daily quota and a per-minute limit, xAI with 403. danvas read only the status and told an account without credit to "wait a moment and try again". The provider's error code and wording are now read as well (never shown to users), and the message says what to do: no credit or quota left (top up or check the plan; waiting does not help), rate-limited (wait), overloaded or failing on the provider's side (try again in a few minutes), no answer in time, refused under the provider's content rules, or too large for the model. A rejected key, a refused or unknown model and an unreachable host keep their messages. An empty account is no longer retried as if a request parameter were unsupported.
+
+### Upgrading
+
+- No database change, no change to the file format.
+
 ## 0.7.0 (2026-10-22)
 
 ### Added

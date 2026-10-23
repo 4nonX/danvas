@@ -54,6 +54,12 @@ func badGateway(cfg CallConfig, err error) error {
 	if errors.As(err, &se) {
 		slog.Warn("ai provider call failed", "provider", cfg.Provider, "upstream_status", se.status)
 		up := &UpstreamError{Provider: string(cfg.Provider), Status: se.status}
+		// The cause the provider names (no credit, a rate limit, a content
+		// refusal...) goes before the status: several providers answer an
+		// empty account with 429, 400 or 403.
+		if cause := classifyRefusal(se.status, se.code, se.body); cause != nil {
+			return errors.Join(ErrBadGateway, cause, up)
+		}
 		// A 403 is two different problems on the providers that sign or scope
 		// their keys: a credential that is wrong, and a credential that is fine
 		// but not allowed this MODEL (Bedrock's IAM policy per inference
@@ -66,6 +72,9 @@ func badGateway(cfg CallConfig, err error) error {
 		return errors.Join(ErrBadGateway, up)
 	}
 	slog.Warn("ai provider call failed", "provider", cfg.Provider, "err", err)
+	if errors.Is(err, errProviderTimeout) {
+		return errors.Join(ErrBadGateway, ErrProviderTimeout)
+	}
 	if errors.Is(err, errProviderTransport) {
 		return errors.Join(ErrBadGateway, ErrProviderUnreachable)
 	}

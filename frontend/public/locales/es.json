@@ -3004,7 +3004,7 @@
   "errors.api_ai_provider_failed": "La solicitud al proveedor de IA falló.",
   "errors.api_ai_provider_model_not_found": "El proveedor de IA no reconoce el modelo o endpoint configurado. Revisa el nombre del modelo y la URL base en los ajustes de IA.",
   "errors.api_ai_provider_model_forbidden": "El proveedor de IA rechazó el modelo configurado para esta clave. Elige un modelo que la clave pueda usar o concédele acceso en la consola del proveedor.",
-  "errors.api_ai_provider_quota_exhausted": "La cuenta del proveedor de IA se quedó sin crédito. Recarga o cambia de proveedor en los ajustes de IA.",
+  "errors.api_ai_provider_quota_exhausted": "La cuenta del proveedor de IA no tiene saldo ni cuota disponibles. Recárgala o revisa el plan en la facturación del proveedor; esperar no sirve.",
   "errors.api_ai_provider_rate_limited": "El proveedor de IA limitó la frecuencia de solicitudes. Espera un momento y vuelve a intentarlo.",
   "errors.api_ai_secret_required": "Este proveedor firma sus solicitudes y necesita tanto una clave de acceso como una clave secreta.",
   "errors.api_already_workspace_member": "Esta persona ya es miembro.",
@@ -5018,5 +5018,9 @@
   "editor.trim_off_editor_hint": "Cambia su tamaño con «{resize}», o varios diseños a la vez con «{reformat}» en el panel.",
   "editor.profile_trim_size": "formato final {size}",
   "editor.offline_changes_label": "Cambios sin conexión de este navegador ({date})",
-  "editor.offline_changes_kept": "Este navegador tenía cambios sin conexión más antiguos de este diseño. Se guardan como versión en el historial; el diseño muestra su estado actual."
+  "editor.offline_changes_kept": "Este navegador tenía cambios sin conexión más antiguos de este diseño. Se guardan como versión en el historial; el diseño muestra su estado actual.",
+  "errors.api_ai_provider_unavailable": "El proveedor de IA está sobrecargado o informó de un error propio. Vuelve a intentarlo en unos minutos.",
+  "errors.api_ai_provider_timeout": "El proveedor de IA no respondió a tiempo. Vuelve a intentarlo o pide menos de una vez.",
+  "errors.api_ai_provider_content_refused": "El proveedor de IA rechazó la solicitud por sus normas de contenido. Reformula la solicitud o usa otro material.",
+  "errors.api_ai_request_too_large": "La solicitud es demasiado grande para el modelo. Pide menos de una vez o elige en los ajustes de IA un modelo con más contexto."
 }
