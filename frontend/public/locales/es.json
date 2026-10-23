@@ -5228,5 +5228,6 @@
   "editor.grid_snap": "Ajustar a la cuadrícula",
   "editor.grid_snap_hint": "Mientras la cuadrícula está visible, los objetos movidos se ajustan a ella por su borde más cercano. Mantén Mayús para moverlos libremente.",
   "editor.grid_kept_hint": "Las reglas, la cuadrícula y las barras de desplazamiento se guardan para ti en este navegador; los diseños no cambian.",
-  "editor.scrollbars": "Barras de desplazamiento"
+  "editor.scrollbars": "Barras de desplazamiento",
+  "editor.autosave_rejected": "Los cambios no se están guardando: el servidor rechazó esta versión del diseño. Deshaz el último paso y mantén esta pestaña abierta."
 }

@@ -49,3 +49,18 @@ describe("paste position", () => {
     expect(pos(1)).toEqual([[120, 340]]);
   });
 });
+
+describe("pasted ids", () => {
+  it("never reuse an id the design already has from an earlier session", () => {
+    // Ids an earlier session's pastes left in the design.
+    const doc = createBlankDesign({ title: "t", width: 800, height: 600 });
+    for (let i = 1; i <= 50; i++) doc.pages[0].children.push(shape(`n-${i}`, i, i));
+    st().loadDoc(doc);
+    st().select(["n-1"]);
+    st().copySelection();
+    for (let i = 0; i < 60; i++) st().paste();
+    const ids = st().doc.pages[0].children.map((n) => n.id);
+    expect(ids).toHaveLength(110);
+    expect(new Set(ids).size).toBe(110);
+  });
+});

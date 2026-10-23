@@ -17,9 +17,10 @@ function visitTree(node: Node, fn: (n: Node) => void): void {
   }
 }
 
-let counter = 0;
+// Random, not a counter: pages copied into an existing design must not reuse
+// an id it already has (a counter starts again at every page load).
 function defaultIdGen(): string {
-  return `n-${++counter}`;
+  return `n-${globalThis.crypto.randomUUID()}`;
 }
 
 export interface DeepCopyResult {

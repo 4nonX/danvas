@@ -7,8 +7,11 @@
 // and the editor's beforeunload unsaved-changes guard are the real backstops.
 // Client-driven because the relay server holds no folded Y.Doc to snapshot (no
 // pure-Go CRDT decoder); the server dedups unchanged AUTO snapshots, so this
-// never bloats history. It never toasts. The manual Save button (kind
-// "checkpoint") and named checkpoints are unchanged.
+// never bloats history. It stays quiet about passing failures (offline, a
+// lost session); only a save the server refuses outright (422: the file
+// itself is rejected, so every later save fails too) is reported, once, via
+// `onRejected`. The manual Save button (kind "checkpoint") and named
+// checkpoints are unchanged.
 //
 // It also piggybacks CRDT update-log compaction (FR-11): when collaborating, at
 // most every few minutes it uploads a full-state checkpoint so the server drops
@@ -20,6 +23,7 @@ import { useEditor } from "@/store/editor";
 import { usePresence } from "@/store/presence";
 import { getDesignDoc } from "@/lib/useRealtime";
 import { noteServerState } from "@/lib/offlineCopy";
+import { ApiError } from "@hc/sdk";
 
 const IDLE_MS = 4000; // snapshot this long after the last edit
 const MAX_INTERVAL_MS = 90_000; // ...and at least this often during nonstop editing
@@ -31,11 +35,13 @@ export const checkpointMaxBytes = 20 * 1024 * 1024 - 4096; // stay just under th
  * stable-enough `onSaved` to reflect the auto-save time in the editor status;
  * it is read through a ref so the listener is installed once per design.
  */
-export function useAutoSnapshot(designId: string | null, onSaved?: () => void) {
+export function useAutoSnapshot(designId: string | null, onSaved?: () => void, onRejected?: () => void) {
   const onSavedRef = useRef(onSaved);
+  const onRejectedRef = useRef(onRejected);
   useEffect(() => {
     onSavedRef.current = onSaved;
-  }, [onSaved]);
+    onRejectedRef.current = onRejected;
+  }, [onSaved, onRejected]);
 
   useEffect(() => {
     if (!designId) return;
@@ -44,6 +50,7 @@ export function useAutoSnapshot(designId: string | null, onSaved?: () => void) {
     let lastCheckpointAt = Date.now();
     let saving = false;
     let disposed = false;
+    let rejected = false; // a refused save was reported (reset by a good save)
 
     const snapshot = async () => {
       if (disposed || saving) return;
@@ -90,6 +97,7 @@ export function useAutoSnapshot(designId: string | null, onSaved?: () => void) {
         const saved = await oc.saveSnapshot(designId, { file, kind: "auto" });
         noteServerState(designId, saved?.id, file); // this browser's copy is the server's file now (F49)
         if (disposed) return;
+        rejected = false;
         lastSavedAt = Date.now();
         // Mark clean only if no edits landed during the await, so we never hide a
         // genuinely-dirty state behind a stale save.
@@ -113,9 +121,14 @@ export function useAutoSnapshot(designId: string | null, onSaved?: () => void) {
             void oc.checkpointDesign(designId, cpFrame).then(() => { lastCheckpointAt = Date.now(); }).catch(() => {});
           }
         }
-      } catch {
+      } catch (e) {
         // Best-effort: the manual Save and the unsaved-changes unload guard stay
-        // the backstop. Errors (offline, 403, brand-lock) are intentionally silent.
+        // the backstop. Errors (offline, 403, brand-lock) are intentionally
+        // silent; a refused file is said once, until a save succeeds again.
+        if (e instanceof ApiError && e.status === 422 && !rejected && !disposed) {
+          rejected = true;
+          onRejectedRef.current?.();
+        }
       } finally {
         saving = false;
       }

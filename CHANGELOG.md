@@ -2,6 +2,17 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 1.1.1 (2026-10-23)
+
+### Fixed
+
+- **A design could stop saving after a paste or duplicate.** Pasted and duplicated elements got ids from a counter that started again at every page load, so a paste or duplicate in a later session could reuse an id an earlier one had left in the design. The server refuses a design with two elements of the same id, so from then on every save failed, without a word. Pasted and duplicated elements (and pages added from a template) now get random ids. A design open in a tab where this happened saves again once the paste or duplicate is undone.
+- **Refused saves are said.** When the server refuses the design itself (not a passing network problem), the editor now says so once, instead of failing silently on every automatic save.
+
+### Upgrading
+
+- No database change, no change to the file format. Designs on the server are not affected: a design with a duplicate id was never stored.
+
 ## 1.1.0 (2026-10-23)
 
 ### Added

@@ -135,10 +135,12 @@ export function serializeSelection(
   };
 }
 
-let pasteIdCounter = 0;
-/** Default fresh-id generator; pass a custom one in tests for determinism. */
+/** Default fresh-id generator; pass a custom one in tests for determinism.
+ *  Random, not a counter: a counter starts again at every page load, so a
+ *  paste in a later session could reuse an id an earlier paste left in the
+ *  design, and a design with a duplicate id can no longer be saved. */
 export function defaultIdGen(): string {
-  return `n-${++pasteIdCounter}`;
+  return `n-${globalThis.crypto.randomUUID()}`;
 }
 
 /**

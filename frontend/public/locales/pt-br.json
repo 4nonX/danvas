@@ -5228,5 +5228,6 @@
   "editor.grid_snap": "Encaixar na grade",
   "editor.grid_snap_hint": "Enquanto a grade está visível, os objetos movidos se encaixam nela pela borda mais próxima. Segure Shift para mover livremente.",
   "editor.grid_kept_hint": "Réguas, grade e barras de rolagem ficam salvas para você neste navegador; os designs não mudam.",
-  "editor.scrollbars": "Barras de rolagem"
+  "editor.scrollbars": "Barras de rolagem",
+  "editor.autosave_rejected": "As alterações não estão sendo salvas: o servidor recusou esta versão do design. Desfaça o último passo e mantenha esta aba aberta."
 }

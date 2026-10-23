@@ -5228,5 +5228,6 @@
   "editor.grid_snap": "吸附到网格",
   "editor.grid_snap_hint": "显示网格时，移动的对象会以较近的边吸附到网格。按住 Shift 可自由移动。",
   "editor.grid_kept_hint": "标尺、网格和滚动条设置保存在此浏览器中；设计不会改变。",
-  "editor.scrollbars": "滚动条"
+  "editor.scrollbars": "滚动条",
+  "editor.autosave_rejected": "更改未保存：服务器拒绝了此版本的设计。请撤销上一步操作并保持此标签页打开。"
 }

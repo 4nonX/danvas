@@ -5228,5 +5228,6 @@
   "editor.grid_snap": "Am Raster einrasten",
   "editor.grid_snap_hint": "Solange das Raster sichtbar ist, rasten verschobene Objekte mit der näheren Kante daran ein. Mit gedrückter Umschalttaste frei verschieben.",
   "editor.grid_kept_hint": "Lineale, Raster und Scrollbalken bleiben für dich in diesem Browser gespeichert; Designs ändern sich dadurch nicht.",
-  "editor.scrollbars": "Scrollbalken"
+  "editor.scrollbars": "Scrollbalken",
+  "editor.autosave_rejected": "Änderungen werden nicht gespeichert: Der Server hat diesen Stand des Designs abgelehnt. Mach den letzten Schritt rückgängig und lass diesen Tab offen."
 }

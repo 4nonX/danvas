@@ -5228,5 +5228,6 @@
   "editor.grid_snap": "Aligner sur la grille",
   "editor.grid_snap_hint": "Tant que la grille est affichée, les objets déplacés s'y alignent par leur bord le plus proche. Maintenez Maj pour déplacer librement.",
   "editor.grid_kept_hint": "Les règles, la grille et les barres de défilement sont conservées pour vous dans ce navigateur ; les designs ne changent pas.",
-  "editor.scrollbars": "Barres de défilement"
+  "editor.scrollbars": "Barres de défilement",
+  "editor.autosave_rejected": "Les modifications ne sont pas enregistrées : le serveur a refusé cette version du design. Annulez la dernière étape et gardez cet onglet ouvert."
 }

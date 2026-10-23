@@ -5228,5 +5228,6 @@
   "editor.grid_snap": "Snap to the grid",
   "editor.grid_snap_hint": "While the grid is shown, moved objects snap with their nearer edge to it. Hold Shift to move freely.",
   "editor.grid_kept_hint": "Rulers, grid and scrollbars are kept for you in this browser; designs do not change.",
-  "editor.scrollbars": "Scrollbars"
+  "editor.scrollbars": "Scrollbars",
+  "editor.autosave_rejected": "Changes are not being saved: the server refused this version of the design. Undo the last step and keep this tab open."
 }

@@ -556,7 +556,7 @@ export function EditorApp() {
 
   // Automatic snapshots (FR-11): idle / interval-cap / tab-hidden, silent, with
   // the save time surfaced in the status text. Manual Save is unchanged.
-  useAutoSnapshot(designId, () => setSavedAt(new Date().toLocaleTimeString()));
+  useAutoSnapshot(designId, () => setSavedAt(new Date().toLocaleTimeString()), () => toast.error(tr("editor.autosave_rejected")));
 
   // Engagement instrumentation: record a view + heartbeats while
   // the editor is focused, attributing time to the current page. Only for a
