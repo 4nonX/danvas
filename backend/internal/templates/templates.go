@@ -408,11 +408,10 @@ func (s *Service) SaveAsTemplate(ctx context.Context, userID string, in SaveInpu
 			tags = []string{}
 		}
 	}
-	var wsPtr *string
-	if visibility != "public" {
-		ws := in.WorkspaceID
-		wsPtr = &ws
-	}
+	// The workspace it was saved from, public ones too: its gallery lists it,
+	// and the workspace's admins may file and delete it.
+	ws := in.WorkspaceID
+	wsPtr := &ws
 	row, err := s.createRow(ctx, createTemplateInput{
 		ownerID: userID, workspaceID: wsPtr, title: in.Title, category: nilIfEmpty(in.Category),
 		tags: tags, file: fileRaw, thumbnail: nilIfEmpty(in.Thumbnail), visibility: visibility,

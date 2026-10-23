@@ -2,6 +2,16 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.9.1 (2026-10-23)
+
+### Fixed
+
+- **Templates**: a template saved for everyone (public) did not show on the Templates page of the workspace it came from, or only after reloading the browser page. Public templates were stored without their workspace, so the workspace's gallery left them out; the home page's unfiltered list then sometimes replaced the gallery's list as it loaded, which is why a reload could show them. A public template now keeps the workspace it was saved from: it shows in that gallery, and the workspace's admins may file it in a collection and delete it. Other workspaces see it as before. The Templates page no longer has its list replaced by the home page's.
+
+### Upgrading
+
+- No database change, no change to the file format. Public templates saved before keep no workspace and show only in the unfiltered lists; saving them again, or setting their `templates.workspace_id`, puts them in the workspace's gallery.
+
 ## 0.9.0 (2026-10-23)
 
 ### Added

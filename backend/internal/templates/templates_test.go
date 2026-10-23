@@ -192,6 +192,26 @@ func TestTemplates_DB(t *testing.T) {
 		t.Fatalf("private template should be hidden from others, got %v", err)
 	}
 
+	// A public template stays in the gallery of the workspace it was saved from.
+	pub, err := svc.SaveAsTemplate(ctx, owner.ID, SaveInput{WorkspaceID: ws.ID, File: loaded.File, Title: "Public Tmpl", Visibility: "public"})
+	if err != nil {
+		t.Fatalf("save public template: %v", err)
+	}
+	scoped, err := svc.List(ctx, owner.ID, TemplateQuery{}, ws.ID, "")
+	if err != nil {
+		t.Fatalf("List scoped: %v", err)
+	}
+	foundPub := false
+	for _, x := range scoped {
+		foundPub = foundPub || x.ID == pub.ID
+	}
+	if !foundPub {
+		t.Fatalf("a public template saved from the workspace must be in its gallery")
+	}
+	if err := svc.Delete(ctx, owner.ID, pub.ID); err != nil {
+		t.Fatalf("delete public template: %v", err)
+	}
+
 	// Collections: create, assign, list, delete.
 	col, err := svc.CreateCollection(ctx, owner.ID, ws.ID, "Brand")
 	if err != nil {

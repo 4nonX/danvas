@@ -150,7 +150,7 @@ If a workspace has lost its last owner (for example the only owner left the comp
 
 ### Templates
 
-- **Save as template**: in the editor, **File**, **Save as template**. On the dashboard, **Save as template** in a design's "..." menu, or in the bar for several selected designs: each becomes a template under its own name, with one category and one visibility for all. Needs the right **Publish templates**.
+- **Save as template**: in the editor, **File**, **Save as template**. On the dashboard, **Save as template** in a design's "..." menu, or in the bar for several selected designs: each becomes a template under its own name, with one category and one visibility for all. Needs the right **Publish templates**. A template for everyone (public) still belongs to the workspace it was saved from: it shows in that workspace's Templates, and the workspace's admins may file it in a collection or delete it.
 - **Delete a template**: in Templates, the trash button on a template's card, after a confirmation. Allowed for the person who created the template and for owners and admins of its workspace. Built-in templates cannot be deleted. Designs already made from the template stay as they are.
 - Instances can hide the built-in templates with `BUILTIN_TEMPLATES=off` (see [`deploy/README.md`](../deploy/README.md)).
 

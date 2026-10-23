@@ -592,7 +592,8 @@ export function DashboardApp({ view }: { view: DashboardView }) {
       ]);
       if (cancelled) return;
       setItems(recent);
-      setTemplates(tpls);
+      // The Templates view loads its own, scoped list; this one would race it.
+      if (view !== "templates") setTemplates(tpls);
       setLoading(false);
     })();
     return () => {
