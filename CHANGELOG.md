@@ -15,10 +15,6 @@ All notable changes to danvas are listed here, newest first. Versions follow the
 - Exported PowerPoint files name danvas as their creator and theme; the editor's start placeholder and the embed code's fallback title say danvas.
 - **Graphics on the Brand page** show their full name (up to two lines) with the actions below it.
 
-### Removed
-
-- **The original product's starter brand kit** and its artwork (logos, mark, app tile and their sources) are no longer shipped, and `BRAND_STARTER_KIT` is no longer read. It was off by default; brands are made on the Brand page. Kits seeded from it earlier stay as they are.
-
 ### Fixed
 
 - **Text contrast** was measured against the page background, so white text on a coloured panel was reported at 1.0:1. It is now measured against what is really behind the text; a text over a picture, a gradient or a pattern is left alone rather than guessed.

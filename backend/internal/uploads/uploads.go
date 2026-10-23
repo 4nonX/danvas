@@ -275,19 +275,6 @@ func (s *Service) store(ctx context.Context, userID, workspaceID string, buf []b
 	return s.toUploaded(row), nil
 }
 
-// StoreBuiltin stores artwork the product ships in a workspace's library as
-// its owner. There is no membership check:
-// the caller is workspace creation or the boot-time seeding pass, not a
-// request, and ownerID comes from the workspace row. Quotas still apply.
-func (s *Service) StoreBuiltin(ctx context.Context, workspaceID, ownerID, filename string, data []byte) (UploadedAsset, error) {
-	fn := strings.TrimSpace(filename)
-	var name *string
-	if fn != "" {
-		name = &fn
-	}
-	return s.store(ctx, ownerID, workspaceID, data, name, nil, "", true)
-}
-
 // CopyToWorkspace copies an asset of workspace srcWS into dstWS as userID
 // (bytes, name and preview), for a design moved or copied between
 // workspaces. The caller checks access to the source; the target needs
