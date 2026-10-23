@@ -455,12 +455,16 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
             <CollapsibleSection title={tr("editor.logos")} icon={ImageIcon} badge={kit.logos.length}>
               <div className="flex flex-col gap-2">
                 {kit.logos.map((l) => {
-                  const files = logoFiles(l, kitVersions(kit)).filter((f) => f.assetId && assetUrls[f.assetId]);
-                  if (!files.length) return null;
+                  // One column per version of the kit, so every logo's tiles
+                  // are the same size; a version without a file stays empty.
+                  const files = logoFiles(l, kitVersions(kit));
+                  if (!files.some((f) => f.assetId && assetUrls[f.assetId])) return null;
                   return (
                     <div key={l.id} className="light overflow-hidden rounded-lg border border-neutral-200">
                       <div className="grid" style={{ gridTemplateColumns: `repeat(${files.length}, minmax(0, 1fr))` }}>
-                        {files.map(({ version: v, assetId }) => (
+                        {files.map(({ version: v, assetId }) => !assetId || !assetUrls[assetId] ? (
+                          <div key={v.id} aria-hidden className={`aspect-[3/2] ${v.ground === "dark" ? "bg-neutral-900" : "bg-neutral-50"}`} />
+                        ) : (
                           <button
                             key={v.id}
                             onClick={() => void placeIcon(assetId!)}

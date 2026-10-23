@@ -7,6 +7,7 @@ All notable changes to danvas are listed here, newest first. Versions follow the
 ### Fixed
 
 - **Dialogs scroll.** A dialog is never taller than the window: its title stays and its content scrolls, so a long list (the uploads when picking a logo, for example) no longer runs off the screen without a way to reach the rest.
+- **Logos in the editor's brand panel** are all the same size: each logo has one tile per version of the brand, an empty one where it has no file, instead of a logo with a single file filling the whole row.
 - **Pictures with a ground of their own** (a logo in a white box) show on the light board in pick lists; only light artwork on transparency gets the dark one.
 
 ### Upgrading
