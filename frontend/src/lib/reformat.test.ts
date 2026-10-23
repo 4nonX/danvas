@@ -91,6 +91,24 @@ describe("a 90 x 40 mm label to 50 x 100 mm upright", () => {
     expect(Math.round((left.x1 - left.x0) / (left.y1 - left.y0) * 100) / 100).toBe(0.6);
   });
 
+  it("lets a pattern on the panel grow with it, so it still reaches the panel's ends", () => {
+    const doc = label();
+    const pattern = { id: "pattern", name: "pattern", type: "group", transform: T(122, -0.4), size: { width: 40, height: 151.4 }, opacity: 1, blendMode: "normal",
+      children: [{ id: "leaves", name: "leaves", type: "path", transform: T(0, 0), size: { width: 40, height: 151.4 }, opacity: 1, blendMode: "normal", contours: [], fills: fill }] };
+    const text = { id: "word", name: "word", type: "text", transform: T(130, 20), size: { width: 80, height: 110 }, opacity: 1, blendMode: "normal" };
+    doc.pages[0].children.push(pattern as never, text as never);
+    const d = reformatDesign(doc, { width: MM(50), height: MM(100), fit: "scale", turn: -90, measureUnit: "mm" });
+    const panel = boxMm(d, "panel"), leaves = boxMm(d, "leaves");
+    // Turned left, the panel's height runs across the page: the pattern spans it.
+    expect(Math.abs(leaves.x0 - panel.x0)).toBeLessThan(0.15);
+    expect(Math.abs(leaves.x1 - panel.x1)).toBeLessThan(0.15);
+    // Its position on the panel is unchanged along the other side.
+    expect(leaves.y0).toBeGreaterThanOrEqual(panel.y0 - 0.01);
+    // Text on the panel keeps its proportions.
+    const word = d.pages[0].children.find((n) => n.id === "word")!;
+    expect(word.transform.scaleX).toBeCloseTo(word.transform.scaleY, 6);
+  });
+
   it("still extends the turned panel into the bleed", () => {
     const { doc, notExtended } = prepressDoc(upright(), null, { extendIntoBleed: true });
     const panel = boxMm(doc, "panel");

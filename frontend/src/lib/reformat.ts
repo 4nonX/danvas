@@ -57,7 +57,9 @@ export function reformatPage(page: Page, o: ReformatOptions): Page {
  * the other side is shared out by where an element sits: near the start it
  * stays, near the end it moves the whole way, in between it moves halfway.
  * A plain filled area that starts at an edge and covers most of that side
- * (a colour panel) grows with the room instead.
+ * (a colour panel) grows with the room instead, and vector artwork lying on
+ * it across nearly its whole length (a pattern on the panel) grows with it,
+ * so it still reaches the panel's ends.
  */
 function scalePage(page: Page, w: number, h: number): Page {
   const s = Math.min(w / page.width, h / page.height);
@@ -65,28 +67,68 @@ function scalePage(page: Page, w: number, h: number): Page {
   const p = structuredClone(page);
   p.width = w;
   p.height = h;
-  p.children = p.children.map((n) => {
+  type Kid = Page["children"][number];
+  type Span = { start: number; len: number; from: number; factor: number };
+  const box = (n: Kid) => {
     const t = n.transform;
-    const nw = (n.size?.width ?? 0) * Math.abs(t.scaleX), nh = (n.size?.height ?? 0) * Math.abs(t.scaleY);
-    const straight = (t.rotation ?? 0) % 360 === 0;
-    const place = (pos: number, len: number, total: number, extra: number) => {
-      if (extra <= 0) return { move: 0, grow: 1 };
-      const start = pos, end = pos + len;
-      // A plain area from an edge over most of the side grows with the room.
-      if (straight && plainArea(n) && len >= total * 0.6 && (start <= total * 0.01 || end >= total * 0.99)) {
-        const grow = (len * s + extra) / (len * s);
-        return { move: start <= total * 0.01 ? 0 : extra - (grow - 1) * len * s, grow };
+    return { x: t.x, y: t.y, w: (n.size?.width ?? 0) * Math.abs(t.scaleX), h: (n.size?.height ?? 0) * Math.abs(t.scaleY), straight: (t.rotation ?? 0) % 360 === 0 };
+  };
+  const place = (n: Kid, pos: number, len: number, total: number, extra: number) => {
+    if (extra <= 0) return { move: 0, grow: 1 };
+    const start = pos, end = pos + len;
+    // A plain area from an edge over most of the side grows with the room.
+    if (box(n).straight && plainArea(n) && len >= total * 0.6 && (start <= total * 0.01 || end >= total * 0.99)) {
+      const grow = (len * s + extra) / (len * s);
+      return { move: start <= total * 0.01 ? 0 : extra - (grow - 1) * len * s, grow };
+    }
+    const mid = (start + end) / 2 / total;
+    return { move: mid < 1 / 3 ? 0 : mid > 2 / 3 ? extra : extra / 2, grow: 1 };
+  };
+  const placed = page.children.map((n) => {
+    const b = box(n);
+    return { n, b, px: place(n, b.x, b.w, page.width, extraX), py: place(n, b.y, b.h, page.height, extraY) };
+  });
+  // The grown areas, as where they were and where they go, per side.
+  const grown = placed.filter((e) => e.px.grow !== 1 || e.py.grow !== 1);
+  const onArea = (e: (typeof placed)[number], axis: "x" | "y"): Span | null => {
+    if (!e.b.straight || !vectorArt(e.n)) return null;
+    const [pos, len, cross, crossLen] = axis === "x" ? [e.b.x, e.b.w, e.b.y, e.b.h] : [e.b.y, e.b.h, e.b.x, e.b.w];
+    for (const a of grown) {
+      if (a.n === e.n || (axis === "x" ? a.px.grow : a.py.grow) === 1) continue;
+      const [aPos, aLen, aCross, aCrossLen] = axis === "x" ? [a.b.x, a.b.w, a.b.y, a.b.h] : [a.b.y, a.b.h, a.b.x, a.b.w];
+      const tol = aLen * 0.02;
+      const within = pos >= aPos - tol && pos + len <= aPos + aLen + tol && len >= aLen * 0.9;
+      const across = cross >= aCross - tol && cross + crossLen <= aCross + aCrossLen + tol;
+      if (within && across) {
+        const g = axis === "x" ? a.px : a.py;
+        return { start: aPos, len: aLen, from: aPos * s + g.move, factor: s * g.grow };
       }
-      const mid = (start + end) / 2 / total;
-      return { move: mid < 1 / 3 ? 0 : mid > 2 / 3 ? extra : extra / 2, grow: 1 };
-    };
-    const px = place(t.x, nw, page.width, extraX), py = place(t.y, nh, page.height, extraY);
+    }
+    return null;
+  };
+  p.children = placed.map((e) => {
+    const t = e.n.transform;
+    const ax = onArea(e, "x"), ay = onArea(e, "y");
     return {
-      ...n,
-      transform: { ...t, x: t.x * s + px.move, y: t.y * s + py.move, scaleX: t.scaleX * s * px.grow, scaleY: t.scaleY * s * py.grow },
+      ...e.n,
+      transform: {
+        ...t,
+        x: ax ? ax.from + (t.x - ax.start) * ax.factor : t.x * s + e.px.move,
+        y: ay ? ay.from + (t.y - ay.start) * ay.factor : t.y * s + e.py.move,
+        scaleX: ax ? t.scaleX * ax.factor : t.scaleX * s * e.px.grow,
+        scaleY: ay ? t.scaleY * ay.factor : t.scaleY * s * e.py.grow,
+      },
     };
   }) as Page["children"];
   return p;
+}
+
+/** Shapes and paths only (a group of them too): a slight stretch along one
+ *  side does not show, where text or a picture would look distorted. */
+function vectorArt(n: { type: string; children?: unknown[] }): boolean {
+  if (n.type === "shape" || n.type === "path") return true;
+  const kids = n.children as { type: string; children?: unknown[] }[] | undefined;
+  return n.type === "group" && !!kids?.length && kids.every(vectorArt);
 }
 
 /** A filled rectangle, or a group holding only filled rectangles: it can be

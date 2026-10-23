@@ -16,6 +16,10 @@ All notable changes to danvas are listed here, newest first. Versions follow the
 - The editor's brand panel applies the brand (colours, fonts, logos, graphics, re-skin, the brand check) and links to the Brand page for changes. Adding colours from a design's selection or page stays there. Its kit editing, the kit file and the version history moved to the Brand page; brands are created there.
 - Changing a brand needs **Define the brand** in the editor too; before, its controls showed for the right to bind designs to the brand and the server then refused the change.
 
+### Fixed
+
+- **Change format, scaled**: vector artwork lying on a colour panel that stretches to fill the new format (a leaf pattern on a label's panel) now stretches with it and still reaches the panel's ends. It was scaled like everything else and moved to the middle, so the pattern stopped short of the panel's edges with a visible seam. Text and pictures keep their proportions as before. Designs changed before keep their state; changing the format of the earlier version again gives the corrected result.
+
 ### Upgrading
 
 - A migration adds the permission **Brand library** to every workspace that has roles and gives it to every role holding **Define the brand**, so nobody gains or loses a right; it adds rows only. Afterwards it can be given to other roles on its own. A rollback ignores the unknown action. No change to the file format.
