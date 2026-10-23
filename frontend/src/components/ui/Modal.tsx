@@ -105,19 +105,21 @@ export function Modal({
         aria-labelledby={title ? titleId : undefined}
         aria-label={title ? undefined : (ariaLabel ?? tr("ui.dialog"))}
         tabIndex={-1}
-        className={`${width} rounded-2xl bg-surface p-5 shadow-2xl outline-none`}
+        // Never taller than the window: the title stays, the content scrolls.
+        className={`${width} flex max-h-[calc(100dvh-2rem)] flex-col rounded-2xl bg-surface p-5 shadow-2xl outline-none`}
         onClick={(e) => e.stopPropagation()}
         onKeyDown={onPanelKeyDown}
       >
         {title && (
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-4 flex shrink-0 items-center justify-between">
             <h2 id={titleId} className="text-base font-bold text-neutral-900">{title}</h2>
             <IconButton aria-label={tr("ui.close")} onClick={onClose}>
               <X size={18} />
             </IconButton>
           </div>
         )}
-        {children}
+        {/* The scroll area; a little inset so focus rings at its edge show. */}
+        <div className="oc-scroll -m-1 min-h-0 flex-1 overflow-y-auto p-1">{children}</div>
       </div>
     </div>
   );

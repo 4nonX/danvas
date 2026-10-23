@@ -2,6 +2,17 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 1.0.1 (2026-10-23)
+
+### Fixed
+
+- **Dialogs scroll.** A dialog is never taller than the window: its title stays and its content scrolls, so a long list (the uploads when picking a logo, for example) no longer runs off the screen without a way to reach the rest.
+- **Pictures with a ground of their own** (a logo in a white box) show on the light board in pick lists; only light artwork on transparency gets the dark one.
+
+### Upgrading
+
+- No database change, no change to the file format.
+
 ## 1.0.0 (2026-10-23)
 
 ### Added

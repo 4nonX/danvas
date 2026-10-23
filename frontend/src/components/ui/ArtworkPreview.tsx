@@ -2,15 +2,17 @@
 // checkerboard. Light artwork (a white logo, a white silhouette) would vanish
 // on a light tile, so once loaded its visible pixels are measured and light
 // artwork is shown on a dark checkerboard instead (as the vectorize panel
-// does).
+// does). A picture with a ground of its own (no transparency, like a logo in
+// a white box) shows as it is, on the light board.
 
 import { useState, type SyntheticEvent } from "react";
 
 const LIGHT_BOARD = "conic-gradient(#e5e7eb 25%, #fff 0 50%, #e5e7eb 0 75%, #fff 0)";
 const DARK_BOARD = "conic-gradient(#3f3f46 25%, #52525b 0 50%, #3f3f46 0 75%, #52525b 0)";
 
-/** Whether an image's visible pixels are mostly light. False when it cannot
- *  be read (another origin, not decoded). */
+/** Whether an image is light artwork on transparency: it has see-through
+ *  parts and its visible pixels are mostly light. False when it cannot be
+ *  read (another origin, not decoded). */
 export function isLightArtwork(img: HTMLImageElement): boolean {
   try {
     const size = 32;
@@ -26,6 +28,8 @@ export function isLightArtwork(img: HTMLImageElement): boolean {
       sum += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
       n++;
     }
+    // Nearly opaque all over: it brings its own ground.
+    if (n > size * size * 0.95) return false;
     return n > 0 && sum / n > 200;
   } catch {
     return false;
