@@ -5128,5 +5128,7 @@
   "editor.saved_as_templates.one": "{count} 件のテンプレートを保存しました。",
   "editor.saved_as_templates.other": "{count} 件のテンプレートを保存しました。",
   "editor.templates_not_saved.one": "{count} 件のデザインをテンプレートとして保存できませんでした。",
-  "editor.templates_not_saved.other": "{count} 件のデザインをテンプレートとして保存できませんでした。"
+  "editor.templates_not_saved.other": "{count} 件のデザインをテンプレートとして保存できませんでした。",
+  "brand.replace_logo": "ファイルを差し替え",
+  "brand.logo_replaced": "ロゴのファイルを差し替えました。すでにロゴを使っているデザインは元のファイルのままです。"
 }

@@ -8,6 +8,8 @@ All notable changes to danvas are listed here, newest first. Versions follow the
 
 - **Templates**: a template saved for everyone (public) did not show on the Templates page of the workspace it came from, or only after reloading the browser page. Public templates were stored without their workspace, so the workspace's gallery left them out; the home page's unfiltered list then sometimes replaced the gallery's list as it loaded, which is why a reload could show them. A public template now keeps the workspace it was saved from: it shows in that gallery, and the workspace's admins may file it in a collection and delete it. Other workspaces see it as before. The Templates page no longer has its list replaced by the home page's.
 
+- **Brand page, Logos**: setting or changing a logo's version for dark backgrounds seemed to do nothing: the file picker opened below the whole grid, out of view with several logos. It now opens as a dialog. New: **Replace file** gives a logo another file; designs that already use the logo keep the old one.
+
 ### Upgrading
 
 - No database change, no change to the file format. Public templates saved before keep no workspace and show only in the unfiltered lists; saving them again, or setting their `templates.workspace_id`, puts them in the workspace's gallery.

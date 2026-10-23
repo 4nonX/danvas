@@ -5128,5 +5128,7 @@
   "editor.saved_as_templates.one": "{count} modèle enregistré.",
   "editor.saved_as_templates.other": "{count} modèles enregistrés.",
   "editor.templates_not_saved.one": "{count} design n'a pas pu être enregistré comme modèle.",
-  "editor.templates_not_saved.other": "{count} designs n'ont pas pu être enregistrés comme modèles."
+  "editor.templates_not_saved.other": "{count} designs n'ont pas pu être enregistrés comme modèles.",
+  "brand.replace_logo": "Remplacer le fichier",
+  "brand.logo_replaced": "Fichier du logo remplacé. Les designs qui l'utilisent déjà gardent l'ancien fichier."
 }

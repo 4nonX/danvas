@@ -5128,5 +5128,7 @@
   "editor.saved_as_templates.one": "{count} Vorlage gespeichert.",
   "editor.saved_as_templates.other": "{count} Vorlagen gespeichert.",
   "editor.templates_not_saved.one": "{count} Design konnte nicht als Vorlage gespeichert werden.",
-  "editor.templates_not_saved.other": "{count} Designs konnten nicht als Vorlage gespeichert werden."
+  "editor.templates_not_saved.other": "{count} Designs konnten nicht als Vorlage gespeichert werden.",
+  "brand.replace_logo": "Datei ersetzen",
+  "brand.logo_replaced": "Logo-Datei ersetzt. Designs, die das Logo schon nutzen, behalten die alte Datei."
 }

@@ -5128,5 +5128,7 @@
   "editor.saved_as_templates.one": "{count} modelo salvo.",
   "editor.saved_as_templates.other": "{count} modelos salvos.",
   "editor.templates_not_saved.one": "{count} design não pôde ser salvo como modelo.",
-  "editor.templates_not_saved.other": "{count} designs não puderam ser salvos como modelos."
+  "editor.templates_not_saved.other": "{count} designs não puderam ser salvos como modelos.",
+  "brand.replace_logo": "Substituir arquivo",
+  "brand.logo_replaced": "Arquivo do logotipo substituído. Os designs que já usam o logotipo mantêm o arquivo antigo."
 }

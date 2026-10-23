@@ -5128,5 +5128,7 @@
   "editor.saved_as_templates.one": "{count} plantilla guardada.",
   "editor.saved_as_templates.other": "{count} plantillas guardadas.",
   "editor.templates_not_saved.one": "{count} diseño no se pudo guardar como plantilla.",
-  "editor.templates_not_saved.other": "{count} diseños no se pudieron guardar como plantillas."
+  "editor.templates_not_saved.other": "{count} diseños no se pudieron guardar como plantillas.",
+  "brand.replace_logo": "Reemplazar archivo",
+  "brand.logo_replaced": "Archivo del logotipo reemplazado. Los diseños que ya lo usan conservan el archivo anterior."
 }

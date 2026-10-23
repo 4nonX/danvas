@@ -5128,5 +5128,7 @@
   "editor.saved_as_templates.one": "{count} template saved.",
   "editor.saved_as_templates.other": "{count} templates saved.",
   "editor.templates_not_saved.one": "{count} design could not be saved as a template.",
-  "editor.templates_not_saved.other": "{count} designs could not be saved as templates."
+  "editor.templates_not_saved.other": "{count} designs could not be saved as templates.",
+  "brand.replace_logo": "Replace file",
+  "brand.logo_replaced": "Logo file replaced. Designs that already use the logo keep the old file."
 }

@@ -5128,5 +5128,7 @@
   "editor.saved_as_templates.one": "已保存 {count} 个模板。",
   "editor.saved_as_templates.other": "已保存 {count} 个模板。",
   "editor.templates_not_saved.one": "{count} 个设计无法保存为模板。",
-  "editor.templates_not_saved.other": "{count} 个设计无法保存为模板。"
+  "editor.templates_not_saved.other": "{count} 个设计无法保存为模板。",
+  "brand.replace_logo": "替换文件",
+  "brand.logo_replaced": "已替换徽标文件。已使用该徽标的设计保留旧文件。"
 }

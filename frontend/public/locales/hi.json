@@ -5128,5 +5128,7 @@
   "editor.saved_as_templates.one": "{count} टेम्पलेट सहेजा गया।",
   "editor.saved_as_templates.other": "{count} टेम्पलेट सहेजे गए।",
   "editor.templates_not_saved.one": "{count} डिज़ाइन टेम्पलेट के रूप में सहेजा नहीं जा सका।",
-  "editor.templates_not_saved.other": "{count} डिज़ाइन टेम्पलेट के रूप में सहेजे नहीं जा सके।"
+  "editor.templates_not_saved.other": "{count} डिज़ाइन टेम्पलेट के रूप में सहेजे नहीं जा सके।",
+  "brand.replace_logo": "फ़ाइल बदलें",
+  "brand.logo_replaced": "लोगो फ़ाइल बदली गई। जो डिज़ाइन पहले से लोगो उपयोग करते हैं, वे पुरानी फ़ाइल रखते हैं।"
 }

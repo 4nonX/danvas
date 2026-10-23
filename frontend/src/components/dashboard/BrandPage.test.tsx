@@ -174,6 +174,10 @@ describe("brand page (F50)", () => {
     answers.prompt = ["Bildmarke"];
     fireEvent.click(screen.getByLabelText("brand.rename_logo"));
     await waitFor(() => expect((updates.at(-1) as BrandKit).logos[0].label).toBe("Bildmarke"));
+    // Another file for the logo, picked in a dialog.
+    fireEvent.click(screen.getByLabelText("brand.replace_logo"));
+    fireEvent.click(await screen.findByTitle("Klee - Silhouette schwarz.svg"));
+    await waitFor(() => expect((updates.at(-1) as BrandKit).logos[0].assetId).toBe("a-klee"));
     fireEvent.click(screen.getByLabelText("editor.remove_logo"));
     await waitFor(() => expect((updates.at(-1) as BrandKit).logos).toEqual([]));
   });
