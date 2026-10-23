@@ -2,6 +2,18 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 1.1.0 (2026-10-23)
+
+### Added
+
+- **Colour list beside print exports.** For a CMYK print file, **Add a color list (PDF)** in the download menu puts a PDF beside the export, for several designs one in each design's folder. Per colour: where it is used, the CMYK the print file carries (through the chosen profile, or the exact CMYK or spot colour given), the Lab it prints as on the profile's paper, the brand colour with its Pantone reference, and the nearest colour of a colour library with its distance (CIEDE2000). It answers a print shop asking which Pantone shades a design uses; the print file does not change.
+- **Colour libraries per workspace**: on the Members page under **Print and export**, upload a colour book (`.ase`, `.acb`) or a house colour list (`.csv`). The file is read in the browser, only the colour entries are stored. No colour book ships with danvas; a workspace uploads the ones it holds a licence for. Managing them takes the colour profile right, every member can use them.
+- **Pantone reference per brand colour** on the Brand page's **Colors** tab: the colour book name the brand gives a colour. It is a label for the colour list and travels in the kit file (`pantone`); printing still goes by the colour's values.
+
+### Upgrading
+
+- A new table, `color_libraries`: additive, a rollback ignores it. The Pantone reference is an optional field inside the brand's palettes, which an older version keeps when it does not edit the palettes. No change to the design file format.
+
 ## 1.0.1 (2026-10-23)
 
 ### Fixed

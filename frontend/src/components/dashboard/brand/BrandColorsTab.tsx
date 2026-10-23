@@ -42,6 +42,14 @@ export function BrandColorsTab({ kit, canEdit, save }: {
 
   const setRole = (id: string, role: string) =>
     void save({ palettes: kit.palettes.map((p) => ({ ...p, colors: p.colors.map((c) => (c.id === id ? { ...c, role } : c)) })) });
+  // The colour book reference (a label for the export's colour list; empty
+  // removes it).
+  const setPantone = (id: string, pantone: string) =>
+    void save({ palettes: kit.palettes.map((p) => ({ ...p, colors: p.colors.map((c) => {
+      if (c.id !== id) return c;
+      const { pantone: _old, ...rest } = c;
+      return pantone ? { ...rest, pantone } : rest;
+    }) })) });
   const remove = (id: string) =>
     void save({ palettes: kit.palettes.map((p) => ({ ...p, colors: p.colors.filter((c) => c.id !== id) })) });
 
@@ -80,6 +88,20 @@ export function BrandColorsTab({ kit, canEdit, save }: {
                       />
                     ) : (
                       <span className="text-[11px] text-neutral-400">{c.role}</span>
+                    )}
+                    {canEdit ? (
+                      <input
+                        key={`${c.id}-pantone-${c.pantone ?? ""}`}
+                        defaultValue={c.pantone ?? ""}
+                        aria-label={tr("brand.color_pantone")}
+                        placeholder={tr("brand.color_pantone")}
+                        title={tr("brand.color_pantone_hint")}
+                        maxLength={120}
+                        onBlur={(e) => { const v = e.target.value.trim(); if (v !== (c.pantone ?? "")) setPantone(c.id, v); }}
+                        className="w-full rounded-md border border-transparent px-1 py-0.5 text-[11px] text-neutral-500 outline-none hover:border-neutral-200 focus:border-brand-400"
+                      />
+                    ) : (
+                      c.pantone && <span className="truncate text-[11px] text-neutral-500" title={tr("brand.color_pantone")}>{c.pantone}</span>
                     )}
                   </div>
                 </li>

@@ -49,7 +49,7 @@ Exports use these folders and lowercase file names; an import accepts any paths 
       "name": "Main",
       "colors": [
         { "id": "s-red", "role": "primary", "name": "Acme Red", "hex": "#d0021b",
-          "cmyk": { "c": 0, "m": 1, "y": 0.87, "k": 0.18 } },
+          "cmyk": { "c": 0, "m": 1, "y": 0.87, "k": 0.18 }, "pantone": "PANTONE 186 C" },
         { "role": "accent", "hex": "#0080ff80" },
         { "role": "spot", "hex": "#00a3e0",
           "spot": { "name": "PANTONE 299 C", "book": "PANTONE+ Solid Coated", "fallback": { "c": 0.86, "m": 0.08, "y": 0, "k": 0 } } }
@@ -99,6 +99,7 @@ Only `format`, `formatVersion` and `name` are required. Every list may be left o
 | `palettes[].colors[].hex` | text | The screen color: `#rgb`, `#rrggbb`, or `#rrggbbaa` with transparency. |
 | `palettes[].colors[].cmyk` | `{c, m, y, k}` | Optional print value, each channel from 0 to 1. |
 | `palettes[].colors[].spot` | `{name, book?, fallback}` | Optional spot color: its name, the color book, and a CMYK fallback (channels 0 to 1). |
+| `palettes[].colors[].pantone` | text | Optional color book reference the brand gives the color, for the color list of print exports. Only a label: printing goes by `hex`, `cmyk` or `spot`. |
 | `fonts[].role` | text | What the font is for, such as `heading` or `body`. Default `body`. |
 | `fonts[].family` | text | The font family name as it appears in the font pickers. |
 | `fonts[].defaultStyle` | `{weight?, size?, tracking?}` | Optional numbers. |

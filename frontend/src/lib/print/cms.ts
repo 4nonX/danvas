@@ -12,6 +12,9 @@ export interface CmykConverter {
   readonly icc: Uint8Array;
   /** One sRGB colour (0..1) to CMYK (0..1). Cached per colour. */
   cmyk(r: number, g: number, b: number): [number, number, number, number];
+  /** CMYK (0..1) to CIE L*a*b* (D50) as it prints on this condition's paper
+   *  (absolute colorimetric): the value a print shop measures and matches. */
+  lab(c: number, m: number, y: number, k: number): [number, number, number];
   /** RGBA pixels (straight alpha) composited on paper white, to interleaved
    *  CMYK bytes (0..255 = 0..100 % ink). */
   pixels(rgba: Uint8Array | Uint8ClampedArray, count: number): Uint8Array;
@@ -68,6 +71,8 @@ export async function createCmykConverter(icc: Uint8Array, intent: RenderingInte
     throw new Error("the profile has no usable colour tables");
   }
   const cache = new Map<number, [number, number, number, number]>();
+  // CMYK to Lab for the colour list, made on first use.
+  let toLab: number | null = null, labProfile: number | null = null;
   const CHUNK = 1 << 16;
   // The way back for the soft proof, made on first use.
   const back: { relative?: number; absolute?: number } = {};
@@ -93,6 +98,14 @@ export async function createCmykConverter(icc: Uint8Array, intent: RenderingInte
         cache.set(key, v);
       }
       return v;
+    },
+    lab(c, m, y, k) {
+      if (toLab === null) {
+        labProfile = lcms.cmsCreateLab4Profile(null);
+        toLab = lcms.cmsCreateTransform(out, L.TYPE_CMYK_16, labProfile, L.TYPE_Lab_16, L.INTENT_ABSOLUTE_COLORIMETRIC, 0);
+      }
+      const v = (n: number) => Math.round(Math.min(1, Math.max(0, n)) * 65535);
+      return decodeLab16(lcms.cmsDoTransform(toLab, new Uint16Array([v(c), v(m), v(y), v(k)]), 1) as Uint16Array);
     },
     pixels(rgba, count) {
       const out8 = new Uint8Array(count * 4);
@@ -129,11 +142,43 @@ export async function createCmykConverter(icc: Uint8Array, intent: RenderingInte
       return rgba;
     },
     dispose() {
+      if (toLab !== null) lcms.cmsDeleteTransform(toLab);
+      if (labProfile !== null) lcms.cmsCloseProfile(labProfile);
       if (back.relative) lcms.cmsDeleteTransform(back.relative);
       if (back.absolute) lcms.cmsDeleteTransform(back.absolute);
       lcms.cmsDeleteTransform(xf);
       lcms.cmsCloseProfile(srgb);
       lcms.cmsCloseProfile(out);
+    },
+  };
+}
+
+/** ICC v4 16-bit Lab: L 0..65535 for 0..100, a and b 0..65535 for -128..127. */
+function decodeLab16(o: Uint16Array): [number, number, number] {
+  return [(o[0] / 65535) * 100, o[1] / 257 - 128, o[2] / 257 - 128];
+}
+
+export interface LabConverter {
+  /** One sRGB colour (0..1) to CIE L*a*b* (D50). */
+  fromSrgb(r: number, g: number, b: number): [number, number, number];
+  dispose(): void;
+}
+
+/** sRGB to Lab (D50), for colours that are not printed through a profile. */
+export async function createLabConverter(): Promise<LabConverter> {
+  const { lcms, L } = await loadLcms();
+  const srgb = lcms.cmsCreate_sRGBProfile();
+  const lab = lcms.cmsCreateLab4Profile(null);
+  const xf = lcms.cmsCreateTransform(srgb, L.TYPE_RGB_16, lab, L.TYPE_Lab_16, L.INTENT_RELATIVE_COLORIMETRIC, 0);
+  const v = (n: number) => Math.round(Math.min(1, Math.max(0, n)) * 65535);
+  return {
+    fromSrgb(r, g, b) {
+      return decodeLab16(lcms.cmsDoTransform(xf, new Uint16Array([v(r), v(g), v(b)]), 1) as Uint16Array);
+    },
+    dispose() {
+      lcms.cmsDeleteTransform(xf);
+      lcms.cmsCloseProfile(lab);
+      lcms.cmsCloseProfile(srgb);
     },
   };
 }

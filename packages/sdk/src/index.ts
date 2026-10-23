@@ -1088,6 +1088,26 @@ export interface PrintProfile {
   createdAt: string;
 }
 
+/** A workspace's colour library (a colour book or house colour list it
+ *  brings itself), without its entries. */
+export interface ColorLibrary {
+  id: string;
+  workspaceId: string;
+  name: string;
+  /** The uploaded file's name. */
+  sourceFile: string;
+  entryCount: number;
+  createdAt: string;
+}
+/** One colour of a library; matching uses `lab` (CIE L*a*b*, D50). CMYK and
+ *  RGB are 0..1. */
+export interface ColorLibraryEntry {
+  name: string;
+  lab?: [number, number, number];
+  cmyk?: [number, number, number, number];
+  rgb?: [number, number, number];
+}
+
 /** The output check of an exported PDF or EPS, separated by Ghostscript on
  *  the instance: per page every plate with its coverage and a picture, and
  *  the total ink coverage against the limit. */
@@ -1225,6 +1245,10 @@ export interface BrandSwatch {
   role: string;
   name?: string;
   value: Color;
+  /** The colour book reference the brand names for this colour (e.g. a
+   *  Pantone number), for the colour list of a print export. Only a label:
+   *  printing goes by `value` (a spot colour is set in `value.spot`). */
+  pantone?: string;
 }
 export interface BrandPalette {
   id: string;
@@ -2764,6 +2788,21 @@ export class HyCanvasClient {
   async printProfileData(id: string): Promise<Uint8Array> {
     const res = await this.requestRaw("GET", `/v1/print-profiles/${id}/data`);
     return new Uint8Array(await res.arrayBuffer());
+  }
+
+  // Colour libraries per workspace, for the colour list of a print export.
+  listColorLibraries(workspaceId: string): Promise<ColorLibrary[]> {
+    return this.request("GET", `/v1/workspaces/${workspaceId}/color-libraries`);
+  }
+  /** Store a library read from a file (needs the print colour profile right). */
+  createColorLibrary(workspaceId: string, input: { name: string; sourceFile: string; entries: ColorLibraryEntry[] }): Promise<ColorLibrary> {
+    return this.request("POST", `/v1/workspaces/${workspaceId}/color-libraries`, input);
+  }
+  colorLibraryEntries(id: string): Promise<ColorLibraryEntry[]> {
+    return this.request("GET", `/v1/color-libraries/${id}/entries`);
+  }
+  deleteColorLibrary(id: string): Promise<void> {
+    return this.request("DELETE", `/v1/color-libraries/${id}`);
   }
 
   /** Whether this instance can separate print files (Ghostscript installed). */

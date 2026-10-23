@@ -141,6 +141,17 @@ describe("brand kit export and import", () => {
     expect(l.versions).toEqual({ colour: l.assetId, white: l.variants?.dark });
   });
 
+  it("keeps a colour book reference through the file", async () => {
+    const k = kit();
+    k.palettes[0].colors[0].pantone = "PANTONE 7741 C";
+    const res = await exportKit(k, sources);
+    const parsed = await readKitFile(new Uint8Array(await res.blob.arrayBuffer()));
+    expect(parsed.manifest.palettes[0].colors.map((c) => c.pantone)).toEqual(["PANTONE 7741 C", undefined]);
+    const content = await uploadKitContent(parsed, target().t);
+    expect(content.palettes[0].colors[0].pantone).toBe("PANTONE 7741 C");
+    expect("pantone" in content.palettes[0].colors[1]).toBe(false);
+  });
+
   it("refuses a logo version the file does not name", () => {
     expect(() => checkManifest({ format: KIT_FORMAT, formatVersion: 1, name: "X", logos: [{ label: "L", file: "logos/l.svg", versionFiles: { black: "logos/b.svg" } }] }))
       .toThrow(/not in logoVersions/);

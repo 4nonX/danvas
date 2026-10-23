@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { encodeTiff } from "./tiff";
 import { ascii85 } from "./eps";
-import { createCmykConverter } from "./cms";
+import { createCmykConverter, createLabConverter } from "./cms";
 
 const PROFILE = resolve(__dirname, "../../../public/icc/PSO_Uncoated_ISO12647_eci.icc");
 
@@ -85,6 +85,32 @@ describe("CMYK conversion", () => {
       expect([...px.slice(0, 4)]).toEqual([0, 0, 0, 0]);
       expect(px[5]).toBeGreaterThan(200); // red: mostly magenta
     } finally {
+      conv.dispose();
+    }
+  });
+
+  it("gives Lab (D50) for sRGB colours and for CMYK as it prints", async () => {
+    const lab = await createLabConverter();
+    const conv = await createCmykConverter(new Uint8Array(readFileSync(PROFILE)));
+    try {
+      // sRGB red under D50 (the ICC reference): L 54.29, a 80.80, b 69.89.
+      const red = lab.fromSrgb(1, 0, 0);
+      expect(red[0]).toBeCloseTo(54.29, 0);
+      expect(red[1]).toBeCloseTo(80.8, 0);
+      expect(red[2]).toBeCloseTo(69.89, 0);
+      expect(lab.fromSrgb(1, 1, 1)[0]).toBeCloseTo(100, 1);
+      // Unprinted paper is the condition's paper white: FOGRA47 (PSO
+      // Uncoated) characterises it as L 95, a 0, b -2. Full black is dark
+      // and nearly neutral.
+      const paper = conv.lab(0, 0, 0, 0);
+      expect(paper[0]).toBeCloseTo(95, 0);
+      expect(paper[1]).toBeCloseTo(0, 0);
+      expect(paper[2]).toBeCloseTo(-2, 0);
+      const black = conv.lab(0.6, 0.5, 0.5, 1);
+      expect(black[0]).toBeLessThan(35);
+      expect(Math.abs(black[1])).toBeLessThan(5);
+    } finally {
+      lab.dispose();
       conv.dispose();
     }
   });

@@ -35,6 +35,7 @@ The other pages in this folder are HyScaler's documentation of HyCanvas and desc
 - [Export](#export)
   - [Files for print shops](#files-for-print-shops)
   - [Proof and output check](#proof-and-output-check)
+  - [Colour list and colour libraries](#colour-list-and-colour-libraries)
   - [Bleed and crop marks](#bleed-and-crop-marks)
   - [Export profiles](#export-profiles)
   - [Serial print](#serial-print)
@@ -54,7 +55,7 @@ How the print features fit together, with a label as the example (50 x 100 mm, C
 3. **Barcodes**: insert the code from **Elements**, in 100 % black, sized in mm, and set the label printer's resolution when it prints there ([Barcodes](#barcodes)).
 4. **Bleed, marks and die line**: set the print shop's bleed and crop marks per page or once for the export, and the die line as its own spot colour ([Bleed and crop marks](#bleed-and-crop-marks), [Files for print shops](#files-for-print-shops)).
 5. **One profile for the print shop**: save these download settings as an export profile for the workspace, with the print shop's colour profile, ink limit and the finished size, so a design in the wrong size is pointed out ([Export profiles](#export-profiles)). Make it the default of the labels folder, so everyone downloads with it ([Folders](#folders)). For the office or label printer, a print preset does the same for printing ([Printing](#printing)).
-6. **Check**: the download menu lists what the file would lose, barcodes that may not scan and designs not in the finished size. **Proof** shows the plates and the ink coverage; **Check output** separates the real file ([Proof and output check](#proof-and-output-check)).
+6. **Check**: the download menu lists what the file would lose, barcodes that may not scan and designs not in the finished size. **Proof** shows the plates and the ink coverage; **Check output** separates the real file ([Proof and output check](#proof-and-output-check)). When the print shop asks which Pantone shades the colours are, add the colour list ([Colour list and colour libraries](#colour-list-and-colour-libraries)).
 7. **Approve**: ask the person who signs off for approval; they look at the print proof in the banner and approve. A workspace can require this before any print file is made ([Approvals](#approvals), [Print files only after approval](#print-files-only-after-approval)).
 8. **Output**: download the print PDF for the print shop; fill the label from a table for batch numbers and codes ([Serial print](#serial-print)); put several on one sheet for a sheet printer ([Several on one sheet](#several-on-one-sheet)); or print directly ([Printing](#printing)).
 
@@ -280,7 +281,7 @@ A brand kit is where a workspace keeps what its designs are made from: colours, 
 In the dashboard's left rail, **Brand**: one page for the workspace's brands, with the tabs the editor's brand panel uses.
 
 - **Brands**: choose one at the top when there are several. **New brand** starts one empty, from a logo (its colours become the palette), from a company website (logo, colours and fonts as a draft to review) or from a kit file.
-- **Colors**: every palette with its swatches, their print values and their role (for example primary, accent). Add a colour by picker or hex value, change its role, remove it. Colours from a design's selection or page are added in the editor's brand panel, where the design is open.
+- **Colors**: every palette with its swatches, their print values, their role (for example primary, accent) and their **Pantone reference**. Add a colour by picker or hex value, change its role, remove it. The Pantone reference is the colour book name the brand gives the colour (for example PANTONE 7741 C); it goes into the colour list of print exports and the kit file, and changes nothing in print: a colour that is to print as a Pantone ink of its own is set as a spot colour ([Exact print colors](#exact-print-colors)). Colours from a design's selection or page are added in the editor's brand panel, where the design is open.
 - **Fonts**: the kit's font roles (heading, body, prices, ...), each naming a font. Below them the **workspace fonts**: font files uploaded once, then in every font picker and embedded in vector exports (this list used to be on the Members page).
 - **Logos**: one row per logo with its versions side by side, each on the ground it is made for. Which versions there are (for example colour, black and white) the brand sets under **Settings**, **Logo versions**: named, each for a light or a dark ground, ordered, added and removed; a new brand starts with colour, black and white, and a brand that has not named any has the logo and its version for dark backgrounds. Add a logo from the uploads or a new file, give a version a file, replace or remove it, rename the logo, or make a logo kept as a separate entry ("Logo (black)") a version of another logo. Generated decks draw a version for dark grounds on deep pages, and the brand check accepts every version as the logo.
 - **Graphics**: see [Brand graphics](#brand-graphics).
@@ -356,6 +357,20 @@ For a CMYK print file the download menu has two more buttons above **Download**:
 - **Check output** builds the file exactly as **Download** would and checks the file itself. In the browser: CMYK only, output intent, PDF/X-4 marking, trim and bleed box, for EPS the bounding box and colours, and the spot colours asked for. On the server, Ghostscript separates the file into its real plates, as a print shop's software does: each plate with its coverage, a soft proof made from them, and the total ink coverage against the limit. Up to 20 pages and 200 MB; the check needs Ghostscript on the server (the image has it, see `GHOSTSCRIPT_PATH`).
 
 **Max. ink coverage (TAC)**, in the CMYK settings and stored in export profiles, is the total of all four inks the print shop allows; empty means the usual value for the paper (300 % for uncoated, 330 % for coated profiles).
+
+### Colour list and colour libraries
+
+Print shops sometimes ask which Pantone shades a design's colours are. For a CMYK print file, **Add a color list (PDF)** in the download menu puts a PDF beside the export (for several designs, one in each design's folder of the zip). For every colour the design uses it lists:
+
+- the colour and its hex value, with where it is used (fill, outline, text, gradient, page background, effect) and on which pages;
+- what the print file carries: the CMYK the chosen colour profile and intent make of it, or the exact CMYK or spot colour it was given;
+- the CIE L*a*b* (D50) that CMYK prints as on the profile's paper, worked out through the profile (absolute colorimetric): the value a print shop measures;
+- the brand colour it is (the same print colour, or within dE 2000 of 1 on screen), with the brand's Pantone reference;
+- with a colour library chosen, the library's nearest colour and its distance (CIEDE2000: below 1 hardly visible, below 2 small).
+
+Pictures are counted, not listed: their colours go through the profile pixel by pixel. The list is a reference, not a proof, and changes nothing in the print file.
+
+**Colour libraries** are kept per workspace, on the dashboard's **Members** page under **Print and export**, **Color libraries**: upload a colour book as Adobe Swatch Exchange (`.ase`), Adobe Color Book (`.acb`, as Pantone's books for Photoshop come) or a CSV list (`name;L;a;b`, `name;C;M;Y;K` in percent, or `name;#rrggbb`, with `;`, `,` or tab between the fields). The file is read in the browser and only the entries are stored; entries given as RGB or CMYK get their Lab worked out (CMYK through the workspace's default colour profile). Up to 20000 colours a library. danvas ships no colour book: upload only books your workspace holds a licence for. Every member can choose a library in the download menu; uploading and removing take **Manage color profiles** (`print.colorProfiles`).
 
 ### Bleed and crop marks
 

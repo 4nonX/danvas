@@ -8,6 +8,7 @@ export * from "./contrast";
 export * from "./palette";
 export * from "./series";
 export * from "./nearest";
+export * from "./ciede2000";
 export * from "./cvd";
 export * from "./gamut";
 export * from "./harmony";

@@ -38,6 +38,7 @@ import (
 	"hycanvas/backend/internal/outputcheck"
 	"hycanvas/backend/internal/persistence"
 	"hycanvas/backend/internal/platform/config"
+	"hycanvas/backend/internal/colorlibs"
 	"hycanvas/backend/internal/printprofiles"
 	"hycanvas/backend/internal/push"
 	"hycanvas/backend/internal/realtime"
@@ -61,6 +62,7 @@ type Deps struct {
 	Persistence    *persistence.Service
 	Home           *home.Service
 	PrintProfiles  *printprofiles.Service
+	ColorLibraries *colorlibs.Service
 	ExportProfiles *exportprofiles.Service
 	OutputCheck    *outputcheck.Checker
 	Fonts          *workspacefonts.Service
@@ -185,6 +187,9 @@ func NewRouter(d Deps) http.Handler {
 		}
 		if d.Accounts != nil && d.PrintProfiles != nil {
 			mountPrintProfiles(api, d.PrintProfiles, d.Accounts)
+		}
+		if d.Accounts != nil && d.ColorLibraries != nil {
+			mountColorLibraries(api, d.ColorLibraries, d.Accounts)
 		}
 		if d.Accounts != nil && d.ExportProfiles != nil {
 			mountExportProfiles(api, d.ExportProfiles, d.Accounts)

@@ -50,6 +50,7 @@ import (
 	"hycanvas/backend/internal/persistence"
 	"hycanvas/backend/internal/platform/config"
 	"hycanvas/backend/internal/platform/db"
+	"hycanvas/backend/internal/colorlibs"
 	"hycanvas/backend/internal/printprofiles"
 	"hycanvas/backend/internal/push"
 	"hycanvas/backend/internal/realtime"
@@ -416,6 +417,7 @@ func main() {
 			Persistence:    persist,
 			Home:           homeSvc,
 			PrintProfiles:  printProfilesSvc,
+			ColorLibraries: colorlibs.NewService(pool, acct),
 			ExportProfiles: exportProfilesSvc,
 			OutputCheck:    outputCheck,
 			Fonts:          fontsSvc,

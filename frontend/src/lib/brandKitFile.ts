@@ -21,8 +21,9 @@ export const MANIFEST = "brandkit.json";
 
 type Cmyk = { c: number; m: number; y: number; k: number };
 /** A swatch. `hex` is the sRGB value; `cmyk` and `spot` carry the print
- *  definitions when the kit has them. */
-export interface KitFileColor { id?: string; role: string; name?: string; hex: string; cmyk?: Cmyk; spot?: { name: string; book?: string; fallback: Cmyk } }
+ *  definitions when the kit has them; `pantone` is the colour book reference
+ *  the brand names (a label, it does not change printing). */
+export interface KitFileColor { id?: string; role: string; name?: string; hex: string; cmyk?: Cmyk; spot?: { name: string; book?: string; fallback: Cmyk }; pantone?: string }
 export interface KitFilePalette { id?: string; name: string; colors: KitFileColor[] }
 export interface KitFileFont { id?: string; role: string; family: string; defaultStyle?: BrandFont["defaultStyle"] }
 export interface KitFileFontFile { family: string; weight: number; style: "normal" | "italic"; file: string }
@@ -210,6 +211,7 @@ export async function exportKit(kit: BrandKit, src: ExportSources, now = new Dat
         id: c.id, role: c.role, ...(c.name ? { name: c.name } : {}), hex: hexOfColor(c.value),
         ...(c.value.cmyk ? { cmyk: c.value.cmyk } : {}),
         ...(c.value.spot ? { spot: c.value.spot } : {}),
+        ...(c.pantone ? { pantone: c.pantone } : {}),
       })),
     })),
     fonts: kit.fonts.map((f) => ({ id: f.id, role: f.role, family: f.fontFamily, ...(f.defaultStyle ? { defaultStyle: f.defaultStyle } : {}) })),
@@ -300,7 +302,8 @@ export function checkManifest(raw: unknown): KitFile {
           spot = { name: str(c.spot.name, `${at}.spot.name`), book: optStr(c.spot.book, `${at}.spot.book`), fallback: cmykOf(c.spot.fallback, `${at}.spot.fallback`) };
           if (spot.book === undefined) delete spot.book;
         }
-        return { id: optStr(c.id, `${at}.id`), role: optStr(c.role, `${at}.role`) ?? "accent", name: optStr(c.name, `${at}.name`), hex, ...(cmyk ? { cmyk } : {}), ...(spot ? { spot } : {}) };
+        const pantone = optStr(c.pantone, `${at}.pantone`)?.trim();
+        return { id: optStr(c.id, `${at}.id`), role: optStr(c.role, `${at}.role`) ?? "accent", name: optStr(c.name, `${at}.name`), hex, ...(cmyk ? { cmyk } : {}), ...(spot ? { spot } : {}), ...(pantone ? { pantone } : {}) };
       }),
     };
   });
@@ -557,7 +560,7 @@ export async function uploadKitContent(parsed: ParsedKitFile, to: ImportTarget):
     id: p.id ?? newId("p"),
     name: p.name,
     colors: p.colors.map((c) => ({
-      id: c.id ?? newId("s"), role: c.role, ...(c.name ? { name: c.name } : {}),
+      id: c.id ?? newId("s"), role: c.role, ...(c.name ? { name: c.name } : {}), ...(c.pantone ? { pantone: c.pantone } : {}),
       value: { ...colorOfHex(c.hex)!, ...(c.cmyk ? { cmyk: c.cmyk } : {}), ...(c.spot ? { spot: c.spot } : {}) },
     })),
   }));

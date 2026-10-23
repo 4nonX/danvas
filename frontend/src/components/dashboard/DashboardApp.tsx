@@ -94,6 +94,7 @@ import { MembersPanel } from "./MembersPanel";
 import { ApiKeysPanel } from "./ApiKeysPanel";
 import { WorkspaceAiPanel } from "./WorkspaceAiPanel";
 import { PrintProfilesPanel } from "./PrintProfilesPanel";
+import { ColorLibrariesPanel } from "./ColorLibrariesPanel";
 import { PrintApprovalPanel } from "./PrintApprovalPanel";
 import { BrandPage } from "./BrandPage";
 import { WorkspaceCanvaPanel } from "./WorkspaceCanvaPanel";
@@ -2039,6 +2040,9 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                       workspaceId={activeWorkspaceId}
                       canEdit={can("print.colorProfiles")}
                     />
+                  </div>
+                  <div id="color-libraries" className="scroll-mt-4">
+                    <ColorLibrariesPanel workspaceId={activeWorkspaceId} canEdit={can("print.colorProfiles")} />
                   </div>
                   {/* Who may manage the export profiles and print presets is
                       set right there (owners and admins by default). */}
