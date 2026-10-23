@@ -8,32 +8,29 @@
 // can manage the kit contents; members consume only.
 
 import { prepareSvgFonts } from "@/lib/svgFlatten";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Palette, Type as TypeIcon, ImageIcon, Wand2, Lock, Unlock, Plus, Trash2,
-  ShieldCheck, AlertTriangle, RotateCcw, History, GitBranch, RefreshCw, Sparkles, X, Pencil, Upload, Loader2, Shapes,
+  Palette, Type as TypeIcon, ImageIcon, Wand2, Lock, Unlock, Plus,
+  ShieldCheck, AlertTriangle, GitBranch, RefreshCw, Sparkles, Shapes,
 } from "lucide-react";
-import type { BrandKit, BrandKitVersion, BrandLintViolation, UploadedAsset, BrandUpdateSummary } from "@hc/sdk";
+import type { BrandKit, BrandLintViolation, UploadedAsset, BrandUpdateSummary } from "@hc/sdk";
 import type { Color, Fill } from "@hc/schema";
-import { extractPalette, toHex, type Bitmap } from "@hc/color";
 import { locate } from "@hc/editor";
 import { PanelShell, CollapsibleSection } from "./EditorPanels";
-import { BrandKitTransfer } from "./BrandKitTransfer";
 import { BrandGraphicsSection, type GraphicInfo } from "./BrandGraphicsSection";
 import { dashboardPath } from "@/components/dashboard/views";
 import { collectPageColors, collectSelectionColors } from "@/lib/pageColors";
 import { imageAssetIds, imageAssetPalette } from "@/lib/imagePalette";
 import { useEditor, type ReskinResult, type ReskinOverrides, type BrandFixTarget } from "@/store/editor";
 import { useBrand, brandHexColors, brandFontFamilies, brandColorOf } from "@/store/brand";
+import { useCan } from "@/store/workspaceActions";
+import { srgbFromHexFull } from "@/components/brand/kitEditors";
 import { selectionColors } from "@/lib/selectionColors";
 import { printColorLabel } from "@/lib/print/printColor";
 import { fonts } from "@/lib/fontProvider";
-import { useWorkspaceFontFamilies } from "@/lib/workspaceFonts";
-import { FONT_FAMILY_OPTIONS } from "./PropertiesPanel";
-import { directUploadWithProgress, oc, resolveAssetUrl } from "@/lib/sdk";
+import { oc, resolveAssetUrl } from "@/lib/sdk";
 import { useToast } from "@/components/ui/Toast";
 import { tr } from "@/lib/i18n";
-import { CodedError, userMessage } from "@/lib/errors";
 
 /** Map a lint violation's typed fix to the store's BrandFixTarget, or null when
  *  there is no safe auto-fix (restore_logo / missing fix). */
@@ -52,18 +49,15 @@ const kindLabel = (): Record<BrandLintViolation["kind"], string> => ({
   spacing: tr("editor.spacing"),
 });
 
-/** sRGB Color -> #rrggbb (alpha dropped for the swatch button). */
-function hexOf(c: Color): string {
-  const ch = (v: number) =>
-    Math.round(Math.max(0, Math.min(1, v)) * 255)
-      .toString(16)
-      .padStart(2, "0");
-  return `#${ch(c.srgb.r)}${ch(c.srgb.g)}${ch(c.srgb.b)}`;
-}
 
 export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
   const kit = useBrand((s) => s.kit);
   const canManage = useBrand((s) => s.canManage);
+  // Changing the kit itself (brand.kits) and maintaining its library
+  // (brand.library). Both happen on the dashboard's Brand page; here the
+  // kit is applied, and colours can be taken into it from the page.
+  const canEditKit = useCan("brand.kits", workspaceId);
+  const canLibrary = useCan("brand.library", workspaceId) || canEditKit;
   const loading = useBrand((s) => s.loading);
   const designId = useBrand((s) => s.designId);
   const refresh = useBrand((s) => s.refresh);
@@ -164,17 +158,6 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
     fonts.ensure(family);
     if (!useEditor.getState().setCharStyleDeep({ fontFamily: family })) toast.toast(tr("editor.brand_select_text_first"));
   }, [toast]);
-
-  // Which logo's dark-background version is being picked (managers); NEW_LOGO
-  // while a logo is being added.
-  const [darkPickFor, setDarkPickFor] = useState<string | null>(null);
-  // Save the kit's logos (one versioned kit update, restorable from history).
-  const saveLogos = useCallback((logos: BrandKit["logos"], done?: string) => {
-    if (!kit) return;
-    void oc.updateBrandKit(kit.id, { logos })
-      .then((updated) => { useBrand.getState().setKit(updated); if (done) toast.success(done); })
-      .catch(() => toast.error(tr("editor.couldnt_save_brand_kit")));
-  }, [kit, toast]);
 
   // Logos and icons go in as editable shapes when they are SVG (so they can
   // be recolored like any vector), else as an image.
@@ -331,51 +314,16 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
         </div>
       )}
 
-      {/* Export the kit as a file, or import one (managers). */}
-      {canManage && workspaceId && !loading && (
-        <div className="mb-4">
-          <BrandKitTransfer
-            workspaceId={workspaceId}
-            kit={kit}
-            kits={kits}
-            onImported={async (k, replaced) => {
-              setKits(await oc.listBrandKits(workspaceId).catch(() => [...kits.filter((x) => x.id !== k.id), k]));
-              if (replaced && kit?.id === k.id) await refresh();
-              else if (!kit) { useBrand.getState().setKit(k); await useBrand.getState().assign(k.id); }
-            }}
-          />
-        </div>
-      )}
-
       {!kit && !loading && (
         <p className="text-sm text-neutral-500">
-          No brand kit is set for this design.
-          {canManage && workspaceId && " Create one below."}
+          {tr("editor.no_brand_kit_for_design")}
+          {canEditKit && workspaceId && (
+            <>
+              {" "}
+              <a href={dashboardPath("brand")} target="_blank" rel="noopener" className="font-medium text-brand-ink hover:underline">{tr("brand.manage_brand")}</a>
+            </>
+          )}
         </p>
-      )}
-
-      {canManage && workspaceId && kits.length === 0 && !loading && (
-        <div className="mb-3 flex flex-col gap-2">
-          <button
-            onClick={async () => {
-              const k = await oc.createBrandKit(workspaceId, {});
-              useBrand.getState().setKit(k);
-              setKits([k]);
-              await useBrand.getState().assign(k.id);
-            }}
-            className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700"
-          >
-            <Plus size={15} /> {tr("editor.create_brand_kit")}
-          </button>
-          <GenerateFromLogo
-            workspaceId={workspaceId}
-            onCreated={(k) => { useBrand.getState().setKit(k); setKits([k]); }}
-          />
-          <BrandFromWebsite
-            workspaceId={workspaceId}
-            onCreated={(k) => { useBrand.getState().setKit(k); setKits([k]); }}
-          />
-        </div>
       )}
 
       {kit && (
@@ -460,9 +408,9 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
               </div>
             )}
             {/* Adding colours, where the colours are looked at: a picker and a
-                hex field, the selection's colours, or the page's. Managers only,
-                as with every kit edit. */}
-            {canManage && <AddBrandColors existing={swatches} onAdd={(hexes) => void addColors(hexes)} />}
+                hex field, the selection's colours, or the page's. With
+                brand.kits, as with every kit edit. */}
+            {canEditKit && <AddBrandColors existing={swatches} onAdd={(hexes) => void addColors(hexes)} />}
           </CollapsibleSection>
 
           {/* Fonts (FR-1, FR-4). */}
@@ -486,29 +434,17 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
             )}
           </CollapsibleSection>
 
-          {/* Logos (FR-1). */}
-          {(kit.logos.length > 0 || (canManage && !!workspaceId)) && (
+          {/* Logos (FR-1): placed from here, managed on the Brand page. */}
+          {kit.logos.length > 0 && (
             <CollapsibleSection title={tr("editor.logos")} icon={ImageIcon} badge={kit.logos.length}>
               <div className="grid grid-cols-2 gap-2">
                 {kit.logos.map((l) => {
                   const dark = l.variants?.dark && assetUrls[l.variants.dark] ? l.variants.dark : null;
-                  const darkLabel = dark ? tr("editor.change_dark_logo") : tr("editor.set_dark_logo");
                   return (
                     // Pinned light: the tiles preview the logo on light and on dark
                     // grounds, whatever the app theme is. Both halves are the same
                     // size, so the two versions read as equals.
-                    <div key={l.id} className="light group/logo relative overflow-hidden rounded-lg border border-neutral-200">
-                      {canManage && (
-                        <button
-                          type="button"
-                          onClick={() => saveLogos(kit.logos.filter((x) => x.id !== l.id), tr("editor.logo_removed"))}
-                          title={`${tr("editor.remove_logo")}: ${l.label}`}
-                          aria-label={`${tr("editor.remove_logo")}: ${l.label}`}
-                          className="absolute end-1 top-1 z-10 grid h-5 w-5 place-items-center rounded-full bg-neutral-800 text-white opacity-0 transition focus:opacity-100 group-hover/logo:opacity-100"
-                        >
-                          <X size={11} />
-                        </button>
-                      )}
+                    <div key={l.id} className="light overflow-hidden rounded-lg border border-neutral-200">
                       <button
                         onClick={() => void placeIcon(l.assetId)}
                         title={`${tr("editor.place_logo")}: ${l.label}`}
@@ -523,107 +459,32 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
                       </button>
                       {/* The version for dark grounds: generated decks draw it on every
                           deep page, and the brand check accepts it as the logo. */}
-                      {dark ? (
-                        <div className="group relative border-t border-neutral-200">
-                          <button
-                            onClick={() => void placeIcon(dark)}
-                            title={`${tr("editor.place_logo")}: ${l.label} (${tr("editor.logo_on_dark")})`}
-                            className="flex aspect-[3/2] w-full items-center justify-center bg-neutral-900 p-2 hover:bg-neutral-800"
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={resolveAssetUrl(assetUrls[dark])} alt={`${l.label} ${tr("editor.logo_on_dark")}`} className="max-h-full max-w-full object-contain" />
-                          </button>
-                          {canManage && workspaceId && (
-                            <button
-                              type="button"
-                              onClick={() => setDarkPickFor(darkPickFor === l.id ? null : l.id)}
-                              title={darkLabel}
-                              aria-label={darkLabel}
-                              className="absolute end-1 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-md bg-white/15 text-white opacity-0 transition hover:bg-white/30 focus:opacity-100 group-hover:opacity-100"
-                            >
-                              <Pencil size={12} />
-                            </button>
-                          )}
-                        </div>
-                      ) : canManage && workspaceId ? (
+                      {dark && (
                         <button
-                          type="button"
-                          onClick={() => setDarkPickFor(darkPickFor === l.id ? null : l.id)}
-                          title={darkLabel}
-                          aria-label={darkLabel}
-                          className={`flex aspect-[3/2] w-full items-center justify-center gap-1 border-t border-dashed border-neutral-300 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600 ${darkPickFor === l.id ? "bg-neutral-100 text-neutral-600" : ""}`}
+                          onClick={() => void placeIcon(dark)}
+                          title={`${tr("editor.place_logo")}: ${l.label} (${tr("editor.logo_on_dark")})`}
+                          className="flex aspect-[3/2] w-full items-center justify-center border-t border-neutral-200 bg-neutral-900 p-2 hover:bg-neutral-800"
                         >
-                          <Plus size={13} />
-                          <span className="h-3 w-3 rounded-sm bg-neutral-800" aria-hidden />
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={resolveAssetUrl(assetUrls[dark])} alt={`${l.label} ${tr("editor.logo_on_dark")}`} className="max-h-full max-w-full object-contain" />
                         </button>
-                      ) : null}
+                      )}
                     </div>
                   );
                 })}
-                {canManage && workspaceId && (
-                  <button
-                    type="button"
-                    onClick={() => setDarkPickFor(darkPickFor === NEW_LOGO ? null : NEW_LOGO)}
-                    className={`flex min-h-24 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-neutral-300 text-xs text-neutral-500 hover:border-brand-300 hover:text-brand-ink ${darkPickFor === NEW_LOGO ? "border-brand-300 text-brand-ink" : ""}`}
-                  >
-                    <Plus size={16} />
-                    {tr("editor.add_logo")}
-                  </button>
-                )}
               </div>
-              {/* Adding a logo picks from the uploads (or uploads a new file). */}
-              {canManage && workspaceId && darkPickFor === NEW_LOGO && (
-                <div className="mt-2 rounded-lg border border-neutral-200 p-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="truncate text-xs font-medium text-neutral-700">{tr("editor.add_logo")}</span>
-                    <button type="button" onClick={() => setDarkPickFor(null)} aria-label={tr("editor.close")} title={tr("editor.close")} className="grid h-6 w-6 shrink-0 place-items-center rounded-md text-neutral-500 hover:bg-neutral-100">
-                      <X size={13} />
-                    </button>
-                  </div>
-                  <UploadPicker
-                    workspaceId={workspaceId}
-                    assetUrls={assetUrls}
-                    allowUpload
-                    onPick={(assetId, filename, url) => {
-                      setDarkPickFor(null);
-                      if (url) setAssetUrls((m) => ({ ...m, [assetId]: url }));
-                      const label = filename.replace(/\.[a-z0-9]+$/i, "") || tr("editor.logo");
-                      saveLogos([...kit.logos, { id: `l-${crypto.randomUUID()}`, label, assetId }], tr("editor.logo_added"));
-                    }}
-                  />
-                </div>
-              )}
-              {/* Picking the dark version opens below the grid, at full width. */}
-              {canManage && workspaceId && darkPickFor && darkPickFor !== NEW_LOGO && kit.logos.some((x) => x.id === darkPickFor) && (
-                <div className="mt-2 rounded-lg border border-neutral-200 p-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="truncate text-xs font-medium text-neutral-700">
-                      {kit.logos.find((x) => x.id === darkPickFor)?.variants?.dark ? tr("editor.change_dark_logo") : tr("editor.set_dark_logo")}: {kit.logos.find((x) => x.id === darkPickFor)?.label}
-                    </span>
-                    <button type="button" onClick={() => setDarkPickFor(null)} aria-label={tr("editor.close")} title={tr("editor.close")} className="grid h-6 w-6 shrink-0 place-items-center rounded-md text-neutral-500 hover:bg-neutral-100">
-                      <X size={13} />
-                    </button>
-                  </div>
-                  <UploadPicker
-                    workspaceId={workspaceId}
-                    assetUrls={assetUrls}
-                    allowUpload
-                    onPick={(assetId, _name, url) => {
-                      const id = darkPickFor;
-                      setDarkPickFor(null);
-                      if (url) setAssetUrls((m) => ({ ...m, [assetId]: url }));
-                      saveLogos(kit.logos.map((x) => (x.id === id ? { ...x, variants: { ...(x.variants ?? {}), dark: assetId } } : x)));
-                    }}
-                  />
-                </div>
-              )}
             </CollapsibleSection>
           )}
 
           {/* Graphics (F50): the kit's categories, placed by click or drag. */}
-          {kit.collections.some((c) => c.assetIds.length > 0) && (
-            <CollapsibleSection title={tr("brand.graphics")} icon={Shapes} badge={kit.collections.reduce((n, c) => n + c.assetIds.length, 0)}>
+          {(kit.collections.some((c) => c.assetIds.length > 0) || (canLibrary && !!workspaceId)) && (
+            <CollapsibleSection title={tr("brand.graphics")} icon={Shapes} badge={kit.collections.reduce((n, c) => n + c.assetIds.length, 0) || undefined}>
               <BrandGraphicsSection kit={kit} assets={assetInfo} onPlace={(id, name) => void placeIcon(id, name)} />
+              {canLibrary && workspaceId && (
+                <a href={`${dashboardPath("brand")}#graphics`} target="_blank" rel="noopener" className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-brand-ink hover:underline">
+                  <Shapes size={12} /> {tr("brand.manage_graphics")}
+                </a>
+              )}
             </CollapsibleSection>
           )}
 
@@ -665,18 +526,12 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
             </CollapsibleSection>
           )}
 
-          {/* Version history + restore (FR-9, manage-brand only). */}
-          {canManage && (
-            <CollapsibleSection title={tr("editor.version_history")} icon={History}>
-              <VersionHistory kitId={kit.id} onRestored={() => void refresh()} />
-            </CollapsibleSection>
-          )}
-
-          {/* Brand controls + content management (manage-brand only). */}
-          {canManage && (
-            <CollapsibleSection title={tr("editor.brand_controls_admin")} icon={ShieldCheck}>
-              <BrandControlsEditor kit={kit} workspaceId={workspaceId} onSaved={() => void refresh()} assetUrls={assetUrls} />
-            </CollapsibleSection>
+          {/* The kit itself (colours, fonts, logos, graphics, settings,
+              versions) is managed on the dashboard's Brand page. */}
+          {canEditKit && (
+            <a href={dashboardPath("brand")} target="_blank" rel="noopener" className="inline-flex items-center gap-1 text-xs font-medium text-brand-ink hover:underline">
+              <ShieldCheck size={12} /> {tr("brand.manage_brand")}
+            </a>
           )}
         </div>
       )}
@@ -912,89 +767,6 @@ function LockedRegionsControl({
 }
 
 /** Kit version history + restore (FR-9). Manage-brand only. */
-function VersionHistory({ kitId, onRestored }: { kitId: string; onRestored: () => void | Promise<void> }) {
-  const toast = useToast();
-  const [versions, setVersions] = useState<BrandKitVersion[] | null>(null);
-  const [busy, setBusy] = useState(false);
-  // Two-step restore confirm (matches the app's in-app dialog style): the first
-  // click arms a version, the second within the window restores it.
-  const [confirmVersion, setConfirmVersion] = useState<number | null>(null);
-  const confirmTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const loadedFor = useRef<string | null>(null);
-
-  const load = useCallback(async () => {
-    setBusy(true);
-    try {
-      const list = await oc.listBrandKitVersions(kitId);
-      setVersions(list);
-      loadedFor.current = kitId;
-    } catch {
-      setVersions([]);
-    } finally {
-      setBusy(false);
-    }
-  }, [kitId]);
-
-  // The body only mounts while the (collapsible) section is open, so load on
-  // mount and whenever the kit changes.
-  useEffect(() => {
-    if (loadedFor.current !== kitId) void load();
-  }, [kitId, load]);
-
-  useEffect(() => () => { if (confirmTimer.current) clearTimeout(confirmTimer.current); }, []);
-
-  const restore = useCallback(async (version: number) => {
-    if (confirmTimer.current) { clearTimeout(confirmTimer.current); confirmTimer.current = null; }
-    setConfirmVersion(null);
-    setBusy(true);
-    try {
-      const updated = await oc.restoreBrandKitVersion(kitId, version);
-      useBrand.getState().setKit(updated);
-      await onRestored();
-      await load();
-      toast.success(`Restored to v${version}.`);
-    } catch {
-      toast.error(tr("editor.couldnt_restore_that_version"));
-    } finally {
-      setBusy(false);
-    }
-  }, [kitId, onRestored, load, toast]);
-
-  // Arm (first click) or restore (second click within the window).
-  const onRestoreClick = useCallback((version: number) => {
-    if (confirmVersion === version) { void restore(version); return; }
-    if (confirmTimer.current) clearTimeout(confirmTimer.current);
-    setConfirmVersion(version);
-    confirmTimer.current = setTimeout(() => setConfirmVersion(null), 3500);
-  }, [confirmVersion, restore]);
-
-  return (
-    <>
-      {busy && !versions && <p className="text-xs text-neutral-400">{tr("editor.loading")}</p>}
-      {versions && versions.length === 0 && <p className="text-xs text-neutral-400">{tr("editor.no_versions_recorded_yet")}</p>}
-      {versions && versions.length > 0 && (
-        <ul className="flex flex-col gap-1">
-          {versions.map((v) => (
-            <li key={v.id} className="flex items-center justify-between rounded-lg border border-neutral-100 bg-neutral-50 px-2 py-1.5 text-xs">
-              <span className="text-neutral-600">
-                v{v.version}
-                <span className="ms-2 text-[10px] text-neutral-400">{new Date(v.createdAt).toLocaleString()}</span>
-              </span>
-              <button
-                onClick={() => onRestoreClick(v.version)}
-                disabled={busy}
-                title={confirmVersion === v.version ? tr("editor.click_again_to_restore_history_is_preserved") : `Restore to v${v.version}`}
-                className={`flex items-center gap-1 hover:underline disabled:opacity-50 ${confirmVersion === v.version ? "font-semibold text-red-600" : "text-brand-ink"}`}
-              >
-                <RotateCcw size={12} /> {confirmVersion === v.version ? tr("editor.confirm_restore") : tr("editor.restore")}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </>
-  );
-}
 
 /** Small "locked by brand" pill, used in a CollapsibleSection's right slot. */
 function LockedBadge() {
@@ -1086,560 +858,6 @@ function ReskinMapping({
   );
 }
 
-/** Brand controls + minimal content management for brand admins (FR-4, FR-5). */
-function BrandControlsEditor({
-  kit,
-  workspaceId,
-  onSaved,
-  assetUrls,
-}: {
-  kit: BrandKit;
-  workspaceId: string | null;
-  onSaved: () => void;
-  assetUrls: Record<string, string>;
-}) {
-  const toast = useToast();
-  const [busy, setBusy] = useState(false);
-
-  const save = useCallback(
-    async (patch: Parameters<typeof oc.updateBrandKit>[1]) => {
-      setBusy(true);
-      try {
-        const updated = await oc.updateBrandKit(kit.id, patch);
-        useBrand.getState().setKit(updated);
-        onSaved();
-      } catch {
-        toast.error(tr("editor.couldnt_save_brand_kit"));
-      } finally {
-        setBusy(false);
-      }
-    },
-    [kit.id, onSaved, toast],
-  );
-
-  const addColor = useCallback(
-    (hex: string) => {
-      const base = kit.palettes[0] ?? { id: `p-${crypto.randomUUID()}`, name: tr("editor.palette"), colors: [] };
-      const p = structuredClone(base);
-      p.colors = [...p.colors, { id: `s-${crypto.randomUUID()}`, role: "accent", value: srgbFromHexFull(hex) }];
-      const palettes = kit.palettes.length ? kit.palettes.map((x, i) => (i === 0 ? p : x)) : [p];
-      void save({ palettes });
-    },
-    [kit.palettes, save],
-  );
-
-  return (
-    <>
-      <input
-        defaultValue={kit.name}
-        onBlur={(e) => { if (e.target.value.trim() && e.target.value !== kit.name) void save({ name: e.target.value.trim() }); }}
-        className="mb-3 w-full rounded-lg border border-neutral-200 px-2 py-1.5 text-sm outline-none focus:border-brand-400"
-        placeholder={tr("editor.kit_name")}
-      />
-      <div className="mb-3 flex flex-col gap-2">
-        <ControlToggle label={tr("editor.lock_colors_to_palette")} checked={kit.controls.lockColors} disabled={busy} onChange={(v) => void save({ controls: { lockColors: v } })} />
-        <ControlToggle label={tr("editor.lock_fonts_to_approved_set")} checked={kit.controls.lockFonts} disabled={busy} onChange={(v) => void save({ controls: { lockFonts: v } })} />
-        <ControlToggle label={tr("editor.restrict_to_brand_templates")} checked={kit.controls.restrictTemplates} disabled={busy} onChange={(v) => void save({ controls: { restrictTemplates: v } })} />
-      </div>
-
-      {/* Manage colors. */}
-      <div className="mb-3">
-        <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{tr("editor.palette_colors")}</span>
-        <div className="flex flex-wrap items-center gap-2">
-          {kit.palettes.flatMap((p) => p.colors).map((sw) => (
-            <div key={sw.id} className="group relative">
-              <span className="block h-7 w-7 rounded-lg border border-neutral-200" style={{ backgroundColor: hexOf(sw.value) }} />
-              <button
-                title={tr("editor.remove")}
-                onClick={() => {
-                  const palettes = kit.palettes.map((p) => ({ ...p, colors: p.colors.filter((c) => c.id !== sw.id) }));
-                  void save({ palettes });
-                }}
-                className="absolute -end-1 -top-1 hidden rounded-full bg-surface text-neutral-400 group-hover:block hover:text-red-500"
-              >
-                <Trash2 size={12} />
-              </button>
-            </div>
-          ))}
-          <input type="color" onChange={(e) => addColor(e.target.value)} className="oc-color h-7 w-7" title={tr("editor.add_color")} aria-label={tr("editor.add_color")} />
-        </div>
-      </div>
-
-      {/* Manage fonts: any number of named roles (heading, body, prices, ...). */}
-      <div className="mb-3">
-        <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{tr("editor.fonts")}</span>
-        <BrandFontsEditor fonts={kit.fonts} onChange={(next) => void save({ fonts: next })} />
-      </div>
-
-      {/* Add a logo from uploads (FR-1). */}
-      {workspaceId && (
-        <AddLogoFromUploads workspaceId={workspaceId} assetUrls={assetUrls} onAdd={(assetId, label) => void save({ logos: [...kit.logos, { id: `l-${crypto.randomUUID()}`, label, assetId }] })} />
-      )}
-
-      {/* Graphics are managed on the dashboard's Brand page (F50). */}
-      <div className="mb-3">
-        <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{tr("brand.graphics")}</span>
-        <a href={dashboardPath("brand")} target="_blank" rel="noopener" className="inline-flex items-center gap-1 text-xs font-medium text-brand-ink hover:underline">
-          <Shapes size={12} /> {tr("brand.manage_graphics")}
-        </a>
-      </div>
-
-      {/* Voice (FR-1). */}
-      <div className="mt-3">
-        <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{tr("editor.voice_tone_comma_separated")}</span>
-        <input
-          defaultValue={(kit.voice?.tone ?? []).join(", ")}
-          onBlur={(e) => {
-            const tone = e.target.value.split(",").map((s) => s.trim()).filter(Boolean);
-            void save({ voice: { tone, doSay: kit.voice?.doSay ?? [], dontSay: kit.voice?.dontSay ?? [], sampleCopy: kit.voice?.sampleCopy } });
-          }}
-          className="w-full rounded-lg border border-neutral-200 px-2 py-1.5 text-sm outline-none focus:border-brand-400"
-          placeholder={tr("editor.friendly_confident")}
-        />
-      </div>
-    </>
-  );
-}
-
-function ControlToggle({ label, checked, onChange, disabled }: { label: string; checked: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
-  return (
-    <label className="flex items-center justify-between text-sm text-neutral-700">
-      <span>{label}</span>
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => onChange(!checked)}
-        className={`relative h-5 w-9 shrink-0 rounded-full transition-colors disabled:opacity-40 ${checked ? "bg-brand-600" : "bg-neutral-300"}`}
-      >
-        <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-surface transition-all ${checked ? "start-4" : "start-0.5"}`} />
-      </button>
-    </label>
-  );
-}
-
-/** The kit's font roles: a free name per role plus its family; add, rename,
- *  change and remove. Workspace fonts are offered first. */
-function BrandFontsEditor({ fonts: list, onChange }: { fonts: BrandKit["fonts"]; onChange: (next: BrandKit["fonts"]) => void }) {
-  const workspaceFamilies = useWorkspaceFontFamilies();
-  const setAt = (i: number, patch: Partial<BrandKit["fonts"][number]>) => onChange(list.map((f, j) => (j === i ? { ...f, ...patch } : f)));
-  return (
-    <div className="flex flex-col gap-1.5">
-      {list.map((f, i) => (
-        <div key={f.id} className="flex items-center gap-1.5">
-          <input
-            key={`${f.id}-${f.role}`}
-            defaultValue={f.role}
-            aria-label={tr("editor.font_role")}
-            placeholder={tr("editor.font_role_placeholder")}
-            onBlur={(e) => { const v = e.target.value.trim(); if (v && v !== f.role) setAt(i, { role: v }); }}
-            title={f.role}
-            className="min-w-0 flex-1 rounded-lg border border-neutral-200 px-2 py-1.5 text-xs outline-none focus:border-brand-400"
-          />
-          <select
-            value={f.fontFamily}
-            aria-label={tr("editor.font_family")}
-            onChange={(e) => { fonts.ensure(e.target.value); setAt(i, { fontFamily: e.target.value }); }}
-            style={{ fontFamily: `'${f.fontFamily}', sans-serif` }}
-            className="h-8 min-w-0 flex-1 truncate rounded-lg border border-neutral-200 bg-surface px-2 text-xs outline-none focus:border-brand-400"
-          >
-            {!workspaceFamilies.includes(f.fontFamily) && <option value={f.fontFamily}>{f.fontFamily}</option>}
-            {workspaceFamilies.length > 0 && (
-              <optgroup label={tr("editor.workspace_fonts")}>
-                {workspaceFamilies.map((w) => <option key={`ws-${w}`} value={w}>{w}</option>)}
-              </optgroup>
-            )}
-            {FONT_FAMILY_OPTIONS}
-          </select>
-          <button
-            type="button"
-            title={tr("editor.remove_font_role")}
-            aria-label={tr("editor.remove_font_role")}
-            onClick={() => onChange(list.filter((_, j) => j !== i))}
-            className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-neutral-400 hover:bg-neutral-100 hover:text-red-600"
-          >
-            <X size={14} />
-          </button>
-        </div>
-      ))}
-      <button
-        type="button"
-        onClick={() => onChange([...list, { id: `f-${crypto.randomUUID()}`, role: tr("editor.new_font_role"), fontFamily: workspaceFamilies[0] ?? list[list.length - 1]?.fontFamily ?? "Inter" }])} // i18n-ignore: a font family name, not UI text
-        className="flex items-center justify-center gap-1 rounded-lg border border-dashed border-neutral-300 py-1.5 text-xs font-medium text-neutral-500 hover:border-brand-300 hover:text-brand-ink"
-      >
-        <Plus size={13} /> {tr("editor.add_font_role")}
-      </button>
-    </div>
-  );
-}
-
-/** The workspace's uploads as a pick grid, optionally with an upload button
- *  (the new file is uploaded to the workspace and picked right away). */
-const NEW_LOGO = "__new_logo__";
-
-function UploadPicker({ workspaceId, assetUrls, onPick, allowUpload = false }: { workspaceId: string; assetUrls: Record<string, string>; onPick: (assetId: string, filename: string, url?: string) => void; allowUpload?: boolean }) {
-  const [assets, setAssets] = useState<UploadedAsset[]>([]);
-  const [uploading, setUploading] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
-  const toast = useToast();
-  useEffect(() => {
-    void oc.listAssets(workspaceId).then((a) => setAssets(a as UploadedAsset[])).catch(() => setAssets([]));
-  }, [workspaceId]);
-  const upload = async (file: File) => {
-    setUploading(true);
-    try {
-      const asset = await directUploadWithProgress(workspaceId, file, { filename: file.name });
-      onPick(asset.id, file.name, asset.url);
-    } catch (e) {
-      toast.error(userMessage(e, tr("editor.upload_failed")));
-    } finally {
-      setUploading(false);
-    }
-  };
-  return (
-    <div className="mt-2 grid grid-cols-4 gap-1.5">
-      {allowUpload && (
-        <>
-          <input ref={fileRef} type="file" accept="image/svg+xml,image/png,image/jpeg,image/webp" hidden onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void upload(f); }} />
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            disabled={uploading}
-            title={tr("editor.upload_logo")}
-            className="flex aspect-square flex-col items-center justify-center gap-0.5 rounded border border-dashed border-neutral-300 text-[10px] text-neutral-500 hover:border-brand-300 hover:text-brand-ink disabled:opacity-50"
-          >
-            {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-            {tr("editor.upload")}
-          </button>
-        </>
-      )}
-      {assets.length === 0 && !allowUpload && <span className="col-span-4 text-[11px] text-neutral-400">{tr("editor.no_uploads")}</span>}
-      {assets.map((a) => (
-        <button
-          key={a.id}
-          onClick={() => onPick(a.id, a.filename ?? tr("editor.logo"), a.url)}
-          className="flex aspect-square items-center justify-center overflow-hidden rounded border border-neutral-200 hover:border-brand-300"
-          title={a.filename ?? "asset"}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={resolveAssetUrl(assetUrls[a.id] ?? a.url)} alt={a.filename ?? ""} className="max-h-full max-w-full object-contain" />
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function AddLogoFromUploads({ workspaceId, assetUrls, onAdd, label }: { workspaceId: string; assetUrls: Record<string, string>; onAdd: (assetId: string, label: string) => void; label?: string }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="mb-3">
-      <button onClick={() => setOpen((v) => !v)} className="flex items-center gap-1 text-xs font-medium text-brand-ink hover:underline">
-        <Plus size={12} /> {label ?? tr("editor.add_logo_from_uploads")}
-      </button>
-      {open && <UploadPicker workspaceId={workspaceId} assetUrls={assetUrls} onPick={(id, name) => { onAdd(id, name); setOpen(false); }} />}
-    </div>
-  );
-}
-
-/**
- * Auto-generate a brand kit from a logo (FR-1 empty-state UX). Fully
- * client-side: the user picks a logo image, we decode it to a canvas, extract a
- * small dominant-color palette via @hc/color's median-cut helper, pair it with
- * sensible default heading/body fonts, upload the logo as an asset, then create
- * a brand kit pre-filled with the palette + logo + fonts. No backend image
- * decoding. Gated to manage-brand by the caller (only rendered for admins).
- */
-function GenerateFromLogo({
-  workspaceId,
-  onCreated,
-}: {
-  workspaceId: string;
-  onCreated: (kit: BrandKit) => void;
-}) {
-  const toast = useToast();
-  const [busy, setBusy] = useState(false);
-  const inputRef = useRef<HTMLInputElement | null>(null);
-
-  const handleFile = useCallback(async (file: File) => {
-    if (typeof document === "undefined") return;
-    setBusy(true);
-    try {
-      // Decode to a data URL, then to an <img> so we can sample pixels.
-      const dataUrl: string = await new Promise((res, rej) => {
-        const r = new FileReader();
-        r.onload = () => res(String(r.result));
-        r.onerror = () => rej(r.error);
-        r.readAsDataURL(file);
-      });
-      const img = await new Promise<HTMLImageElement>((res, rej) => {
-        const el = new Image();
-        el.onload = () => res(el);
-        el.onerror = () => rej(new CodedError("errors.image_decode_failed", "Couldn't decode the image."));
-        el.src = dataUrl;
-      });
-
-      // Sample at a modest size (longest side ~128px) for a fast, stable palette.
-      const SAMPLE = 128;
-      const w = img.naturalWidth || img.width;
-      const h = img.naturalHeight || img.height;
-      let palette: string[] = [];
-      if (w && h) {
-        const scale = Math.min(1, SAMPLE / Math.max(w, h));
-        const sw = Math.max(1, Math.round(w * scale));
-        const sh = Math.max(1, Math.round(h * scale));
-        const canvas = document.createElement("canvas");
-        canvas.width = sw;
-        canvas.height = sh;
-        const ctx = canvas.getContext("2d");
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, sw, sh);
-          const bmp: Bitmap = ctx.getImageData(0, 0, sw, sh);
-          palette = extractPalette(bmp, 6).map(toHex);
-        }
-      }
-      // Dedup while preserving order; always offer at least one swatch.
-      palette = [...new Set(palette)];
-
-      // Upload the logo as a workspace asset so it round-trips as a brand logo.
-      const asset = await directUploadWithProgress(workspaceId, file, { filename: file.name });
-
-      // Create the kit, then fill it with the extracted palette + logo + default
-      // heading/body fonts (the text engine's registry resolves these family names).
-      const created = await oc.createBrandKit(workspaceId, { name: tr("editor.brand_from_logo") });
-      const filled = await oc.updateBrandKit(created.id, {
-        palettes:
-          palette.length > 0
-            ? [
-                {
-                  id: `p-${crypto.randomUUID()}`,
-                  name: tr("editor.logo_palette"),
-                  colors: palette.map((hex, i) => ({
-                    id: `s-${crypto.randomUUID()}`,
-                    role: i === 0 ? "primary" : i === 1 ? "secondary" : "accent",
-                    value: srgbFromHexFull(hex),
-                  })),
-                },
-              ]
-            : [],
-        fonts: [
-          { id: `f-${crypto.randomUUID()}`, role: "heading", fontFamily: "Inter" },
-          { id: `f-${crypto.randomUUID()}`, role: "body", fontFamily: "Inter" },
-        ],
-        logos: [{ id: `l-${crypto.randomUUID()}`, label: file.name || tr("editor.logo"), assetId: asset.id }],
-      });
-
-      onCreated(filled);
-      await useBrand.getState().assign(filled.id);
-      toast.success(`Brand kit generated from logo (${palette.length} colors).`);
-    } catch {
-      toast.error(tr("editor.couldnt_generate_a_brand_kit_from_that_logo"));
-    } finally {
-      setBusy(false);
-      if (inputRef.current) inputRef.current.value = "";
-    }
-  }, [workspaceId, onCreated, toast]);
-
-  return (
-    <>
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleFile(f); }}
-      />
-      <button
-        onClick={() => inputRef.current?.click()}
-        disabled={busy}
-        className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-brand-200 bg-brand-50 px-3 py-2 text-sm font-medium text-brand-ink hover:bg-brand-100 disabled:opacity-60"
-      >
-        <Sparkles size={15} /> {busy ? tr("editor.generating") : tr("editor.generate_from_logo")}
-      </button>
-    </>
-  );
-}
-
-/** F28 T21: draft a brand kit from a company web page. The server scans the
- *  page behind its SSRF gate (logo candidates, palette, font guesses) and the
- *  result is a DRAFT shown here for review - nothing is created or saved
- *  until the user confirms, and the chosen logo is imported server-side as a
- *  workspace asset (never hotlinked). */
-function BrandFromWebsite({
-  workspaceId,
-  onCreated,
-}: {
-  workspaceId: string;
-  onCreated: (kit: BrandKit) => void;
-}) {
-  const toast = useToast();
-  const [url, setUrl] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [creating, setCreating] = useState(false);
-  const [draft, setDraft] = useState<{ name: string; logoUrls: string[]; colors: string[]; fonts: string[] } | null>(null);
-  const [logoChoice, setLogoChoice] = useState<string | null>(null);
-
-  const fetchDraft = async () => {
-    const target = url.trim();
-    if (!target || busy) return; // Enter fires this too; never stack scans
-    setBusy(true);
-    try {
-      const d = await oc.aiBrandFromUrl({ workspaceId, url: /^https?:\/\//i.test(target) ? target : `https://${target}` });
-      // Normalize defensively: a missing bucket must be an array, or every
-      // .length/.map below throws mid-render.
-      const clean = {
-        name: d.name ?? "",
-        logoUrls: Array.isArray(d.logoUrls) ? d.logoUrls : [],
-        colors: Array.isArray(d.colors) ? d.colors : [],
-        fonts: Array.isArray(d.fonts) ? d.fonts : [],
-      };
-      setDraft(clean);
-      setLogoChoice(clean.logoUrls[0] ?? null);
-    } catch (e) {
-      toast.error(userMessage(e, tr("editor.couldnt_draft_a_brand_from_that_site")));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const confirm = async () => {
-    if (!draft) return;
-    setCreating(true);
-    const defaultFam = "Inter"; // i18n-ignore: a font family name, not UI text
-    const headingFam = draft.fonts[0] ?? defaultFam;
-    const bodyFam = draft.fonts[1] ?? draft.fonts[0] ?? defaultFam;
-    let created: BrandKit | null = null;
-    try {
-      // The logo imports through the server (asset pipeline + its own SSRF
-      // gate); an inline data-URI candidate (a data favicon) uploads its bytes
-      // directly instead, since the URL importer is http(s)-only. A failed
-      // import just means a kit without a logo.
-      let logoAssetId: string | null = null;
-      if (logoChoice?.startsWith("data:image/")) {
-        const b64 = logoChoice.split(",")[1] ?? "";
-        logoAssetId = b64
-          ? await directUploadWithProgress(workspaceId, await (await fetch(`data:image/png;base64,${b64}`)).blob(), { filename: "logo" }).then((a) => a.id, () => null)
-          : null;
-      } else if (logoChoice) {
-        logoAssetId = await oc.importAssetFromUrl(workspaceId, logoChoice).then((a) => a.id, () => null);
-      }
-      created = await oc.createBrandKit(workspaceId, { name: draft.name.slice(0, 80) || tr("editor.brand_from_website") });
-      const filled = await oc.updateBrandKit(created.id, {
-        palettes: draft.colors.length
-          ? [{
-              id: `p-${crypto.randomUUID()}`,
-              name: tr("editor.website_palette"),
-              colors: draft.colors.map((hex, i) => ({
-                id: `s-${crypto.randomUUID()}`,
-                role: i === 0 ? "primary" : i === 1 ? "secondary" : "accent",
-                value: srgbFromHexFull(hex),
-              })),
-            }]
-          : [],
-        // Font FAMILIES are data, never localized; the site's guesses win,
-        // with the default family as the fallback.
-        fonts: [
-          { id: `f-${crypto.randomUUID()}`, role: "heading", fontFamily: headingFam },
-          { id: `f-${crypto.randomUUID()}`, role: "body", fontFamily: bodyFam },
-        ],
-        ...(logoAssetId ? { logos: [{ id: `l-${crypto.randomUUID()}`, label: draft.name.slice(0, 80) || tr("editor.logo"), assetId: logoAssetId }] } : {}),
-      });
-      onCreated(filled);
-      await useBrand.getState().assign(filled.id);
-      setDraft(null);
-      setUrl("");
-      toast.success(tr("editor.brand_kit_created_from_website"));
-    } catch (e) {
-      // Roll back a half-made kit: without this, a failed fill leaves an
-      // empty kit that also hides this whole flow (it only shows when the
-      // workspace has no kits), so a retry would be impossible.
-      if (created) await oc.deleteBrandKit(created.id).catch(() => {});
-      toast.error(userMessage(e, tr("editor.couldnt_create_that_brand_kit")));
-    } finally {
-      setCreating(false);
-    }
-  };
-
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="flex gap-1.5">
-        <input
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") void fetchDraft(); }}
-          placeholder={tr("editor.acme_com")}
-          aria-label={tr("editor.company_website")}
-          className="min-w-0 flex-1 rounded-lg border border-neutral-200 bg-surface px-2 py-1.5 text-sm outline-none focus:border-brand-400"
-        />
-        <button
-          onClick={() => void fetchDraft()}
-          disabled={busy || !url.trim()}
-          className="shrink-0 rounded-lg border border-brand-200 bg-brand-50 px-3 py-1.5 text-sm font-medium text-brand-ink hover:bg-brand-100 disabled:opacity-60"
-          data-testid="brand-from-url"
-        >
-          {busy ? tr("editor.scanning") : tr("editor.draft_from_website")}
-        </button>
-      </div>
-      {draft && (
-        <div className="flex flex-col gap-2 rounded-lg border border-neutral-200 bg-surface p-2" data-testid="brand-draft">
-          <div className="text-sm font-medium text-neutral-800">{draft.name}</div>
-          {draft.colors.length > 0 && (
-            <div className="flex items-center gap-1">
-              {draft.colors.map((c) => (
-                <span key={c} title={c} style={{ background: c }} className="h-5 w-5 rounded ring-1 ring-black/10" />
-              ))}
-            </div>
-          )}
-          {draft.fonts.length > 0 && <div className="text-[11px] text-neutral-500">{draft.fonts.join(" · ")}</div>}
-          {draft.logoUrls.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1.5">
-              {draft.logoUrls.slice(0, 4).map((u) => (
-                <button
-                  key={u}
-                  type="button"
-                  onClick={() => setLogoChoice(logoChoice === u ? null : u)}
-                  aria-pressed={logoChoice === u}
-                  title={tr("editor.use_as_the_kit_logo")}
-                  className={`rounded border p-0.5 ${logoChoice === u ? "border-brand-500 ring-2 ring-brand-100" : "border-neutral-200"}`}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={u}
-                    alt=""
-                    className="h-8 w-8 rounded object-contain"
-                    onError={(e) => {
-                      // A broken candidate (404, mixed content) is useless:
-                      // hide its button and drop it as the selection.
-                      const btn = e.currentTarget.closest("button");
-                      if (btn) btn.style.display = "none";
-                      setLogoChoice((cur) => (cur === u ? null : cur));
-                    }}
-                  />
-                </button>
-              ))}
-            </div>
-          )}
-          <div className="flex gap-1.5">
-            <button
-              onClick={() => void confirm()}
-              disabled={creating}
-              className="flex-1 rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
-              data-testid="brand-draft-confirm"
-            >
-              {creating ? tr("editor.creating") : tr("editor.create_brand_kit")}
-            </button>
-            <button onClick={() => setDraft(null)} className="rounded-lg border border-neutral-200 px-3 py-1.5 text-sm text-neutral-600 hover:bg-neutral-50">
-              {tr("editor.discard")}
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// --- color helpers ----------------------------------------------------------
-/** The add-colour row of the Colors section: pick or type a colour and add
- *  it, take the selection's colours or the whole page's, or pick from the
- *  colours present in a selected image. */
 function AddBrandColors({ existing, onAdd }: { existing: string[]; onAdd: (colors: (string | { hex: string; color: Color })[]) => void }) {
   const [hex, setHex] = useState("#9b2c72");
   const selection = useEditor((s) => s.selection);
@@ -1755,13 +973,5 @@ function AddBrandColors({ existing, onAdd }: { existing: string[]; onAdd: (color
 
 function srgbFromHex(hex: string): Color {
   return srgbFromHexFull(hex);
-}
-function srgbFromHexFull(hex: string): Color {
-  const h = hex.replace("#", "");
-  const n = parseInt(h.length === 3 ? h.split("").map((c) => c + c).join("") : h.slice(0, 6), 16);
-  const r = Number.isNaN(n) ? 0 : (n >> 16) & 255;
-  const g = Number.isNaN(n) ? 0 : (n >> 8) & 255;
-  const b = Number.isNaN(n) ? 0 : n & 255;
-  return { srgb: { r: r / 255, g: g / 255, b: b / 255, a: 1 } };
 }
 

@@ -45,7 +45,6 @@
   "editor.no_brand_colors_yet": "No brand colours yet.",
   "editor.no_favorites_yet_tap_the_star_on_any_asset": "No favourites yet. Tap the star on any asset.",
   "editor.optimizing_preview": "optimising preview…",
-  "editor.palette_colors": "Palette colours",
   "editor.pick_a_color_from_the_screen": "Pick a colour from the screen",
   "editor.post_canceled": "Post cancelled.",
   "editor.re_analyze": "Re-analyse",
@@ -105,7 +104,13 @@
   "errors.api_print_profile_not_found": "That colour profile no longer exists.",
   "errors.api_print_profile_not_cmyk": "This file is not an ICC CMYK colour profile.",
   "roles.action_print_color_profiles": "Manage colour profiles",
-  "roles.hint_brand_kits": "Create and change brand kits: colours, fonts, logos.",
+  "roles.hint_brand_kits": "Create, change and delete brands: colours, fonts, logos, voice, rules and versions. Includes the brand library.",
   "roles.hint_print_color_profiles": "Add and remove the workspace's ICC colour profiles.",
-  "roles.seed_permission_organize_folders": "Organise folders"
+  "roles.seed_permission_organize_folders": "Organise folders",
+  "brand.new_brand_hint": "Start empty, or take colours, fonts and the logo from a logo, a website or a kit file.",
+  "brand.delete_brand_hint": "Designs made with this brand stay exactly as they are: their colours, fonts, logos and graphics are stored in the design, and the uploads stay.",
+  "brand.colors_hint": "The brand's colours with their print values. Add a colour by picker or hex value; colours from a design's selection or page are added from the brand panel in the editor.",
+  "brand.colors_hint_read_only": "The brand's colours with their print values. Use them in the editor from the brand panel.",
+  "brand.remove_color": "Remove colour",
+  "roles.hint_brand_library": "Upload, rename, move and remove a brand's categories and graphics. Colours, fonts and logos stay as they are."
 }

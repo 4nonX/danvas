@@ -60,6 +60,9 @@ const (
 	BrandKits    Action = "brand.kits"
 	BrandDesigns Action = "brand.designs"
 	BrandUnlock  Action = "brand.unlock"
+	// BrandLibrary maintains a kit's collections (categories of graphics,
+	// icons and photos) without the right to change the brand itself (F50).
+	BrandLibrary Action = "brand.library"
 
 	PrintColorProfiles  Action = "print.colorProfiles"
 	PrintExportProfiles Action = "print.exportProfiles"
@@ -130,6 +133,7 @@ var Actions = []ActionDef{
 	{BrandKits, "brand", false, "admin"},
 	{BrandDesigns, "brand", false, "admin"},
 	{BrandUnlock, "brand", false, "admin"},
+	{BrandLibrary, "brand", false, "admin"},
 
 	{PrintColorProfiles, "print", false, "admin"},
 	{PrintExportProfiles, "print", false, "admin"},

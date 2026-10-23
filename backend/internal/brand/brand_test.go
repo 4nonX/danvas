@@ -328,3 +328,80 @@ func TestStarterKitSeeding_DB(t *testing.T) {
 		t.Fatalf("team workspace kits = %+v, %v", kits, err)
 	}
 }
+
+// brand.library (F50) maintains a kit's collections and nothing else; a role
+// with brand.kits changes everything.
+func TestBrandLibraryRight_DB(t *testing.T) {
+	dsn := os.Getenv("DATABASE_URL")
+	if dsn == "" {
+		t.Skip("DATABASE_URL not set; skipping DB integration test")
+	}
+	ctx := context.Background()
+	conn, err := pgx.Connect(ctx, stripSchema(dsn))
+	if err != nil {
+		t.Fatalf("connect: %v", err)
+	}
+	defer conn.Close(ctx)
+	tx, err := conn.Begin(ctx)
+	if err != nil {
+		t.Fatalf("begin: %v", err)
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+
+	acct := accounts.NewService(tx, "test-jwt-secret")
+	owner, ws, _, err := acct.Signup(ctx, "blib-owner+"+uuid.NewString()+"@example.com", "a-strong-password", "Owner")
+	if err != nil {
+		t.Fatalf("signup owner: %v", err)
+	}
+	member, _, _, err := acct.Signup(ctx, "blib-member+"+uuid.NewString()+"@example.com", "a-strong-password", "Member")
+	if err != nil {
+		t.Fatalf("signup member: %v", err)
+	}
+	addMember(ctx, t, tx, ws.ID, member.ID, "MEMBER")
+	if err := acct.EnsureRoles(ctx, tx, ws.ID); err != nil {
+		t.Fatalf("roles: %v", err)
+	}
+	svc := NewService(tx)
+	kit, err := svc.CreateKit(ctx, ws.ID, owner.ID, "Acme", nil)
+	if err != nil {
+		t.Fatalf("create kit: %v", err)
+	}
+	collections := json.RawMessage(`[{"id":"c1","kind":"graphics","name":"Silhouetten","assetIds":[]}]`)
+
+	// A plain member: neither.
+	if _, err := svc.UpdateKit(ctx, kit.ID, member.ID, UpdateInput{Collections: collections}); err != ErrForbidden {
+		t.Fatalf("member without brand.library: want Forbidden, got %v", err)
+	}
+
+	// Give the member role the seeded brand-library permission.
+	if _, err := tx.Exec(ctx, `INSERT INTO "workspace_role_permissions" ("role_id","permission_id")
+		SELECT r.id, p.id FROM "workspace_roles" r, "workspace_permissions" p
+		WHERE r."workspace_id"=$1 AND r."seed_key"='member' AND p."workspace_id"=$1 AND p."seed_key"='brand-library'`, ws.ID); err != nil {
+		t.Fatalf("grant: %v", err)
+	}
+	updated, err := svc.UpdateKit(ctx, kit.ID, member.ID, UpdateInput{Collections: collections})
+	if err != nil {
+		t.Fatalf("collections with brand.library: %v", err)
+	}
+	if string(updated.Collections) == "[]" {
+		t.Fatal("collections not stored")
+	}
+	// Anything beyond the collections still needs brand.kits.
+	palettes := json.RawMessage(`[{"id":"p1","name":"x","colors":[]}]`)
+	if _, err := svc.UpdateKit(ctx, kit.ID, member.ID, UpdateInput{Collections: collections, Palettes: palettes}); err != ErrForbidden {
+		t.Fatalf("palettes with brand.library only: want Forbidden, got %v", err)
+	}
+	if _, err := svc.UpdateKit(ctx, kit.ID, member.ID, UpdateInput{Name: ptr("Hijack")}); err != ErrForbidden {
+		t.Fatalf("rename with brand.library only: want Forbidden, got %v", err)
+	}
+	if _, err := svc.CreateKit(ctx, ws.ID, member.ID, "Second", nil); err != ErrForbidden {
+		t.Fatalf("create with brand.library only: want Forbidden, got %v", err)
+	}
+	if err := svc.DeleteKit(ctx, kit.ID, member.ID); err != ErrForbidden {
+		t.Fatalf("delete with brand.library only: want Forbidden, got %v", err)
+	}
+	// brand.kits covers the collections too.
+	if _, err := svc.UpdateKit(ctx, kit.ID, owner.ID, UpdateInput{Collections: collections, Palettes: palettes}); err != nil {
+		t.Fatalf("owner: %v", err)
+	}
+}

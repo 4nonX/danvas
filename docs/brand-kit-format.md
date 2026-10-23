@@ -4,9 +4,9 @@ A brand kit can be saved as one file and loaded into another workspace or anothe
 
 ## Export and import
 
-Both are in the editor's **Brand** panel and need the right to manage brand kits (workspace owners and admins).
+Both are on the dashboard's **Brand** page: export and import under **Settings**, **Kit file**, and import also under **New brand**. They need the right **Define the brand** (workspace owners and admins).
 
-- **Export** saves the kit shown in the panel, at its latest version, as `<name>.brandkit.zip`. The file holds the colors, fonts, logos with their dark and light versions, the icon, photo and graphics collections, the voice and the controls. It also holds the font files of every workspace font the kit names. If a file the kit refers to can no longer be read, the export leaves it out and says how many are missing.
+- **Export** saves the brand shown on the page, at its latest version, as `<name>.brandkit.zip`. The file holds the colors, fonts, logos with their dark and light versions, the icon, photo and graphics collections, the voice and the controls. It also holds the font files of every workspace font the kit names. If a file the kit refers to can no longer be read, the export leaves it out and says how many are missing.
 - **Import** reads a `.brandkit.zip`, or a bare `brandkit.json` for a kit without files. It uploads the logos and images into the workspace's uploads and the font files into the workspace fonts, then creates the kit.
 - **The same name already exists**: the import shows both kits side by side (version, last change, number of colors, fonts, logos and images) and asks:
   - **Replace the existing kit**: the kit takes the file's content. Its earlier state stays in the version history and can be restored from there. Designs that use the kit keep using it. Logos and images whose bytes are already in that kit are reused, not uploaded again.

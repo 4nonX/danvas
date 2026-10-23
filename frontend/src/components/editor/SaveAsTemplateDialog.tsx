@@ -2,6 +2,8 @@
 // visibility, then saves the current design as a reusable template via the SDK.
 // Uses the design's id when available (server loads its latest snapshot) and
 // otherwise sends the in-memory file so unsaved work can still be templatized.
+// From the dashboard it takes the chosen designs instead: one keeps the name
+// field, several each become a template under their own name.
 
 import { useState } from "react";
 import type { TemplateVisibility } from "@hc/sdk";
@@ -23,28 +25,50 @@ export function SaveAsTemplateDialog({
   onClose,
   designId,
   workspaceId,
+  designs,
 }: {
   open: boolean;
   onClose: () => void;
   designId: string | null;
   workspaceId: string | null;
+  /** Saved designs chosen on the dashboard (instead of the open one). */
+  designs?: { id: string; title: string }[];
 }) {
   const toast = useToast();
   const docTitle = useEditor((s) => s.doc.title);
-  const [title, setTitle] = useState(docTitle);
+  const many = (designs?.length ?? 0) > 1;
+  const [title, setTitle] = useState(designs?.[0]?.title ?? docTitle);
   const [category, setCategory] = useState("");
   const [visibility, setVisibility] = useState<TemplateVisibility>("workspace");
   const [busy, setBusy] = useState(false);
 
+  async function saveMany(list: { id: string; title: string }[]) {
+    if (!workspaceId) return;
+    setBusy(true);
+    let saved = 0;
+    for (const d of list) {
+      try {
+        await oc.saveAsTemplate({ workspaceId, designId: d.id, title: d.title, category: category.trim() || undefined, visibility });
+        saved++;
+      } catch { /* counted below */ }
+    }
+    setBusy(false);
+    if (saved) toast.success(tr("editor.saved_as_templates", { count: saved }));
+    if (saved < list.length) toast.error(tr("editor.templates_not_saved", { count: list.length - saved }));
+    if (saved === list.length) onClose();
+  }
+
   async function save() {
+    if (many && designs) return saveMany(designs);
     if (!workspaceId || !title.trim()) return;
+    const target = designs?.[0]?.id ?? designId;
     setBusy(true);
     try {
       await oc.saveAsTemplate({
         workspaceId,
         // Prefer the saved design (latest snapshot); fall back to the live file.
-        designId: designId ?? undefined,
-        file: designId ? undefined : useEditor.getState().doc,
+        designId: target ?? undefined,
+        file: target ? undefined : useEditor.getState().doc,
         title: title.trim(),
         category: category.trim() || undefined,
         visibility,
@@ -67,6 +91,9 @@ export function SaveAsTemplateDialog({
         }}
         className="flex flex-col gap-4"
       >
+        {many ? (
+          <p className="text-sm text-neutral-600">{tr("editor.save_as_templates_many", { count: designs!.length })}</p>
+        ) : (
         <label className="flex flex-col gap-1.5">
           <span className="text-sm font-medium text-neutral-700">{tr("editor.name")}</span>
           <input
@@ -76,6 +103,7 @@ export function SaveAsTemplateDialog({
             className="h-11 rounded-xl border border-neutral-200 bg-surface px-3.5 text-sm text-neutral-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
           />
         </label>
+        )}
         <label className="flex flex-col gap-1.5">
           <span className="text-sm font-medium text-neutral-700">{tr("editor.category_optional")}</span>
           <input
@@ -112,7 +140,7 @@ export function SaveAsTemplateDialog({
           <Button type="button" variant="secondary" size="sm" onClick={onClose}>
             {tr("editor.cancel")}
           </Button>
-          <Button type="submit" size="sm" disabled={busy || !title.trim() || !workspaceId}>
+          <Button type="submit" size="sm" disabled={busy || (!many && !title.trim()) || !workspaceId}>
             {busy ? tr("editor.saving") : tr("editor.save_template")}
           </Button>
         </div>

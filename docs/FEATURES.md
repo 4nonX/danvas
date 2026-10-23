@@ -49,6 +49,8 @@ A living checklist of what ships today versus what is planned. Shipped items are
 - [x] Realtime CRDT (Yjs), presence cursors, follow mode, locks, per-user undo
 - [x] Offline editing (IndexedDB) with merge on reconnect; an outdated offline copy never replaces a newer design, its own changes are kept as a version ([spec 49](roadmap/49-outdated-offline-copies.md))
 - [x] Brand graphics: a Brand page in the dashboard with named categories, multi-file upload, rename, move, replace and remove; placed from the editor's brand panel by click or drag, SVGs as editable vectors ([spec 50](roadmap/50-brand-graphics.md))
+- [x] One Brand page for the whole brand (colours, fonts with the workspace font library, logos, graphics, settings), brands created empty, from a logo, a website or a kit file, and deleted without touching designs; the editor's brand panel applies the brand; a separate right for the brand library ([spec 50](roadmap/50-brand-graphics.md))
+- [x] Save as template from the dashboard, for one design or a selection
 - [x] Multi-instance scale (Redis fan-out, cross-instance roster, CAS lock authority)
 - [x] Comments (threads, pins, @mentions, reactions, resolve, convert-to-task)
 - [x] Version history (auto/named checkpoints, restore, branch, CRDT scrub timeline)

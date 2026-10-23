@@ -77,6 +77,7 @@ import { settingsPath } from "@/components/settings/tabs";
 import { ExportDialog, type ExportTarget } from "@/components/editor/ExportDialog";
 import { FolderDefaultsDialog } from "./FolderDefaultsDialog";
 import { PrintDialog } from "@/components/editor/PrintDialog";
+import { SaveAsTemplateDialog } from "@/components/editor/SaveAsTemplateDialog";
 import { ProfileManager } from "@/components/settings/ProfileManager";
 import { ShareDialog } from "@/components/editor/ShareDialog";
 import { loadDesignsForExport } from "@/lib/loadDesignForExport";
@@ -95,7 +96,6 @@ import { WorkspaceAiPanel } from "./WorkspaceAiPanel";
 import { PrintProfilesPanel } from "./PrintProfilesPanel";
 import { PrintApprovalPanel } from "./PrintApprovalPanel";
 import { BrandPage } from "./BrandPage";
-import { WorkspaceFontsPanel } from "./WorkspaceFontsPanel";
 import { WorkspaceCanvaPanel } from "./WorkspaceCanvaPanel";
 import { loadWorkspaceFonts } from "@/lib/workspaceFonts";
 import { TemplateFromPptxDialog } from "./TemplateFromPptxDialog";
@@ -482,6 +482,8 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   const [printLoading, setPrintLoading] = useState(false);
   const [shareDesignId, setShareDesignId] = useState<string | null>(null);
   const [bulkShare, setBulkShare] = useState<{ id: string; title: string }[] | null>(null);
+  // Designs being saved as templates (one, or the selection).
+  const [templateTargets, setTemplateTargets] = useState<{ id: string; title: string }[] | null>(null);
   // What the caller's role allows in the active workspace (F42).
   const myActions = useMyActions();
   const can = (a: Action) => hasAction(myActions, a);
@@ -1070,6 +1072,9 @@ export function DashboardApp({ view }: { view: DashboardView }) {
           <MenuRow icon={Printer} onClick={() => { setMenuFor(null); void printDesigns(withSelection(item.id)); }}>{tr("editor.print")}</MenuRow>
           <MenuRow icon={Share2} onClick={() => { setMenuFor(null); shareDesigns(withSelection(item.id)); }}>{tr("dashboard.share")}</MenuRow>
           <MenuRow icon={Scaling} onClick={() => { setMenuFor(null); setReformat(withSelection(item.id).map((id) => ({ id, title: titleOf(id) }))); }}>{tr("dashboard.reformat")}</MenuRow>
+          {can("template.publish") && (
+            <MenuRow icon={LayoutTemplate} onClick={() => { setMenuFor(null); setTemplateTargets(withSelection(item.id).map((id) => ({ id, title: titleOf(id) }))); }}>{tr("editor.save_as_template")}</MenuRow>
+          )}
           <MenuRow icon={Copy} onClick={() => { setMenuFor(null); void duplicate(item); }}>{tr("dashboard.duplicate")}</MenuRow>
           <MenuRow icon={Pencil} onClick={() => { setMenuFor(null); setRenameTarget(item); setRenameValue(item.title); }}>{tr("dashboard.rename")}</MenuRow>
           <MenuRow icon={FolderInput} onClick={() => { setMenuFor(null); setMoveReq(dragPayload("designs", item.id)); }}>{tr("dashboard.move_to_folder")}</MenuRow>
@@ -1974,7 +1979,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
           {view === "brand" && activeWorkspaceId && (
             <section>
               <h2 className="mb-2 px-2 text-xl font-semibold text-neutral-900">{tr("brand.title")}</h2>
-              <BrandPage key={activeWorkspaceId} workspaceId={activeWorkspaceId} canEdit={can("brand.kits")} />
+              <BrandPage key={activeWorkspaceId} workspaceId={activeWorkspaceId} canEditKit={can("brand.kits")} canEditLibrary={can("brand.library") || can("brand.kits")} canEditFonts={can("fonts.manage")} />
             </section>
           )}
           {view === "members" && (
@@ -2001,16 +2006,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                 workspaceId={activeWorkspaceId}
                 canEdit={can("ai.configure")}
               />
-              {/* Print profiles: every member exports with them, an admin
-                  uploads them (the server enforces the same split). */}
-              {/* Workspace fonts: the custom and licensed typefaces every
-                  design of the workspace can use. */}
-              {activeWorkspaceId && (
-                <WorkspaceFontsPanel
-                  workspaceId={activeWorkspaceId}
-                  canEdit={can("fonts.manage")}
-                />
-              )}
+              {/* Workspace fonts live on the Brand page, under Fonts (F50). */}
               {/* Import from Canva: the admin registers the workspace's Canva
                   integration; each member's own connection shows here too. */}
               {activeWorkspaceId && (
@@ -2183,6 +2179,11 @@ export function DashboardApp({ view }: { view: DashboardView }) {
               <button type="button" onClick={() => setReformat([...selDesigns].map((id) => ({ id, title: titleOf(id) })))} className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-sm text-neutral-700 transition hover:bg-neutral-100">
                 <Scaling size={15} /> {tr("dashboard.reformat")}
               </button>
+              {can("template.publish") && (
+                <button type="button" onClick={() => setTemplateTargets([...selDesigns].map((id) => ({ id, title: titleOf(id) })))} className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-sm text-neutral-700 transition hover:bg-neutral-100">
+                  <LayoutTemplate size={15} /> {tr("editor.save_as_template")}
+                </button>
+              )}
             </>
           )}
           {selDesigns.size > 0 && (
@@ -2232,6 +2233,19 @@ export function DashboardApp({ view }: { view: DashboardView }) {
       )}
       {shareDesignId && <ShareDialog open onClose={() => setShareDesignId(null)} designId={shareDesignId} />}
       {bulkShare && <BulkShareDialog designs={bulkShare} onClose={() => setBulkShare(null)} />}
+      {templateTargets && (
+        <SaveAsTemplateDialog
+          open
+          onClose={() => {
+            setTemplateTargets(null);
+            // The same scope the Templates view loads under, so new cards show.
+            if (activeWorkspaceId) void oc.listTemplates({ workspaceId: activeWorkspaceId, collection: tplCollection ?? undefined }).then(setTemplates, () => {});
+          }}
+          designId={null}
+          workspaceId={activeWorkspaceId}
+          designs={templateTargets}
+        />
+      )}
       {reformat && (
         <ReformatDialog
           designs={reformat}

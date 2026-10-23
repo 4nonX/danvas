@@ -124,21 +124,35 @@ func (s *Service) assertMember(ctx context.Context, userID, workspaceID string) 
 	return nil
 }
 
-// canManageBrand reports whether the caller's role allows managing the
-// workspace's brand kits (brand.kits, F42; FR-12).
-func (s *Service) canManageBrand(ctx context.Context, userID, workspaceID string) bool {
-	mr, err := accounts.LoadMemberRole(ctx, s.db, userID, workspaceID)
-	return err == nil && mr.Actions.Has(authz.BrandKits)
+// assertCanManage requires the right to manage the workspace's brand kits
+// (brand.kits, F42; FR-12).
+func (s *Service) assertCanManage(ctx context.Context, userID, workspaceID string) error {
+	return s.assertAnyAction(ctx, userID, workspaceID, authz.BrandKits)
 }
 
-func (s *Service) assertCanManage(ctx context.Context, userID, workspaceID string) error {
+// assertAnyAction requires an active membership whose role has one of the
+// actions.
+func (s *Service) assertAnyAction(ctx context.Context, userID, workspaceID string, actions ...authz.Action) error {
 	if err := s.assertMember(ctx, userID, workspaceID); err != nil {
 		return err
 	}
-	if !s.canManageBrand(ctx, userID, workspaceID) {
+	mr, err := accounts.LoadMemberRole(ctx, s.db, userID, workspaceID)
+	if err != nil {
 		return ErrForbidden
 	}
-	return nil
+	for _, a := range actions {
+		if mr.Actions.Has(a) {
+			return nil
+		}
+	}
+	return ErrForbidden
+}
+
+// onlyLibrary reports whether an update changes nothing but the kit's
+// collections, the library that brand.library maintains (F50).
+func (in UpdateInput) onlyLibrary() bool {
+	return in.Collections != nil && in.Name == nil && in.IsDefault == nil && in.Palettes == nil &&
+		in.Fonts == nil && in.Logos == nil && in.Voice == nil && !in.VoiceSet && in.ControlsRaw == nil
 }
 
 // --- views ---------------------------------------------------------------
@@ -233,14 +247,19 @@ func (s *Service) CreateKit(ctx context.Context, workspaceID, userID, name strin
 	return view(row), nil
 }
 
-// UpdateKit updates a kit's metadata/contents/controls (manage-brand only).
-// Every write advances the version and records an immutable version snapshot.
+// UpdateKit updates a kit's metadata/contents/controls (manage-brand only;
+// a change to the collections alone also with brand.library). Every write
+// advances the version and records an immutable version snapshot.
 func (s *Service) UpdateKit(ctx context.Context, kitID, userID string, in UpdateInput) (BrandKit, error) {
 	kit, err := s.requireKit(ctx, kitID)
 	if err != nil {
 		return BrandKit{}, err
 	}
-	if err := s.assertCanManage(ctx, userID, kit.WorkspaceID); err != nil {
+	allowed := []authz.Action{authz.BrandKits}
+	if in.onlyLibrary() {
+		allowed = append(allowed, authz.BrandLibrary)
+	}
+	if err := s.assertAnyAction(ctx, userID, kit.WorkspaceID, allowed...); err != nil {
 		return BrandKit{}, err
 	}
 	// Merge a partial controls patch over the current (defaults-merged) controls.

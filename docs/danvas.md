@@ -30,6 +30,7 @@ The other pages in this folder are HyScaler's documentation of HyCanvas and desc
   - [Exact print colors](#exact-print-colors)
   - [Color profiles](#color-profiles)
 - [Brand kits and fonts](#brand-kits-and-fonts)
+  - [Brand page](#brand-page)
   - [Brand graphics](#brand-graphics)
 - [Export](#export)
   - [Files for print shops](#files-for-print-shops)
@@ -149,6 +150,7 @@ If a workspace has lost its last owner (for example the only owner left the comp
 
 ### Templates
 
+- **Save as template**: in the editor, **File**, **Save as template**. On the dashboard, **Save as template** in a design's "..." menu, or in the bar for several selected designs: each becomes a template under its own name, with one category and one visibility for all. Needs the right **Publish templates**.
 - **Delete a template**: in Templates, the trash button on a template's card, after a confirmation. Allowed for the person who created the template and for owners and admins of its workspace. Built-in templates cannot be deleted. Designs already made from the template stay as they are.
 - Instances can hide the built-in templates with `BUILTIN_TEMPLATES=off` (see [`deploy/README.md`](../deploy/README.md)).
 
@@ -271,16 +273,34 @@ Which one applies: the profile chosen in the download menu; it starts with the d
 
 ## Brand kits and fonts
 
-- **Workspace fonts**: under **Members**, **Upload fonts** adds font files to the workspace once. They then appear in every font picker and are embedded in vector exports.
-- **Brand kits** take any number of named font roles; their colors and fonts apply into groups. Their graphics are managed on the dashboard's **Brand** page ([Brand graphics](#brand-graphics)).
-- **Logos**: managers add logos to a kit from uploads or a new upload, remove them, and add or change each logo's dark-background version. Each logo tile shows the light and the dark version at the same size.
-- **Export and import**: managers save a kit as a `.brandkit.zip` (colors, fonts with their files, logos, collections, voice and controls) and import one into any workspace. When the name is taken, the import shows both kits and asks whether to replace the existing one (its earlier state stays in the version history) or to import under another name. The file format, and how to write one by hand, is in [Brand kit files](brand-kit-format.md).
+A brand kit is where a workspace keeps what its designs are made from: colours, fonts, logos, graphics, and how copy should sound. Designs take these from it; a design never depends on the kit afterwards. Changing a kit, removing something from it or deleting the kit leaves every existing design exactly as it is, because colours, fonts, logos and graphics are stored in the design itself and the uploads stay.
+
+### Brand page
+
+In the dashboard's left rail, **Brand**: one page for the workspace's brands, with the tabs the editor's brand panel uses.
+
+- **Brands**: choose one at the top when there are several. **New brand** starts one empty, from a logo (its colours become the palette), from a company website (logo, colours and fonts as a draft to review) or from a kit file.
+- **Colors**: every palette with its swatches, their print values and their role (for example primary, accent). Add a colour by picker or hex value, change its role, remove it. Colours from a design's selection or page are added in the editor's brand panel, where the design is open.
+- **Fonts**: the kit's font roles (heading, body, prices, ...), each naming a font. Below them the **workspace fonts**: font files uploaded once, then in every font picker and embedded in vector exports (this list used to be on the Members page).
+- **Logos**: each logo on a light and on a dark ground. Add one from the uploads or a new file, rename it, give it a version for dark backgrounds (generated decks draw it on deep pages, the brand check accepts it as the logo), change or remove that version, remove the logo.
+- **Graphics**: see [Brand graphics](#brand-graphics).
+- **Settings**: the name, **Make standard** (designs without a brand of their own use the standard brand), the rules (lock colors to the palette, lock fonts to the approved set, restrict to brand templates, the brand check before export: off, warn or block), the voice for generated copy (tone, what to say and what to avoid, a sample), the kit file, the version history with restore, and **Delete brand**.
+
+Who changes what is set under [Roles and permissions](#roles-and-permissions):
+
+- **Define the brand** (`brand.kits`): create, change and delete brands, everything on the page. Owners and admins have it.
+- **Maintain the brand library** (`brand.library`): categories and graphics only; colours, fonts, logos and settings stay as they are. Owners and admins have it; give it to another role to let people keep the graphics up to date without changing the brand.
+- **Manage workspace fonts** (`fonts.manage`): the font files.
+- Everyone else sees the page.
+
+In the editor, the brand panel applies the brand: colours to the selection or the page, fonts to text, logos and graphics placed by click or drag. It links to the Brand page for changes.
+
+- **Export and import**: a kit file (`.brandkit.zip`) holds colors, fonts with their files, logos, collections, voice and controls. When an imported kit's name is taken, the import shows both kits and asks whether to replace the existing one (its earlier state stays in the version history) or to import under another name. The file format, and how to write one by hand, is in [Brand kit files](brand-kit-format.md).
 
 ### Brand graphics
 
-The workspace's own graphics (plant silhouettes, drawings, line icons) belong to its brand kit, in categories, ready for everyone to place.
+The workspace's own graphics (plant silhouettes, drawings, line icons) belong to its brand kit, in categories, ready for everyone to place. They are on the Brand page under **Graphics** (`/dashboard/brand/#graphics`).
 
-- **Brand page**: in the dashboard's left rail, **Brand**. It shows the workspace's brand kits (choose one when there are several, create one when there is none) and the kit's graphics. Everyone sees it; people whose role may manage brand kits (owners and admins by default) change it.
 - **Categories**: **New category** (for example Silhouettes, Drawings, Icons), then rename, move up or down, or delete one from its row. Deleting a category with graphics asks first and takes them out of the kit. Icons added to a kit before categories existed show under **Icons**.
 - **Upload**: **Upload graphics** in a category, or drop files on the page: many at once, SVG, PNG, JPEG, WebP or GIF. The file name, without its extension, is the graphic's name.
 - **Edit**: each graphic can be renamed, moved to another category, given another file (it keeps its place), or removed from the kit. Removing only takes it out of the kit: the file stays in the uploads, and designs that use it are unchanged.

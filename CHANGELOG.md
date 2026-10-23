@@ -2,6 +2,25 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 0.9.0 (2026-10-23)
+
+### Added
+
+- **The whole brand on the Brand page.** The dashboard's **Brand** page now holds everything a brand kit has, on the tabs the editor's brand panel uses: **Colors** (palettes with print values and roles; add by picker or hex, change a role, remove), **Fonts** (the kit's font roles, and below them the workspace font files, which moved here from the Members page), **Logos** (light and dark versions side by side; add from the uploads or a new file, rename, set, change or remove the dark version, remove), **Graphics** (as before) and **Settings** (name, standard brand, the locks and the brand check before export, the voice for generated copy, the kit file, the version history with restore, deleting the brand). The tab is part of the address (`/dashboard/brand/#graphics`).
+- **New brands from the Brand page**: **New brand** starts one empty, from a logo, from a company website or from a kit file. A workspace can hold any number of brands.
+- **Maintain the brand library**, a new right (`brand.library`): upload, rename, move and remove a brand's categories and graphics, without changing its colours, fonts, logos or settings. **Manage brand kits** is now called **Define the brand** and covers everything, the library included.
+- **Save as template from the dashboard**: in a design's "..." menu, and in the bar for several selected designs, where each becomes a template under its own name. The empty Templates page now says where the editor has it (**File**, **Save as template**).
+
+### Changed
+
+- The editor's brand panel applies the brand (colours, fonts, logos, graphics, re-skin, the brand check) and links to the Brand page for changes. Adding colours from a design's selection or page stays there. Its kit editing, the kit file and the version history moved to the Brand page; brands are created there.
+- Changing a brand needs **Define the brand** in the editor too; before, its controls showed for the right to bind designs to the brand and the server then refused the change.
+
+### Upgrading
+
+- A migration adds the permission **Brand library** to every workspace that has roles and gives it to every role holding **Define the brand**, so nobody gains or loses a right; it adds rows only. Afterwards it can be given to other roles on its own. A rollback ignores the unknown action. No change to the file format.
+- Deleting a brand never changes a design: colours, fonts, logos and graphics are stored in the design, and the uploads stay (a test checks the design file byte for byte).
+
 ## 0.8.0 (2026-10-23)
 
 ### Added
