@@ -34,6 +34,7 @@ func TestClassifyRefusal(t *testing.T) {
 		{"server error", 500, `{"error":{"message":"The server had an error while processing your request."}}`, ErrProviderBusy},
 		{"service unavailable", 503, `upstream connect error`, ErrProviderBusy},
 		{"anthropic key without workspace", 400, `{"type":"error","error":{"type":"invalid_request_error","message":"This API key is not scoped to a workspace, so this request must include the anthropic-workspace-id header with the ID of the workspace to use. Add the header, or use an API key that is scoped to a workspace."}}`, ErrKeyUnscoped},
+		{"openai unverified organization", 403, `{"error":{"message":"Your organization must be verified to use the model ` + "`gpt-image-1`" + `. Please go to: https://platform.openai.com/settings/organization/general and click on Verify Organization.","type":"invalid_request_error","code":null}}`, ErrVerificationRequired},
 		{"rejected key", 401, `{"error":{"message":"Incorrect API key provided: sk-xxx.","type":"invalid_request_error","code":"invalid_api_key"}}`, nil},
 		{"iam", 403, `{"message":"User: arn:aws:iam::1:user/x is not authorized to perform: bedrock:InvokeModel on resource"}`, nil},
 		{"unknown model", 404, `{"error":{"message":"The model gpt-9 does not exist","code":"model_not_found"}}`, nil},

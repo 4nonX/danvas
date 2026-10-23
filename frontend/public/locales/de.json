@@ -5023,5 +5023,6 @@
   "errors.api_ai_provider_timeout": "Der KI-Anbieter hat nicht rechtzeitig geantwortet. Versuche es erneut oder frage weniger auf einmal an.",
   "errors.api_ai_provider_content_refused": "Der KI-Anbieter hat die Anfrage aufgrund seiner Inhaltsrichtlinien abgelehnt. Formuliere die Anfrage anders oder verwende anderes Material.",
   "errors.api_ai_request_too_large": "Die Anfrage ist für das Modell zu groß. Frage weniger auf einmal an oder wähle in den KI-Einstellungen ein Modell mit größerem Kontext.",
-  "errors.api_ai_provider_key_unscoped": "Der KI-Anbieter verlangt einen Schlüssel, der zu einem Workspace oder Projekt gehört. Lege den Schlüssel in der Konsole des Anbieters innerhalb eines Workspaces an (beim Erstellen einen auswählen) und trage ihn hier ein."
+  "errors.api_ai_provider_key_unscoped": "Der KI-Anbieter verlangt einen Schlüssel, der zu einem Workspace oder Projekt gehört. Lege den Schlüssel in der Konsole des Anbieters innerhalb eines Workspaces an (beim Erstellen einen auswählen) und trage ihn hier ein.",
+  "errors.api_ai_provider_verification_required": "Der KI-Anbieter gibt dieses Modell nur für verifizierte Organisationen frei. Verifiziere die Organisation in der Konsole des Anbieters (bei OpenAI: Settings › Organization › General) oder wähle ein anderes Modell."
 }

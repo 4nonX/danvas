@@ -5023,5 +5023,6 @@
   "errors.api_ai_provider_timeout": "The AI provider did not answer in time. Try again, or ask for less at once.",
   "errors.api_ai_provider_content_refused": "The AI provider refused the request under its content rules. Rephrase the request or use other material.",
   "errors.api_ai_request_too_large": "The request is too large for the model. Ask for less at once, or choose a model with a larger context in AI settings.",
-  "errors.api_ai_provider_key_unscoped": "The AI provider needs a key that belongs to a workspace or project. Create the key inside a workspace in the provider's console (choose one when creating it) and enter it here."
+  "errors.api_ai_provider_key_unscoped": "The AI provider needs a key that belongs to a workspace or project. Create the key inside a workspace in the provider's console (choose one when creating it) and enter it here.",
+  "errors.api_ai_provider_verification_required": "The AI provider releases this model only to verified organizations. Verify the organization in the provider's console (at OpenAI: Settings › Organization › General), or choose another model."
 }

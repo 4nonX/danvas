@@ -5023,5 +5023,6 @@
   "errors.api_ai_provider_timeout": "AI プロバイダーが時間内に応答しませんでした。もう一度試すか、一度に依頼する量を減らしてください。",
   "errors.api_ai_provider_content_refused": "AI プロバイダーがコンテンツポリシーによりリクエストを拒否しました。表現を変えるか、別の素材を使ってください。",
   "errors.api_ai_request_too_large": "リクエストがモデルに対して大きすぎます。一度に依頼する量を減らすか、AI 設定でより大きなコンテキストのモデルを選んでください。",
-  "errors.api_ai_provider_key_unscoped": "AI プロバイダーはワークスペースまたはプロジェクトに属するキーを必要としています。プロバイダーのコンソールでワークスペース内にキーを作成し（作成時に選択）、ここに入力してください。"
+  "errors.api_ai_provider_key_unscoped": "AI プロバイダーはワークスペースまたはプロジェクトに属するキーを必要としています。プロバイダーのコンソールでワークスペース内にキーを作成し（作成時に選択）、ここに入力してください。",
+  "errors.api_ai_provider_verification_required": "AI プロバイダーはこのモデルを認証済みの組織にのみ提供しています。プロバイダーのコンソールで組織を認証するか（OpenAI の場合: Settings › Organization › General）、別のモデルを選んでください。"
 }
