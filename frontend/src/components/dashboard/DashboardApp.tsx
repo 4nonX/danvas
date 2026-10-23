@@ -575,6 +575,9 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   // manager (owner or admin) on the workspace's own gallery; the built-ins
   // and other workspaces' templates are off-brand by definition.
   const activeRole = workspaces.find((w) => w.id === activeWorkspaceId)?.role;
+  // The view as it is now, for loads that must not re-run when it changes.
+  const viewRef = useRef(view);
+  useEffect(() => { viewRef.current = view; }, [view]);
   useEffect(() => {
     if (!activeWorkspaceId) return;
     let cancelled = false;
@@ -593,7 +596,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
       if (cancelled) return;
       setItems(recent);
       // The Templates view loads its own, scoped list; this one would race it.
-      if (view !== "templates") setTemplates(tpls);
+      if (viewRef.current !== "templates") setTemplates(tpls);
       setLoading(false);
     })();
     return () => {
