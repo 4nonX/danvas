@@ -114,12 +114,14 @@ Only `format`, `formatVersion` and `name` are required. Every list may be left o
 | `logos[].clearSpaceRatio` | number | Optional free space around the logo, as a share of its size. |
 | `logos[].minSizePx` | number | Optional smallest size in pixels. |
 | `collections[].kind` | `"icons"`, `"photos"` or `"graphics"` | The collection. |
+| `collections[].name` | text | Optional name of the category (for example `Silhouettes`). A collection without one shows under its kind's name. |
 | `collections[].files` | list of paths | Its files. The same file may appear in several places; it is uploaded once. |
 | `voice` | object or `null` | `tone`, `doSay` and `dontSay` are lists of text; `sampleCopy` is optional text. |
 | `controls.lockColors` | true or false | Members may use only the kit's colors. |
 | `controls.lockFonts` | true or false | Members may use only the kit's fonts. |
 | `controls.restrictTemplates` | true or false | Members start from brand templates only. |
 | `controls.lintPolicy` | `"off"`, `"warn"` or `"block"` | How the brand check treats exports. |
+| `fileNames` | object | Optional: a file's original name by its path, for example `{"graphics/klee.svg": "Klee - Silhouette.svg"}`. Imported files get this name; files not listed are named after their path. |
 
 Controls left out keep their current value on a replace and their default on a new kit.
 

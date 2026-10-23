@@ -130,6 +130,20 @@ describe("panel inserts on stacked pages", () => {
     expect(centerY).toBeLessThanOrEqual(top + PAGE_H);
   });
 
+  it("addIconSvg names a brand graphic and centres a dropped one on the drop point (F50)", () => {
+    useEditor.getState().setActivePage(0);
+    lookAtPage(0);
+    useEditor.getState().addIconSvg('<svg viewBox="0 0 100 50"><rect width="100" height="50" fill="#000"/></svg>', undefined, { name: "Klee - Silhouette schwarz", at: { x: 300, y: 200 } });
+    const g = kids(0).at(-1) as unknown as {
+      name: string;
+      transform: { x: number; y: number; scaleX: number; scaleY: number };
+      size: { width: number; height: number };
+    };
+    expect(g.name).toBe("Klee - Silhouette schwarz");
+    expect(g.transform.x + (g.size.width * g.transform.scaleX) / 2).toBeCloseTo(300, 5);
+    expect(g.transform.y + (g.size.height * g.transform.scaleY) / 2).toBeCloseTo(200, 5);
+  });
+
   it("addIconSvg lands inside the viewed page's artboard", () => {
     useEditor.getState().setActivePage(1);
     lookAtPage(1);

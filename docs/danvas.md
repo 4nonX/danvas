@@ -30,6 +30,7 @@ The other pages in this folder are HyScaler's documentation of HyCanvas and desc
   - [Exact print colors](#exact-print-colors)
   - [Color profiles](#color-profiles)
 - [Brand kits and fonts](#brand-kits-and-fonts)
+  - [Brand graphics](#brand-graphics)
 - [Export](#export)
   - [Files for print shops](#files-for-print-shops)
   - [Proof and output check](#proof-and-output-check)
@@ -271,9 +272,21 @@ Which one applies: the profile chosen in the download menu; it starts with the d
 ## Brand kits and fonts
 
 - **Workspace fonts**: under **Members**, **Upload fonts** adds font files to the workspace once. They then appear in every font picker and are embedded in vector exports.
-- **Brand kits** take any number of named font roles and an icon collection; their colors and fonts apply into groups.
+- **Brand kits** take any number of named font roles; their colors and fonts apply into groups. Their graphics are managed on the dashboard's **Brand** page ([Brand graphics](#brand-graphics)).
 - **Logos**: managers add logos to a kit from uploads or a new upload, remove them, and add or change each logo's dark-background version. Each logo tile shows the light and the dark version at the same size.
 - **Export and import**: managers save a kit as a `.brandkit.zip` (colors, fonts with their files, logos, collections, voice and controls) and import one into any workspace. When the name is taken, the import shows both kits and asks whether to replace the existing one (its earlier state stays in the version history) or to import under another name. The file format, and how to write one by hand, is in [Brand kit files](brand-kit-format.md).
+
+### Brand graphics
+
+The workspace's own graphics (plant silhouettes, drawings, line icons) belong to its brand kit, in categories, ready for everyone to place.
+
+- **Brand page**: in the dashboard's left rail, **Brand**. It shows the workspace's brand kits (choose one when there are several, create one when there is none) and the kit's graphics. Everyone sees it; people whose role may manage brand kits (owners and admins by default) change it.
+- **Categories**: **New category** (for example Silhouettes, Drawings, Icons), then rename, move up or down, or delete one from its row. Deleting a category with graphics asks first and takes them out of the kit. Icons added to a kit before categories existed show under **Icons**.
+- **Upload**: **Upload graphics** in a category, or drop files on the page: many at once, SVG, PNG, JPEG, WebP or GIF. The file name, without its extension, is the graphic's name.
+- **Edit**: each graphic can be renamed, moved to another category, given another file (it keeps its place), or removed from the kit. Removing only takes it out of the kit: the file stays in the uploads, and designs that use it are unchanged.
+- **Search** finds graphics by name across all categories.
+- **Place**: in the editor's brand panel, **Graphics** lists the kit's categories with a search. Click a graphic, or drag it onto the page. An SVG goes in as editable vector shapes named after the graphic, so any fill colour applies, CMYK and spot colours included; other images go in as images.
+- Every change is one update of the kit, listed in its version history, and the kit file carries the categories and the graphics' names.
 
 ## Export
 

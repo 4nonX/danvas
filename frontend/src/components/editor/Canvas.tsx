@@ -50,6 +50,8 @@ import { useComments } from "@/store/comments";
 import { designSurfaceDir } from "@/lib/locale";
 import { tr } from "@/lib/i18n";
 import { barcodeOf, ungroupLabel } from "@/lib/barcode";
+import { BRAND_GRAPHIC_DRAG } from "@/lib/brandGraphics";
+import { prepareSvgFonts } from "@/lib/svgFlatten";
 
 
 // The crop overlay assumes an axis-aligned, unit-scaled node (it positions an
@@ -1487,7 +1489,7 @@ export function Canvas() {
   const [dropHint, setDropHint] = useState<{ id: string; kind: "frame" | "shape" } | null>(null);
   function onImageDragOver(e: React.DragEvent) {
     const t = e.dataTransfer.types;
-    if (!t.includes("application/x-oc-image") && !t.includes("Files")) return;
+    if (!t.includes("application/x-oc-image") && !t.includes(BRAND_GRAPHIC_DRAG) && !t.includes("Files")) return;
     if (!usePresence.getState().canEdit() || useEditor.getState().readonlyPreview()) return;
     e.preventDefault();
     const target = imageDropTargetAt(api.toPage(localPoint(e)));
@@ -1525,6 +1527,26 @@ export function Canvas() {
         };
         reader.readAsDataURL(file);
       });
+      return;
+    }
+    // A brand graphic (F50): an SVG goes in as editable vector shapes at the
+    // drop point, named after the graphic; any other image as an image.
+    const brandGraphic = e.dataTransfer.getData(BRAND_GRAPHIC_DRAG);
+    if (brandGraphic) {
+      e.preventDefault();
+      let g: { url?: string; svg?: boolean; name?: string } = {};
+      try { g = JSON.parse(brandGraphic); } catch { /* malformed: ignore the drop */ }
+      if (!g.url) return;
+      if (!g.svg) { useEditor.getState().addImage(g.url, page); return; }
+      const src = g.url;
+      void fetch(src, { credentials: "include" })
+        .then((r) => (r.ok ? r.text() : ""))
+        .then(async (text) => {
+          if (!/<svg[\s>]/i.test(text)) { useEditor.getState().addImage(src, page); return; }
+          await prepareSvgFonts(text);
+          useEditor.getState().addIconSvg(text, undefined, { name: g.name, at: page });
+        })
+        .catch(() => useEditor.getState().addImage(src, page));
       return;
     }
     // Otherwise an in-app drag (Uploads/Stock panel) or a dragged URL.

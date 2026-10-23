@@ -12,6 +12,7 @@ export const dashboardViews = [
   "templates",
   "members",
   "roles",
+  "brand",
   "trash",
 ] as const;
 
@@ -25,6 +26,7 @@ export const dashboardTitles: Record<DashboardView, string> = {
   templates: "Templates",
   members: "Members",
   roles: "Roles and permissions",
+  brand: "Brand",
   trash: "Trash",
 };
 

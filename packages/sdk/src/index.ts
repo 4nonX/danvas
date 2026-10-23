@@ -1256,6 +1256,8 @@ export interface BrandVoice {
 export interface BrandCollection {
   id: string;
   kind: "photos" | "graphics" | "icons";
+  /** The category's name (F50); collections without one show their kind's. */
+  name?: string;
   assetIds: string[];
 }
 /** Brand controls: lock colors/fonts, restrict templates (FR-4, FR-5), and the

@@ -45,7 +45,7 @@ import {
   List,
   Users,
   Moon,
-  Sun, Sparkles, Wand2, Paperclip, Loader2, X, Folder as FolderIcon, FolderPlus, FolderInput, Check, Download, Share2, Link2, ArrowRightLeft, Printer, CopyPlus, Scaling, KeyRound } from "lucide-react";
+  Sun, Sparkles, Wand2, Paperclip, Loader2, X, Folder as FolderIcon, FolderPlus, FolderInput, Check, Download, Share2, Link2, ArrowRightLeft, Printer, CopyPlus, Scaling, KeyRound, Shapes } from "lucide-react";
 import { createBlankDesign } from "@hc/schema";
 import { hycAccept, downloadHycFile, importedTitle, parseHycFile, readFileText } from "@/lib/hycFile";
 import { dialTones } from "@hc/aistudio";
@@ -94,6 +94,7 @@ import { ApiKeysPanel } from "./ApiKeysPanel";
 import { WorkspaceAiPanel } from "./WorkspaceAiPanel";
 import { PrintProfilesPanel } from "./PrintProfilesPanel";
 import { PrintApprovalPanel } from "./PrintApprovalPanel";
+import { BrandPage } from "./BrandPage";
 import { WorkspaceFontsPanel } from "./WorkspaceFontsPanel";
 import { WorkspaceCanvaPanel } from "./WorkspaceCanvaPanel";
 import { loadWorkspaceFonts } from "@/lib/workspaceFonts";
@@ -1265,6 +1266,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
           {activeWs?.kind !== "personal" && (
             <RailItem icon={KeyRound} label={tr("roles.title")} active={view === "roles"} collapsed={railCollapsed} onClick={() => gotoView("roles")} />
           )}
+          <RailItem icon={Shapes} label={tr("brand.title")} active={view === "brand"} collapsed={railCollapsed} onClick={() => gotoView("brand")} />
           <RailItem icon={Trash2} label={tr("dashboard.trash")} active={view === "trash"} collapsed={railCollapsed} onClick={() => gotoView("trash")} />
         </nav>
 
@@ -1967,6 +1969,12 @@ export function DashboardApp({ view }: { view: DashboardView }) {
             <section>
               <h2 className="mb-2 px-2 text-xl font-semibold text-neutral-900">{tr("roles.title")}</h2>
               <RolesPage key={activeWorkspaceId} workspaceId={activeWorkspaceId} />
+            </section>
+          )}
+          {view === "brand" && activeWorkspaceId && (
+            <section>
+              <h2 className="mb-2 px-2 text-xl font-semibold text-neutral-900">{tr("brand.title")}</h2>
+              <BrandPage key={activeWorkspaceId} workspaceId={activeWorkspaceId} canEdit={can("brand.kits")} />
             </section>
           )}
           {view === "members" && (

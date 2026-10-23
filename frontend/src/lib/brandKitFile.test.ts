@@ -108,6 +108,30 @@ describe("brand kit export and import", () => {
     expect(content.voice).toEqual({ tone: ["warm"], doSay: ["we"], dontSay: ["cheap"], sampleCopy: "Hello" });
   });
 
+  it("keeps category names and file names through the file (F50)", async () => {
+    const res = await exportKit(kit({ collections: [
+      { id: "c-sil", kind: "graphics", name: "Silhouetten", assetIds: ["a-logo"] },
+      { id: "c-old", kind: "icons", assetIds: ["a-icon"] },
+    ] }), sources);
+    const parsed = await readKitFile(new Uint8Array(await res.blob.arrayBuffer()));
+    expect(parsed.manifest.collections.map((c) => c.name)).toEqual(["Silhouetten", undefined]);
+    const { t, uploaded } = target();
+    const content = await uploadKitContent(parsed, t);
+    expect(content.collections.map((c) => [c.id, c.name])).toEqual([["c-sil", "Silhouetten"], ["c-old", undefined]]);
+    // The upload keeps its original name (umlaut, spaces); a file without one keeps its path's.
+    expect(uploaded.map((u) => u.name).sort()).toEqual(["Wordmark Ä.svg", "icon.png", "wordmark-dark.svg"]);
+  });
+
+  it("reads a file without names as before", async () => {
+    const manifest = { format: KIT_FORMAT, formatVersion: 1, name: "Old", collections: [{ kind: "icons", files: ["icons/a.svg"] }] };
+    const zip = zipFiles([{ name: "brandkit.json", data: bytes(JSON.stringify(manifest)) }, { name: "icons/a.svg", data: bytes("<svg/>") }]);
+    const parsed = await readKitFile(new Uint8Array(await zip.arrayBuffer()));
+    expect(parsed.manifest.collections[0].name).toBeUndefined();
+    const { t, uploaded } = target();
+    await uploadKitContent(parsed, t);
+    expect(uploaded[0].name).toBe("a.svg");
+  });
+
   it("leaves out what cannot be read and says so", async () => {
     const res = await exportKit(kit({ collections: [{ id: "c-1", kind: "photos", assetIds: ["a-gone"] }] }), sources);
     expect(res.missing).toEqual(["a-gone"]);

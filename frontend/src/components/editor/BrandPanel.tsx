@@ -11,7 +11,7 @@ import { prepareSvgFonts } from "@/lib/svgFlatten";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Palette, Type as TypeIcon, ImageIcon, Wand2, Lock, Unlock, Plus, Trash2,
-  ShieldCheck, AlertTriangle, RotateCcw, History, GitBranch, RefreshCw, Sparkles, X, Pencil, Upload, Loader2,
+  ShieldCheck, AlertTriangle, RotateCcw, History, GitBranch, RefreshCw, Sparkles, X, Pencil, Upload, Loader2, Shapes,
 } from "lucide-react";
 import type { BrandKit, BrandKitVersion, BrandLintViolation, UploadedAsset, BrandUpdateSummary } from "@hc/sdk";
 import type { Color, Fill } from "@hc/schema";
@@ -19,6 +19,8 @@ import { extractPalette, toHex, type Bitmap } from "@hc/color";
 import { locate } from "@hc/editor";
 import { PanelShell, CollapsibleSection } from "./EditorPanels";
 import { BrandKitTransfer } from "./BrandKitTransfer";
+import { BrandGraphicsSection, type GraphicInfo } from "./BrandGraphicsSection";
+import { dashboardPath } from "@/components/dashboard/views";
 import { collectPageColors, collectSelectionColors } from "@/lib/pageColors";
 import { imageAssetIds, imageAssetPalette } from "@/lib/imagePalette";
 import { useEditor, type ReskinResult, type ReskinOverrides, type BrandFixTarget } from "@/store/editor";
@@ -74,6 +76,8 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
   const [kits, setKits] = useState<BrandKit[]>([]);
   const [reskin, setReskin] = useState<ReskinResult | null>(null);
   const [assetUrls, setAssetUrls] = useState<Record<string, string>>({});
+  // Names and types of the uploads, for the kit's graphics (F50).
+  const [assetInfo, setAssetInfo] = useState<Record<string, GraphicInfo>>({});
   const [violations, setViolations] = useState<BrandLintViolation[] | null>(null);
   const [linting, setLinting] = useState(false);
   const [update, setUpdate] = useState<BrandUpdateSummary | null>(null);
@@ -92,8 +96,13 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
         if (cancelled) return;
         setKits(ks);
         const map: Record<string, string> = {};
-        for (const a of assets as UploadedAsset[]) map[a.id] = a.url;
+        const info: Record<string, GraphicInfo> = {};
+        for (const a of assets as UploadedAsset[]) {
+          map[a.id] = a.url;
+          info[a.id] = { url: a.url, filename: a.filename, mimeType: a.mimeType, thumbnail: a.thumbnail };
+        }
         setAssetUrls(map);
+        setAssetInfo(info);
       } catch {
         /* membership/no-brand: leave empty */
       }
@@ -169,13 +178,13 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
 
   // Logos and icons go in as editable shapes when they are SVG (so they can
   // be recolored like any vector), else as an image.
-  const placeIcon = useCallback(async (assetId: string) => {
+  const placeIcon = useCallback(async (assetId: string, name?: string) => {
     const url = assetUrls[assetId];
     if (!url) { toast.error(tr("editor.logo_asset_is_unavailable")); return; }
     try {
       const res = await fetch(resolveAssetUrl(url), { credentials: "include" });
       const text = res.ok ? await res.text() : "";
-      if (/<svg[\s>]/i.test(text)) { await prepareSvgFonts(text); useEditor.getState().addIconSvg(text); return; }
+      if (/<svg[\s>]/i.test(text)) { await prepareSvgFonts(text); useEditor.getState().addIconSvg(text, undefined, name ? { name } : undefined); return; }
     } catch { /* fall back to placing the file as an image */ }
     useEditor.getState().addImage(resolveAssetUrl(url));
   }, [assetUrls, toast]);
@@ -611,26 +620,10 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
             </CollapsibleSection>
           )}
 
-          {/* Icons: the kit's icon collection, placed as editable shapes. */}
-          {kitIcons(kit).length > 0 && (
-            <CollapsibleSection title={tr("editor.brand_icons")} icon={ImageIcon} badge={kitIcons(kit).length}>
-              <div className="grid grid-cols-4 gap-1.5">
-                {kitIcons(kit).map((id) => (
-                  <button
-                    key={id}
-                    onClick={() => void placeIcon(id)}
-                    title={tr("editor.place_icon")}
-                    className="flex aspect-square items-center justify-center overflow-hidden rounded-lg border border-neutral-200 bg-neutral-50 p-1.5 hover:border-brand-300"
-                  >
-                    {assetUrls[id] ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={resolveAssetUrl(assetUrls[id])} alt="" className="max-h-full max-w-full object-contain" />
-                    ) : (
-                      <span className="text-[10px] text-neutral-400">?</span>
-                    )}
-                  </button>
-                ))}
-              </div>
+          {/* Graphics (F50): the kit's categories, placed by click or drag. */}
+          {kit.collections.some((c) => c.assetIds.length > 0) && (
+            <CollapsibleSection title={tr("brand.graphics")} icon={Shapes} badge={kit.collections.reduce((n, c) => n + c.assetIds.length, 0)}>
+              <BrandGraphicsSection kit={kit} assets={assetInfo} onPlace={(id, name) => void placeIcon(id, name)} />
             </CollapsibleSection>
           )}
 
@@ -1183,8 +1176,13 @@ function BrandControlsEditor({
         <AddLogoFromUploads workspaceId={workspaceId} assetUrls={assetUrls} onAdd={(assetId, label) => void save({ logos: [...kit.logos, { id: `l-${crypto.randomUUID()}`, label, assetId }] })} />
       )}
 
-      {/* Icons. */}
-      <BrandIconsEditor kit={kit} workspaceId={workspaceId} assetUrls={assetUrls} onChange={(collections) => void save({ collections })} />
+      {/* Graphics are managed on the dashboard's Brand page (F50). */}
+      <div className="mb-3">
+        <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{tr("brand.graphics")}</span>
+        <a href={dashboardPath("brand")} target="_blank" rel="noopener" className="inline-flex items-center gap-1 text-xs font-medium text-brand-ink hover:underline">
+          <Shapes size={12} /> {tr("brand.manage_graphics")}
+        </a>
+      </div>
 
       {/* Voice (FR-1). */}
       <div className="mt-3">
@@ -1270,57 +1268,6 @@ function BrandFontsEditor({ fonts: list, onChange }: { fonts: BrandKit["fonts"];
       >
         <Plus size={13} /> {tr("editor.add_font_role")}
       </button>
-    </div>
-  );
-}
-
-/** Asset ids of the kit's icon collection(s). */
-function kitIcons(kit: BrandKit): string[] {
-  return kit.collections.filter((c) => c.kind === "icons").flatMap((c) => c.assetIds);
-}
-
-/** The kit's collections with the icon list replaced (one "icons" collection). */
-function withIcons(kit: BrandKit, assetIds: string[]): BrandKit["collections"] {
-  const rest = kit.collections.filter((c) => c.kind !== "icons");
-  const existing = kit.collections.find((c) => c.kind === "icons");
-  return [...rest, { id: existing?.id ?? `c-${crypto.randomUUID()}`, kind: "icons", assetIds }];
-}
-
-/** Manage the kit's icons: remove, or add from the workspace uploads. */
-function BrandIconsEditor({ kit, workspaceId, assetUrls, onChange }: { kit: BrandKit; workspaceId: string | null; assetUrls: Record<string, string>; onChange: (collections: BrandKit["collections"]) => void }) {
-  const icons = kitIcons(kit);
-  return (
-    <div className="mb-3">
-      <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{tr("editor.brand_icons")}</span>
-      {icons.length > 0 && (
-        <div className="mb-1.5 grid grid-cols-5 gap-1.5">
-          {icons.map((id) => (
-            <div key={id} className="group relative flex aspect-square items-center justify-center rounded-md border border-neutral-200 bg-neutral-50 p-1">
-              {assetUrls[id] && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={resolveAssetUrl(assetUrls[id])} alt="" className="max-h-full max-w-full object-contain" />
-              )}
-              <button
-                type="button"
-                aria-label={tr("editor.remove_icon")}
-                title={tr("editor.remove_icon")}
-                onClick={() => onChange(withIcons(kit, icons.filter((x) => x !== id)))}
-                className="absolute -end-1.5 -top-1.5 hidden h-4 w-4 place-items-center rounded-full bg-neutral-800 text-white group-hover:grid"
-              >
-                <X size={10} />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-      {workspaceId && (
-        <AddLogoFromUploads
-          workspaceId={workspaceId}
-          assetUrls={assetUrls}
-          label={tr("editor.add_icon_from_uploads")}
-          onAdd={(assetId) => { if (!icons.includes(assetId)) onChange(withIcons(kit, [...icons, assetId])); }}
-        />
-      )}
     </div>
   );
 }

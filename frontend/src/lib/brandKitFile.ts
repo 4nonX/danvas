@@ -27,7 +27,7 @@ export interface KitFilePalette { id?: string; name: string; colors: KitFileColo
 export interface KitFileFont { id?: string; role: string; family: string; defaultStyle?: BrandFont["defaultStyle"] }
 export interface KitFileFontFile { family: string; weight: number; style: "normal" | "italic"; file: string }
 export interface KitFileLogo { id?: string; label: string; file: string; darkFile?: string; lightFile?: string; clearSpaceRatio?: number; minSizePx?: number }
-export interface KitFileCollection { id?: string; kind: BrandCollection["kind"]; files: string[] }
+export interface KitFileCollection { id?: string; kind: BrandCollection["kind"]; name?: string; files: string[] }
 
 /** The manifest, `brandkit.json` at the root of the archive. */
 export interface KitFile {
@@ -42,6 +42,9 @@ export interface KitFile {
   collections: KitFileCollection[];
   voice: Omit<BrandVoice, "modelProfileId"> | null;
   controls?: Partial<BrandControls>;
+  /** The original upload name of a file by its path (paths are slugged), so
+   *  an imported graphic keeps its name. Optional. */
+  fileNames?: Record<string, string>;
 }
 
 /** A read kit file: the manifest plus the archive's other files by path. */
@@ -121,6 +124,7 @@ export async function exportKit(kit: BrandKit, src: ExportSources, now = new Dat
     }
   };
 
+  const fileNames: Record<string, string> = {};
   const put = async (assetId: string | undefined, dir: string, name: string): Promise<string | undefined> => {
     if (!assetId) return undefined;
     const known = written.get(assetId);
@@ -132,6 +136,7 @@ export async function exportKit(kit: BrandKit, src: ExportSources, now = new Dat
       const path = unique(`${dir}/${slug(base, name)}.${extOf(asset)}`);
       entries.push({ name: path, data });
       written.set(assetId, path);
+      if (asset?.filename) fileNames[path] = asset.filename;
       return path;
     } catch {
       missing.push(assetId);
@@ -161,7 +166,7 @@ export async function exportKit(kit: BrandKit, src: ExportSources, now = new Dat
       const f = await put(id, c.kind, c.kind.replace(/s$/, ""));
       if (f) files.push(f);
     }
-    collections.push({ id: c.id, kind: c.kind, files });
+    collections.push({ id: c.id, kind: c.kind, ...(c.name ? { name: c.name } : {}), files });
   }
 
   // Every workspace face of a family the kit names; other families are
@@ -200,6 +205,7 @@ export async function exportKit(kit: BrandKit, src: ExportSources, now = new Dat
     // The AI model profile exists only in the source workspace.
     voice: kit.voice ? { tone: kit.voice.tone, doSay: kit.voice.doSay, dontSay: kit.voice.dontSay, ...(kit.voice.sampleCopy ? { sampleCopy: kit.voice.sampleCopy } : {}) } : null,
     controls: { ...kit.controls },
+    ...(Object.keys(fileNames).length ? { fileNames } : {}),
   };
   entries.unshift({ name: MANIFEST, data: new TextEncoder().encode(JSON.stringify(manifest, null, 2) + "\n") });
   return { blob: zipFiles(entries), fileName: `${slug(kit.name, "brand-kit")}.brandkit.zip`, missing };
@@ -312,7 +318,8 @@ export function checkManifest(raw: unknown): KitFile {
   const collections = arr(raw.collections, "collections").map((c, i) => {
     if (!isObj(c)) throw bad(`collections[${i}] must be an object`);
     if (c.kind !== "photos" && c.kind !== "graphics" && c.kind !== "icons") throw bad(`collections[${i}].kind must be "photos", "graphics" or "icons"`);
-    return { id: optStr(c.id, `collections[${i}].id`), kind: c.kind, files: strList(c.files, `collections[${i}].files`).map(norm) } as KitFileCollection;
+    const cname = optStr(c.name, `collections[${i}].name`);
+    return { id: optStr(c.id, `collections[${i}].id`), kind: c.kind, ...(cname ? { name: cname } : {}), files: strList(c.files, `collections[${i}].files`).map(norm) } as KitFileCollection;
   });
 
   let voice: KitFile["voice"] = null;
@@ -342,10 +349,22 @@ export function checkManifest(raw: unknown): KitFile {
     }
   }
 
+  let fileNames: Record<string, string> | undefined;
+  if (raw.fileNames !== undefined && raw.fileNames !== null) {
+    if (!isObj(raw.fileNames)) throw bad("fileNames must be an object");
+    fileNames = {};
+    for (const [k, v] of Object.entries(raw.fileNames)) {
+      if (typeof v !== "string") throw bad(`fileNames["${k}"] must be text`);
+      const base = v.split(/[\\/]/).pop()!.trim();
+      if (base) fileNames[norm(k)] = base.slice(0, 200);
+    }
+  }
+
   return {
     format: KIT_FORMAT, formatVersion: v, name,
     exportedAt: optStr(raw.exportedAt, "exportedAt"),
     palettes, fonts, fontFiles, logos, collections, voice, controls,
+    ...(fileNames ? { fileNames } : {}),
   };
 }
 
@@ -481,8 +500,10 @@ export async function uploadKitContent(parsed: ParsedKitFile, to: ImportTarget):
     if (reused) {
       ids.set(p, reused);
     } else {
-      const name = p.split("/").pop() ?? p;
-      const ext = name.match(/\.([a-z0-9]+)$/i)?.[1]?.toLowerCase() ?? "";
+      const base = p.split("/").pop() ?? p;
+      const ext = base.match(/\.([a-z0-9]+)$/i)?.[1]?.toLowerCase() ?? "";
+      // The original name when the file says it, else the path's.
+      const name = m.fileNames?.[p] ?? base;
       const asset = await to.uploadAsset(new Blob([data as BlobPart], { type: MIME_OF_EXT[ext] ?? "application/octet-stream" }), name);
       ids.set(p, asset.id);
     }
@@ -515,7 +536,7 @@ export async function uploadKitContent(parsed: ParsedKitFile, to: ImportTarget):
       ...(l.minSizePx !== undefined ? { minSizePx: l.minSizePx } : {}),
     };
   });
-  const collections: BrandCollection[] = m.collections.map((c) => ({ id: c.id ?? newId("c"), kind: c.kind, assetIds: c.files.map((f) => ids.get(f)!) }));
+  const collections: BrandCollection[] = m.collections.map((c) => ({ id: c.id ?? newId("c"), kind: c.kind, ...(c.name ? { name: c.name } : {}), assetIds: c.files.map((f) => ids.get(f)!) }));
   const voice: BrandVoice | null = m.voice ? { tone: m.voice.tone, doSay: m.voice.doSay, dontSay: m.voice.dontSay, ...(m.voice.sampleCopy ? { sampleCopy: m.voice.sampleCopy } : {}) } : null;
   return { palettes, fonts, logos, collections, voice, controls: m.controls ?? {} };
 }

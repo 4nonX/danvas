@@ -2,7 +2,11 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
-## 0.7.1 (2026-10-23)
+## 0.8.0 (2026-10-23)
+
+### Added
+
+- **Brand graphics** (dashboard, **Brand**): the workspace's own graphics in its brand kit, in categories it names (for example Silhouettes, Drawings, Icons). Upload many files at once into a category, by choosing them or dropping them on the page; rename, move, replace and remove graphics; create, rename, reorder and delete categories; search by name. Everyone sees the page, people who may manage brand kits change it. In the editor, the brand panel lists the graphics by category with a search: a click or a drag onto the page places one, an SVG as editable vector shapes named after it (any fill colour, CMYK and spot colours included), other images as images. Removing a graphic takes it out of the kit only; the file stays in the uploads. The kit file carries the category names and the graphics' file names. Icons added to a kit before now show under **Icons**; the editor's icon editor in the brand panel gives way to the Brand page.
 
 ### Fixed
 

@@ -991,7 +991,9 @@ interface EditorState {
   /** Insert an SVG icon as an editable, scaled vector group, viewport-centered.
    *  `provenance` (e.g. stock asset id + license) is stamped on the group's data
    *  in the same undo step, so attribution can be compiled from the design. */
-  addIconSvg(svg: string, provenance?: Record<string, unknown>): void;
+  /** Place an SVG as editable vector shapes. `opts.name` names the group
+   *  (default "Icon"); `opts.at` centres it on a page point (a drop). */
+  addIconSvg(svg: string, provenance?: Record<string, unknown>, opts?: { name?: string; at?: { x: number; y: number } }): void;
   /** Insert a photo grid: a grid container whose cells are image frames you can
    *  drop photos into. `spans` overrides the default uniform one-cell-per-slot
    *  layout with an explicit cell list (row/col plus row/col spans) for feature
@@ -5908,7 +5910,7 @@ export const useEditor = create<EditorState>((set, get) => {
       );
     },
 
-    addIconSvg: (svg, provenance) => {
+    addIconSvg: (svg, provenance, opts) => {
       // Same resolver as Import SVG (resolves <style> classes, currentColor, and
       // gradient url() fills), but keeps the catalog default: a shape with no
       // resolvable fill falls back to black (so a bare monochrome icon still paints).
@@ -5925,7 +5927,7 @@ export const useEditor = create<EditorState>((set, get) => {
       const size = target ? Math.min(200, 0.25 * Math.min(target.width, target.height)) : 200;
       const scale = size / Math.max(vbW, vbH);
       const group = createNode("group", {
-        name: tr("app.icon"),
+        name: opts?.name || tr("app.icon"),
         children: nodes,
         transform: { x: 0, y: 0, scaleX: scale, scaleY: scale, rotation: 0 },
         size: { width: vbW, height: vbH },
@@ -5933,7 +5935,11 @@ export const useEditor = create<EditorState>((set, get) => {
         // the attribution compiler can derive credits from the design itself.
         ...(provenance ? { data: { provenance } } : {}),
       } as Partial<Node>);
-      const pageIndex = positionInView(group);
+      let pageIndex: number;
+      if (opts?.at) {
+        pageIndex = curPageIndex();
+        group.transform = { ...group.transform, x: opts.at.x - (vbW * scale) / 2, y: opts.at.y - (vbH * scale) / 2 };
+      } else pageIndex = positionInView(group);
       const page = get().doc.pages[pageIndex];
       const prev = get().selection;
       const prevActive = get().activePage;

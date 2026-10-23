@@ -87,6 +87,7 @@ danvas is built for print work: labels, packaging, business cards, signage. How 
 
 ### Brand kits and fonts
 
+- Brand graphics: a **Brand** page in the dashboard holds the workspace's own graphics in categories it names (silhouettes, drawings, icons), uploaded many at a time, renamed, moved, replaced and removed; everyone places them from the editor's brand panel, SVGs as editable vector shapes ([guide](docs/danvas.md#brand-graphics)).
 - A workspace font library: upload font files once, use them in every font picker, embedded in vector exports.
 - Brand kits with any number of named font roles, an icon collection, and colors and fonts that apply into groups.
 - Brand kits export to and import from a `.brandkit.zip` that carries the logos, images and font files; a name that is already taken asks whether to replace the kit or import under another name. The format is documented in [docs/brand-kit-format.md](docs/brand-kit-format.md) ([guide](docs/danvas.md#brand-kits-and-fonts)).
