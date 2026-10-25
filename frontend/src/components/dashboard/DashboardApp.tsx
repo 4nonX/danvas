@@ -44,7 +44,7 @@ import {
   List,
   Users,
   Moon,
-  Sun, Sparkles, Wand2, Paperclip, Loader2, X } from "lucide-react";
+  Sun, Sparkles, Wand2, Paperclip, Loader2, X, Palette } from "lucide-react";
 import { createBlankDesign, type DesignFile } from "@hc/schema";
 import { hycAccept, downloadHycFile, importedTitle, parseHycFile, readFileText } from "@/lib/hycFile";
 import { odpToDesign, pptxToDesign } from "@hc/export";
@@ -78,6 +78,7 @@ import { formatBytes } from "@/lib/format";
 import { useDateFormat } from "@/lib/datetime";
 import { resolvedTheme, setThemePreference } from "@/lib/theme";
 import { oc } from "@/lib/sdk";
+import { BrandsView } from "./brands/BrandsView";
 import { useAuth } from "@/store/auth";
 import { useToast } from "@/components/ui/Toast";
 import { Button } from "@/components/ui/Button";
@@ -862,6 +863,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
           <RailItem icon={Star} label={tr("dashboard.favorites")} active={view === "favorites"} collapsed={railCollapsed} onClick={() => gotoView("favorites")} />
           <RailItem icon={CheckSquare} label={tr("dashboard.my_tasks")} active={view === "tasks"} collapsed={railCollapsed} onClick={() => gotoView("tasks")} />
           <RailItem icon={LayoutTemplate} label={tr("dashboard.templates")} active={view === "templates"} collapsed={railCollapsed} onClick={() => gotoView("templates")} />
+          <RailItem icon={Palette} label={tr("dashboard.brand_kits")} active={view === "brands"} collapsed={railCollapsed} onClick={() => gotoView("brands")} />
           <RailItem icon={Users} label={tr("dashboard.members")} active={view === "members"} collapsed={railCollapsed} onClick={() => gotoView("members")} />
           <RailItem icon={Trash2} label={tr("dashboard.trash")} active={view === "trash"} collapsed={railCollapsed} onClick={() => gotoView("trash")} />
         </nav>
@@ -1402,6 +1404,14 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                 </ul>
               )}
             </section>
+          )}
+
+          {view === "brands" && activeWorkspaceId && (
+            <BrandsView
+              key={activeWorkspaceId}
+              workspaceId={activeWorkspaceId}
+              canManage={activeWs?.role === "owner" || activeWs?.role === "admin"}
+            />
           )}
 
           {view === "members" && (
