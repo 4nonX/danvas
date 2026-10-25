@@ -4107,5 +4107,6 @@
   "dashboard.generates_with_your_provider": "使用你的个人提供商生成：{provider}",
   "dashboard.your_provider_label": "你的密钥 · {provider}",
   "dashboard.or_use_your_own_key": "或使用你自己的密钥",
-  "dashboard.brand_kits": "品牌套件"
+  "dashboard.brand_kits": "品牌套件",
+  "dashboard.open_navigation": "打开导航"
 }

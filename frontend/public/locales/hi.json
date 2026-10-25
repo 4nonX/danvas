@@ -4107,5 +4107,6 @@
   "dashboard.generates_with_your_provider": "आपके व्यक्तिगत प्रदाता से बनाता है: {provider}",
   "dashboard.your_provider_label": "आपकी कुंजी · {provider}",
   "dashboard.or_use_your_own_key": "या अपनी कुंजी इस्तेमाल करें",
-  "dashboard.brand_kits": "ब्रांड किट"
+  "dashboard.brand_kits": "ब्रांड किट",
+  "dashboard.open_navigation": "नेविगेशन खोलें"
 }

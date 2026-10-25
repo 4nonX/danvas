@@ -4107,5 +4107,6 @@
   "dashboard.generates_with_your_provider": "Génère avec votre fournisseur personnel : {provider}",
   "dashboard.your_provider_label": "Votre clé · {provider}",
   "dashboard.or_use_your_own_key": "ou utilisez votre propre clé",
-  "dashboard.brand_kits": "Kits de marque"
+  "dashboard.brand_kits": "Kits de marque",
+  "dashboard.open_navigation": "Ouvrir la navigation"
 }

@@ -4107,5 +4107,6 @@
   "dashboard.generates_with_your_provider": "個人のプロバイダーで生成: {provider}",
   "dashboard.your_provider_label": "あなたのキー · {provider}",
   "dashboard.or_use_your_own_key": "または自分のキーを使う",
-  "dashboard.brand_kits": "ブランドキット"
+  "dashboard.brand_kits": "ブランドキット",
+  "dashboard.open_navigation": "ナビゲーションを開く"
 }

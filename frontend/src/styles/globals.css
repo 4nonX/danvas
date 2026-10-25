@@ -211,6 +211,19 @@ body {
   font-family: var(--font-sans);
 }
 
+/* Touch screens have no hover, so controls the UI reveals on hover (row
+   actions, delete buttons, add-page handles) stay visible there instead of
+   being unreachable. Unlayered, so it outranks the opacity-0/hidden utilities;
+   disabled controls stay hidden as they do on hover. */
+@media (hover: none) {
+  .group-hover\:opacity-100:not(:disabled) {
+    opacity: 1;
+  }
+  .group-hover\:block {
+    display: block;
+  }
+}
+
 /* Brand gradient helpers. */
 .oc-gradient {
   background-image: var(--oc-gradient);
