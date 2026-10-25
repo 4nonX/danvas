@@ -10,7 +10,7 @@ Current state: the core product is built and runs. A single-player editor, conte
 
 ## Source of Truth (read these first)
 
-1. `README.md` - how to run the project (dev and production), the repository layout, environment variables, and the build/deploy story.
+1. `README.md` - the product overview and the Docker quickstart. `docs/self-hosting.md` covers production, the binary, reverse proxies, storage, sign-in, and every environment variable; `CONTRIBUTING.md` covers the repository layout, development setup, scripts, built-in templates, and the release process.
 2. `docs/roadmap/` - forward-looking specs for work that is not yet built (realtime collaboration, AI media, accessibility/i18n/enterprise/NFR). Read the relevant spec before building in those areas.
 
 For anything already shipped, the code is the source of truth; match the patterns of the surrounding code.

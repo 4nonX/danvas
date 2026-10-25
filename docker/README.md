@@ -6,7 +6,16 @@ A free, open-source, AI-native design platform: design anything, with no paywall
 
 ## Quick start (Docker Compose, recommended)
 
-Create a `docker-compose.yml`, this pulls the published image and runs it with a bundled Postgres:
+The fastest path downloads a ready compose file that runs the published image with a bundled Postgres:
+
+```bash
+mkdir hycanvas && cd hycanvas
+curl -fsSLO https://raw.githubusercontent.com/hyscaler/HyCanvas/development/docker/docker-compose.yml
+echo "JWT_SECRET=$(openssl rand -hex 32)" > .env
+docker compose up -d
+```
+
+Or create a `docker-compose.yml` by hand; this pulls the published image and runs it with a bundled Postgres:
 
 ```yaml
 services:
@@ -54,7 +63,7 @@ docker compose up -d
 
 Then open http://localhost:8005. `JWT_SECRET` is required (the app refuses to start without it); the app applies database migrations automatically on boot. Update later with `docker compose pull && docker compose up -d`.
 
-> From a clone of the HyCanvas repository, `docker-compose.yml` runs the published image against your own managed Postgres (no bundled `db` service): it reads `JWT_SECRET`, `DATABASE_URL` (or `EXTERNAL_DATABASE_URL`), and the rest from a `.env`. Do `cp .env.example .env`, set `JWT_SECRET` and a reachable `DATABASE_URL`, then `docker compose up -d`. To get a bundled Postgres from a clone instead, build from source with `docker-compose.prod.yml` and `COMPOSE_PROFILES=bundled`.
+> From a clone of the HyCanvas repository, `docker-compose.yml` runs the published image against your own managed Postgres (no bundled `db` service): it reads `JWT_SECRET`, `DATABASE_URL` (or `EXTERNAL_DATABASE_URL`), and the rest from a `.env`. Do `cp .env.example .env`, set `JWT_SECRET` and a reachable `DATABASE_URL`, then `docker compose up -d`. To get a bundled Postgres from a clone instead, run `docker compose -f docker/docker-compose.yml up -d` (with `JWT_SECRET` in `docker/.env`), or build from source with `docker-compose.prod.yml` and `COMPOSE_PROFILES=bundled`.
 
 ### Using your own Postgres
 
