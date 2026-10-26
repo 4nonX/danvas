@@ -4133,5 +4133,6 @@
   "brands.no_controls_on": "No controls are on.",
   "brands.text_pairs": "Readable text pairs",
   "brands.no_text_pairs": "No two of these colors are readable together as body text (4.5:1).",
-  "brands.contrast_value": "{ratio}:1 contrast"
+  "brands.contrast_value": "{ratio}:1 contrast",
+  "brands.type_sample": "Aa"
 }

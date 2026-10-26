@@ -637,7 +637,11 @@ export function VoiceSection({ draft, onChange, ai }: { draft: BrandDraft; onCha
 
 // --- controls ----------------------------------------------------------------
 
-const lintPolicies = ["off", "warn", "block"] as const;
+const lintPolicies = [
+  { id: "off", label: () => tr("brands.export_check_off"), hint: () => tr("brands.export_check_off_hint") },
+  { id: "warn", label: () => tr("brands.export_check_warn"), hint: () => tr("brands.export_check_warn_hint") },
+  { id: "block", label: () => tr("brands.export_check_block"), hint: () => tr("brands.export_check_block_hint") },
+] as const;
 
 /** Brand controls: lock designs to the kit's colors and fonts, limit new
  *  designs to brand templates, and set how strictly exports are checked. */
@@ -672,14 +676,14 @@ export function ControlsSection({ draft, onChange }: { draft: BrandDraft; onChan
           <div className="grid gap-2 sm:grid-cols-3">
             {lintPolicies.map((p) => (
               <label
-                key={p}
-                className={`flex cursor-pointer flex-col gap-0.5 rounded-xl border p-2.5 ${c.lintPolicy === p ? "border-brand-400 bg-brand-50" : "border-neutral-200 hover:border-brand-300"}`}
+                key={p.id}
+                className={`flex cursor-pointer flex-col gap-0.5 rounded-xl border p-2.5 ${c.lintPolicy === p.id ? "border-brand-400 bg-brand-50" : "border-neutral-200 hover:border-brand-300"}`}
               >
                 <span className="flex items-center gap-2 text-sm font-medium text-neutral-800">
-                  <input type="radio" name="brand-lint-policy" checked={c.lintPolicy === p} onChange={() => set({ lintPolicy: p })} className="accent-brand-600" />
-                  {tr(`brands.export_check_${p}`)}
+                  <input type="radio" name="brand-lint-policy" checked={c.lintPolicy === p.id} onChange={() => set({ lintPolicy: p.id })} className="accent-brand-600" />
+                  {p.label()}
                 </span>
-                <span className="text-xs text-neutral-500">{tr(`brands.export_check_${p}_hint`)}</span>
+                <span className="text-xs text-neutral-500">{p.hint()}</span>
               </label>
             ))}
           </div>

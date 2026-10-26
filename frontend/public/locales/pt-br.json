@@ -4133,5 +4133,6 @@
   "brands.no_controls_on": "Nenhum controle ativo.",
   "brands.text_pairs": "Pares legíveis para texto",
   "brands.no_text_pairs": "Nenhum par destas cores é legível como texto corrido (4,5:1).",
-  "brands.contrast_value": "Contraste {ratio}:1"
+  "brands.contrast_value": "Contraste {ratio}:1",
+  "brands.type_sample": "Aa"
 }

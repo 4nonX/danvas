@@ -4133,5 +4133,6 @@
   "brands.no_controls_on": "Keine Regeln aktiv.",
   "brands.text_pairs": "Gut lesbare Textpaare",
   "brands.no_text_pairs": "Keine zwei dieser Farben sind zusammen als Fließtext lesbar (4,5:1).",
-  "brands.contrast_value": "Kontrast {ratio}:1"
+  "brands.contrast_value": "Kontrast {ratio}:1",
+  "brands.type_sample": "Aa"
 }

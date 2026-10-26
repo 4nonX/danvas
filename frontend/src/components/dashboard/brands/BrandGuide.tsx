@@ -42,7 +42,7 @@ export function BrandGuide({ draft, urls }: { draft: BrandDraft; urls: AssetUrls
     c.lockColors ? tr("brands.lock_colors") : "",
     c.lockFonts ? tr("brands.lock_fonts") : "",
     c.restrictTemplates ? tr("brands.restrict_templates") : "",
-    c.lintPolicy !== "off" ? tr(`brands.export_check_${c.lintPolicy}_rule`) : "",
+    c.lintPolicy === "warn" ? tr("brands.export_check_warn_rule") : c.lintPolicy === "block" ? tr("brands.export_check_block_rule") : "",
   ].filter(Boolean);
 
   return (
@@ -115,7 +115,7 @@ export function BrandGuide({ draft, urls }: { draft: BrandDraft; urls: AssetUrls
                 {pairs.map((p) => (
                   <div key={`${p.fg.id}-${p.bg.id}`} className="overflow-hidden rounded-2xl border border-neutral-200">
                     <div className="flex h-16 items-center gap-2 px-3" style={{ background: p.bg.hex, color: p.fg.hex }}>
-                      <span className="text-2xl font-bold" style={heading ? { fontFamily: `'${heading}', sans-serif` } : undefined}>Aa</span>
+                      <span className="text-2xl font-bold" style={heading ? { fontFamily: `'${heading}', sans-serif` } : undefined}>{tr("brands.type_sample")}</span>
                       <span className="text-xs" style={body ? { fontFamily: `'${body}', sans-serif` } : undefined}>{roleLabel(p.fg.role)} / {roleLabel(p.bg.role)}</span>
                     </div>
                     <div className="flex items-center justify-between px-3 py-1.5 font-mono text-[11px] text-neutral-600">

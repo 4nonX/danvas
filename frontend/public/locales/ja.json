@@ -4133,5 +4133,6 @@
   "brands.no_controls_on": "有効なルールはありません。",
   "brands.text_pairs": "読みやすい文字色の組み合わせ",
   "brands.no_text_pairs": "本文として読める組み合わせ (4.5:1) はありません。",
-  "brands.contrast_value": "コントラスト {ratio}:1"
+  "brands.contrast_value": "コントラスト {ratio}:1",
+  "brands.type_sample": "あア"
 }
