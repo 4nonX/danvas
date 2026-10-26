@@ -35,6 +35,7 @@ import (
 	"hycanvas/backend/internal/canva"
 	"hycanvas/backend/internal/canvaimport"
 	"hycanvas/backend/internal/captcha"
+	"hycanvas/backend/internal/colorlibs"
 	"hycanvas/backend/internal/comments"
 	"hycanvas/backend/internal/convert"
 	"hycanvas/backend/internal/daemon"
@@ -50,7 +51,6 @@ import (
 	"hycanvas/backend/internal/persistence"
 	"hycanvas/backend/internal/platform/config"
 	"hycanvas/backend/internal/platform/db"
-	"hycanvas/backend/internal/colorlibs"
 	"hycanvas/backend/internal/printprofiles"
 	"hycanvas/backend/internal/push"
 	"hycanvas/backend/internal/realtime"
@@ -61,6 +61,7 @@ import (
 	"hycanvas/backend/internal/storage"
 	"hycanvas/backend/internal/storagecli"
 	"hycanvas/backend/internal/templates"
+	"hycanvas/backend/internal/uiprefs"
 	"hycanvas/backend/internal/uploads"
 	"hycanvas/backend/internal/webui"
 	"hycanvas/backend/internal/whiteboard"
@@ -418,6 +419,7 @@ func main() {
 			Home:           homeSvc,
 			PrintProfiles:  printProfilesSvc,
 			ColorLibraries: colorlibs.NewService(pool, acct),
+			UIPrefs:        uiprefs.NewService(pool),
 			ExportProfiles: exportProfilesSvc,
 			OutputCheck:    outputCheck,
 			Fonts:          fontsSvc,

@@ -2095,6 +2095,15 @@ export class HyCanvasClient {
     const body = Array.isArray(input) ? { emailTypes: input } : input;
     return this.request("PUT", "/v1/me/notification-prefs", body);
   }
+  /** The caller's interface preferences (editor rows and the like), by key.
+   *  Kept with the account, so they are the same on every device. */
+  uiPrefs(): Promise<Record<string, unknown>> {
+    return this.request("GET", "/v1/me/ui-prefs");
+  }
+  /** Store one interface preference (any JSON, up to 32 KB); null removes it. */
+  setUiPref(key: string, value: unknown): Promise<void> {
+    return this.request("PUT", `/v1/me/ui-prefs/${encodeURIComponent(key)}`, value);
+  }
 
   // --- web push ---------------------------------------------
   /** The public VAPID key to subscribe with, or null when web push is not

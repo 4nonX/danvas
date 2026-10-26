@@ -2,6 +2,17 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 1.4.0 (2026-10-26)
+
+### Added
+
+- **The Elements panel in rows.** A search over every element at the top, then one row per kind (recently used, shapes, frames and grids, data and codes, graphics, animated), each showing a single line of tiles instead of every group open at once. The line holds the tiles you pinned, in your order, then the ones you use most. **See all** opens the whole row, one row at a time; there tiles are sorted by dragging and pinned with their pin, and a tile dragged into a row's line is pinned there. **Browse all** opens the graphics library with its search and categories. Rows are sorted by dragging their handle (or with the arrow keys on it) and can be hidden; **Reset** restores the built-in arrangement. Tiles only insert: dragging one never drops anything on the page.
+- **Interface preferences kept with the account**: the arrangement of the Elements panel (order of rows and tiles, pins, hidden rows, what was used) follows you to every browser and device.
+
+### Upgrading
+
+- A migration adds one table, `user_ui_prefs` (a JSON value per user and key, 32 KB at most, 64 keys per user): additive, a rollback ignores it. No change to the design file format.
+
 ## 1.3.0 (2026-10-26)
 
 ### Added

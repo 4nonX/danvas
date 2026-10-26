@@ -27,6 +27,7 @@ import (
 	"hycanvas/backend/internal/canva"
 	"hycanvas/backend/internal/canvaimport"
 	"hycanvas/backend/internal/captcha"
+	"hycanvas/backend/internal/colorlibs"
 	"hycanvas/backend/internal/comments"
 	"hycanvas/backend/internal/convert"
 	"hycanvas/backend/internal/designtransfer"
@@ -38,7 +39,6 @@ import (
 	"hycanvas/backend/internal/outputcheck"
 	"hycanvas/backend/internal/persistence"
 	"hycanvas/backend/internal/platform/config"
-	"hycanvas/backend/internal/colorlibs"
 	"hycanvas/backend/internal/printprofiles"
 	"hycanvas/backend/internal/push"
 	"hycanvas/backend/internal/realtime"
@@ -46,6 +46,7 @@ import (
 	"hycanvas/backend/internal/stock"
 	"hycanvas/backend/internal/storage"
 	"hycanvas/backend/internal/templates"
+	"hycanvas/backend/internal/uiprefs"
 	"hycanvas/backend/internal/uploads"
 	"hycanvas/backend/internal/webui"
 	"hycanvas/backend/internal/whiteboard"
@@ -63,6 +64,7 @@ type Deps struct {
 	Home           *home.Service
 	PrintProfiles  *printprofiles.Service
 	ColorLibraries *colorlibs.Service
+	UIPrefs        *uiprefs.Service
 	ExportProfiles *exportprofiles.Service
 	OutputCheck    *outputcheck.Checker
 	Fonts          *workspacefonts.Service
@@ -190,6 +192,9 @@ func NewRouter(d Deps) http.Handler {
 		}
 		if d.Accounts != nil && d.ColorLibraries != nil {
 			mountColorLibraries(api, d.ColorLibraries, d.Accounts)
+		}
+		if d.Accounts != nil && d.UIPrefs != nil {
+			mountUIPrefs(api, d.UIPrefs, d.Accounts)
 		}
 		if d.Accounts != nil && d.ExportProfiles != nil {
 			mountExportProfiles(api, d.ExportProfiles, d.Accounts)

@@ -12,6 +12,7 @@ import { toHex, fromHex, relativeLuminance } from "@hc/color";
 import { formatBytes } from "@/lib/format";
 import { qrModules } from "@/lib/qr";
 import { InsertBarcodeDialog } from "./BarcodePanel";
+import { ElementRows, type ElementRowDef, type ElementTileDef } from "./ElementRows";
 import { stickers, stickerCategories, type Sticker } from "@/lib/stickers";
 import { parseModelJson } from "@/lib/magicDesign";
 import {
@@ -491,7 +492,7 @@ const BRAND = { type: "solid", color: { srgb: { r: 0.38, g: 0.22, b: 0.86, a: 1 
 const FRAME_FILL = { type: "solid", color: { srgb: { r: 0.9, g: 0.91, b: 0.93, a: 1 } } };
 const CENTER = { x: 320, y: 320, scaleX: 1, scaleY: 1, rotation: 0 };
 
-type ElementTile = { label: string; icon: typeof Square; run: () => void };
+type ElementTile = { id: string; label: string; icon: typeof Square; run: () => void };
 
 // One photo-grid cell slot (mirrors the store's GridSpan).
 type GridSpan = { row: number; col: number; rowSpan: number; colSpan: number };
@@ -547,96 +548,108 @@ export function ElementsPanel() {
   const FEATURE_RIGHT: GridSpan[] = [{ row: 0, col: 0, rowSpan: 1, colSpan: 1 }, { row: 1, col: 0, rowSpan: 1, colSpan: 1 }, { row: 0, col: 1, rowSpan: 2, colSpan: 1 }];
   const FEATURE_TOP: GridSpan[] = [{ row: 0, col: 0, rowSpan: 1, colSpan: 2 }, { row: 1, col: 0, rowSpan: 1, colSpan: 1 }, { row: 1, col: 1, rowSpan: 1, colSpan: 1 }];
   const FEATURE_HERO: GridSpan[] = [{ row: 0, col: 0, rowSpan: 2, colSpan: 2 }, { row: 0, col: 2, rowSpan: 1, colSpan: 1 }, { row: 1, col: 2, rowSpan: 1, colSpan: 1 }, { row: 2, col: 0, rowSpan: 1, colSpan: 1 }, { row: 2, col: 1, rowSpan: 1, colSpan: 1 }, { row: 2, col: 2, rowSpan: 1, colSpan: 1 }];
-  // Tiles grouped into collapsible categories so the panel scans cleanly.
-  const groups: { title: string; icon: typeof Square; defaultOpen?: boolean; tiles: ElementTile[] }[] = [
+  // The tiles of each row. Ids are stable (they are stored with the person's
+  // arrangement), labels follow the language.
+  const groups: { id: string; title: string; tiles: ElementTile[] }[] = [
     {
+      id: "shapes",
       title: tr("editor.shapes"),
-      icon: Shapes,
-      defaultOpen: true,
       tiles: [
-        { label: tr("editor.rectangle"), icon: Square, run: () => insertShape(tr("editor.rectangle"), { name: tr("editor.rectangle"), shape: "rect", transform: CENTER, size: { width: 240, height: 160 }, fills: [BRAND] } as Partial<Node>) },
-        { label: tr("editor.rounded"), icon: SquareRoundCorner, run: () => insertShape(tr("editor.rounded_rectangle"), { name: tr("editor.rounded_rectangle"), shape: "rect", cornerRadius: { topLeft: 28, topRight: 28, bottomRight: 28, bottomLeft: 28 }, transform: CENTER, size: { width: 240, height: 160 }, fills: [BRAND] } as Partial<Node>) },
-        { label: tr("editor.ellipse"), icon: Circle, run: () => insertShape(tr("editor.ellipse"), { name: tr("editor.ellipse"), shape: "ellipse", transform: CENTER, size: { width: 200, height: 200 }, fills: [BRAND] } as Partial<Node>) },
-        { label: tr("editor.triangle"), icon: Triangle, run: () => insertShape(tr("editor.triangle"), { name: tr("editor.triangle"), shape: "triangle", sides: 3, transform: CENTER, size: { width: 200, height: 200 }, fills: [BRAND] } as Partial<Node>) },
-        { label: tr("editor.pentagon"), icon: Pentagon, run: () => insertShape(tr("editor.pentagon"), { name: tr("editor.pentagon"), shape: "polygon", sides: 5, transform: CENTER, size: { width: 200, height: 200 }, fills: [BRAND] } as Partial<Node>) },
-        { label: tr("editor.hexagon"), icon: Hexagon, run: () => insertShape(tr("editor.hexagon"), { name: tr("editor.hexagon"), shape: "polygon", sides: 6, transform: CENTER, size: { width: 200, height: 200 }, fills: [BRAND] } as Partial<Node>) },
-        { label: tr("editor.star"), icon: Star, run: () => insertShape(tr("editor.star"), { name: tr("editor.star"), shape: "star", sides: 5, innerRadius: 0.5, transform: CENTER, size: { width: 200, height: 200 }, fills: [BRAND] } as Partial<Node>) },
-        { label: tr("editor.diamond"), icon: Diamond, run: () => insertShape(tr("editor.diamond"), { name: tr("editor.diamond"), shape: "polygon", sides: 4, transform: CENTER, size: { width: 200, height: 200 }, fills: [BRAND] } as Partial<Node>) },
-        { label: tr("editor.octagon"), icon: Octagon, run: () => insertShape(tr("editor.octagon"), { name: tr("editor.octagon"), shape: "polygon", sides: 8, transform: CENTER, size: { width: 200, height: 200 }, fills: [BRAND] } as Partial<Node>) },
-        { label: tr("editor.burst"), icon: Sparkles, run: () => insertShape(tr("editor.burst"), { name: tr("editor.burst"), shape: "star", sides: 12, innerRadius: 0.62, transform: CENTER, size: { width: 200, height: 200 }, fills: [BRAND] } as Partial<Node>) },
-        { label: tr("editor.pill"), icon: SquareRoundCorner, run: () => insertShape(tr("editor.pill"), { name: tr("editor.pill"), shape: "rect", cornerRadius: { topLeft: 999, topRight: 999, bottomRight: 999, bottomLeft: 999 }, transform: CENTER, size: { width: 260, height: 120 }, fills: [BRAND] } as Partial<Node>) },
+        { id: "shape.rect", label: tr("editor.rectangle"), icon: Square, run: () => insertShape(tr("editor.rectangle"), { name: tr("editor.rectangle"), shape: "rect", transform: CENTER, size: { width: 240, height: 160 }, fills: [BRAND] } as Partial<Node>) },
+        { id: "shape.rounded", label: tr("editor.rounded"), icon: SquareRoundCorner, run: () => insertShape(tr("editor.rounded_rectangle"), { name: tr("editor.rounded_rectangle"), shape: "rect", cornerRadius: { topLeft: 28, topRight: 28, bottomRight: 28, bottomLeft: 28 }, transform: CENTER, size: { width: 240, height: 160 }, fills: [BRAND] } as Partial<Node>) },
+        { id: "shape.ellipse", label: tr("editor.ellipse"), icon: Circle, run: () => insertShape(tr("editor.ellipse"), { name: tr("editor.ellipse"), shape: "ellipse", transform: CENTER, size: { width: 200, height: 200 }, fills: [BRAND] } as Partial<Node>) },
+        { id: "shape.triangle", label: tr("editor.triangle"), icon: Triangle, run: () => insertShape(tr("editor.triangle"), { name: tr("editor.triangle"), shape: "triangle", sides: 3, transform: CENTER, size: { width: 200, height: 200 }, fills: [BRAND] } as Partial<Node>) },
+        { id: "shape.pentagon", label: tr("editor.pentagon"), icon: Pentagon, run: () => insertShape(tr("editor.pentagon"), { name: tr("editor.pentagon"), shape: "polygon", sides: 5, transform: CENTER, size: { width: 200, height: 200 }, fills: [BRAND] } as Partial<Node>) },
+        { id: "shape.hexagon", label: tr("editor.hexagon"), icon: Hexagon, run: () => insertShape(tr("editor.hexagon"), { name: tr("editor.hexagon"), shape: "polygon", sides: 6, transform: CENTER, size: { width: 200, height: 200 }, fills: [BRAND] } as Partial<Node>) },
+        { id: "shape.star", label: tr("editor.star"), icon: Star, run: () => insertShape(tr("editor.star"), { name: tr("editor.star"), shape: "star", sides: 5, innerRadius: 0.5, transform: CENTER, size: { width: 200, height: 200 }, fills: [BRAND] } as Partial<Node>) },
+        { id: "shape.diamond", label: tr("editor.diamond"), icon: Diamond, run: () => insertShape(tr("editor.diamond"), { name: tr("editor.diamond"), shape: "polygon", sides: 4, transform: CENTER, size: { width: 200, height: 200 }, fills: [BRAND] } as Partial<Node>) },
+        { id: "shape.octagon", label: tr("editor.octagon"), icon: Octagon, run: () => insertShape(tr("editor.octagon"), { name: tr("editor.octagon"), shape: "polygon", sides: 8, transform: CENTER, size: { width: 200, height: 200 }, fills: [BRAND] } as Partial<Node>) },
+        { id: "shape.burst", label: tr("editor.burst"), icon: Sparkles, run: () => insertShape(tr("editor.burst"), { name: tr("editor.burst"), shape: "star", sides: 12, innerRadius: 0.62, transform: CENTER, size: { width: 200, height: 200 }, fills: [BRAND] } as Partial<Node>) },
+        { id: "shape.pill", label: tr("editor.pill"), icon: SquareRoundCorner, run: () => insertShape(tr("editor.pill"), { name: tr("editor.pill"), shape: "rect", cornerRadius: { topLeft: 999, topRight: 999, bottomRight: 999, bottomLeft: 999 }, transform: CENTER, size: { width: 260, height: 120 }, fills: [BRAND] } as Partial<Node>) },
       ],
     },
     {
       // Image placeholders: single frames and photo-grid layouts. Drop or click
       // a photo to fill a cell; it auto-covers the cell.
+      id: "frames",
       title: tr("editor.frames_grids"),
-      icon: LayoutGrid,
-      defaultOpen: true,
       tiles: [
-        { label: tr("editor.frame"), icon: Frame, run: () => insertFrame({ name: tr("editor.frame"), clip: true, transform: CENTER, size: { width: 260, height: 200 }, fills: [FRAME_FILL] } as Partial<Node>) },
-        { label: tr("editor.circle_frame"), icon: Circle, run: () => insertFrame({ name: tr("editor.circle_frame"), clip: true, maskShape: "ellipse", transform: CENTER, size: { width: 240, height: 240 }, fills: [FRAME_FILL] } as Partial<Node>) },
-        { label: tr("editor.rounded_frame"), icon: SquareRoundCorner, run: () => insertFrame({ name: tr("editor.rounded_frame"), clip: true, cornerRadius: { topLeft: 32, topRight: 32, bottomRight: 32, bottomLeft: 32 }, transform: CENTER, size: { width: 260, height: 200 }, fills: [FRAME_FILL] } as Partial<Node>) },
-        { label: "2 photos", icon: gridPreviewIcon(1, 2), run: () => insertGridEl(1, 2) },
-        { label: "3 photos", icon: gridPreviewIcon(1, 3), run: () => insertGridEl(1, 3) },
-        { label: "4 photos", icon: gridPreviewIcon(2, 2), run: () => insertGridEl(2, 2) },
-        { label: "6 photos", icon: gridPreviewIcon(2, 3), run: () => insertGridEl(2, 3) },
-        { label: "9 photos", icon: gridPreviewIcon(3, 3), run: () => insertGridEl(3, 3) },
-        { label: tr("editor.feature_left"), icon: gridPreviewIcon(2, 2, FEATURE_LEFT), run: () => insertGridEl(2, 2, FEATURE_LEFT) },
-        { label: tr("editor.feature_right"), icon: gridPreviewIcon(2, 2, FEATURE_RIGHT), run: () => insertGridEl(2, 2, FEATURE_RIGHT) },
-        { label: tr("editor.feature_top"), icon: gridPreviewIcon(2, 2, FEATURE_TOP), run: () => insertGridEl(2, 2, FEATURE_TOP) },
-        { label: tr("editor.hero_mosaic"), icon: gridPreviewIcon(3, 3, FEATURE_HERO), run: () => insertGridEl(3, 3, FEATURE_HERO) },
+        { id: "frame.rect", label: tr("editor.frame"), icon: Frame, run: () => insertFrame({ name: tr("editor.frame"), clip: true, transform: CENTER, size: { width: 260, height: 200 }, fills: [FRAME_FILL] } as Partial<Node>) },
+        { id: "frame.circle", label: tr("editor.circle_frame"), icon: Circle, run: () => insertFrame({ name: tr("editor.circle_frame"), clip: true, maskShape: "ellipse", transform: CENTER, size: { width: 240, height: 240 }, fills: [FRAME_FILL] } as Partial<Node>) },
+        { id: "frame.rounded", label: tr("editor.rounded_frame"), icon: SquareRoundCorner, run: () => insertFrame({ name: tr("editor.rounded_frame"), clip: true, cornerRadius: { topLeft: 32, topRight: 32, bottomRight: 32, bottomLeft: 32 }, transform: CENTER, size: { width: 260, height: 200 }, fills: [FRAME_FILL] } as Partial<Node>) },
+        { id: "grid.2", label: "2 photos", icon: gridPreviewIcon(1, 2), run: () => insertGridEl(1, 2) },
+        { id: "grid.3", label: "3 photos", icon: gridPreviewIcon(1, 3), run: () => insertGridEl(1, 3) },
+        { id: "grid.4", label: "4 photos", icon: gridPreviewIcon(2, 2), run: () => insertGridEl(2, 2) },
+        { id: "grid.6", label: "6 photos", icon: gridPreviewIcon(2, 3), run: () => insertGridEl(2, 3) },
+        { id: "grid.9", label: "9 photos", icon: gridPreviewIcon(3, 3), run: () => insertGridEl(3, 3) },
+        { id: "grid.featureLeft", label: tr("editor.feature_left"), icon: gridPreviewIcon(2, 2, FEATURE_LEFT), run: () => insertGridEl(2, 2, FEATURE_LEFT) },
+        { id: "grid.featureRight", label: tr("editor.feature_right"), icon: gridPreviewIcon(2, 2, FEATURE_RIGHT), run: () => insertGridEl(2, 2, FEATURE_RIGHT) },
+        { id: "grid.featureTop", label: tr("editor.feature_top"), icon: gridPreviewIcon(2, 2, FEATURE_TOP), run: () => insertGridEl(2, 2, FEATURE_TOP) },
+        { id: "grid.hero", label: tr("editor.hero_mosaic"), icon: gridPreviewIcon(3, 3, FEATURE_HERO), run: () => insertGridEl(3, 3, FEATURE_HERO) },
       ],
     },
     {
+      id: "data",
       title: tr("editor.data_codes"),
-      icon: BarChart3,
       tiles: [
-        { label: tr("editor.table"), icon: TableIcon, run: () => insertTableEl(3, 3) },
-        { label: tr("editor.bar_chart"), icon: BarChart3, run: () => insertChartEl("bar", "bar") },
-        { label: tr("editor.grouped_bar"), icon: BarChart3, run: () => insertChartEl("barGrouped", "grouped bar") },
-        { label: tr("editor.stacked_bar"), icon: BarChart3, run: () => insertChartEl("barStacked", "stacked bar") },
-        { label: tr("editor.line_chart"), icon: LineChart, run: () => insertChartEl("line", "line") },
-        { label: tr("editor.area_chart"), icon: AreaChart, run: () => insertChartEl("area", "area") },
-        { label: tr("editor.pie_chart"), icon: PieChart, run: () => insertChartEl("pie", "pie") },
-        { label: tr("editor.donut_chart"), icon: Donut, run: () => insertChartEl("donut", "donut") },
-        { label: tr("editor.scatter"), icon: ScatterChart, run: () => insertChartEl("scatter", "scatter") },
-        { label: tr("editor.radar"), icon: Radar, run: () => insertChartEl("radar", "radar") },
-        { label: tr("editor.qr_code"), icon: QrCode, run: async () => {
+        { id: "data.table", label: tr("editor.table"), icon: TableIcon, run: () => insertTableEl(3, 3) },
+        { id: "chart.bar", label: tr("editor.bar_chart"), icon: BarChart3, run: () => insertChartEl("bar", "bar") },
+        { id: "chart.barGrouped", label: tr("editor.grouped_bar"), icon: BarChart3, run: () => insertChartEl("barGrouped", "grouped bar") },
+        { id: "chart.barStacked", label: tr("editor.stacked_bar"), icon: BarChart3, run: () => insertChartEl("barStacked", "stacked bar") },
+        { id: "chart.line", label: tr("editor.line_chart"), icon: LineChart, run: () => insertChartEl("line", "line") },
+        { id: "chart.area", label: tr("editor.area_chart"), icon: AreaChart, run: () => insertChartEl("area", "area") },
+        { id: "chart.pie", label: tr("editor.pie_chart"), icon: PieChart, run: () => insertChartEl("pie", "pie") },
+        { id: "chart.donut", label: tr("editor.donut_chart"), icon: Donut, run: () => insertChartEl("donut", "donut") },
+        { id: "chart.scatter", label: tr("editor.scatter"), icon: ScatterChart, run: () => insertChartEl("scatter", "scatter") },
+        { id: "chart.radar", label: tr("editor.radar"), icon: Radar, run: () => insertChartEl("radar", "radar") },
+        { id: "code.qr", label: tr("editor.qr_code"), icon: QrCode, run: async () => {
           const t = await promptText({ title: tr("editor.add_qr_code"), label: tr("editor.links_to_url_or_text"), placeholder: "https://", defaultValue: "https://", confirmText: tr("editor.add") });
           if (!t) return;
           addNode("qr", { name: tr("editor.qr_code"), value: t, ecLevel: "M", foreground: { srgb: { r: 0, g: 0, b: 0, a: 1 } }, background: { srgb: { r: 1, g: 1, b: 1, a: 1 } }, modules: qrModules(t, "M"), transform: CENTER, size: { width: 220, height: 220 } } as Partial<Node>);
           afterInsert(toast, tr("editor.qr_code"));
         } },
-        { label: tr("editor.barcode"), icon: Barcode, run: () => setBarcodeOpen(true) },
+        { id: "code.barcode", label: tr("editor.barcode"), icon: Barcode, run: () => setBarcodeOpen(true) },
       ],
     },
   ];
-  // Recently-used elements: remember the last few inserted tiles (by label) so
-  // they resurface at the top for one-click re-insertion. Tiles are static, so a
-  // label round-trips to its run() via this flat lookup.
-  const tileByLabel = new Map(groups.flatMap((g) => g.tiles.map((t) => [t.label, t] as const)));
-  const [recent, setRecent] = useState<string[]>(() => {
-    if (typeof window === "undefined") return [];
-    try { return JSON.parse(localStorage.getItem("oc:recentElements") || "[]"); } catch { return []; }
-  });
-  const recordRecent = (label: string) => {
-    setRecent((prev) => {
-      const next = [label, ...prev.filter((l) => l !== label)].slice(0, 6);
-      try { localStorage.setItem("oc:recentElements", JSON.stringify(next)); } catch { /* ignore */ }
-      return next;
-    });
-  };
-  const runTile = (t: ElementTile) => { recordRecent(t.label); void t.run(); };
-  const recentTiles = recent.map((l) => tileByLabel.get(l)).filter((t): t is ElementTile => !!t);
-  // Graphics browser state: search across the bundled sticker library and
+  const iconTile = (t: ElementTile): ElementTileDef => ({ id: t.id, label: t.label, render: () => <t.icon size={20} />, run: t.run });
+  const svgIcon = (svg: string) => <span className="block h-7 w-7 [&>svg]:h-full [&>svg]:w-full" dangerouslySetInnerHTML={{ __html: svg }} />;
+  // Graphics: bundled, free, editable-vector stickers (insert via addIconSvg).
+  // The row's line shows the person's pinned and most used ones; "Browse all"
+  // opens the searchable library by category.
+  const insertSticker = (s: Sticker) => { useEditor.getState().addIconSvg(s.svg); afterInsert(toast, stickerLabel(s).toLowerCase()); };
+  const graphicTiles: ElementTileDef[] = stickers.map((s) => ({
+    id: `sticker.${s.id}`,
+    label: stickerLabel(s),
+    // Match the TRANSLATED label and category as well as the English ones, so
+    // search works in the user's language and still finds a row whose
+    // translation is missing.
+    terms: [s.label, stickerCategoryLabel(s.category), s.category, ...(s.keywords ?? [])],
+    render: () => svgIcon(s.svg),
+    run: () => insertSticker(s),
+  }));
+  // Animated stickers: editable vectors that insert with a looping emphasis
+  // animation already applied (play/present to see them move).
+  const animatedTiles: ElementTileDef[] = animatedStickers().map((s) => ({
+    id: `animated.${s.id}`,
+    label: tr("editor.name_animated", { name: stickerLabel(s) }),
+    render: () => svgIcon(s.svg),
+    run: () => {
+      const st = useEditor.getState();
+      st.addIconSvg(s.svg);
+      const id = st.selection[0];
+      if (id) st.setNodeAnimation(id, { emphasis: { preset: s.preset, durationMs: 1400, delayMs: 0, easing: "ease-in-out" } });
+      afterInsert(toast, tr("editor.name_animated", { name: stickerLabel(s) }));
+    },
+  }));
+  // Graphics library state: search across the bundled library and
   // per-category expansion (collapsed categories render only their first rows).
   const [stickerQuery, setStickerQuery] = useState("");
   const [expandedStickerCats, setExpandedStickerCats] = useState<Set<string>>(new Set());
   const stickerTile = (s: Sticker) => (
     <button
       key={s.id}
-      onClick={() => { useEditor.getState().addIconSvg(s.svg); afterInsert(toast, stickerLabel(s).toLowerCase()); }}
+      onClick={() => insertSticker(s)}
       title={stickerLabel(s)}
       aria-label={stickerLabel(s)}
       className="grid aspect-square place-items-center rounded-lg bg-neutral-50 p-1.5 transition hover:bg-brand-50 [&>span>svg]:h-full [&>span>svg]:w-full"
@@ -644,131 +657,80 @@ export function ElementsPanel() {
       <span className="block h-full w-full" dangerouslySetInnerHTML={{ __html: s.svg }} />
     </button>
   );
+  const browseGraphics = () => (
+    <div className="flex flex-col gap-2">
+      <input
+        value={stickerQuery}
+        onChange={(e) => setStickerQuery(e.target.value)}
+        placeholder={tr("editor.search_graphics")}
+        className="w-full rounded-lg border border-neutral-200 px-2.5 py-1.5 text-sm outline-none focus:border-brand-400"
+      />
+      {stickerQuery.trim() ? (
+        (() => {
+          const q = stickerQuery.trim().toLowerCase();
+          const matches = stickers.filter(
+            (s) =>
+              stickerLabel(s).toLowerCase().includes(q) ||
+              s.label.toLowerCase().includes(q) ||
+              stickerCategoryLabel(s.category).toLowerCase().includes(q) ||
+              s.category.toLowerCase().includes(q) ||
+              (s.keywords ?? []).some((k) => k.includes(q)),
+          );
+          const shown = matches.slice(0, 48);
+          return (
+            <>
+              <div className="grid grid-cols-4 gap-2">{shown.map((s) => stickerTile(s))}</div>
+              {matches.length === 0 && <p className="py-2 text-xs text-neutral-400">{tr("editor.elements_no_results")}</p>}
+              {matches.length > shown.length && (
+                <p className="pt-2 text-[11px] text-neutral-400">{tr("editor.elements_more_results", { count: matches.length - shown.length })}</p>
+              )}
+            </>
+          );
+        })()
+      ) : (
+        <div className="flex flex-col gap-2.5">
+          {stickerCategories.map((cat) => {
+            const items = stickers.filter((s) => s.category === cat);
+            const expanded = expandedStickerCats.has(cat);
+            const shown = expanded ? items : items.slice(0, 8);
+            return (
+              <div key={cat}>
+                <div className="mb-1.5 flex items-center justify-between">
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
+                    {stickerCategoryLabel(cat)} <span className="font-normal">({items.length})</span>
+                  </span>
+                  {items.length > 8 && (
+                    <button
+                      onClick={() =>
+                        setExpandedStickerCats((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(cat)) next.delete(cat);
+                          else next.add(cat);
+                          return next;
+                        })
+                      }
+                      className="text-[11px] font-medium text-brand-ink hover:text-brand-ink"
+                    >
+                      {expanded ? tr("editor.show_less") : tr("editor.show_all")}
+                    </button>
+                  )}
+                </div>
+                <div className="grid grid-cols-4 gap-2">{shown.map((s) => stickerTile(s))}</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+  const rows: ElementRowDef[] = [
+    ...groups.map((g) => ({ id: g.id, title: g.title, tiles: g.tiles.map(iconTile) })),
+    { id: "graphics", title: tr("editor.graphics"), tiles: graphicTiles, count: stickers.length, browse: browseGraphics },
+    { id: "animated", title: tr("editor.animated"), tiles: animatedTiles },
+  ];
   return (
     <PanelShell title={tr("editor.elements")}>
-      <div className="flex flex-col gap-2.5">
-        {recentTiles.length > 0 && (
-          <CollapsibleSection title={tr("editor.recently_used")} icon={Clock} defaultOpen>
-            <div className="grid grid-cols-4 gap-1.5">
-              {recentTiles.map((t) => (
-                <button key={`recent-${t.label}`} onClick={() => runTile(t)} title={t.label} className="flex aspect-square flex-col items-center justify-center gap-1 rounded-lg bg-neutral-50 text-neutral-600 transition hover:bg-brand-50 hover:text-brand-ink">
-                  <t.icon size={20} />
-                  <span className="max-w-full truncate px-0.5 text-[10px] font-medium leading-tight">{t.label}</span>
-                </button>
-              ))}
-            </div>
-          </CollapsibleSection>
-        )}
-        {groups.map((g) => (
-          <CollapsibleSection key={g.title} title={g.title} icon={g.icon} defaultOpen={g.defaultOpen}>
-            <div className="grid grid-cols-4 gap-1.5">
-              {g.tiles.map((t) => (
-                <button key={t.label} onClick={() => runTile(t)} title={t.label} className="flex aspect-square flex-col items-center justify-center gap-1 rounded-lg bg-neutral-50 text-neutral-600 transition hover:bg-brand-50 hover:text-brand-ink">
-                  <t.icon size={20} />
-                  <span className="max-w-full truncate px-0.5 text-[10px] font-medium leading-tight">{t.label}</span>
-                </button>
-              ))}
-            </div>
-          </CollapsibleSection>
-        ))}
-        {/* Graphics: bundled, free, editable-vector stickers (insert via addIconSvg).
-            Searchable across label/category/keywords; browsable by category with
-            a per-category "Show all" so the DOM stays small at 400+ assets. */}
-        <CollapsibleSection title={tr("editor.graphics")} icon={Sparkles} defaultOpen badge={String(stickers.length)}>
-          <div className="mb-2">
-            <input
-              value={stickerQuery}
-              onChange={(e) => setStickerQuery(e.target.value)}
-              placeholder={tr("editor.search_graphics")}
-              className="w-full rounded-lg border border-neutral-200 px-2.5 py-1.5 text-sm outline-none focus:border-brand-400"
-            />
-          </div>
-          {stickerQuery.trim() ? (
-            (() => {
-              const q = stickerQuery.trim().toLowerCase();
-              const matches = stickers.filter(
-                (s) =>
-                  // Match the TRANSLATED label and category as well as the
-                  // English ones, so search works in the user's language and
-                  // still finds a row whose translation is missing.
-                  stickerLabel(s).toLowerCase().includes(q) ||
-                  s.label.toLowerCase().includes(q) ||
-                  stickerCategoryLabel(s.category).toLowerCase().includes(q) ||
-                  s.category.toLowerCase().includes(q) ||
-                  (s.keywords ?? []).some((k) => k.includes(q)),
-              );
-              const shown = matches.slice(0, 48);
-              return (
-                <>
-                  <div className="grid grid-cols-4 gap-2">
-                    {shown.map((s) => stickerTile(s))}
-                  </div>
-                  {matches.length === 0 && <p className="py-2 text-xs text-neutral-400">No graphics match &quot;{stickerQuery}&quot;.</p>}
-                  {matches.length > shown.length && (
-                    <p className="pt-2 text-[11px] text-neutral-400">+{matches.length - shown.length} more, refine your search</p>
-                  )}
-                </>
-              );
-            })()
-          ) : (
-            <div className="flex flex-col gap-2.5">
-              {stickerCategories.map((cat) => {
-                const items = stickers.filter((s) => s.category === cat);
-                const expanded = expandedStickerCats.has(cat);
-                const shown = expanded ? items : items.slice(0, 8);
-                return (
-                  <div key={cat}>
-                    <div className="mb-1.5 flex items-center justify-between">
-                      <span className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
-                        {cat} <span className="font-normal">({items.length})</span>
-                      </span>
-                      {items.length > 8 && (
-                        <button
-                          onClick={() =>
-                            setExpandedStickerCats((prev) => {
-                              const next = new Set(prev);
-                              if (next.has(cat)) next.delete(cat);
-                              else next.add(cat);
-                              return next;
-                            })
-                          }
-                          className="text-[11px] font-medium text-brand-ink hover:text-brand-ink"
-                        >
-                          {expanded ? tr("editor.show_less") : tr("editor.show_all")}
-                        </button>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-4 gap-2">{shown.map((s) => stickerTile(s))}</div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </CollapsibleSection>
-        {/* Animated stickers: editable vectors that insert with a looping emphasis
-            animation already applied (play/present to see them move). */}
-        <CollapsibleSection title={tr("editor.animated")} icon={Play} defaultOpen={false}>
-          <div className="grid grid-cols-4 gap-2">
-            {animatedStickers().map((s) => (
-              <button
-                key={s.id}
-                onClick={() => {
-                  const st = useEditor.getState();
-                  st.addIconSvg(s.svg);
-                  const id = st.selection[0];
-                  if (id) st.setNodeAnimation(id, { emphasis: { preset: s.preset, durationMs: 1400, delayMs: 0, easing: "ease-in-out" } });
-                  afterInsert(toast, tr("editor.name_animated", { name: stickerLabel(s) }));
-                }}
-                title={tr("editor.name_animated", { name: stickerLabel(s) })}
-                aria-label={stickerLabel(s)}
-                className="grid aspect-square place-items-center rounded-lg bg-neutral-50 p-1.5 transition hover:bg-brand-50 [&>span>svg]:h-full [&>span>svg]:w-full"
-              >
-                <span className="block h-full w-full" dangerouslySetInnerHTML={{ __html: s.svg }} />
-              </button>
-            ))}
-          </div>
-        </CollapsibleSection>
-      </div>
+      <ElementRows rows={rows} />
       <InsertBarcodeDialog open={barcodeOpen} onClose={() => setBarcodeOpen(false)} />
     </PanelShell>
   );
