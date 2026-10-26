@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { BrandKit } from "@hc/sdk";
-import { colorsFromHexes, draftToPatch, duplicatePatch, emptyDraft, hexToColor, kitToDraft } from "./brandDraft";
+import { colorsFromHexes, contrastPairs, draftToPatch, duplicatePatch, emptyDraft, hexToColor, kitToDraft, withNeutrals } from "./brandDraft";
 
 function kit(): BrandKit {
   return {
@@ -42,9 +42,23 @@ describe("brand draft", () => {
     expect(patch.fonts).toEqual(k.fonts);
     expect(patch.logos).toEqual(k.logos);
     expect(patch.voice?.modelProfileId).toBe("mp1");
-    // Collections and controls are never part of an edit patch.
+    // Controls round-trip as stored; collections are never part of an edit patch.
+    expect(patch.controls).toEqual(k.controls);
     expect(patch).not.toHaveProperty("collections");
-    expect(patch).not.toHaveProperty("controls");
+  });
+
+  it("writes edited controls and logo sizing", () => {
+    const k = kit();
+    const d = kitToDraft(k);
+    d.controls = { ...d.controls, lockFonts: true, lintPolicy: "block" };
+    d.logos[0] = { ...d.logos[0], clearSpaceRatio: 0.5, minSizePx: undefined };
+    const patch = draftToPatch(d, k, "Palette");
+    expect(patch.controls).toEqual({ lockColors: true, lockFonts: true, restrictTemplates: false, lintPolicy: "block" });
+    expect(patch.logos?.[0]).toEqual({ id: "l1", label: "Mark", assetId: "a1", variants: { dark: "a2" }, clearSpaceRatio: 0.5, minSizePx: undefined });
+  });
+
+  it("starts a fresh draft with the server's default controls", () => {
+    expect(emptyDraft().controls).toEqual({ lockColors: false, lockFonts: false, restrictTemplates: false, lintPolicy: "warn" });
   });
 
   it("writes edited colors and fonts in place", () => {
@@ -81,5 +95,26 @@ describe("brand draft", () => {
     expect(p.collections).toEqual(k.collections);
     expect(p.collections).not.toBe(k.collections);
     expect(p.controls).toEqual(k.controls);
+  });
+
+  it("adds text and background neutrals that meet AAA", () => {
+    const out = withNeutrals(colorsFromHexes(["#9b2c72", "#e0457b"]));
+    const text = out.find((c) => c.role === "text");
+    const bg = out.find((c) => c.role === "background");
+    expect(text && bg).toBeTruthy();
+    expect(contrastPairs(out)[0]).toMatchObject({ fg: text, bg });
+    expect(contrastPairs(out)[0].ratio).toBeGreaterThanOrEqual(7);
+    // Run again: nothing more is added.
+    expect(withNeutrals(out)).toHaveLength(out.length);
+  });
+
+  it("gives an extracted near-black or near-white the neutral role instead of adding one", () => {
+    const out = withNeutrals(colorsFromHexes(["#9b2c72", "#e0457b", "#111111", "#fafafa"]));
+    expect(out.map((c) => c.role)).toEqual(["primary", "secondary", "text", "background"]);
+  });
+
+  it("lists only pairs readable as body text, lighter color as background", () => {
+    const pairs = contrastPairs(colorsFromHexes(["#ffffff", "#777777", "#000000"]));
+    expect(pairs.map((p) => [p.fg.hex, p.bg.hex])).toEqual([["#000000", "#ffffff"], ["#000000", "#777777"]]);
   });
 });

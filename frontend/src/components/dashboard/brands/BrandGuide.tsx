@@ -1,10 +1,11 @@
-// Read-only brand guide (#53): a kit's logos on light and dark grounds, its
-// colors with HEX and RGB, its type pairing, and its voice, laid out as a
+// Read-only brand guide (#53): a kit's logos on light and dark grounds with
+// their sizing rules, its colors with HEX and RGB, its type pairing, its
+// voice, and the controls that apply to designs, laid out as a
 // page people can read or print. Renders a BrandDraft so the wizard's review
 // step and a saved kit look the same.
 
 import { useEffect } from "react";
-import { isHex, type BrandDraft } from "@/lib/brandDraft";
+import { contrastPairs, isHex, type BrandDraft } from "@/lib/brandDraft";
 import { fonts } from "@/lib/fontProvider";
 import { tr } from "@/lib/i18n";
 import { logoSrc, roleLabel, type AssetUrls } from "./BrandForms";
@@ -33,8 +34,16 @@ export function BrandGuide({ draft, urls }: { draft: BrandDraft; urls: AssetUrls
     for (const f of [heading, body, accent]) if (f) fonts.ensure(f);
   }, [heading, body, accent]);
   const colors = draft.colors.filter((c) => isHex(c.hex));
+  const pairs = contrastPairs(colors);
   const v = draft.voice;
   const hasVoice = v.tone.length + v.doSay.length + v.dontSay.length > 0 || !!v.sampleCopy.trim();
+  const c = draft.controls;
+  const rules = [
+    c.lockColors ? tr("brands.lock_colors") : "",
+    c.lockFonts ? tr("brands.lock_fonts") : "",
+    c.restrictTemplates ? tr("brands.restrict_templates") : "",
+    c.lintPolicy !== "off" ? tr(`brands.export_check_${c.lintPolicy}_rule`) : "",
+  ].filter(Boolean);
 
   return (
     <div className="flex flex-col gap-8" data-testid="brand-guide">
@@ -59,7 +68,17 @@ export function BrandGuide({ draft, urls }: { draft: BrandDraft; urls: AssetUrls
                       {dark ? <img src={dark} alt={`${l.label} ${tr("brands.on_dark")}`} className="h-full w-full object-contain" /> : <span className="text-xs text-neutral-500">{tr("brands.no_dark_version")}</span>}
                     </div>
                   </div>
-                  <figcaption className="border-t border-neutral-200 px-3 py-2 text-xs text-neutral-600">{l.label}</figcaption>
+                  <figcaption className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 border-t border-neutral-200 px-3 py-2 text-xs text-neutral-600">
+                    <span>{l.label}</span>
+                    {(l.clearSpaceRatio || l.minSizePx) && (
+                      <span className="text-neutral-400">
+                        {[
+                          l.clearSpaceRatio ? tr("brands.clear_space_value", { n: String(Math.round(l.clearSpaceRatio * 100)) }) : "",
+                          l.minSizePx ? tr("brands.min_width_value", { n: String(l.minSizePx) }) : "",
+                        ].filter(Boolean).join(" · ")}
+                      </span>
+                    )}
+                  </figcaption>
                 </figure>
               );
             })}
@@ -84,6 +103,29 @@ export function BrandGuide({ draft, urls }: { draft: BrandDraft; urls: AssetUrls
                 </div>
               </div>
             ))}
+          </div>
+        )}
+        {colors.length > 1 && (
+          <div className="mt-5">
+            <div className="mb-2 text-xs font-semibold text-neutral-700">{tr("brands.text_pairs")}</div>
+            {pairs.length === 0 ? (
+              <p className="text-sm text-neutral-400">{tr("brands.no_text_pairs")}</p>
+            ) : (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3" data-testid="brand-contrast-pairs">
+                {pairs.map((p) => (
+                  <div key={`${p.fg.id}-${p.bg.id}`} className="overflow-hidden rounded-2xl border border-neutral-200">
+                    <div className="flex h-16 items-center gap-2 px-3" style={{ background: p.bg.hex, color: p.fg.hex }}>
+                      <span className="text-2xl font-bold" style={heading ? { fontFamily: `'${heading}', sans-serif` } : undefined}>Aa</span>
+                      <span className="text-xs" style={body ? { fontFamily: `'${body}', sans-serif` } : undefined}>{roleLabel(p.fg.role)} / {roleLabel(p.bg.role)}</span>
+                    </div>
+                    <div className="flex items-center justify-between px-3 py-1.5 font-mono text-[11px] text-neutral-600">
+                      <span>{tr("brands.contrast_value", { ratio: p.ratio.toFixed(1) })}</span>
+                      <span className="rounded bg-neutral-100 px-1.5 font-sans font-semibold text-neutral-700">{p.ratio >= 7 ? "AAA" : "AA"}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </section>
@@ -146,6 +188,13 @@ export function BrandGuide({ draft, urls }: { draft: BrandDraft; urls: AssetUrls
             )}
           </div>
         )}
+      </section>
+
+      <section>
+        <GuideHeading>{tr("brands.controls")}</GuideHeading>
+        <ul className="flex flex-col gap-1.5 rounded-2xl border border-neutral-200 p-5 text-sm text-neutral-700">
+          {rules.length === 0 ? <li className="text-neutral-400">{tr("brands.no_controls_on")}</li> : rules.map((r) => <li key={r}>{r}</li>)}
+        </ul>
       </section>
     </div>
   );

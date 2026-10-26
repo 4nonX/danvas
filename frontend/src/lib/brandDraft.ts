@@ -2,16 +2,16 @@
 // brand edit page work on, and its conversion to and from a stored BrandKit.
 //
 // A draft edits the parts of a kit people set up by hand (name, the first
-// palette, heading/body/accent fonts, logos, voice). Everything else on a
-// kit stays exactly as stored: extra palettes, other font roles, a font's
-// default style, a logo's variants and sizing, a swatch's name and exact
-// color value, collections, and controls. draftToPatch only sends what the
+// palette, heading/body/accent fonts, logos with their variants and sizing,
+// voice, and controls). Everything else on a kit stays exactly as stored:
+// extra palettes, other font roles, a font's default style, a swatch's name
+// and exact color value, and collections. draftToPatch only sends what the
 // draft owns and rebuilds those arrays from the stored objects, so saving a
 // kit edited here never drops data another surface wrote.
 
-import type { BrandFont, BrandKit, BrandKitPatch, BrandLogo, BrandPalette, BrandSwatch } from "@hc/sdk";
+import type { BrandControls, BrandFont, BrandKit, BrandKitPatch, BrandLogo, BrandPalette, BrandSwatch } from "@hc/sdk";
 import type { Color } from "@hc/schema";
-import { extractPalette, toHex, type Bitmap } from "@hc/color";
+import { contrastRatio, extractPalette, hslToRgb, rgbToHsl, toHex, type Bitmap } from "@hc/color";
 
 export interface DraftColor {
   /** The stored swatch id, or a fresh one for a new color. */
@@ -31,7 +31,14 @@ export interface BrandDraft {
   accentFont: string;
   logos: BrandLogo[];
   voice: { tone: string[]; doSay: string[]; dontSay: string[]; sampleCopy: string };
+  controls: BrandControls;
   isDefault: boolean;
+}
+
+/** The controls a fresh kit starts with on the server: nothing locked, and
+ *  the pre-export check warns without blocking. */
+export function defaultControls(): BrandControls {
+  return { lockColors: false, lockFonts: false, restrictTemplates: false, lintPolicy: "warn" };
 }
 
 export const colorRoles = ["primary", "secondary", "accent", "neutral", "background", "text"] as const;
@@ -46,6 +53,7 @@ export function emptyDraft(): BrandDraft {
     accentFont: "",
     logos: [],
     voice: { tone: [], doSay: [], dontSay: [], sampleCopy: "" },
+    controls: defaultControls(),
     isDefault: false,
   };
 }
@@ -91,6 +99,56 @@ export function colorsFromHexes(hexes: string[], existing: DraftColor[] = []): D
   return out;
 }
 
+const WHITE: Color = { srgb: { r: 1, g: 1, b: 1, a: 1 } };
+const BLACK: Color = { srgb: { r: 0, g: 0, b: 0, a: 1 } };
+
+/** Round out colors drafted from a logo or a website with the neutrals a
+ *  brand needs for text: a dark text color and a light background. A color
+ *  already in the list that is dark (or light) enough takes the role when it
+ *  only had the generic accent role; otherwise a neutral tinted toward the
+ *  primary color's hue is added. Both meet WCAG AAA (7:1) against white or
+ *  black respectively. Roles the user set are never changed. */
+export function withNeutrals(colors: DraftColor[]): DraftColor[] {
+  const valid = colors.filter((c) => isHex(c.hex));
+  const out = colors.map((c) => ({ ...c }));
+  const hue = valid.length ? rgbToHsl(hexToColor(valid[0].hex)).h : 0;
+  const ensure = (role: "text" | "background", fits: (c: Color) => boolean, make: () => Color) => {
+    if (out.some((c) => c.role === role)) return;
+    const found = out.find((c) => isHex(c.hex) && c.role === "accent" && fits(hexToColor(c.hex)));
+    if (found) { found.role = role; return; }
+    const hex = toHex(make()).toLowerCase();
+    if (!out.some((c) => c.hex.toLowerCase() === hex)) out.push({ id: newId("s"), hex, role });
+  };
+  ensure("text", (c) => contrastRatio(c, WHITE) >= 12, () => hslToRgb({ h: hue, s: 0.25, l: 0.11, a: 1 }));
+  ensure("background", (c) => contrastRatio(c, BLACK) >= 18, () => hslToRgb({ h: hue, s: 0.3, l: 0.97, a: 1 }));
+  return out;
+}
+
+export interface ContrastPair {
+  fg: DraftColor;
+  bg: DraftColor;
+  ratio: number;
+}
+
+/** The kit's color pairs that are readable as body text (WCAG AA, 4.5:1),
+ *  best first, the lighter color of each pair taken as the background. */
+export function contrastPairs(colors: DraftColor[], max = 6): ContrastPair[] {
+  const valid = colors.filter((c) => isHex(c.hex));
+  const pairs: ContrastPair[] = [];
+  for (let i = 0; i < valid.length; i++) {
+    for (let j = i + 1; j < valid.length; j++) {
+      const a = hexToColor(valid[i].hex);
+      const b = hexToColor(valid[j].hex);
+      if (valid[i].hex.toLowerCase() === valid[j].hex.toLowerCase()) continue;
+      const ratio = contrastRatio(a, b);
+      if (ratio < 4.5) continue;
+      const aLighter = contrastRatio(a, BLACK) >= contrastRatio(b, BLACK);
+      pairs.push({ fg: aLighter ? valid[j] : valid[i], bg: aLighter ? valid[i] : valid[j], ratio });
+    }
+  }
+  return pairs.sort((x, y) => y.ratio - x.ratio).slice(0, max);
+}
+
 const fontOf = (kit: BrandKit, role: string) => kit.fonts.find((f) => f.role === role)?.fontFamily ?? "";
 
 export function kitToDraft(kit: BrandKit): BrandDraft {
@@ -109,6 +167,7 @@ export function kitToDraft(kit: BrandKit): BrandDraft {
       dontSay: [...(kit.voice?.dontSay ?? [])],
       sampleCopy: kit.voice?.sampleCopy ?? "",
     },
+    controls: { ...defaultControls(), ...kit.controls },
     isDefault: kit.isDefault,
   };
 }
@@ -163,6 +222,7 @@ export function draftToPatch(d: BrandDraft, base: BrandKit | null, paletteName: 
     fonts: draftFonts(d, base),
     logos: d.logos,
     voice: hasVoice || base?.voice ? voice : null,
+    controls: { ...d.controls },
   };
 }
 

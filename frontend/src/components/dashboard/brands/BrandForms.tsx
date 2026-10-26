@@ -1,5 +1,5 @@
 // Brand guide form sections (#53), shared by the new-brand wizard and the
-// brand edit page: basics, logos, colors, fonts, and voice. Each section edits
+// brand edit page: basics, logos, colors, fonts, voice, and controls. Each section edits
 // a BrandDraft through onChange and saves nothing itself; the only side effect
 // is uploading a logo file as a workspace asset, which a logo needs before it
 // can be referenced.
@@ -7,7 +7,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Loader2, Moon, Plus, Sparkles, Trash2, Upload, X } from "lucide-react";
 import { searchFonts } from "@hc/text";
-import type { BrandSuggestion } from "@hc/sdk";
+import type { BrandControls, BrandLogo, BrandSuggestion } from "@hc/sdk";
 import {
   colorRoles, colorsFromHexes, isHex, loadImage, logoPalette, logoPreviewDataUrl, monochromeLogo,
   type BrandDraft, type DraftColor,
@@ -206,6 +206,9 @@ export function LogoSection({
     }
   };
 
+  const setLogo = (logoId: string, patch: Partial<BrandLogo>) =>
+    onChange({ ...draft, logos: draft.logos.map((l) => (l.id === logoId ? { ...l, ...patch } : l)) });
+
   const setDark = (logoId: string, assetId: string | undefined) =>
     onChange({
       ...draft,
@@ -289,6 +292,24 @@ export function LogoSection({
                   <Trash2 size={14} />
                 </button>
               </div>
+              <div className="grid grid-cols-2 gap-1.5">
+                <SizeInput
+                  id={`${l.id}-clear`}
+                  label={tr("brands.clear_space")}
+                  unit="%"
+                  max={200}
+                  value={l.clearSpaceRatio != null ? Math.round(l.clearSpaceRatio * 100) : undefined}
+                  onChange={(v) => setLogo(l.id, { clearSpaceRatio: v != null ? v / 100 : undefined })}
+                />
+                <SizeInput
+                  id={`${l.id}-min`}
+                  label={tr("brands.min_width")}
+                  unit="px"
+                  max={4000}
+                  value={l.minSizePx}
+                  onChange={(v) => setLogo(l.id, { minSizePx: v })}
+                />
+              </div>
               <div className="flex flex-wrap gap-1.5">
                 <button type="button" className={smallBtn} disabled={busy !== null} onClick={() => void generateDark(l.id, l.assetId, l.label)}>
                   {busy === l.id ? <Loader2 size={12} className="animate-spin" /> : <Moon size={12} />} {tr("brands.make_white_version")}
@@ -342,6 +363,39 @@ export function LogoSection({
         </div>
       )}
     </FormSection>
+  );
+}
+
+/** A small whole-number field for logo sizing; empty clears the value. */
+function SizeInput({ id, label, unit, max, value, onChange }: {
+  id: string;
+  label: string;
+  unit: string;
+  max: number;
+  value: number | undefined;
+  onChange: (v: number | undefined) => void;
+}) {
+  return (
+    <div>
+      <label htmlFor={id} className="mb-0.5 block text-[11px] text-neutral-500">{label}</label>
+      <div className="flex items-center rounded-lg border border-neutral-200 bg-surface focus-within:border-brand-400">
+        <input
+          id={id}
+          type="number"
+          inputMode="numeric"
+          min={0}
+          max={max}
+          step={1}
+          value={value ?? ""}
+          onChange={(e) => {
+            const n = Math.round(Number(e.target.value));
+            onChange(e.target.value === "" || !Number.isFinite(n) || n <= 0 ? undefined : Math.min(max, n));
+          }}
+          className="min-w-0 flex-1 bg-transparent px-2 py-1 text-xs outline-none"
+        />
+        <span className="pe-2 text-[11px] text-neutral-400">{unit}</span>
+      </div>
+    </div>
   );
 }
 
@@ -576,6 +630,60 @@ export function VoiceSection({ draft, onChange, ai }: { draft: BrandDraft; onCha
           <label className="mb-1 block text-xs font-medium text-neutral-600" htmlFor="brand-sample">{tr("brands.sample_copy")}</label>
           <textarea id="brand-sample" rows={3} maxLength={400} value={v.sampleCopy} onChange={(e) => set({ sampleCopy: e.target.value })} placeholder={tr("brands.sample_copy_placeholder")} className={inputCls} />
         </div>
+      </div>
+    </FormSection>
+  );
+}
+
+// --- controls ----------------------------------------------------------------
+
+const lintPolicies = ["off", "warn", "block"] as const;
+
+/** Brand controls: lock designs to the kit's colors and fonts, limit new
+ *  designs to brand templates, and set how strictly exports are checked. */
+export function ControlsSection({ draft, onChange }: { draft: BrandDraft; onChange: (d: BrandDraft) => void }) {
+  const c = draft.controls;
+  const set = (patch: Partial<BrandControls>) => onChange({ ...draft, controls: { ...c, ...patch } });
+  const toggles: { key: "lockColors" | "lockFonts" | "restrictTemplates"; label: string; hint: string }[] = [
+    { key: "lockColors", label: tr("brands.lock_colors"), hint: tr("brands.lock_colors_hint") },
+    { key: "lockFonts", label: tr("brands.lock_fonts"), hint: tr("brands.lock_fonts_hint") },
+    { key: "restrictTemplates", label: tr("brands.restrict_templates"), hint: tr("brands.restrict_templates_hint") },
+  ];
+  return (
+    <FormSection title={tr("brands.controls")} hint={tr("brands.controls_hint")}>
+      <div className="flex flex-col gap-3">
+        {toggles.map((t) => (
+          <label key={t.key} className="flex items-start gap-2.5">
+            <input
+              type="checkbox"
+              checked={c[t.key]}
+              onChange={(e) => set({ [t.key]: e.target.checked })}
+              className="mt-0.5 h-4 w-4 shrink-0 accent-brand-600"
+              data-testid={`brand-control-${t.key}`}
+            />
+            <span>
+              <span className="block text-sm text-neutral-800">{t.label}</span>
+              <span className="block text-xs text-neutral-500">{t.hint}</span>
+            </span>
+          </label>
+        ))}
+        <fieldset className="mt-1">
+          <legend className="mb-1.5 text-sm text-neutral-800">{tr("brands.export_check")}</legend>
+          <div className="grid gap-2 sm:grid-cols-3">
+            {lintPolicies.map((p) => (
+              <label
+                key={p}
+                className={`flex cursor-pointer flex-col gap-0.5 rounded-xl border p-2.5 ${c.lintPolicy === p ? "border-brand-400 bg-brand-50" : "border-neutral-200 hover:border-brand-300"}`}
+              >
+                <span className="flex items-center gap-2 text-sm font-medium text-neutral-800">
+                  <input type="radio" name="brand-lint-policy" checked={c.lintPolicy === p} onChange={() => set({ lintPolicy: p })} className="accent-brand-600" />
+                  {tr(`brands.export_check_${p}`)}
+                </span>
+                <span className="text-xs text-neutral-500">{tr(`brands.export_check_${p}_hint`)}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
       </div>
     </FormSection>
   );

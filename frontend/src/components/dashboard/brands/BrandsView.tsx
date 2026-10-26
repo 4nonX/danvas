@@ -21,7 +21,7 @@ import { tr } from "@/lib/i18n";
 import { userMessage } from "@/lib/errors";
 import { useDateFormat } from "@/lib/datetime";
 import {
-  AiSuggestButton, applySuggestion, BasicsSection, ColorSection, FontSection, LogoSection, VoiceSection,
+  AiSuggestButton, applySuggestion, BasicsSection, ColorSection, ControlsSection, FontSection, LogoSection, VoiceSection,
   logoSrc, suggestIdentity, type AssetUrls,
 } from "./BrandForms";
 import { BrandGuide } from "./BrandGuide";
@@ -394,6 +394,7 @@ function BrandEditor({ kit, saved, aiReady, workspaceId, urls, onUrl, onSaved }:
       <ColorSection draft={draft} onChange={setDraft} urls={urls} />
       <FontSection draft={draft} onChange={setDraft} ai={ai} />
       <VoiceSection draft={draft} onChange={setDraft} ai={ai} />
+      <ControlsSection draft={draft} onChange={setDraft} />
       <div className="sticky bottom-0 -mx-1 flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50/95 px-1 py-3 backdrop-blur">
         {dirty && <span className="me-auto text-xs text-neutral-500">{tr("brands.unsaved_changes")}</span>}
         <button type="button" onClick={() => setDraft(saved)} disabled={!dirty || saving} className="rounded-lg border border-neutral-200 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 disabled:opacity-50">

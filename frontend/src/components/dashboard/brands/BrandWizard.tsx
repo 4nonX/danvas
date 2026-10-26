@@ -11,14 +11,14 @@ import { useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Globe, ImageIcon, Loader2, PenLine, X } from "lucide-react";
 import type { BrandKit } from "@hc/sdk";
 import {
-  colorsFromHexes, draftIsSavable, draftToPatch, emptyDraft, logoPalette, type BrandDraft,
+  colorsFromHexes, draftIsSavable, draftToPatch, emptyDraft, logoPalette, withNeutrals, type BrandDraft,
 } from "@/lib/brandDraft";
 import { directUploadWithProgress, oc } from "@/lib/sdk";
 import { useToast } from "@/components/ui/Toast";
 import { tr } from "@/lib/i18n";
 import { userMessage } from "@/lib/errors";
 import {
-  AiSuggestButton, applySuggestion, BasicsSection, ColorSection, FontSection, LogoSection, VoiceSection,
+  AiSuggestButton, applySuggestion, BasicsSection, ColorSection, ControlsSection, FontSection, LogoSection, VoiceSection,
   logoImage, makeDarkVariant, suggestIdentity, uploadLogo, type AssetUrls,
 } from "./BrandForms";
 import { BrandGuide } from "./BrandGuide";
@@ -90,7 +90,7 @@ export function BrandWizard({
         ...draft,
         name: draft.name || label.replace(/[-_]+/g, " ").replace(/\blogo\b/i, "").trim(),
         logos: [{ id: `l-${crypto.randomUUID()}`, label: label || tr("brands.logo"), assetId: a.id, ...(dark ? { variants: { dark: dark.id } } : {}) }],
-        colors: colorsFromHexes(img ? logoPalette(img) : [], draft.colors),
+        colors: withNeutrals(colorsFromHexes(img ? logoPalette(img) : [], draft.colors)),
       };
       setDraft(d);
       if (aiReady) {
@@ -147,7 +147,7 @@ export function BrandWizard({
         ...draft,
         name: draft.name || (r.name ?? "").slice(0, 80),
         description: draft.description || (r.description ?? ""),
-        colors: colorsFromHexes(Array.isArray(r.colors) ? r.colors : [], draft.colors),
+        colors: withNeutrals(colorsFromHexes(Array.isArray(r.colors) ? r.colors : [], draft.colors)),
         headingFont: draft.headingFont || found.fonts[0] || "",
         bodyFont: draft.bodyFont || found.fonts[1] || found.fonts[0] || "",
         logos: logo ? [{ id: `l-${crypto.randomUUID()}`, label: (r.name ?? "").slice(0, 80) || tr("brands.logo"), assetId: logo.id }] : draft.logos,
@@ -307,6 +307,7 @@ export function BrandWizard({
                   {tr("brands.make_default")}
                 </label>
               </div>
+              <ControlsSection draft={draft} onChange={setDraft} />
               <BrandGuide draft={draft} urls={urls} />
             </>
           )}
