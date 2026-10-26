@@ -2,6 +2,26 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 1.3.0 (2026-10-26)
+
+### Added
+
+- **Colour libraries from CxF and CGATS.** Besides `.ase`, `.acb` and `.csv`, a colour library can now be a CxF file (`.cxf`, ISO 17972) or a CGATS / IT8 file (`.txt`, `.cgats`, `.it8`), as colour atlases and measuring software write them. Lab is taken as given when it was measured under D50 and the 2° observer; otherwise it is worked out from the measured reflectance spectra (380 to 730 nm, D50, 2°, weighting after ASTM E308), the way the measuring software does. On the HLC Colour Atlas XL that reproduces the published values to dE00 0.008 on average.
+- **The colour list goes with any download, in every common code, as PDF, CSV and swatches.** **Add a color list** is in the download menu for every format now, not only CMYK print files (a PNG or SVG gets the CMYK of the design's colour profile, named as such). Per colour it gives hex, RGB, HSL, HSB, CMYK, Lab and LCh, the brand colour with its role and Pantone reference, and the nearest colour of every colour library of the workspace (no longer one chosen library). Besides the PDF it comes as CSV, every code in a column (decimal mark of your language), and as Adobe swatches (.ase) for Illustrator and InDesign, with the print file's CMYK and spot colours as spot swatches.
+- **Export profiles can include the colour list** (with its files), so a print shop's profile always sends it; as a folder's default it applies to every design there.
+- **Adding the colour list is a right of its own**, **Add the color list** (`design.colorList`) under **Roles and permissions**. Every role that may download keeps it; it can now be taken from a role on its own.
+- **You see what was read before a library is stored**: how many colours, whether as Lab, from spectra, as CMYK or as RGB, and the first names. Nothing is stored until you confirm.
+
+### Fixed
+
+- **A file in another layout was read as something it is not.** A CGATS measurement file uploaded as `.txt` went through the CSV reader, which took the first four spectral values of each row as CMYK, so the library held 13,000 near-white colours without a word. The CSV reader is strict now: a header on the first line, then only name;L;a;b, name;C;M;Y;K or name;#rrggbb with values in range; any other line refuses the file and names the line. Every refusal says why. A library read wrongly before stays as it is; delete it and upload the file again.
+- **Brand page**: logos and graphics of a just-imported brand kit showed as missing until the page was reloaded.
+- **Change format with a turn and the content left as it is** turns the page as a whole now. The content was turned on a page already given the new size, so whatever did not fit that page landed beside it while the page stayed empty. A size of the design's own shape (a landscape size for a landscape label) does not suit turned content: it shrinks a lot, is rebuilt or sticks out. The dialog says so and offers **Swap width and height**, so a label that runs sideways gets the size after the turn.
+
+### Upgrading
+
+- A migration adds the permission **Color list** to every workspace that has roles and gives it to every role that may download designs, so nobody gains or loses a right; it adds rows only, and a rollback ignores the unknown action. Export profiles saved before have no colour list (off). No change to the file format.
+
 ## 1.2.0 (2026-10-23)
 
 ### Added

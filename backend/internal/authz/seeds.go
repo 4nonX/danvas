@@ -36,6 +36,7 @@ var SeedPermissions = []SeedPermission{
 	{"edit-designs", set(DesignCreate, ScopeAll, DesignRename, ScopeAll, DesignEdit, ScopeAll, DesignPresent, ScopeAll)},
 	{"delete-designs", set(DesignTrash, ScopeAll, DesignRestore, ScopeAll, DesignPurge, ScopeAll)},
 	{"download-comment", set(DesignDownload, ScopeAll, DesignComment, ScopeAll)},
+	{"color-list", set(DesignColorList, ScopeAll)},
 	{"moderate-comments", set(CommentModerate, ScopeAll)},
 	{"organize-folders", set(FolderCreate, ScopeAll, FolderEdit, ScopeAll, FolderDelete, ScopeAll)},
 	{"folder-defaults", set(FolderDefaults, ScopeAll)},
@@ -72,8 +73,8 @@ func allSeedKeys() []string {
 var SeedRoles = []SeedRole{
 	{Key: "owner", Protected: true, Permissions: allSeedKeys(), LegacyRole: "owner"},
 	{Key: "admin", Permissions: allSeedKeys(), LegacyRole: "admin"},
-	{Key: "member", Permissions: []string{"edit-designs", "delete-designs", "download-comment", "organize-folders", "upload-files", "share", "templates", "use-ai-canva"}, LegacyRole: "member"},
-	{Key: "viewer", Permissions: []string{"download-comment"}, LegacyRole: "viewer"},
+	{Key: "member", Permissions: []string{"edit-designs", "delete-designs", "download-comment", "color-list", "organize-folders", "upload-files", "share", "templates", "use-ai-canva"}, LegacyRole: "member"},
+	{Key: "viewer", Permissions: []string{"download-comment", "color-list"}, LegacyRole: "viewer"},
 }
 
 // SeedOptions carry the pre-F42 per-workspace switches the seed reproduces.

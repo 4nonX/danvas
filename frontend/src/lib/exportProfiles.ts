@@ -56,7 +56,13 @@ export interface ExportSettings {
   /** The finished size the profile is made for, in mm; the menu warns about
    *  designs of another size (F48). Null: any size. */
   trimSize: TrimSize | null;
+  /** The colour list added to the download, and as which files; null: none.
+   *  Added only for people whose role holds design.colorList. */
+  colorList: ColorListAs | null;
 }
+
+/** The files a colour list comes as. */
+export interface ColorListAs { pdf: boolean; csv: boolean; ase: boolean }
 
 const FORMATS: ExportFormat[] = ["png", "jpg", "pdf", "svg", "apng", "gif", "lottie", "mp4", "pptx", "md", "hyc", "tiff", "eps"];
 
@@ -72,6 +78,7 @@ export function defaultExportSettings(): ExportSettings {
     print: { source: "page", bleed: true, marks: true },
     impose: defaultImposeSettings(),
     trimSize: null,
+    colorList: null,
   };
 }
 
@@ -129,7 +136,17 @@ export function normalizeSettings(raw: unknown): ExportSettings {
     print,
     impose: normalizeImpose(r.impose),
     trimSize: normalizeTrimSize(r.trimSize),
+    colorList: normalizeColorListAs(r.colorList),
   };
+}
+
+/** A stored colour list choice; an older profile (without one), or one with
+ *  every file switched off, adds none. */
+export function normalizeColorListAs(raw: unknown): ColorListAs | null {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Record<string, unknown>;
+  const v = { pdf: r.pdf === true, csv: r.csv === true, ase: r.ase === true };
+  return v.pdf || v.csv || v.ase ? v : null;
 }
 
 /** Whether the menu still matches the profile (no unsaved change). */
@@ -184,6 +201,11 @@ export function describeSettings(s: ExportSettings, iccName: (id: string) => str
   const vectorPrint = f === "eps" || (f === "pdf" && s.pdfMode === "vector");
   if (vectorPrint && s.dieLine.on && s.dieLine.name.trim()) parts.push(tr("editor.profile_die_line", { name: s.dieLine.name.trim() }));
   if (f === "pdf" && s.pdfMode !== "tagged" && s.impose.on) parts.push(tr("editor.profile_imposed", { sheet: imposeSheetLabel(s.impose) }));
+  if (s.colorList && f !== "hyc" && f !== "md" && f !== "lottie") {
+    // i18n-ignore: file type names
+    const files = [s.colorList.pdf && "PDF", s.colorList.csv && "CSV", s.colorList.ase && "ASE"].filter(Boolean).join(", ");
+    parts.push(tr("editor.profile_color_list", { files }));
+  }
   return parts.join(" · ");
 }
 

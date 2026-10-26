@@ -1,6 +1,7 @@
 // Colour libraries of the workspace: a colour book it holds a licence for
-// (e.g. a Pantone book as .ase or .acb) or a house colour list (.csv). The
-// file is read here and only the entries are stored; the colour list that
+// (e.g. a Pantone book as .ase or .acb), a colour atlas (CxF, CGATS) or a
+// house colour list (.csv). The file is read here, what was read is shown
+// for confirmation, and only the entries are stored; the colour list that
 // goes with a print export names, per colour of a design, the nearest entry.
 // danvas ships no library. Every member sees the list, since every member
 // exports; uploading and removing take the colour profile right.
@@ -13,9 +14,28 @@ import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 import { userMessage } from "@/lib/errors";
 import { createCmykConverter, createLabConverter } from "@/lib/print/cms";
-import { ColorLibraryError, completeLab, parseColorLibrary } from "@/lib/print/colorLibrary";
+import { ColorLibraryError, completeLab, readColorLibrary } from "@/lib/print/colorLibrary";
+import { confirmAction } from "@/lib/promptDialog";
 import { listProfileOptions, profileBytes } from "@/lib/print/profiles";
 import { tr } from "@/lib/i18n";
+
+/** Why a file was refused, in the reader's language. */
+function readError(e: ColorLibraryError): string {
+  const p = e.params;
+  switch (e.reason) {
+    case "unsupported_type": return tr("dashboard.color_library_error_unsupported_type", p);
+    case "not_ase": return tr("dashboard.color_library_error_not_ase", p);
+    case "not_acb": return tr("dashboard.color_library_error_not_acb", p);
+    case "acb_space": return tr("dashboard.color_library_error_acb_space", p);
+    case "truncated": return tr("dashboard.color_library_error_truncated", p);
+    case "bad_line": return tr("dashboard.color_library_error_bad_line", p);
+    case "no_colors": return tr("dashboard.color_library_error_no_colors", p);
+    case "too_many": return tr("dashboard.color_library_error_too_many", p);
+    case "not_cxf": return tr("dashboard.color_library_error_not_cxf", p);
+    case "not_cgats": return tr("dashboard.color_library_error_not_cgats", p);
+    case "spectral_range": return tr("dashboard.color_library_error_spectral_range", p);
+  }
+}
 
 export function ColorLibrariesPanel({ workspaceId, canEdit }: { workspaceId: string; canEdit: boolean }) {
   const toast = useToast();
@@ -44,16 +64,35 @@ export function ColorLibrariesPanel({ workspaceId, canEdit }: { workspaceId: str
   async function upload(file: File) {
     setBusy(true);
     try {
-      let entries;
+      let read;
       try {
-        entries = parseColorLibrary(file.name, new Uint8Array(await file.arrayBuffer()));
+        read = readColorLibrary(file.name, new Uint8Array(await file.arrayBuffer()));
       } catch (e) {
         if (e instanceof ColorLibraryError) {
-          toast.error(tr("dashboard.color_library_not_readable"));
+          // Say what is wrong with the file; nothing is stored.
+          toast.error(`${tr("dashboard.color_library_not_readable")} ${readError(e)}`);
           return;
         }
         throw e;
       }
+      // What was read, before anything is stored: a file of another layout
+      // must not slip in as believable but wrong colours.
+      const c = read.counts;
+      const parts = [
+        c.lab ? tr("dashboard.color_library_read_lab", { count: c.lab }) : "",
+        c.spectral ? tr("dashboard.color_library_read_spectral", { count: c.spectral }) : "",
+        c.cmyk ? tr("dashboard.color_library_read_cmyk", { count: c.cmyk }) : "",
+        c.rgb ? tr("dashboard.color_library_read_rgb", { count: c.rgb }) : "",
+        read.skipped ? tr("dashboard.color_library_read_skipped", { count: read.skipped }) : "",
+      ].filter(Boolean);
+      const sample = read.entries.slice(0, 3).map((e) => e.name).join(", ");
+      const ok = await confirmAction({
+        title: tr("dashboard.color_library_confirm_title", { name: file.name }),
+        message: `${tr("dashboard.color_library_confirm", { count: read.entries.length })} ${parts.join(" · ")}. ${tr("dashboard.color_library_confirm_sample", { names: sample })}`,
+        confirmText: tr("dashboard.upload_color_library"),
+      });
+      if (!ok) return;
+      let entries = read.entries;
       // Matching needs Lab: entries given only as RGB or CMYK get it worked
       // out (CMYK through the workspace's default profile).
       if (entries.some((e) => !e.lab)) {
@@ -70,7 +109,7 @@ export function ColorLibrariesPanel({ workspaceId, canEdit }: { workspaceId: str
           cmyk?.dispose();
         }
       }
-      const name = file.name.replace(/\.(ase|acb|csv|txt)$/i, "");
+      const name = file.name.replace(/\.(ase|acb|csv|txt|cxf|cgats|it8|cgt)$/i, "");
       const lib = await oc.createColorLibrary(workspaceId, { name, sourceFile: file.name, entries });
       toast.success(tr("dashboard.color_library_added", { name: lib.name, count: lib.entryCount }));
       await reload();
@@ -110,7 +149,7 @@ export function ColorLibrariesPanel({ workspaceId, canEdit }: { workspaceId: str
           <input
             ref={fileRef}
             type="file"
-            accept=".ase,.acb,.csv,.txt"
+            accept=".ase,.acb,.cxf,.csv,.txt,.cgats,.it8"
             className="hidden"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) void upload(f); }}
           />

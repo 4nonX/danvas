@@ -34,6 +34,13 @@ export function reformatDesign(doc: DesignFile, o: ReformatOptions): DesignFile 
 export function reformatPage(page: Page, o: ReformatOptions): Page {
   // Lay out at the size before the turn: a quarter turn swaps the sides.
   const quarter = o.turn !== 0;
+  if (o.fit === "none" && quarter) {
+    // Content left as it is: the page turns as a whole, so the content stays
+    // on the page it was on, then the page takes the new size with the
+    // content where it is, as without a turn. Turning a page already given
+    // the new size sent content that did not fit it off the page.
+    return { ...turnPage(page, o.turn as -90 | 90), width: o.width, height: o.height };
+  }
   const lw = quarter ? o.height : o.width;
   const lh = quarter ? o.width : o.height;
   let p: Page;

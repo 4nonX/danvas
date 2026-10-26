@@ -91,6 +91,15 @@ export function ReformatDialog({ designs, onClose, onDone, initialSizeMm }: { de
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rows, w, h, unit, fit, turn, valid]);
 
+  // A turn onto a page of the design's own shape (a landscape label turned
+  // onto a landscape page) leaves the turned content the wrong shape for the
+  // page: it shrinks, is rebuilt or sticks out. Labels that run sideways want
+  // the size after the turn, so the dialog offers to swap the sides.
+  const firstPage = rows.find((r) => r.doc)?.doc?.pages[0];
+  const tw = parseLength(w, unit, 96, 0), th = parseLength(h, unit, 96, 0);
+  const sameShape = turn !== 0 && !!firstPage && tw !== null && th !== null && tw !== th && firstPage.width !== firstPage.height
+    && (tw > th) === (firstPage.width > firstPage.height);
+
   const ready = rows.filter((r) => previews.has(r.id));
   const loading = rows.some((r) => !r.doc && !r.error);
 
@@ -174,6 +183,19 @@ export function ReformatDialog({ designs, onClose, onDone, initialSizeMm }: { de
               ))}
             </div>
             <p className="mt-1.5 text-[11px] leading-snug text-neutral-500">{tr("dashboard.reformat_turn_hint")}</p>
+            {sameShape && (
+              <div className="mt-1.5 flex items-start gap-2 rounded-lg bg-amber-50 px-2.5 py-2 text-[11px] leading-snug text-amber-800">
+                <span className="min-w-0 flex-1">{tr("dashboard.reformat_turn_same_shape")}</span>
+                <button
+                  type="button"
+                  disabled={locked}
+                  onClick={() => { setW(h); setH(w); }}
+                  className="shrink-0 rounded-md bg-amber-600 px-2.5 py-1 font-medium text-white hover:bg-amber-700 disabled:opacity-50 dark:hover:bg-amber-500"
+                >
+                  {tr("dashboard.reformat_swap_sides")}
+                </button>
+              </div>
+            )}
           </section>
 
           <section>

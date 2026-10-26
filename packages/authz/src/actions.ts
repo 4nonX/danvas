@@ -35,6 +35,7 @@ export const ACTIONS = [
   { key: "design.restore", area: "designs", scoped: true },
   { key: "design.purge", area: "designs", scoped: true },
   { key: "design.download", area: "designs", scoped: false },
+  { key: "design.colorList", area: "designs", scoped: false },
   { key: "design.comment", area: "designs", scoped: false },
   { key: "design.present", area: "designs", scoped: false },
   { key: "comment.moderate", area: "designs", scoped: false },

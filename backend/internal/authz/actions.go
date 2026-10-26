@@ -31,7 +31,10 @@ const (
 	DesignRestore  Action = "design.restore"
 	DesignPurge    Action = "design.purge"
 	DesignDownload Action = "design.download"
-	DesignComment  Action = "design.comment"
+	// DesignColorList adds the colour list (every colour in every code, the
+	// brand's references, the nearest library colours) to a download.
+	DesignColorList Action = "design.colorList"
+	DesignComment   Action = "design.comment"
 	DesignPresent  Action = "design.present"
 	// CommentModerate edits and deletes other people's comments.
 	CommentModerate Action = "comment.moderate"
@@ -105,6 +108,7 @@ var Actions = []ActionDef{
 	{DesignRestore, "designs", true, "member"},
 	{DesignPurge, "designs", true, "member"},
 	{DesignDownload, "designs", false, "viewer"},
+	{DesignColorList, "designs", false, "viewer"},
 	{DesignComment, "designs", false, "viewer"},
 	{DesignPresent, "designs", false, "member"},
 	{CommentModerate, "designs", false, "admin"},

@@ -179,6 +179,34 @@ function ExportFields({ s, set, icc }: { s: ExportSettings; set: (patch: Partial
         </>
       )}
       <Check checked={s.zip} onChange={(v) => set({ zip: v })} label={tr("editor.combine_pages_into_a_zip")} />
+      {!["hyc", "md", "lottie"].includes(s.format) && (
+        <>
+          <Check
+            checked={!!s.colorList}
+            onChange={(v) => set({ colorList: v ? { pdf: true, csv: true, ase: true } : null })}
+            label={tr("editor.color_list")}
+            desc={tr("editor.color_list_profile_desc")}
+          />
+          {s.colorList && (
+            <div className="ms-5 flex flex-wrap gap-x-4 gap-y-1">
+              {([["pdf", tr("editor.color_list_as_pdf")], ["csv", tr("editor.color_list_as_csv")], ["ase", tr("editor.color_list_as_ase")]] as const).map(([k, label]) => (
+                <label key={k} className="flex cursor-pointer items-center gap-1.5 text-xs text-neutral-700">
+                  <input
+                    type="checkbox"
+                    checked={s.colorList![k]}
+                    onChange={(e) => {
+                      const next = { ...s.colorList!, [k]: e.target.checked };
+                      set({ colorList: next.pdf || next.csv || next.ase ? next : null });
+                    }}
+                    className={box}
+                  />
+                  {label}
+                </label>
+              ))}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

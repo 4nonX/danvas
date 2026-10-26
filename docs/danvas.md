@@ -100,7 +100,7 @@ Design cards say when a design was last edited ("5 minutes ago", "yesterday"); t
 **Change format…** in a design's menu, or in the selection bar for several designs, gives every page of them a new size in one go, for example when a print shop asks for 50 x 100 mm labels instead of 90 x 40 mm ones. Set:
 
 - **New size**, in any unit; the designs take that unit afterwards. Each page gets exactly this size; bleed, print marks and notes stay as they are.
-- **Turn the content** left or right, for labels that run sideways on a roll: the content is laid out on the turned size (100 x 50 mm) and turned a quarter, so the page ends up upright at exactly 50 x 100 mm and looks like the old one turned.
+- **Turn the content** left or right, for labels that run sideways on a roll: the content is laid out on the turned size (100 x 50 mm) and turned a quarter, so the page ends up upright at exactly 50 x 100 mm and looks like the old one turned. With **Leave as it is** the page turns as a whole, content and all, and then takes the new size. A size of the design's own shape (landscape for a landscape label) does not suit the turned content, which would shrink a lot, be rebuilt or stick out; the dialog says so and offers **Swap width and height**.
 - **Content**: **Scale and spread** (everything grows or shrinks by one factor, so text keeps its line breaks; the space left over is shared out by where things sit, and colour areas that run along an edge stretch with it), **Lay out anew** (as Magic Resize does) or **Leave as it is** (only the page changes).
 
 The dialog previews the result for every design before anything changes. **Change format** then saves each design as a version named after the size (Format 50 × 100 mm); the state before stays in the version history, from where it can be restored. Designs edited live get the change in their edit history as well, so an editor opened later starts from it; close the designs in every editor before changing them. Combined with **Extend artwork into the bleed** on download, the turned colour areas still fill the bleed.
@@ -373,17 +373,25 @@ For a CMYK print file the download menu has two more buttons above **Download**:
 
 ### Colour list and colour libraries
 
-Print shops sometimes ask which Pantone shades a design's colours are. For a CMYK print file, **Add a color list (PDF)** in the download menu puts a PDF beside the export (for several designs, one in each design's folder of the zip). For every colour the design uses it lists:
+Print shops sometimes ask which Pantone shades a design's colours are. With any download format, **Add a color list** in the download menu puts the list beside the export (for several designs, in each design's folder of the zip), as any of three files:
 
-- the colour and its hex value, with where it is used (fill, outline, text, gradient, page background, effect) and on which pages;
-- what the print file carries: the CMYK the chosen colour profile and intent make of it, or the exact CMYK or spot colour it was given;
-- the CIE L*a*b* (D50) that CMYK prints as on the profile's paper, worked out through the profile (absolute colorimetric): the value a print shop measures;
-- the brand colour it is (the same print colour, or within dE 2000 of 1 on screen), with the brand's Pantone reference;
-- with a colour library chosen, the library's nearest colour and its distance (CIEDE2000: below 1 hardly visible, below 2 small).
+- **PDF** to read;
+- **CSV** with every code in a column of its own (with the decimal mark of your language), for a spreadsheet or the print shop's software;
+- **swatches (.ase)** for Illustrator and InDesign: one swatch per colour with the CMYK the print file carries, a spot colour as a spot swatch under its name, so nobody types values.
+
+For every colour the design uses it gives:
+
+- the colour as hex, RGB (0 to 255), HSL and HSB, with where it is used (fill, outline, text, gradient, page background, effect) and on which pages;
+- what the print file carries: the CMYK the chosen colour profile and intent make of it, or the exact CMYK or spot colour it was given; for a download that is not CMYK (PNG, SVG, ...), the CMYK the design's colour profile makes of it, named as such;
+- the CIE L*a*b* (D50) and LCh that CMYK prints as on the profile's paper, worked out through the profile (absolute colorimetric): the value a print shop measures;
+- the brand colour it is (the same print colour, or within dE 2000 of 1 on screen), with its role and the brand's Pantone reference;
+- the nearest colour of each of the workspace's colour libraries and its distance (CIEDE2000: below 1 hardly visible, below 2 small).
 
 Pictures are counted, not listed: their colours go through the profile pixel by pixel. The list is a reference, not a proof, and changes nothing in the print file.
 
-**Colour libraries** are kept per workspace, on the dashboard's **Members** page under **Print and export**, **Color libraries**: upload a colour book as Adobe Swatch Exchange (`.ase`), Adobe Color Book (`.acb`, as Pantone's books for Photoshop come) or a CSV list (`name;L;a;b`, `name;C;M;Y;K` in percent, or `name;#rrggbb`, with `;`, `,` or tab between the fields). The file is read in the browser and only the entries are stored; entries given as RGB or CMYK get their Lab worked out (CMYK through the workspace's default colour profile). Up to 20000 colours a library. danvas ships no colour book: upload only books your workspace holds a licence for. Every member can choose a library in the download menu; uploading and removing take **Manage color profiles** (`print.colorProfiles`).
+An **export profile** can include the colour list and its files (in the profile editor, **Add a color list**), so every download with that profile, for example the one for a print shop, comes with it; made the default of a folder, it applies to every design there. Adding the colour list is a right of its own, **Add the color list** (`design.colorList`): every role that may download has it, and it can be taken from a role under [Roles and permissions](#roles-and-permissions); without it the option is not offered and a profile that asks for the list downloads without it.
+
+**Colour libraries** are kept per workspace, on the dashboard's **Members** page under **Print and export**, **Color libraries**: upload a colour book as Adobe Swatch Exchange (`.ase`), Adobe Color Book (`.acb`, as Pantone's books for Photoshop come), CxF (`.cxf`), CGATS (`.txt`, `.cgats`, `.it8`, for example a colour atlas's measurement file) or a CSV list (`name;L;a;b`, `name;C;M;Y;K` in percent, or `name;#rrggbb`, with `;`, `,` or tab between the fields, a header only on the first line). The file is read in the browser; before anything is stored the dialog says how many colours were read and in what form, and only after you confirm are the entries kept. Lab given for D50 and the 2° observer is used as it is; measured reflectance spectra (380 to 730 nm) are turned into Lab under D50, 2° (weighting after ASTM E308); entries given as RGB or CMYK get their Lab worked out (CMYK through the workspace's default colour profile). A file that cannot be read is refused with the reason, for example the line that does not fit. Up to 20000 colours a library. danvas ships no colour book: upload only books your workspace holds a licence for. Every colour list names the nearest colour of each library; uploading and removing take **Manage color profiles** (`print.colorProfiles`).
 
 ### Bleed and crop marks
 

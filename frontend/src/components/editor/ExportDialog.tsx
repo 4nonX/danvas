@@ -38,7 +38,7 @@ import { oc } from "@/lib/sdk";
 import { useToast } from "@/components/ui/Toast";
 import { baseCatalog, interpolate, translate, tr } from "@/lib/i18n";
 import { resolvedLocale } from "@/lib/locale";
-import { colorListPdf, colorListRows, collectDesignColors, fitsLatin1, type ColorListLabels, type ColorUseKind } from "@/lib/print/colorReport";
+import { colorListAse, colorListCsv, colorListPdf, colorListRows, collectDesignColors, fitsLatin1, type ColorListLabels, type ColorUseKind } from "@/lib/print/colorReport";
 import { copyText } from "@/lib/clipboard";
 import { ManageProfilesLinks } from "@/components/editor/ManageProfilesLinks";
 import { designProfileId, listProfileOptions, profileBytes, type ProfileOption } from "@/lib/print/profiles";
@@ -51,7 +51,9 @@ import { pageBleed } from "@hc/engine";
 import { imagePdfBlob, rasterBlob, renderPageCanvas, tiffBlob } from "@/lib/exportFormats";
 import { hycBlob } from "@/lib/hycFile";
 import { BARCODE_MIN_PX, exportIssues, HAIRLINE_PT, PRINT_MIN_PPI, SMALL_TEXT_PT, type ExportIssue } from "@/lib/exportIssues";
-import { describeSettings, normalizeSettings, sameSettings, type ExportSettings } from "@/lib/exportProfiles";
+import { describeSettings, normalizeSettings, sameSettings, type ColorListAs, type ExportSettings } from "@/lib/exportProfiles";
+import { useMyActions } from "@/store/workspaceActions";
+import { hasAction } from "@hc/authz";
 import { ProfileBar } from "./ProfileBar";
 import { ImposeFields } from "./ImposeFields";
 import { TrimSizeFields } from "./TrimSizeFields";
@@ -249,7 +251,7 @@ function renderDeckFrame(
 
 // The colour list's labels: the user's language when the PDF's built-in font
 // can show it, else English.
-function colorListLabels(info: { design: string; profile: string; brand?: string; library?: string; date: string }, images: number): ColorListLabels {
+function colorListLabels(info: { design: string; profile: string; brand?: string; libraries?: string; date: string }, images: number): ColorListLabels {
   // Shadows tr so the keys stay literal tr() calls (the catalog check reads them).
   const tr = (key: string, params?: Record<string, unknown>) => {
     const s = translate(key, params);
@@ -267,12 +269,18 @@ function colorListLabels(info: { design: string; profile: string; brand?: string
       [tr("editor.color_list_design"), info.design],
       [tr("editor.color_list_profile"), info.profile],
       ...(info.brand ? [[tr("editor.color_list_brand"), info.brand] as [string, string]] : []),
-      ...(info.library ? [[tr("editor.color_list_library"), info.library] as [string, string]] : []),
+      ...(info.libraries ? [[tr("editor.color_list_libraries"), info.libraries] as [string, string]] : []),
       [tr("editor.color_list_date"), info.date],
     ],
     columns: {
       color: tr("editor.color_list_col_color"), print: tr("editor.color_list_col_print"), lab: tr("editor.color_list_col_lab"),
+      screen: tr("editor.color_list_col_screen"),
       brand: tr("editor.color_list_col_brand"), nearest: tr("editor.color_list_col_nearest"), used: tr("editor.color_list_col_used"),
+    },
+    csv: {
+      name: tr("editor.color_list_csv_name"), brand: tr("editor.color_list_col_brand"), role: tr("editor.color_list_csv_role"),
+      pantone: tr("editor.color_list_csv_pantone"), used: tr("editor.color_list_col_used"), pages: tr("editor.color_list_csv_pages"),
+      print: tr("editor.color_list_col_print"), spot: tr("editor.color_list_spot"),
     },
     spot: tr("editor.color_list_spot"),
     exact: tr("editor.color_list_exact"),
@@ -430,8 +438,13 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
   // The colour list beside a CMYK print export, with the nearest entries of
   // one of the workspace's colour libraries.
   const [colorList, setColorList] = useState(false);
+  // Which files the colour list comes as: a PDF to read, a CSV with every
+  // code in columns, swatches (.ase) to load in Illustrator or InDesign.
+  const [colorListAs, setColorListAs] = useState<ColorListAs>({ pdf: true, csv: true, ase: true });
+  // The colour list is a right of its own (design.colorList); a profile
+  // that asks for it adds none for someone whose role lacks it.
+  const mayColorList = hasAction(useMyActions(workspaceId), "design.colorList");
   const [colorLibraries, setColorLibraries] = useState<ColorLibrary[] | null>(null);
-  const [colorLibraryId, setColorLibraryId] = useState<string>("");
   const [registration, setRegistration] = useState(true);
   const [dieLine, setDieLine] = useState<{ on: boolean; name: string; radiusMm: number }>(() => ({ on: false, name: tr("editor.die_line_default_name"), radiusMm: 2 }));
   // Print exports include each page's bleed and crop marks (set per page in
@@ -483,7 +496,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
     if (!open || !workspaceId || colorLibraries) return;
     let cancelled = false;
     void oc.listColorLibraries(workspaceId).then(
-      (l) => { if (!cancelled) { setColorLibraries(l); setColorLibraryId((cur) => cur || (l[0]?.id ?? "")); } },
+      (l) => { if (!cancelled) setColorLibraries(l); },
       () => { if (!cancelled) setColorLibraries([]); },
     );
     return () => { cancelled = true; };
@@ -504,6 +517,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
     print: printSource === "fixed" ? { source: "fixed", override } : { source: "page", bleed: withBleed, marks: withMarks },
     impose,
     trimSize,
+    colorList: colorList ? colorListAs : null,
   };
   function applySettings(raw: ExportSettings) {
     const s = normalizeSettings(raw);
@@ -521,6 +535,8 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
     setTacLimit(s.tacLimit);
     setRoundMm(s.roundMm);
     setExtendBleed(s.extendBleed);
+    setColorList(!!s.colorList);
+    if (s.colorList) setColorListAs(s.colorList);
     setImpose(s.impose);
     setTrimSize(s.trimSize);
     setOverprintBlack(s.overprintBlack);
@@ -1013,13 +1029,29 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
     return files[0];
   }
 
-  const withColorList = colorList && cmykCapable && printColor === "cmyk";
+  const withColorList = mayColorList && colorList && (colorListAs.pdf || colorListAs.csv || colorListAs.ase);
 
-  /** The colour list of one design (see lib/print/colorReport), from the
-   *  design as it is (not the prepress copy: marks are not its colours). */
-  async function colorListFile(d: DesignFile, id: string | null, library: { name: string; entries: ColorLibraryEntry[] } | null): Promise<{ blob: Blob; name: string }> {
-    const converter = await makeConverter();
-    if (!converter) throw new CodedError("errors.print_profile_missing", "no print profile");
+  /** The CMYK conversion for the colour list: the export's own for a CMYK
+   *  print file, else the design's colour profile (relative colorimetric),
+   *  so a PNG or SVG download gets the same print values the design would
+   *  print with. */
+  async function colorListConverter(d: DesignFile): Promise<{ converter: CmykConverter; profile: string }> {
+    const { createCmykConverter } = await import("@/lib/print/cms");
+    const label = (name: string, i: RenderingIntent) => `${name} (${i === "perceptual" ? tr("editor.color_list_intent_perceptual") : tr("editor.color_list_intent_relative")})`;
+    if (cmykCapable && printColor === "cmyk" && profileId) {
+      const converter = await createCmykConverter(await profileBytes(profileId), intent);
+      return { converter, profile: label(profiles?.find((o) => o.id === profileId)?.name ?? converter.description, intent) };
+    }
+    const options = profiles ?? (await listProfileOptions(workspaceId));
+    const id = designProfileId(options, d.colorProfile);
+    const converter = await createCmykConverter(await profileBytes(id), "relative");
+    return { converter, profile: `${label(options.find((o) => o.id === id)?.name ?? converter.description, "relative")}, ${tr("editor.color_list_profile_of_design")}` };
+  }
+
+  /** The colour list files of one design (see lib/print/colorReport), from
+   *  the design as it is (not the prepress copy: marks are not its colours). */
+  async function colorListFiles(d: DesignFile, id: string | null, libraries: { name: string; entries: ColorLibraryEntry[] }[]): Promise<{ blob: Blob; name: string }[]> {
+    const { converter, profile } = await colorListConverter(d);
     const { createLabConverter } = await import("@/lib/print/cms");
     const lab = await createLabConverter();
     try {
@@ -1027,28 +1059,34 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
       if (id) kit = (await oc.getDesignBrand(id).catch(() => null))?.kit ?? null;
       else kit = useBrand.getState().kit;
       const used = collectDesignColors(d);
-      const rows = colorListRows(used.colors, { converter, srgbLab: (r, g, b) => lab.fromSrgb(r, g, b), kit, library: library?.entries ?? null });
-      const profileName = profiles?.find((o) => o.id === profileId)?.name ?? converter.description;
+      const rows = colorListRows(used.colors, { converter, srgbLab: (r, g, b) => lab.fromSrgb(r, g, b), kit, libraries });
       const info = {
         design: d.title || tr("editor.untitled"),
-        profile: `${profileName} (${intent === "perceptual" ? tr("editor.color_list_intent_perceptual") : tr("editor.color_list_intent_relative")})`,
+        profile,
         brand: kit?.name,
-        library: library?.name,
+        libraries: libraries.map((l) => l.name).join(", ") || undefined,
         date: new Date().toLocaleString(resolvedLocale()),
       };
-      const blob = await colorListPdf(rows, colorListLabels(info, used.images));
+      const labels = colorListLabels(info, used.images);
       const safeBase = (d.title || "design").replace(/[^\w.-]+/g, "-").replace(/^-+|-+$/g, "") || "design";
-      return { blob, name: `${safeBase}-${tr("editor.color_list_file")}.pdf` };
+      const base = `${safeBase}-${tr("editor.color_list_file")}`;
+      const out: { blob: Blob; name: string }[] = [];
+      if (colorListAs.pdf) out.push({ blob: await colorListPdf(rows, labels), name: `${base}.pdf` });
+      // The decimal mark a spreadsheet in the reader's language expects.
+      const decimal = (1.5).toLocaleString(resolvedLocale()).includes(",") ? "," : ".";
+      if (colorListAs.csv) out.push({ blob: colorListCsv(rows, labels, decimal), name: `${base}.csv` });
+      if (colorListAs.ase) out.push({ blob: colorListAse(rows, d.title || "danvas"), name: `${base}.ase` });
+      return out;
     } finally {
       lab.dispose();
       converter.dispose();
     }
   }
 
-  async function colorLibraryForRun(): Promise<{ name: string; entries: ColorLibraryEntry[] } | null> {
-    const lib = colorLibraries?.find((l) => l.id === colorLibraryId);
-    if (!lib) return null;
-    return { name: lib.name, entries: await oc.colorLibraryEntries(lib.id) };
+  /** Every colour library of the workspace with its entries (the list
+   *  names the nearest entry of each). */
+  async function colorLibrariesForRun(): Promise<{ name: string; entries: ColorLibraryEntry[] }[]> {
+    return Promise.all((colorLibraries ?? []).map(async (l) => ({ name: l.name, entries: await oc.colorLibraryEntries(l.id) })));
   }
 
   async function run() {
@@ -1069,15 +1107,16 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
         await whenRenderable(doc);
         await exportDesign(doc, designId, pages, download, false);
         if (withColorList) {
-          const list = await colorListFile(doc, designId, await colorLibraryForRun());
-          await sleep(400); // a second download right after the first is often dropped
-          download(list.blob, list.name);
+          for (const f of await colorListFiles(doc, designId, await colorLibrariesForRun())) {
+            await sleep(400); // a download right after another is often dropped
+            download(f.blob, f.name);
+          }
         }
       } else {
         // Every page of every design, one folder per design, one zip.
         const files: { blob: Blob; name: string }[] = [];
         const folders = new Set<string>();
-        const library = withColorList ? await colorLibraryForRun() : null;
+        const libraries = withColorList ? await colorLibrariesForRun() : [];
         for (const t of designs!) {
           const base = (t.doc.title || "design").replace(/[\\/:*?"<>|]+/g, "-").trim() || "design";
           let folder = base;
@@ -1085,8 +1124,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
           folders.add(folder.toLowerCase());
           await exportDesign(t.doc, t.id, t.doc.pages.map((_, i) => i), (blob, name) => files.push({ blob, name: `${folder}/${name}` }), true);
           if (withColorList) {
-            const list = await colorListFile(t.doc, t.id, library);
-            files.push({ blob: list.blob, name: `${folder}/${list.name}` });
+            for (const f of await colorListFiles(t.doc, t.id, libraries)) files.push({ blob: f.blob, name: `${folder}/${f.name}` });
           }
         }
         const entries: ZipEntry[] = [];
@@ -1380,29 +1418,6 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
                     <input type="checkbox" checked={pdfx} onChange={(e) => setPdfx(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-brand-600" />
                   </label>
                 )}
-                <label className="flex cursor-pointer items-start justify-between gap-3 text-xs">
-                  <span className="text-neutral-600">
-                    {tr("editor.color_list")}
-                    <span className="mt-0.5 block text-[11px] leading-snug text-neutral-400">{tr("editor.color_list_desc")}</span>
-                  </span>
-                  <input type="checkbox" checked={colorList} onChange={(e) => setColorList(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-brand-600" />
-                </label>
-                {colorList && (
-                  <label className="block text-xs">
-                    <span className="mb-1 block font-medium text-neutral-500">{tr("editor.color_list_library_label")}</span>
-                    <select
-                      value={colorLibraryId}
-                      onChange={(e) => setColorLibraryId(e.target.value)}
-                      className="h-8 w-full rounded-lg border border-neutral-200 bg-surface px-2 text-xs text-neutral-800 outline-none focus:border-brand-400"
-                    >
-                      <option value="">{tr("editor.color_list_no_library")}</option>
-                      {(colorLibraries ?? []).map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
-                    </select>
-                    {colorLibraries !== null && colorLibraries.length === 0 && (
-                      <span className="mt-1 block text-[11px] leading-snug text-neutral-400">{tr("editor.color_list_no_libraries_hint")}</span>
-                    )}
-                  </label>
-                )}
               </>
             )}
             {format === "tiff" && (
@@ -1603,6 +1618,35 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
             <span className="text-neutral-600">{tr("editor.transparent_background")}</span>
             <input type="checkbox" checked={transparent} onChange={(e) => setTransparent(e.target.checked)} className="h-4 w-4 accent-brand-600" />
           </label>
+        )}
+
+        {/* Colour list beside the download, whatever the format (a right of
+            its own). */}
+        {rendersDesign && mayColorList && (
+          <div className="mb-3 rounded-xl border border-neutral-200 p-3">
+            <label className="flex cursor-pointer items-start justify-between gap-3 text-xs">
+              <span className="text-neutral-600">
+                {tr("editor.color_list")}
+                <span className="mt-0.5 block text-[11px] leading-snug text-neutral-400">{tr("editor.color_list_desc")}</span>
+              </span>
+              <input type="checkbox" checked={colorList} onChange={(e) => setColorList(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-brand-600" />
+            </label>
+            {colorList && (
+              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-neutral-600">
+                {([["pdf", tr("editor.color_list_as_pdf")], ["csv", tr("editor.color_list_as_csv")], ["ase", tr("editor.color_list_as_ase")]] as const).map(([k, label]) => (
+                  <label key={k} className="flex cursor-pointer items-center gap-1.5">
+                    <input type="checkbox" checked={colorListAs[k]} onChange={(e) => setColorListAs((v) => ({ ...v, [k]: e.target.checked }))} className="h-3.5 w-3.5 accent-brand-600" />
+                    {label}
+                  </label>
+                ))}
+              </div>
+            )}
+            {colorList && colorLibraries !== null && (
+              <span className="mt-1.5 block text-[11px] leading-snug text-neutral-400">
+                {colorLibraries.length ? tr("editor.color_list_libraries_used", { names: colorLibraries.map((l) => l.name).join(", ") }) : tr("editor.color_list_no_libraries_hint")}
+              </span>
+            )}
+          </div>
         )}
 
         {/* Batch: bundle multiple pages into one .zip (non-PDF formats). */}

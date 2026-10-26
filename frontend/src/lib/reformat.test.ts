@@ -109,6 +109,24 @@ describe("a 90 x 40 mm label to 50 x 100 mm upright", () => {
     expect(word.transform.scaleX).toBeCloseTo(word.transform.scaleY, 6);
   });
 
+  it("left as it is, turns with the page: the content stays on it", () => {
+    // 340 x 151 px turned left is 151 x 340 px: the turned label fills it.
+    const d = reformatDesign(label(), { width: 151, height: 340, fit: "none", turn: -90 });
+    expect([d.pages[0].width, d.pages[0].height]).toEqual([151, 340]);
+    const r = (v: number) => Math.round(v * 100) / 100;
+    const box = (id: string) => { const b = boxMm(d, id); return [b.x0, b.y0, b.x1, b.y1].map((v) => r(fromUnit(v, "mm", 96))); };
+    // The panel (120..220 across, full height) runs across the turned page.
+    expect(box("panel").map(Math.round)).toEqual([0, 120, 151, 220]);
+    expect(box("right").map(Math.round)).toEqual([10, 10, 70, 110]);
+    expect(box("left").map(Math.round)).toEqual([10, 230, 70, 330]);
+    // At a size that does not fit the turned page, the content stays where
+    // the turned page had it (from the top left), as without a turn.
+    const same = reformatDesign(label(), { width: 340, height: 151, fit: "none", turn: -90 });
+    expect([same.pages[0].width, same.pages[0].height]).toEqual([340, 151]);
+    const b = boxMm(same, "panel");
+    expect([b.x0, b.x1].map((v) => Math.round(fromUnit(v, "mm", 96)))).toEqual([0, 151]);
+  });
+
   it("still extends the turned panel into the bleed", () => {
     const { doc, notExtended } = prepressDoc(upright(), null, { extendIntoBleed: true });
     const panel = boxMm(doc, "panel");

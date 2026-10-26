@@ -154,6 +154,10 @@ export function BrandPage({ workspaceId, canEditKit, canEditLibrary = canEditKit
   }
 
   const onImported = async (k: BrandKit) => {
+    // The import uploaded the kit's logos and graphics: without the fresh
+    // list they would show as missing until the page is reloaded.
+    const files = await oc.listAssets(workspaceId).catch((): UploadedAsset[] | null => null);
+    if (files) setAssets(new Map(files.map((a) => [a.id, a])));
     await loadKits(k.id).catch(() => created(k));
     setCreating(false);
   };
