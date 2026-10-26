@@ -5333,5 +5333,16 @@
   "editor.elements_saved_note": "Reihenfolge, angeheftete Elemente und ausgeblendete Leisten werden in deinem Profil gespeichert.",
   "editor.elements_reset": "Zurücksetzen",
   "errors.api_ui_pref_invalid": "Die Einstellung konnte nicht gespeichert werden.",
-  "errors.api_ui_pref_too_large": "Die Einstellung ist zu groß zum Speichern."
+  "errors.api_ui_pref_too_large": "Die Einstellung ist zu groß zum Speichern.",
+  "editor.rail_reorder_hint": "Zum Sortieren ziehen oder Alt+Pfeiltasten. Rechtsklick setzt zurück.",
+  "editor.rail_reset_title": "Reihenfolge der Werkzeuge zurücksetzen?",
+  "editor.rail_reset_message": "Die Knöpfe links kehren auf allen Geräten zur ursprünglichen Reihenfolge zurück.",
+  "editor.rail_reset_confirm": "Zurücksetzen",
+  "editor.brand_back": "Zurück zur Marke",
+  "editor.brand_color_click_hint": "Klick: Füllung · Shift: Text",
+  "editor.brand_add_color_to": "Farbe zu {name} hinzufügen",
+  "editor.brand_tools": "Marken-Werkzeuge",
+  "editor.brand_tools_issues.one": "{count} Hinweis",
+  "editor.brand_tools_issues.other": "{count} Hinweise",
+  "editor.brand_tools_on_brand": "Markenkonform"
 }

@@ -5333,5 +5333,16 @@
   "editor.elements_saved_note": "El orden, los elementos fijados y las filas ocultas se guardan en tu perfil.",
   "editor.elements_reset": "Restablecer",
   "errors.api_ui_pref_invalid": "No se pudo guardar el ajuste.",
-  "errors.api_ui_pref_too_large": "El ajuste es demasiado grande para guardarlo."
+  "errors.api_ui_pref_too_large": "El ajuste es demasiado grande para guardarlo.",
+  "editor.rail_reorder_hint": "Arrastra para reordenar o usa Alt+flechas. Clic derecho para restablecer.",
+  "editor.rail_reset_title": "¿Restablecer el orden de las herramientas?",
+  "editor.rail_reset_message": "Los botones de la izquierda vuelven a su orden original en todos los dispositivos.",
+  "editor.rail_reset_confirm": "Restablecer",
+  "editor.brand_back": "Volver a la marca",
+  "editor.brand_color_click_hint": "Clic: relleno · Mayús: texto",
+  "editor.brand_add_color_to": "Añadir un color a {name}",
+  "editor.brand_tools": "Herramientas de marca",
+  "editor.brand_tools_issues.one": "{count} problema",
+  "editor.brand_tools_issues.other": "{count} problemas",
+  "editor.brand_tools_on_brand": "Acorde a la marca"
 }

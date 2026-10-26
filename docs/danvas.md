@@ -192,6 +192,7 @@ A design can be signed off before it is used, printed or published.
 
 ### Editor layout
 
+- **Tool rail** on the left (templates, elements, text, AI, uploads, stock, apps, brand, layers): drag a button to put it where you want it, or press Alt+arrow up or down on it; right-click the rail to go back to the built-in order. The order is kept with your account.
 - **Header**: the design's title, **File** for everything about the document (save, download, print, serial print, share, save as template, version history, activity, request approval, the danvas file) and **View** (rulers and guides, grid, grid settings, snapping, scrollbars).
 - **Rulers, grid and scrollbars**, from **View**: the rulers along the top and left edge measure the active page in the design's unit; drag a guide out of a ruler, drag it back to remove it. The grid lies over every page in view. **Grid settings…** sets the distance between its lines in any unit (for example 5 mm on a design measured in px: it becomes the same 5 mm at the design's dpi) and subdivisions, finer lines between the main ones that show once you zoom in far enough. While the grid is shown and snapping is on, a moved object snaps with its nearer edge to the finest lines shown; Shift moves freely. The scrollbars at the right and bottom edge pan over all pages and what sticks out of them; drag a bar, or click beside it to move most of a screen. These settings are kept for you in your browser and change no design.
 - **Contextual toolbar**, floating above the canvas: its controls follow the selection (text, image, shape, group, several elements; with nothing selected, the page), for example text style, crop, replace, flip, group and ungroup. Lock, duplicate, delete and more sit in a small bar at the selected element.
@@ -310,7 +311,14 @@ Who changes what is set under [Roles and permissions](#roles-and-permissions):
 
 **Brand check** (in the editor's brand panel, and before a download under **Warn** or **Block**): it reports colours that are not the brand's (a tint, shade or blend of a brand colour counts as the brand's), fonts that are not the brand's, misused logos (distorted, recoloured, below their minimum size) and, when the rule is on, text whose contrast is below WCAG AA (4.5:1), measured against what is behind the text; a text over a picture, a gradient or a pattern is left alone. The locks only stop off-brand colours and fonts from being saved; the check reports them either way.
 
-In the editor, the brand panel applies the brand: colours to the selection or the page, fonts to text, logos and graphics placed by click or drag. It links to the Brand page for changes.
+In the editor, the brand panel applies the brand: colours to the selection or the page, fonts to text, logos and graphics placed by click or drag. It links to the Brand page for changes. Its rows, in the order you drag them to (kept with your account):
+
+- **Colors**, by palette as the brand names them: a click fills the selection (or the page), Shift+click colours the text. With **Define the brand**, the **+** at a palette's end adds colours to that palette (a value, the selection's colours or the page's).
+- **Fonts**, each shown in itself with its role; a click sets the selected text in it.
+- **Logos**, one tile each; the dots below a logo pick its version (colour, black, white on dark, ...), a click places it.
+- **Graphics**, a line of each category on the transparency grid; **Browse all** opens the whole library with its search.
+
+**Brand tools**, folded below the rows, hold applying the brand to the whole design and re-skinning it, the brand check (its findings show on the folded header), the version the design follows, locked regions and the brand's voice.
 
 - **Export and import**: a kit file (`.brandkit.zip`) holds colors, fonts with their files, logos, collections, voice and controls. When an imported kit's name is taken, the import shows both kits and asks whether to replace the existing one (its earlier state stays in the version history) or to import under another name. The file format, and how to write one by hand, is in [Brand kit files](brand-kit-format.md).
 

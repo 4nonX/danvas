@@ -13,6 +13,9 @@ import { useEditor } from "@/store/editor";
 import { useEditorFileDropTarget } from "./EditorFileDrop";
 import { subscribeAiBusy } from "@/lib/aiRequests";
 import { tr } from "@/lib/i18n";
+import { useUiPref } from "@/lib/uiPrefs";
+import { moveBefore, moveBy, normalizeOrder } from "@/lib/orderPref";
+import { confirmAction } from "@/lib/promptDialog";
 
 // Panels without a rail button, opened from the context toolbar for the
 // current selection: Position, Effects, Animation and image editing.
@@ -29,6 +32,13 @@ const tools = (): { id: Tool; icon: typeof Shapes; label: string }[] => [
   { id: "brand", icon: Palette, label: tr("editor.brand") },
   { id: "layers", icon: Layers, label: tr("editor.layers") },
 ];
+
+// The rail's buttons in the order each person arranged them (dragged, or
+// Alt+arrow keys on a button), kept with the account.
+const RAIL_PREF = "editor.rail";
+const RAIL_MIME = "application/x-oc-rail";
+const DEFAULT_RAIL: Tool[] = ["templates", "elements", "text", "ai", "uploads", "stock", "apps", "brand", "layers"];
+const normalizeRail = (raw: unknown): string[] => normalizeOrder(raw && typeof raw === "object" ? (raw as { order?: unknown }).order : undefined, DEFAULT_RAIL);
 
 export function ToolRail({ workspaceId, designId = null, overlay = false, defaultCollapsed = false, kind = "design", openTool }: { workspaceId: string | null; designId?: string | null; overlay?: boolean; defaultCollapsed?: boolean; kind?: "design" | "whiteboard"; openTool?: Tool }) {
   // null = panel collapsed (just the icon rail shows). Clicking the active tab
@@ -68,6 +78,14 @@ export function ToolRail({ workspaceId, designId = null, overlay = false, defaul
   // only place the upload's progress, per-file errors, and quota messages are
   // reported, and a file that vanished silently into the library would leave
   // the user with nothing to look at.
+  const [railOrder, setRailOrderPref] = useUiPref(RAIL_PREF, normalizeRail);
+  const setRailOrder = (order: string[]) => setRailOrderPref(order);
+  const [dragTool, setDragTool] = useState<{ id: string; over?: string } | null>(null);
+  const resetRail = async () => {
+    const ok = await confirmAction({ title: tr("editor.rail_reset_title"), message: tr("editor.rail_reset_message"), confirmText: tr("editor.rail_reset_confirm") });
+    if (ok) setRailOrder([...DEFAULT_RAIL]);
+  };
+
   const [droppedFiles, setDroppedFiles] = useState<File[] | null>(null);
   useEditorFileDropTarget(
     useCallback((files: File[]) => {
@@ -109,22 +127,35 @@ export function ToolRail({ workspaceId, designId = null, overlay = false, defaul
         role="toolbar"
         aria-label={tr("editor.editor_tools")}
         aria-orientation="vertical"
+        onContextMenu={(e) => { e.preventDefault(); void resetRail(); }}
         className="flex w-[68px] shrink-0 flex-col items-center gap-1 border-e border-neutral-200 bg-surface py-3"
       >
-        {tools().filter((t) => kind === "design" || t.id !== "templates").map((t) => {
+        {railOrder.map((id) => tools().find((t) => t.id === id)).filter((t): t is ReturnType<typeof tools>[number] => !!t && (kind === "design" || t.id !== "templates")).map((t) => {
           const isActive = active === t.id;
+          const dropHere = !!dragTool && dragTool.over === t.id && dragTool.id !== t.id;
           return (
             <button
               key={t.id}
               type="button"
-              onClick={() => setActive((cur) => (cur === t.id ? null : t.id))}
-              title={isActive ? `Hide ${t.label}` : t.label}
+              draggable
+              onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData(RAIL_MIME, t.id); setDragTool({ id: t.id }); }}
+              onDragOver={(e) => { if (!dragTool) return; e.preventDefault(); if (dragTool.over !== t.id) setDragTool({ id: dragTool.id, over: t.id }); }}
+              onDrop={(e) => { if (!dragTool) return; e.preventDefault(); setRailOrder(moveBefore(railOrder, dragTool.id, t.id)); setDragTool(null); }}
+              onDragEnd={() => setDragTool(null)}
+              onKeyDown={(e) => {
+                if (e.altKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
+                  e.preventDefault();
+                  setRailOrder(moveBy(railOrder, t.id, e.key === "ArrowUp" ? -1 : 1));
+                }
+              }}
+              title={`${isActive ? `Hide ${t.label}` : t.label}. ${tr("editor.rail_reorder_hint")}`}
               aria-label={t.id === "ai" && aiBusy ? tr("editor.ai_working") : isActive ? `Hide ${t.label}` : `Open ${t.label}`}
               aria-pressed={isActive}
-              className={`flex w-14 flex-col items-center gap-1 rounded-xl py-2 text-[11px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 ${
+              className={`relative flex w-14 flex-col items-center gap-1 rounded-xl py-2 text-[11px] font-medium transition focus-visible:outline-none ${dragTool?.id === t.id ? "opacity-40" : ""} focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 ${
                 isActive ? "bg-brand-50 text-brand-ink" : "text-neutral-500 hover:bg-neutral-100"
               }`}
             >
+              {dropHere && <span aria-hidden="true" className="absolute -top-1 inset-x-2 h-0.5 rounded bg-brand-500" />}
               <span className="relative">
                 <t.icon size={20} />
                 {t.id === "ai" && aiBusy && (

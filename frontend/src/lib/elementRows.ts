@@ -5,6 +5,8 @@
 // how often each tile was used. A row's line shows its pinned tiles first, in
 // the person's order, then the tiles used most.
 
+import { moveBefore, moveBy, normalizeOrder } from "./orderPref";
+
 export const ELEMENT_ROWS_PREF = "editor.elements";
 
 /** The rows in their default order. */
@@ -44,13 +46,7 @@ export function defaultRowsPref(): ElementRowsPref {
 export function normalizeRowsPref(raw: unknown): ElementRowsPref {
   const r = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
   const known = new Set<string>(DEFAULT_ROW_ORDER);
-  const order = unique(strings(r.order).filter((id) => known.has(id)));
-  for (const [i, id] of DEFAULT_ROW_ORDER.entries()) {
-    if (order.includes(id)) continue;
-    // After the row that precedes it by default, else first.
-    const prev = DEFAULT_ROW_ORDER.slice(0, i).reverse().find((p) => order.includes(p));
-    order.splice(prev ? order.indexOf(prev) + 1 : 0, 0, id);
-  }
+  const order = normalizeOrder(r.order, DEFAULT_ROW_ORDER);
   const tileOrder: Record<string, string[]> = {};
   if (r.tileOrder && typeof r.tileOrder === "object") {
     for (const [k, v] of Object.entries(r.tileOrder as Record<string, unknown>)) if (known.has(k)) tileOrder[k] = unique(strings(v));
@@ -90,20 +86,14 @@ export function stripTiles<T extends { id: string }>(sorted: T[], pref: ElementR
 
 /** Moves a row before another (or to the end). */
 export function moveRowBefore(pref: ElementRowsPref, id: string, beforeId: string | null): ElementRowsPref {
-  if (id === beforeId) return pref;
-  const order = pref.order.filter((x) => x !== id);
-  const at = beforeId ? order.indexOf(beforeId) : -1;
-  order.splice(at < 0 ? order.length : at, 0, id);
-  return { ...pref, order };
+  const order = moveBefore(pref.order, id, beforeId);
+  return order === pref.order ? pref : { ...pref, order };
 }
 
 /** Moves a row one place up (-1) or down (+1). */
 export function moveRowBy(pref: ElementRowsPref, id: string, delta: -1 | 1): ElementRowsPref {
-  const order = [...pref.order];
-  const i = order.indexOf(id), j = i + delta;
-  if (i < 0 || j < 0 || j >= order.length) return pref;
-  [order[i], order[j]] = [order[j], order[i]];
-  return { ...pref, order };
+  const order = moveBy(pref.order, id, delta);
+  return order === pref.order ? pref : { ...pref, order };
 }
 
 /** Moves a tile before another in its row. Dropped into the row's line, the

@@ -5333,5 +5333,16 @@
   "editor.elements_saved_note": "क्रम, पिन और छिपी पंक्तियाँ आपकी प्रोफ़ाइल में सहेजी जाती हैं।",
   "editor.elements_reset": "रीसेट करें",
   "errors.api_ui_pref_invalid": "सेटिंग सहेजी नहीं जा सकी।",
-  "errors.api_ui_pref_too_large": "सेटिंग सहेजने के लिए बहुत बड़ी है।"
+  "errors.api_ui_pref_too_large": "सेटिंग सहेजने के लिए बहुत बड़ी है।",
+  "editor.rail_reorder_hint": "क्रम बदलने के लिए खींचें या Alt+तीर कुंजियाँ। रीसेट के लिए राइट-क्लिक करें।",
+  "editor.rail_reset_title": "टूल का क्रम रीसेट करें?",
+  "editor.rail_reset_message": "बाईं ओर के बटन हर डिवाइस पर अपने मूल क्रम में लौट आएँगे।",
+  "editor.rail_reset_confirm": "रीसेट करें",
+  "editor.brand_back": "ब्रांड पर वापस",
+  "editor.brand_color_click_hint": "क्लिक: फ़िल · Shift: टेक्स्ट",
+  "editor.brand_add_color_to": "{name} में रंग जोड़ें",
+  "editor.brand_tools": "ब्रांड टूल",
+  "editor.brand_tools_issues.one": "{count} समस्या",
+  "editor.brand_tools_issues.other": "{count} समस्याएँ",
+  "editor.brand_tools_on_brand": "ब्रांड के अनुरूप"
 }

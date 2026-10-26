@@ -5333,5 +5333,16 @@
   "editor.elements_saved_note": "L'ordre, les éléments épinglés et les lignes masquées sont enregistrés dans votre profil.",
   "editor.elements_reset": "Réinitialiser",
   "errors.api_ui_pref_invalid": "Le réglage n'a pas pu être enregistré.",
-  "errors.api_ui_pref_too_large": "Le réglage est trop volumineux pour être enregistré."
+  "errors.api_ui_pref_too_large": "Le réglage est trop volumineux pour être enregistré.",
+  "editor.rail_reorder_hint": "Faites glisser pour réorganiser, ou Alt+flèches. Clic droit pour réinitialiser.",
+  "editor.rail_reset_title": "Réinitialiser l'ordre des outils ?",
+  "editor.rail_reset_message": "Les boutons de gauche reprennent leur ordre d'origine, sur tous les appareils.",
+  "editor.rail_reset_confirm": "Réinitialiser",
+  "editor.brand_back": "Retour à la marque",
+  "editor.brand_color_click_hint": "Clic : remplissage · Maj : texte",
+  "editor.brand_add_color_to": "Ajouter une couleur à {name}",
+  "editor.brand_tools": "Outils de marque",
+  "editor.brand_tools_issues.one": "{count} problème",
+  "editor.brand_tools_issues.other": "{count} problèmes",
+  "editor.brand_tools_on_brand": "Conforme à la marque"
 }

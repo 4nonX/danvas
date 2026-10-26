@@ -166,5 +166,6 @@
   "roles.hint_design_color_list": "Add a design's colour list to a download: every colour in every code, the brand's references and the nearest colours of the workspace's colour libraries (PDF, CSV, swatches).",
   "roles.seed_permission_color_list": "Colour list",
   "editor.profile_color_list": "colour list ({files})",
-  "editor.color_list_profile_desc": "Every download with this profile comes with the colour list, for people whose role may add it."
+  "editor.color_list_profile_desc": "Every download with this profile comes with the colour list, for people whose role may add it.",
+  "editor.brand_add_color_to": "Add a colour to {name}"
 }

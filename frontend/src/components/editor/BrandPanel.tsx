@@ -10,14 +10,17 @@
 import { prepareSvgFonts } from "@/lib/svgFlatten";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Palette, Type as TypeIcon, ImageIcon, Wand2, Lock, Unlock, Plus,
-  ShieldCheck, AlertTriangle, GitBranch, RefreshCw, Sparkles, Shapes,
+  Wand2, Lock, Unlock, Plus, ChevronLeft,
+  ShieldCheck, AlertTriangle, RefreshCw, Sparkles, Shapes,
 } from "lucide-react";
 import type { BrandKit, BrandLintViolation, UploadedAsset, BrandUpdateSummary } from "@hc/sdk";
 import type { Color, Fill } from "@hc/schema";
 import { locate } from "@hc/editor";
 import { PanelShell, CollapsibleSection } from "./EditorPanels";
 import { BrandGraphicsSection, type GraphicInfo } from "./BrandGraphicsSection";
+import { SortableRows, type SortableRow } from "./SortableRows";
+import { ArtworkPreview } from "@/components/ui/ArtworkPreview";
+import { BRAND_GRAPHIC_DRAG, categoryName, graphicName, isSvgAsset } from "@/lib/brandGraphics";
 import { dashboardPath } from "@/components/dashboard/views";
 import { collectPageColors, collectSelectionColors } from "@/lib/pageColors";
 import { imageAssetIds, imageAssetPalette } from "@/lib/imagePalette";
@@ -90,6 +93,11 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
   const [violations, setViolations] = useState<BrandLintViolation[] | null>(null);
   const [linting, setLinting] = useState(false);
   const [update, setUpdate] = useState<BrandUpdateSummary | null>(null);
+  // The palette whose "+" is open, the version shown per logo, and whether
+  // the graphics library is open in its own view.
+  const [addingTo, setAddingTo] = useState<string | null>(null);
+  const [logoVersion, setLogoVersion] = useState<Record<string, string>>({});
+  const [browsingGraphics, setBrowsingGraphics] = useState(false);
   const toast = useToast();
 
   // Load the workspace's kits (for the selector) + an assetId -> url map (logos).
@@ -121,14 +129,15 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
 
   const swatches = useMemo(() => brandHexColors(kit), [kit]);
   const families = useMemo(() => brandFontFamilies(kit), [kit]);
+  const graphicCount = useMemo(() => new Set((kit?.collections ?? []).flatMap((c) => c.assetIds)).size, [kit]);
 
-  // Add colours to the kit's first palette from where the colours already
+  // Add colours to a palette (the first unless one is named) from where the colours already
   // are: a picked or typed value, the selection, or the whole page. Skips
   // what the palette already holds and says so.
   // A colour taken from the selection keeps its print values (exact CMYK, a
   // spot colour), so a house colour set up on an element lands in the kit as
   // it prints.
-  const addColors = useCallback(async (entries: (string | { hex: string; color: Color })[]) => {
+  const addColors = useCallback(async (entries: (string | { hex: string; color: Color })[], paletteId?: string) => {
     if (!kit) return;
     const have = new Set(brandHexColors(kit).map((h) => h.toLowerCase()));
     const byHex = new Map<string, Color>();
@@ -142,9 +151,10 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
       return;
     }
     const fresh = [...byHex.keys()];
-    const base = kit.palettes[0] ?? { id: `p-${crypto.randomUUID()}`, name: tr("editor.palette"), colors: [] };
-    const first = { ...base, colors: [...base.colors, ...[...byHex.values()].map((value) => ({ id: `s-${crypto.randomUUID()}`, role: "accent", value }))] };
-    const palettes = kit.palettes.length ? kit.palettes.map((p, i) => (i === 0 ? first : p)) : [first];
+    const target = kit.palettes.find((p) => p.id === paletteId) ?? kit.palettes[0];
+    const base = target ?? { id: `p-${crypto.randomUUID()}`, name: tr("editor.palette"), colors: [] };
+    const grown = { ...base, colors: [...base.colors, ...[...byHex.values()].map((value) => ({ id: `s-${crypto.randomUUID()}`, role: "accent", value }))] };
+    const palettes = target ? kit.palettes.map((p) => (p.id === target.id ? grown : p)) : [grown];
     try {
       const updated = await oc.updateBrandKit(kit.id, { palettes });
       useBrand.getState().setKit(updated);
@@ -306,26 +316,230 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
     );
   }
 
+  // The kit's graphics, a whole category at a time with search, open in a view
+  // of their own (like the Elements panel's graphics).
+  if (kit && browsingGraphics) {
+    return (
+      <PanelShell title={tr("editor.brand")}>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={() => setBrowsingGraphics(false)} aria-label={tr("editor.brand_back")} className="grid h-7 w-7 place-items-center rounded-md text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800">
+              <ChevronLeft size={16} className="rtl:rotate-180" />
+            </button>
+            <span className="flex-1 text-[13px] font-semibold text-neutral-800">{tr("brand.graphics")}</span>
+            <span className="text-[11px] text-neutral-400">{graphicCount}</span>
+          </div>
+          <BrandGraphicsSection kit={kit} assets={assetInfo} onPlace={(id, name) => void placeIcon(id, name)} />
+          {canLibrary && workspaceId && (
+            <a href={`${dashboardPath("brand")}#graphics`} target="_blank" rel="noopener" className="inline-flex items-center gap-1 text-xs font-medium text-brand-ink hover:underline">
+              <Shapes size={12} /> {tr("brand.manage_graphics")}
+            </a>
+          )}
+        </div>
+      </PanelShell>
+    );
+  }
+
+  const issueCount = violations?.length ?? 0;
+  const rows: SortableRow[] = [];
+  if (kit) {
+    // Colours by palette, as the brand names them. A click fills the
+    // selection (or the page), Shift+click colours the text. The "+" at a
+    // palette's end adds colours to that palette (with brand.kits).
+    rows.push({
+      id: "colors",
+      title: tr("editor.colors"),
+      right: kit.controls.lockColors ? <LockedBadge /> : <span className="text-[11px] text-neutral-400">{tr("editor.brand_color_click_hint")}</span>,
+      body: (
+        <div className="flex flex-col gap-2.5">
+          {kit.palettes.length === 0 && <p className="text-xs text-neutral-400">{tr("editor.no_brand_colors_yet")}</p>}
+          {kit.palettes.map((p) => (
+            <div key={p.id} className="flex flex-col gap-1">
+              {kit.palettes.length > 1 && <span className="text-[10.5px] font-semibold uppercase tracking-wide text-neutral-400">{p.name}</span>}
+              <div className="flex flex-wrap gap-1.5">
+                {p.colors.map((sw) => {
+                  const hex = swatchHex(sw.value);
+                  return (
+                    <button
+                      key={sw.id}
+                      type="button"
+                      title={[sw.name, hex.toUpperCase(), printColorLabel(sw.value), sw.pantone].filter(Boolean).join(" · ")}
+                      aria-label={[sw.name, hex.toUpperCase()].filter(Boolean).join(" ")}
+                      onClick={(e) => (e.shiftKey ? applyTextColor(hex) : applyColor(hex))}
+                      className="h-8 w-8 rounded-lg border border-neutral-200 shadow-sm"
+                      style={{ backgroundColor: hex }}
+                    />
+                  );
+                })}
+                {canEditKit && (
+                  <button
+                    type="button"
+                    onClick={() => setAddingTo(addingTo === p.id ? null : p.id)}
+                    aria-expanded={addingTo === p.id}
+                    aria-label={tr("editor.brand_add_color_to", { name: p.name })}
+                    title={tr("editor.brand_add_color_to", { name: p.name })}
+                    className={`grid h-8 w-8 place-items-center rounded-lg border border-dashed ${addingTo === p.id ? "border-brand-400 text-brand-ink" : "border-neutral-300 text-neutral-400 hover:border-brand-300 hover:text-brand-ink"}`}
+                  >
+                    <Plus size={14} />
+                  </button>
+                )}
+              </div>
+              {canEditKit && addingTo === p.id && <AddBrandColors existing={swatches} onAdd={(hexes) => void addColors(hexes, p.id)} />}
+            </div>
+          ))}
+          {canEditKit && kit.palettes.length === 0 && <AddBrandColors existing={swatches} onAdd={(hexes) => void addColors(hexes)} />}
+        </div>
+      ),
+    });
+    // Fonts, each shown in itself, with its role; a click sets the selected
+    // text in it.
+    rows.push({
+      id: "fonts",
+      title: tr("editor.fonts"),
+      right: kit.controls.lockFonts ? <LockedBadge /> : undefined,
+      body: families.length === 0 ? (
+        <p className="text-xs text-neutral-400">{tr("editor.no_brand_fonts_yet")}</p>
+      ) : (
+        <div className="flex flex-col gap-1">
+          {kit.fonts.map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              onClick={() => applyFont(f.fontFamily)}
+              className="flex items-center gap-2.5 rounded-lg border border-neutral-200 px-2.5 py-1.5 text-start hover:border-brand-300 hover:bg-brand-50"
+            >
+              {/* i18n-ignore: a type specimen, the same in every language. */}
+              <span aria-hidden="true" className="w-8 shrink-0 text-xl leading-none text-neutral-800" style={{ fontFamily: `'${f.fontFamily}', sans-serif` }}>{"Aa"}</span>
+              <span className="flex min-w-0 flex-col">
+                <span className="truncate text-[12.5px] font-medium text-neutral-800">{f.fontFamily}</span>
+                <span className="text-[10.5px] uppercase tracking-wide text-neutral-400">{f.role}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      ),
+    });
+    // Logos: one tile each, in the version picked below it (colour, black,
+    // white on dark, ... as the brand names them); a click places it.
+    const logoTiles = kit.logos
+      .map((l) => ({ l, files: logoFiles(l, kitVersions(kit)).filter((f) => f.assetId && assetUrls[f.assetId]) }))
+      .filter((x) => x.files.length > 0);
+    if (logoTiles.length > 0) {
+      rows.push({
+        id: "logos",
+        title: tr("editor.logos"),
+        count: logoTiles.length,
+        body: (
+          <div className="grid grid-cols-3 gap-1.5">
+            {logoTiles.map(({ l, files }) => {
+              const cur = files.find((f) => f.version.id === logoVersion[l.id]) ?? files[0];
+              return (
+                <div key={l.id} className="flex min-w-0 flex-col gap-1">
+                  <button
+                    type="button"
+                    onClick={() => void placeIcon(cur.assetId!)}
+                    title={`${tr("editor.place_logo")}: ${l.label} (${versionName(cur.version)})`}
+                    className={`light flex aspect-[3/2] items-center justify-center rounded-lg border border-neutral-200 p-1.5 ${cur.version.ground === "dark" ? "bg-neutral-900 hover:bg-neutral-800" : "bg-neutral-50 hover:bg-brand-50"}`}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={resolveAssetUrl(assetUrls[cur.assetId!])} alt={`${l.label} ${versionName(cur.version)}`} className="max-h-full max-w-full object-contain" />
+                  </button>
+                  <div className="flex items-center gap-1">
+                    <span className="min-w-0 flex-1 truncate text-[10.5px] text-neutral-500" title={l.label}>{l.label}</span>
+                    {files.length > 1 && files.map((f) => (
+                      <button
+                        key={f.version.id}
+                        type="button"
+                        onClick={() => setLogoVersion({ ...logoVersion, [l.id]: f.version.id })}
+                        aria-pressed={f.version.id === cur.version.id}
+                        aria-label={`${l.label}: ${versionName(f.version)}`}
+                        title={versionName(f.version)}
+                        className={`h-3 w-3 shrink-0 rounded-full border-2 ${f.version.id === cur.version.id ? "border-brand-500" : "border-neutral-200"} ${f.version.ground === "dark" ? "bg-neutral-900" : "bg-neutral-100"}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ),
+      });
+    }
+    // Graphics: a line of each category (on the transparency grid), the whole
+    // library with search behind "Browse all".
+    const cats = kit.collections.filter((c) => c.assetIds.some((id) => assetInfo[id]));
+    if (cats.length > 0 || (canLibrary && !!workspaceId)) {
+      rows.push({
+        id: "graphics",
+        title: tr("brand.graphics"),
+        count: graphicCount || undefined,
+        right: cats.length > 0 ? (
+          <button type="button" onClick={() => setBrowsingGraphics(true)} className="shrink-0 rounded-md px-1.5 py-1 text-[12px] font-medium text-brand-ink hover:bg-brand-50">
+            {tr("editor.elements_browse_all")}
+          </button>
+        ) : undefined,
+        body: cats.length === 0 ? (
+          <a href={`${dashboardPath("brand")}#graphics`} target="_blank" rel="noopener" className="inline-flex items-center gap-1 text-xs font-medium text-brand-ink hover:underline">
+            <Shapes size={12} /> {tr("brand.manage_graphics")}
+          </a>
+        ) : (
+          <div className="flex flex-col gap-2.5">
+            {cats.map((c) => (
+              <div key={c.id} className="flex flex-col gap-1">
+                {cats.length > 1 && <span className="text-[10.5px] font-semibold uppercase tracking-wide text-neutral-400">{categoryName(c)}</span>}
+                <div className="grid grid-cols-5 gap-1.5">
+                  {c.assetIds.filter((id) => assetInfo[id]).slice(0, 5).map((id) => {
+                    const a = assetInfo[id];
+                    const name = graphicName(a.filename) || tr("brand.unnamed");
+                    const url = resolveAssetUrl(a.url);
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        draggable
+                        onDragStart={(e) => {
+                          e.dataTransfer.setData(BRAND_GRAPHIC_DRAG, JSON.stringify({ url, svg: isSvgAsset(a), name }));
+                          if (!isSvgAsset(a)) e.dataTransfer.setData("application/x-oc-image", url);
+                        }}
+                        onClick={() => void placeIcon(id, name)}
+                        title={name}
+                        aria-label={tr("brand.place_graphic", { name })}
+                        className="flex aspect-square overflow-hidden rounded-lg border border-neutral-200 hover:border-brand-300"
+                      >
+                        <ArtworkPreview src={resolveAssetUrl(a.thumbnail || a.url)} className="h-full w-full p-1" tile={6} draggable={false} />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        ),
+      });
+    }
+  }
+
   return (
     <PanelShell title={tr("editor.brand")}>
       {loading && <p className="text-sm text-neutral-400">{tr("editor.loading_brand")}</p>}
 
-      {/* Kit selector (FR-2). */}
+      {/* Kit selector (FR-2), with the version the design follows. */}
       {kits.length > 0 && (
-        <div className="mb-4">
-          <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{tr("editor.brand_kit")}</label>
+        <div className="mb-3 flex items-center gap-2">
           <select
             value={kit?.id ?? ""}
             disabled={!canManage}
             onChange={(e) => void useBrand.getState().assign(e.target.value || null)}
-            className="w-full rounded-lg border border-neutral-200 bg-surface px-2 py-1.5 text-sm outline-none focus:border-brand-400 disabled:opacity-60"
+            aria-label={tr("editor.brand_kit")}
+            title={!canManage ? tr("editor.only_brand_admins_can_switch_the_kit") : undefined}
+            className="min-w-0 flex-1 rounded-lg border border-neutral-200 bg-surface px-2 py-1.5 text-sm outline-none focus:border-brand-400 disabled:opacity-60"
           >
             <option value="">{tr("editor.no_brand")}</option>
             {kits.map((k) => (
               <option key={k.id} value={k.id}>{k.name}{k.isDefault ? " (default)" : ""}</option>
             ))}
           </select>
-          {!canManage && <p className="mt-1 text-[11px] text-neutral-400">{tr("editor.only_brand_admins_can_switch_the_kit")}</p>}
+          {kit && <span className="shrink-0 text-[11px] text-neutral-400" title={tr("editor.version")}>v{pinnedVersion ?? kit.version}</span>}
         </div>
       )}
 
@@ -342,7 +556,7 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
       )}
 
       {kit && (
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-3">
           {/* Brand updated - review (FR-10). Shown only when a tracked kit has
               advanced past what the design reflects. Never mutates silently. */}
           {update?.hasUpdate && (
@@ -371,180 +585,119 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
             />
           )}
 
-          {/* Apply / re-skin (FR-3). Recolor/re-font the whole design, which would
-              override brand locked regions, so this is gated to manage-brand
-              users. Fillers don't see it. */}
-          {canManage && (
-            <div className="flex flex-col gap-2">
-              <button onClick={applyBrandDefaults} className="flex items-center justify-center gap-1.5 rounded-lg border border-brand-200 bg-brand-50 px-3 py-2 text-sm font-medium text-brand-ink hover:bg-brand-100">
-                <Wand2 size={15} /> {tr("editor.apply_brand")}
-              </button>
-              <button onClick={() => doReskin()} className="flex items-center justify-center gap-1.5 rounded-lg border border-neutral-200 px-3 py-2 text-sm font-medium text-neutral-700 hover:border-brand-300 hover:bg-brand-50">
-                {tr("editor.re_skin_to_brand")}
-              </button>
-              {reskin && (reskin.colors.length > 0 || reskin.fonts.length > 0) && (
-                <ReskinMapping
-                  result={reskin}
-                  brandSwatches={swatches}
-                  onUndo={() => { useEditor.getState().undo(); setReskin(null); }}
-                  onReapply={(overrides) => doReskin(overrides)}
-                />
-              )}
-            </div>
-          )}
+          <SortableRows prefKey="editor.brand" ids={BRAND_ROWS} rows={rows} />
 
-          {/* Brand lint (FR-7, FR-8). */}
-          <CollapsibleSection title={tr("editor.brand_check")} icon={ShieldCheck}>
-            <LintSection
-              violations={violations}
-              linting={linting}
-              onCheck={() => void runLint()}
-              onHighlight={highlight}
-              onFix={applyFix}
-              onFixAll={fixAll}
-            />
-          </CollapsibleSection>
-
-          {/* Colors (FR-1, FR-4). */}
-          <CollapsibleSection title={tr("editor.colors")} icon={Palette} defaultOpen right={kit.controls.lockColors ? <LockedBadge /> : undefined}>
-            {swatches.length === 0 ? (
-              <p className="text-xs text-neutral-400">{tr("editor.no_brand_colors_yet")}</p>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {swatches.map((hex) => (
-                  <button
-                    key={hex}
-                    title={[hex.toUpperCase(), printColorLabel(brandColorOf(kit, hex))].filter(Boolean).join(" · ")}
-                    onClick={(e) => (e.shiftKey ? applyTextColor(hex) : applyColor(hex))}
-                    className="h-8 w-8 rounded-lg border border-neutral-200 shadow-sm"
-                    style={{ backgroundColor: hex }}
-                  />
-                ))}
-              </div>
-            )}
-            {/* Adding colours, where the colours are looked at: a picker and a
-                hex field, the selection's colours, or the page's. With
-                brand.kits, as with every kit edit. */}
-            {canEditKit && <AddBrandColors existing={swatches} onAdd={(hexes) => void addColors(hexes)} />}
-          </CollapsibleSection>
-
-          {/* Fonts (FR-1, FR-4). */}
-          <CollapsibleSection title={tr("editor.fonts")} icon={TypeIcon} defaultOpen right={kit.controls.lockFonts ? <LockedBadge /> : undefined}>
-            {families.length === 0 ? (
-              <p className="text-xs text-neutral-400">{tr("editor.no_brand_fonts_yet")}</p>
-            ) : (
-              <div className="flex flex-col gap-1.5">
-                {kit.fonts.map((f) => (
-                  <button
-                    key={f.id}
-                    onClick={() => applyFont(f.fontFamily)}
-                    className="flex items-center justify-between rounded-lg border border-neutral-200 px-3 py-2 text-start text-sm hover:border-brand-300 hover:bg-brand-50"
-                    style={{ fontFamily: `'${f.fontFamily}', sans-serif` }}
-                  >
-                    <span className="truncate">{f.fontFamily}</span>
-                    <span className="ms-2 shrink-0 text-[10px] uppercase tracking-wide text-neutral-300">{f.role}</span>
+          {/* Brand tools, folded: applying the brand to the whole design, the
+              brand check, the version followed, locked regions and the voice.
+              The check's findings show on the header while it is folded. */}
+          <CollapsibleSection
+            title={tr("editor.brand_tools")}
+            icon={ShieldCheck}
+            right={violations !== null ? (
+              <span className={`text-[11px] ${issueCount ? "text-amber-600" : "text-emerald-600"}`}>
+                {issueCount ? tr("editor.brand_tools_issues", { count: issueCount }) : tr("editor.brand_tools_on_brand")}
+              </span>
+            ) : undefined}
+          >
+            <div className="flex flex-col gap-4">
+              {/* Apply / re-skin (FR-3). Recolor/re-font the whole design, which
+                  would override brand locked regions, so this is gated to
+                  manage-brand users. Fillers don't see it. */}
+              {canManage && (
+                <div className="flex flex-col gap-2">
+                  <button onClick={applyBrandDefaults} className="flex items-center justify-center gap-1.5 rounded-lg border border-brand-200 bg-brand-50 px-3 py-2 text-sm font-medium text-brand-ink hover:bg-brand-100">
+                    <Wand2 size={15} /> {tr("editor.apply_brand")}
                   </button>
-                ))}
-              </div>
-            )}
-          </CollapsibleSection>
-
-          {/* Logos (FR-1): each with its versions (colour, black, white, ...)
-              on their grounds, placed from here, managed on the Brand page. */}
-          {kit.logos.length > 0 && (
-            <CollapsibleSection title={tr("editor.logos")} icon={ImageIcon} badge={kit.logos.length}>
-              <div className="flex flex-col gap-2">
-                {kit.logos.map((l) => {
-                  // One column per version of the kit, so every logo's tiles
-                  // are the same size; a version without a file stays empty.
-                  const files = logoFiles(l, kitVersions(kit));
-                  if (!files.some((f) => f.assetId && assetUrls[f.assetId])) return null;
-                  return (
-                    <div key={l.id} className="light overflow-hidden rounded-lg border border-neutral-200">
-                      <div className="grid" style={{ gridTemplateColumns: `repeat(${files.length}, minmax(0, 1fr))` }}>
-                        {files.map(({ version: v, assetId }) => !assetId || !assetUrls[assetId] ? (
-                          <div key={v.id} aria-hidden className={`aspect-[3/2] ${v.ground === "dark" ? "bg-neutral-900" : "bg-neutral-50"}`} />
-                        ) : (
-                          <button
-                            key={v.id}
-                            onClick={() => void placeIcon(assetId!)}
-                            title={`${tr("editor.place_logo")}: ${l.label} (${versionName(v)})`}
-                            className={`flex aspect-[3/2] items-center justify-center p-1.5 ${v.ground === "dark" ? "bg-neutral-900 hover:bg-neutral-800" : "bg-neutral-50 hover:bg-brand-50"}`}
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={resolveAssetUrl(assetUrls[assetId!])} alt={`${l.label} ${versionName(v)}`} className="max-h-full max-w-full object-contain" />
-                          </button>
-                        ))}
-                      </div>
-                      <div className="truncate border-t border-neutral-200 bg-white px-2 py-1 text-[11px] text-neutral-600" title={l.label}>{l.label}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </CollapsibleSection>
-          )}
-
-          {/* Graphics (F50): the kit's categories, placed by click or drag. */}
-          {(kit.collections.some((c) => c.assetIds.length > 0) || (canLibrary && !!workspaceId)) && (
-            <CollapsibleSection title={tr("brand.graphics")} icon={Shapes} badge={kit.collections.reduce((n, c) => n + c.assetIds.length, 0) || undefined}>
-              <BrandGraphicsSection kit={kit} assets={assetInfo} onPlace={(id, name) => void placeIcon(id, name)} />
-              {canLibrary && workspaceId && (
-                <a href={`${dashboardPath("brand")}#graphics`} target="_blank" rel="noopener" className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-brand-ink hover:underline">
-                  <Shapes size={12} /> {tr("brand.manage_graphics")}
-                </a>
-              )}
-            </CollapsibleSection>
-          )}
-
-          {/* Voice (FR-1, read-only). */}
-          {kit.voice && (
-            <CollapsibleSection title={tr("editor.voice")} icon={Sparkles}>
-              {kit.voice.tone.length > 0 && (
-                <div className="mb-1.5 flex flex-wrap gap-1.5">
-                  {kit.voice.tone.map((t) => (
-                    <span key={t} className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] text-neutral-600">{t}</span>
-                  ))}
+                  <button onClick={() => doReskin()} className="flex items-center justify-center gap-1.5 rounded-lg border border-neutral-200 px-3 py-2 text-sm font-medium text-neutral-700 hover:border-brand-300 hover:bg-brand-50">
+                    {tr("editor.re_skin_to_brand")}
+                  </button>
+                  {reskin && (reskin.colors.length > 0 || reskin.fonts.length > 0) && (
+                    <ReskinMapping
+                      result={reskin}
+                      brandSwatches={swatches}
+                      onUndo={() => { useEditor.getState().undo(); setReskin(null); }}
+                      onReapply={(overrides) => doReskin(overrides)}
+                    />
+                  )}
                 </div>
               )}
-              {kit.voice.sampleCopy && <p className="text-xs italic text-neutral-500">“{kit.voice.sampleCopy}”</p>}
-            </CollapsibleSection>
-          )}
 
-          {/* Pin / track a specific version (FR-10, manage-brand only). */}
-          {canManage && (
-            <CollapsibleSection title={tr("editor.version")} icon={GitBranch}>
-              <PinTrackControl
-                designId={designId}
-                pinnedVersion={pinnedVersion}
-                latestVersion={kit.version}
-                onChanged={async () => { await refresh(); await checkUpdates(); }}
-              />
-            </CollapsibleSection>
-          )}
+              {/* Brand lint (FR-7, FR-8). */}
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[12px] font-semibold text-neutral-700">{tr("editor.brand_check")}</span>
+                <LintSection
+                  violations={violations}
+                  linting={linting}
+                  onCheck={() => void runLint()}
+                  onHighlight={highlight}
+                  onFix={applyFix}
+                  onFixAll={fixAll}
+                />
+              </div>
 
-          {/* Locked regions (FR-6, AC-4, manage-brand only). */}
-          {canManage && (
-            <CollapsibleSection title={tr("editor.locked_regions")} icon={Lock} badge={lockedRegions.length || undefined}>
-              <LockedRegionsControl
-                designId={designId}
-                selection={selection}
-                lockedRegions={lockedRegions}
-                onChanged={() => void refresh()}
-              />
-            </CollapsibleSection>
-          )}
+              {/* Pin / track a specific version (FR-10, manage-brand only). */}
+              {canManage && (
+                <div className="flex flex-col gap-1.5 border-t border-neutral-100 pt-3">
+                  <span className="text-[12px] font-semibold text-neutral-700">{tr("editor.version")}</span>
+                  <PinTrackControl
+                    designId={designId}
+                    pinnedVersion={pinnedVersion}
+                    latestVersion={kit.version}
+                    onChanged={async () => { await refresh(); await checkUpdates(); }}
+                  />
+                </div>
+              )}
 
-          {/* The kit itself (colours, fonts, logos, graphics, settings,
-              versions) is managed on the dashboard's Brand page. */}
-          {canEditKit && (
-            <a href={dashboardPath("brand")} target="_blank" rel="noopener" className="inline-flex items-center gap-1 text-xs font-medium text-brand-ink hover:underline">
-              <ShieldCheck size={12} /> {tr("brand.manage_brand")}
-            </a>
-          )}
+              {/* Locked regions (FR-6, AC-4, manage-brand only). */}
+              {canManage && (
+                <div className="flex flex-col gap-1.5 border-t border-neutral-100 pt-3">
+                  <span className="text-[12px] font-semibold text-neutral-700">{tr("editor.locked_regions")}</span>
+                  <LockedRegionsControl
+                    designId={designId}
+                    selection={selection}
+                    lockedRegions={lockedRegions}
+                    onChanged={() => void refresh()}
+                  />
+                </div>
+              )}
+
+              {/* Voice (FR-1, read-only). */}
+              {kit.voice && (kit.voice.tone.length > 0 || kit.voice.sampleCopy) && (
+                <div className="flex flex-col gap-1.5 border-t border-neutral-100 pt-3">
+                  <span className="text-[12px] font-semibold text-neutral-700">{tr("editor.voice")}</span>
+                  {kit.voice.tone.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {kit.voice.tone.map((t) => (
+                        <span key={t} className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] text-neutral-600">{t}</span>
+                      ))}
+                    </div>
+                  )}
+                  {kit.voice.sampleCopy && <p className="text-xs italic text-neutral-500">“{kit.voice.sampleCopy}”</p>}
+                </div>
+              )}
+
+              {/* The kit itself (colours, fonts, logos, graphics, settings,
+                  versions) is managed on the dashboard's Brand page. */}
+              {canEditKit && (
+                <a href={dashboardPath("brand")} target="_blank" rel="noopener" className="inline-flex items-center gap-1 border-t border-neutral-100 pt-3 text-xs font-medium text-brand-ink hover:underline">
+                  <Sparkles size={12} /> {tr("brand.manage_brand")}
+                </a>
+              )}
+            </div>
+          </CollapsibleSection>
         </div>
       )}
     </PanelShell>
   );
+}
+
+/** The brand panel's rows, in their built-in order. */
+const BRAND_ROWS = ["colors", "fonts", "logos", "graphics"] as const;
+
+/** A swatch's screen colour as #rrggbb. */
+function swatchHex(c: Color): string {
+  const ch = (v: number) => Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16).padStart(2, "0");
+  return `#${ch(c.srgb.r)}${ch(c.srgb.g)}${ch(c.srgb.b)}`;
 }
 
 /** "Brand updated - review" banner (FR-10). Surfaces what changed and offers to

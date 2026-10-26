@@ -5333,5 +5333,16 @@
   "editor.elements_saved_note": "A ordem, os fixados e as fileiras ocultas ficam salvos no seu perfil.",
   "editor.elements_reset": "Redefinir",
   "errors.api_ui_pref_invalid": "Não foi possível salvar a configuração.",
-  "errors.api_ui_pref_too_large": "A configuração é grande demais para salvar."
+  "errors.api_ui_pref_too_large": "A configuração é grande demais para salvar.",
+  "editor.rail_reorder_hint": "Arraste para reordenar ou use Alt+setas. Clique direito para redefinir.",
+  "editor.rail_reset_title": "Redefinir a ordem das ferramentas?",
+  "editor.rail_reset_message": "Os botões à esquerda voltam à ordem original em todos os dispositivos.",
+  "editor.rail_reset_confirm": "Redefinir",
+  "editor.brand_back": "Voltar para a marca",
+  "editor.brand_color_click_hint": "Clique: preenchimento · Shift: texto",
+  "editor.brand_add_color_to": "Adicionar uma cor a {name}",
+  "editor.brand_tools": "Ferramentas da marca",
+  "editor.brand_tools_issues.one": "{count} problema",
+  "editor.brand_tools_issues.other": "{count} problemas",
+  "editor.brand_tools_on_brand": "Dentro da marca"
 }

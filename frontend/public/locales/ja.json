@@ -5333,5 +5333,16 @@
   "editor.elements_saved_note": "並び順、固定、非表示の行はプロフィールに保存されます。",
   "editor.elements_reset": "リセット",
   "errors.api_ui_pref_invalid": "設定を保存できませんでした。",
-  "errors.api_ui_pref_too_large": "設定が大きすぎて保存できません。"
+  "errors.api_ui_pref_too_large": "設定が大きすぎて保存できません。",
+  "editor.rail_reorder_hint": "ドラッグまたは Alt+矢印キーで並べ替え。右クリックでリセット。",
+  "editor.rail_reset_title": "ツールの並び順をリセットしますか？",
+  "editor.rail_reset_message": "左側のボタンが、すべてのデバイスで元の並び順に戻ります。",
+  "editor.rail_reset_confirm": "リセット",
+  "editor.brand_back": "ブランドに戻る",
+  "editor.brand_color_click_hint": "クリック: 塗り · Shift: 文字",
+  "editor.brand_add_color_to": "{name} に色を追加",
+  "editor.brand_tools": "ブランドツール",
+  "editor.brand_tools_issues.one": "{count} 件の問題",
+  "editor.brand_tools_issues.other": "{count} 件の問題",
+  "editor.brand_tools_on_brand": "ブランドに準拠"
 }

@@ -5333,5 +5333,16 @@
   "editor.elements_saved_note": "Order, pins and hidden rows are saved to your profile.",
   "editor.elements_reset": "Reset",
   "errors.api_ui_pref_invalid": "The setting could not be saved.",
-  "errors.api_ui_pref_too_large": "The setting is too large to save."
+  "errors.api_ui_pref_too_large": "The setting is too large to save.",
+  "editor.rail_reorder_hint": "Drag to reorder, or Alt+arrow keys. Right-click to reset.",
+  "editor.rail_reset_title": "Reset the order of the tools?",
+  "editor.rail_reset_message": "The buttons on the left go back to their built-in order, on every device.",
+  "editor.rail_reset_confirm": "Reset",
+  "editor.brand_back": "Back to the brand",
+  "editor.brand_color_click_hint": "Click: fill · Shift: text",
+  "editor.brand_add_color_to": "Add a color to {name}",
+  "editor.brand_tools": "Brand tools",
+  "editor.brand_tools_issues.one": "{count} issue",
+  "editor.brand_tools_issues.other": "{count} issues",
+  "editor.brand_tools_on_brand": "On brand"
 }

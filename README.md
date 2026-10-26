@@ -42,6 +42,8 @@ The changes are summarized by area below. How to use each one is explained in th
 ### Editor
 
 - Reworked editor layout: a contextual toolbar above the canvas, a creation dock at the bottom, File and View menus in the header, reworked properties and selection panels, a Position panel, and entering groups by double-click ([guide](docs/danvas.md#editor-layout)).
+- Elements panel in rows: a search over everything, then one line per kind with your pinned and most used tiles, **See all** for the whole row, tiles and rows sorted by dragging, rows hidden at will. The tool rail takes your own order too. Both are kept with your account, the same in every browser ([guide](docs/danvas.md#editor-layout)).
+- A tidier brand panel: colours by palette with adding per palette, fonts shown in themselves, one tile per logo with its versions, a line of each graphics category, rows in your own order, and the brand tools (apply, re-skin, check, version, locked regions) folded below ([guide](docs/danvas.md#brand-page)).
 - Crop for every element: edge and corner handles on images, and clipping crops for shapes, text, groups, scaled and rotated elements. The crop frame turns independently of the element (a handle above it, or its angle typed in), so a tilted graphic can be cut to a straight rectangle; the element stays in place. The middle handles of an image move its frame over the picture (the picture keeps its size and place); Shift scales picture and frame together ([guide](docs/danvas.md#cropping)).
 - Replace object: swap an element for another one in place, sized by its visible content ([guide](docs/danvas.md#replace-object)).
 - Moving an image over a plain shape no longer swallows it into the shape's fill; only frames take a moved image.

@@ -5333,5 +5333,16 @@
   "editor.elements_saved_note": "排序、固定项和隐藏的行会保存到你的个人资料中。",
   "editor.elements_reset": "重置",
   "errors.api_ui_pref_invalid": "无法保存该设置。",
-  "errors.api_ui_pref_too_large": "该设置过大，无法保存。"
+  "errors.api_ui_pref_too_large": "该设置过大，无法保存。",
+  "editor.rail_reorder_hint": "拖动或按 Alt+方向键重新排序。右键单击可重置。",
+  "editor.rail_reset_title": "要重置工具的顺序吗？",
+  "editor.rail_reset_message": "左侧按钮将在所有设备上恢复默认顺序。",
+  "editor.rail_reset_confirm": "重置",
+  "editor.brand_back": "返回品牌",
+  "editor.brand_color_click_hint": "单击：填充 · Shift：文字",
+  "editor.brand_add_color_to": "向 {name} 添加颜色",
+  "editor.brand_tools": "品牌工具",
+  "editor.brand_tools_issues.one": "{count} 个问题",
+  "editor.brand_tools_issues.other": "{count} 个问题",
+  "editor.brand_tools_on_brand": "符合品牌"
 }

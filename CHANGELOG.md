@@ -2,6 +2,20 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 1.5.0 (2026-10-26)
+
+### Added
+
+- **Your own order for the editor's tool rail.** Drag a button (templates, elements, text, AI, uploads, stock, apps, brand, layers) to where you want it, or press Alt+arrow up or down on it; right-click the rail to go back to the built-in order. Kept with your account.
+
+### Changed
+
+- **The brand panel, tidied up.** Colours show by palette, as the brand names them, with a **+** at each palette's end to add to it (instead of one add form below all colours). Fonts show in themselves with their role. Logos are one tile each, with dots to pick the version. Graphics show a line of each category on the transparency grid, the whole library behind **Browse all**. The rows can be put in your own order. Applying and re-skinning, the brand check, the version, locked regions and the voice moved into **Brand tools**, folded below; the check's findings show on its header. Nothing a role may do changed.
+
+### Upgrading
+
+- No database change (the orders use the interface preferences of 1.4.0), no change to the file format.
+
 ## 1.4.0 (2026-10-26)
 
 ### Added

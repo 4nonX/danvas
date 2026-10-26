@@ -6,7 +6,7 @@ The editor is HyCanvas's design surface: a custom rendering engine on an HTML ca
 
 ## The left rail
 
-Each entry opens a panel next to the rail; clicking the active entry collapses it.
+Each entry opens a panel next to the rail; clicking the active entry collapses it. Drag an entry to put the rail in your own order (or press Alt+arrow up or down on it); right-click the rail to go back to the built-in order. The order is kept with your account, so it is the same in every browser.
 
 ### Templates
 
@@ -16,7 +16,7 @@ A presentation kit is a multi-page template that carries every layout a deck nee
 
 ### Elements
 
-Shapes (rectangle, rounded, ellipse, triangle, pentagon, hexagon, star, diamond, octagon, burst, pill), lines and arrows, image frames (rectangular, circle, rounded), layout grids, tables, a full chart set (bar, grouped bar, stacked bar, line, area, pie, donut, scatter, radar), and QR codes. Click to place or drag onto the canvas; a Recent row remembers what you use.
+Shapes (rectangle, rounded, ellipse, triangle, pentagon, hexagon, star, diamond, octagon, burst, pill), image frames (rectangular, circle, rounded), layout grids, tables, a full chart set (bar, grouped bar, stacked bar, line, area, pie, donut, scatter, radar), QR codes and barcodes, the bundled graphics and animated stickers. A search at the top covers all of them. Below it, each kind is a row showing one line of tiles: the ones you pinned, in your order, then the ones you use most, with a Recently used row first. **See all** opens a whole row (one at a time); there you sort tiles by dragging and pin them, and a tile dragged into a row's line is pinned there. **Browse all** opens the graphics library with its search and categories. Rows are sorted by their handle (or the arrow keys on it) and can be hidden; **Reset** restores the built-in arrangement. A click places a tile; dragging only sorts, nothing is dropped on the page. The arrangement is kept with your account.
 
 ### Text
 
@@ -46,7 +46,7 @@ A small catalog of mini-apps: QR codes, charts, tables, and shapes, with permiss
 
 ### Brand
 
-The workspace Brand Kit: switch or create kits; **Apply brand** sets the design's defaults going forward, **Re-skin to brand** recolors and re-fonts the existing design. The panel also runs a live brand check with per-violation fixes and a bulk auto-fix (one undo step), and exposes colors, fonts, logos, brand voice, locked regions, and kit version history. Admins can lock brand colors and fonts, with a lint policy of off, warn, or block (block also gates export), and can restrict templates, which keeps everyone but a brand manager on the workspace's own gallery in the editor and on the dashboard. Brand kits theme design content only; the application itself never changes with them.
+The workspace Brand Kit, with the kit the design uses and its version at the top. Its rows, in the order you drag them to: **Colors** by palette (a click fills the selection or the page, Shift+click colours the text; a **+** at a palette's end adds to it), **Fonts** shown in themselves with their role, **Logos** one tile each with dots for their versions, and **Graphics** a line of each category with the whole library behind **Browse all**. **Brand tools**, folded below, hold **Apply brand** (sets the design's defaults going forward), **Re-skin to brand** (recolors and re-fonts the existing design), the live brand check with per-violation fixes and a bulk auto-fix (one undo step; its findings show on the folded header), the kit version the design follows, locked regions, and the brand voice. Admins can lock brand colors and fonts, with a lint policy of off, warn, or block (block also gates export), and can restrict templates, which keeps everyone but a brand manager on the workspace's own gallery in the editor and on the dashboard. Brand kits theme design content only; the application itself never changes with them.
 
 The brand check and the locks accept the kit's swatches and any tint, shade or blend of them (a colour on a segment or in a triangle of the kit's palette plus white and black), so a generated deck's panels and soft inks are on brand without a swatch for each. Each logo can carry a version for dark backgrounds; generated decks draw it on every dark page and the brand check accepts it as the logo. A generated deck takes the workspace's default kit (palette, fonts, logo, voice) automatically; the API and the MCP tool accept a `brandKitId` to pick another kit of the same workspace.
 
