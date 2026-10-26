@@ -818,7 +818,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     );
 
   return (
-    <div className="flex h-screen overflow-hidden bg-neutral-50 text-neutral-900" onClick={() => setMenuFor(null)}>
+    <div className="flex h-dvh overflow-hidden bg-neutral-50 text-neutral-900" onClick={() => setMenuFor(null)}>
       {/* Left rail: fixed to the viewport; only the main column scrolls.
           Collapsible to an icon-only strip (remembered in localStorage). */}
       {drawerOpen && (

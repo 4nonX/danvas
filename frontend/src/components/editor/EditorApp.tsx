@@ -909,11 +909,11 @@ export function EditorApp() {
   }
 
   if (status === "loading") {
-    return <div className="grid h-screen place-items-center text-neutral-400"><Spinner className="text-2xl" /></div>;
+    return <div className="grid h-dvh place-items-center text-neutral-400"><Spinner className="text-2xl" /></div>;
   }
   if (status === "error") {
     return (
-      <div className="grid h-screen place-items-center gap-3 text-center">
+      <div className="grid h-dvh place-items-center gap-3 text-center">
         <p className="text-sm text-neutral-600">{tr("editor.could_not_open_this_design")}</p>
         <Button variant="secondary" onClick={() => void router.push("/dashboard")}>{tr("editor.back_to_dashboard")}</Button>
       </div>
@@ -936,7 +936,7 @@ export function EditorApp() {
   return (
     // relative so the whole-editor drop overlay positions against the editor
     // rather than the viewport.
-    <EditorFileDropProvider className="relative flex h-screen w-screen flex-col overflow-hidden bg-neutral-100 text-neutral-900">
+    <EditorFileDropProvider className="relative flex h-dvh w-screen flex-col overflow-hidden bg-neutral-100 text-neutral-900">
       {/* Top bar. flex-nowrap keeps the bar single-line down to ~768px; the
           title input shrinks/truncates and secondary actions live in the
           OverflowMenu so groups overflow gracefully instead of wrapping. In

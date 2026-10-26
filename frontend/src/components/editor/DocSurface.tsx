@@ -462,7 +462,7 @@ function DocToolbar({
   onDirectionChange: (d: "ltr" | "rtl" | "auto") => void;
 }): React.ReactElement {
   return (
-    <div className="flex shrink-0 items-center gap-2 border-b border-neutral-200 bg-surface px-4 py-2">
+    <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-neutral-200 bg-surface px-4 py-2">
       <span className="text-sm font-semibold text-neutral-700">{tr("editor.document")}</span>
       <div className="flex-1" />
       <button
