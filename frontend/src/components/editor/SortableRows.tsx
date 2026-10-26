@@ -6,7 +6,7 @@ import { useRef, useState } from "react";
 import { GripVertical } from "lucide-react";
 import { tr } from "@/lib/i18n";
 import { useUiPref } from "@/lib/uiPrefs";
-import { moveBefore, moveBy, normalizeOrder } from "@/lib/orderPref";
+import { moveBefore, moveBy, normalizeOrder, storedOrder } from "@/lib/orderPref";
 
 export interface SortableRow {
   id: string;
@@ -22,7 +22,7 @@ const MIME = "application/x-oc-panel-row";
 /** `ids` is every row the panel can show, in its built-in order; rows not
  *  passed this time (nothing to show) keep their place for later. */
 export function SortableRows({ prefKey, ids, rows }: { prefKey: string; ids: readonly string[]; rows: SortableRow[] }) {
-  const normalize = (raw: unknown) => normalizeOrder(raw && typeof raw === "object" ? (raw as { order?: unknown }).order : undefined, ids);
+  const normalize = (raw: unknown) => normalizeOrder(storedOrder(raw), ids);
   const [order, setOrderPref] = useUiPref(prefKey, normalize);
   const setOrder = (next: string[]) => setOrderPref(next);
   const armed = useRef<string | null>(null);

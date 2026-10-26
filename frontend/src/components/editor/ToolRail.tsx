@@ -14,7 +14,7 @@ import { useEditorFileDropTarget } from "./EditorFileDrop";
 import { subscribeAiBusy } from "@/lib/aiRequests";
 import { tr } from "@/lib/i18n";
 import { useUiPref } from "@/lib/uiPrefs";
-import { moveBefore, moveBy, normalizeOrder } from "@/lib/orderPref";
+import { moveBefore, moveBy, normalizeOrder, storedOrder } from "@/lib/orderPref";
 import { confirmAction } from "@/lib/promptDialog";
 
 // Panels without a rail button, opened from the context toolbar for the
@@ -38,7 +38,7 @@ const tools = (): { id: Tool; icon: typeof Shapes; label: string }[] => [
 const RAIL_PREF = "editor.rail";
 const RAIL_MIME = "application/x-oc-rail";
 const DEFAULT_RAIL: Tool[] = ["templates", "elements", "text", "ai", "uploads", "stock", "apps", "brand", "layers"];
-const normalizeRail = (raw: unknown): string[] => normalizeOrder(raw && typeof raw === "object" ? (raw as { order?: unknown }).order : undefined, DEFAULT_RAIL);
+const normalizeRail = (raw: unknown): string[] => normalizeOrder(storedOrder(raw), DEFAULT_RAIL);
 
 export function ToolRail({ workspaceId, designId = null, overlay = false, defaultCollapsed = false, kind = "design", openTool }: { workspaceId: string | null; designId?: string | null; overlay?: boolean; defaultCollapsed?: boolean; kind?: "design" | "whiteboard"; openTool?: Tool }) {
   // null = panel collapsed (just the icon rail shows). Clicking the active tab
@@ -137,6 +137,7 @@ export function ToolRail({ workspaceId, designId = null, overlay = false, defaul
             <button
               key={t.id}
               type="button"
+              onClick={() => setActive((cur) => (cur === t.id ? null : t.id))}
               draggable
               onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData(RAIL_MIME, t.id); setDragTool({ id: t.id }); }}
               onDragOver={(e) => { if (!dragTool) return; e.preventDefault(); if (dragTool.over !== t.id) setDragTool({ id: dragTool.id, over: t.id }); }}

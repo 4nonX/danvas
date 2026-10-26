@@ -2,6 +2,17 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 1.5.1 (2026-10-26)
+
+### Fixed
+
+- **The editor's tool rail opens its panels again.** 1.5.0 lost the click on the rail's buttons, so only the panel open on load (Elements) could be used.
+- **A new order of the rail's buttons and of the brand panel's rows sticks.** It was saved as a list and read back as something else, so it fell back to the built-in order at once.
+
+### Upgrading
+
+- No database change, no change to the file format.
+
 ## 1.5.0 (2026-10-26)
 
 ### Added

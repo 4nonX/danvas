@@ -15,6 +15,13 @@ export function normalizeOrder(raw: unknown, defaults: readonly string[]): strin
   return order;
 }
 
+/** The order in a stored preference: the list itself (as it is saved), or
+ *  an object holding it as `order`. */
+export function storedOrder(raw: unknown): unknown {
+  if (Array.isArray(raw)) return raw;
+  return raw && typeof raw === "object" ? (raw as { order?: unknown }).order : undefined;
+}
+
 /** Moves an id before another (or to the end). */
 export function moveBefore(order: string[], id: string, beforeId: string | null): string[] {
   if (id === beforeId) return order;
