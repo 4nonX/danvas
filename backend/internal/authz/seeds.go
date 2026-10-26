@@ -47,6 +47,7 @@ var SeedPermissions = []SeedPermission{
 	{"manage-templates", set(TemplateDelete, ScopeAll)},
 	{"brand", set(BrandKits, ScopeAll, BrandDesigns, ScopeAll, BrandUnlock, ScopeAll)},
 	{"brand-library", set(BrandLibrary, ScopeAll)},
+	{"brand-copy", set(BrandCopy, ScopeAll)},
 	{"print-data", set(PrintColorProfiles, ScopeAll, PrintExportProfiles, ScopeAll, PrintPrintPresets, ScopeAll)},
 	{"fonts", set(FontsManage, ScopeAll)},
 	{"use-ai-canva", set(AIUse, ScopeAll, CanvaUse, ScopeAll)},

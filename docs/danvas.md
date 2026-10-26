@@ -305,6 +305,7 @@ In the dashboard's left rail, **Brand**: one page for the workspace's brands, wi
 Who changes what is set under [Roles and permissions](#roles-and-permissions):
 
 - **Define the brand** (`brand.kits`): create, change and delete brands, everything on the page. Owners and admins have it.
+- **Copy brands** (`brand.copy`): copy brands into other workspaces, and into a new one as it is created. In each target it also takes **Define the brand** there. Owners and admins have it.
 - **Maintain the brand library** (`brand.library`): categories and graphics only; colours, fonts, logos and settings stay as they are. Owners and admins have it; give it to another role to let people keep the graphics up to date without changing the brand.
 - **Manage workspace fonts** (`fonts.manage`): the font files.
 - Everyone else sees the page.
@@ -320,6 +321,8 @@ In the editor, the brand panel applies the brand: colours to the selection or th
 
 **Brand tools**, folded below the rows, hold applying the brand to the whole design and re-skinning it, the brand check (its findings show on the folded header), the version the design follows, locked regions and the brand's voice.
 
+- **Copy to workspaces** (beside **New brand**, with **Copy brands**): tick the brands (single ones or **All brands**) and the workspaces they go to; a workspace where your role may not define brands cannot be ticked. Colours, fonts with their files, logos, graphics and settings come along, the uploads are copied into the target workspace, and the brands here stay as they are. With **Replace brands of the same name** a brand of that name in the target is replaced (its earlier state stays in its version history); otherwise the copy gets a free name ("Brand (2)"). A font the target lacks is copied only where your role may manage fonts there; otherwise the result names it. A copied standard brand becomes the target's standard only when the target has none.
+- **A new workspace**: **Create a workspace** in the workspace switcher lists the current workspace's brands (none ticked, with **Copy brands**); the ticked ones are copied once the workspace exists.
 - **Export and import**: a kit file (`.brandkit.zip`) holds colors, fonts with their files, logos, collections, voice and controls. When an imported kit's name is taken, the import shows both kits and asks whether to replace the existing one (its earlier state stays in the version history) or to import under another name. The file format, and how to write one by hand, is in [Brand kit files](brand-kit-format.md).
 
 ### Brand graphics

@@ -23,6 +23,7 @@ A living checklist of what ships today versus what is planned. Shipped items are
 - [x] Templates (categories, save-as-template, workspace collections, locked regions)
 - [x] Brand kits (colors/fonts/logos/voice, brand lock with off/warn/block policy, auto-fix, re-skin)
 - [x] Brand kit export and import as a `.brandkit.zip` (documented format), replace-or-rename on a name clash
+- [x] Brand kits copied into other workspaces and into a new workspace (single or all, by checklist; uploads and fonts copied; replace-or-rename), behind the `brand.copy` right
 
 ### Document types
 - [x] Presentations (present mode: 9 transitions incl. Magic Move, laser/pen/spotlight, autopilot, presenter HUD, rehearsal timer)

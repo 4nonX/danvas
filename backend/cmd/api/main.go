@@ -31,6 +31,7 @@ import (
 	"hycanvas/backend/internal/approvals"
 	"hycanvas/backend/internal/audience"
 	"hycanvas/backend/internal/brand"
+	"hycanvas/backend/internal/brandcopy"
 	"hycanvas/backend/internal/bulkcreate"
 	"hycanvas/backend/internal/canva"
 	"hycanvas/backend/internal/canvaimport"
@@ -444,6 +445,7 @@ func main() {
 			BulkCreate:     bulkSvc,
 			Convert:        convertSvc,
 			Transfer:       transferSvc,
+			BrandCopy:      brandcopy.NewService(acct, brandSvc, uploadsSvc, fontsSvc),
 			Storage:        store,
 			AccountData:    accountDataSvc,
 			Secure:         secureCookies,

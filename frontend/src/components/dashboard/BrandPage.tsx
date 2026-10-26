@@ -8,7 +8,7 @@
 // so it shows in the version history.
 
 import { useCallback, useEffect, useState } from "react";
-import { ImageIcon, Loader2, Palette, Plus, Settings2, Shapes, Type as TypeIcon } from "lucide-react";
+import { Copy, ImageIcon, Loader2, Palette, Plus, Settings2, Shapes, Type as TypeIcon } from "lucide-react";
 import type { BrandKit, BrandKitPatch, UploadedAsset } from "@hc/sdk";
 import { oc } from "@/lib/sdk";
 import { Button } from "@/components/ui/Button";
@@ -18,6 +18,9 @@ import { userMessage } from "@/lib/errors";
 import { confirmAction, promptText } from "@/lib/promptDialog";
 import { BrandFromWebsite, GenerateFromLogo } from "@/components/brand/kitEditors";
 import { BrandKitTransfer } from "@/components/brand/BrandKitTransfer";
+import { BrandKitCopyDialog } from "@/components/brand/BrandKitCopyDialog";
+import { useCan } from "@/store/workspaceActions";
+import { useAuth } from "@/store/auth";
 import { tr } from "@/lib/i18n";
 import { BrandColorsTab } from "./brand/BrandColorsTab";
 import { BrandFontsTab } from "./brand/BrandFontsTab";
@@ -53,6 +56,10 @@ export function BrandPage({ workspaceId, canEditKit, canEditLibrary = canEditKit
   const [assets, setAssets] = useState<BrandAssets>(new Map());
   const [tab, setTabState] = useState<BrandTab>(() => tabFromHash() ?? "colors");
   const [creating, setCreating] = useState(false);
+  // Copying brands into other workspaces is a right of its own (brand.copy).
+  const [copying, setCopying] = useState(false);
+  const canCopy = useCan("brand.copy", workspaceId);
+  const otherWorkspaces = useAuth((s) => s.workspaces.length > 1);
 
   const setTab = useCallback((t: BrandTab) => {
     setTabState(t);
@@ -211,6 +218,7 @@ export function BrandPage({ workspaceId, canEditKit, canEditLibrary = canEditKit
           </select>
         </label>
         {canEditKit && <Button variant="secondary" size="sm" className="gap-1" onClick={() => setCreating(true)}><Plus size={14} /> {tr("brand.new_brand")}</Button>}
+        {canCopy && otherWorkspaces && <Button variant="secondary" size="sm" className="gap-1" onClick={() => setCopying(true)}><Copy size={14} /> {tr("brand.copy_to_workspaces")}</Button>}
       </div>
 
       <div role="tablist" aria-label={tr("brand.title")} className="mb-5 flex flex-wrap gap-1 rounded-lg bg-neutral-100 p-0.5 sm:w-max">
@@ -254,6 +262,8 @@ export function BrandPage({ workspaceId, canEditKit, canEditLibrary = canEditKit
           onRestored={replaceKit}
         />
       )}
+
+      {copying && <BrandKitCopyDialog workspaceId={workspaceId} kits={kits} initialKitId={kit.id} onClose={() => setCopying(false)} />}
 
       <Modal open={creating} onClose={() => setCreating(false)} title={tr("brand.new_brand")} width="w-[30rem]">
         <p className="mb-4 text-sm text-neutral-500">{tr("brand.new_brand_hint")}</p>

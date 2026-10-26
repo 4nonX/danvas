@@ -66,6 +66,9 @@ const (
 	// BrandLibrary maintains a kit's collections (categories of graphics,
 	// icons and photos) without the right to change the brand itself (F50).
 	BrandLibrary Action = "brand.library"
+	// BrandCopy copies the workspace's brand kits (one, several or all) into
+	// other workspaces, and into a new one as it is created.
+	BrandCopy Action = "brand.copy"
 
 	PrintColorProfiles  Action = "print.colorProfiles"
 	PrintExportProfiles Action = "print.exportProfiles"
@@ -138,6 +141,7 @@ var Actions = []ActionDef{
 	{BrandDesigns, "brand", false, "admin"},
 	{BrandUnlock, "brand", false, "admin"},
 	{BrandLibrary, "brand", false, "admin"},
+	{BrandCopy, "brand", false, "admin"},
 
 	{PrintColorProfiles, "print", false, "admin"},
 	{PrintExportProfiles, "print", false, "admin"},

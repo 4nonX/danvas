@@ -1181,6 +1181,16 @@ export interface DesignTransferResult {
   moved: boolean;
 }
 
+/** The outcome of copyBrandKits, per kit and target workspace. `error` is a
+ *  code ("forbidden", "failed"); `replaced`: a kit of the same name there
+ *  took the content (its earlier state stays in its version history). */
+export interface BrandKitCopyResult {
+  kits: { kitId: string; kit: string; workspaceId: string; newId?: string; name?: string; replaced?: boolean; error?: string }[];
+  assets: number;
+  /** Font families the kits use that a target still lacks. */
+  missingFonts: string[];
+}
+
 /** A folder's print defaults (F44): its own (kind to profile id) and what
  *  its designs open with, own or inherited from a folder above. */
 export interface FolderDefaults {
@@ -2757,6 +2767,12 @@ export class HyCanvasClient {
   /** Copy (or move, `move: true`) designs and folders with their contents to
    *  another workspace, uploads and library fonts included. Poll getJob: the
    *  interim result is `{done, total}`, the final one a DesignTransferResult. */
+  /** Copy brand kits (some, or `all`) of a workspace into other workspaces,
+   *  with the uploads and fonts they use; a job (GET /jobs/:id) whose result
+   *  is a BrandKitCopyResult. Takes brand.copy here and brand.kits there. */
+  copyBrandKits(input: { sourceWorkspaceId: string; all?: boolean; kitIds?: string[]; targetWorkspaceIds: string[]; replace?: boolean }): Promise<{ jobId: string }> {
+    return this.request("POST", `/v1/brand-kits/copy`, input);
+  }
   transferDesigns(input: { designIds?: string[]; folderIds?: string[]; targetWorkspaceId: string; targetFolderId?: string | null; move?: boolean }): Promise<{ jobId: string }> {
     return this.request("POST", `/v1/designs/transfer`, input);
   }

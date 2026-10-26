@@ -2,6 +2,18 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 1.6.0 (2026-10-26)
+
+### Added
+
+- **Copy brands into other workspaces.** On the Brand page, **Copy to workspaces** ticks the brands to copy (single ones or **All brands**) and the workspaces they go to. Colours, fonts with their files, logos, graphics and settings come along; the uploads are copied into the target. A brand of the same name there is replaced on request (its earlier state stays in its version history), otherwise the copy gets a free name. The brands here stay as they are.
+- **Brands for a new workspace.** Creating a workspace offers a checklist of the current workspace's brands (none ticked); the ticked ones are copied once the workspace exists.
+- **A right for it, `brand.copy`** (**Copy brands**, in the permission of the same name): needed in the source workspace; in each target the right to define brands (`brand.kits`). Owners and admins have it.
+
+### Upgrading
+
+- A migration adds the permission **Copy brands** to every workspace with roles and gives it to the roles that may define brands: additive, a rollback ignores it. No change to the design file format.
+
 ## 1.5.1 (2026-10-26)
 
 ### Fixed

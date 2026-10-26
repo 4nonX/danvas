@@ -23,6 +23,7 @@ import (
 	"hycanvas/backend/internal/approvals"
 	"hycanvas/backend/internal/audience"
 	"hycanvas/backend/internal/brand"
+	"hycanvas/backend/internal/brandcopy"
 	"hycanvas/backend/internal/bulkcreate"
 	"hycanvas/backend/internal/canva"
 	"hycanvas/backend/internal/canvaimport"
@@ -90,6 +91,8 @@ type Deps struct {
 	Convert        *convert.Service
 	// Transfer copies or moves designs between workspaces.
 	Transfer      *designtransfer.Service
+	// BrandCopy copies brand kits between workspaces.
+	BrandCopy     *brandcopy.Service
 	Storage       storage.Driver
 	AccountData   *accountdata.Service
 	Secure        bool                 // set Secure on session cookies (production / HTTPS)
@@ -219,6 +222,9 @@ func NewRouter(d Deps) http.Handler {
 		}
 		if d.Accounts != nil && d.Transfer != nil && d.Jobs != nil {
 			mountDesignTransfer(api, d.Transfer, d.Jobs, d.Accounts)
+		}
+		if d.Accounts != nil && d.BrandCopy != nil && d.Jobs != nil {
+			mountBrandCopy(api, d.BrandCopy, d.Jobs, d.Accounts)
 		}
 		if d.Accounts != nil && d.Persistence != nil && d.Storage != nil && d.Jobs != nil {
 			mountExport(api, d.Persistence, d.Storage, d.Jobs, d.Accounts, d.Uploads)

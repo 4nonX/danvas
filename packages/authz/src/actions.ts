@@ -59,6 +59,7 @@ export const ACTIONS = [
   { key: "brand.designs", area: "brand", scoped: false },
   { key: "brand.unlock", area: "brand", scoped: false },
   { key: "brand.library", area: "brand", scoped: false },
+  { key: "brand.copy", area: "brand", scoped: false },
   { key: "print.colorProfiles", area: "print", scoped: false },
   { key: "print.exportProfiles", area: "print", scoped: false },
   { key: "print.printPresets", area: "print", scoped: false },

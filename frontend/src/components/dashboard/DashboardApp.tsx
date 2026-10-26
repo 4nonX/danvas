@@ -51,7 +51,7 @@ import { hycAccept, downloadHycFile, importedTitle, parseHycFile, readFileText }
 import { dialTones } from "@hc/aistudio";
 import { designFromFile, designImportAccept } from "@/lib/importDesignFile";
 
-import { ApiError, type AiProviderPreset, type DesignFolder, type DesignRecord, type HomeItem, type MyTask, type StorageUsageView, type TaskStatus, type TemplateCollectionSummary, type TemplateSummary } from "@hc/sdk";
+import { ApiError, type AiProviderPreset, type BrandKit, type DesignFolder, type DesignRecord, type HomeItem, type MyTask, type StorageUsageView, type TaskStatus, type TemplateCollectionSummary, type TemplateSummary } from "@hc/sdk";
 import { formatBytes } from "@/lib/format";
 import { useDateFormat } from "@/lib/datetime";
 import { resolvedTheme, setThemePreference } from "@/lib/theme";
@@ -98,6 +98,8 @@ import { PrintProfilesPanel } from "./PrintProfilesPanel";
 import { ColorLibrariesPanel } from "./ColorLibrariesPanel";
 import { PrintApprovalPanel } from "./PrintApprovalPanel";
 import { BrandPage } from "./BrandPage";
+import { KitChecklist, kitChoiceEmpty, noKits, type KitChoice } from "@/components/brand/KitChecklist";
+import { runBrandCopy } from "@/lib/brandCopy";
 import { WorkspaceCanvaPanel } from "./WorkspaceCanvaPanel";
 import { loadWorkspaceFonts } from "@/lib/workspaceFonts";
 import { TemplateFromPptxDialog } from "./TemplateFromPptxDialog";
@@ -232,6 +234,10 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   const [renameValue, setRenameValue] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<HomeItem | null>(null);
   const [wsModal, setWsModal] = useState(false);
+  // A new workspace can take brands of the active one (brand.copy): nothing
+  // ticked unless chosen.
+  const [wsKits, setWsKits] = useState<BrandKit[]>([]);
+  const [wsKitChoice, setWsKitChoice] = useState<KitChoice>(noKits);
   const [sizeOpen, setSizeOpen] = useState(false);
   const [aiBrief, setAiBrief] = useState("");
   const [aiFormat, setAiFormat] = useState(() => briefFormats()[0].label);
@@ -494,6 +500,13 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   // What the caller's role allows in the active workspace (F42).
   const myActions = useMyActions();
   const can = (a: Action) => hasAction(myActions, a);
+  const canCopyBrands = can("brand.copy");
+  useEffect(() => {
+    if (!wsModal || !canCopyBrands || !activeWorkspaceId) return;
+    let stop = false;
+    oc.listBrandKits(activeWorkspaceId).then((k) => { if (!stop) setWsKits(k); }, () => { if (!stop) setWsKits([]); });
+    return () => { stop = true; };
+  }, [wsModal, canCopyBrands, activeWorkspaceId]);
   const [reformat, setReformat] = useState<{ id: string; title: string }[] | null>(null);
   // Change format from the download menu (F48): the profile's finished size,
   // and the download to go back to once the designs are changed.
@@ -1046,11 +1059,24 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   async function createWorkspace() {
     if (!wsName.trim()) return;
     const ws = await oc.createWorkspace({ name: wsName.trim(), kind: "team" });
+    const source = activeWorkspaceId;
+    const choice = wsKitChoice;
     await refreshWorkspaces();
     setActiveWorkspace(ws.id);
     setWsModal(false);
     setWsName("");
+    setWsKitChoice(noKits);
     toast.success(`Workspace “${ws.name}” created.`);
+    // The brands chosen come along in the background (a job on the server).
+    if (source && canCopyBrands && !kitChoiceEmpty(choice)) {
+      runBrandCopy({ sourceWorkspaceId: source, all: choice.all, kitIds: choice.kitIds, targetWorkspaceIds: [ws.id], replace: false })
+        .then((res) => {
+          const ok = res?.kits.filter((k) => !k.error).length ?? 0;
+          if (res && ok === res.kits.length) toast.success(tr("dashboard.ws_brands_copied", { count: ok, name: ws.name }));
+          else toast.error(tr("dashboard.ws_brands_copy_failed", { name: ws.name }));
+        })
+        .catch(() => toast.error(tr("dashboard.ws_brands_copy_failed", { name: ws.name })));
+    }
   }
 
   // Shared recents controls (sort + grid/list) used by Home and Favorites.
@@ -2381,6 +2407,13 @@ export function DashboardApp({ view }: { view: DashboardView }) {
 
       <Modal open={wsModal} onClose={() => setWsModal(false)} title={tr("dashboard.create_a_workspace")}>
         <Input label={tr("dashboard.workspace_name")} value={wsName} onChange={(e) => setWsName(e.target.value)} placeholder={tr("dashboard.e_g_marketing_team")} autoFocus />
+        {canCopyBrands && wsKits.length > 0 && (
+          <div className="mt-4 rounded-lg border border-neutral-200 p-3">
+            <p className="mb-1 text-sm font-medium text-neutral-800">{tr("dashboard.ws_copy_brands", { name: workspaces.find((w) => w.id === activeWorkspaceId)?.name ?? "" })}</p>
+            <p className="mb-2.5 text-xs text-neutral-500">{tr("dashboard.ws_copy_brands_hint")}</p>
+            <KitChecklist kits={wsKits} value={wsKitChoice} onChange={setWsKitChoice} />
+          </div>
+        )}
         <div className="mt-5 flex justify-end gap-2">
           <Button variant="ghost" onClick={() => setWsModal(false)}>{tr("dashboard.cancel")}</Button>
           <Button onClick={() => void createWorkspace()}>{tr("dashboard.create")}</Button>
