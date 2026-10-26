@@ -29,7 +29,7 @@ Keep pull requests focused, describe what changed and why, and reference the iss
 
 ## Contributing a template
 
-A small template library is the most common gap people point out in any design tool, so templates are one of the most useful contributions. Built-in templates are compact JSON specs in `scripts/templates/` (137 today), compiled into the binary:
+A small template library is the most common gap people point out in any design tool, so templates are one of the most useful contributions. Built-in templates are compact JSON specs in `scripts/templates/` (140 today), compiled into the binary:
 
 1. Copy a spec close to what you want (for example `scripts/templates/a4-invoice.json`) to a new file with a unique `id`.
 2. Edit the size, pages, and nodes: hex colours, text blocks, shapes, buttons, icons, and picture slots. Use fonts from the in-app font catalog, and only images you have the right to contribute under the AGPL.

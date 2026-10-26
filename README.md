@@ -20,7 +20,7 @@
   <a href="https://youtu.be/Btai2nGP7VU"><b>Watch the one-minute film</b></a>
 </p>
 
-HyCanvas is a design editor that runs in the browser: social posts, posters, presentations, videos, whiteboards, docs and sheets, all in one app. Start from one of 137 templates or a blank page, edit everything on it, and export PNG, JPG, PDF, SVG, PPTX, MP4 or GIF with no watermark. Every feature is free, and you can run the whole thing on your own server with one Docker command.
+HyCanvas is a design editor that runs in the browser: social posts, posters, presentations, videos, whiteboards, docs and sheets, all in one app. Start from one of 140 templates or a blank page, edit everything on it, and export PNG, JPG, PDF, SVG, PPTX, MP4 or GIF with no watermark. Every feature is free, and you can run the whole thing on your own server with one Docker command.
 
 It is pre-1.0 and moves fast, with a new release every week or two. Bug reports are very welcome.
 
@@ -44,7 +44,7 @@ It is pre-1.0 and moves fast, with a new release every week or two. Bug reports 
   <tr>
     <td width="50%" valign="top">
       <img src=".github/readme/templates.png" alt="The template gallery with flyers, social cards, posters and decks">
-      <b>Templates.</b> 137 built-in templates across social, print, events, business and presentations, plus your own saved templates and PowerPoint imports.
+      <b>Templates.</b> 140 built-in templates across social, print, events, business and presentations, plus your own saved templates and PowerPoint imports.
     </td>
     <td width="50%" valign="top">
       <img src=".github/readme/whiteboard.png" alt="A whiteboard with a three-column retrospective template">
