@@ -455,10 +455,7 @@
   "dashboard.members": "Members",
   "dashboard.monthly_token_cap": "Monthly token cap",
   "dashboard.more": "More",
-  "dashboard.move": "Move",
   "dashboard.move_n_designs_to_trash": "Move {n} designs to the trash? You can restore them later.",
-  "dashboard.move_n_items": "Move {n} item(s) to…",
-  "dashboard.move_to_folder": "Move to folder",
   "dashboard.move_to_trash": "Move to trash?",
   "dashboard.move_to_trash_2": "Move to trash",
   "dashboard.moved_to": "Moved to {folder}.",
@@ -4286,9 +4283,6 @@
   "editor.print_sheet_crop_marks": "Crop marks",
   "editor.bleed": "Bleed",
   "editor.print_sheet_pages_hint": "Shown for the first of the {count} pages; a change applies to all of them.",
-  "dashboard.copy_to_workspace": "Copy to workspace…",
-  "dashboard.move_to_workspace": "Move to workspace…",
-  "dashboard.to_workspace": "To workspace…",
   "dashboard.transfer_title": "Copy or move",
   "dashboard.transfer_one_design": "“{title}”",
   "dashboard.transfer_n_items": "{designs} designs and {folders} folders",
@@ -4527,7 +4521,6 @@
   "editor.output_spot_unexpected": "Further spot colors: {names}.",
   "errors.api_output_check_unavailable": "The output check is not available on this instance (Ghostscript is not installed).",
   "errors.api_output_check_too_large": "The file is too large for the output check.",
-  "dashboard.copy_to_folder": "Copy to folder…",
   "dashboard.transfer_this_workspace": "{workspace} (this workspace)",
   "dashboard.transfer_copy_hint_here": "The copies use the same uploads and fonts. The originals stay where they are.",
   "dashboard.transfer_move_hint_here": "The designs and folders move to the chosen folder; nothing is copied.",
@@ -5370,5 +5363,7 @@
   "dashboard.ws_copy_brands_hint": "Only what you tick comes along. It is copied once the workspace exists.",
   "dashboard.ws_brands_copied.one": "{count} brand copied into “{name}”.",
   "dashboard.ws_brands_copied.other": "{count} brands copied into “{name}”.",
-  "dashboard.ws_brands_copy_failed": "Not all brands could be copied into “{name}”. Copy them from the Brand page."
+  "dashboard.ws_brands_copy_failed": "Not all brands could be copied into “{name}”. Copy them from the Brand page.",
+  "dashboard.new_folder_inside": "New folder in “{folder}”",
+  "dashboard.copy_or_move": "Copy or move…"
 }

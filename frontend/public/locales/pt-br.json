@@ -3995,7 +3995,6 @@
   "dashboard.could_not_create_folder": "Não foi possível criar a pasta.",
   "dashboard.could_not_move": "Não foi possível mover os itens.",
   "dashboard.moved_to": "Movido para {folder}.",
-  "dashboard.move_to_folder": "Mover para pasta",
   "dashboard.cannot_move_folder_into_itself": "Uma pasta não pode ser movida para dentro dela mesma.",
   "dashboard.canva_already_imported": "Já importado",
   "dashboard.canva_client_id": "ID do cliente",
@@ -4074,8 +4073,6 @@
   "dashboard.current": "atual",
   "dashboard.expand": "Expandir",
   "dashboard.collapse": "Recolher",
-  "dashboard.move": "Mover",
-  "dashboard.move_n_items": "Mover {n} item(ns) para…",
   "editor.pdf_type": "Tipo de PDF",
   "editor.pdf_print_vector": "Qualidade de impressão (vetorial)",
   "editor.pdf_print_vector_desc": "Nítido em qualquer tamanho: formas e texto vetoriais, imagens em resolução total, tamanho de impressão exato {w} × {h} mm.",
@@ -4286,9 +4283,6 @@
   "editor.print_sheet_crop_marks": "Marcas de corte",
   "editor.bleed": "Sangria",
   "editor.print_sheet_pages_hint": "Mostrado para a primeira das {count} páginas; uma alteração vale para todas.",
-  "dashboard.copy_to_workspace": "Copiar para espaço de trabalho…",
-  "dashboard.move_to_workspace": "Mover para espaço de trabalho…",
-  "dashboard.to_workspace": "Para espaço de trabalho…",
   "dashboard.transfer_title": "Copiar ou mover",
   "dashboard.transfer_one_design": "“{title}”",
   "dashboard.transfer_n_items": "{designs} designs e {folders} pastas",
@@ -4527,7 +4521,6 @@
   "editor.output_spot_unexpected": "Outras cores especiais: {names}.",
   "errors.api_output_check_unavailable": "A verificação de saída não está disponível nesta instância (o Ghostscript não está instalado).",
   "errors.api_output_check_too_large": "O arquivo é grande demais para a verificação de saída.",
-  "dashboard.copy_to_folder": "Copiar para pasta…",
   "dashboard.transfer_this_workspace": "{workspace} (este espaço de trabalho)",
   "dashboard.transfer_copy_hint_here": "As cópias usam os mesmos uploads e fontes. Os originais ficam onde estão.",
   "dashboard.transfer_move_hint_here": "Os designs e pastas vão para a pasta escolhida; nada é copiado.",
@@ -5370,5 +5363,7 @@
   "dashboard.ws_copy_brands_hint": "Só o que você marcar vem junto, assim que o espaço de trabalho for criado.",
   "dashboard.ws_brands_copied.one": "{count} marca copiada para “{name}”.",
   "dashboard.ws_brands_copied.other": "{count} marcas copiadas para “{name}”.",
-  "dashboard.ws_brands_copy_failed": "Nem todas as marcas puderam ser copiadas para “{name}”. Copie-as pela página da marca."
+  "dashboard.ws_brands_copy_failed": "Nem todas as marcas puderam ser copiadas para “{name}”. Copie-as pela página da marca.",
+  "dashboard.new_folder_inside": "Nova pasta em “{folder}”",
+  "dashboard.copy_or_move": "Copiar ou mover…"
 }

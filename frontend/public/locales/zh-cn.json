@@ -3995,7 +3995,6 @@
   "dashboard.could_not_create_folder": "无法创建文件夹。",
   "dashboard.could_not_move": "无法移动项目。",
   "dashboard.moved_to": "已移动到 {folder}。",
-  "dashboard.move_to_folder": "移动到文件夹",
   "dashboard.cannot_move_folder_into_itself": "文件夹不能移动到其自身中。",
   "dashboard.canva_already_imported": "已导入",
   "dashboard.canva_client_id": "Client ID",
@@ -4074,8 +4073,6 @@
   "dashboard.current": "当前",
   "dashboard.expand": "展开",
   "dashboard.collapse": "收起",
-  "dashboard.move": "移动",
-  "dashboard.move_n_items": "将 {n} 项移动到…",
   "editor.pdf_type": "PDF 类型",
   "editor.pdf_print_vector": "印刷质量（矢量）",
   "editor.pdf_print_vector_desc": "任意尺寸都清晰：形状和文字为矢量，图片为原始分辨率，精确打印尺寸 {w} × {h} mm。",
@@ -4286,9 +4283,6 @@
   "editor.print_sheet_crop_marks": "裁切标记",
   "editor.bleed": "出血",
   "editor.print_sheet_pages_hint": "显示的是 {count} 个页面中第一页的设置；更改会应用到所有页面。",
-  "dashboard.copy_to_workspace": "复制到工作区…",
-  "dashboard.move_to_workspace": "移动到工作区…",
-  "dashboard.to_workspace": "到工作区…",
   "dashboard.transfer_title": "复制或移动",
   "dashboard.transfer_one_design": "“{title}”",
   "dashboard.transfer_n_items": "{designs} 个设计和 {folders} 个文件夹",
@@ -4527,7 +4521,6 @@
   "editor.output_spot_unexpected": "其他专色：{names}。",
   "errors.api_output_check_unavailable": "此实例不提供输出检查（未安装 Ghostscript）。",
   "errors.api_output_check_too_large": "文件太大，无法进行输出检查。",
-  "dashboard.copy_to_folder": "复制到文件夹…",
   "dashboard.transfer_this_workspace": "{workspace}（当前工作区）",
   "dashboard.transfer_copy_hint_here": "副本使用相同的上传文件和字体。原始设计保持不变。",
   "dashboard.transfer_move_hint_here": "设计和文件夹会移到所选文件夹；不会复制任何内容。",
@@ -5370,5 +5363,7 @@
   "dashboard.ws_copy_brands_hint": "只有勾选的内容会在工作区创建后复制过去。",
   "dashboard.ws_brands_copied.one": "已将 {count} 个品牌复制到“{name}”。",
   "dashboard.ws_brands_copied.other": "已将 {count} 个品牌复制到“{name}”。",
-  "dashboard.ws_brands_copy_failed": "部分品牌未能复制到“{name}”。请从品牌页面复制。"
+  "dashboard.ws_brands_copy_failed": "部分品牌未能复制到“{name}”。请从品牌页面复制。",
+  "dashboard.new_folder_inside": "在“{folder}”中新建文件夹",
+  "dashboard.copy_or_move": "复制或移动…"
 }

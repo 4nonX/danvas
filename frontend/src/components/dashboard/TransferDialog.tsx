@@ -3,15 +3,18 @@
 // server does the work as a job. Opened from a design's or folder's menu, or
 // for the selection from the selection bar.
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
-import { ChevronRight, Folder as FolderIcon, Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
+import { hasAction } from "@hc/authz";
 import type { DesignFolder, DesignTransferResult, WorkspaceWithRole } from "@hc/sdk";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
+import { useToast } from "@/components/ui/Toast";
 import { oc } from "@/lib/sdk";
 import { tr } from "@/lib/i18n";
 import { userMessage } from "@/lib/errors";
-import { childrenMap, type DragItems } from "./Folders";
+import { useWorkspaceActions } from "@/store/workspaceActions";
+import { FolderPicker, type DragItems } from "./Folders";
 
 type Mode = "copy" | "move";
 
@@ -25,7 +28,7 @@ const ERROR_TEXT = (): Record<string, string> => ({
 });
 
 export function TransferDialog({
-  items, initialMode, initialTarget, excludeFolders, workspaces, currentWorkspaceId, titleOf, onClose, onDone, onOpenWorkspace,
+  items, initialMode, initialTarget, excludeFolders, currentFolder, onCreateFolder, workspaces, currentWorkspaceId, titleOf, onClose, onDone, onOpenWorkspace,
 }: {
   items: DragItems;
   initialMode: Mode;
@@ -34,6 +37,10 @@ export function TransferDialog({
   /** Folders of this workspace the items cannot go into: the folders being
    *  copied or moved and everything inside them. */
   excludeFolders?: Set<string>;
+  /** Where the items are now in this workspace, when all are in one folder. */
+  currentFolder?: string | null;
+  /** Creates a folder in a workspace (where the caller may). */
+  onCreateFolder?: (workspaceId: string, name: string, parentId: string | null) => Promise<DesignFolder | null>;
   workspaces: WorkspaceWithRole[];
   currentWorkspaceId: string;
   titleOf: (designId: string) => string;
@@ -47,6 +54,7 @@ export function TransferDialog({
   const targets = workspaces
     .filter((w) => w.role !== "viewer")
     .sort((a, b) => Number(b.id === currentWorkspaceId) - Number(a.id === currentWorkspaceId));
+  const toast = useToast();
   const [mode, setMode] = useState<Mode>(initialMode);
   const [target, setTarget] = useState<string>(
     targets.find((w) => w.id === initialTarget)?.id ?? targets.find((w) => w.id !== currentWorkspaceId)?.id ?? targets[0]?.id ?? "",
@@ -56,13 +64,24 @@ export function TransferDialog({
   // a switch of target shows "loading" until its own folders arrive.
   const [loaded, setLoaded] = useState<{ ws: string; folders: DesignFolder[] } | null>(null);
   const folders = loaded && loaded.ws === target ? loaded.folders : null;
-  const [folder, setFolder] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  // Within this workspace it starts in the folder the items are in.
+  const [folder, setFolder] = useState<string | null>(initialTarget === currentWorkspaceId ? (currentFolder ?? null) : null);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [result, setResult] = useState<DesignTransferResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const cancelled = useRef(false);
   useEffect(() => () => { cancelled.current = true; }, []);
+
+  // Creating folders in the target needs the right there.
+  const targetActions = useWorkspaceActions((s) => (target ? s.byWorkspace[target] : undefined));
+  useEffect(() => { if (target) void useWorkspaceActions.getState().load(target); }, [target]);
+  const canCreate = !!onCreateFolder && hasAction(targetActions?.actions ?? null, "folder.create");
+  const createFolder = async (name: string, parentId: string | null) => {
+    const ws = target;
+    const f = await onCreateFolder!(ws, name, parentId);
+    if (f) setLoaded((l) => (l && l.ws === ws ? { ws, folders: [...l.folders, f] } : l));
+    return f;
+  };
 
   useEffect(() => {
     if (!target) return;
@@ -93,9 +112,16 @@ export function TransferDialog({
         const job = await oc.getJob<DesignTransferResult | { done: number; total: number }>(jobId);
         if (job.status === "completed") {
           const res = job.result as DesignTransferResult;
-          setResult(res);
           setProgress(null);
           onDone((res.moved || here) && (res.designs.some((d) => !d.error) || res.folders > 0));
+          // Within this workspace a clean result needs no page of its own.
+          if (here && !res.designs.some((d) => d.error) && res.missingFonts.length === 0) {
+            const okCount = res.designs.length;
+            toast.success(res.moved ? tr("dashboard.transfer_moved_here", { folder: folderName }) : tr("dashboard.transfer_copied_here", { count: okCount, folder: folderName }));
+            onClose();
+            return;
+          }
+          setResult(res);
           return;
         }
         if (job.status === "failed") throw new Error(job.error || "transfer failed");
@@ -109,32 +135,6 @@ export function TransferDialog({
   };
 
   const busy = progress !== null;
-  const kids = childrenMap(folders ?? []);
-  const row = (f: DesignFolder | null, depth: number): ReactNode => {
-    const id = f?.id ?? null;
-    // Within this workspace a folder cannot go into itself.
-    const children = (kids.get(id ?? "") ?? []).filter((c) => !(here && excludeFolders?.has(c.id)));
-    const isOpen = id === null || expanded.has(id);
-    return (
-      <li key={id ?? "root"}>
-        <div className={`flex items-center gap-1 rounded-lg pe-2 transition ${folder === id ? "bg-brand-50 text-brand-ink" : "hover:bg-neutral-50"}`} style={{ paddingInlineStart: depth * 16 }}>
-          <button
-            type="button"
-            aria-label={isOpen ? tr("dashboard.collapse") : tr("dashboard.expand")}
-            disabled={id === null || children.length === 0}
-            onClick={() => id && setExpanded((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; })}
-            className="grid h-7 w-6 shrink-0 place-items-center text-neutral-400 disabled:invisible"
-          ><ChevronRight size={14} className={`transition ${isOpen ? "rotate-90" : ""}`} /></button>
-          <button type="button" disabled={busy} onClick={() => setFolder(id)} className="flex min-w-0 flex-1 items-center gap-2 py-1.5 text-start text-sm">
-            <FolderIcon size={15} className="shrink-0 text-brand-600" />
-            <span className="truncate">{f ? f.name : tr("dashboard.projects")}</span>
-          </button>
-        </div>
-        {isOpen && children.length > 0 && <ul>{children.map((c) => row(c, depth + 1))}</ul>}
-      </li>
-    );
-  };
-
   const targetName = targets.find((w) => w.id === target)?.name ?? "";
   const folderName = folder ? (folders?.find((f) => f.id === folder)?.name ?? "") : tr("dashboard.projects");
 
@@ -200,7 +200,7 @@ export function TransferDialog({
             <select
               value={target}
               disabled={busy}
-              onChange={(e) => { setTarget(e.target.value); setFolder(null); }}
+              onChange={(e) => { setTarget(e.target.value); setFolder(e.target.value === currentWorkspaceId ? (currentFolder ?? null) : null); }}
               className="w-full rounded-lg border border-neutral-200 bg-surface px-2 py-1.5 text-sm outline-none focus:border-brand-400"
             >
               {targets.map((w) => <option key={w.id} value={w.id}>{w.id === currentWorkspaceId ? tr("dashboard.transfer_this_workspace", { workspace: w.name }) : w.name}</option>)}
@@ -210,7 +210,17 @@ export function TransferDialog({
           {folders === null ? (
             <div className="flex h-20 items-center justify-center rounded-xl border border-neutral-200"><Loader2 size={16} className="animate-spin text-neutral-400" /></div>
           ) : (
-            <ul className="oc-scroll max-h-[30vh] overflow-y-auto rounded-xl border border-neutral-200 p-1">{row(null, 0)}</ul>
+            <FolderPicker
+              key={target}
+              folders={folders}
+              value={folder}
+              onChange={setFolder}
+              exclude={here ? excludeFolders : undefined}
+              current={here ? (currentFolder ?? null) : undefined}
+              disabled={busy}
+              onCreate={canCreate ? createFolder : undefined}
+              className="max-h-[30vh]"
+            />
           )}
           <p className="mt-3 text-[11px] leading-snug text-neutral-500">
             {here
@@ -233,7 +243,7 @@ export function TransferDialog({
       <div className="mt-5 flex justify-end gap-2">
         <Button variant="ghost" onClick={onClose} disabled={busy}>{tr("dashboard.cancel")}</Button>
         {targets.length > 0 && (
-          <Button onClick={() => void start()} disabled={busy || !target || folders === null}>
+          <Button onClick={() => void start()} disabled={busy || !target || folders === null || (here && mode === "move" && folder === (currentFolder ?? null))}>
             {busy && <Loader2 size={14} className="animate-spin" />}
             {mode === "move" ? tr("dashboard.transfer_move_action") : tr("dashboard.transfer_copy_action")}
           </Button>

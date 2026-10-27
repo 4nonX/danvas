@@ -3995,7 +3995,6 @@
   "dashboard.could_not_create_folder": "फ़ोल्डर बनाया नहीं जा सका।",
   "dashboard.could_not_move": "आइटम ले जाए नहीं जा सके।",
   "dashboard.moved_to": "{folder} में ले जाया गया।",
-  "dashboard.move_to_folder": "फ़ोल्डर में ले जाएँ",
   "dashboard.cannot_move_folder_into_itself": "फ़ोल्डर को उसी के अंदर नहीं ले जाया जा सकता।",
   "dashboard.canva_already_imported": "पहले से इंपोर्ट किया गया",
   "dashboard.canva_client_id": "Client ID",
@@ -4074,8 +4073,6 @@
   "dashboard.current": "वर्तमान",
   "dashboard.expand": "विस्तार करें",
   "dashboard.collapse": "संक्षिप्त करें",
-  "dashboard.move": "ले जाएँ",
-  "dashboard.move_n_items": "{n} आइटम यहाँ ले जाएँ…",
   "editor.pdf_type": "PDF प्रकार",
   "editor.pdf_print_vector": "प्रिंट गुणवत्ता (वेक्टर)",
   "editor.pdf_print_vector_desc": "किसी भी आकार में स्पष्ट: आकृतियाँ और टेक्स्ट वेक्टर, चित्र पूर्ण रिज़ॉल्यूशन, सटीक प्रिंट आकार {w} × {h} mm।",
@@ -4286,9 +4283,6 @@
   "editor.print_sheet_crop_marks": "क्रॉप मार्क",
   "editor.bleed": "ब्लीड",
   "editor.print_sheet_pages_hint": "{count} पेजों में से पहले पेज की सेटिंग दिखाई गई है; बदलाव सभी पर लागू होता है।",
-  "dashboard.copy_to_workspace": "वर्कस्पेस में कॉपी करें…",
-  "dashboard.move_to_workspace": "वर्कस्पेस में ले जाएँ…",
-  "dashboard.to_workspace": "वर्कस्पेस में…",
   "dashboard.transfer_title": "कॉपी करें या ले जाएँ",
   "dashboard.transfer_one_design": "“{title}”",
   "dashboard.transfer_n_items": "{designs} डिज़ाइन और {folders} फ़ोल्डर",
@@ -4527,7 +4521,6 @@
   "editor.output_spot_unexpected": "अन्य स्पॉट रंग: {names}।",
   "errors.api_output_check_unavailable": "इस इंस्टेंस पर आउटपुट जाँच उपलब्ध नहीं है (Ghostscript इंस्टॉल नहीं है)।",
   "errors.api_output_check_too_large": "फ़ाइल आउटपुट जाँच के लिए बहुत बड़ी है।",
-  "dashboard.copy_to_folder": "फ़ोल्डर में कॉपी करें…",
   "dashboard.transfer_this_workspace": "{workspace} (यह वर्कस्पेस)",
   "dashboard.transfer_copy_hint_here": "कॉपियाँ वही अपलोड और फ़ॉन्ट इस्तेमाल करती हैं। मूल जहाँ हैं वहीं रहते हैं।",
   "dashboard.transfer_move_hint_here": "डिज़ाइन और फ़ोल्डर चुने गए फ़ोल्डर में चले जाते हैं; कुछ भी कॉपी नहीं होता।",
@@ -5370,5 +5363,7 @@
   "dashboard.ws_copy_brands_hint": "केवल वही साथ आता है जिसे आप चुनते हैं; वर्कस्पेस बनते ही कॉपी होता है।",
   "dashboard.ws_brands_copied.one": "{count} ब्रांड “{name}” में कॉपी हुआ।",
   "dashboard.ws_brands_copied.other": "{count} ब्रांड “{name}” में कॉपी हुए।",
-  "dashboard.ws_brands_copy_failed": "सभी ब्रांड “{name}” में कॉपी नहीं हो सके। उन्हें ब्रांड पेज से कॉपी करें।"
+  "dashboard.ws_brands_copy_failed": "सभी ब्रांड “{name}” में कॉपी नहीं हो सके। उन्हें ब्रांड पेज से कॉपी करें।",
+  "dashboard.new_folder_inside": "“{folder}” में नया फ़ोल्डर",
+  "dashboard.copy_or_move": "कॉपी या स्थानांतरित करें…"
 }

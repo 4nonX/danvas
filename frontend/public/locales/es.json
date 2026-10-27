@@ -3995,7 +3995,6 @@
   "dashboard.could_not_create_folder": "No se pudo crear la carpeta.",
   "dashboard.could_not_move": "No se pudieron mover los elementos.",
   "dashboard.moved_to": "Movido a {folder}.",
-  "dashboard.move_to_folder": "Mover a carpeta",
   "dashboard.cannot_move_folder_into_itself": "Una carpeta no se puede mover dentro de sí misma.",
   "dashboard.canva_already_imported": "Ya importado",
   "dashboard.canva_client_id": "ID de cliente",
@@ -4074,8 +4073,6 @@
   "dashboard.current": "actual",
   "dashboard.expand": "Expandir",
   "dashboard.collapse": "Contraer",
-  "dashboard.move": "Mover",
-  "dashboard.move_n_items": "Mover {n} elemento(s) a…",
   "editor.pdf_type": "Tipo de PDF",
   "editor.pdf_print_vector": "Calidad de impresión (vectorial)",
   "editor.pdf_print_vector_desc": "Nítido a cualquier tamaño: formas y texto vectoriales, imágenes a resolución completa, tamaño de impresión exacto {w} × {h} mm.",
@@ -4286,9 +4283,6 @@
   "editor.print_sheet_crop_marks": "Marcas de corte",
   "editor.bleed": "Sangrado",
   "editor.print_sheet_pages_hint": "Se muestra la primera de las {count} páginas; un cambio se aplica a todas.",
-  "dashboard.copy_to_workspace": "Copiar a espacio de trabajo…",
-  "dashboard.move_to_workspace": "Mover a espacio de trabajo…",
-  "dashboard.to_workspace": "A espacio de trabajo…",
   "dashboard.transfer_title": "Copiar o mover",
   "dashboard.transfer_one_design": "«{title}»",
   "dashboard.transfer_n_items": "{designs} diseños y {folders} carpetas",
@@ -4527,7 +4521,6 @@
   "editor.output_spot_unexpected": "Otras tintas planas: {names}.",
   "errors.api_output_check_unavailable": "La comprobación de salida no está disponible en esta instancia (Ghostscript no está instalado).",
   "errors.api_output_check_too_large": "El archivo es demasiado grande para la comprobación de salida.",
-  "dashboard.copy_to_folder": "Copiar a carpeta…",
   "dashboard.transfer_this_workspace": "{workspace} (este espacio de trabajo)",
   "dashboard.transfer_copy_hint_here": "Las copias usan las mismas subidas y fuentes. Los originales se quedan donde están.",
   "dashboard.transfer_move_hint_here": "Los diseños y carpetas pasan a la carpeta elegida; no se copia nada.",
@@ -5370,5 +5363,7 @@
   "dashboard.ws_copy_brands_hint": "Solo se copia lo que marques, una vez creado el espacio de trabajo.",
   "dashboard.ws_brands_copied.one": "{count} marca copiada a «{name}».",
   "dashboard.ws_brands_copied.other": "{count} marcas copiadas a «{name}».",
-  "dashboard.ws_brands_copy_failed": "No todas las marcas se pudieron copiar a «{name}». Cópialas desde la página de marca."
+  "dashboard.ws_brands_copy_failed": "No todas las marcas se pudieron copiar a «{name}». Cópialas desde la página de marca.",
+  "dashboard.new_folder_inside": "Nueva carpeta en «{folder}»",
+  "dashboard.copy_or_move": "Copiar o mover…"
 }

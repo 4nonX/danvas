@@ -1,13 +1,12 @@
 // Dashboard design folders: tree helpers, the drag payload shared by design
-// cards and folder tiles, a folder tile, the folder path bar, and the
-// "Move to folder" dialog. Folder state lives in DashboardApp; these pieces
+// cards and folder tiles, a folder tile, the folder path bar, and the folder
+// tree "Copy or move" picks a target in. Folder state lives in DashboardApp; these pieces
 // only render it and report what the user did.
 
 import { useState, type DragEvent, type ReactNode } from "react";
-import { ChevronRight, Folder as FolderIcon, FolderOpen, FolderPlus, MoreHorizontal, Pencil, Trash2, FolderInput, Check, LayoutTemplate, Copy, CopyPlus, ArrowRightLeft, Printer } from "lucide-react";
+import { ChevronRight, Folder as FolderIcon, FolderOpen, FolderPlus, MoreHorizontal, Pencil, Trash2, Check, LayoutTemplate, ArrowRightLeft, Printer } from "lucide-react";
 import type { DesignFolder } from "@hc/sdk";
 import { AnchoredMenu } from "@/components/ui/AnchoredMenu";
-import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { tr } from "@/lib/i18n";
 
@@ -98,7 +97,7 @@ export function useDropTarget(onDrop: (items: DragItems) => void) {
 
 /** A folder in the Projects grid: open on click, drop designs/folders on it. */
 export function FolderTile({
-  folder, subfolders, selected, menuOpen, onOpen, onToggleMenu, onRename, onMove, onTransfer, onDefaults, onDelete, onDropItems, onDragStart, onToggleSelect,
+  folder, subfolders, selected, menuOpen, onOpen, onToggleMenu, onRename, onTransfer, onDefaults, onDelete, onDropItems, onDragStart, onToggleSelect,
 }: {
   folder: DesignFolder;
   subfolders: number;
@@ -107,9 +106,9 @@ export function FolderTile({
   onOpen: () => void;
   onToggleMenu: () => void;
   onRename: () => void;
-  onMove: () => void;
   /** Copy or move the folder to another workspace (absent: not offered). */
-  onTransfer?: (mode: "copy" | "move", here?: boolean) => void;
+  /** Opens "Copy or move" for the folder. */
+  onTransfer: () => void;
   /** The folder's print defaults (absent: not offered). */
   onDefaults?: () => void;
   onDelete: () => void;
@@ -164,10 +163,7 @@ export function FolderTile({
           <AnchoredMenu className="w-60 rounded-xl border border-neutral-200 bg-surface py-1 text-sm shadow-lg" onClick={(e) => e.stopPropagation()}>
             <FolderMenuRow icon={FolderOpen} onClick={onOpen}>{tr("dashboard.open")}</FolderMenuRow>
             <FolderMenuRow icon={Pencil} onClick={onRename}>{tr("dashboard.rename")}</FolderMenuRow>
-            <FolderMenuRow icon={FolderInput} onClick={onMove}>{tr("dashboard.move_to_folder")}</FolderMenuRow>
-            {onTransfer && <FolderMenuRow icon={CopyPlus} onClick={() => onTransfer("copy", true)}>{tr("dashboard.copy_to_folder")}</FolderMenuRow>}
-            {onTransfer && <FolderMenuRow icon={Copy} onClick={() => onTransfer("copy")}>{tr("dashboard.copy_to_workspace")}</FolderMenuRow>}
-            {onTransfer && <FolderMenuRow icon={ArrowRightLeft} onClick={() => onTransfer("move")}>{tr("dashboard.move_to_workspace")}</FolderMenuRow>}
+            <FolderMenuRow icon={ArrowRightLeft} onClick={onTransfer}>{tr("dashboard.copy_or_move")}</FolderMenuRow>
             {onDefaults && <FolderMenuRow icon={Printer} onClick={onDefaults}>{tr("dashboard.folder_defaults_menu")}</FolderMenuRow>}
             <FolderMenuRow icon={Trash2} danger onClick={onDelete}>{tr("dashboard.delete_folder")}</FolderMenuRow>
           </AnchoredMenu>
@@ -374,35 +370,86 @@ function RailMore({ count, depth, folder, onClick }: { count: number; depth: num
 
 /** Pick a destination folder (or the root). Folders being moved, and what is
  *  below them, cannot be picked. */
-export function MoveToFolderDialog({
-  open, folders, exclude, current, count, onClose, onPick, onCreate,
+/** The folder tree both "Move to folder" and "Copy or move" pick a target
+ *  in: "Projects" and every folder, expandable. With `onCreate`, a folder is
+ *  created right where it goes: "New folder" below the tree makes one in the
+ *  picked folder, the button on a row one inside that row; the new folder is
+ *  picked. Folders in `exclude` (the moved folders and what is inside them)
+ *  are shown but cannot be picked. */
+export function FolderPicker({
+  folders, value, onChange, exclude, current, disabled, onCreate, onPick, className = "max-h-[40vh]",
 }: {
-  open: boolean;
   folders: DesignFolder[];
-  /** Folder ids that may not be targets (the moved folders' subtrees). */
-  exclude: Set<string>;
-  /** Where the items are now (pre-selected, shown as current). */
-  current: string | null;
-  count: number;
-  onClose: () => void;
-  onPick: (target: string | null) => void;
-  onCreate: (name: string, parentId: string | null) => Promise<DesignFolder | null>;
+  value: string | null;
+  onChange: (id: string | null) => void;
+  exclude?: Set<string>;
+  /** Where the items are now, marked "current". */
+  current?: string | null;
+  disabled?: boolean;
+  onCreate?: (name: string, parentId: string | null) => Promise<DesignFolder | null>;
+  /** A double click picks a folder and confirms. */
+  onPick?: (id: string | null) => void;
+  /** The tree's height limit. */
+  className?: string;
 }) {
   const kids = childrenMap(folders);
-  const [target, setTarget] = useState<string | null>(current);
-  const [expanded, setExpanded] = useState<Set<string>>(() => new Set(folderPath(folders, current).map((f) => f.id)));
-  const [naming, setNaming] = useState(false);
+  const [expanded, setExpanded] = useState<Set<string>>(() => new Set(folderPath(folders, value ?? current ?? null).map((f) => f.id)));
+  // The folder a new one is being named in (null: Projects), or none.
+  const [naming, setNaming] = useState<{ parent: string | null } | null>(null);
   const [newName, setNewName] = useState("");
+  const [creating, setCreating] = useState(false);
+
+  const startNaming = (parent: string | null) => {
+    if (parent) setExpanded((s) => new Set([...s, parent]));
+    setNewName("");
+    setNaming({ parent });
+  };
+  const create = async () => {
+    const name = newName.trim();
+    if (!name || !naming || !onCreate) { setNaming(null); return; }
+    setCreating(true);
+    const f = await onCreate(name, naming.parent);
+    setCreating(false);
+    setNaming(null);
+    setNewName("");
+    if (f) onChange(f.id);
+  };
+
+  const nameRow = (depth: number) => (
+    <li key="new">
+      <form
+        className="flex items-center gap-2 py-1 pe-2"
+        style={{ paddingInlineStart: depth * 16 + 24 }}
+        onSubmit={(e) => { e.preventDefault(); void create(); }}
+      >
+        <FolderPlus size={15} className="shrink-0 text-brand-600" />
+        <input
+          autoFocus
+          value={newName}
+          disabled={creating}
+          onChange={(e) => setNewName(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); setNaming(null); } }}
+          onBlur={() => { if (!newName.trim()) setNaming(null); }}
+          placeholder={tr("dashboard.folder_name")}
+          maxLength={120}
+          className="h-8 min-w-0 flex-1 rounded-lg border border-neutral-200 bg-surface px-2 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+        />
+        <Button type="submit" size="sm" variant="ghost" disabled={!newName.trim() || creating}>{tr("dashboard.create")}</Button>
+      </form>
+    </li>
+  );
 
   const row = (f: DesignFolder | null, depth: number): ReactNode => {
     const id = f?.id ?? null;
     const children = kids.get(id ?? "") ?? [];
-    const isOpen = id === null || expanded.has(id);
-    const blocked = id !== null && exclude.has(id);
+    const namingHere = naming !== null && naming.parent === id;
+    const isOpen = id === null || expanded.has(id) || namingHere;
+    const blocked = id !== null && !!exclude?.has(id);
+    const label = tr("dashboard.new_folder_inside", { folder: f ? f.name : tr("dashboard.projects") });
     return (
       <li key={id ?? "root"}>
         <div
-          className={`flex items-center gap-1 rounded-lg pe-2 transition ${target === id ? "bg-brand-50 text-brand-ink" : blocked ? "opacity-40" : "hover:bg-neutral-50"}`}
+          className={`group flex items-center gap-1 rounded-lg pe-1 transition ${value === id ? "bg-brand-50 text-brand-ink" : blocked ? "opacity-40" : "hover:bg-neutral-50"}`}
           style={{ paddingInlineStart: depth * 16 }}
         >
           <button
@@ -414,59 +461,49 @@ export function MoveToFolderDialog({
           ><ChevronRight size={14} className={`transition ${isOpen ? "rotate-90" : ""}`} /></button>
           <button
             type="button"
-            disabled={blocked}
-            onClick={() => setTarget(id)}
-            onDoubleClick={() => { if (!blocked) onPick(id); }}
+            disabled={blocked || disabled}
+            onClick={() => onChange(id)}
+            onDoubleClick={() => { if (!blocked && !disabled) onPick?.(id); }}
             className="flex min-w-0 flex-1 items-center gap-2 py-1.5 text-start text-sm"
           >
             <FolderIcon size={15} className="shrink-0 text-brand-600" />
             <span className="truncate">{f ? f.name : tr("dashboard.projects")}</span>
-            {id === current && <span className="ms-auto shrink-0 text-[11px] text-neutral-400">{tr("dashboard.current")}</span>}
+            {current !== undefined && id === current && <span className="ms-auto shrink-0 text-[11px] text-neutral-400">{tr("dashboard.current")}</span>}
           </button>
+          {onCreate && !blocked && !disabled && (
+            <button
+              type="button"
+              onClick={() => startNaming(id)}
+              title={label}
+              aria-label={label}
+              className={`grid h-7 w-7 shrink-0 place-items-center rounded-md text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-700 focus-visible:opacity-100 ${value === id ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
+            ><FolderPlus size={14} /></button>
+          )}
         </div>
-        {isOpen && children.length > 0 && <ul>{children.map((c) => row(c, depth + 1))}</ul>}
+        {isOpen && (children.length > 0 || namingHere) && (
+          <ul>
+            {namingHere && nameRow(depth + 1)}
+            {children.map((c) => row(c, depth + 1))}
+          </ul>
+        )}
       </li>
     );
   };
 
-  const create = async () => {
-    const name = newName.trim();
-    if (!name) return;
-    const f = await onCreate(name, target);
-    if (f) {
-      setExpanded((s) => new Set([...s, ...(target ? [target] : [])]));
-      setTarget(f.id);
-    }
-    setNaming(false);
-    setNewName("");
-  };
-
   return (
-    <Modal open={open} onClose={onClose} title={tr("dashboard.move_n_items", { n: count })} width="w-[28rem]">
-      <ul className="oc-scroll max-h-[50vh] overflow-y-auto rounded-xl border border-neutral-200 p-1">{row(null, 0)}</ul>
-      <div className="mt-3 flex items-center gap-2">
-        {naming ? (
-          <form className="flex flex-1 gap-2" onSubmit={(e) => { e.preventDefault(); void create(); }}>
-            <input
-              autoFocus
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              placeholder={tr("dashboard.folder_name")}
-              maxLength={120}
-              className="h-9 min-w-0 flex-1 rounded-lg border border-neutral-200 bg-surface px-2.5 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
-            />
-            <Button type="submit" variant="ghost" disabled={!newName.trim()}>{tr("dashboard.create")}</Button>
-          </form>
-        ) : (
-          <button type="button" onClick={() => setNaming(true)} className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm text-neutral-600 transition hover:bg-neutral-100">
-            <FolderPlus size={15} /> {tr("dashboard.new_folder")}
-          </button>
-        )}
-        <span className="flex-1" />
-        <Button variant="ghost" onClick={onClose}>{tr("dashboard.cancel")}</Button>
-        <Button onClick={() => onPick(target)} disabled={target === current || (target !== null && exclude.has(target))}>{tr("dashboard.move")}</Button>
-      </div>
-    </Modal>
+    <div>
+      <ul className={`oc-scroll overflow-y-auto rounded-xl border border-neutral-200 p-1 ${className}`}>{row(null, 0)}</ul>
+      {onCreate && (
+        <button
+          type="button"
+          disabled={disabled || naming !== null}
+          onClick={() => startNaming(value !== null && exclude?.has(value) ? null : value)}
+          className="mt-2 flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm text-neutral-600 transition hover:bg-neutral-100 disabled:opacity-50"
+        >
+          <FolderPlus size={15} /> {tr("dashboard.new_folder")}
+        </button>
+      )}
+    </div>
   );
 }
 

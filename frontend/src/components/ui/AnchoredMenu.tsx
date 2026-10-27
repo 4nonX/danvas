@@ -44,24 +44,28 @@ export function AnchoredMenu({ children, className, align = "end", matchWidth, r
       const gone = a.bottom < bounds.top || a.top > bounds.bottom || a.right < bounds.left || a.left > bounds.right;
       el.style.visibility = gone ? "hidden" : "";
       if (matchWidth) el.style.width = `${a.width}px`;
-      el.style.maxHeight = "";
-      const p = placeMenu(a, { width: el.offsetWidth, height: el.scrollHeight }, bounds, {
+      // The full height without lifting the limit: lifting it, even for a
+      // moment, makes the menu unscrollable and resets its scroll position.
+      const height = el.scrollHeight + (el.offsetHeight - el.clientHeight);
+      const p = placeMenu(a, { width: el.offsetWidth, height }, bounds, {
         align,
         rtl: getComputedStyle(anchorEl).direction === "rtl",
       });
       el.style.left = `${p.left}px`;
       el.style.top = `${p.top}px`;
-      if (p.maxHeight !== undefined) el.style.maxHeight = `${p.maxHeight}px`;
+      el.style.maxHeight = p.maxHeight === undefined ? "" : `${p.maxHeight}px`;
     };
+    // Scrolling the page moves the button; scrolling the menu itself does not.
+    const onScroll = (e: Event) => { if (e.target !== el) place(); };
     place();
     window.addEventListener("resize", place);
-    window.addEventListener("scroll", place, true);
+    window.addEventListener("scroll", onScroll, true);
     const ro = new ResizeObserver(place);
     ro.observe(el);
     ro.observe(anchorEl);
     return () => {
       window.removeEventListener("resize", place);
-      window.removeEventListener("scroll", place, true);
+      window.removeEventListener("scroll", onScroll, true);
       ro.disconnect();
     };
   }, [align, matchWidth]);

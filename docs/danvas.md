@@ -64,7 +64,7 @@ How the print features fit together, with a label as the example (50 x 100 mm, C
 
 ### Folders
 
-Designs live in folders, as deep as you like. In **Projects**, **New folder** creates one in the folder that is open; designs and folders move by drag and drop or with **Move to folder** in their menu, and **Copy to folder…** copies them into another folder (see below).
+Designs live in folders, as deep as you like. In **Projects**, **New folder** creates one in the folder that is open; designs and folders move by drag and drop or with **Copy or move…** in their menu, which also copies them (see below).
 
 The sidebar shows the folders as a tree below **Projects**:
 
@@ -80,10 +80,12 @@ The sidebar shows the folders as a tree below **Projects**:
 
 ### Copying and moving to folders and workspaces
 
-A design or a folder can be copied to another folder of the same workspace, or copied or moved to another workspace, for example from your personal workspace to the team's once it is finished. In its menu choose **Copy to folder…**, **Copy to workspace…** or **Move to workspace…**; with several designs and folders selected (the box at a card's top left), **Copy to folder…** and **To workspace…** in the selection bar do the same for all of them. All three open one dialog: **Copy** or **Move**, the workspace and the folder there; **Copy to folder…** starts on this workspace, marked "(this workspace)".
+A design or a folder can be copied to another folder of the same workspace, or copied or moved to another workspace, for example from your personal workspace to the team's once it is finished. In its menu choose **Copy or move…**; with several designs and folders selected (the box at a card's top left), **Copy or move…** in the selection bar does the same for all of them. The dialog asks **Copy** or **Move**, the workspace and the folder there. It starts on **Move**, this workspace (marked "(this workspace)") and the folder the items are in now, marked "current".
 
 - Pick the workspace (any you are at least a member of) and the folder there. A copied folder arrives with its sub-folders and designs in the same structure. Copies keep their names.
-- Within the same workspace, a copy uses the same uploads, fonts and brand kit as the original; nothing else is copied. **Move** there is the same as **Move to folder**. A folder cannot be copied or moved into itself or one of its sub-folders.
+- A folder can be made right there, where your role may create folders in that workspace: **New folder** below the tree creates one in the folder picked, the folder button on a row (shown on hover and on the picked row) one inside that row. The new folder is picked.
+- Within this workspace the dialog closes once done and says so; between workspaces, or when something could not be copied, it shows what happened.
+- Within the same workspace, a copy uses the same uploads, fonts and brand kit as the original; nothing else is copied. **Move** there moves the originals, as dragging does: their versions, comments and share links stay. A folder cannot be copied or moved into itself or one of its sub-folders.
 
 Between workspaces:
 

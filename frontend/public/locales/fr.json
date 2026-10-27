@@ -3995,7 +3995,6 @@
   "dashboard.could_not_create_folder": "Impossible de créer le dossier.",
   "dashboard.could_not_move": "Impossible de déplacer les éléments.",
   "dashboard.moved_to": "Déplacé vers {folder}.",
-  "dashboard.move_to_folder": "Déplacer vers un dossier",
   "dashboard.cannot_move_folder_into_itself": "Un dossier ne peut pas être déplacé dans lui-même.",
   "dashboard.canva_already_imported": "Déjà importé",
   "dashboard.canva_client_id": "ID client",
@@ -4074,8 +4073,6 @@
   "dashboard.current": "actuel",
   "dashboard.expand": "Développer",
   "dashboard.collapse": "Réduire",
-  "dashboard.move": "Déplacer",
-  "dashboard.move_n_items": "Déplacer {n} élément(s) vers…",
   "editor.pdf_type": "Type de PDF",
   "editor.pdf_print_vector": "Qualité impression (vectoriel)",
   "editor.pdf_print_vector_desc": "Net à toute taille : formes et texte vectoriels, images en pleine résolution, format d’impression exact {w} × {h} mm.",
@@ -4286,9 +4283,6 @@
   "editor.print_sheet_crop_marks": "Traits de coupe",
   "editor.bleed": "Fond perdu",
   "editor.print_sheet_pages_hint": "Valeurs de la première des {count} pages ; une modification s'applique à toutes.",
-  "dashboard.copy_to_workspace": "Copier vers un espace de travail…",
-  "dashboard.move_to_workspace": "Déplacer vers un espace de travail…",
-  "dashboard.to_workspace": "Vers un espace de travail…",
   "dashboard.transfer_title": "Copier ou déplacer",
   "dashboard.transfer_one_design": "« {title} »",
   "dashboard.transfer_n_items": "{designs} designs et {folders} dossiers",
@@ -4527,7 +4521,6 @@
   "editor.output_spot_unexpected": "Autres tons directs : {names}.",
   "errors.api_output_check_unavailable": "La vérification de sortie n’est pas disponible sur cette instance (Ghostscript n’est pas installé).",
   "errors.api_output_check_too_large": "Le fichier est trop volumineux pour la vérification de sortie.",
-  "dashboard.copy_to_folder": "Copier dans un dossier…",
   "dashboard.transfer_this_workspace": "{workspace} (cet espace de travail)",
   "dashboard.transfer_copy_hint_here": "Les copies utilisent les mêmes fichiers importés et polices. Les originaux restent où ils sont.",
   "dashboard.transfer_move_hint_here": "Les designs et dossiers vont dans le dossier choisi ; rien n’est copié.",
@@ -5370,5 +5363,7 @@
   "dashboard.ws_copy_brands_hint": "Seul ce que vous cochez est repris, une fois l'espace de travail créé.",
   "dashboard.ws_brands_copied.one": "{count} marque copiée dans « {name} ».",
   "dashboard.ws_brands_copied.other": "{count} marques copiées dans « {name} ».",
-  "dashboard.ws_brands_copy_failed": "Toutes les marques n'ont pas pu être copiées dans « {name} ». Copiez-les depuis la page Marque."
+  "dashboard.ws_brands_copy_failed": "Toutes les marques n'ont pas pu être copiées dans « {name} ». Copiez-les depuis la page Marque.",
+  "dashboard.new_folder_inside": "Nouveau dossier dans « {folder} »",
+  "dashboard.copy_or_move": "Copier ou déplacer…"
 }

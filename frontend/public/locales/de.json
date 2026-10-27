@@ -3995,7 +3995,6 @@
   "dashboard.could_not_create_folder": "Der Ordner konnte nicht erstellt werden.",
   "dashboard.could_not_move": "Die Elemente konnten nicht verschoben werden.",
   "dashboard.moved_to": "Nach {folder} verschoben.",
-  "dashboard.move_to_folder": "In Ordner verschieben",
   "dashboard.cannot_move_folder_into_itself": "Ein Ordner kann nicht in sich selbst verschoben werden.",
   "dashboard.canva_already_imported": "Bereits importiert",
   "dashboard.canva_client_id": "Client-ID",
@@ -4074,8 +4073,6 @@
   "dashboard.current": "aktuell",
   "dashboard.expand": "Aufklappen",
   "dashboard.collapse": "Zuklappen",
-  "dashboard.move": "Verschieben",
-  "dashboard.move_n_items": "{n} Element(e) verschieben nach…",
   "editor.pdf_type": "PDF-Art",
   "editor.pdf_print_vector": "Druckqualität (Vektor)",
   "editor.pdf_print_vector_desc": "In jeder Größe scharf: Formen und Text als Vektoren, Bilder in voller Auflösung, exakte Druckgröße {w} × {h} mm.",
@@ -4286,9 +4283,6 @@
   "editor.print_sheet_crop_marks": "Schnittmarken",
   "editor.bleed": "Beschnitt",
   "editor.print_sheet_pages_hint": "Angezeigt für die erste der {count} Seiten; eine Änderung gilt für alle.",
-  "dashboard.copy_to_workspace": "In Arbeitsbereich kopieren…",
-  "dashboard.move_to_workspace": "In Arbeitsbereich verschieben…",
-  "dashboard.to_workspace": "In Arbeitsbereich…",
   "dashboard.transfer_title": "Kopieren oder verschieben",
   "dashboard.transfer_one_design": "„{title}“",
   "dashboard.transfer_n_items": "{designs} Designs und {folders} Ordner",
@@ -4527,7 +4521,6 @@
   "editor.output_spot_unexpected": "Weitere Sonderfarben: {names}.",
   "errors.api_output_check_unavailable": "Die Ausgabeprüfung ist auf dieser Instanz nicht verfügbar (Ghostscript ist nicht installiert).",
   "errors.api_output_check_too_large": "Die Datei ist für die Ausgabeprüfung zu groß.",
-  "dashboard.copy_to_folder": "In Ordner kopieren…",
   "dashboard.transfer_this_workspace": "{workspace} (dieser Arbeitsbereich)",
   "dashboard.transfer_copy_hint_here": "Die Kopien nutzen dieselben Uploads und Schriften. Die Originale bleiben, wo sie sind.",
   "dashboard.transfer_move_hint_here": "Die Designs und Ordner wandern in den gewählten Ordner; kopiert wird nichts.",
@@ -5370,5 +5363,7 @@
   "dashboard.ws_copy_brands_hint": "Nur was du anhakst, kommt mit. Es wird kopiert, sobald der Arbeitsbereich angelegt ist.",
   "dashboard.ws_brands_copied.one": "{count} Marke in „{name}“ kopiert.",
   "dashboard.ws_brands_copied.other": "{count} Marken in „{name}“ kopiert.",
-  "dashboard.ws_brands_copy_failed": "Nicht alle Marken konnten in „{name}“ kopiert werden. Kopiere sie von der Marken-Seite aus."
+  "dashboard.ws_brands_copy_failed": "Nicht alle Marken konnten in „{name}“ kopiert werden. Kopiere sie von der Marken-Seite aus.",
+  "dashboard.new_folder_inside": "Neuer Ordner in „{folder}“",
+  "dashboard.copy_or_move": "Kopieren oder verschieben…"
 }

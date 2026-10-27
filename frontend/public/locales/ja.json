@@ -3995,7 +3995,6 @@
   "dashboard.could_not_create_folder": "フォルダーを作成できませんでした。",
   "dashboard.could_not_move": "項目を移動できませんでした。",
   "dashboard.moved_to": "{folder} に移動しました。",
-  "dashboard.move_to_folder": "フォルダーに移動",
   "dashboard.cannot_move_folder_into_itself": "フォルダーをそれ自体の中に移動することはできません。",
   "dashboard.canva_already_imported": "インポート済み",
   "dashboard.canva_client_id": "Client ID",
@@ -4074,8 +4073,6 @@
   "dashboard.current": "現在",
   "dashboard.expand": "展開",
   "dashboard.collapse": "折りたたむ",
-  "dashboard.move": "移動",
-  "dashboard.move_n_items": "{n} 件の移動先…",
   "editor.pdf_type": "PDFの種類",
   "editor.pdf_print_vector": "印刷品質（ベクター）",
   "editor.pdf_print_vector_desc": "どのサイズでも鮮明：図形とテキストはベクター、画像はフル解像度、正確な印刷サイズ {w} × {h} mm。",
@@ -4286,9 +4283,6 @@
   "editor.print_sheet_crop_marks": "トンボ",
   "editor.bleed": "裁ち落とし",
   "editor.print_sheet_pages_hint": "{count} ページのうち最初のページの設定を表示しています。変更はすべてのページに適用されます。",
-  "dashboard.copy_to_workspace": "ワークスペースにコピー…",
-  "dashboard.move_to_workspace": "ワークスペースに移動…",
-  "dashboard.to_workspace": "ワークスペースへ…",
   "dashboard.transfer_title": "コピーまたは移動",
   "dashboard.transfer_one_design": "「{title}」",
   "dashboard.transfer_n_items": "デザイン {designs} 件とフォルダー {folders} 件",
@@ -4527,7 +4521,6 @@
   "editor.output_spot_unexpected": "その他の特色：{names}。",
   "errors.api_output_check_unavailable": "このインスタンスでは出力チェックを利用できません（Ghostscript がインストールされていません）。",
   "errors.api_output_check_too_large": "ファイルが大きすぎて出力チェックできません。",
-  "dashboard.copy_to_folder": "フォルダーにコピー…",
   "dashboard.transfer_this_workspace": "{workspace}（このワークスペース）",
   "dashboard.transfer_copy_hint_here": "コピーは同じアップロードとフォントを使います。元のデザインはそのまま残ります。",
   "dashboard.transfer_move_hint_here": "デザインとフォルダーは選んだフォルダーに移動します。コピーはされません。",
@@ -5370,5 +5363,7 @@
   "dashboard.ws_copy_brands_hint": "チェックしたものだけが、ワークスペースの作成後にコピーされます。",
   "dashboard.ws_brands_copied.one": "{count} 件のブランドを「{name}」にコピーしました。",
   "dashboard.ws_brands_copied.other": "{count} 件のブランドを「{name}」にコピーしました。",
-  "dashboard.ws_brands_copy_failed": "一部のブランドを「{name}」にコピーできませんでした。ブランドページからコピーしてください。"
+  "dashboard.ws_brands_copy_failed": "一部のブランドを「{name}」にコピーできませんでした。ブランドページからコピーしてください。",
+  "dashboard.new_folder_inside": "「{folder}」に新しいフォルダー",
+  "dashboard.copy_or_move": "コピーまたは移動…"
 }

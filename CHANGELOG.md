@@ -2,6 +2,21 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 1.6.2 (2026-10-27)
+
+### Changed
+
+- **One entry, Copy or move…, instead of four.** A design's and a folder's menu, and the selection bar, open one dialog for moving and copying, to a folder of this workspace or to another workspace; it starts on Move, this workspace and the folder the items are in. Within this workspace it closes once done. The separate Move to folder dialog is gone.
+- **New folders right in the folder tree.** **New folder** below the tree creates one in the folder picked, the folder button on a row one inside that row, in any workspace where your role may create folders; the new folder is picked.
+
+### Fixed
+
+- **Long dashboard menus scroll again.** A menu that had to scroll (near the bottom of a small window) jumped back to its top at every turn of the wheel.
+
+### Upgrading
+
+- No database change, no change to the file format.
+
 ## 1.6.1 (2026-10-27)
 
 ### Fixed
