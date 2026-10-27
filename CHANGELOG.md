@@ -2,6 +2,17 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 1.6.3 (2026-10-27)
+
+### Fixed
+
+- **The format painter no longer crashes the editor.** Clicking the element to paste the copied style onto pasted it again and again (each paste woke the painter up anew) until the browser gave up: first warnings about a slow page, then "too much recursion" and an application error. It now pastes once. The defect came with the code this project started from.
+- **The editor no longer asks the server for a design's approval and access on every redraw.** It fetched both each time the editor drew itself, hundreds of times a minute while working on a design; now when the design opens and when the approval changes.
+
+### Upgrading
+
+- No database change, no change to the file format.
+
 ## 1.6.2 (2026-10-27)
 
 ### Changed

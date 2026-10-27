@@ -29,6 +29,7 @@ import {
   pageBgOf, recentColorList, rememberColor, runColorHex,
 } from "./PropertiesPanel";
 import { useWorkspaceFontFamilies } from "@/lib/workspaceFonts";
+import { pasteOnNextSelection } from "@/lib/formatPainter";
 import { barcodeOf, ungroupLabel } from "@/lib/barcode";
 import { openReplace, ReplaceModeChips } from "./ReplaceObjectDialog";
 
@@ -118,12 +119,7 @@ export function ContextToolbar({ propsOpen, onToggleProps }: { propsOpen: boolea
   const [painting, setPainting] = useState<string | null>(null);
   useEffect(() => {
     if (!painting) return;
-    return useEditor.subscribe((s) => {
-      const key = s.selection.join("|");
-      if (!key || key === painting) return;
-      useEditor.getState().pasteStyle();
-      setPainting(null);
-    });
+    return pasteOnNextSelection(painting, () => setPainting(null));
   }, [painting]);
   useEffect(() => {
     if (!painting) return;

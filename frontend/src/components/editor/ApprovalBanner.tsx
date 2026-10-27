@@ -10,7 +10,7 @@
 // approval view; the client never re-derives them. The live `{ t: "role" }`
 // downgrade/upgrade is handled by the editor shell (it refetches on a role flip).
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CheckCircle2, Clock, Eye, Lock, ShieldCheck, X } from "lucide-react";
 import type { ApprovalPolicy, DesignApprovalView, MentionablePerson } from "@hc/sdk";
 import { oc } from "@/lib/sdk";
@@ -58,13 +58,16 @@ export function ApprovalBanner({ designId, requestOpen, onRequestClose, onLockCh
   const workspaceId = useBrand((s) => s.workspaceId);
 
   // Apply a freshly-fetched approval view to local state + report the lock up.
-  const apply = useCallback(
-    (next: DesignApprovalView) => {
-      setView(next);
-      onLockChange(next.locked);
-    },
-    [onLockChange],
-  );
+  // The shell passes a new onLockChange on every render; reading it through a
+  // ref keeps `apply` stable, so the refetch below runs on the design and the
+  // refresh token only, not on every render of the editor (each of which
+  // fetched the approval and then the access again).
+  const onLockChangeRef = useRef(onLockChange);
+  useEffect(() => { onLockChangeRef.current = onLockChange; }, [onLockChange]);
+  const apply = useCallback((next: DesignApprovalView) => {
+    setView(next);
+    onLockChangeRef.current(next.locked);
+  }, []);
 
   // Refetch the approval state on mount, design change, and every live role flip
   // (refreshToken bump). The async work + setState live inside a nested IIFE so
