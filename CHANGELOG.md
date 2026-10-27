@@ -2,6 +2,18 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 1.6.1 (2026-10-27)
+
+### Fixed
+
+- **Dashboard menus stay whole and beside the sidebar.** A design's or a folder's "..." menu, the import menu, **Create**, the account menu and the workspace switcher were cut off at the edge of the scrolling content: in a narrow window a menu slid under the sidebar (its icons hidden), near the bottom it lost its last rows. Menus now open over the page, inside the content area: below their button or above it, whichever fits, shifted sideways instead of reaching under the sidebar, and scrolling when neither fits.
+- **Workspace fonts with two common defects load in Firefox too.** Older TrueType files converted from other formats often map the character U+FFFF to a glyph that does not exist, or name glyph strings their table does not hold. Chrome reads them; Firefox refused the whole file, so text set in it showed in a fallback font there. The server now repairs both as it hands the font out (the closing character-map segment points at glyph 0, an unreadable glyph-name table becomes one without names; nothing that draws changes). The uploaded file stays as it is.
+- **One font file a browser refuses no longer takes its family down.** The faces of a workspace family load one by one: the others are used, and the refused one is not fetched again and again (it filled the browser console).
+
+### Upgrading
+
+- No database change, no change to the file format.
+
 ## 1.6.0 (2026-10-26)
 
 ### Added

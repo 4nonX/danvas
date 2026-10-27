@@ -62,6 +62,7 @@ import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 import { Input } from "@/components/ui/Input";
 import { Logo, LogoMark } from "@/components/ui/Logo";
+import { AnchoredMenu, insideAnchoredMenu } from "@/components/ui/AnchoredMenu";
 import { Modal } from "@/components/ui/Modal";
 import { PromptHost } from "@/components/ui/PromptHost";
 import { Spinner } from "@/components/ui/Spinner";
@@ -1103,7 +1104,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     <div className="relative">
       <IconButton size="sm" onClick={(e) => { e.stopPropagation(); setMenuFor(menuFor === item.id ? null : item.id); }} aria-label={tr("dashboard.more")}><MoreHorizontal size={16} /></IconButton>
       {menuFor === item.id && (
-        <div className="absolute end-0 z-30 mt-1 w-60 overflow-hidden rounded-xl border border-neutral-200 bg-surface py-1 text-sm shadow-lg" onClick={(e) => e.stopPropagation()}>
+        <AnchoredMenu className="w-60 rounded-xl border border-neutral-200 bg-surface py-1 text-sm shadow-lg" onClick={(e) => e.stopPropagation()}>
           <MenuRow icon={ExternalLink} onClick={() => { setMenuFor(null); void open(item.id); }}>{tr("dashboard.open")}</MenuRow>
           <MenuRow icon={Download} onClick={() => { setMenuFor(null); void downloadDesigns(withSelection(item.id)); }}>{tr("editor.download")}</MenuRow>
           <MenuRow icon={Printer} onClick={() => { setMenuFor(null); void printDesigns(withSelection(item.id)); }}>{tr("editor.print")}</MenuRow>
@@ -1119,7 +1120,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
           <MenuRow icon={Copy} onClick={() => { setMenuFor(null); setTransferReq({ items: dragPayload("designs", item.id), mode: "copy" }); }}>{tr("dashboard.copy_to_workspace")}</MenuRow>
           <MenuRow icon={ArrowRightLeft} onClick={() => { setMenuFor(null); setTransferReq({ items: dragPayload("designs", item.id), mode: "move" }); }}>{tr("dashboard.move_to_workspace")}</MenuRow>
           <MenuRow icon={Trash2} danger onClick={() => { setMenuFor(null); setDeleteTarget(item); }}>{tr("dashboard.delete")}</MenuRow>
-        </div>
+        </AnchoredMenu>
       )}
     </div>
   );
@@ -1327,7 +1328,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
           ancestor it was placed against the document instead, made the
           page taller than the window, and the browser scrolled the whole
           dashboard away when it moved focus into view. */}
-      <main className="oc-scroll relative flex-1 overflow-y-auto" style={DASH_BACKDROP}>
+      <main data-menu-bounds className="oc-scroll relative flex-1 overflow-y-auto" style={DASH_BACKDROP}>
         {/* Header: global search, create, notifications, and the user menu. */}
         <div className="sticky top-0 z-30 flex items-center gap-3 border-b border-neutral-200 bg-surface/90 px-6 py-2.5 backdrop-blur">
           <form onSubmit={onSearch} className="relative max-w-lg flex-1">
@@ -1419,12 +1420,12 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                       <ChevronDown size={14} className="text-neutral-400" />
                     </Button>
                     {importMenu && (
-                      <div role="menu" className="absolute end-0 z-30 mt-1 w-60 overflow-hidden rounded-xl border border-neutral-200 bg-surface py-1 text-sm shadow-lg" onClick={(e) => e.stopPropagation()}>
+                      <AnchoredMenu role="menu" className="w-60 rounded-xl border border-neutral-200 bg-surface py-1 text-sm shadow-lg" onClick={(e) => e.stopPropagation()}>
                         <ImportMenuRow icon={FileUp} label={tr("dashboard.import_files")} hint={tr("dashboard.import_files_hint")} onClick={() => { setImportMenu(false); bulkFilesRef.current?.click(); }} />
                         <ImportMenuRow icon={FolderInput} label={tr("dashboard.import_folder")} hint={tr("dashboard.import_folder_hint")} onClick={() => { setImportMenu(false); bulkFolderRef.current?.click(); }} />
                         <ImportMenuRow icon={Link2} label={tr("dashboard.import_from_canva")} hint={tr("dashboard.import_from_canva_hint")} busy={canvaBusy} onClick={() => { setImportMenu(false); setCanvaPicked(true); }} />
                         <ImportMenuRow icon={Package} label={tr("dashboard.import_package")} hint={tr("dashboard.import_package_hint")} onClick={() => { setImportMenu(false); packageFileRef.current?.click(); }} />
-                      </div>
+                      </AnchoredMenu>
                     )}
                   </div>
                   <input ref={bulkFilesRef} type="file" multiple accept={designImportAccept} hidden onChange={(e) => { startBulk(entriesFromInput(e.target.files)); e.target.value = ""; }} />
@@ -2585,7 +2586,7 @@ function FormatTile({ f, disabled, onClick }: { f: Format; disabled?: boolean; o
 function useOutsideClose(ref: React.RefObject<HTMLElement | null>, open: boolean, onClose: () => void) {
   useEffect(() => {
     if (!open) return;
-    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) onClose(); };
+    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node) && !insideAnchoredMenu(e.target)) onClose(); };
     window.addEventListener("mousedown", h);
     return () => window.removeEventListener("mousedown", h);
   }, [open, ref, onClose]);
@@ -2600,7 +2601,7 @@ function CreateMenu({ disabled, onPick, onCustom, onBulk }: { disabled?: boolean
     <div className="relative" ref={ref}>
       <Button onClick={() => setOpen((o) => !o)} disabled={disabled}><Plus size={16} /> {tr("dashboard.create")}</Button>
       {open && (
-        <div className="absolute end-0 z-40 mt-1.5 max-h-[72vh] w-64 overflow-y-auto rounded-xl border border-neutral-200 bg-surface p-1.5 shadow-xl ring-1 ring-black/5">
+        <AnchoredMenu className="w-64 rounded-xl border border-neutral-200 bg-surface p-1.5 shadow-xl ring-1 ring-black/5">
           <button onClick={() => { setOpen(false); onCustom(); }} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-start text-sm font-medium text-neutral-700 hover:bg-neutral-100">
             <Plus size={16} className="text-brand-ink" /> {tr("dashboard.blank_custom_size")}
           </button>
@@ -2621,7 +2622,7 @@ function CreateMenu({ disabled, onPick, onCustom, onBulk }: { disabled?: boolean
               <Layers size={16} className="text-neutral-500" /> {tr("dashboard.bulk_create")}
             </button>
           </div>
-        </div>
+        </AnchoredMenu>
       )}
     </div>
   );
@@ -2638,7 +2639,7 @@ function UserMenu({ user, onSettings, onSignOut }: { user: { name?: string | nul
         {(user?.name || user?.email || "?").charAt(0).toUpperCase()}
       </button>
       {open && (
-        <div className="absolute end-0 z-40 mt-1.5 w-56 rounded-xl border border-neutral-200 bg-surface p-1.5 shadow-xl ring-1 ring-black/5">
+        <AnchoredMenu className="w-56 rounded-xl border border-neutral-200 bg-surface p-1.5 shadow-xl ring-1 ring-black/5">
           <div className="px-2.5 py-1.5">
             {user?.name && <div className="truncate text-sm font-semibold text-neutral-800">{user.name}</div>}
             <div className="truncate text-xs text-neutral-500">{user?.email}</div>
@@ -2647,7 +2648,7 @@ function UserMenu({ user, onSettings, onSignOut }: { user: { name?: string | nul
           <ThemeMenuItem />
           <button onClick={() => { setOpen(false); onSettings(); }} className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-start text-sm text-neutral-700 hover:bg-neutral-100"><Settings size={15} className="text-neutral-400" /> {tr("dashboard.settings")}</button>
           <button onClick={() => { setOpen(false); onSignOut(); }} className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-start text-sm text-neutral-700 hover:bg-neutral-100"><LogOut size={15} className="text-neutral-400" /> {tr("dashboard.sign_out")}</button>
-        </div>
+        </AnchoredMenu>
       )}
     </div>
   );
@@ -2701,7 +2702,7 @@ function WorkspaceSwitcher({
         <ChevronDown size={16} className="text-neutral-400" />
       </button>
       {open && (
-        <div className="absolute start-0 end-0 z-20 mt-1 overflow-hidden rounded-xl border border-neutral-200 bg-surface py-1 shadow-lg" onClick={(e) => e.stopPropagation()}>
+        <AnchoredMenu align="start" matchWidth className="rounded-xl border border-neutral-200 bg-surface py-1 shadow-lg" onClick={(e) => e.stopPropagation()}>
           {workspaces.map((w) => (
             <button
               key={w.id}
@@ -2715,7 +2716,7 @@ function WorkspaceSwitcher({
           <button onClick={() => { onCreate(); setOpen(false); }} className="block w-full border-t border-neutral-100 px-3 py-2 text-start text-sm font-medium text-brand-ink hover:bg-neutral-50">
             + New workspace
           </button>
-        </div>
+        </AnchoredMenu>
       )}
     </div>
   );

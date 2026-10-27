@@ -58,6 +58,8 @@ class FontProvider {
   private wsFetch: ((id: string) => Promise<Uint8Array>) | null = null;
   private loaded = new Set<string>();
   private loading = new Set<string>();
+  /** Workspace faces whose file the browser refused: not tried again. */
+  private wsFailed = new Set<string>();
   // Catalog faces beyond the first: the stylesheet names every face, but the
   // browser fetches one only when asked, and canvas text drawn before then
   // uses the fallback. Keyed `family|weight|italic`.
@@ -110,7 +112,11 @@ class FontProvider {
     const key = family!.toLowerCase();
     if (this.loading.has(key)) return "loading";
     if (!this.loaded.has(key)) return "failed";
-    if (this.ws.has(key) || this.custom.has(key)) return "ready";
+    if (this.ws.has(key)) {
+      const f = this.closestFace(key, face.weight, face.italic);
+      return f && this.wsFailed.has(f.id) ? "failed" : "ready";
+    }
+    if (this.custom.has(key)) return "ready";
     const k = `${key}|${face.weight}|${face.italic ? 1 : 0}`;
     if (this.faceLoading.has(k)) return "loading";
     return this.faceMissing.has(k) ? "failed" : "ready";
@@ -157,27 +163,45 @@ class FontProvider {
    *  that embed glyph outlines); null when the family is not a workspace one.
    *  The face's own weight and style say what the browser has to synthesize. */
   async workspaceFace(family: string, weight: number, italic: boolean): Promise<{ bytes: Uint8Array; weight: number; italic: boolean } | null> {
-    const faces = this.ws.get(family.toLowerCase());
+    const best = this.closestFace(family.toLowerCase(), weight, italic);
+    if (!best) return null;
+    return { bytes: await this.faceBytes(best.id), weight: best.weight, italic: best.style === "italic" };
+  }
+
+  /** The workspace face drawn for a weight and style: the same style if the
+   *  family has it, then the nearest weight. */
+  private closestFace(key: string, weight: number, italic: boolean): WorkspaceFace | null {
+    const faces = this.ws.get(key);
     if (!faces?.length) return null;
     const styled = faces.filter((f) => (f.style === "italic") === italic);
     const pool = styled.length ? styled : faces;
-    const best = pool.reduce((a, b) => (Math.abs(b.weight - weight) < Math.abs(a.weight - weight) ? b : a));
-    return { bytes: await this.faceBytes(best.id), weight: best.weight, italic: best.style === "italic" };
+    return pool.reduce((a, b) => (Math.abs(b.weight - weight) < Math.abs(a.weight - weight) ? b : a));
   }
 
   private loadWorkspaceFamily(key: string): void {
     const faces = this.ws.get(key);
     if (!faces || typeof document === "undefined" || typeof FontFace === "undefined") return;
     this.loading.add(key);
+    // Each face on its own: one file the browser refuses must neither keep
+    // the family's other faces from being used nor be fetched again and again.
+    // A file that could not be fetched is tried again on the next use.
+    let fetchFailed = false;
     void Promise.all(faces.map(async (f) => {
-      const bytes = await this.faceBytes(f.id);
-      const face = new FontFace(f.family, bytes.slice().buffer, { weight: String(f.weight), style: f.style });
-      await face.load();
-      (document as unknown as { fonts: { add: (f: FontFace) => void } }).fonts.add(face);
-    })).then(
-      () => { this.loading.delete(key); this.loaded.add(key); this.notify(); },
-      () => { this.loading.delete(key); this.notify(); },
-    );
+      if (this.wsFailed.has(f.id)) return;
+      let bytes: Uint8Array;
+      try { bytes = await this.faceBytes(f.id); } catch { fetchFailed = true; return; }
+      try {
+        const face = new FontFace(f.family, bytes.slice().buffer, { weight: String(f.weight), style: f.style });
+        await face.load();
+        (document as unknown as { fonts: { add: (f: FontFace) => void } }).fonts.add(face);
+      } catch {
+        this.wsFailed.add(f.id);
+      }
+    })).then(() => {
+      this.loading.delete(key);
+      if (!fetchFailed) this.loaded.add(key);
+      this.notify();
+    });
   }
 
   /** The source (data URL or URL) of an uploaded custom font, for exports

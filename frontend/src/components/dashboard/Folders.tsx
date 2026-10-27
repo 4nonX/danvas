@@ -6,6 +6,7 @@
 import { useState, type DragEvent, type ReactNode } from "react";
 import { ChevronRight, Folder as FolderIcon, FolderOpen, FolderPlus, MoreHorizontal, Pencil, Trash2, FolderInput, Check, LayoutTemplate, Copy, CopyPlus, ArrowRightLeft, Printer } from "lucide-react";
 import type { DesignFolder } from "@hc/sdk";
+import { AnchoredMenu } from "@/components/ui/AnchoredMenu";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { tr } from "@/lib/i18n";
@@ -160,7 +161,7 @@ export function FolderTile({
           aria-expanded={menuOpen}
         ><MoreHorizontal size={16} /></button>
         {menuOpen && (
-          <div className="absolute end-0 z-30 mt-1 w-60 overflow-hidden rounded-xl border border-neutral-200 bg-surface py-1 text-sm shadow-lg" onClick={(e) => e.stopPropagation()}>
+          <AnchoredMenu className="w-60 rounded-xl border border-neutral-200 bg-surface py-1 text-sm shadow-lg" onClick={(e) => e.stopPropagation()}>
             <FolderMenuRow icon={FolderOpen} onClick={onOpen}>{tr("dashboard.open")}</FolderMenuRow>
             <FolderMenuRow icon={Pencil} onClick={onRename}>{tr("dashboard.rename")}</FolderMenuRow>
             <FolderMenuRow icon={FolderInput} onClick={onMove}>{tr("dashboard.move_to_folder")}</FolderMenuRow>
@@ -169,7 +170,7 @@ export function FolderTile({
             {onTransfer && <FolderMenuRow icon={ArrowRightLeft} onClick={() => onTransfer("move")}>{tr("dashboard.move_to_workspace")}</FolderMenuRow>}
             {onDefaults && <FolderMenuRow icon={Printer} onClick={onDefaults}>{tr("dashboard.folder_defaults_menu")}</FolderMenuRow>}
             <FolderMenuRow icon={Trash2} danger onClick={onDelete}>{tr("dashboard.delete_folder")}</FolderMenuRow>
-          </div>
+          </AnchoredMenu>
         )}
       </div>
     </li>

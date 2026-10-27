@@ -114,9 +114,16 @@ func workspaceFontFileHandler(f *workspacefonts.Service) http.HandlerFunc {
 			workspaceFontProblem(w, r, err)
 			return
 		}
-		w.Header().Set("ETag", `"`+checksum+`"`)
+		// Known defects some browsers reject are repaired on the way out (the
+		// stored file stays as uploaded); the tag differs, so a browser holding
+		// the defective copy fetches the repaired one.
+		etag := checksum
+		if fixed, ok := workspacefonts.Repair(data); ok {
+			data, etag = fixed, checksum+"-repaired"
+		}
+		w.Header().Set("ETag", `"`+etag+`"`)
 		w.Header().Set("Cache-Control", "private, max-age=0, must-revalidate")
-		if strings.Contains(r.Header.Get("If-None-Match"), checksum) {
+		if strings.Contains(r.Header.Get("If-None-Match"), `"`+etag+`"`) {
 			w.WriteHeader(http.StatusNotModified)
 			return
 		}
