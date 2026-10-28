@@ -204,6 +204,10 @@ func serveFile(w http.ResponseWriter, req *http.Request, root http.FileSystem, n
 		}
 		// Read failed: fall through to ServeContent from the still-open file.
 	}
+	// A build-time brotli/gzip sibling, when the client accepts one.
+	if servePrecompressed(w, req, root, name) {
+		return
+	}
 	http.ServeContent(w, req, info.Name(), info.ModTime(), f)
 }
 
@@ -298,6 +302,21 @@ func (o localesOverlay) Open(name string) (http.File, error) {
 		// Clean already removed any "..", so rel cannot escape the directory.
 		if f, err := o.dir.Open("/" + rel); err == nil {
 			return f, nil
+		}
+	}
+	// A translation overridden on disk must not be shadowed by the embedded
+	// copy's precompressed sibling (built from the old text): hide the sibling
+	// so the static server falls back to the overriding file.
+	if o.dir != nil && strings.HasPrefix(clean, localesPrefix) {
+		for _, enc := range precompressedEncodings {
+			orig, ok := strings.CutSuffix(clean, enc.ext)
+			if !ok || !strings.HasSuffix(orig, ".json") {
+				continue
+			}
+			if f, err := o.dir.Open("/" + strings.TrimPrefix(orig, localesPrefix)); err == nil {
+				f.Close()
+				return nil, os.ErrNotExist
+			}
 		}
 	}
 	return o.base.Open(name)
