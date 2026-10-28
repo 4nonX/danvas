@@ -2,6 +2,29 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 1.9.0 (2026-10-28)
+
+### Added
+
+- **Print shop rules in export profiles.** A profile now holds what its print shop asks for, each rule off, a warning, or a reason to refuse the download: the lowest image resolution, the thinnest line, the smallest text in several inks, the smallest text at all, the spot colours allowed (none listed: none at all), CMYK only, and artwork at the edge without bleed. The download menu checks every design against the chosen profile's rules, shows what refuses the download in red above the warnings, keeps the download button off and checks again at the moment of download. The rules are edited with the profile, not in the menu, so they hold for every download made with it. Without rules of its own a profile checks as before, with warnings only.
+- **Package for the print shop.** Print files (vector and image PDF, TIFF, EPS) can be downloaded as one zip: the print file, a soft proof of every page, the colour list (for those allowed it) and a report with the settings, the rules, the check result, the approval with who decided when, and the size and SHA-256 checksum of every file. From the dashboard, every selected design gets its own folder. Export profiles can switch the package on.
+- **Die lines around any element.** **Print** in the properties panel makes a die line around the selection at a set offset (negative goes inwards), with or without the holes inside it, following what is actually drawn: shapes, text, pictures with transparency, groups. The contour comes from an exact distance field of the silhouette, traced and fitted with curves; the message says the grid it is accurate to (at most 0.025 mm). The result is an ordinary path, editable like any other.
+- **Elements as die line.** Any element can be marked as a die line. It is never printed in any format; with the download's die line on, vector PDF and EPS draw it in the die line's spot colour, overprinting, on its own layer, in place of the line along the trim. The proof shows it on its own plate.
+- **Overprint for any element.** **Print** in the properties panel lets an element (and everything inside a group) print over what is under it instead of knocking it out. In vector PDF with overprint mode 1, in EPS on the plates its colour uses (PostScript has no overprint mode), in CMYK TIFF and image PDF computed into the pixels, and in the proof as it prints. The check warns about overprinting white, which disappears, and about an imposed image PDF, which cannot keep it.
+- The export check covers transparency over a spot colour and nested clipped groups in every format, EPS included.
+
+### Fixed
+
+- **Enhancing an almost opaque image keeps its transparency.** The upscaler before vectorizing treated an image with under 1 % transparent pixels as opaque and made every pixel solid, so a logo's free corners or a small cut-out filled in. Any transparent or partly transparent pixel now keeps its alpha, and the colour there comes from its neighbours rather than the black often stored in it, so edges show no dark or light fringe on any background.
+- **Colour profiles must carry every table print values are computed from.** A CMYK profile without both directions for the perceptual and colorimetric conversion (A2B0, A2B1, B2A0, B2A1, or their ICC v4 floating-point forms) or without its paper white (wtpt) is now refused on upload and when it is loaded, with a message naming what is missing. Before, LittleCMS quietly used another table for a missing one, and a soft proof or the colour list's Lab values could rest on a table not meant for them. Every transform is now built and checked when the profile loads; no print value is ever worked out another way.
+- **The output check finds RGB colour spaces everywhere.** It also looks inside compressed streams (object streams carry whole dictionaries) and knows CalRGB and three-channel ICC profiles, besides DeviceRGB. The dialog now says that these checks read the file's markings and are no full PDF/X validation.
+
+
+### Upgrading
+
+- No database change, no change to the file format: overprint and die line are kept in an element's data, which older versions keep untouched. An older version draws a die line element as an ordinary magenta line, so roll back only with that in mind.
+- A colour profile uploaded before that lacks one of these tables is refused from now on when it is used (export, proof, colour list), with the message naming the table; replace it with the complete profile from the print shop.
+
 ## 1.8.0 (2026-10-28)
 
 Brings in the upstream HyCanvas changes up to 2026-10-28, adapted to danvas: its own brand workflow, dashboard, menus and look stay as they are.

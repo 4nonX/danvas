@@ -63,7 +63,16 @@ async function createRunner(): Promise<TileRunner> {
   };
 }
 
-/** True when a noticeable part of the raster is (partly) transparent. */
+/** True when any pixel is not fully opaque. A single transparent pixel (a
+ *  logo's free corner) must survive the enhancement as much as a cut-out. */
+export function hasAnyAlpha(src: Uint8ClampedArray, w: number, h: number): boolean {
+  const n = w * h;
+  for (let i = 0; i < n; i++) if (src[i * 4 + 3] < 255) return true;
+  return false;
+}
+
+/** True when a noticeable part of the raster is (partly) transparent: then
+ *  the model enhances the shape (the alpha) and the colour is resampled. */
 export function hasTransparency(src: Uint8ClampedArray, w: number, h: number): boolean {
   const n = w * h;
   let t = 0;
@@ -112,6 +121,11 @@ export async function enhanceWith(
   const F = ENHANCE_FACTOR;
   const W = w * F, H = h * F;
   const alphaMode = hasTransparency(src, w, h);
+  // A few transparent pixels: the model enhances the colour, but from an
+  // image whose transparent pixels carry their neighbours' colour (not the
+  // black often stored there), and the alpha is resampled and kept.
+  const sparseAlpha = !alphaMode && hasAnyAlpha(src, w, h);
+  const colourSrc = sparseAlpha ? fillTransparentColor(src, w, h) : src;
   const planes = [new Float32Array(W * H), new Float32Array(W * H), new Float32Array(W * H)];
   const input = new Float32Array(3 * SIZE * SIZE);
   const tilesX = Math.ceil(w / TILE), tilesY = Math.ceil(h / TILE);
@@ -129,7 +143,7 @@ export async function enhanceWith(
             const a = src[o + 3] / 255;
             input[t] = a; input[SIZE * SIZE + t] = a; input[2 * SIZE * SIZE + t] = a;
           } else {
-            input[t] = src[o] / 255; input[SIZE * SIZE + t] = src[o + 1] / 255; input[2 * SIZE * SIZE + t] = src[o + 2] / 255;
+            input[t] = colourSrc[o] / 255; input[SIZE * SIZE + t] = colourSrc[o + 1] / 255; input[2 * SIZE * SIZE + t] = colourSrc[o + 2] / 255;
           }
         }
       }
@@ -156,9 +170,10 @@ export async function enhanceWith(
       data[i * 4 + 3] = ((planes[0][i] + planes[1][i] + planes[2][i]) / 3) * 255;
     }
   } else {
+    const alpha = sparseAlpha ? upsampleBicubic(src, w, h, F).data : null;
     for (let i = 0; i < W * H; i++) {
       data[i * 4] = planes[0][i] * 255; data[i * 4 + 1] = planes[1][i] * 255; data[i * 4 + 2] = planes[2][i] * 255;
-      data[i * 4 + 3] = 255;
+      data[i * 4 + 3] = alpha ? alpha[i * 4 + 3] : 255;
     }
   }
   return { data, width: W, height: H };

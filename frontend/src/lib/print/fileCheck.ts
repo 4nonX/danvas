@@ -95,8 +95,15 @@ export async function checkPrintFile(bytes: Uint8Array, e: FileExpectation): Pro
     const streams = await pdfStreams(bytes, text);
     if (e.cmyk) {
       const rgbOps = streams.some((st) => !/\/Subtype\s*\/(Image|XML)/.test(st.dict) && RGB_OP.test(st.body));
-      const rgbImages = /\/ColorSpace\s*\/DeviceRGB/.test(text);
-      out.push(rgbOps || rgbImages ? { level: "error", code: "rgb_in_cmyk" } : { level: "ok", code: "cmyk_only" });
+      // RGB colour spaces wherever they are declared: in the file's text, and
+      // inside compressed streams (object streams carry whole dictionaries),
+      // named (DeviceRGB, CalRGB) or as a three-channel ICC profile. An
+      // object stream's /N counts its objects, so it is not one of those.
+      const rgbSpace = (s: string) => /\/(DeviceRGB|CalRGB)\b/.test(s);
+      const rgbSpaces = rgbSpace(text)
+        || streams.some((st) => !/\/Subtype\s*\/XML/.test(st.dict) && rgbSpace(st.body))
+        || streams.some((st) => !/\/Type\s*\/ObjStm/.test(st.dict) && !/\/Subtype/.test(st.dict) && /\/N\s+3\b/.test(st.dict));
+      out.push(rgbOps || rgbSpaces ? { level: "error", code: "rgb_in_cmyk" } : { level: "ok", code: "cmyk_only" });
       out.push(/\/OutputIntents/.test(text) ? { level: "ok", code: "output_intent" } : { level: "warning", code: "no_output_intent" });
     }
     if (e.pdfx) {

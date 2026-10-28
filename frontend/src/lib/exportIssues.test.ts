@@ -28,6 +28,7 @@ beforeAll(() => {
 const { fonts } = await import("./fontProvider");
 const { exportIssues } = await import("./exportIssues");
 const { imageAssets } = await import("./assetProvider");
+const { defaultRules } = await import("./exportProfiles");
 
 const run = (text: string, fontFamily: string, fontStyle: string) => ({ text, style: { fontFamily, fontStyle, fontSize: 12 } });
 const text = (id: string, runs: ReturnType<typeof run>[], extra: Record<string, unknown> = {}) => ({ id, type: "text", content: [{ runs }], ...extra });
@@ -84,8 +85,15 @@ describe("exportIssues", () => {
     try {
       expect(await exportIssues(doc, [0], { vector: false })).toEqual([]);
       expect(await exportIssues(doc, [0], { vector: false, print: true })).toEqual([
-        { kind: "image-resolution", subject: "Logo.png", ppi: 18, where: [{ page: 1, element: "Logo" }] },
+        { kind: "image-resolution", subject: "Logo.png", ppi: 18, limit: 150, where: [{ page: 1, element: "Logo" }] },
       ]);
+      // A print shop asking for 300 dpi, as a reason to refuse the download.
+      const rules = { ...defaultRules(), minPpi: { level: "block" as const, value: 300 } };
+      expect(await exportIssues(doc, [0], { vector: false, print: true, printCheck: { rules } })).toEqual([
+        { kind: "image-resolution", subject: "Logo.png", ppi: 18, limit: 300, blocking: true, where: [{ page: 1, element: "Logo" }] },
+      ]);
+      // Switched off, it is not checked at all.
+      expect(await exportIssues(doc, [0], { vector: false, print: true, printCheck: { rules: { ...rules, minPpi: { level: "off", value: 300 } } } })).toEqual([]);
     } finally {
       status.mockRestore();
       image.mockRestore();
@@ -159,5 +167,72 @@ describe("print checks", () => {
     // A raster file needs two pixels per module: 0.33 mm at 96 dpi is 1.25.
     expect(found(await exportIssues(design([code("fine", {})]), [0], { vector: false, rasterDpi: 96 }))).toEqual(["barcode-raster:fine"]);
     expect(await exportIssues(design([code("fine", {})]), [0], { vector: false, rasterDpi: 300 })).toEqual([]);
+  });
+});
+
+describe("print shop rules", () => {
+  const T = (x: number, y: number) => ({ x, y, scaleX: 1, scaleY: 1, rotation: 0 });
+  const col = (r: number, g: number, b: number, extra: Record<string, unknown> = {}) => ({ type: "solid", color: { srgb: { r, g, b, a: 1 }, ...extra } });
+  const shape = (id: string, extra: Record<string, unknown> = {}) => ({ id, name: id, type: "shape", shape: "rect", transform: T(20, 20), size: { width: 30, height: 30 }, opacity: 1, blendMode: "normal", fills: [col(0.2, 0.4, 0.8)], ...extra });
+  const note = (id: string, size: number) => ({
+    id, name: id, type: "text", transform: T(20, 20), size: { width: 60, height: 20 }, opacity: 1, blendMode: "normal",
+    box: { mode: "fixed", width: 60, height: 20, autoFit: { enabled: false, min: 8, max: 512 }, verticalAlign: "top" },
+    content: [{ style: { align: "left", direction: "auto" }, runs: [{ text: "Note", style: { fontFamily: "Arimo", fontStyle: "Regular", fontSize: size, fill: col(0, 0, 0) } }] }],
+  });
+  const cmyk = (r: number, g: number, b: number): [number, number, number, number] => {
+    const k = 1 - Math.max(r, g, b);
+    if (k >= 1) return [0, 0, 0, 1];
+    return [(1 - r - k) / (1 - k), (1 - g - k) / (1 - k), (1 - b - k) / (1 - k), k];
+  };
+  const kinds = (issues: { kind: string; blocking?: boolean }[]) => issues.map((i) => `${i.kind}${i.blocking ? "!" : ""}`).sort();
+
+  it("checks text below a minimum size, at its printed size", async () => {
+    // 6 px at 96 dpi is 4.5 pt.
+    const doc = design([note("tiny", 6), note("fine", 12)]);
+    const rules = { ...defaultRules(), minTextPt: { level: "block" as const, value: 5 } };
+    const issues = await exportIssues(doc, [0], { vector: false, print: true, printCheck: { bleed: true, rules } });
+    expect(issues).toEqual([{ kind: "small-text", subject: "4.5 pt", limit: 5, blocking: true, where: [{ page: 1, element: "tiny" }] }]);
+  });
+
+  it("allows only the listed spot colours, ignoring case, and always the die line's", async () => {
+    const doc = design([
+      shape("hks", { fills: [col(0, 0.4, 0.7, { spot: { name: "HKS 43 K", fallback: { c: 1, m: 0.6, y: 0, k: 0 } } })] }),
+      shape("gold", { fills: [col(0.8, 0.7, 0.3, { spot: { name: "Gold 871", fallback: { c: 0, m: 0.2, y: 0.6, k: 0.2 } } })] }),
+      shape("cut", { fills: [col(1, 0, 1, { spot: { name: "Stanze", fallback: { c: 0, m: 1, y: 0, k: 0 } } })] }),
+    ]);
+    const rules = { ...defaultRules(), spots: { level: "warn" as const, allowed: ["hks 43 k"] } };
+    const issues = await exportIssues(doc, [0], { vector: true, print: true, printCheck: { bleed: true, rules, vectorPrint: true, dieLine: { name: "Stanze" } } });
+    expect(issues.map((i) => i.kind === "spot-not-allowed" && i.subject)).toEqual(["Gold 871"]);
+    // None listed: no spot colour at all.
+    const none = await exportIssues(doc, [0], { vector: true, print: true, printCheck: { bleed: true, rules: { ...rules, spots: { level: "block", allowed: [] } } } });
+    expect(kinds(none)).toEqual(["spot-not-allowed!", "spot-not-allowed!", "spot-not-allowed!"]);
+  });
+
+  it("warns about overprinting white, and overprint an imposed image PDF loses", async () => {
+    const white = shape("white", { fills: [col(1, 1, 1)], data: { print: { overprint: true } } });
+    const blue = shape("blue", { data: { print: { overprint: true } } });
+    const doc = design([white, blue]);
+    const inFile = await exportIssues(doc, [0], { vector: true, print: true, printCheck: { cmyk, bleed: true, vectorPrint: true, overprint: "file" } });
+    expect(inFile.map((i) => `${i.kind}:${i.where.map((w) => w.element).join(",")}`)).toEqual(["overprint-white:white"]);
+    const lost = await exportIssues(doc, [0], { vector: false, print: true, printCheck: { cmyk, bleed: true, overprint: "lost" } });
+    expect(kinds(lost)).toEqual(["overprint-flattened"]);
+    // An RGB file has no plates: nothing to say.
+    expect(await exportIssues(doc, [0], { vector: false, print: true, printCheck: { cmyk: null, bleed: true, overprint: "lost" } })).toEqual([]);
+  });
+
+  it("checks die line elements apart from the artwork, and says where they go", async () => {
+    // A hairline die line: not a hairline issue, it is not printed.
+    const cut = shape("cut", { fills: [], stroke: { width: 0.1, fill: col(1, 0, 1), align: "center", cap: "butt", join: "miter" }, data: { print: { dieLine: true } } });
+    const doc = design([cut]);
+    expect(kinds(await exportIssues(doc, [0], { vector: true, print: true, printCheck: { bleed: true, vectorPrint: true, dieLine: { name: "Stanze" } } }))).toEqual([]);
+    expect(kinds(await exportIssues(doc, [0], { vector: true, print: true, printCheck: { bleed: true, vectorPrint: true, dieLine: null } }))).toEqual(["die-line-unused"]);
+    expect(kinds(await exportIssues(doc, [0], { vector: false, print: true, printCheck: { bleed: true, vectorPrint: false } }))).toEqual(["die-line-flattened"]);
+  });
+
+  it("can switch the bleed check off or make it refuse the download", async () => {
+    const edge = design([shape("edge", { transform: T(0, 0) })]);
+    expect(kinds(await exportIssues(edge, [0], { vector: false, print: true, printCheck: { bleed: false } }))).toEqual(["edge-no-bleed"]);
+    expect(kinds(await exportIssues(edge, [0], { vector: false, print: true, printCheck: { bleed: false, rules: { ...defaultRules(), bleed: { level: "block" } } } }))).toEqual(["edge-no-bleed!"]);
+    expect(await exportIssues(edge, [0], { vector: false, print: true, printCheck: { bleed: false, rules: { ...defaultRules(), bleed: { level: "off" } } } })).toEqual([]);
   });
 });

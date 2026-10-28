@@ -182,13 +182,16 @@ describe("no hard-coded user-visible strings", () => {
     // translate at the render site instead.
     const offenders: string[] = [];
     for (const { rel, text } of sources) {
+      // The top-level declarations once per file (not per call: that grew
+      // with the square of a file's size).
+      const heads = [...text.matchAll(/(?:^|\n)(?:export )?(?:default )?(?:async )?(?:const|let|var|function|class) /g)].map((h) => h.index!);
+      let k = -1;
       for (const m of text.matchAll(/\btr\(\s*"/g)) {
-        const before = text.slice(0, m.index);
-        const heads = [...before.matchAll(/(?:^|\n)(?:export )?(?:default )?(?:async )?(?:const|let|var|function|class) /g)];
-        if (!heads.length) continue;
-        const head = before.slice(heads[heads.length - 1].index!);
+        while (k + 1 < heads.length && heads[k + 1] < m.index!) k++;
+        if (k < 0) continue;
+        const head = text.slice(heads[k], m.index);
         if (!/=>|\bfunction\b|\)\s*\{/.test(head)) {
-          offenders.push(`${rel}: ${before.split("\n").length}`);
+          offenders.push(`${rel}: ${text.slice(0, m.index).split("\n").length}`);
         }
       }
     }

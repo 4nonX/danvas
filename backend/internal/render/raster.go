@@ -1240,7 +1240,7 @@ func (rc *rctx) rasterText(m mat, node map[string]any) {
 }
 
 func (rc *rctx) rasterNode(m mat, node map[string]any) {
-	if asBool(node["hidden"]) {
+	if asBool(node["hidden"]) || isDieLine(node) {
 		return
 	}
 	// Blend modes and drop shadows need the node drawn in isolation before it

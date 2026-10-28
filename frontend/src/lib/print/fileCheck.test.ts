@@ -3,6 +3,7 @@ import { deflateSync } from "node:zlib";
 import { checkPrintFile, pdfNameText, psStrings, type FileExpectation } from "./fileCheck";
 
 const enc = (s: string) => Uint8Array.from(s, (c) => c.charCodeAt(0) & 0xff);
+const latin1Of = (b: Uint8Array) => String.fromCharCode(...b);
 
 /** A minimal PDF: the content stream (Flate when `flate`), the page boxes
  *  and whatever the catalog and resources are given. */
@@ -36,6 +37,28 @@ describe("checkPrintFile (PDF)", () => {
   it("finds RGB operators inside a compressed stream and RGB images", async () => {
     expect(codes(await checkPrintFile(pdf({ content: "0.2 0.4 0.6 rg 0 0 10 10 re f", flate: true, boxes: true, intent: true, pdfx: true }), want({})))).toContain("error:rgb_in_cmyk");
     expect(codes(await checkPrintFile(pdf({ content: "0 0 0 1 k", boxes: true, intent: true, pdfx: true, image: "DeviceRGB" }), want({})))).toContain("error:rgb_in_cmyk");
+  });
+
+  it("finds RGB colour spaces however they are written", async () => {
+    const base = { content: "0 0 0 1 k", boxes: true, intent: true, pdfx: true };
+    // Named in the page resources, indirectly as CalRGB.
+    expect(codes(await checkPrintFile(pdf({ ...base, colorSpace: "/ColorSpace << /CS1 [/CalRGB << /WhitePoint [0.95 1 1.09] >>] >>" }), want({})))).toContain("error:rgb_in_cmyk");
+    // Declared only inside a compressed object stream.
+    const objStm = Buffer.from(deflateSync(Buffer.from("7 0 << /ColorSpace /DeviceRGB /Subtype /Image >>", "latin1"))).toString("latin1");
+    const hidden = enc(latin1Of(pdf(base)).replace("trailer", `9 0 obj << /Type /ObjStm /N 1 /First 4 /Length ${objStm.length} /Filter /FlateDecode >>\nstream\n${objStm}\nendstream endobj\ntrailer`));
+    expect(codes(await checkPrintFile(hidden, want({})))).toContain("error:rgb_in_cmyk");
+    // A three-channel ICC profile (an RGB profile) used as a colour space.
+    const icc = enc(latin1Of(pdf(base)).replace("trailer", "8 0 obj << /N 3 /Length 4 >>\nstream\nICC!\nendstream endobj\ntrailer"));
+    expect(codes(await checkPrintFile(icc, want({})))).toContain("error:rgb_in_cmyk");
+  });
+
+  it("does not take a CMYK profile or an object stream's count for RGB", async () => {
+    const base = { content: "0 0 0 1 k", boxes: true, intent: true, pdfx: true };
+    const cmykIcc = enc(latin1Of(pdf(base)).replace("trailer", "8 0 obj << /N 4 /Length 4 >>\nstream\nICC!\nendstream endobj\ntrailer"));
+    expect(codes(await checkPrintFile(cmykIcc, want({})))).toContain("ok:cmyk_only");
+    const objStm = Buffer.from(deflateSync(Buffer.from("7 0 << /ColorSpace /DeviceCMYK >>", "latin1"))).toString("latin1");
+    const counted = enc(latin1Of(pdf(base)).replace("trailer", `9 0 obj << /Type /ObjStm /N 3 /First 4 /Length ${objStm.length} /Filter /FlateDecode >>\nstream\n${objStm}\nendstream endobj\ntrailer`));
+    expect(codes(await checkPrintFile(counted, want({})))).toContain("ok:cmyk_only");
   });
 
   it("reports what is missing", async () => {

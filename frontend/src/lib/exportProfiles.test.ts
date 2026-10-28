@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ExportProfile, FolderDefaults } from "@hc/sdk";
-import { defaultExportSettings, defaultProfile, describeSettings, folderDefaultFor, freeName, normalizeSettings, sameSettings } from "./exportProfiles";
+import { blockingRules, defaultExportSettings, defaultProfile, defaultRules, describeSettings, folderDefaultFor, freeName, normalizeRules, normalizeSettings, sameSettings } from "./exportProfiles";
 import { cappedPrintDpi, describePrintSettings, normalizePrintSettings, printScale, PRINT_MAX_DIM, samePrintSettings } from "./printPresets";
 import { oversizedPages, paperFor, printHtml } from "./printDocument";
 
@@ -142,5 +142,33 @@ describe("print presets", () => {
     expect(oversizedPages(pages, "a3", "actual")).toBe(1);
     expect(oversizedPages(pages, "a4", "fit")).toBe(0);
     expect(oversizedPages(pages, "design", "actual")).toBe(0);
+  });
+});
+
+describe("print shop rules and the package", () => {
+  it("gives an older profile the usual warnings and no package", () => {
+    const s = normalizeSettings({ v: 1, format: "pdf" } as never);
+    expect(s.rules).toEqual(defaultRules());
+    expect(s.handover).toBe(false);
+    expect(blockingRules(s.rules)).toBe(0);
+  });
+
+  it("completes stored rules and keeps values in range", () => {
+    const r = normalizeRules({ minPpi: { level: "block", value: 300 }, minLinePt: { level: "nonsense", value: -1 }, spots: { level: "warn", allowed: [" HKS 43 K ", "HKS 43 K", 7, ""] }, cmykOnly: { level: "block" } });
+    expect(r.minPpi).toEqual({ level: "block", value: 300 });
+    expect(r.minLinePt).toEqual({ level: "warn", value: 0.01 });
+    expect(r.spots).toEqual({ level: "warn", allowed: ["HKS 43 K"] });
+    expect(r.bleed).toEqual({ level: "warn" });
+    expect(blockingRules(r)).toBe(2);
+  });
+
+  it("says what a profile's rules and package do", () => {
+    const base = normalizeSettings({ v: 1, format: "pdf", pdfMode: "vector" } as never);
+    expect(describeSettings(base)).not.toMatch(/rule|package/i);
+    const shop = normalizeSettings({ ...base, handover: true, rules: { ...defaultRules(), minPpi: { level: "block", value: 300 } } });
+    expect(describeSettings(shop)).toMatch(/print shop package/);
+    expect(describeSettings(shop)).toMatch(/1 rule refuses the download/);
+    // A package only for print files.
+    expect(describeSettings({ ...shop, format: "png" })).not.toMatch(/package/);
   });
 });

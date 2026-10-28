@@ -177,6 +177,7 @@ export function OutputCheckView({ open, onClose, build, expect, tacLimit, profil
             <button type="button" onClick={onClose} aria-label={tr("editor.close")} className="grid h-7 w-7 place-items-center rounded-lg text-neutral-500 hover:bg-neutral-100"><X size={16} /></button>
           </div>
           <p className="text-[11px] leading-snug text-neutral-500">{tr("editor.output_check_intro")}</p>
+          <p className="text-[11px] leading-snug text-neutral-500">{tr("editor.output_check_scope")}</p>
 
           {findings && (
             <ul className="flex flex-col gap-1 rounded-lg border border-neutral-200 p-2.5">

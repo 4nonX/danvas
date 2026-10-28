@@ -11,7 +11,8 @@ import { num, PdfCanvas, PdfResources, type ColorOut, type PdfPageStats, type Pd
 import { SvgCanvas } from "./svgCanvas";
 import { tr } from "@/lib/i18n";
 import { resolveAssetUrl } from "@/lib/sdk";
-import { clipToBleed, drawDieLine, drawPrintMarks, MARK_DEFAULTS, pdfBoxes, printParts, printSheet, sheetViewport, type PrintExtras, type PrintParts, type PrintSheet } from "@/lib/print/sheet";
+import { clipToBleed, DIE_LINE_CMYK, drawDieLine, drawPrintMarks, MARK_DEFAULTS, pdfBoxes, printParts, printSheet, sheetViewport, type PrintExtras, type PrintParts, type PrintSheet } from "@/lib/print/sheet";
+import { dieLinePage, isOverprint, withoutDieLines } from "@/lib/print/nodePrint";
 import type { ImposeSettings } from "@/lib/print/impose";
 import { formOf, imposeSheets } from "./impose";
 import type { CmykConverter } from "@/lib/print/cms";
@@ -185,6 +186,8 @@ async function preparePages(doc: DesignFile, pageIndexes: number[], assets: unkn
 
 export async function drawPages(doc: DesignFile, pageIndexes: number[], opts: DrawPagesOptions = {}): Promise<{ dpi: number; pages: DrawnPage[]; resources: PdfResources; stats: PdfPageStats }> {
   const { dpi, pages, renderOpts, faces, vectorSources } = await preparePages(doc, pageIndexes, opts.assets, opts.print);
+  // Die line elements are not artwork: drawn apart, as the die line.
+  const art = withoutDieLines(doc);
 
   // Pass 2: draw.
   const resources = new PdfResources();
@@ -201,13 +204,34 @@ export async function drawPages(doc: DesignFile, pageIndexes: number[], opts: Dr
       backdrop.fillRect(0, 0, p.width, p.height);
     }
     const ctx = new PdfCanvas({ width: p.width, height: p.height, faces, vectorSources, resources, color: opts.color, backdrop, tagged: opts.tagged });
-    const hooks = opts.tagged ? { onNodeEnter: (n: Parameters<PdfCanvas["nodeEnter"]>[0]) => ctx.nodeEnter(n), onNodeExit: (n: Parameters<PdfCanvas["nodeExit"]>[0]) => ctx.nodeExit(n) } : {};
+    // Elements that overprint (lib/print/nodePrint) and the tagged PDF's
+    // structure both follow the element being drawn.
+    const hooks = {
+      onNodeEnter: (n: Parameters<PdfCanvas["nodeEnter"]>[0]) => { ctx.printEnter(n, isOverprint(n)); if (opts.tagged) ctx.nodeEnter(n); },
+      onNodeExit: (n: Parameters<PdfCanvas["nodeExit"]>[0]) => { if (opts.tagged) ctx.nodeExit(n); ctx.printExit(n); },
+    };
     ctx.save();
     clipToBleed(ctx as unknown as Parameters<typeof clipToBleed>[0], p.sheet, p.zoom);
-    renderScene(createScene(doc, p.index), ctx as unknown as CanvasLike, p.vp, { ...renderOpts, ...hooks });
+    renderScene(createScene(art, p.index), ctx as unknown as CanvasLike, p.vp, { ...renderOpts, ...hooks });
     ctx.restore();
     drawPrintMarks(ctx as unknown as Parameters<typeof drawPrintMarks>[0], p.sheet, p.zoom, !!opts.extras?.registration);
-    if (opts.extras?.dieLine) drawDieLine(ctx as unknown as Parameters<typeof drawDieLine>[0], p.sheet, p.zoom, opts.extras.dieLine, dpi);
+    const die = opts.extras?.dieLine;
+    if (die) {
+      // The page's die line elements when it has any, else the trim.
+      const diePage = dieLinePage(p.pg, 0.25 * (dpi / 72));
+      if (diePage) {
+        const dieDoc = { ...doc, pages: doc.pages.map((pg, i) => (i === p.index ? diePage : pg)) } as DesignFile;
+        ctx.beginLayer(die.name);
+        ctx.setSpot({ name: die.name, cmyk: DIE_LINE_CMYK, overprint: true });
+        ctx.save();
+        renderScene(createScene(dieDoc, p.index), ctx as unknown as CanvasLike, p.vp, { ...renderOpts, skipBackground: true } as typeof renderOpts);
+        ctx.restore();
+        ctx.setSpot(null);
+        ctx.endLayer();
+      } else {
+        drawDieLine(ctx as unknown as Parameters<typeof drawDieLine>[0], p.sheet, p.zoom, die, dpi);
+      }
+    }
     let tags: PdfTag[] | undefined;
     if (opts.tagged) {
       // Content is drawn in z-order, the structure is read in reading order:
@@ -281,7 +305,7 @@ export async function exportVectorSvg(doc: DesignFile, pageIndex: number, opts: 
   const ctx = new SvgCanvas({ width: p.width, height: p.height, faces, vectorSources });
   ctx.save();
   clipToBleed(ctx as unknown as Parameters<typeof clipToBleed>[0], p.sheet, p.zoom);
-  renderScene(createScene(doc, p.index), ctx as unknown as CanvasLike, p.vp, renderOpts);
+  renderScene(createScene(withoutDieLines(doc), p.index), ctx as unknown as CanvasLike, p.vp, renderOpts);
   ctx.restore();
   drawPrintMarks(ctx as unknown as Parameters<typeof drawPrintMarks>[0], p.sheet, p.zoom);
   return ctx.document(p.sheet.sheetWidth, p.sheet.sheetHeight, doc.title);
@@ -496,6 +520,9 @@ async function printFrame(w: PdfWriter, o: { converter: CmykConverter | null; pd
 export interface ImagePdfPage {
   /** The rendered sheet (opaque), and its size in device pixels. */
   rgba: Uint8ClampedArray;
+  /** The sheet already in CMYK (elements that overprint computed in);
+   *  else the converter converts `rgba`. */
+  cmyk?: Uint8Array;
   width: number;
   height: number;
   sheet: PrintSheet;
@@ -517,7 +544,7 @@ export async function exportImagePdf(pages: ImagePdfPage[], dpi: number, opts: {
   for (const p of pages) {
     const n = p.width * p.height;
     let data: Uint8Array;
-    if (conv) data = conv.pixels(p.rgba, n);
+    if (conv) data = p.cmyk ?? conv.pixels(p.rgba, n);
     else {
       data = new Uint8Array(n * 3);
       for (let i = 0; i < n; i++) { data[i * 3] = p.rgba[i * 4]; data[i * 3 + 1] = p.rgba[i * 4 + 1]; data[i * 3 + 2] = p.rgba[i * 4 + 2]; }

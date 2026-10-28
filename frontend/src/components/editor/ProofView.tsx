@@ -8,11 +8,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { X } from "lucide-react";
 import type { DesignFile } from "@hc/schema";
-import { renderPageCanvas } from "@/lib/exportFormats";
-import { DIE_LINE_CMYK, drawDieLine, printSheet, type PrintParts } from "@/lib/print/sheet";
+import type { PrintParts } from "@/lib/print/sheet";
 import type { CmykConverter, RenderingIntent } from "@/lib/print/cms";
 import { profileBytes } from "@/lib/print/profiles";
-import { applyBlackOnly, gamutMask, highlight, inkAt, maskPlate, plateImage, PLATES, tacStats, type Plate } from "@/lib/print/proof";
+import { gamutMask, highlight, inkAt, maskPlate, plateImage, PLATES, tacStats, type Plate } from "@/lib/print/proof";
+import { dieLineTint, renderProof } from "@/lib/print/proofRender";
 import { tr } from "@/lib/i18n";
 
 type Mode = "proof" | Plate | "spot" | "tac" | "gamut";
@@ -68,20 +68,12 @@ export function ProofView({ open, onClose, doc, pages, parts, profileId, profile
       try {
         setData(null);
         setError(false);
-        const pg = doc.pages[page];
-        if (!pg) return;
-        const dpi = doc.dpi ?? 96;
-        const sheet = printSheet(pg, dpi, parts);
-        const scale = Math.min(2, MAX_SIDE / Math.max(1, sheet.sheetWidth, sheet.sheetHeight));
-        const canvas = renderPageCanvas(doc, page, scale, true, parts);
-        if (!canvas) throw new Error("render failed");
-        const { width, height } = canvas;
-        const rgba = canvas.getContext("2d")!.getImageData(0, 0, width, height).data;
+        if (!doc.pages[page]) return;
         const { createCmykConverter } = await import("@/lib/print/cms");
         conv = await createCmykConverter(await profileBytes(profileId), intent);
+        const r = await renderProof(doc, page, parts, conv, { blackOnly, dieLine, maxSide: MAX_SIDE });
+        const { width, height, rgba, cmyk } = r;
         const n = width * height;
-        const cmyk = conv.pixels(rgba, n);
-        if (blackOnly) applyBlackOnly(rgba, cmyk);
         const proof = conv.proof(cmyk, n, false);
         const paper = conv.proof(cmyk, n, true);
         const gamut = gamutMask(rgba, proof);
@@ -90,20 +82,8 @@ export function ProofView({ open, onClose, doc, pages, parts, profileId, profile
           if (gamut[i]) outside++;
           if (rgba[i * 4 + 3] > 0 && (rgba[i * 4] < 250 || rgba[i * 4 + 1] < 250 || rgba[i * 4 + 2] < 250)) inked++;
         }
-        let spot: Uint8ClampedArray | null = null;
-        if (dieLine) {
-          const c = document.createElement("canvas");
-          c.width = width;
-          c.height = height;
-          const ctx = c.getContext("2d")!;
-          // The same outline the file gets; a plain canvas has no spot
-          // colours or layers, so those calls do nothing here.
-          const spotCtx = Object.assign(ctx, { setSpot: () => {}, beginLayer: () => {}, endLayer: () => {} });
-          drawDieLine(spotCtx as unknown as Parameters<typeof drawDieLine>[0], sheet, scale, dieLine, dpi);
-          // Shown in the colour the spot is defined as (DIE_LINE_CMYK).
-          const [sc, sm, sy, sk] = DIE_LINE_CMYK;
-          spot = maskPlate(ctx.getImageData(0, 0, width, height).data, [255 * (1 - sc) * (1 - sk), 255 * (1 - sm) * (1 - sk), 255 * (1 - sy) * (1 - sk)]);
-        }
+        // Shown in the colour the die line's spot is defined as.
+        const spot = r.dieMask ? maskPlate(r.dieMask, dieLineTint()) : null;
         if (cancelled) return;
         setData({ width, height, rgba, cmyk, proof, paper, tac: tacStats(cmyk, tacLimit), gamut, gamutPct: inked ? Math.round((outside / inked) * 1000) / 10 : 0, spot });
       } catch {

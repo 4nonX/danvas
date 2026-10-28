@@ -739,7 +739,7 @@ func (c *pdfCtx) textBody(node map[string]any) {
 // tagging them would add a level a screen reader must step through for nothing;
 // their children are tagged individually instead.
 func (c *pdfCtx) emitNode(node map[string]any, inArtifact bool) {
-	if asBool(node["hidden"]) {
+	if asBool(node["hidden"]) || isDieLine(node) {
 		return
 	}
 	kind := asStr(node["type"])

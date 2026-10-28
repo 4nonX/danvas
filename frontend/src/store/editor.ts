@@ -103,6 +103,8 @@ import {
 import { booleanOp, fitCubicBeziers, pathToPolylines, recognizeShape, shapeNodeToParametric, shapeToPath, simplifyPolyline, strokeToOutline, type BooleanOp } from "@hc/geometry";
 import { imageAssets } from "@/lib/assetProvider";
 import { measuredTextHeight } from "@/lib/textFit";
+import { isDieLine, withPrintRole, type PrintRole } from "@/lib/print/nodePrint";
+import { buildDieContour } from "@/lib/print/dieContour";
 import { bakeShapeTextScale, layoutShapeText, restoreShapeTextGeometry, SHAPE_TEXT_KEY, SHAPE_TEXT_PADDING, shapeTextColor, shapeTextFontSize, shapeTextGeometry, shapeTextOf, textArea, type ShapeTextOverflow } from "@/lib/shapeText";
 import { conformal, frameCorners, frameRotatable, rebaseInFrame, rotatePt, transformOf, turnSign } from "@/lib/cropFrame";
 import { pageGap, pageOffsets, pageTop } from "@/lib/pageLayout";
@@ -820,6 +822,14 @@ interface EditorState {
   eraseNode(id: string): void;
   /** Combine the selected shapes with a boolean op into one boolean node. */
   booleanSelection(op: BooleanOp): void;
+  /** Print roles of the selected elements (overprint, die line), kept in
+   *  their data (lib/print/nodePrint). Undoable. */
+  setPrintRole(ids: string[], patch: PrintRole): void;
+  /** A die line element around the selected elements at `offsetMm` from
+   *  their silhouette (lib/print/dieContour), added on top of the page and
+   *  selected. Undoable. Returns the grid it was computed on (mm per
+   *  pixel), or null when the selection draws nothing. */
+  dieLineFromSelection(o: { offsetMm: number; holes: boolean }): number | null;
   /** Convert the selected shape/path's stroke into a filled outline node (F26). */
   strokeToOutlineSelection(): void;
   /** Replace an image node with traced vector layers (one compound path per
@@ -4513,6 +4523,35 @@ export const useEditor = create<EditorState>((set, get) => {
       );
       get().privateRound?.mine.add(node.id); // private mode: my own ink stroke (FR-15)
       return node.id;
+    },
+
+    setPrintRole: (ids, patch) => {
+      const doc = get().doc;
+      const nodes = ids.map((id) => locate(doc, id)?.node).filter((n): n is Node => !!n && !editBlocked(n.id));
+      if (!nodes.length) return;
+      const before = nodes.map((n) => n.data);
+      const after = nodes.map((n) => withPrintRole(n, patch));
+      const put = (vals: (Record<string, unknown> | undefined)[]) => nodes.forEach((n, i) => {
+        // In place: the node keeps every other key.
+        if (vals[i]) n.data = vals[i]; else delete n.data;
+      });
+      perform(() => put(after), () => put(before));
+    },
+
+    dieLineFromSelection: (o) => {
+      const { doc, selection } = get();
+      const pageIndex = curPageIndex();
+      const ids = selection.filter((id) => { const n = locate(doc, id)?.node; return !!n && !isDieLine(n); });
+      const built = buildDieContour(doc, pageIndex, ids, { ...o, name: tr("editor.die_line_element_name"), makeId: () => createNode("path", {}).id });
+      if (!built) return null;
+      const page = doc.pages[pageIndex];
+      const prev = get().selection;
+      const node = built.node;
+      perform(
+        () => { page.children.push(node); set({ selection: [node.id] }); },
+        () => { const i = page.children.findIndex((n) => n.id === node.id); if (i >= 0) page.children.splice(i, 1); set({ selection: prev }); },
+      );
+      return built.gridMm;
     },
 
     booleanSelection: (op) => {

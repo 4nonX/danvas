@@ -13,8 +13,12 @@ import { computeEffectivePpi, createScene, type SceneNode } from "@hc/engine";
 import { imageAssets } from "@/lib/assetProvider";
 import { faceOf, fonts, type RunFont } from "@/lib/fontProvider";
 import { barcodeOf, encodeOptionsOf, loadBarcode, symbologyLabel } from "@/lib/barcode";
+import { defaultRules, type PrintRules, type RuleLevel } from "@/lib/exportProfiles";
+import { isDieLine, isOverprint, withoutDieLines } from "@/lib/print/nodePrint";
+import { spotNamesOf } from "@/lib/print/printColor";
 
-export type ExportIssueKind = "font" | "font-outline" | "image" | "image-resolution" | "hairline" | "small-rich-text" | "edge-no-bleed" | "edge-not-extended"
+export type ExportIssueKind = "font" | "font-outline" | "image" | "image-resolution" | "hairline" | "small-rich-text" | "small-text" | "edge-no-bleed" | "edge-not-extended"
+  | "spot-not-allowed" | "not-cmyk" | "overprint-white" | "overprint-flattened" | "die-line-unused" | "die-line-flattened"
   | "barcode-invalid" | "barcode-small" | "barcode-quiet" | "barcode-light" | "barcode-inks" | "barcode-raster";
 
 /** Below this effective resolution an image looks soft in print. */
@@ -33,9 +37,15 @@ export interface ExportIssue {
   subject: string;
   /** image-resolution: the lowest effective resolution found, in dpi. */
   ppi?: number;
+  /** The rule's limit the element falls below (dpi, pt). */
+  limit?: number;
+  /** Breaks a rule that refuses the download. */
+  blocking?: boolean;
   /** Where it is used: page number (1-based) and the element's label. */
   where: { page: number; element: string }[];
 }
+
+type Add = (kind: ExportIssueKind, subject: string, page: number, element: string, rule?: { level: RuleLevel; limit?: number }) => void;
 
 type TextNodeLike = { content?: { runs?: { text?: string; style?: RunFont }[] }[] };
 
@@ -88,6 +98,17 @@ export interface PrintCheck {
   blackOnly?: boolean;
   /** Whether the export includes a bleed. */
   bleed?: boolean;
+  /** The print shop's rules (else the defaults: warnings). */
+  rules?: PrintRules;
+  /** The vector print files (PDF, EPS): die lines take effect; elsewhere
+   *  they are left out. */
+  vectorPrint?: boolean;
+  /** What becomes of elements that overprint: written into the file
+   *  (vector PDF, EPS), computed into the pixels (CMYK TIFF, image PDF), or
+   *  lost (an imposed image PDF). */
+  overprint?: "file" | "raster" | "lost";
+  /** The download includes a die line (vector print files). */
+  dieLine?: { name: string } | null;
 }
 
 const hex = (c: { r: number; g: number; b: number }) => `#${[c.r, c.g, c.b].map((v) => Math.round(Math.min(1, Math.max(0, v)) * 255).toString(16).padStart(2, "0")).join("").toUpperCase()}`;
@@ -95,54 +116,96 @@ const hex = (c: { r: number; g: number; b: number }) => `#${[c.r, c.g, c.b].map(
 /** Print preflight on what the export draws (the engine's own scene, with
  *  groups, rotation and scaling): strokes too thin to print, small text in
  *  several inks, artwork at the edge of a page exported without bleed. */
-function printChecks(doc: DesignFile, pages: number[], check: PrintCheck, add: (kind: ExportIssueKind, subject: string, page: number, element: string) => void, backgroundLabel: string) {
+function printChecks(doc: DesignFile, pages: number[], check: PrintCheck, add: Add, backgroundLabel: string) {
   const dpi = doc.dpi ?? 96;
   const toPt = 72 / dpi;
+  const rules = check.rules ?? defaultRules();
+  const line = rules.minLinePt, rich = rules.richTextPt, small = rules.minTextPt, edge = rules.bleed;
+  const pt = (v: number) => `${Math.round(v * 100) / 100} pt`;
+  // The colours in the file: the die line's own spot is always allowed.
+  const allowed = new Set([...rules.spots.allowed, ...(check.dieLine ? [check.dieLine.name] : [])].map((s) => s.trim().toLowerCase()));
   for (const i of pages) {
     const pg = doc.pages[i];
     if (!pg) continue;
     const page = i + 1;
-    const visit = (sn: SceneNode, top: boolean) => {
+    const visit = (sn: SceneNode, top: boolean, overprinted: boolean) => {
       const n = sn.node;
+      const label = labelOf(n);
       const t = sn.worldTransform;
       const scale = Math.sqrt(Math.abs(t[0] * t[3] - t[1] * t[2])) || 1;
       const stroke = (n as { stroke?: { width?: number } }).stroke;
-      if (stroke?.width && stroke.width > 0 && stroke.width * scale * toPt < HAIRLINE_PT) {
-        add("hairline", `${Math.round(stroke.width * scale * toPt * 100) / 100} pt`, page, labelOf(n));
+      if (line.level !== "off" && stroke?.width && stroke.width > 0 && stroke.width * scale * toPt < line.value) {
+        add("hairline", pt(stroke.width * scale * toPt), page, label, { level: line.level, limit: line.value });
       }
-      if (n.type === "text" && check.cmyk) {
+      if (n.type === "text") {
         for (const p of (n as unknown as TextNodeLike).content ?? []) {
           for (const r of p.runs ?? []) {
             type PrintKeys = { cmyk?: { c: number; m: number; y: number; k: number }; spot?: { name: string } };
             const st = r.style as (RunFont & { fontSize?: number; fill?: { type?: string; color?: { srgb?: { r: number; g: number; b: number } } & PrintKeys } }) | undefined;
-            const color = st?.fill?.type === "solid" ? st.fill.color : undefined;
+            if (!r.text?.trim() || !st?.fontSize) continue;
+            const size = st.fontSize * scale * toPt;
+            if (small.level !== "off" && size < small.value) add("small-text", pt(size), page, label, { level: small.level, limit: small.value });
+            const color = st.fill?.type === "solid" ? st.fill.color : undefined;
             const c = color?.srgb;
-            if (!r.text?.trim() || !st?.fontSize || !c || st.fontSize * scale * toPt >= SMALL_TEXT_PT) continue;
+            if (rich.level === "off" || !check.cmyk || !c || size >= rich.value) continue;
             // A spot colour is one ink; explicit CMYK is printed as given.
             if (color?.spot?.name) continue;
             if (!color?.cmyk && check.blackOnly && c.r <= 0.002 && c.g <= 0.002 && c.b <= 0.002) continue;
             const values = color?.cmyk ? [color.cmyk.c, color.cmyk.m, color.cmyk.y, color.cmyk.k] : check.cmyk(c.r, c.g, c.b);
             const inks = values.filter((v) => v >= 0.1).length;
-            if (inks >= 2) add("small-rich-text", hex(c), page, labelOf(n));
+            if (inks >= 2) add("small-rich-text", hex(c), page, label, { level: rich.level, limit: rich.value });
           }
         }
       }
+      if (rules.spots.level !== "off") {
+        const own = { ...n } as Record<string, unknown>;
+        delete own.children;
+        for (const name of spotNamesOf(own)) {
+          if (!allowed.has(name.trim().toLowerCase())) add("spot-not-allowed", name, page, label, { level: rules.spots.level });
+        }
+      }
+      // Overprinting white (or no ink at all) leaves nothing on the sheet.
+      const op = overprinted || isOverprint(n);
+      if (op && check.overprint !== "lost" && check.cmyk && paintsNoInk(n, check)) add("overprint-white", "", page, label);
+      if (isOverprint(n) && check.cmyk && check.overprint === "lost") add("overprint-flattened", "", page, label);
       // Only whole elements: a group's bounds already hold its children.
-      if (top && check.bleed === false) {
+      if (top && check.bleed === false && edge.level !== "off") {
         const b = sn.worldBounds;
         const e = 0.5;
-        if (b.x <= e || b.y <= e || b.x + b.width >= pg.width - e || b.y + b.height >= pg.height - e) add("edge-no-bleed", "", page, labelOf(n));
+        if (b.x <= e || b.y <= e || b.x + b.width >= pg.width - e || b.y + b.height >= pg.height - e) add("edge-no-bleed", "", page, label, { level: edge.level });
       }
-      for (const ch of sn.children ?? []) visit(ch, false);
+      for (const ch of sn.children ?? []) visit(ch, false, op);
     };
-    for (const ch of createScene(doc, i).root.children ?? []) visit(ch, true);
+    for (const ch of createScene(doc, i).root.children ?? []) visit(ch, true, false);
     // A coloured page background always reaches the edge.
     const bg = pg.background as { type?: string; color?: { srgb?: { r: number; g: number; b: number; a?: number } } } | undefined;
     const bc = bg?.type === "solid" ? bg.color?.srgb : undefined;
-    if (check.bleed === false && bg && (bg.type !== "solid" || (bc && (bc.a ?? 1) > 0 && (bc.r < 0.98 || bc.g < 0.98 || bc.b < 0.98)))) {
-      add("edge-no-bleed", "", page, backgroundLabel);
+    if (check.bleed === false && edge.level !== "off" && bg && (bg.type !== "solid" || (bc && (bc.a ?? 1) > 0 && (bc.r < 0.98 || bc.g < 0.98 || bc.b < 0.98)))) {
+      add("edge-no-bleed", "", page, backgroundLabel, { level: edge.level });
+    }
+    if (rules.spots.level !== "off") {
+      for (const name of spotNamesOf(pg.background ?? null)) {
+        if (!allowed.has(name.trim().toLowerCase())) add("spot-not-allowed", name, page, backgroundLabel, { level: rules.spots.level });
+      }
     }
   }
+}
+
+/** Whether an element's own solid paint (fills, stroke, text) puts no ink
+ *  on the sheet in a CMYK file: white, which overprinted disappears. */
+function paintsNoInk(n: Node, check: PrintCheck): boolean {
+  type Paint = { type?: string; color?: { srgb?: { r: number; g: number; b: number; a?: number }; cmyk?: { c: number; m: number; y: number; k: number }; spot?: { name: string } } };
+  const o = n as unknown as { fills?: Paint[]; stroke?: { fill?: Paint; width?: number }; content?: { runs?: { text?: string; style?: { fill?: Paint } }[] }[] };
+  const paints: Paint[] = [...(o.fills ?? []), ...(o.stroke?.width ? [o.stroke.fill ?? {}] : [])];
+  for (const p of o.content ?? []) for (const r of p.runs ?? []) if (r.text?.trim() && r.style?.fill) paints.push(r.style.fill);
+  const solid = paints.filter((p) => p.type === "solid" && p.color && (p.color.srgb?.a ?? 1) > 0);
+  if (!solid.length || solid.length !== paints.length) return false;
+  return solid.every((p) => {
+    const c = p.color!;
+    if (c.spot?.name) return false;
+    const v = c.cmyk ? [c.cmyk.c, c.cmyk.m, c.cmyk.y, c.cmyk.k] : check.cmyk!(c.srgb!.r, c.srgb!.g, c.srgb!.b);
+    return v.every((x) => x < 0.005);
+  });
 }
 
 /** Barcodes that may not scan: a value that no longer encodes, modules
@@ -199,14 +262,35 @@ async function barcodeChecks(doc: DesignFile, pages: number[], o: { printCheck?:
  *  resolution check of the print formats, `printCheck` the print preflight
  *  (hairlines, small text in several inks, artwork at the edge without
  *  bleed). */
-export async function exportIssues(doc: DesignFile, pages: number[], o: { vector: boolean; print?: boolean; printCheck?: PrintCheck; backgroundLabel?: string; rasterDpi?: number }): Promise<ExportIssue[]> {
+export async function exportIssues(source: DesignFile, pages: number[], o: { vector: boolean; print?: boolean; printCheck?: PrintCheck; backgroundLabel?: string; rasterDpi?: number }): Promise<ExportIssue[]> {
   const issues = new Map<string, ExportIssue>();
-  const add = (kind: ExportIssueKind, subject: string, page: number, element: string) => {
+  const add: Add = (kind, subject, page, element, rule) => {
+    if (rule?.level === "off") return;
     const key = `${kind}|${subject}`;
-    const issue = issues.get(key) ?? { kind, subject, where: [] };
+    const issue = issues.get(key) ?? { kind, subject, where: [], ...(rule?.limit !== undefined ? { limit: rule.limit } : {}) };
+    if (rule?.level === "block") issue.blocking = true;
     if (!issue.where.some((w) => w.page === page && w.element === element)) issue.where.push({ page, element });
     issues.set(key, issue);
   };
+  const rules = o.printCheck?.rules ?? defaultRules();
+
+  // Die line elements are cut information, not artwork: checked apart.
+  const doc = withoutDieLines(source);
+  if (o.print && o.printCheck) {
+    const visit = (nodes: Node[], page: number) => {
+      for (const n of nodes) {
+        if (n.hidden) continue;
+        if (isDieLine(n)) {
+          if (!o.printCheck!.vectorPrint) add("die-line-flattened", "", page, labelOf(n));
+          else if (!o.printCheck!.dieLine) add("die-line-unused", "", page, labelOf(n));
+          continue;
+        }
+        const c = (n as unknown as { children?: Node[] }).children;
+        if (Array.isArray(c)) visit(c, page);
+      }
+    };
+    if (doc !== source) for (const i of pages) if (source.pages[i]) visit(source.pages[i].children, i + 1);
+  }
 
   const assetName = new Map<string, string>();
   for (const a of doc.assets ?? []) assetName.set(a.id, (a as { name?: string }).name || a.id);
@@ -221,11 +305,11 @@ export async function exportIssues(doc: DesignFile, pages: number[], o: { vector
           if (imageAssets.status(id) === "missing") add("image", assetName.get(id) ?? id, page, labelOf(n));
         }
       }
-      if (o.print && n.type === "image" && imageAssets.status((n as ImageNode).source.assetId) === "ready") {
+      if (o.print && rules.minPpi.level !== "off" && n.type === "image" && imageAssets.status((n as ImageNode).source.assetId) === "ready") {
         const ppi = imagePpi(n as ImageNode, doc);
-        if (ppi > 0 && ppi < PRINT_MIN_PPI) {
+        if (ppi > 0 && ppi < rules.minPpi.value) {
           const name = assetName.get((n as ImageNode).source.assetId) ?? labelOf(n);
-          add("image-resolution", name, page, labelOf(n));
+          add("image-resolution", name, page, labelOf(n), { level: rules.minPpi.level, limit: rules.minPpi.value });
           const issue = issues.get(`image-resolution|${name}`)!;
           issue.ppi = Math.min(issue.ppi ?? Infinity, Math.round(ppi));
         }

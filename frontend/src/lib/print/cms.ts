@@ -2,6 +2,8 @@
 // to the CMYK of a printing condition, through its ICC output profile, with
 // LittleCMS (lcms-wasm). Loaded on first use only.
 
+import { CodedError } from "../errors";
+
 /** How out-of-gamut colours are brought into the press gamut. */
 export type RenderingIntent = "relative" | "perceptual";
 
@@ -13,7 +15,8 @@ export interface CmykConverter {
   /** One sRGB colour (0..1) to CMYK (0..1). Cached per colour. */
   cmyk(r: number, g: number, b: number): [number, number, number, number];
   /** CMYK (0..1) to CIE L*a*b* (D50) as it prints on this condition's paper
-   *  (absolute colorimetric): the value a print shop measures and matches. */
+   *  (absolute colorimetric: the profile's A2B1 table with its media white
+   *  point): the value a print shop measures and matches. */
   lab(c: number, m: number, y: number, k: number): [number, number, number];
   /** RGBA pixels (straight alpha) composited on paper white, to interleaved
    *  CMYK bytes (0..255 = 0..100 % ink). */
@@ -25,6 +28,34 @@ export interface CmykConverter {
   proof(cmyk: Uint8Array, count: number, paperWhite: boolean): Uint8ClampedArray;
   dispose(): void;
 }
+
+/** The ICC tables every print value is computed from, each with its ICC v4
+ *  floating-point alternative: into CMYK perceptual (B2A0) and relative
+ *  colorimetric (B2A1), out of CMYK colorimetric (A2B1: Lab values and the
+ *  soft proof), A2B0 as the ICC specification requires, and the media white
+ *  point (wtpt) absolute colorimetric Lab rests on. Without one of them
+ *  LittleCMS would quietly use another table, and the value would no longer
+ *  be the one the profile defines; such a profile is refused instead. The
+ *  server checks the same list on upload (printprofiles.requiredTables). */
+const REQUIRED_TABLES: [string, string | null][] = [["A2B0", "D2B0"], ["A2B1", "D2B1"], ["B2A0", "B2D0"], ["B2A1", "B2D1"], ["wtpt", null]];
+
+/** The required tables a profile lacks; a tag counts when its data lies
+ *  inside the file. Empty for anything too short to have a tag table. */
+export function missingTables(icc: Uint8Array): string[] {
+  if (icc.byteLength < 132) return REQUIRED_TABLES.map((t) => t[0]);
+  const view = new DataView(icc.buffer, icc.byteOffset, icc.byteLength);
+  const have = new Set<string>();
+  const n = view.getUint32(128);
+  for (let i = 0; i < n && 132 + 12 * i + 12 <= icc.byteLength; i++) {
+    const at = 132 + 12 * i;
+    const off = view.getUint32(at + 4), len = view.getUint32(at + 8);
+    if (len > 0 && off + len <= icc.byteLength) have.add(String.fromCharCode(icc[at], icc[at + 1], icc[at + 2], icc[at + 3]));
+  }
+  return REQUIRED_TABLES.filter(([a, b]) => !have.has(a) && !(b && have.has(b))).map((t) => t[0]);
+}
+
+const incomplete = (what: string) =>
+  new CodedError("errors.api_print_profile_incomplete", `the profile lacks colour tables needed for exact print values: ${what}`, { tables: what });
 
 type Lcms = Awaited<ReturnType<(typeof import("lcms-wasm"))["instantiate"]>>;
 
@@ -47,8 +78,10 @@ function loadLcms() {
   return lcmsPromise;
 }
 
-/** Throws when the bytes are not a usable CMYK output profile. */
+/** Throws when the bytes are not a usable CMYK output profile, or one
+ *  without every table print values are computed from (missingTables). */
 export async function createCmykConverter(icc: Uint8Array, intent: RenderingIntent = "relative"): Promise<CmykConverter> {
+  const missing = missingTables(icc);
   const { lcms, L } = await loadLcms();
   const out = lcms.cmsOpenProfileFromMem(icc, icc.byteLength);
   if (!out) throw new Error("not a readable ICC profile");
@@ -56,35 +89,41 @@ export async function createCmykConverter(icc: Uint8Array, intent: RenderingInte
     lcms.cmsCloseProfile(out);
     throw new Error("not a CMYK profile");
   }
+  if (missing.length) {
+    lcms.cmsCloseProfile(out);
+    throw incomplete(missing.join(", "));
+  }
   const description = lcms.cmsGetProfileInfoASCII(out, L.cmsInfoDescription, "en", "US").trim();
   const srgb = lcms.cmsCreate_sRGBProfile();
-  // Black point compensation maps sRGB black to the press's deepest black
-  // instead of clipping shadow detail.
+  const labProfile = lcms.cmsCreateLab4Profile(null);
+  // Every transform is made here, at once, and each is checked: LittleCMS
+  // returns no handle (0) for tables that do not compute, and nothing is
+  // ever worked out another way. Black point compensation maps sRGB black to
+  // the press's deepest black instead of clipping shadow detail.
   const xf = lcms.cmsCreateTransform(
     srgb, L.TYPE_RGB_8, out, L.TYPE_CMYK_8,
     intent === "perceptual" ? L.INTENT_PERCEPTUAL : L.INTENT_RELATIVE_COLORIMETRIC,
     L.cmsFLAGS_BLACKPOINTCOMPENSATION,
-  );
-  if (!xf) {
+  ) || 0;
+  // CMYK to Lab for the colour list.
+  const toLab = lcms.cmsCreateTransform(out, L.TYPE_CMYK_16, labProfile, L.TYPE_Lab_16, L.INTENT_ABSOLUTE_COLORIMETRIC, 0) || 0;
+  // The way back for the soft proof.
+  const back = {
+    relative: lcms.cmsCreateTransform(out, L.TYPE_CMYK_8, srgb, L.TYPE_RGB_8, L.INTENT_RELATIVE_COLORIMETRIC, L.cmsFLAGS_BLACKPOINTCOMPENSATION) || 0,
+    absolute: lcms.cmsCreateTransform(out, L.TYPE_CMYK_8, srgb, L.TYPE_RGB_8, L.INTENT_ABSOLUTE_COLORIMETRIC, 0) || 0,
+  };
+  const release = () => {
+    for (const t of [xf, toLab, back.relative, back.absolute]) if (t) lcms.cmsDeleteTransform(t);
+    lcms.cmsCloseProfile(labProfile);
     lcms.cmsCloseProfile(srgb);
     lcms.cmsCloseProfile(out);
-    throw new Error("the profile has no usable colour tables");
+  };
+  if (!xf || !toLab || !back.relative || !back.absolute) {
+    release();
+    throw incomplete("the colour tables do not compute");
   }
   const cache = new Map<number, [number, number, number, number]>();
-  // CMYK to Lab for the colour list, made on first use.
-  let toLab: number | null = null, labProfile: number | null = null;
   const CHUNK = 1 << 16;
-  // The way back for the soft proof, made on first use.
-  const back: { relative?: number; absolute?: number } = {};
-  const backTransform = (paperWhite: boolean) => {
-    const key = paperWhite ? "absolute" : "relative";
-    back[key] ??= lcms.cmsCreateTransform(
-      out, L.TYPE_CMYK_8, srgb, L.TYPE_RGB_8,
-      paperWhite ? L.INTENT_ABSOLUTE_COLORIMETRIC : L.INTENT_RELATIVE_COLORIMETRIC,
-      paperWhite ? 0 : L.cmsFLAGS_BLACKPOINTCOMPENSATION,
-    );
-    return back[key]!;
-  };
   return {
     description,
     icc,
@@ -100,10 +139,6 @@ export async function createCmykConverter(icc: Uint8Array, intent: RenderingInte
       return v;
     },
     lab(c, m, y, k) {
-      if (toLab === null) {
-        labProfile = lcms.cmsCreateLab4Profile(null);
-        toLab = lcms.cmsCreateTransform(out, L.TYPE_CMYK_16, labProfile, L.TYPE_Lab_16, L.INTENT_ABSOLUTE_COLORIMETRIC, 0);
-      }
       const v = (n: number) => Math.round(Math.min(1, Math.max(0, n)) * 65535);
       return decodeLab16(lcms.cmsDoTransform(toLab, new Uint16Array([v(c), v(m), v(y), v(k)]), 1) as Uint16Array);
     },
@@ -126,7 +161,7 @@ export async function createCmykConverter(icc: Uint8Array, intent: RenderingInte
       return out8;
     },
     proof(cmyk, count, paperWhite) {
-      const t = backTransform(paperWhite);
+      const t = paperWhite ? back.absolute : back.relative;
       const rgba = new Uint8ClampedArray(count * 4);
       for (let start = 0; start < count; start += CHUNK) {
         const n = Math.min(CHUNK, count - start);
@@ -142,13 +177,7 @@ export async function createCmykConverter(icc: Uint8Array, intent: RenderingInte
       return rgba;
     },
     dispose() {
-      if (toLab !== null) lcms.cmsDeleteTransform(toLab);
-      if (labProfile !== null) lcms.cmsCloseProfile(labProfile);
-      if (back.relative) lcms.cmsDeleteTransform(back.relative);
-      if (back.absolute) lcms.cmsDeleteTransform(back.absolute);
-      lcms.cmsDeleteTransform(xf);
-      lcms.cmsCloseProfile(srgb);
-      lcms.cmsCloseProfile(out);
+      release();
     },
   };
 }

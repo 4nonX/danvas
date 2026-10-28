@@ -12,7 +12,7 @@ import { rasterDimensions, encodeApng, encodeGif, designPageToLottie, deckToPptx
 import { worldAABB } from "@hc/editor";
 import { resolveAssetUrl } from "@/lib/sdk";
 import { zipFiles, type ZipEntry } from "@/lib/zip";
-import type { BrandKit, BrandLintResult, ColorLibrary, ColorLibraryEntry } from "@hc/sdk";
+import type { BrandKit, BrandLintResult, ColorLibrary, ColorLibraryEntry, DesignApprovalView } from "@hc/sdk";
 import {
   createScene,
   renderScene,
@@ -51,7 +51,9 @@ import { pageBleed } from "@hc/engine";
 import { imagePdfBlob, rasterBlob, renderPageCanvas, tiffBlob } from "@/lib/exportFormats";
 import { hycBlob } from "@/lib/hycFile";
 import { BARCODE_MIN_PX, exportIssues, HAIRLINE_PT, PRINT_MIN_PPI, SMALL_TEXT_PT, type ExportIssue } from "@/lib/exportIssues";
-import { describeSettings, normalizeSettings, sameSettings, type ColorListAs, type ExportSettings } from "@/lib/exportProfiles";
+import { defaultRules, describeSettings, normalizeSettings, sameSettings, type ColorListAs, type ExportSettings, type PrintRules } from "@/lib/exportProfiles";
+import { hasDieLines, withoutDieLines } from "@/lib/print/nodePrint";
+import { RulesSummary } from "./RulesSummary";
 import { useMyActions } from "@/store/workspaceActions";
 import { hasAction } from "@hc/authz";
 import { ProfileBar } from "./ProfileBar";
@@ -249,16 +251,20 @@ function renderDeckFrame(
   return dest;
 }
 
+/** Text for the PDFs made in the browser (colour list, package report):
+ *  the user's language when their built-in font can show it, else English. */
+function pdfTr(key: string, params?: Record<string, unknown>): string {
+  const s = translate(key, params);
+  if (fitsLatin1(s)) return s;
+  const k = typeof params?.count === "number" ? `${key}.${params.count === 1 ? "one" : "other"}` : key;
+  return interpolate(baseCatalog[k] ?? baseCatalog[key] ?? s, params);
+}
+
 // The colour list's labels: the user's language when the PDF's built-in font
 // can show it, else English.
 function colorListLabels(info: { design: string; profile: string; brand?: string; libraries?: string; date: string }, images: number): ColorListLabels {
   // Shadows tr so the keys stay literal tr() calls (the catalog check reads them).
-  const tr = (key: string, params?: Record<string, unknown>) => {
-    const s = translate(key, params);
-    if (fitsLatin1(s)) return s;
-    const k = typeof params?.count === "number" ? `${key}.${params.count === 1 ? "one" : "other"}` : key;
-    return interpolate(baseCatalog[k] ?? baseCatalog[key] ?? s, params);
-  };
+  const tr = pdfTr;
   const uses: Record<ColorUseKind, string> = {
     fill: tr("editor.color_list_use_fill"), stroke: tr("editor.color_list_use_stroke"), text: tr("editor.color_list_use_text"),
     gradient: tr("editor.color_list_use_gradient"), background: tr("editor.color_list_use_background"), effect: tr("editor.color_list_use_effect"),
@@ -342,8 +348,10 @@ function overriddenDoc(doc: DesignFile, o: PrintOverride): DesignFile {
   return out;
 }
 
+type Translate = (key: string, params?: Record<string, unknown>) => string;
+
 /** Where an export check issue is: "p. 1: Title, Footer; p. 2: ...". */
-function issueWhere(i: ExportIssue): string {
+function issueWhere(i: ExportIssue, tr: Translate = translate): string {
   const byPage = new Map<number, string[]>();
   for (const w of i.where) byPage.set(w.page, [...(byPage.get(w.page) ?? []), w.element]);
   return [...byPage].map(([page, els]) => {
@@ -353,15 +361,22 @@ function issueWhere(i: ExportIssue): string {
 }
 
 /** One issue as a sentence (shared with the print dialog). */
-export function issueText(i: ExportIssue): string {
-  const where = issueWhere(i);
+export function issueText(i: ExportIssue, tr: Translate = translate): string {
+  const where = issueWhere(i, tr);
   if (i.kind === "font") return tr("editor.export_issue_font", { subject: i.subject, where });
   if (i.kind === "font-outline") return tr("editor.export_issue_font_outline", { subject: i.subject, where });
-  if (i.kind === "hairline") return tr("editor.export_issue_hairline", { subject: i.subject, min: HAIRLINE_PT, where });
-  if (i.kind === "small-rich-text") return tr("editor.export_issue_small_rich_text", { subject: i.subject, size: SMALL_TEXT_PT, where });
+  if (i.kind === "hairline") return tr("editor.export_issue_hairline", { subject: i.subject, min: i.limit ?? HAIRLINE_PT, where });
+  if (i.kind === "small-rich-text") return tr("editor.export_issue_small_rich_text", { subject: i.subject, size: i.limit ?? SMALL_TEXT_PT, where });
+  if (i.kind === "small-text") return tr("editor.export_issue_small_text", { subject: i.subject, size: i.limit ?? 6, where });
+  if (i.kind === "spot-not-allowed") return tr("editor.export_issue_spot_not_allowed", { subject: i.subject, where });
+  if (i.kind === "not-cmyk") return tr("editor.export_issue_not_cmyk");
+  if (i.kind === "overprint-white") return tr("editor.export_issue_overprint_white", { where });
+  if (i.kind === "overprint-flattened") return tr("editor.export_issue_overprint_flattened", { where });
+  if (i.kind === "die-line-unused") return tr("editor.export_issue_die_line_unused", { where });
+  if (i.kind === "die-line-flattened") return tr("editor.export_issue_die_line_flattened", { where });
   if (i.kind === "edge-no-bleed") return tr("editor.export_issue_edge_no_bleed", { where });
   if (i.kind === "edge-not-extended") return tr("editor.export_issue_edge_not_extended", { where });
-  if (i.kind === "image-resolution") return tr("editor.export_issue_image_resolution", { subject: i.subject, ppi: i.ppi ?? 0, min: PRINT_MIN_PPI, where });
+  if (i.kind === "image-resolution") return tr("editor.export_issue_image_resolution", { subject: i.subject, ppi: i.ppi ?? 0, min: i.limit ?? PRINT_MIN_PPI, where });
   if (i.kind === "barcode-invalid") return tr("editor.export_issue_barcode_invalid", { subject: i.subject, where });
   if (i.kind === "barcode-small") return tr("editor.export_issue_barcode_small", { subject: i.subject, where });
   if (i.kind === "barcode-quiet") return tr("editor.export_issue_barcode_quiet", { subject: i.subject, where });
@@ -446,6 +461,11 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
   const mayColorList = hasAction(useMyActions(workspaceId), "design.colorList");
   const [colorLibraries, setColorLibraries] = useState<ColorLibrary[] | null>(null);
   const [registration, setRegistration] = useState(true);
+  // The print shop's rules: set with an export profile (edited there), the
+  // usual warnings otherwise.
+  const [rules, setRules] = useState<PrintRules>(() => defaultRules());
+  // Print files as one package for the print shop (lib/print/handover).
+  const [handover, setHandover] = useState(false);
   const [dieLine, setDieLine] = useState<{ on: boolean; name: string; radiusMm: number }>(() => ({ on: false, name: tr("editor.die_line_default_name"), radiusMm: 2 }));
   // Print exports include each page's bleed and crop marks (set per page in
   // the page panel), each switchable on its own; both off is the bare page.
@@ -518,6 +538,8 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
     impose,
     trimSize,
     colorList: colorList ? colorListAs : null,
+    rules,
+    handover,
   };
   function applySettings(raw: ExportSettings) {
     const s = normalizeSettings(raw);
@@ -543,6 +565,8 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
     setPdfx(s.pdfx);
     setRegistration(s.registration);
     setDieLine(s.dieLine);
+    setRules(s.rules);
+    setHandover(s.handover);
     if (s.print.source === "fixed") {
       setOverride(s.print.override);
       setPrintSource("fixed");
@@ -614,50 +638,61 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
   const overrideBleed = override.bleed;
   // The pages exported (as `pages` below, which comes after the early return).
   const pagesKey = (selected.length ? [...selected].sort((a, b) => a - b) : [Math.min(activePage, pageCount - 1)]).join(",");
+  /** The check of these designs' pages for the menu's settings: shown in
+   *  the menu, run again at the download (a rule may refuse it) and written
+   *  into the print shop package. */
+  async function checkIssues(targets: { design: string; doc: DesignFile; pages: number[] }[]): Promise<{ design: string; list: ExportIssue[] }[]> {
+    const out: { design: string; list: ExportIssue[] }[] = [];
+    // The print preflight converts colours as the export will.
+    let conv: CmykConverter | null = null;
+    if (printOut && cmykCapable && printColor === "cmyk" && profileId) {
+      try {
+        const { createCmykConverter } = await import("@/lib/print/cms");
+        conv = await createCmykConverter(await profileBytes(profileId), intent);
+      } catch { conv = null; }
+    }
+    const die = vectorPrint && dieLine.on && dieLine.name.trim() ? { name: dieLine.name.trim() } : null;
+    const level = (l: PrintRules[keyof PrintRules]["level"]) => (l === "block" ? { blocking: true } : {});
+    try {
+      for (const t of targets) {
+        await whenRenderable(t.doc);
+        const bleed = printSource === "fixed" ? overrideBleed : withBleed && t.pages.some((i) => !!t.doc.pages[i] && pageBleed(t.doc.pages[i]) > 0);
+        // What the extension into the bleed cannot reach (it runs on the
+        // copy the export makes; listed here like any other issue).
+        const prepressed = sheetCapable && extendBleed && (printSource === "fixed" ? overrideBleed : withBleed) && rules.bleed.level !== "off"
+          ? prepressDoc(withoutDieLines(printSource === "fixed" ? withPrintOverride(t.doc, override) : t.doc), t.pages, { roundToMm: roundMm, extendIntoBleed: true }).notExtended
+          : [];
+        const list = await exportIssues(t.doc, t.pages, {
+          vector: vectorOut,
+          print: printOut,
+          printCheck: { cmyk: conv ? (r, g, b) => conv!.cmyk(r, g, b) : null, blackOnly: vectorPrint && blackOnly, bleed, rules, vectorPrint, dieLine: die, overprint: vectorPrint ? "file" : format === "pdf" && impose.on ? "lost" : "raster" },
+          backgroundLabel: tr("editor.export_issue_page_background"),
+          // Output pixels per inch of the raster formats (barcode modules need enough of them).
+          rasterDpi: vectorOut ? undefined : format === "tiff" ? tiffDpi : (t.doc.dpi ?? 96) * scale,
+        });
+        if (prepressed.length) list.push({ kind: "edge-not-extended", subject: "", where: prepressed, ...level(rules.bleed.level) });
+        // The print shop takes CMYK only.
+        if (rules.cmykOnly.level !== "off" && !(cmykCapable && printColor === "cmyk")) list.unshift({ kind: "not-cmyk", subject: "", where: [], ...level(rules.cmykOnly.level) });
+        if (list.length) out.push({ design: t.design, list });
+      }
+    } finally {
+      conv?.dispose();
+    }
+    return out;
+  }
+  const checkTargets = () => (bulk
+    ? designs!.map((d) => ({ design: d.doc.title || tr("editor.untitled"), doc: d.doc, pages: d.doc.pages.map((_, i) => i) }))
+    : [{ design: "", doc: designs?.[0]?.doc ?? useEditor.getState().doc, pages: pagesKey.split(",").map(Number) }]);
   useEffect(() => {
     if (!open || !rendersDesign) return;
     let cancelled = false;
-    void (async () => {
-      const targets = bulk
-        ? designs!.map((d) => ({ design: d.doc.title || tr("editor.untitled"), doc: d.doc, pages: d.doc.pages.map((_, i) => i) }))
-        : [{ design: "", doc: designs?.[0]?.doc ?? useEditor.getState().doc, pages: pagesKey.split(",").map(Number) }];
-      const out: { design: string; list: ExportIssue[] }[] = [];
-      // The print preflight converts colours as the export will.
-      let conv: CmykConverter | null = null;
-      if (printOut && cmykCapable && printColor === "cmyk" && profileId) {
-        try {
-          const { createCmykConverter } = await import("@/lib/print/cms");
-          conv = await createCmykConverter(await profileBytes(profileId), intent);
-        } catch { conv = null; }
-      }
-      try {
-        for (const t of targets) {
-          await whenRenderable(t.doc);
-          const bleed = printSource === "fixed" ? overrideBleed : withBleed && t.pages.some((i) => !!t.doc.pages[i] && pageBleed(t.doc.pages[i]) > 0);
-          // What the extension into the bleed cannot reach (it runs on the
-          // copy the export makes; listed here like any other issue).
-          const prepressed = sheetCapable && extendBleed && (printSource === "fixed" ? overrideBleed : withBleed)
-            ? prepressDoc(printSource === "fixed" ? withPrintOverride(t.doc, override) : t.doc, t.pages, { roundToMm: roundMm, extendIntoBleed: true }).notExtended
-            : [];
-          const list = await exportIssues(t.doc, t.pages, {
-            vector: vectorOut,
-            print: printOut,
-            printCheck: { cmyk: conv ? (r, g, b) => conv!.cmyk(r, g, b) : null, blackOnly: vectorPrint && blackOnly, bleed },
-            backgroundLabel: tr("editor.export_issue_page_background"),
-            // Output pixels per inch of the raster formats (barcode modules need enough of them).
-            rasterDpi: vectorOut ? undefined : format === "tiff" ? tiffDpi : (t.doc.dpi ?? 96) * scale,
-          });
-          if (prepressed.length) list.push({ kind: "edge-not-extended", subject: "", where: prepressed });
-          if (list.length) out.push({ design: t.design, list });
-        }
-      } finally {
-        conv?.dispose();
-      }
-      if (!cancelled) setIssues(out);
-    })();
+    void checkIssues(checkTargets()).then((out) => { if (!cancelled) setIssues(out); });
     return () => { cancelled = true; };
-  }, [open, rendersDesign, vectorOut, printOut, pagesKey, designs, bulk, rev, cmykCapable, printColor, profileId, intent, vectorPrint, blackOnly, printSource, overrideBleed, withBleed, sheetCapable, extendBleed, roundMm, override, format, tiffDpi, scale]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- checkIssues reads exactly these
+  }, [open, rendersDesign, vectorOut, printOut, pagesKey, designs, bulk, rev, cmykCapable, printColor, profileId, intent, vectorPrint, blackOnly, printSource, overrideBleed, withBleed, sheetCapable, extendBleed, roundMm, override, format, tiffDpi, scale, rules, dieLine.on, dieLine.name, impose.on]);
   const shownIssues = rendersDesign ? issues : [];
+  // A rule of the print shop's profile refuses the download.
+  const ruleBlocked = shownIssues.some((g) => g.list.some((i) => i.blocking));
   // Designs not in the profile's finished size (F48): warned, not blocked.
   const trimOff = useMemo(() => {
     if (!open || !rendersDesign || !trimSize) return [];
@@ -692,6 +727,8 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
   // Print files wait for the designs' approval when the workspace says so.
   const printFile = (format === "pdf" && !taggedPdf) || format === "tiff" || format === "eps";
   const approvalBlocked = printFile && clearance.blocked;
+  // Print files as one package for the print shop.
+  const packaged = handover && printFile;
   const showWarn = gateActive && gate!.policy === "warn" && !warnDismissed;
 
   const fmt = formats().find((f) => f.value === format)!;
@@ -813,11 +850,19 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
     return createCmykConverter(await profileBytes(profileId), intent);
   }
 
-  async function exportDesign(doc: DesignFile, designId: string | null, pages: number[], emit: (blob: Blob, name: string) => void, quiet: boolean): Promise<void> {
-    // A fixed setting gives every design the menu's bleed and marks.
+  /** The design as the export draws it: the menu's fixed bleed and marks,
+   *  then prepress (whole-mm size, artwork into the bleed), on a copy. Die
+   *  line elements are kept for the vector print files, which draw them as
+   *  the die line, and the design file; nothing else prints them. */
+  function exportCopy(doc: DesignFile): DesignFile {
     if (fixedPrint && sheetCapable) doc = withPrintOverride(doc, override);
-    // Prepress on a copy: whole-mm size, artwork into the bleed.
-    doc = prepressDoc(doc, null, prepressOpts).doc;
+    const keepDie = format === "hyc" || format === "eps" || (format === "pdf" && pdfMode !== "image");
+    const art = keepDie ? doc : withoutDieLines(doc);
+    return prepressDoc(art, null, prepressOpts).doc;
+  }
+
+  async function exportDesign(doc: DesignFile, designId: string | null, pages: number[], emit: (blob: Blob, name: string) => void, quiet: boolean): Promise<void> {
+    doc = format === "hyc" ? doc : exportCopy(doc);
     const fileCount = format === "pdf" || format === "mp4" || format === "pptx" || format === "md" || format === "hyc" || isSingleAnimated ? 1 : pages.length;
     const safeBase = (doc.title || "design").replace(/[^\w.-]+/g, "-").replace(/^-+|-+$/g, "") || "design";
     const nameFor = (i: number, suffix: string) => (fileCount > 1 ? `${safeBase}-${i + 1}.${suffix}` : `${safeBase}.${suffix}`);
@@ -1050,7 +1095,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
 
   /** The colour list files of one design (see lib/print/colorReport), from
    *  the design as it is (not the prepress copy: marks are not its colours). */
-  async function colorListFiles(d: DesignFile, id: string | null, libraries: { name: string; entries: ColorLibraryEntry[] }[]): Promise<{ blob: Blob; name: string }[]> {
+  async function colorListFiles(d: DesignFile, id: string | null, libraries: { name: string; entries: ColorLibraryEntry[] }[], as: ColorListAs = colorListAs): Promise<{ blob: Blob; name: string }[]> {
     const { converter, profile } = await colorListConverter(d);
     const { createLabConverter } = await import("@/lib/print/cms");
     const lab = await createLabConverter();
@@ -1071,16 +1116,114 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
       const safeBase = (d.title || "design").replace(/[^\w.-]+/g, "-").replace(/^-+|-+$/g, "") || "design";
       const base = `${safeBase}-${tr("editor.color_list_file")}`;
       const out: { blob: Blob; name: string }[] = [];
-      if (colorListAs.pdf) out.push({ blob: await colorListPdf(rows, labels), name: `${base}.pdf` });
+      if (as.pdf) out.push({ blob: await colorListPdf(rows, labels), name: `${base}.pdf` });
       // The decimal mark a spreadsheet in the reader's language expects.
       const decimal = (1.5).toLocaleString(resolvedLocale()).includes(",") ? "," : ".";
-      if (colorListAs.csv) out.push({ blob: colorListCsv(rows, labels, decimal), name: `${base}.csv` });
-      if (colorListAs.ase) out.push({ blob: colorListAse(rows, d.title || "danvas"), name: `${base}.ase` });
+      if (as.csv) out.push({ blob: colorListCsv(rows, labels, decimal), name: `${base}.csv` });
+      if (as.ase) out.push({ blob: colorListAse(rows, d.title || "danvas"), name: `${base}.ase` });
       return out;
     } finally {
       lab.dispose();
       converter.dispose();
     }
+  }
+
+  /** The print shop package of one design: its print files, a soft proof
+   *  of every page, the colour list (for those allowed it) and the report
+   *  with the settings, the check, the approval and every file's checksum. */
+  async function handoverFiles(d: DesignFile, id: string | null, designPages: number[], libraries: { name: string; entries: ColorLibraryEntry[] }[]): Promise<{ blob: Blob; name: string }[]> {
+    const h = await import("@/lib/print/handover");
+    const taken = new Set<string>();
+    const out: { blob: Blob; name: string }[] = [];
+    const prints: { blob: Blob; name: string }[] = [];
+    await exportDesign(d, id, designPages, (blob, name) => prints.push({ blob, name: h.packageName(name, taken) }), true);
+    out.push(...prints);
+    const base = (d.title || "design").replace(/[^\w.-]+/g, "-").replace(/^-+|-+$/g, "") || "design";
+    // Soft proofs of the pages as exported (CMYK only: an RGB file has none).
+    const proofs: string[] = [];
+    const conv = await makeConverter();
+    if (conv) {
+      try {
+        const { renderProof } = await import("@/lib/print/proofRender");
+        const copy = exportCopy(d);
+        for (const i of designPages) {
+          const r = await renderProof(copy, i, useSheet, conv, { blackOnly: vectorPrint && blackOnly, dieLine: printExtras?.dieLine, maxSide: 2400, maxScale: 300 / (copy.dpi ?? 96) });
+          const name = h.packageName(`${tr("editor.handover_proof_folder")}/${base}-${i + 1}.png`, taken);
+          out.push({ blob: await h.proofPng(conv.proof(r.cmyk, r.width * r.height, false), r.width, r.height), name });
+          proofs.push(name);
+        }
+      } finally {
+        conv.dispose();
+      }
+    }
+    if (mayColorList) {
+      for (const f of await colorListFiles(d, id, libraries, colorList ? colorListAs : { pdf: true, csv: true, ase: false })) out.push({ blob: f.blob, name: h.packageName(f.name, taken) });
+    }
+    const checked = (await checkIssues([{ design: "", doc: d, pages: designPages }]))[0]?.list ?? [];
+    const approval = id ? await oc.designApproval(id).catch(() => null) : null;
+    const entries = await h.entriesOf(out);
+    const report = await h.handoverReportPdf(handoverReport(d, designPages, checked, approval, entries), resolvedLocale());
+    out.push({ blob: report, name: h.packageName(`${base}-${tr("editor.handover_report_file")}.pdf`, taken) });
+    return out;
+  }
+
+  /** What the package's report says (in the user's language when the
+   *  report's font can show it, else English). */
+  function handoverReport(d: DesignFile, designPages: number[], checked: ExportIssue[], approval: DesignApprovalView | null, files: { name: string; data: Uint8Array }[]): import("@/lib/print/handover").HandoverReport {
+    // Shadows tr so the keys stay literal tr() calls (the catalog check reads them).
+    const tr = pdfTr;
+    const dpi = d.dpi ?? 96;
+    const copy = exportCopy(d);
+    const first = copy.pages[designPages[0]] ?? copy.pages[0];
+    const mm = (px: number) => pxToMm(px, dpi).toLocaleString(resolvedLocale(), { maximumFractionDigits: 2 });
+    const sheet = printSheet(first, dpi, useSheet);
+    const yes = tr("editor.handover_yes"), no = tr("editor.handover_no");
+    const level = (l: string) => (l === "block" ? tr("editor.rule_level_block") : l === "warn" ? tr("editor.rule_level_warn") : tr("editor.rule_level_off"));
+    const spots = spotNamesOf(withoutDieLines(copy));
+    const date = (s?: string | null) => (s ? new Date(s).toLocaleString(resolvedLocale()) : "");
+    const ap = approval?.approval;
+    const approvalLines: (string | [string, string])[] = !ap
+      ? [tr("editor.handover_approval_none")]
+      : [
+          [tr("editor.handover_approval_status"), { pending: tr("editor.handover_approval_pending"), approved: tr("editor.handover_approval_approved"), rejected: tr("editor.handover_approval_rejected"), reopened: tr("editor.handover_approval_reopened") }[ap.status] ?? ap.status],
+          [tr("editor.handover_approval_requested"), `${ap.requester.name}, ${date(ap.createdAt)}`],
+          ...ap.decisions.map((x) => [x.approverName, `${x.decision === "approve" ? tr("editor.handover_approval_approved") : tr("editor.handover_approval_rejected")}, ${date(x.decidedAt)}${x.note ? ` (${x.note})` : ""}`] as [string, string]),
+        ];
+    return {
+      title: tr("editor.handover_report_title"),
+      subtitle: `${d.title || tr("editor.untitled")} · ${new Date().toLocaleString(resolvedLocale())}`,
+      sections: [
+        {
+          heading: tr("editor.handover_settings"),
+          lines: [
+            [tr("editor.handover_output"), describeSettings(currentSettings, iccName)],
+            ...(printColor === "cmyk" && cmykCapable ? [[tr("editor.color_profile"), `${profileName} · ${intent === "perceptual" ? tr("editor.intent_perceptual") : tr("editor.intent_relative")}`] as [string, string], [tr("editor.tac_limit"), `${effectiveTac} %`] as [string, string]] : []),
+            [tr("editor.handover_pages"), designPages.map((i) => i + 1).join(", ")],
+            [tr("editor.handover_trim"), `${mm(first.width)} x ${mm(first.height)} mm`],
+            [tr("editor.bleed"), useSheet.bleed && sheet.bleed > 0 ? `${mm(sheet.bleed)} mm` : no],
+            [tr("editor.print_sheet_crop_marks"), useSheet.marks && sheet.marks.length ? yes : no],
+            ...(vectorPrint ? [[tr("editor.die_line"), printExtras?.dieLine ? `${printExtras.dieLine.name}${hasDieLines(copy, designPages) ? ` (${tr("editor.handover_die_from_elements")})` : ""}` : no] as [string, string]] : []),
+            [tr("editor.handover_spots"), spots.length ? spots.join(", ") : no],
+          ],
+        },
+        {
+          heading: tr("editor.handover_rules"),
+          lines: [
+            [tr("editor.rule_min_ppi"), `${level(rules.minPpi.level)}, ${rules.minPpi.value} dpi`],
+            [tr("editor.rule_min_line"), `${level(rules.minLinePt.level)}, ${rules.minLinePt.value} pt`],
+            [tr("editor.rule_rich_text"), `${level(rules.richTextPt.level)}, ${rules.richTextPt.value} pt`],
+            [tr("editor.rule_min_text"), `${level(rules.minTextPt.level)}, ${rules.minTextPt.value} pt`],
+            [tr("editor.rule_spots"), `${level(rules.spots.level)}${rules.spots.level !== "off" ? `, ${rules.spots.allowed.join(", ") || tr("editor.rule_spots_none")}` : ""}`],
+            [tr("editor.rule_cmyk_only"), level(rules.cmykOnly.level)],
+            [tr("editor.rule_bleed"), level(rules.bleed.level)],
+          ],
+        },
+        { heading: tr("editor.handover_check"), lines: checked.length ? checked.map((i) => `${i.blocking ? `${tr("editor.rule_level_block")}: ` : ""}${issueText(i, tr)}`) : [tr("editor.handover_check_clean")] },
+        { heading: tr("editor.handover_approval"), lines: approvalLines },
+      ],
+      files,
+      labels: { files: tr("editor.handover_files"), file: tr("editor.handover_file"), size: tr("editor.handover_size"), checksum: "SHA-256", note: tr("editor.handover_note") },
+    };
   }
 
   /** Every colour library of the workspace with its entries (the list
@@ -1103,6 +1246,33 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
     if (blocked) return;
     setBusy(true);
     try {
+      // The print shop's rules, checked again on the design as it is now.
+      if (Object.values(rules).some((r) => r.level === "block") && rendersDesign) {
+        const fresh = await checkIssues(checkTargets());
+        setIssues(fresh);
+        if (fresh.some((g) => g.list.some((i) => i.blocking))) { toast.error(tr("editor.rules_block_download")); return; }
+      }
+      if (packaged) {
+        const libraries = mayColorList ? await colorLibrariesForRun() : [];
+        const files: { blob: Blob; name: string }[] = [];
+        const folders = new Set<string>();
+        for (const t of designs ?? [{ id: designId, doc }]) {
+          await whenRenderable(t.doc);
+          const base = (t.doc.title || "design").replace(/[\\/:*?"<>|]+/g, "-").trim() || "design";
+          let folder = base;
+          for (let n = 2; folders.has(folder.toLowerCase()); n++) folder = `${base} (${n})`;
+          folders.add(folder.toLowerCase());
+          const own = await handoverFiles(t.doc, t.id ?? null, bulk ? t.doc.pages.map((_, i) => i) : pages, libraries);
+          for (const f of own) files.push({ blob: f.blob, name: bulk ? `${folder}/${f.name}` : f.name });
+        }
+        const { entriesOf } = await import("@/lib/print/handover");
+        const safe = (doc.title || "design").replace(/[^\w.-]+/g, "-").replace(/^-+|-+$/g, "") || "design";
+        const zipName = `${bulk ? `danvas-${new Date().toISOString().slice(0, 10)}` : safe}-${tr("editor.handover_zip")}.zip`;
+        download(zipFiles(await entriesOf(files)), zipName);
+        toast.success(tr("editor.handover_downloaded", { file: zipName }));
+        onClose();
+        return;
+      }
       if (!bulk) {
         await whenRenderable(doc);
         await exportDesign(doc, designId, pages, download, false);
@@ -1649,8 +1819,22 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
           </div>
         )}
 
+        {/* Print files as a package for the print shop. */}
+        {printFile && (
+          <label className="mb-3 flex cursor-pointer items-start justify-between gap-3 rounded-xl border border-neutral-200 p-3 text-xs">
+            <span className="text-neutral-600">
+              {tr("editor.handover")}
+              <span className="mt-0.5 block text-[11px] leading-snug text-neutral-400">{tr("editor.handover_desc")}</span>
+            </span>
+            <input type="checkbox" checked={handover} onChange={(e) => setHandover(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-brand-600" />
+          </label>
+        )}
+
+        {/* The print shop's rules (from the export profile). */}
+        {rendersDesign && <RulesSummary rules={rules} />}
+
         {/* Batch: bundle multiple pages into one .zip (non-PDF formats). */}
-        {format !== "pdf" && pages.length > 1 && (
+        {format !== "pdf" && pages.length > 1 && !packaged && (
           <label className="mb-3 flex cursor-pointer items-center justify-between text-sm">
             <span className="text-neutral-600">{tr("editor.combine_pages_into_a_zip")}</span>
             <input type="checkbox" checked={zipBatch} onChange={(e) => setZipBatch(e.target.checked)} className="h-4 w-4 accent-brand-600" />
@@ -1732,11 +1916,22 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
             ) : null}
           </div>
         )}
-        {shownIssues.length > 0 && (
+        {ruleBlocked && (
+          <div className="mb-3 rounded-xl bg-red-50 p-2.5 text-xs text-red-700">
+            <div className="mb-1 flex items-center gap-1.5 font-semibold"><ShieldAlert size={14} /> {tr("editor.rules_blocked_title")}</div>
+            <ul className="max-h-32 list-disc overflow-y-auto ps-4 text-[11px]">
+              {shownIssues.flatMap((g) => g.list.filter((i) => i.blocking).map((i) => (
+                <li key={`${g.design}|${i.kind}|${i.subject}`}>{g.design ? `${g.design}: ` : ""}{issueText(i)}</li>
+              )))}
+            </ul>
+            <p className="mt-1 text-[11px] text-red-600">{tr("editor.rules_blocked_hint")}</p>
+          </div>
+        )}
+        {shownIssues.some((g) => g.list.some((i) => !i.blocking)) && (
           <div className="mb-3 rounded-xl bg-amber-50 p-2.5 text-xs text-amber-800">
             <div className="mb-1 flex items-center gap-1.5 font-semibold"><AlertTriangle size={14} /> {tr("editor.export_check_title")}</div>
             <ul className="max-h-32 list-disc overflow-y-auto ps-4 text-[11px]">
-              {shownIssues.flatMap((g) => g.list.map((i) => (
+              {shownIssues.flatMap((g) => g.list.filter((i) => !i.blocking).map((i) => (
                 <li key={`${g.design}|${i.kind}|${i.subject}`}>{g.design ? `${g.design}: ` : ""}{issueText(i)}</li>
               )))}
             </ul>
@@ -1803,12 +1998,12 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
         )}
         <button
           onClick={() => void run()}
-          disabled={busy || blocked || approvalBlocked}
-          title={blocked ? tr("editor.resolve_brand_violations_to_download") : approvalBlocked ? tr("editor.print_approval_needed") : undefined}
+          disabled={busy || blocked || approvalBlocked || ruleBlocked}
+          title={blocked ? tr("editor.resolve_brand_violations_to_download") : approvalBlocked ? tr("editor.print_approval_needed") : ruleBlocked ? tr("editor.rules_blocked_title") : undefined}
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:opacity-50"
         >
           <Download size={16} />
-          {busy ? tr("editor.preparing") : fileCount > 1 ? tr("editor.download_n_files", { count: fileCount }) : tr("editor.download")}
+          {busy ? tr("editor.preparing") : packaged ? tr("editor.handover_download") : fileCount > 1 ? tr("editor.download_n_files", { count: fileCount }) : tr("editor.download")}
         </button>
         {checkable && checkOpen && (
           <OutputCheckView

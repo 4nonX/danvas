@@ -18,6 +18,7 @@ import { listProfileOptions, type ProfileOption } from "@/lib/print/profiles";
 import type { PrintOverride } from "@/lib/print/sheet";
 import { tr } from "@/lib/i18n";
 import { TrimSizeFields } from "@/components/editor/TrimSizeFields";
+import { RulesFields } from "@/components/editor/RulesSummary";
 
 const FORMATS: ExportFormat[] = ["pdf", "png", "jpg", "svg", "tiff", "eps", "pptx", "md", "hyc", "apng", "gif", "lottie", "mp4"];
 const OVERRIDE_DEFAULT: PrintOverride = { bleed: true, bleedMm: 3, marks: false, style: "solid", weightPt: 0.25, lengthMm: 5, offsetMm: 3 };
@@ -179,6 +180,8 @@ function ExportFields({ s, set, icc }: { s: ExportSettings; set: (patch: Partial
         </>
       )}
       <Check checked={s.zip} onChange={(v) => set({ zip: v })} label={tr("editor.combine_pages_into_a_zip")} />
+      {printCapable && <Check checked={s.handover} onChange={(v) => set({ handover: v })} label={tr("editor.handover")} desc={tr("editor.handover_desc")} />}
+      <RulesFields value={s.rules} onChange={(rules) => set({ rules })} />
       {!["hyc", "md", "lottie"].includes(s.format) && (
         <>
           <Check

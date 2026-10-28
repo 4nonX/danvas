@@ -169,6 +169,11 @@ export class PdfResources {
   shadings: { name: string; dict: string }[] = [];
   /** Spot colour spaces, by name. */
   spots = new Map<string, { name: string; spot: SpotColor }>();
+  /** DeviceN colour spaces over some of the process plates (by plate
+   *  mask: 1 cyan, 2 magenta, 4 yellow, 8 black), for overprint in
+   *  PostScript, which has no overprint mode: a plate a colour does not
+   *  name is left alone. Only the EPS writer defines them. */
+  deviceN = new Map<number, string>();
   /** Optional content groups (layers), by title. */
   layers = new Map<string, string>();
   private imageIds = new WeakMap<object, string>();
@@ -200,6 +205,16 @@ export class PdfResources {
       this.spots.set(spot.name, e);
     }
     return e.name;
+  }
+
+  /** The colour space name of the process plates in `mask`. */
+  processPlates(mask: number): string {
+    let n = this.deviceN.get(mask);
+    if (!n) {
+      n = `DN${mask}`;
+      this.deviceN.set(mask, n);
+    }
+    return n;
   }
 
   /** The PDF definition of each spot colour space: a separation that falls
@@ -1198,6 +1213,17 @@ export class PdfCanvas extends VectorCanvas {
   private tops: string[] = [];
   // A spot colour all paint uses until cleared (marks, a die line).
   private spot: { cs: string; overprint: boolean } | null = null;
+  // Elements that overprint, being drawn (innermost last).
+  private overprinting: Node[] = [];
+
+  /** An element starts or ends drawing: inside one that overprints, every
+   *  paint overprints (the print role in its data, lib/print/nodePrint). */
+  printEnter(node: Node, overprint: boolean): void {
+    if (overprint) this.overprinting.push(node);
+  }
+  printExit(node: Node): void {
+    if (this.overprinting[this.overprinting.length - 1] === node) this.overprinting.pop();
+  }
 
   constructor(protected readonly o: PdfCanvasOptions) {
     super(o);
@@ -1225,13 +1251,25 @@ export class PdfCanvas extends VectorCanvas {
       return `/${res.gs(alpha, alpha, blend, this.spot.overprint)} gs /${this.spot.cs} ${stroke ? "CS 1 SCN" : "cs 1 scn"}`;
     }
     const out = this.o.color;
+    // Overprinting elements: only in a CMYK file (RGB has no plates).
+    const element = !!out && this.overprinting.length > 0;
     if (out && print?.spot) {
       const cs = res.separation({ name: print.spot.name, cmyk: print.spot.cmyk });
-      return `/${res.gs(alpha, alpha, blend)} gs /${cs} ${stroke ? "CS 1 SCN" : "cs 1 scn"}`;
+      return `/${res.gs(alpha, alpha, blend, element)} gs /${cs} ${stroke ? "CS 1 SCN" : "cs 1 scn"}`;
     }
     const comps = out && print?.cmyk ? [...print.cmyk] : this.components(c);
-    const overprint = !!out?.overprintBlack && comps.length === 4 && comps[0] === 0 && comps[1] === 0 && comps[2] === 0 && comps[3] === 1;
-    if (overprint && out?.overprintAsSeparation) {
+    const black = !!out?.overprintBlack && comps.length === 4 && comps[0] === 0 && comps[1] === 0 && comps[2] === 0 && comps[3] === 1;
+    if (element && out?.overprintAsSeparation && comps.length === 4) {
+      // PostScript: the colour on the plates it uses only, so the others
+      // keep what is under it (what overprint mode 1 does in a PDF).
+      const plates = [0, 1, 2, 3].filter((i) => comps[i] > 0);
+      // No ink at all: the colourant "None" marks no plate.
+      if (!plates.length) return `/${res.gs(alpha, alpha, blend, true)} gs /${res.separation({ name: "None", cmyk: [0, 0, 0, 0] })} ${stroke ? "CS 1 SCN" : "cs 1 scn"}`; // i18n-ignore: the PostScript colourant
+      const cs = res.processPlates(plates.reduce((m, i) => m | (1 << i), 0));
+      return `/${res.gs(alpha, alpha, blend, true)} gs /${cs} ${stroke ? "CS" : "cs"} ${plates.map((i) => num(comps[i])).join(" ")} ${stroke ? "SCN" : "scn"}`;
+    }
+    const overprint = black || element;
+    if (black && !element && out?.overprintAsSeparation) {
       const cs = res.separation({ name: "Black", cmyk: [0, 0, 0, 1], overprint: true }); // i18n-ignore: the process black separation
       return `/${res.gs(alpha, alpha, blend, true)} gs /${cs} ${stroke ? "CS 1 SCN" : "cs 1 scn"}`;
     }
@@ -1432,7 +1470,7 @@ export class PdfCanvas extends VectorCanvas {
   protected emitGradientFill(path: Seg[], rule: CanvasFillRule, g: GradientProxy, ctm: Mat, alpha: number, blend: string): void {
     const res = this.o.resources;
     const sh = res.addShading(this.shading(g));
-    this.paintOps(`q /${res.gs(alpha, alpha, blend)} gs`, pathOps(path), rule === "evenodd" ? "W* n" : "W n", this.matrixOp(ctm), `/${sh} sh Q`); // i18n-ignore: PDF operators and names
+    this.paintOps(`q /${res.gs(alpha, alpha, blend, !!this.o.color && this.overprinting.length > 0)} gs`, pathOps(path), rule === "evenodd" ? "W* n" : "W n", this.matrixOp(ctm), `/${sh} sh Q`); // i18n-ignore: PDF operators and names
   }
   protected emitStroke(path: Seg[], c: Rgba, alpha: number, blend: string, print?: PrintColor | null): void {
     this.paintOps(`q ${this.paintState(c, alpha, blend, true, print)} ${this.strokeParams()}`, pathOps(path), "S Q");
@@ -1446,6 +1484,6 @@ export class PdfCanvas extends VectorCanvas {
     // PDF image space has its first row at the top of the unit square (y up).
     const m = this.matrixOp(mul(place, { a: 1, b: 0, c: 0, d: -1, e: 0, f: 1 }));
     if (blend === null) this.paintOps("q", ...this.clipOps(clip), `${m} /${name} Do Q`);
-    else this.paintOps(`q /${this.o.resources.gs(alpha, alpha, blend)} gs`, ...this.clipOps(clip), m, `/${name} Do Q`);
+    else this.paintOps(`q /${this.o.resources.gs(alpha, alpha, blend, !!this.o.color && this.overprinting.length > 0)} gs`, ...this.clipOps(clip), m, `/${name} Do Q`);
   }
 }

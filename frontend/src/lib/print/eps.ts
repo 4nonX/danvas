@@ -139,8 +139,17 @@ export async function exportEps(doc: DesignFile, pageIndex: number, opts: EpsOpt
     const [c, m, y, k] = spot.cmyk.map(num);
     return `/${name} [/Separation ${psText(spot.name)} cvn /DeviceCMYK {dup ${c} mul exch dup ${m} mul exch dup ${y} mul exch ${k} mul}]`;
   });
-  // Separations that are not process plates or "All" are custom colours.
-  const custom = spots.filter((e) => !["All", "Cyan", "Magenta", "Yellow", "Black"].includes(e.spot.name)); // i18n-ignore: separation names
+  // Overprinting elements: their colour on the process plates it uses
+  // (a DeviceN space per set of plates), so the other plates keep what is
+  // under it.
+  const PLATE_NAMES = ["Cyan", "Magenta", "Yellow", "Black"]; // i18n-ignore: separation names
+  for (const [mask, name] of resources.deviceN) {
+    const used = [0, 1, 2, 3].filter((i) => mask & (1 << i));
+    const out = [0, 1, 2, 3].map((i) => (used.includes(i) ? `dnT ${used.indexOf(i)} get` : "0")).join(" ");
+    csDefs.push(`/${name} [/DeviceN [${used.map((i) => `/${PLATE_NAMES[i]}`).join(" ")}] /DeviceCMYK {${used.length} array astore /dnT exch def ${out}}]`);
+  }
+  // Separations that are not process plates, "All" or "None" are custom colours.
+  const custom = spots.filter((e) => !["All", "None", "Cyan", "Magenta", "Yellow", "Black"].includes(e.spot.name)); // i18n-ignore: separation names
 
   const d = new Date();
   const lines = [

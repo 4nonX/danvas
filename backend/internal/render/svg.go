@@ -29,6 +29,12 @@ func asStr(v any) string         { s, _ := v.(string); return s }
 func asNum(v any) float64        { f, _ := v.(float64); return f }
 func asBool(v any) bool          { b, _ := v.(bool); return b }
 
+// isDieLine reports a die line element (data.print.dieLine, set in the
+// editor): a cut contour for the print shop, never drawn as artwork.
+func isDieLine(node map[string]any) bool {
+	return asBool(asObj(asObj(node["data"])["print"])["dieLine"])
+}
+
 func num(n float64) string {
 	if math.IsNaN(n) || math.IsInf(n, 0) {
 		return "0"
@@ -705,7 +711,7 @@ func (c *svgCtx) connectorBody(node map[string]any) string {
 func childrenOf(node map[string]any) []any { return asArr(node["children"]) }
 
 func (c *svgCtx) emitNode(file Design, node map[string]any) string {
-	if asBool(node["hidden"]) {
+	if asBool(node["hidden"]) || isDieLine(node) {
 		return ""
 	}
 	// A connector's body is drawn from connectorPoints in absolute PAGE space, so

@@ -40,7 +40,10 @@ The other pages in this folder are HyScaler's documentation of HyCanvas and desc
   - [Proof and output check](#proof-and-output-check)
   - [Colour list and colour libraries](#colour-list-and-colour-libraries)
   - [Bleed and crop marks](#bleed-and-crop-marks)
+  - [Die lines and overprint of elements](#die-lines-and-overprint-of-elements)
   - [Export profiles](#export-profiles)
+    - [Print shop rules](#print-shop-rules)
+    - [Package for the print shop](#package-for-the-print-shop)
   - [Serial print](#serial-print)
   - [Several on one sheet](#several-on-one-sheet)
   - [Printing](#printing)
@@ -56,10 +59,11 @@ How the print features fit together, with a label as the example (50 x 100 mm, C
 1. **Size**: create the design in its finished size in mm; the page panel sets the measurement unit, and every file keeps the size exactly ([Units and exact sizes](#units-and-exact-sizes)). Designs already made in another size get the new one with **Change format…** in the dashboard ([Changing the format of designs](#changing-the-format-of-designs)).
 2. **Colours**: give colours as exact CMYK values or as named spot colours for white ink or varnish ([Exact print colors](#exact-print-colors)). The design's colour profile shows on screen how they print ([Color profiles](#color-profiles)).
 3. **Barcodes**: insert the code from **Elements**, in 100 % black, sized in mm, and set the label printer's resolution when it prints there ([Barcodes](#barcodes)).
-4. **Bleed, marks and die line**: set the print shop's bleed and crop marks per page or once for the export, and the die line as its own spot colour ([Bleed and crop marks](#bleed-and-crop-marks), [Files for print shops](#files-for-print-shops)).
-5. **One profile for the print shop**: save these download settings as an export profile for the workspace, with the print shop's colour profile, ink limit and the finished size, so a design in the wrong size is pointed out ([Export profiles](#export-profiles)). Make it the default of the labels folder, so everyone downloads with it ([Folders](#folders)). For the office or label printer, a print preset does the same for printing ([Printing](#printing)).
+4. **Bleed, marks and die line**: set the print shop's bleed and crop marks per page or once for the export, and the die line as its own spot colour, along the trim or around the artwork's shape ([Bleed and crop marks](#bleed-and-crop-marks), [Files for print shops](#files-for-print-shops), [Die lines and overprint of elements](#die-lines-and-overprint-of-elements)).
+5. **One profile for the print shop**: save these download settings as an export profile for the workspace, with the print shop's colour profile, ink limit and the finished size, so a design in the wrong size is pointed out, and its rules (lowest resolution, thinnest line, smallest text, allowed spot colours), so a design that breaks one is not downloaded ([Export profiles](#export-profiles), [Print shop rules](#print-shop-rules)). Make it the default of the labels folder, so everyone downloads with it ([Folders](#folders)). For the office or label printer, a print preset does the same for printing ([Printing](#printing)).
 6. **Check**: the download menu lists what the file would lose, barcodes that may not scan and designs not in the finished size. **Proof** shows the plates and the ink coverage; **Check output** separates the real file ([Proof and output check](#proof-and-output-check)). When the print shop asks which Pantone shades the colours are, add the colour list ([Colour list and colour libraries](#colour-list-and-colour-libraries)).
 7. **Approve**: ask the person who signs off for approval; they look at the print proof in the banner and approve. A workspace can require this before any print file is made ([Approvals](#approvals), [Print files only after approval](#print-files-only-after-approval)).
+8. **Hand over**: download the print file as a package for the print shop, with the soft proofs, the colour list and a report of settings, check and approval ([Package for the print shop](#package-for-the-print-shop)).
 8. **Output**: download the print PDF for the print shop; fill the label from a table for batch numbers and codes ([Serial print](#serial-print)); put several on one sheet for a sheet printer ([Several on one sheet](#several-on-one-sheet)); or print directly ([Printing](#printing)).
 
 ## Dashboard
@@ -310,6 +314,8 @@ ICC profiles describe how CMYK prints on a paper and press. There are three kind
 - **The workspace's**: uploaded by its admins on the dashboard's **Members** page, under **Print and export**, **Color profiles**, for every member.
 - **Your own**: under **Settings**, **Color profiles**, anyone uploads the profile a print shop sent them (for example PSO Coated v3); only they see it, in every workspace. Rename, make default, remove the default again, or delete it there.
 
+A profile has to carry every table print values are computed from: into CMYK perceptual and relative colorimetric (B2A0, B2A1), out of CMYK colorimetric (A2B1, for Lab values and the soft proof), A2B0 as the ICC specification requires, and the paper white (wtpt); ICC v4 floating-point tables count too. A profile without one of them is refused with a message naming it: danvas never works a print value out another way. The profiles print shops and the ECI publish carry all of them.
+
 Which one applies: the profile chosen in the download menu; it starts with the design's color profile (page panel, **Color profile of the design**; **Default** follows your default, else the workspace's, else the built-in one). The design's profile also decides how exact CMYK and spot colors look on screen; changing it shows them anew (one undo step), their print values stay. The download menu and the page panel list your profiles, the workspace's and the built-in one, with **Manage: Mine · Workspace** leading to your own list or to the workspace's. Where each kind is kept and who may change it: [Where profiles are kept](#where-profiles-are-kept).
 
 ## Brand kits and fonts
@@ -370,7 +376,7 @@ All of these are drawn by the same engine as the editor, so they match what you 
 - **Print**: vector PDF, image PDF, TIFF and EPS (PostScript Level 3), each in CMYK through an ICC color profile or in RGB. For CMYK, choose a color profile and a rendering intent: your own, the workspace's or the built-in one (see [Color profiles](#color-profiles)). Colors set as exact CMYK or spot colors are written as given ([Exact print colors](#exact-print-colors)).
 - **danvas file (.hyc)**: the design itself in the open file format, all pages, for keeping, for another instance or to import again. Also in the editor's **File** menu.
 
-The download menu checks what the chosen format would lose before the file is made, and lists it with the page and element: a font that is unknown here or did not load (a fallback font draws the text), an image that did not load, for the vector formats a font with no file to outline the text from (the text becomes a picture in the file), and for PDF, TIFF and EPS an image placed at under 150 dpi, lines thinner than 0.25 pt, text under 8 pt printed in several inks (in CMYK), and artwork or a coloured page background reaching the edge of a page exported without bleed. It never blocks the download.
+The download menu checks what the chosen format would lose before the file is made, and lists it with the page and element: a font that is unknown here or did not load (a fallback font draws the text), an image that did not load, for the vector formats a font with no file to outline the text from (the text becomes a picture in the file), and for PDF, TIFF and EPS an image placed at under 150 dpi, lines thinner than 0.25 pt, text under 8 pt printed in several inks (in CMYK), and artwork or a coloured page background reaching the edge of a page exported without bleed. These are warnings; an export profile can set its print shop's own limits and let a broken rule refuse the download ([Print shop rules](#print-shop-rules)).
 
 To check every format against the editor after a change to the export, run `npm run test:export` (see [`tests/export`](../tests/export/README.md)).
 
@@ -387,12 +393,13 @@ What a print shop needs depends on the format; the download menu offers each opt
 | Black in black ink only, black overprint | yes | | yes | | | | |
 | Crop marks in registration colour | yes | | yes | | | | |
 | Die line in a spot colour | yes | | yes | | | | |
+| Overprint of chosen elements | yes | computed in | yes | computed in | | | |
 | Resolution written into the file | | | | yes | yes | yes | |
 
 - **Vector PDF** is the file print shops usually ask for: every shape, text (as outlines) and graphic stays an object of its own, so the print shop can open it in Illustrator and change a colour. With CMYK it carries the profile as its output intent and, with **PDF/X-4** on, is marked as PDF/X-4 (version, XMP metadata, trapping flag, page boxes). Transparency stays live.
 - **Black ink only** prints pure black as 100 % K instead of a four-colour black; **Overprint black** then lets it print over what is under it, so no white gap shows when the plates are slightly out of register. In EPS, which has no overprint mode, black is written as the Black separation for this.
 - **Crop marks in registration colour** put the marks on every printing plate (the separation "All"), as presses expect.
-- **Die line**: a cut or punch contour along the trim, in a spot colour of its own (named as the print shop calls it, for example "Stanze" or "CutContour", with a corner radius), overprinting, and in a PDF on its own layer. It is not printed; the print shop cuts along it. Ask the print shop whether they want it: many draw their own.
+- **Die line**: a cut or punch contour along the trim, in a spot colour of its own (named as the print shop calls it, for example "Stanze" or "CutContour", with a corner radius), overprinting, and in a PDF on its own layer. It is not printed; the print shop cuts along it. Ask the print shop whether they want it: many draw their own. A page with die line elements gets those instead of the line along the trim ([Die lines and overprint of elements](#die-lines-and-overprint-of-elements)).
 - **JPG and PNG** cannot hold CMYK (PNG by definition, JPG not from a browser); use TIFF for a CMYK picture. Their header states the resolution (the page's physical size kept), so print software opens a 300 dpi export at the right size. **300 dpi** in the size row sets that resolution.
 - **SVG** has no CMYK, profiles or spot colours by definition.
 - **Video (MP4)**: the deck's playthrough, encoded in the browser. A browser that cannot encode video says so.
@@ -404,7 +411,9 @@ Effects (shadows, glows, blurs) keep their size at every export scale.
 For a CMYK print file the download menu has two more buttons above **Download**:
 
 - **Proof** shows the pages as they will print, computed in the browser through the chosen colour profile and intent: the soft proof (optionally with the paper's white simulated), each plate (cyan, magenta, yellow, black, the die line) in grey or in its ink, the **ink coverage** with every area above the limit marked, and the colours **out of gamut** (which the profile cannot print). Pointing at the page reads the inks there; the side panel gives the highest coverage, the area above the limit and the area out of gamut. It is a close estimate from the screen rendering.
-- **Check output** builds the file exactly as **Download** would and checks the file itself. In the browser: CMYK only, output intent, PDF/X-4 marking, trim and bleed box, for EPS the bounding box and colours, and the spot colours asked for. On the server, Ghostscript separates the file into its real plates, as a print shop's software does: each plate with its coverage, a soft proof made from them, and the total ink coverage against the limit. Up to 20 pages and 200 MB; the check needs Ghostscript on the server (the image has it, see `GHOSTSCRIPT_PATH`).
+- **Check output** builds the file exactly as **Download** would and checks the file itself. In the browser: CMYK only, output intent, PDF/X-4 marking, trim and bleed box, for EPS the bounding box and colours, and the spot colours asked for. These read the file's markings and colour spaces (RGB ones also inside compressed streams); they are no full PDF/X validation, for which the print shop's preflight stays the reference. On the server, Ghostscript separates the file into its real plates, as a print shop's software does: each plate with its coverage, a soft proof made from them, and the total ink coverage against the limit. Up to 20 pages and 200 MB; the check needs Ghostscript on the server (the image has it, see `GHOSTSCRIPT_PATH`).
+
+The proof also shows elements that overprint as they print (see [Die lines and overprint of elements](#die-lines-and-overprint-of-elements)).
 
 **Max. ink coverage (TAC)**, in the CMYK settings and stored in export profiles, is the total of all four inks the print shop allows; empty means the usual value for the paper (300 % for uncoated, 330 % for coated profiles).
 
@@ -446,19 +455,56 @@ What a print shop asks for (bleed X mm, crop marks of Y mm, a die line) is set o
 
 Both apply to every format with bleed and marks, to the proof and to the output check, and are stored in export profiles: one profile per print shop then turns any selection of designs into its files in one go.
 
+### Die lines and overprint of elements
+
+The properties panel's **Print** section, for any selected element:
+
+- **Overprint**: the element prints over what is under it instead of knocking it out, so no gap shows when the plates are slightly out of register and transparent inks mix as on press. Inside a group that overprints, everything does. The inks its colour does not use stay as they are (overprint mode 1): a cyan text over yellow prints green. The vector PDF writes it as overprint, EPS (which has no overprint mode) writes the colour on the plates it uses only, CMYK TIFF and image PDF compute it into their pixels, and the proof shows it. An imposed image PDF cannot keep it, and the download menu says so. White set to overprint disappears in print; the download menu warns about it. RGB files have no plates and show the element as on screen.
+- **Die line**: the element is a cut contour, not artwork. It is never printed in any format (PNG, JPG, SVG, TIFF, image PDF, the accessible PDF, PPTX, the animation formats, printing, and the server's exports leave it out); the design file keeps it. With **Die line** on in the download menu, the vector PDF and EPS draw it, on its page, in the die line's spot colour, overprinting, on the die line's layer, instead of the line along the trim. The proof shows it on the die line's plate.
+- **Die line around the selection**: makes a die line element following the outline of what is selected, at an **offset** in millimetres (negative goes inwards), with or without **the holes** inside it (a ring's centre, the inside of an "O"). It follows what is actually drawn: shapes, text, pictures with transparency, groups. The selection is drawn on a grid of at most 0.025 mm, the offset taken from an exact distance field of that silhouette, and the contour traced through it and fitted with curves; corners stay sharp without offset and are rounded by the offset outside. The message names the grid the contour is accurate to (coarser only for very large selections). The result is an ordinary path at the top of the page, editable and movable like any other; it is marked as die line already.
+
+Overprint and die line are stored with the element (its data), so the design file carries them and older versions keep them untouched; an older version draws a die line element as a magenta line.
+
 ### Export profiles
 
 An export profile is a named set of download settings: format, size, colour profile and intent, the maximum ink coverage (TAC), the print-shop options, bleed and crop marks, extending artwork into the bleed and the finished size in whole millimetres. The download menu starts with a profile picker:
 
 - Pick a profile and the menu takes its settings. A line under it says what it does (for example "PDF vector · CMYK, PSO Uncoated · PDF/X-4 · bleed 1.5 mm · die line Stanze"), after its description.
 - Change anything and the menu says so; **Update** writes the change into the profile, **Save as new** keeps it as a new one (name, description, "Just me" or "Whole workspace", default).
-- **Manage: Mine · Workspace** opens the full list: your own under **Settings**, **Export profiles**, the workspace's on its **Members** page (see [Where profiles are kept](#where-profiles-are-kept)). There **New** creates one, **Edit** changes every setting of a profile in one dialog (format, PDF type, colour, colour profile and intent, ink limit, black ink, PDF/X-4, registration marks, die line, bleed and crop marks, extending into the bleed, whole millimetres, zip), a click renames or describes it, and it can be made the default, duplicated, copied from the workspace into one's own, or deleted.
+- **Manage: Mine · Workspace** opens the full list: your own under **Settings**, **Export profiles**, the workspace's on its **Members** page (see [Where profiles are kept](#where-profiles-are-kept)). There **New** creates one, **Edit** changes every setting of a profile in one dialog (format, PDF type, colour, colour profile and intent, ink limit, black ink, PDF/X-4, registration marks, die line, bleed and crop marks, extending into the bleed, whole millimetres, zip, colour list, package for the print shop, print shop rules), a click renames or describes it, and it can be made the default, duplicated, copied from the workspace into one's own, or deleted.
 - The download menu opens with the user's default, else the workspace's. Names are unique per owner, ignoring case.
 - Who may create, change and delete the workspace's profiles follows the roles ([Roles and permissions](#roles-and-permissions)): by default owners and admins. The switch on the same **Members** page also gives it to the Member role. Everyone uses them.
 
 A profile can name its **finished size** (for example 50 × 100 mm, in the prepress options of the download menu or in **Edit**). The download menu then names every design whose exported pages are not that size (more than 0.5 mm off; with whole millimetres, the rounded size), and those that only lie the wrong way ("landscape instead of portrait"). It only warns. From the dashboard, **Change format…** in the warning opens the format dialog for exactly those designs, set to the finished size, and returns to the download afterwards.
 
 A profile can hold bleed and crop marks "as on the pages" or "set for this output": the second applies one bleed and one set of marks to the export without changing the design.
+
+#### Print shop rules
+
+An export profile can hold what its print shop asks for, in **Edit** under **Print shop rules**. Each rule is **Off**, **Warn** or **Refuse download**:
+
+| Rule | Usual setting |
+|---|---|
+| Images under a resolution (dpi, at their placed size) | warn under 150 dpi |
+| Lines thinner than (pt, at print size) | warn under 0.25 pt |
+| Text in several inks under (pt; CMYK only, black alone is one ink) | warn under 8 pt |
+| Text under (pt, any colour) | off (6 pt) |
+| Spot colours other than those listed (ignoring case; none listed: no spot colours at all; the die line's own colour is always allowed) | off |
+| Not a CMYK file (RGB, or a format without CMYK) | off |
+| Artwork at the edge without bleed, or not extended into it | warn |
+
+A profile without rules of its own checks with the usual settings, as before. The download menu shows a profile's own rules under **Print shop rules of the profile**; what refuses the download is listed in red above the warnings, the download button stays off, and the rules are checked again on the design as it is at the moment of download. The rules are edited only with the profile, not in the download menu, so every download made with the profile is checked the same way. They check the design, not a print file: the print shop's preflight of the file stays the reference.
+
+#### Package for the print shop
+
+**Package for the print shop**, in the download menu for vector and image PDF, TIFF and EPS (and in export profiles), downloads one zip instead of the bare file:
+
+- the print file (for several pages of TIFF or EPS, one file per page);
+- a soft proof of every page as a PNG, computed as in the proof, at up to 300 dpi (only for CMYK files);
+- the colour list as PDF and CSV, or as the files the menu's colour list sets, for those whose role may add it;
+- a report as PDF: the output settings, colour profile and intent, ink limit, pages, finished size, bleed, crop marks, die line, the spot colours, every print shop rule with its setting, the check's result, the approval (who asked, who decided what and when, with notes), and every other file of the package with its size and SHA-256 checksum, so the files can be shown to be the ones the report describes.
+
+From the dashboard every selected design gets its own folder in the zip. The package waits for the approval like any print file ([Print files only after approval](#print-files-only-after-approval)).
 
 ### Serial print
 

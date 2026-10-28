@@ -59,10 +59,81 @@ export interface ExportSettings {
   /** The colour list added to the download, and as which files; null: none.
    *  Added only for people whose role holds design.colorList. */
   colorList: ColorListAs | null;
+  /** The print shop's rules the download is checked against (print
+   *  formats), each off, a warning, or a reason to refuse the download. */
+  rules: PrintRules;
+  /** Print files (vector and image PDF, TIFF, EPS) as one package for the
+   *  print shop: the file, a soft proof of every page, the colour list and a
+   *  report of the settings, the check and the approval. */
+  handover: boolean;
 }
 
 /** The files a colour list comes as. */
 export interface ColorListAs { pdf: boolean; csv: boolean; ase: boolean }
+
+/** What breaking a rule does: nothing, a warning, or no download. */
+export type RuleLevel = "off" | "warn" | "block";
+
+export interface PrintRules {
+  /** Images below this effective resolution, dpi. */
+  minPpi: { level: RuleLevel; value: number };
+  /** Lines thinner than this, pt. */
+  minLinePt: { level: RuleLevel; value: number };
+  /** Text below this size in several inks, pt. */
+  richTextPt: { level: RuleLevel; value: number };
+  /** Any text below this size, pt. */
+  minTextPt: { level: RuleLevel; value: number };
+  /** Spot colours other than these (ignoring case); none listed: no spot
+   *  colours at all. The die line's own colour is always allowed. */
+  spots: { level: RuleLevel; allowed: string[] };
+  /** The file must be CMYK (not RGB, not a format without CMYK). */
+  cmykOnly: { level: RuleLevel };
+  /** Artwork at the edge of a page exported without bleed, or not extended
+   *  into it. */
+  bleed: { level: RuleLevel };
+}
+
+/** The rules every download is checked against unless a profile sets its
+ *  own: the checks the menu always made, as warnings. */
+export function defaultRules(): PrintRules {
+  return {
+    minPpi: { level: "warn", value: 150 },
+    minLinePt: { level: "warn", value: 0.25 },
+    richTextPt: { level: "warn", value: 8 },
+    minTextPt: { level: "off", value: 6 },
+    spots: { level: "off", allowed: [] },
+    cmykOnly: { level: "off" },
+    bleed: { level: "warn" },
+  };
+}
+
+const LEVELS: RuleLevel[] = ["off", "warn", "block"];
+
+/** Stored rules, completed; missing or invalid parts from the defaults. */
+export function normalizeRules(raw: unknown): PrintRules {
+  const d = defaultRules();
+  const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, Record<string, unknown> | undefined>;
+  const level = (v: unknown, fallback: RuleLevel) => (LEVELS.includes(v as RuleLevel) ? (v as RuleLevel) : fallback);
+  const valued = (k: "minPpi" | "minLinePt" | "richTextPt" | "minTextPt", min: number, max: number) => ({
+    level: level(r[k]?.level, d[k].level),
+    value: num(r[k]?.value, d[k].value, min, max),
+  });
+  const allowed = Array.isArray(r.spots?.allowed)
+    ? [...new Set((r.spots!.allowed as unknown[]).filter((s): s is string => typeof s === "string").map((s) => s.trim().slice(0, 40)).filter(Boolean))].slice(0, 50)
+    : [];
+  return {
+    minPpi: valued("minPpi", 50, 2400),
+    minLinePt: valued("minLinePt", 0.01, 10),
+    richTextPt: valued("richTextPt", 1, 72),
+    minTextPt: valued("minTextPt", 1, 72),
+    spots: { level: level(r.spots?.level, d.spots.level), allowed },
+    cmykOnly: { level: level(r.cmykOnly?.level, d.cmykOnly.level) },
+    bleed: { level: level(r.bleed?.level, d.bleed.level) },
+  };
+}
+
+/** How many rules refuse the download when broken. */
+export const blockingRules = (r: PrintRules) => Object.values(r).filter((x) => x.level === "block").length;
 
 const FORMATS: ExportFormat[] = ["png", "jpg", "pdf", "svg", "apng", "gif", "lottie", "mp4", "pptx", "md", "hyc", "tiff", "eps"];
 
@@ -79,6 +150,8 @@ export function defaultExportSettings(): ExportSettings {
     impose: defaultImposeSettings(),
     trimSize: null,
     colorList: null,
+    rules: defaultRules(),
+    handover: false,
   };
 }
 
@@ -137,6 +210,8 @@ export function normalizeSettings(raw: unknown): ExportSettings {
     impose: normalizeImpose(r.impose),
     trimSize: normalizeTrimSize(r.trimSize),
     colorList: normalizeColorListAs(r.colorList),
+    rules: normalizeRules(r.rules),
+    handover: bool(r.handover, d.handover),
   };
 }
 
@@ -206,8 +281,16 @@ export function describeSettings(s: ExportSettings, iccName: (id: string) => str
     const files = [s.colorList.pdf && "PDF", s.colorList.csv && "CSV", s.colorList.ase && "ASE"].filter(Boolean).join(", ");
     parts.push(tr("editor.profile_color_list", { files }));
   }
+  if (s.handover && printFile(s)) parts.push(tr("editor.profile_handover"));
+  const blocking = blockingRules(s.rules);
+  if (blocking) parts.push(tr("editor.profile_rules_blocking", { count: blocking }));
+  else if (JSON.stringify(s.rules) !== JSON.stringify(defaultRules())) parts.push(tr("editor.profile_rules_own"));
   return parts.join(" · ");
 }
+
+/** A file for print: vector or image PDF, TIFF, EPS (what the approval
+ *  holds back, and what a print shop package is made of). */
+export const printFile = (s: Pick<ExportSettings, "format" | "pdfMode">) => (s.format === "pdf" && s.pdfMode !== "tagged") || s.format === "tiff" || s.format === "eps";
 
 /** The profile the menu starts from: the folder's default (F44) when the
  *  designs' folder names one that is in the list, else the user's default,

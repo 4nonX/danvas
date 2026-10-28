@@ -193,5 +193,37 @@ export function fixtures(font: string, photo: string, photoAlpha: string): Fixtu
     },
   };
 
-  return [shapes, offbox, text, synth, image, clip, label, prepress];
+  // What EPS has to flatten: a half-transparent gradient over a spot colour
+  // and over plain artwork, and a shape inside two nested clipped groups (the
+  // inner clip turned against the outer). PDF keeps the transparency live;
+  // EPS bakes it, and both must still look like the design.
+  const translucency: Fixture = {
+    name: "translucency",
+    doc: base("fx-translucency", "Translucency", [{
+      id: "p", width: 500, height: 400,
+      background: { type: "solid", color: col(1, 1, 1) },
+      children: [
+        { id: "spotbox", type: "shape", shape: "rect", transform: T(40, 40), size: { width: 200, height: 140 }, opacity: 1, blendMode: "normal", fills: [{ type: "solid", color: hks }] },
+        { id: "solidbox", type: "shape", shape: "rect", transform: T(260, 40), size: { width: 200, height: 140 }, opacity: 1, blendMode: "normal", fills: solid(col(0.95, 0.75, 0.1)) },
+        {
+          id: "veil", type: "shape", shape: "rect", transform: T(120, 90), size: { width: 260, height: 60 }, opacity: 0.5, blendMode: "normal",
+          fills: [{ type: "gradient", gradient: "linear", angle: 0, stops: [{ position: 0, color: col(0.8, 0.1, 0.4) }, { position: 1, color: col(0.1, 0.2, 0.8) }] }],
+        },
+        {
+          id: "outer", type: "group", clip: true, transform: T(150, 220), size: { width: 200, height: 150 }, opacity: 1, blendMode: "normal",
+          children: [{
+            id: "inner", type: "group", clip: true, transform: T(40, 20, 15), size: { width: 120, height: 110 }, opacity: 1, blendMode: "normal",
+            children: [{ id: "disc", type: "shape", shape: "ellipse", transform: T(-60, -40), size: { width: 240, height: 200 }, opacity: 1, blendMode: "normal", fills: solid(col(0.15, 0.55, 0.35)) }],
+          }],
+        },
+      ],
+    }], { fonts: [{ id: "f1", family: "Export Check Sans", source: "upload", url: font }] }),
+    ink: [
+      { x: 140, y: 100, w: 80, h: 40, what: "gradient over the spot colour" },
+      { x: 280, y: 100, w: 80, h: 40, what: "gradient over plain artwork" },
+      { x: 220, y: 270, w: 50, h: 40, what: "shape in nested clipped groups" },
+    ],
+  };
+
+  return [shapes, offbox, text, synth, image, clip, label, prepress, translucency];
 }

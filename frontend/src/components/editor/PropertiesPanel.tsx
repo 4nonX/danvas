@@ -41,6 +41,7 @@ import { usePresence } from "@/store/presence";
 import { useBrand, colorsLockedFor, brandHexColors, brandFontFamilies, brandColorOf } from "@/store/brand";
 import { lockSelection, unlockSelection } from "@/lib/useRealtime";
 import { CollapsibleSection } from "./EditorPanels";
+import { NodePrintSection } from "./NodePrintSection";
 import { ColorField } from "./ColorField";
 import { imageAssets } from "@/lib/assetProvider";
 import { imageAssetPalette } from "@/lib/imagePalette";
@@ -2112,6 +2113,7 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
       {single && <AnimateSection node={single.node} />}
       {single && single.node.type === "image" && <ImageMotionSection node={single.node} />}
       {single && <InteractionSection node={single.node} doc={doc} />}
+      <NodePrintSection />
       {single && <NodeAccessibilitySection node={single.node} />}
     </Wrap>
   );

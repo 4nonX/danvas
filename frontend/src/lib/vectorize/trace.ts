@@ -294,7 +294,7 @@ function normalizeCoverage(field: Float32Array, w: number, h: number, r: number)
 }
 
 /** Closed iso-contours (level 0.5) of a field, in pixel-centre coordinates. */
-function marchingSquares(field: Float32Array, w: number, h: number): Pt[][] {
+export function marchingSquares(field: Float32Array, w: number, h: number): Pt[][] {
   // Pad with zeros so every contour closes.
   const W = w + 2, H = h + 2;
   const v = (x: number, y: number) => (x <= 0 || y <= 0 || x >= W - 1 || y >= H - 1 ? 0 : field[(y - 1) * w + (x - 1)]);
@@ -638,7 +638,7 @@ function fitMixed(dense: Pt[], tStart: Pt, tEnd: Pt, err2: number, unit: number)
  *  rounded off over a few pixels still reads as one sharp turn), and are
  *  rebuilt as the intersection of the two adjoining edges, which restores a
  *  crisp point instead of a slightly rounded one. */
-function fitLoop(loop: Pt[], unit: number, detail: number, softness: number): TraceAnchor[] {
+function fitLoop(loop: Pt[], unit: number, detail: number, softness: number, maxError?: number): TraceAnchor[] {
   const n = loop.length;
   if (n < 3) return [];
   // Cumulative arc length around the closed loop.
@@ -685,7 +685,7 @@ function fitLoop(loop: Pt[], unit: number, detail: number, softness: number): Tr
   }
   corners.sort((a, b) => a - b);
 
-  const tol = Math.max(0.35, unit * (0.45 - 0.2 * detail));
+  const tol = maxError ?? Math.max(0.35, unit * (0.45 - 0.2 * detail));
   const err2 = tol * tol;
   const anchors: TraceAnchor[] = [];
   const emit = (beziers: Bez[], startCorner: boolean) => {
@@ -704,7 +704,9 @@ function fitLoop(loop: Pt[], unit: number, detail: number, softness: number): Tr
   if (!corners.length) {
     // Smooth closed curve: fit as an open run whose end tangents match across
     // the seam, then fold the duplicate end anchor into the first one.
-    const pts = rdp(loop, 0.15 * unit);
+    // With a set maximum error, on every traced point: the fit is only
+    // measured at the points it is given.
+    const pts = maxError !== undefined ? loop : rdp(loop, 0.15 * unit);
     if (pts.length < 3) return [];
     const run = [...pts, pts[0]];
     const tSeam = norm(sub(pts[1], pts[pts.length - 1]));
@@ -887,6 +889,20 @@ export async function traceImage(
     if (hooks.yieldFn) await hooks.yieldFn();
   }
   return { layers, width, height, meanError };
+}
+
+/** The contours of a coverage field (0..1, edge at 0.5, interpolated) as
+ *  fitted Bézier loops, in field pixels: marching squares and the same
+ *  curve fitting as traceImage, straight edges and corners kept. Loops
+ *  enclosing less than `minArea` square pixels are dropped; `maxError`
+ *  (pixels) caps how far the curves may leave the traced points. */
+export function traceField(field: Float32Array, width: number, height: number, o: { unit: number; detail: number; minArea: number; maxError?: number }): TraceAnchor[][] {
+  lineTol = o.unit * (0.5 - 0.15 * o.detail);
+  minStraight = 4 * o.unit;
+  return marchingSquares(field, width, height)
+    .filter((lp) => Math.abs(area(lp)) >= o.minArea)
+    .map((lp) => fitLoop(lp, o.unit, o.detail, 0, o.maxError))
+    .filter((c) => c.length >= 2);
 }
 
 /** SVG path data for previews. */

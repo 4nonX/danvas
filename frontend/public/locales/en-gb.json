@@ -189,5 +189,15 @@
   "editor.profile_color_list": "colour list ({files})",
   "editor.color_list_profile_desc": "Every download with this profile comes with the colour list, for people whose role may add it.",
   "editor.brand_add_color_to": "Add a colour to {name}",
-  "brand.copy_hint": "Colours, fonts with their files, logos, graphics and settings come along; the uploads are copied into the workspace. The brands here stay as they are."
+  "brand.copy_hint": "Colours, fonts with their files, logos, graphics and settings come along; the uploads are copied into the workspace. The brands here stay as they are.",
+  "editor.output_check_scope": "The checks in the browser read the file's markings and colour spaces; they are no full PDF/X validation. For that, the print shop's preflight (or a tool such as Acrobat Preflight) is the reference. The plates below show what really prints.",
+  "errors.api_print_profile_incomplete": "This colour profile does not carry every table exact print values are computed from (both directions for the perceptual and colorimetric conversion, and the paper white). Ask your print shop for the complete profile.",
+  "editor.export_issue_spot_not_allowed": "The spot colour {subject} is not one the print shop takes ({where}).",
+  "editor.handover_desc": "One zip with the print file, a soft proof of every page, the colour list and a report of the settings, the check, the approval and every file's checksum.",
+  "editor.handover_spots": "Spot colours",
+  "editor.handover_note": "The soft proofs are computed from the render through the colour profile; the print shop's own preflight of the print file stays the reference. The checksums show that the files are the ones this report describes.",
+  "editor.rule_spots": "Spot colours",
+  "editor.rule_spots_list": "Spot colours other than {names}",
+  "editor.rule_spots_desc": "The spot colours the print shop takes, separated by commas; none listed: no spot colours at all. The die line's own colour is always allowed.",
+  "editor.as_die_line_desc": "A cut contour, not artwork: never printed. Vector PDF and EPS draw it in the die line's spot colour when the download includes the die line."
 }

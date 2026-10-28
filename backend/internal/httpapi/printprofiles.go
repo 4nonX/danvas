@@ -35,6 +35,8 @@ func printProfileProblem(w http.ResponseWriter, r *http.Request, err error) {
 		problemWithCode(w, r, http.StatusForbidden, "Forbidden", "workspace admins manage print profiles", "print_profile_forbidden")
 	case errors.Is(err, printprofiles.ErrNotFound):
 		problemWithCode(w, r, http.StatusNotFound, "Not Found", "print profile not found", "print_profile_not_found")
+	case errors.Is(err, printprofiles.ErrIncompleteProfile):
+		problemWithCode(w, r, http.StatusUnprocessableEntity, "Unprocessable Entity", err.Error(), "print_profile_incomplete")
 	case errors.Is(err, printprofiles.ErrNotPrintProfile):
 		problemWithCode(w, r, http.StatusUnprocessableEntity, "Unprocessable Entity", err.Error(), "print_profile_not_cmyk")
 	case errors.Is(err, printprofiles.ErrDuplicate):

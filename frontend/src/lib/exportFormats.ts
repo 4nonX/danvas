@@ -11,6 +11,7 @@ import { clipToBleed, drawPrintMarks, printSheet, sheetViewport, type PrintParts
 import type { ImposeSettings } from "@/lib/print/impose";
 import { setJpegDpi, setPngDpi } from "@/lib/print/rasterMeta";
 import type { CmykConverter } from "@/lib/print/cms";
+import { hasOverprint, withoutDieLines } from "@/lib/print/nodePrint";
 
 /** Where images come from (the app's asset provider by default). */
 type Assets = Render2DOptions["assets"];
@@ -19,9 +20,11 @@ type Assets = Render2DOptions["assets"];
  * One page drawn on a canvas at `scale` (device px per page px). Opaque fills
  * white first (JPG, PDF, TIFF, opaque PNG); otherwise the page background is
  * left out too, so a transparent PNG really is transparent. With `print`
- * the canvas is the page's print sheet: its bleed and/or crop marks.
+ * the canvas is the page's print sheet: its bleed and/or crop marks. Die
+ * line elements are cut information and never drawn (lib/print/nodePrint).
  */
-export function renderPageCanvas(doc: DesignFile, index: number, scale: number, opaque: boolean, print: PrintParts | false = false, assets: Assets = imageAssets as Assets): HTMLCanvasElement | null {
+export function renderPageCanvas(source: DesignFile, index: number, scale: number, opaque: boolean, print: PrintParts | false = false, assets: Assets = imageAssets as Assets): HTMLCanvasElement | null {
+  const doc = withoutDieLines(source);
   const pg = doc.pages[index];
   if (!pg) return null;
   if (print && (print.bleed || print.marks)) {
@@ -75,6 +78,13 @@ export async function rasterBlob(doc: DesignFile, index: number, o: { format: "p
 /** A page as TIFF at `dpi`: CMYK through the converter (its profile
  *  embedded) or RGB. */
 export async function tiffBlob(doc: DesignFile, index: number, o: { dpi: number; converter: CmykConverter | null; print?: PrintParts | false; assets?: Assets }): Promise<Blob | null> {
+  const { encodeTiff } = await import("@/lib/print/tiff");
+  // Elements that overprint: the inks as they print over each other.
+  if (o.converter && hasOverprint(doc, [index])) {
+    const { pageCmyk } = await import("@/lib/print/proofRender");
+    const r = pageCmyk(doc, index, o.dpi / (doc.dpi ?? 96), o.print ?? false, o.converter, false);
+    return encodeTiff({ width: r.width, height: r.height, data: r.cmyk, mode: "cmyk", dpi: o.dpi, icc: o.converter.icc });
+  }
   const canvas = renderPageCanvas(doc, index, o.dpi / (doc.dpi ?? 96), true, o.print ?? false, o.assets);
   if (!canvas) return null;
   const rgba = canvas.getContext("2d")!.getImageData(0, 0, canvas.width, canvas.height).data;
@@ -85,7 +95,6 @@ export async function tiffBlob(doc: DesignFile, index: number, o: { dpi: number;
     data = new Uint8Array(n * 3);
     for (let j = 0; j < n; j++) { data[j * 3] = rgba[j * 4]; data[j * 3 + 1] = rgba[j * 4 + 1]; data[j * 3 + 2] = rgba[j * 4 + 2]; }
   }
-  const { encodeTiff } = await import("@/lib/print/tiff");
   return encodeTiff({ width: canvas.width, height: canvas.height, data, mode: o.converter ? "cmyk" : "rgb", dpi: o.dpi, icc: o.converter?.icc });
 }
 
@@ -108,9 +117,17 @@ export async function imagePdfBlob(doc: DesignFile, pages: number[], o: { scale:
   }
   const imgs = [];
   for (const i of pages) {
-    const canvas = renderPageCanvas(doc, i, o.scale, true, o.print ?? false, o.assets);
     const pg = doc.pages[i];
-    if (!canvas || !pg) continue;
+    if (!pg) continue;
+    // Elements that overprint: the inks as they print over each other.
+    if (o.converter && hasOverprint(doc, [i])) {
+      const { pageCmyk } = await import("@/lib/print/proofRender");
+      const r = pageCmyk(doc, i, o.scale, o.print ?? false, o.converter, false);
+      imgs.push({ rgba: r.rgba, cmyk: r.cmyk, width: r.width, height: r.height, sheet: printSheet(pg, dpi, o.print ?? false) });
+      continue;
+    }
+    const canvas = renderPageCanvas(doc, i, o.scale, true, o.print ?? false, o.assets);
+    if (!canvas) continue;
     imgs.push({ rgba: canvas.getContext("2d")!.getImageData(0, 0, canvas.width, canvas.height).data, width: canvas.width, height: canvas.height, sheet: printSheet(pg, dpi, o.print ?? false) });
   }
   if (!imgs.length) return null;

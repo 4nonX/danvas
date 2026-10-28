@@ -43,7 +43,7 @@ func TestPersonalProfiles_DB(t *testing.T) {
 		t.Fatalf("signup other: %v", err)
 	}
 
-	icc := profile("prtr", "CMYK", "Lab ", 2, "Druckerei Coated")
+	icc := profile("prtr", "CMYK", "Lab ", 2, "Druckerei Coated", allTables...)
 	p, err := svc.CreatePersonal(ctx, me.ID, "", icc)
 	if err != nil || p.Owner != "user" || p.Name != "Druckerei Coated" || p.IsDefault || p.WorkspaceID != "" {
 		t.Fatalf("create: %v %+v", err, p)
