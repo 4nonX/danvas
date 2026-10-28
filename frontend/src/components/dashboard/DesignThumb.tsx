@@ -8,7 +8,7 @@
 // without their images and in fallback fonts.
 
 import { useEffect, useRef, useState } from "react";
-import { createScene, renderScene, type CanvasLike, type Viewport } from "@hc/engine";
+import type { CanvasLike, Viewport } from "@hc/engine";
 import type { DesignFile } from "@hc/schema";
 import { oc } from "@/lib/sdk";
 import { imageAssets } from "@/lib/assetProvider";
@@ -60,7 +60,13 @@ export function DesignThumb({ designId, templateId, trashed, file: given }: { de
         // `trashed` opts into the member-only trash read; without it the file
         // endpoint returns 404 for trashed designs and the card shows only the
         // gradient fallback.
-        const file = given ?? (templateId ? await oc.getTemplateFile(templateId) : await oc.getDesignFile(designId!, trashed ? { trashed: true } : undefined));
+        // The engine (and the schema and font catalog behind it) loads with the
+        // first preview, in parallel with the file, rather than with the page:
+        // the dashboard shell paints before any preview needs it.
+        const [file, { createScene, renderScene }] = await Promise.all([
+          given ?? (templateId ? oc.getTemplateFile(templateId) : oc.getDesignFile(designId!, trashed ? { trashed: true } : undefined)),
+          import("@hc/engine"),
+        ]);
         if (cancelled) return;
         const canvas = ref.current;
         if (!canvas) return;

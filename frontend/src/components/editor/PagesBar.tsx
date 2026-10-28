@@ -2,7 +2,7 @@
 // rename, add, duplicate and delete; the creation tool dock; zoom.
 
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Plus, Copy, Trash2, Eye, EyeOff, ChevronDown, ChevronRight, Bookmark, Layers } from "lucide-react";
+import { Plus, Copy, Trash2, Eye, EyeOff, ChevronDown, ChevronLeft, ChevronRight, Bookmark, Layers, LayoutGrid } from "lucide-react";
 import { groupPagesBySection, type SectionGroup, type SlideSection } from "@hc/schema";
 import { useEditor } from "@/store/editor";
 import { useComments } from "@/store/comments";
@@ -111,7 +111,7 @@ export function PagesBar() {
     // The design's bottom bar: pages on the left, creation tools in the
     // middle, page actions and zoom on the right. A navigation landmark: this
     // strip is how a user moves between pages.
-    <nav aria-label={tr("editor.pages")} className="grid h-[52px] shrink-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 border-t border-neutral-200 bg-surface px-3">
+    <nav aria-label={tr("editor.pages")} className="grid h-[52px] shrink-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 border-t border-neutral-200 bg-surface px-3 pb-[env(safe-area-inset-bottom)]">
       <div className="flex min-w-0 items-center gap-1.5">
       {/* Vertical padding lives INSIDE the scroll strip: the thumbs' hover
           buttons overhang the tile tops, and top overflow in a scroll
@@ -317,5 +317,43 @@ function SectionChip({ section, count }: { section: SlideSection; count: number 
         <Trash2 size={11} />
       </button>
     </div>
+  );
+}
+
+/**
+ * The page strip's phone form: a floating pill over the canvas (bottom start)
+ * with previous / next, the page counter, add page, and the slide overview for
+ * everything else (reorder, sections, duplicate). A full strip of thumbnails
+ * costs a phone about an eighth of its height, so it is not shown there.
+ */
+export function PagePill({ onOverview }: { onOverview: () => void }) {
+  useEditor((s) => s.rev);
+  const active = useEditor((s) => s.activePage);
+  const total = useEditor.getState().doc.pages.length;
+  const st = useEditor.getState;
+  const btn = "grid h-11 w-11 place-items-center rounded-lg text-neutral-600 hover:bg-neutral-100 disabled:opacity-30";
+  return (
+    <nav
+      aria-label={tr("editor.pages")}
+      className="absolute bottom-3 start-3 z-30 flex items-center rounded-xl border border-neutral-200 bg-surface shadow-md"
+    >
+      <button type="button" className={btn} onClick={() => st().goToPage(active - 1)} disabled={active <= 0} aria-label={tr("editor.previous_page")}>
+        <ChevronLeft size={18} className={mirrorInRtl} />
+      </button>
+      <span className="min-w-[2.75rem] text-center text-xs font-semibold tabular-nums text-neutral-600" aria-live="polite">
+        <span className="sr-only">{tr("editor.page_n_of_total", { n: active + 1, total })}</span>
+        <span aria-hidden>{active + 1}/{total}</span>
+      </span>
+      <button type="button" className={btn} onClick={() => st().goToPage(active + 1)} disabled={active >= total - 1} aria-label={tr("editor.next_page")}>
+        <ChevronRight size={18} className={mirrorInRtl} />
+      </button>
+      <span aria-hidden className="h-6 w-px bg-neutral-200" />
+      <button type="button" className={btn} onClick={() => st().addPage()} aria-label={tr("editor.add_page")}>
+        <Plus size={18} />
+      </button>
+      <button type="button" className={btn} onClick={onOverview} aria-label={tr("editor.slide_overview")}>
+        <LayoutGrid size={18} />
+      </button>
+    </nav>
   );
 }

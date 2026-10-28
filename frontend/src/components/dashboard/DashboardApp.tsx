@@ -1244,7 +1244,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   return (
     // overflow-clip, not hidden: a hidden box can still be scrolled by the
     // browser when it moves focus into view.
-    <div className="flex h-screen overflow-clip bg-neutral-50 text-neutral-900" onClick={() => { setMenuFor(null); setFolderMenu(null); setImportMenu(false); setTplMenu(null); }}>
+    <div className="flex h-dvh overflow-clip bg-neutral-50 text-neutral-900" onClick={() => { setMenuFor(null); setFolderMenu(null); setImportMenu(false); setTplMenu(null); }}>
       {/* Left rail: fixed to the viewport; only the main column scrolls.
           Collapsible to an icon-only strip (remembered in localStorage). */}
       <aside
@@ -1393,7 +1393,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
             <UserMenu user={user} onSettings={() => void router.push("/settings")} onSignOut={() => void logout()} />
           </div>
         </div>
-        <div className="mx-auto max-w-[1600px] px-6 py-8">
+        <div className="mx-auto max-w-[1600px] px-4 py-6 md:px-6 md:py-8">
           {view === "projects" && (() => {
             const sub = childrenMap(folders).get(currentFolder ?? "") ?? [];
             const kids = childrenMap(folders);
@@ -1978,7 +1978,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                           onClick={(e) => { e.stopPropagation(); setTplMenu(tplMenu === t.id ? null : t.id); }}
                           aria-label={tr("dashboard.more")}
                           aria-expanded={tplMenu === t.id}
-                          className={`grid h-7 w-7 place-items-center rounded-lg border border-neutral-200 bg-surface text-neutral-600 shadow-sm transition hover:text-neutral-900 focus-visible:opacity-100 group-hover:opacity-100 ${tplMenu === t.id ? "opacity-100" : "opacity-0"}`}
+                          className={`grid h-7 w-7 place-items-center rounded-lg border border-neutral-200 bg-surface text-neutral-600 shadow-sm transition hover:text-neutral-900 focus-visible:opacity-100 group-hover:opacity-100 pointer-coarse:opacity-100 ${tplMenu === t.id ? "opacity-100" : "opacity-0"}`}
                         ><MoreHorizontal size={15} /></button>
                         {tplMenu === t.id && (
                           <AnchoredMenu role="menu" className="w-60 rounded-xl border border-neutral-200 bg-surface py-1 text-sm shadow-lg" onClick={(e) => e.stopPropagation()}>

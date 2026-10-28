@@ -7,6 +7,7 @@ import { installRandomUuidPolyfill } from "@/lib/randomUuidPolyfill";
 import { useEffect } from "react";
 import type { AppProps } from "next/app";
 import { ToastProvider } from "@/components/ui/Toast";
+import { AppUpdateNotice } from "@/components/AppUpdateNotice";
 import { watchSystemTheme } from "@/lib/theme";
 import { applyLocale, getLocalePreference, setLocalePreference } from "@/lib/locale";
 import { initI18n, loadCatalog, useI18nVersion } from "@/lib/i18n";
@@ -48,6 +49,9 @@ export default function App({ Component, pageProps }: AppProps) {
     <div className="font-sans">
       <ToastProvider>
         <Component key={i18nVersion} {...pageProps} />
+        {/* Service worker: offline shell and the "new version" reload offer.
+            Production only; the dev server has hot reload instead. */}
+        {process.env.NODE_ENV === "production" && <AppUpdateNotice />}
       </ToastProvider>
     </div>
   );

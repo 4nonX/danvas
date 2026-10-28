@@ -32,6 +32,7 @@ import { CanvasScrollbars } from "./CanvasScrollbars";
 import { overlay } from "@/lib/theme.generated";
 import { useEditorCanvas, type CanvasApi } from "@/lib/useEditorCanvas";
 import { useEditor, ocClipPrefix, templateLockBlocking } from "@/store/editor";
+import { useIsPhone } from "@/lib/useIsPhone";
 import { commandForEvent } from "@/lib/shortcuts";
 import { Gizmo } from "./Gizmo";
 import { SelectionToolbar } from "./SelectionToolbar";
@@ -173,6 +174,39 @@ const toolbar = (): ({ tool: ToolName; title: string; icon: typeof MousePointer2
   { tool: "pen", title: tr("editor.pen_p"), icon: PenTool },
   { tool: "pencil", title: tr("editor.pencil_b_drag_to_draw_freehand"), icon: Pencil },
 ];
+
+// Smallest on-screen size, in CSS px, that text should have while it is being
+// typed into on a touch screen (iOS also zooms the whole page below 16px).
+const READABLE_TEXT_PX = 16;
+
+/**
+ * The viewport that makes text node `id` readable for editing on a touch
+ * screen, or null when no change is needed (a mouse, or text already large
+ * enough). Zooms until the largest run renders at READABLE_TEXT_PX, without
+ * letting the box outgrow the canvas width, and places the box in the upper
+ * part of the canvas, clear of an on-screen keyboard.
+ */
+function readableTextViewport(id: string): { zoom: number; panX: number; panY: number } | null {
+  if (typeof window === "undefined" || !window.matchMedia?.("(pointer: coarse)").matches) return null;
+  const st = useEditor.getState();
+  const node = locate(st.doc, id)?.node;
+  const box = unionAABB(st.doc, [id]);
+  if (!node || node.type !== "text" || !box) return null;
+  const paras = (node as unknown as { content?: EditPara[] }).content ?? [];
+  const sizes = paras.flatMap((p) => p.runs.map((r) => Number((r.style as { fontSize?: number }).fontSize) || 16));
+  const fontSize = sizes.length ? Math.max(...sizes) : 16;
+  const vs = st.viewportSize;
+  const cur = st.viewport.zoom || 1;
+  if (fontSize * cur >= READABLE_TEXT_PX || !vs.width || !vs.height) return null;
+  const fitWidth = box.width > 0 ? (vs.width * 0.9) / box.width : Infinity;
+  const zoom = Math.max(cur, Math.min(8, READABLE_TEXT_PX / fontSize, fitWidth));
+  if (zoom <= cur * 1.05) return null;
+  return {
+    zoom,
+    panX: box.x + box.width / 2 - vs.width / 2 / zoom,
+    panY: box.y - (vs.height * 0.15) / zoom,
+  };
+}
 
 // Single-key canvas tool shortcuts.
 // `fontStyle` values are file-format tokens ("Regular", "Bold Italic"), never
@@ -1172,7 +1206,37 @@ export function Canvas() {
   // the renderer's "skip this node" and the HTML overlay flip in the SAME render.
   // (A deferred mirror caused a 1-frame double/missing flicker.)
   const editing = useEditor((s) => s.editingTextId);
-  const setEditing = (id: string | null) => useEditor.getState().setEditingText(id);
+  // On a touch screen, text at the fit zoom is often a few pixels tall, so
+  // editing first zooms to make it readable and above the on-screen keyboard,
+  // and the previous view comes back when editing ends.
+  const textZoomRestore = useRef<{ zoom: number; panX: number; panY: number } | null>(null);
+  const setEditing = (id: string | null) => {
+    const st = useEditor.getState();
+    if (id === null) {
+      st.setEditingText(null);
+      return;
+    }
+    const target = readableTextViewport(id);
+    if (!target) {
+      st.setEditingText(id);
+      return;
+    }
+    if (!textZoomRestore.current) {
+      const { zoom, panX, panY } = st.viewport;
+      textZoomRestore.current = { zoom, panX, panY };
+    }
+    st.setViewport(target);
+    // Open the editor on the next frame, once the canvas has the new zoom: the
+    // overlay sizes its text from the zoom it sees when it mounts.
+    requestAnimationFrame(() => useEditor.getState().setEditingText(id));
+  };
+  // However editing ends (commit, Escape, a tap elsewhere), put the view back.
+  useEffect(() => {
+    if (editing !== null || !textZoomRestore.current) return;
+    const prev = textZoomRestore.current;
+    textZoomRestore.current = null;
+    useEditor.getState().setViewport(prev);
+  }, [editing]);
   // Text in a shape is edited inside its group: the frame is selected and typed
   // into, and the group stays entered so the next click picks within it.
   const editShapeText = (groupId: string, textId: string) => {
@@ -1230,6 +1294,19 @@ export function Canvas() {
   // two-finger pinch-zoom + pan about the fingers' midpoint.
   const pointers = useRef<Map<number, { clientX: number; clientY: number; type: string }>>(new Map());
   const pinch = useRef<{ startDist: number; startZoom: number; anchor: { x: number; y: number } } | null>(null);
+  // Set once a stylus touches the canvas this session. Only then does a single
+  // finger pan under a drawing tool; on a phone with no stylus the finger draws.
+  const penSeen = useRef(false);
+  // Touch long-press opens the context menu: iOS never fires contextmenu for a
+  // finger, so without this a phone has no way to reach the menu's actions.
+  const longPress = useRef<{ timer: number; x: number; y: number } | null>(null);
+  const clearLongPress = () => {
+    if (longPress.current) window.clearTimeout(longPress.current.timer);
+    longPress.current = null;
+  };
+  useEffect(() => () => {
+    if (longPress.current) window.clearTimeout(longPress.current.timer);
+  }, []);
   // Coalesce move-drag updates to one apply per animation frame: pointermove can
   // fire several times per frame (esp. on 120Hz trackpads), and each apply bumps
   // the store rev (re-rendering the gizmo, panels, and canvas), so processing
@@ -1262,6 +1339,13 @@ export function Canvas() {
   // Whiteboard surface enables drag-to-connect; harmless elsewhere (never shown).
   const isWhiteboard = useEditor((s) => (s.doc.meta as { kind?: string } | undefined)?.kind === "whiteboard");
   const canComment = useComments((s) => s.canComment);
+  // On a phone the tool palette is one button showing the current tool; it
+  // opens into the full column on tap and folds again once a tool is picked,
+  // so it never sits over the page.
+  const { isPhone } = useIsPhone();
+  const [toolsOpen, setToolsOpen] = useState(false);
+  const toolsFolded = isPhone && !toolsOpen;
+  const pickTool = (fn: () => void) => { fn(); setToolsOpen(false); };
   const selection = useEditor((s) => s.selection);
   const transforming = useEditor((s) => s.transforming);
   const cropping = useEditor((s) => s.cropping);
@@ -1634,6 +1718,7 @@ export function Canvas() {
 
     // --- Touch / stylus input (FR-31) -------------------------------------
     pointers.current.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY, type: e.pointerType });
+    if (e.pointerType === "pen") penSeen.current = true;
     const touchPts = [...pointers.current.values()].filter((p) => p.type === "touch");
     const penDown = [...pointers.current.values()].some((p) => p.type === "pen");
     // Palm rejection: ignore touch contacts while a pen is down (pen draws, the
@@ -1646,6 +1731,7 @@ export function Canvas() {
     // single-pointer gesture (move/marquee/erase/draw/pan) so a leftover finger
     // can't resume it after the pinch ends, and clears the grab cursor.
     if (touchPts.length >= 2) {
+      clearLongPress();
       const [a, b] = touchPts;
       const mid = localPoint({ clientX: (a.clientX + b.clientX) / 2, clientY: (a.clientY + b.clientY) / 2 });
       pinch.current = {
@@ -1659,11 +1745,25 @@ export function Canvas() {
       e.preventDefault();
       return;
     }
-    // One finger while a DRAW/create tool is active: pan instead of drawing, so a
-    // finger repositions the board while the pen draws (FR-31). Direct-manipulation
-    // tools (select/comment/eraser/laser) still act on a single finger; two fingers
-    // always navigate.
-    if (e.pointerType === "touch" && touchPts.length === 1) {
+    // One finger while a DRAW/create tool is active on a stylus device: pan
+    // instead of drawing, so a finger repositions the board while the pen draws
+    // (FR-31). Without a stylus (a phone) the finger is the only way to draw, so
+    // it draws. Direct-manipulation tools (select/comment/eraser/laser) always
+    // act on a single finger; two fingers always navigate.
+    if (e.pointerType === "touch" && touchPts.length === 1 && useEditor.getState().tool === "select") {
+      clearLongPress();
+      const { clientX, clientY } = e;
+      longPress.current = {
+        x: clientX,
+        y: clientY,
+        timer: window.setTimeout(() => {
+          longPress.current = null;
+          cancelInteraction();
+          onContextMenu({ preventDefault() {}, clientX, clientY } as React.MouseEvent);
+        }, 550),
+      };
+    }
+    if (e.pointerType === "touch" && touchPts.length === 1 && penSeen.current) {
       const dt = useEditor.getState().tool;
       const drawTool = dt === "pen" || dt === "pencil" || dt === "ink" || dt === "line" || dt === "arrow" || dt === "rect" || dt === "ellipse";
       if (drawTool) {
@@ -2089,6 +2189,7 @@ export function Canvas() {
     // Keep the multi-touch tracker current, then drive an active pinch (FR-31):
     // zoom by the finger-distance ratio and pan so the start page-anchor stays
     // under the moving midpoint (the wheel-zoom-about-cursor math).
+    if (longPress.current && Math.hypot(e.clientX - longPress.current.x, e.clientY - longPress.current.y) > 8) clearLongPress();
     if (pointers.current.has(e.pointerId)) {
       pointers.current.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY, type: e.pointerType });
     }
@@ -2207,6 +2308,7 @@ export function Canvas() {
   // down EVERY in-progress interaction (pinch, pan, and any draw/select/erase
   // draft) and release capture, so nothing is left half-built or stuck (FR-31).
   function onPointerCancel(e: React.PointerEvent) {
+    clearLongPress();
     pointers.current.delete(e.pointerId);
     if ([...pointers.current.values()].filter((p) => p.type === "touch").length < 2) pinch.current = null;
     panning.current = null;
@@ -2217,6 +2319,7 @@ export function Canvas() {
   }
 
   function onPointerUp(e: React.PointerEvent) {
+    clearLongPress();
     // Apply any move frame still queued from the last pointermove, so the commit
     // below records the exact final position (not one frame behind the cursor).
     flushMove();
@@ -2858,7 +2961,10 @@ export function Canvas() {
             })
           : tr("editor.design_canvas")
       }
-      className="relative h-full w-full overflow-hidden bg-neutral-200 outline-none"
+      // touch-none here, not only on the drawing layer: two fingers that land
+      // on an overlay (a text or sticky editor, the selection handles) must
+      // not zoom the whole page instead of the canvas.
+      className="relative h-full w-full touch-none overflow-hidden bg-neutral-200 outline-none"
       // The design and every overlay positioned over it live in the design's own
       // coordinate space, so the shell's direction must not reach them.
       dir={designSurfaceDir}
@@ -2887,12 +2993,13 @@ export function Canvas() {
         />
       )}
       {/* Designs carry the dock in their bottom bar (PagesBar); other kinds
-          without that bar get it floating over the canvas. */}
-      {docKindLive() !== "design" && <ToolDock floating />}
+          without that bar, and every kind on a phone (where the bar gives way
+          to the page pill), get it floating over the canvas. */}
+      {(docKindLive() !== "design" || isPhone) && <ToolDock floating />}
       {/* Brush options: shown for the pencil and board ink tools. Width / opacity /
           color feed addPencilPath / addInkStroke via the store's brush settings. */}
       {(tool === "pencil" || tool === "ink") && (
-        <div className={`absolute ${docKindLive() === "design" ? "bottom-4" : "bottom-16"} left-1/2 z-20 flex -translate-x-1/2 items-center gap-3 rounded-xl border border-neutral-200 bg-surface px-3 py-2 shadow-md`}>
+        <div className={`absolute ${docKindLive() === "design" && !isPhone ? "bottom-4" : "bottom-16"} left-1/2 z-20 flex -translate-x-1/2 items-center gap-3 rounded-xl border border-neutral-200 bg-surface px-3 py-2 shadow-md ${isPhone ? "max-w-[calc(100%-1.5rem)] flex-wrap" : ""}`}>
           <label className="flex items-center gap-1.5 text-[11px] text-neutral-500">
             {tr("editor.size")}
             <input type="range" min={1} max={40} value={brush.width} onChange={(e) => useEditor.getState().setBrush({ width: Number(e.target.value) })} className="w-20 accent-brand-600" />
@@ -3412,8 +3519,9 @@ export function Canvas() {
       )}
       {/* Per-page headers (title + tools) for continuous-scroll mode. */}
       <PageOverlays api={api} />
-      {/* Zoom overview: a corner thumbnail with a draggable viewport rectangle. */}
-      <MiniMap />
+      {/* Zoom overview: a corner thumbnail with a draggable viewport rectangle.
+          Not on a phone, where it would sit over the page after every pinch. */}
+      {!isPhone && <MiniMap />}
       {/* Offscreen mirror of the page's objects for assistive technology, plus
           a polite live region announcing selection changes (F38). */}
       <A11yTree />

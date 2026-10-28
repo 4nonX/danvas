@@ -297,7 +297,9 @@ export function TemplatesPanel() {
           onClick={() => setPickFrom(t)}
           title={tr("editor.pick_slides")}
           aria-label={tr("editor.pick_slides_from", { title: t.title })}
-          className="absolute end-8 top-1 rounded-md border border-neutral-200 bg-surface p-1 text-neutral-600 opacity-0 shadow-sm transition hover:text-brand-ink focus-visible:opacity-100 group-hover:opacity-100"
+          // On touch there is no hover to reveal it, so it shows outright with
+          // a larger target, and takes the corner the download button leaves.
+          className="oc-hit absolute end-8 top-1 rounded-md border border-neutral-200 bg-surface p-1 text-neutral-600 opacity-0 shadow-sm transition hover:text-brand-ink focus-visible:opacity-100 group-hover:opacity-100 pointer-coarse:end-1 pointer-coarse:p-2 pointer-coarse:opacity-100"
         >
           <Layers size={12} />
         </button>
@@ -308,7 +310,7 @@ export function TemplatesPanel() {
           onClick={() => setTplMenu(tplMenu === t.id ? null : t.id)}
           aria-label={tr("dashboard.more")}
           aria-expanded={tplMenu === t.id}
-          className={`rounded-md border border-neutral-200 bg-surface p-1 text-neutral-600 shadow-sm transition hover:text-brand-ink focus-visible:opacity-100 group-hover:opacity-100 ${tplMenu === t.id ? "opacity-100" : "opacity-0"}`}
+          className={`rounded-md border border-neutral-200 bg-surface p-1 text-neutral-600 shadow-sm transition hover:text-brand-ink focus-visible:opacity-100 group-hover:opacity-100 pointer-coarse:opacity-100 ${tplMenu === t.id ? "opacity-100" : "opacity-0"}`}
         >
           <MoreHorizontal size={12} />
         </button>
@@ -439,7 +441,7 @@ export function PanelShell({ title, children, fill, roomy }: { title: string; ch
       // editable outline in it - per-slide titles, points, reorder controls -
       // and at 60vw capped to 16rem that was about 234px on a phone, which is
       // not enough to edit in. Unchanged at lg+, where the panel is resizable.
-      className={`flex h-full shrink-0 lg:w-[var(--oc-left-w)] ${roomy ? "w-[min(24rem,88vw)]" : "w-[min(16rem,60vw)]"}`}
+      className={`flex h-full shrink-0 lg:w-[var(--oc-left-w)] ${roomy ? "w-[min(24rem,calc(100vw-76px))]" : "w-[min(16rem,60vw)]"}`}
       style={{ ["--oc-left-w"]: `${width}px` } as React.CSSProperties}
     >
       {/* Scroll area. Its right border shows below lg; at lg+ the drag handle to

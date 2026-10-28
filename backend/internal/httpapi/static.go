@@ -141,6 +141,7 @@ func serveNotFound(w http.ResponseWriter, root http.FileSystem, gaID string, ins
 		return false
 	}
 	body = injectInstance(injectGA(body, gaID), inst)
+	setStaticCacheHeaders(w, "/404.html")
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.WriteHeader(http.StatusNotFound)
@@ -191,6 +192,7 @@ func serveFile(w http.ResponseWriter, req *http.Request, root http.FileSystem, n
 		problemWithCode(w, req, http.StatusNotFound, "Not Found", "no route for "+req.URL.Path, "no_route")
 		return
 	}
+	setStaticCacheHeaders(w, name)
 	// HTML pages get the analytics snippet injected at serve time (when enabled),
 	// so a self-hoster's tracking id is a runtime env setting, not baked into the
 	// embedded build. The body changes length, so it is written directly rather
@@ -206,6 +208,9 @@ func serveFile(w http.ResponseWriter, req *http.Request, root http.FileSystem, n
 	// An unchanged file costs a 304.
 	if strings.HasPrefix(name, "/_next/") {
 		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+		if servePrecompressed(w, req, root, name) {
+			return
+		}
 		http.ServeContent(w, req, info.Name(), info.ModTime(), f)
 		return
 	}
@@ -223,6 +228,10 @@ func serveFile(w http.ResponseWriter, req *http.Request, root http.FileSystem, n
 			return
 		}
 		// Read failed: fall through to ServeContent from the still-open file.
+	}
+	// A build-time brotli/gzip sibling, when the client accepts one.
+	if servePrecompressed(w, req, root, name) {
+		return
 	}
 	if tag, terr := fileETag(name, info, f); terr == nil {
 		w.Header().Set("ETag", tag) // ServeContent answers If-None-Match with it
@@ -272,6 +281,31 @@ func writeRevalidated(w http.ResponseWriter, req *http.Request, contentType stri
 	w.Header().Set("Content-Type", contentType)
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(body)
+}
+
+// setStaticCacheHeaders picks the HTTP caching for a file of the exported
+// frontend. The rule that matters is upgrade safety: after a self-hoster swaps
+// the binary, no browser or proxy may keep serving the previous build's pages,
+// because a page names the hashed chunks of its own build and those must match
+// the API now running.
+//   - /_next/*: content addressed, cache for a year.
+//   - /sw.js: always revalidated, so a new build's worker (and with it the
+//     reload offer) is found on the next check. Its scope is the site root,
+//     which is the script's own directory, so no Service-Worker-Allowed header
+//     is needed.
+//   - HTML pages and the manifest: always revalidated. Without this, a
+//     PUBLIC_DIR deploy (whose files carry a modification time) let browsers
+//     reuse a page heuristically after an upgrade.
+func setStaticCacheHeaders(w http.ResponseWriter, name string) {
+	switch {
+	case strings.HasPrefix(name, "/_next/"):
+		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+	case name == "/sw.js":
+		w.Header().Set("Cache-Control", "no-cache")
+		w.Header().Set("Content-Type", "text/javascript; charset=utf-8")
+	case strings.HasSuffix(name, ".html") || strings.HasSuffix(name, ".webmanifest"):
+		w.Header().Set("Cache-Control", "no-cache")
+	}
 }
 
 // sanitizeGAID keeps only the characters a Google Analytics measurement id can
@@ -340,6 +374,21 @@ func (o localesOverlay) Open(name string) (http.File, error) {
 		// Clean already removed any "..", so rel cannot escape the directory.
 		if f, err := o.dir.Open("/" + rel); err == nil {
 			return f, nil
+		}
+	}
+	// A translation overridden on disk must not be shadowed by the embedded
+	// copy's precompressed sibling (built from the old text): hide the sibling
+	// so the static server falls back to the overriding file.
+	if o.dir != nil && strings.HasPrefix(clean, localesPrefix) {
+		for _, enc := range precompressedEncodings {
+			orig, ok := strings.CutSuffix(clean, enc.ext)
+			if !ok || !strings.HasSuffix(orig, ".json") {
+				continue
+			}
+			if f, err := o.dir.Open("/" + strings.TrimPrefix(orig, localesPrefix)); err == nil {
+				f.Close()
+				return nil, os.ErrNotExist
+			}
 		}
 	}
 	return o.base.Open(name)

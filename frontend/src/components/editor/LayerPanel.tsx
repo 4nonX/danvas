@@ -233,7 +233,7 @@ export function LayerPanel() {
                   title={isOpen ? tr("editor.collapse") : tr("editor.expand")}
                   onPointerDown={(e) => e.stopPropagation()}
                   onClick={() => toggleExpanded(node.id)}
-                  className="shrink-0 text-neutral-400 hover:text-neutral-700"
+                  className="grid shrink-0 place-items-center text-neutral-400 hover:text-neutral-700 pointer-coarse:h-10 pointer-coarse:w-8"
                 >
                   {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                 </button>
@@ -293,7 +293,9 @@ export function LayerPanel() {
               })()}
               <div className={`absolute inset-y-0 end-0 flex items-center gap-1.5 pe-2 ps-6 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100 ${selected ? "bg-gradient-to-l from-brand-50 from-70% to-transparent" : "bg-gradient-to-l from-neutral-50 from-70% to-transparent"}`}>
               {/* One step forward or back, on the row: the reason most people
-                  open this panel, and dragging a row one slot is fiddly. */}
+                  open this panel, and dragging a row one slot is fiddly. These
+                  and duplicate/delete appear on hover, so a touch screen (no
+                  hover) hides them; the selection toolbar carries all four. */}
               <button
                 type="button"
                 title={tr("editor.bring_forward")}
@@ -323,7 +325,7 @@ export function LayerPanel() {
                 aria-pressed={node.hidden}
                 onPointerDown={(e) => e.stopPropagation()}
                 onClick={() => useEditor.getState().setNodeHidden(node.id, !node.hidden)}
-                className={`shrink-0 hover:text-neutral-700 ${node.hidden ? "text-neutral-700" : "text-neutral-400"}`}
+                className={`grid shrink-0 place-items-center hover:text-neutral-700 pointer-coarse:h-10 pointer-coarse:w-10 ${node.hidden ? "text-neutral-700" : "text-neutral-400"}`}
               >
                 {node.hidden ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
@@ -334,7 +336,7 @@ export function LayerPanel() {
                 aria-pressed={node.locked}
                 onPointerDown={(e) => e.stopPropagation()}
                 onClick={() => useEditor.getState().setNodeLocked(node.id, !node.locked)}
-                className={`shrink-0 hover:text-neutral-700 ${node.locked ? "text-neutral-700" : "text-neutral-400"}`}
+                className={`grid shrink-0 place-items-center hover:text-neutral-700 pointer-coarse:h-10 pointer-coarse:w-10 ${node.locked ? "text-neutral-700" : "text-neutral-400"}`}
               >
                 {node.locked ? <Lock size={15} /> : <Unlock size={15} />}
               </button>

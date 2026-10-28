@@ -26,7 +26,7 @@ function ToolBtn({ icon: Icon, label, onClick, danger, active }: { icon: typeof 
       title={label}
       aria-label={label}
       onClick={onClick}
-      className={`grid h-7 w-7 place-items-center rounded-md transition ${active ? "bg-brand-50 text-brand-ink" : danger ? "text-neutral-500 hover:bg-red-50 hover:text-red-600" : "text-neutral-600 hover:bg-neutral-100 hover:text-brand-ink"}`}
+      className={`grid h-7 w-7 shrink-0 place-items-center rounded-md transition pointer-coarse:h-11 pointer-coarse:w-11 ${active ? "bg-brand-50 text-brand-ink" : danger ? "text-neutral-500 hover:bg-red-50 hover:text-red-600" : "text-neutral-600 hover:bg-neutral-100 hover:text-brand-ink"}`}
     >
       <Icon size={15} />
     </button>
