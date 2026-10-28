@@ -4133,5 +4133,7 @@
   "brands.text_pairs": "可读的文字配色",
   "brands.no_text_pairs": "这些颜色中没有可用于正文的组合（4.5:1）。",
   "brands.contrast_value": "对比度 {ratio}:1",
-  "brands.type_sample": "文字"
+  "brands.type_sample": "文字",
+  "pwa.update_available": "有新版本可用",
+  "pwa.reload": "重新加载"
 }

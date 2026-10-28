@@ -4133,5 +4133,7 @@
   "brands.text_pairs": "Readable text pairs",
   "brands.no_text_pairs": "No two of these colors are readable together as body text (4.5:1).",
   "brands.contrast_value": "{ratio}:1 contrast",
-  "brands.type_sample": "Aa"
+  "brands.type_sample": "Aa",
+  "pwa.update_available": "A new version is available",
+  "pwa.reload": "Reload"
 }
