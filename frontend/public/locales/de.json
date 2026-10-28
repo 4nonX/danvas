@@ -5555,5 +5555,6 @@
   "brands.contrast_value": "Kontrast {ratio}:1",
   "brands.type_sample": "Aa",
   "pwa.update_available": "Eine neue Version ist verfügbar",
-  "pwa.reload": "Neu laden"
+  "pwa.reload": "Neu laden",
+  "dashboard.open_navigation": "Navigation öffnen"
 }

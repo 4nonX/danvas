@@ -98,6 +98,8 @@ danvas is built for print work: labels, packaging, business cards, signage. How 
 
 ### Dashboard, import and export
 
+- Works on a phone: the dashboard's rail becomes a drawer, the editor puts the canvas first with its tools and properties in sheets; installable as an app, with an offline notice and a reload offer after updates.
+
 - danvas packages (`.danvas.zip`) take designs, folders and templates to another workspace or instance with the uploads and workspace fonts they use; templates export one by one, ticked, or all at once ([guide](docs/danvas.md#moving-designs-to-another-instance)).
 
 - Dashboard: folders (as a tree in the sidebar that opens and closes and lists each folder's designs), one Import menu for files, folders and Canva, previews that show the page as a sheet and redraw once images and fonts load, and download and share for one design or a whole selection (every page of every design into one zip; one person's access or view links for all selected designs at once) ([guide](docs/danvas.md#dashboard)).

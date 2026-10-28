@@ -45,7 +45,7 @@ import {
   List,
   Users,
   Moon,
-  Sun, Sparkles, Wand2, Paperclip, Loader2, X, Folder as FolderIcon, FolderPlus, FolderInput, Check, Download, Share2, Link2, ArrowRightLeft, Printer, Scaling, KeyRound, Shapes, Package } from "lucide-react";
+  Sun, Sparkles, Wand2, Paperclip, Loader2, X, Folder as FolderIcon, FolderPlus, FolderInput, Check, Download, Share2, Link2, ArrowRightLeft, Printer, Scaling, KeyRound, Shapes, Package, Menu } from "lucide-react";
 import { createBlankDesign } from "@hc/schema";
 import { hycAccept, downloadHycFile, importedTitle, parseHycFile, readFileText } from "@/lib/hycFile";
 import { dialTones } from "@hc/aistudio";
@@ -57,6 +57,7 @@ import { useDateFormat } from "@/lib/datetime";
 import { resolvedTheme, setThemePreference } from "@/lib/theme";
 import { oc } from "@/lib/sdk";
 import { useAuth } from "@/store/auth";
+import { useMediaQuery } from "@/lib/useMediaQuery";
 import { useToast } from "@/components/ui/Toast";
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
@@ -366,6 +367,14 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   const [railCollapsed, setRailCollapsed] = useState(
     () => typeof window !== "undefined" && window.localStorage.getItem("hc-dash-rail") === "collapsed",
   );
+  // Below Tailwind `md` the rail would leave a phone no room for the page, so
+  // it becomes a drawer opened from the header, always in full there (the
+  // remembered icon-only collapse is for wider screens). The drawer remembers
+  // the place it was opened on, so going anywhere (a rail entry, a folder in
+  // the tree, another workspace) closes it without an effect.
+  const isNarrow = useMediaQuery("(max-width: 767px)");
+  const [drawerAt, setDrawerAt] = useState<string | null>(null);
+  const railIcons = railCollapsed && !isNarrow;
   // The rail's folder tree: whether it shows at all, and which folders the
   // user opened in it (per workspace), both remembered across visits.
   const [railFoldersOpen, setRailFoldersOpen] = useState(
@@ -1241,18 +1250,25 @@ export function DashboardApp({ view }: { view: DashboardView }) {
       <ul className="rounded-2xl border border-neutral-200 bg-surface shadow-sm [&>li:first-child]:rounded-t-2xl [&>li:last-child]:rounded-b-2xl">{list.map(renderRow)}</ul>
     );
 
+  const place = `${view}|${currentFolder ?? ""}|${activeWorkspaceId ?? ""}`;
+  const drawerOpen = isNarrow && drawerAt === place;
   return (
     // overflow-clip, not hidden: a hidden box can still be scrolled by the
     // browser when it moves focus into view.
     <div className="flex h-dvh overflow-clip bg-neutral-50 text-neutral-900" onClick={() => { setMenuFor(null); setFolderMenu(null); setImportMenu(false); setTplMenu(null); }}>
       {/* Left rail: fixed to the viewport; only the main column scrolls.
-          Collapsible to an icon-only strip (remembered in localStorage). */}
+          Collapsible to an icon-only strip (remembered in localStorage). On a
+          phone it is a drawer over the page, opened from the header. */}
+      {drawerOpen && (
+        <div className="fixed inset-0 z-40 bg-black/30 md:hidden" aria-hidden onClick={() => setDrawerAt(null)} />
+      )}
       <aside
-        className={`oc-panel-dots relative flex shrink-0 flex-col overflow-hidden border-e border-neutral-200 bg-surface transition-[width] duration-200 ${
-          railCollapsed ? "w-[4.5rem] p-3" : "w-64 p-3"
-        }`}
+        onKeyDown={(e) => { if (e.key === "Escape" && drawerOpen) setDrawerAt(null); }}
+        className={`oc-panel-dots relative flex shrink-0 flex-col overflow-hidden border-e border-neutral-200 bg-surface transition-[width,translate] duration-200 max-md:fixed max-md:inset-y-0 max-md:start-0 max-md:z-50 max-md:w-[min(20rem,85vw)] max-md:shadow-xl ${
+          railIcons ? "w-[4.5rem] p-3" : "w-64 p-3"
+        } ${drawerOpen ? "" : "max-md:invisible max-md:-translate-x-full max-md:rtl:translate-x-full"}`}
       >
-        {railCollapsed ? (
+        {railIcons ? (
           <>
             <div className="mb-4 flex justify-center">
               <LogoMark size={30} />
@@ -1283,12 +1299,12 @@ export function DashboardApp({ view }: { view: DashboardView }) {
               <Logo size={32} />
               <button
                 type="button"
-                onClick={() => toggleRail(true)}
-                title={tr("dashboard.collapse_sidebar")}
-                aria-label={tr("dashboard.collapse_sidebar")}
-                className="rounded-lg p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
+                onClick={() => (isNarrow ? setDrawerAt(null) : toggleRail(true))}
+                title={isNarrow ? tr("ui.close") : tr("dashboard.collapse_sidebar")}
+                aria-label={isNarrow ? tr("ui.close") : tr("dashboard.collapse_sidebar")}
+                className="rounded-lg p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600 pointer-coarse:p-2.5"
               >
-                <PanelLeftClose size={18} />
+                {isNarrow ? <X size={18} /> : <PanelLeftClose size={18} />}
               </button>
             </div>
 
@@ -1304,10 +1320,10 @@ export function DashboardApp({ view }: { view: DashboardView }) {
         {/* Only the navigation scrolls (a long folder tree), so the logo, the
             workspace switcher and the bottom of the rail stay in place. */}
         <nav className="oc-scroll relative z-10 -mx-1 mt-5 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-1 text-sm">
-          <RailItem icon={HomeIcon} label={tr("dashboard.home")} active={view === "home"} collapsed={railCollapsed} onClick={() => gotoView("home")} />
+          <RailItem icon={HomeIcon} label={tr("dashboard.home")} active={view === "home"} collapsed={railIcons} onClick={() => gotoView("home")} />
           <DropZone onDropItems={(it) => void moveItems(it, null)} className="relative flex flex-col">
-            <RailItem icon={FolderIcon} label={tr("dashboard.projects")} active={view === "projects" && !currentFolder} collapsed={railCollapsed} onClick={() => gotoFolder(null)} />
-            {!railCollapsed && folders.length > 0 && (
+            <RailItem icon={FolderIcon} label={tr("dashboard.projects")} active={view === "projects" && !currentFolder} collapsed={railIcons} onClick={() => gotoFolder(null)} />
+            {!railIcons && folders.length > 0 && (
               <button
                 type="button"
                 onClick={toggleRailFolders}
@@ -1317,7 +1333,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
               ><ChevronDown size={15} className={`transition-transform ${railFoldersOpen ? "" : "-rotate-90 rtl:rotate-90"}`} /></button>
             )}
           </DropZone>
-          {!railCollapsed && railFoldersOpen && (
+          {!railIcons && railFoldersOpen && (
             <RailFolderTree
               folders={folders}
               designs={searched ? null : items}
@@ -1330,24 +1346,24 @@ export function DashboardApp({ view }: { view: DashboardView }) {
               onDropItems={(it, target) => void moveItems(it, target)}
             />
           )}
-          <RailItem icon={Star} label={tr("dashboard.favorites")} active={view === "favorites"} collapsed={railCollapsed} onClick={() => gotoView("favorites")} />
-          <RailItem icon={CheckSquare} label={tr("dashboard.my_tasks")} active={view === "tasks"} collapsed={railCollapsed} onClick={() => gotoView("tasks")} />
-          <RailItem icon={LayoutTemplate} label={tr("dashboard.templates")} active={view === "templates"} collapsed={railCollapsed} onClick={() => gotoView("templates")} />
-          <RailItem icon={Users} label={tr("dashboard.members")} active={view === "members"} collapsed={railCollapsed} onClick={() => gotoView("members")} />
+          <RailItem icon={Star} label={tr("dashboard.favorites")} active={view === "favorites"} collapsed={railIcons} onClick={() => gotoView("favorites")} />
+          <RailItem icon={CheckSquare} label={tr("dashboard.my_tasks")} active={view === "tasks"} collapsed={railIcons} onClick={() => gotoView("tasks")} />
+          <RailItem icon={LayoutTemplate} label={tr("dashboard.templates")} active={view === "templates"} collapsed={railIcons} onClick={() => gotoView("templates")} />
+          <RailItem icon={Users} label={tr("dashboard.members")} active={view === "members"} collapsed={railIcons} onClick={() => gotoView("members")} />
           {activeWs?.kind !== "personal" && (
-            <RailItem icon={KeyRound} label={tr("roles.title")} active={view === "roles"} collapsed={railCollapsed} onClick={() => gotoView("roles")} />
+            <RailItem icon={KeyRound} label={tr("roles.title")} active={view === "roles"} collapsed={railIcons} onClick={() => gotoView("roles")} />
           )}
-          <RailItem icon={Shapes} label={tr("brand.title")} active={view === "brand"} collapsed={railCollapsed} onClick={() => gotoView("brand")} />
-          <RailItem icon={Trash2} label={tr("dashboard.trash")} active={view === "trash"} collapsed={railCollapsed} onClick={() => gotoView("trash")} />
+          <RailItem icon={Shapes} label={tr("brand.title")} active={view === "brand"} collapsed={railIcons} onClick={() => gotoView("brand")} />
+          <RailItem icon={Trash2} label={tr("dashboard.trash")} active={view === "trash"} collapsed={railIcons} onClick={() => gotoView("trash")} />
         </nav>
 
         {/* Pinned to the rail's bottom corner: the caller's Canva imports
             (while there are any) and the storage meter. */}
         <div className="relative z-10 flex shrink-0 flex-col gap-2 pt-4">
-          <CanvaImportRail collapsed={railCollapsed} />
-          {!railCollapsed && storageUsage && <RailStorage usage={storageUsage} />}
+          <CanvaImportRail collapsed={railIcons} />
+          {!railIcons && storageUsage && <RailStorage usage={storageUsage} />}
         </div>
-        {!railCollapsed && <RailArt />}
+        {!railIcons && <RailArt />}
       </aside>
 
       {/* Main */}
@@ -1358,8 +1374,17 @@ export function DashboardApp({ view }: { view: DashboardView }) {
           dashboard away when it moved focus into view. */}
       <main data-menu-bounds className="oc-scroll relative flex-1 overflow-y-auto" style={DASH_BACKDROP}>
         {/* Header: global search, create, notifications, and the user menu. */}
-        <div className="sticky top-0 z-30 flex items-center gap-3 border-b border-neutral-200 bg-surface/90 px-6 py-2.5 backdrop-blur">
-          <form onSubmit={onSearch} className="relative max-w-lg flex-1">
+        <div className="sticky top-0 z-30 flex items-center gap-2 border-b border-neutral-200 bg-surface/90 px-4 py-2.5 backdrop-blur sm:gap-3 md:px-6">
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setDrawerAt(place); }}
+            aria-label={tr("dashboard.open_navigation")}
+            title={tr("dashboard.open_navigation")}
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-neutral-600 hover:bg-neutral-100 md:hidden"
+          >
+            <Menu size={18} />
+          </button>
+          <form onSubmit={onSearch} className="relative min-w-0 max-w-lg flex-1">
             <Search size={16} className="absolute start-3 top-1/2 -translate-y-1/2 text-neutral-400" />
             <input
               value={query}

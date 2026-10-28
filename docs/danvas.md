@@ -20,6 +20,7 @@ The other pages in this folder are HyScaler's documentation of HyCanvas and desc
 - [Approvals](#approvals)
 - [Editor](#editor)
   - [Editor layout](#editor-layout)
+  - [On a phone](#on-a-phone)
   - [Offline copies](#offline-copies)
   - [Text in shapes](#text-in-shapes)
   - [Barcodes](#barcodes)
@@ -205,6 +206,14 @@ A design can be signed off before it is used, printed or published.
 - **Elements** panel: a search over every element at the top, then one row per kind (recently used, shapes, frames and grids, data and codes, graphics, animated). A row shows one line of tiles: those you pinned, in your order, then the ones you use most. **See all** opens the whole row (one at a time); there you sort tiles by dragging them and pin one with its pin. A tile dragged into a row's line is pinned there. **Browse all** opens the graphics library with its search and categories. Rows are sorted by dragging their handle, or with the arrow keys on it, and hidden with the eye; hidden rows come back from the list below them, and **Reset** restores the built-in arrangement. Tiles only insert: dragging one never drops anything on the page. The arrangement, the pins and what you used are kept with your account, so they are the same in every browser.
 - **Position** panel, opened from the toolbar: **Arrange** (layer order, alignment and flipping of the selection) and **Layers**. The properties panel stays available for the less common settings.
 - **Groups**: a double-click enters a group to select what is inside it; a barcode is always selected as a whole.
+
+### On a phone
+
+danvas works on a phone too, and can be added to the home screen (or installed as an app on a computer), with shortcuts for a new design, presentation or whiteboard.
+
+- **Dashboard**: the left rail is a drawer, opened with the menu button at the top left; choosing anything closes it.
+- **Editor**: the canvas gets the screen. The tools are a bar at the bottom (a slim rail when the phone lies sideways) and open as sheets; **Edit** opens the properties as a sheet. A small page pill replaces the page strip: previous, next, add a page, and the overview for everything else. Editing a small text zooms in to a readable size first and goes back afterwards.
+- After an update, open tabs offer to reload. Without a connection a page shows an offline notice; designs you opened before stay in their [offline copies](#offline-copies).
 
 ### Offline copies
 

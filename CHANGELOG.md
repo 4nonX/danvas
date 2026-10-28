@@ -2,6 +2,27 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 1.8.0 (2026-10-28)
+
+Brings in the upstream HyCanvas changes up to 2026-10-28, adapted to danvas: its own brand workflow, dashboard, menus and look stay as they are.
+
+### Added
+
+- **The editor on a phone.** The canvas gets the screen: the tools sit in a bar at the bottom (a slim rail in landscape) and open as sheets, the properties open as a sheet from **Edit**, a small page pill replaces the page strip (previous, next, add, overview), zoom floats in a corner, and the tool dock floats over the canvas. Editing a small text zooms to a readable size first and goes back after. Buttons have touch-sized targets.
+- **The dashboard on a phone.** Below tablet width the left rail becomes a drawer, opened with the menu button in the header and closed by going anywhere, a tap beside it or Escape.
+- **Installable app.** danvas can be added to the home screen or installed as an app, with shortcuts for a new design, presentation or whiteboard. When a new version is running, open tabs offer to reload. Without a connection, pages show an offline notice instead of a browser error.
+
+### Changed
+
+- **Faster loading.** The server sends prebuilt brotli or gzip versions of the scripts and styles, each with its own ETag, so after an update the browser still revalidates instead of downloading everything again. The publish, website, print and accessibility dialogs load when first opened.
+- **Security updates** of dependencies (among them Next.js 16.4.1, DOMPurify, zod, undici, chi, vite and vitest).
+- Three new built-in templates.
+
+### Upgrading
+
+- No database change, no change to the file format.
+- The app now registers a service worker (`/sw.js`, same origin). It answers page loads from the network first and never touches `/api`, `/realtime` or other origins, so sign-in through a reverse proxy works as before; only the hashed scripts, icons and the offline page come from its cache. A proxy in front must pass `/sw.js` through like any other file.
+
 ## 1.7.0 (2026-10-28)
 
 ### Added

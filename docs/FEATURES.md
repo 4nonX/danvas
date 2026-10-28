@@ -7,6 +7,7 @@ A living checklist of what ships today versus what is planned. Shipped items are
 ### Editor core
 - [x] Scene-graph engine on Canvas2D (framework-agnostic; browser, worker, headless server)
 - [x] Shapes, lines, arrows, frames, grids, tables, 9 chart types, QR codes
+- [x] Phone layout: dashboard drawer, editor with bottom tool bar and sheets, page pill, touch-sized targets; installable app (service worker, offline page, update notice), precompressed static files
 - [x] Text in shapes: double-click to type, padding per side, vertical position, overflow per shape (shape grows, text shrinks, text runs over), text reflows on resize
 - [x] Barcodes: EAN-13/8, UPC-A, Code 128, GS1-128, Code 39, PZN, Data Matrix, GS1 Data Matrix, QR Code; live validation, exact vector bars in one ink, quiet zones, printer-dot rounding, bar width reduction, output check ([spec 43](roadmap/43-barcodes.md))
 - [x] Text: presets, font pairings, searchable catalog, custom font upload (embedded)

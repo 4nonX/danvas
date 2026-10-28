@@ -5555,5 +5555,6 @@
   "brands.contrast_value": "{ratio}:1 कंट्रास्ट",
   "brands.type_sample": "अआ",
   "pwa.update_available": "नया संस्करण उपलब्ध है",
-  "pwa.reload": "फिर से लोड करें"
+  "pwa.reload": "फिर से लोड करें",
+  "dashboard.open_navigation": "नेविगेशन खोलें"
 }
