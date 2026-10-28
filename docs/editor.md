@@ -72,7 +72,7 @@ The active page's stacking order, front-most on top: two-way selection sync, sho
 Contextual to the selection:
 
 - **Nothing selected**: page size with presets and **Magic Resize** (switch format in place, or generate re-flowed copies for a whole social set), page background, **Print** (the page's bleed and crop marks, see [Bleed and crop marks](danvas.md#bleed-and-crop-marks)), the page transition, and present options (hide slide, speaker notes, auto-advance).
-- **Elements**: position/size/rotation, shape swapping, use-as-image-frame, fills (solid, gradient, image, pattern, with harmony-based color suggestions), stroke, corner radius, opacity, and one-click effects (shadow, lift, hollow, splice, glow, neon).
+- **Elements**: position/size/rotation, shape swapping, text in the shape (padding, vertical position, what happens when the text needs more room; double-click a shape to type), use-as-image-frame, fills (solid, gradient, image, pattern, with harmony-based color suggestions), stroke, corner radius, opacity, and one-click effects (shadow, lift, hollow, splice, glow, neon).
 - **Text**: size, line height, letter spacing, decoration, alignment, paragraph spacing, text backgrounds, and text effects.
 - **Images**: filter presets (Clarendon, Noir, Sepia, and more), grouped Light/Color/Detail adjustments with auto-enhance, crop, replace, remove background, rasterize.
 - **Animations**: entrance, exit, and emphasis presets (Fade, Rise, Pop, Typewriter for text, and more) with duration, delay, and easing, plus custom motion-path keyframes and photo motion (Ken Burns, parallax).

@@ -2,6 +2,22 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 1.7.0 (2026-10-28)
+
+### Added
+
+- **Text in shapes.** Double-click any shape and type: the text stays inside the shape, wraps at its width and keeps a padding from its edge. In an ellipse, polygon or star it sits in the largest rectangle inside, in a triangle on its base. Under **Text in the shape** in the properties panel: the padding (one value or each side), the vertical position, and what happens when the text needs more room: the shape grows (the default), the text shrinks, or the text runs over. Resizing the shape reflows the text instead of stretching it.
+- **Templates export, alone or several at once.** A template's "..." menu (in Templates and in the editor's template panel) exports it as a danvas package with the uploads and fonts it uses, or downloads it as a `.hyc` file. Tick several, or **Export all** for every template shown. **Import template** reads such a package too: its templates become templates of the workspace (titles that exist are skipped), its designs go to Projects.
+
+### Changed
+
+- **Template cards have a "..." menu** (use, export, download, delete) instead of buttons that only showed on hover.
+
+### Upgrading
+
+- A danvas package with templates is format version 2; older versions refuse it as coming from a newer version. Packages without templates stay version 1.
+- No database change. No new node type either: a shape with text is a group of the shape and a text frame, marked in the group's `data`, so an older version shows it unchanged (the text only stops following the shape there). Video exports, rendered on the server, do not shrink text yet.
+
 ## 1.6.3 (2026-10-27)
 
 ### Fixed

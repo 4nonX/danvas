@@ -7,6 +7,7 @@ A living checklist of what ships today versus what is planned. Shipped items are
 ### Editor core
 - [x] Scene-graph engine on Canvas2D (framework-agnostic; browser, worker, headless server)
 - [x] Shapes, lines, arrows, frames, grids, tables, 9 chart types, QR codes
+- [x] Text in shapes: double-click to type, padding per side, vertical position, overflow per shape (shape grows, text shrinks, text runs over), text reflows on resize
 - [x] Barcodes: EAN-13/8, UPC-A, Code 128, GS1-128, Code 39, PZN, Data Matrix, GS1 Data Matrix, QR Code; live validation, exact vector bars in one ink, quiet zones, printer-dot rounding, bar width reduction, output check ([spec 43](roadmap/43-barcodes.md))
 - [x] Text: presets, font pairings, searchable catalog, custom font upload (embedded)
 - [x] Fills (solid/gradient/image/pattern), stroke, corner radius, opacity, effects (shadow/lift/hollow/glow/neon/echo/splice/outline/blur) with per-effect level controls
@@ -91,7 +92,7 @@ A living checklist of what ships today versus what is planned. Shipped items are
 - [x] Change format for one or many designs from the dashboard: exact new size in any unit, content scaled and spread, laid out anew or left, optional quarter turn; previewed first, saved as a named version (also into the live edit history)
 - [x] Exact print colors: CMYK values and named spot colors in the color picker, written unchanged to vector PDF and EPS (spot colors as separations, CMYK gradients); kept by brand colors and group recoloring
 - [x] ICC color profiles: built in, per workspace (admins) and personal (Settings), with defaults; a color profile per design for the screen display of print colors and the download default
-- [x] danvas packages (.danvas.zip): designs and folders with their uploads and fonts, exported from one instance and imported into another
+- [x] danvas packages (.danvas.zip): designs and folders, and templates, with their uploads and fonts, exported from one instance and imported into another
 - [x] Color list beside print exports (single and bulk): per color the CMYK of the file, Lab as printed, the brand's Pantone reference and the nearest entry (CIEDE2000) of a workspace color library uploaded as .ase, .acb or .csv
 - [x] Print-file checks: proof in the browser (soft proof through the ICC profile, single plates, ink coverage against a TAC limit, out-of-gamut colours) and output check of the real file (structure in the browser, plates separated by Ghostscript on the server); preflight hints for hairlines, small text in several inks, artwork at the edge without bleed
 - [x] Serial print: CSV/text/XLSX/pasted data, {{Column}} placeholders, column per text/barcode/QR, per-row encoding with invalid rows listed, preview, into download or print ([spec 46](roadmap/46-serial-print.md))

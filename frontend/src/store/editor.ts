@@ -34,6 +34,7 @@ import {
   builtinMasterAndLayouts,
   type Paragraph,
   type ParagraphStyle,
+  type ShapeNode,
   type Stroke,
   type TableBorderStyle,
   type TableConditionalRule,
@@ -102,6 +103,7 @@ import {
 import { booleanOp, fitCubicBeziers, pathToPolylines, recognizeShape, shapeNodeToParametric, shapeToPath, simplifyPolyline, strokeToOutline, type BooleanOp } from "@hc/geometry";
 import { imageAssets } from "@/lib/assetProvider";
 import { measuredTextHeight } from "@/lib/textFit";
+import { bakeShapeTextScale, layoutShapeText, restoreShapeTextGeometry, SHAPE_TEXT_KEY, SHAPE_TEXT_PADDING, shapeTextColor, shapeTextFontSize, shapeTextGeometry, shapeTextOf, textArea, type ShapeTextOverflow } from "@/lib/shapeText";
 import { conformal, frameCorners, frameRotatable, rebaseInFrame, rotatePt, transformOf, turnSign } from "@/lib/cropFrame";
 import { pageGap, pageOffsets, pageTop } from "@/lib/pageLayout";
 import { cleanGrid, loadViewPrefs, saveViewPrefs, type GridSettings } from "@/lib/viewPrefs";
@@ -186,6 +188,9 @@ function pageTemplateBlocked(page: { children: Node[] } | undefined): boolean {
   if (hit) tl.notify(hit, "structure");
   return !!hit;
 }
+
+// The text height a shape with text needs at a width (lib/shapeText).
+const measureShapeText = (text: TextNode, width: number) => measuredTextHeight({ ...text, box: { ...text.box, width } } as TextNode);
 
 // Combined edit-block gate: a node is uneditable when collab-locked by another
 // user, a brand locked region for this caller, under a facilitator/protected
@@ -1189,6 +1194,19 @@ interface EditorState {
    *  distorted. With the transform from before the drag, undo returns to it
    *  in the same step. Resolves true when it baked (and recorded) anything. */
   bakeBarcodeScale(id: string, beforeTransform?: Transform): Promise<boolean>;
+  /** Puts text in a shape: the shape and an empty text frame become a shape
+   *  with text (lib/shapeText), one undo step. Returns the text frame's id
+   *  (also when the shape already has text), null when the shape cannot
+   *  take text (locked, not a shape). */
+  addShapeText(shapeId: string): string | null;
+  /** Padding (px per side), vertical alignment and overflow of a shape with
+   *  text; the text is laid out again. One undo step. */
+  setShapeTextOptions(groupId: string, opts: { padding?: { t: number; r: number; b: number; l: number }; verticalAlign?: "top" | "middle" | "bottom"; overflow?: ShapeTextOverflow }): void;
+  /** After a shape with text was resized with the handles: the scale goes
+   *  into the shape's size and the text reflows at its own size. With the
+   *  transform from before the drag, undo returns to it in the same step.
+   *  Returns false when there was nothing to bake. */
+  bakeShapeTextScale(groupId: string, beforeTransform: Transform): boolean;
   /** Set a video node's trim/volume/loop/mute, undoable. */
   setVideoProps(id: string, patch: Partial<{ trimStartMs: number; trimEndMs: number; volume: number; muted: boolean; loop: boolean }>): void;
   /** Place an image into a frame (clipped to the frame), undoable. */
@@ -1898,6 +1916,9 @@ export const useEditor = create<EditorState>((set, get) => {
   // visible text. Auto-fit boxes are exempt: they fit by scaling the FONT
   // inside a deliberate frame, so the frame itself must not move.
   const refitTextHeight = (node: Node) => {
+    // Text in a shape follows the shape instead (and grows it when set to).
+    const inShape = shapeTextOf(locate(get().doc, node.id)?.parent);
+    if (inShape) { layoutShapeText(inShape, measureShapeText); return; }
     const n = node as unknown as { box?: { mode?: string; height: number; autoFit?: { enabled?: boolean } }; size: { height: number } };
     const mode = n.box?.mode;
     if (mode !== "autoHeight" && mode !== "fixed") return; // autoWidth: width is the free axis
@@ -6989,6 +7010,107 @@ export const useEditor = create<EditorState>((set, get) => {
       };
       return (await get().updateBarcode(id, next, beforeTransform)) === null && barcodeOf(locate(get().doc, id)?.node) === next;
     },
+    addShapeText: (shapeId) => {
+      const loc = locate(get().doc, shapeId);
+      if (!loc) return null;
+      const existing = shapeTextOf(loc.parent);
+      if (existing) return existing.text.id;
+      if (loc.node.type !== "shape" || loc.node.locked || editBlocked(shapeId)) return null;
+      // Only a shape standing on its own (on the page, in a group or a frame):
+      // an operand of a boolean shape or a mask's outline is not one.
+      if (loc.parent && loc.parent.type !== "group" && loc.parent.type !== "frame") return null;
+      const shape = loc.node as unknown as ShapeNode;
+      const t0 = structuredClone(shape.transform);
+      const size0 = structuredClone(shape.size);
+      // The group takes the shape's place, turn and flip; a scale on the
+      // shape goes into its size, so the text never inherits a stretch.
+      const sx = t0.scaleX ?? 1;
+      const sy = t0.scaleY ?? 1;
+      const size = { width: size0.width * Math.abs(sx), height: size0.height * Math.abs(sy) };
+      const area = textArea(shape, size);
+      const p = SHAPE_TEXT_PADDING;
+      const text = createNode("text", {
+        name: tr("app.text"),
+        transform: { x: area.x, y: area.y, scaleX: 1, scaleY: 1, rotation: 0 },
+        size: { width: area.width, height: area.height },
+        box: { mode: "fixed", width: area.width, height: area.height, padding: { t: p, r: p, b: p, l: p }, verticalAlign: "middle", autoFit: { enabled: false, min: 8, max: 512 } },
+        content: [{ runs: [{ text: "", style: { fontFamily: "system", fontStyle: "Regular", fontSize: shapeTextFontSize(area), fill: { type: "solid", color: { srgb: shapeTextColor(shape) } } } }], style: { align: "center", direction: "auto" } }],
+      } as Partial<Node>);
+      const group = createNode("group", {
+        name: shape.name,
+        transform: { ...t0, scaleX: Math.sign(sx) || 1, scaleY: Math.sign(sy) || 1 },
+        size,
+        children: [],
+        data: { [SHAPE_TEXT_KEY]: { overflow: "grow" } },
+      } as Partial<Node>);
+      const { siblings } = loc;
+      const prevSel = get().selection;
+      perform(
+        () => {
+          shape.transform = { ...t0, x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1 };
+          shape.size = { ...size };
+          (group as unknown as { children: Node[] }).children = [shape as unknown as Node, text];
+          const i = siblings.indexOf(shape as unknown as Node);
+          if (i >= 0) siblings.splice(i, 1, group);
+          set({ selection: [group.id] });
+        },
+        () => {
+          const i = siblings.indexOf(group);
+          shape.transform = structuredClone(t0);
+          shape.size = structuredClone(size0);
+          if (i >= 0) siblings.splice(i, 1, shape as unknown as Node);
+          set({ selection: prevSel });
+        },
+      );
+      return text.id;
+    },
+    setShapeTextOptions: (groupId, opts) => {
+      const st = shapeTextOf(locate(get().doc, groupId)?.node);
+      if (!st || st.group.locked || editBlocked(groupId)) return;
+      const before = shapeTextGeometry(st);
+      const spec0 = structuredClone(st.spec);
+      perform(
+        () => {
+          const cur = shapeTextOf(locate(get().doc, groupId)?.node);
+          if (!cur) return;
+          if (opts.padding) cur.text.box.padding = { ...opts.padding };
+          if (opts.verticalAlign) cur.text.box.verticalAlign = opts.verticalAlign;
+          const overflow = opts.overflow ?? cur.spec.overflow;
+          cur.group.data = { ...cur.group.data, [SHAPE_TEXT_KEY]: { overflow } };
+          layoutShapeText({ ...cur, spec: { overflow } }, measureShapeText);
+        },
+        () => {
+          const cur = shapeTextOf(locate(get().doc, groupId)?.node);
+          if (!cur) return;
+          restoreShapeTextGeometry(cur, before);
+          cur.group.data = { ...cur.group.data, [SHAPE_TEXT_KEY]: spec0 };
+        },
+      );
+    },
+    bakeShapeTextScale: (groupId, beforeTransform) => {
+      const st = shapeTextOf(locate(get().doc, groupId)?.node);
+      if (!st) return false;
+      const sx = Math.abs(st.group.transform.scaleX ?? 1);
+      const sy = Math.abs(st.group.transform.scaleY ?? 1);
+      if (Math.abs(sx - 1) < 1e-6 && Math.abs(sy - 1) < 1e-6) return false;
+      const before = shapeTextGeometry(st);
+      const t0 = structuredClone(beforeTransform);
+      perform(
+        () => {
+          const cur = shapeTextOf(locate(get().doc, groupId)?.node);
+          if (!cur) return;
+          restoreShapeTextGeometry(cur, before);
+          bakeShapeTextScale(cur, measureShapeText);
+        },
+        () => {
+          const cur = shapeTextOf(locate(get().doc, groupId)?.node);
+          if (!cur) return;
+          restoreShapeTextGeometry(cur, before);
+          cur.group.transform = structuredClone(t0);
+        },
+      );
+      return true;
+    },
     setFrameShape: (id, mask, radius) => {
       const loc = locate(get().doc, id);
       if (!loc || loc.node.type !== "frame") return;
@@ -7905,6 +8027,10 @@ export const useEditor = create<EditorState>((set, get) => {
         const size = reflow.res.adjustments[0].fontSize;
         for (const par of after) for (const run of par.runs) (run as { style: { fontSize: number } }).style.fontSize = size;
       }
+      // Text in a shape: the frame follows the shape, and the shape grows when
+      // the text needs the room (lib/shapeText), in this same undo step.
+      const inShape = shapeTextOf(loc.parent);
+      const shapeBefore = inShape ? shapeTextGeometry(inShape) : null;
       perform(
         () => {
           node.content = structuredClone(after);
@@ -7912,11 +8038,13 @@ export const useEditor = create<EditorState>((set, get) => {
           node.box.height = hNext;
           if (reflow?.res.changed) refitTextHeight(loc.node);
           if (titleSync) titleSync.pg.name = titleSync.afterName;
+          if (inShape) layoutShapeText(inShape, measureShapeText);
         },
         () => {
           node.content = structuredClone(before);
           node.size.height = hBefore;
           node.box.height = hBefore;
+          if (inShape && shapeBefore) restoreShapeTextGeometry(inShape, shapeBefore);
           // Never write an explicit `name: undefined` own key: the CRDT
           // reconcile is key-driven and would propagate it (same hazard as
           // the interactions actionV2 fix).

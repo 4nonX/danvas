@@ -57,6 +57,7 @@ import { cmykToScreen, setScreenProofProfile } from "@/lib/print/printColor";
 import { ManageProfilesLinks } from "@/components/editor/ManageProfilesLinks";
 import { userMessage } from "@/lib/errors";
 import { barcodeOf, ungroupLabel } from "@/lib/barcode";
+import { SHAPE_TEXT_OVERFLOWS, shapeTextOf, type ShapeText, type ShapeTextOverflow } from "@/lib/shapeText";
 
 type IconType = ComponentType<{ size?: number | string; strokeWidth?: number; className?: string }>;
 
@@ -894,6 +895,12 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
   // Opacity/blend reflect the first selected node (accurate when uniform, and far
   // better than the old hardcoded 100%/normal for a multi-selection).
   const selNodes = selection.map((id) => locate(doc, id)?.node).filter(Boolean) as Node[];
+  // A shape with text is styled through its shape: fill, outline and the
+  // shape's own settings act on the shape, while position, size and arranging
+  // stay with the group (lib/shapeText).
+  const shapeText = single ? shapeTextOf(single.node) : null;
+  const styleNodes = selNodes.map((n) => (shapeTextOf(n)?.shape as unknown as Node | undefined) ?? n);
+  const styleSingle = single && shapeText ? { ...single, node: shapeText.shape as unknown as Node } : single;
   // Collaborative-lock state for the current selection. A holder is
   // another participant when its clientId !== ours; self-held means we placed it.
   const lockedByOtherHolder = (() => {
@@ -1108,8 +1115,8 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
         // Fill works for a single fill-bearing node or any multi-selection that
         // contains one. Edits route to the single setter or the batched *Sel
         // setters so a multi-selection recolors in one undo step.
-        const fillNodes = selNodes.filter((n) => hasFills(n));
-        const rep = single && hasFills(single.node) ? single.node : fillNodes[0];
+        const fillNodes = styleNodes.filter((n) => hasFills(n));
+        const rep = styleSingle && hasFills(styleSingle.node) ? styleSingle.node : fillNodes[0];
         if (!rep) return null;
         const st = useEditor.getState();
         const id = rep.id;
@@ -1130,7 +1137,7 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
               )}
             </div>
             {/* Image fill (single shape): clip an image to the shape outline. */}
-            {single && single.node.type === "shape" && !brandSwatches && (
+            {styleSingle && styleSingle.node.type === "shape" && !brandSwatches && (
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={async () => { const u = await promptText({ title: tr("editor.image_fill"), label: tr("editor.image_url"), placeholder: "https://…", confirmText: tr("editor.apply") }); if (u) st.setImageFill(id, u); }}
@@ -1144,7 +1151,7 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
               </div>
             )}
             {/* Pattern fill (single shape): tile an image across the shape. */}
-            {single && single.node.type === "shape" && !brandSwatches && (() => {
+            {styleSingle && styleSingle.node.type === "shape" && !brandSwatches && (() => {
               const pat = fill?.type === "pattern" ? (fill as unknown as { scale: number; rotation?: number; repeat: string }) : null;
               return (
                 <div className="flex flex-col gap-1.5">
@@ -1205,9 +1212,9 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
           </Section>
         );
       })()}
-      {single && single.node.type === "shape" && (() => {
-        const cur = (single.node as unknown as { shape: string }).shape;
-        const id = single.node.id;
+      {styleSingle && styleSingle.node.type === "shape" && (() => {
+        const cur = (styleSingle.node as unknown as { shape: string }).shape;
+        const id = styleSingle.node.id;
         return (
           <div style={{ order: ORDER.type }} className="flex flex-col gap-1.5">
             <span className="text-[10px] uppercase tracking-wide text-neutral-400">{tr("editor.swap_shape")}</span>
@@ -1230,6 +1237,7 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
           </div>
         );
       })()}
+      {shapeText && <ShapeTextSection st={shapeText} locked={!!single?.node.locked} />}
       {single && (single.node.type === "shape" || single.node.type === "path") && (
         <button
           style={{ order: ORDER.type }}
@@ -1339,10 +1347,10 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
         // Folded here: the image Edit side panel is their main home.
         <ImageEffectsSection id={single.node.id} node={single.node} workspaceId={workspaceId ?? null} open={false} />
       )}
-      {single && single.node.type === "shape" && (single.node as unknown as { fills?: Fill[] }).fills?.[0]?.type === "image" && (() => {
-        const id = single.node.id;
-        const fill = (single.node as unknown as { fills: Fill[] }).fills[0] as Extract<Fill, { type: "image" }>;
-        const t = single.node.transform;
+      {styleSingle && styleSingle.node.type === "shape" && (styleSingle.node as unknown as { fills?: Fill[] }).fills?.[0]?.type === "image" && (() => {
+        const id = styleSingle.node.id;
+        const fill = (styleSingle.node as unknown as { fills: Fill[] }).fills[0] as Extract<Fill, { type: "image" }>;
+        const t = styleSingle.node.transform;
         const croppable = t.rotation === 0 && Math.abs(t.scaleX) === 1 && Math.abs(t.scaleY) === 1;
         return (
           <Section title={tr("editor.image_fill")} order={ORDER.type}>
@@ -1379,8 +1387,8 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
         type StrokeT = { fill: Fill; width: number; align: "inside" | "center" | "outside"; cap: "butt" | "round" | "square"; join: "miter" | "round" | "bevel"; dash?: number[] };
         const SKIP = new Set(["text", "image", "group"]);
         // Stroke/style works for a single node or a multi-selection of strokeable nodes.
-        const strokeNodes = selNodes.filter((n) => !SKIP.has(n.type));
-        const rep = single && !SKIP.has(single.node.type) ? single.node : strokeNodes[0];
+        const strokeNodes = styleNodes.filter((n) => !SKIP.has(n.type));
+        const rep = styleSingle && !SKIP.has(styleSingle.node.type) ? styleSingle.node : strokeNodes[0];
         if (!rep) return null;
         const id = rep.id;
         const node = rep as unknown as {
@@ -3744,6 +3752,77 @@ function Section({ title, badge, order, dim, defaultOpen = true, children }: { t
 
 // Flex `order` buckets for the property groups. Lower = higher in the panel.
 // The selection's type-specific group leads; shared groups follow.
+/** Text in a shape (lib/shapeText): the padding that keeps the text off the
+ *  shape's edge (one value for all sides, or each side), where the text sits
+ *  vertically, and what happens when it needs more room than the shape has. */
+function ShapeTextSection({ st, locked }: { st: ShapeText; locked: boolean }) {
+  const pad = st.text.box.padding ?? { t: 0, r: 0, b: 0, l: 0 };
+  const same = pad.t === pad.r && pad.t === pad.b && pad.t === pad.l;
+  const [perSide, setPerSide] = useState(!same);
+  const valign = st.text.box.verticalAlign ?? "top";
+  const set = (opts: Parameters<ReturnType<typeof useEditor.getState>["setShapeTextOptions"]>[1]) =>
+    useEditor.getState().setShapeTextOptions(st.group.id, opts);
+  const num = (v: string) => Math.max(0, Number(v.replace(",", ".")) || 0);
+  const sides = [
+    { k: "t", label: tr("editor.shape_text_padding_top") },
+    { k: "r", label: tr("editor.shape_text_padding_right") },
+    { k: "b", label: tr("editor.shape_text_padding_bottom") },
+    { k: "l", label: tr("editor.shape_text_padding_left") },
+  ] as const;
+  const overflowLabel: Record<ShapeTextOverflow, string> = {
+    grow: tr("editor.shape_text_overflow_grow"),
+    shrink: tr("editor.shape_text_overflow_shrink"),
+    overflow: tr("editor.shape_text_overflow_overflow"),
+  };
+  const input = "h-8 w-full rounded-lg border border-neutral-200 bg-surface px-2 text-sm outline-none focus:border-brand-400 disabled:opacity-50";
+  return (
+    <Section title={tr("editor.shape_text")} order={ORDER.type} dim={locked}>
+      <p className="text-[11px] text-neutral-400">{tr("editor.shape_text_hint")}</p>
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs text-neutral-600">{tr("editor.shape_text_padding")}</span>
+        <button type="button" onClick={() => setPerSide((v) => !v)} className="text-[11px] text-brand-ink hover:underline">
+          {perSide ? tr("editor.shape_text_padding_all") : tr("editor.shape_text_padding_each")}
+        </button>
+      </div>
+      {perSide ? (
+        <div className="grid grid-cols-4 gap-1.5">
+          {sides.map(({ k, label }) => (
+            <label key={k} className="flex flex-col gap-0.5 text-[10px] text-neutral-500">
+              {label}
+              <input type="number" min={0} disabled={locked} defaultValue={Math.round(pad[k])} key={`${st.group.id}-${k}-${pad[k]}`}
+                onBlur={(e) => set({ padding: { ...pad, [k]: num(e.target.value) } })}
+                onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+                className={input} />
+            </label>
+          ))}
+        </div>
+      ) : (
+        <input type="number" min={0} disabled={locked} aria-label={tr("editor.shape_text_padding")} defaultValue={Math.round(pad.t)} key={`${st.group.id}-all-${pad.t}`}
+          onBlur={(e) => { const v = num(e.target.value); set({ padding: { t: v, r: v, b: v, l: v } }); }}
+          onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+          className={input} />
+      )}
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs text-neutral-600">{tr("editor.shape_text_valign")}</span>
+        <div className="flex gap-1 rounded-lg bg-neutral-100 p-0.5">
+          {(["top", "middle", "bottom"] as const).map((v) => (
+            <button key={v} type="button" disabled={locked} onClick={() => set({ verticalAlign: v })}
+              className={`rounded-md px-2 py-1 text-xs transition ${valign === v ? "bg-surface text-neutral-900 shadow-sm" : "text-neutral-600 hover:text-neutral-900"}`}>
+              {v === "top" ? tr("editor.shape_text_valign_top") : v === "middle" ? tr("editor.shape_text_valign_middle") : tr("editor.shape_text_valign_bottom")}
+            </button>
+          ))}
+        </div>
+      </div>
+      <label className="flex flex-col gap-1 text-xs text-neutral-600">
+        {tr("editor.shape_text_overflow")}
+        <select value={st.spec.overflow} disabled={locked} onChange={(e) => set({ overflow: e.target.value as ShapeTextOverflow })} className={input}>
+          {SHAPE_TEXT_OVERFLOWS.map((o) => <option key={o} value={o}>{overflowLabel[o]}</option>)}
+        </select>
+      </label>
+    </Section>
+  );
+}
+
 const ORDER = {
   type: 1, // type-specific group (text / image / shape / chart / table / ...)
   fill: 2,

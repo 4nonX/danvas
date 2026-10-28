@@ -145,7 +145,7 @@ describe("danvas package", () => {
     const zip = async (manifest: unknown, extra: { name: string; data: Uint8Array }[] = []) =>
       new Uint8Array(await zipFiles([{ name: PACKAGE_MANIFEST, data: new TextEncoder().encode(JSON.stringify(manifest)) }, ...extra]).arrayBuffer());
     const base = { format: PACKAGE_FORMAT, formatVersion: 1, exportedAt: "", designs: [{ file: "designs/1.hyc", title: "x", path: [] }], assets: [], fonts: [] };
-    expect(await code(await zip({ ...base, formatVersion: 2 }))).toBe("errors.package_newer");
+    expect(await code(await zip({ ...base, formatVersion: 3 }))).toBe("errors.package_newer");
     expect(await code(await zip(base))).toBe("errors.package_file_missing");
     expect(() => checkPackageManifest({ ...base, designs: [{ file: "../etc/passwd", title: "x", path: [] }] })).toThrow(CodedError);
   });
@@ -153,5 +153,57 @@ describe("danvas package", () => {
   it("remaps references only where mapped and never inside data URLs", () => {
     const v = { a: `url(/x/${A1}.png)`, b: `data:,${A1}`, c: A2 };
     expect(remapReferences(v, new Map([[A1, "new"]]), new Map())).toEqual({ a: "url(/x/new.png)", b: `data:,${A1}`, c: A2 });
+  });
+});
+
+describe("templates in a package", () => {
+  const tplFiles: Record<string, DesignFile> = { t1: design("Label 50x30", [A1]) };
+  const withTemplates = { ...sources, templateFile: async (id: string) => structuredClone(tplFiles[id]) };
+
+  it("takes templates along with their uploads and fonts, as format version 2", async () => {
+    const res = await exportPackage([], withTemplates, new Date("2026-10-28T00:00:00Z"), [{ id: "t1", title: "Label 50x30", categories: ["Labels"] }]);
+    expect(res.designs).toBe(0);
+    expect(res.templates).toBe(1);
+    expect(res.assets).toBe(1);
+    expect(res.fonts).toBe(1);
+    const p = await readPackage(new Uint8Array(await res.blob.arrayBuffer()));
+    expect(p.manifest.formatVersion).toBe(2);
+    expect(p.templates).toHaveLength(1);
+    expect(p.templates[0]).toMatchObject({ title: "Label 50x30", categories: ["Labels"] });
+    expect((p.templates[0].file.meta as Record<string, unknown> | undefined)?.brandKitId).toBeUndefined();
+  });
+
+  it("still writes a design-only package as version 1", async () => {
+    const res = await exportPackage([{ id: "d1", title: "Etikett", path: [] }], sources);
+    const p = await readPackage(new Uint8Array(await res.blob.arrayBuffer()));
+    expect(p.manifest.formatVersion).toBe(1);
+    expect(p.manifest.templates).toBeUndefined();
+    expect(p.templates).toEqual([]);
+  });
+
+  it("creates the templates pointing at the new uploads, skipping titles that exist", async () => {
+    const res = await exportPackage([], withTemplates, new Date(), [
+      { id: "t1", title: "Label 50x30", categories: ["Labels"] },
+      { id: "t1", title: "Already there", categories: [] },
+    ]);
+    const p = await readPackage(new Uint8Array(await res.blob.arrayBuffer()));
+    const made: { title: string; file: DesignFile; categories: string[] }[] = [];
+    const { t } = target({
+      createTemplate: async (title, file, categories) => { made.push({ title, file, categories }); },
+      templateExists: (title) => title === "Already there",
+    });
+    const out = await importPackage(p, t);
+    expect(out.templates.map((x) => x.status)).toEqual(["imported", "skipped"]);
+    expect(made[0].title).toBe("Label 50x30");
+    expect(made[0].categories).toEqual(["Labels"]);
+    expect(JSON.stringify(made[0].file)).not.toContain(A1);
+  });
+
+  it("reports templates as not imported where the role may not publish them", async () => {
+    const res = await exportPackage([], withTemplates, new Date(), [{ id: "t1", title: "Label 50x30", categories: [] }]);
+    const p = await readPackage(new Uint8Array(await res.blob.arrayBuffer()));
+    const out = await importPackage(p, target().t);
+    expect(out.templates[0].status).toBe("failed");
+    expect((out.templates[0].error as CodedError).code).toBe("errors.package_templates_not_allowed");
   });
 });

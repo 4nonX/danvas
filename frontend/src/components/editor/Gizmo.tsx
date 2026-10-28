@@ -28,6 +28,7 @@ import { usePresence } from "@/store/presence";
 import { useBrand } from "@/store/brand";
 import type { CanvasApi } from "@/lib/useEditorCanvas";
 import { barcodeOf } from "@/lib/barcode";
+import { shapeTextOf } from "@/lib/shapeText";
 
 // True when any of `ids` is uneditable: collab-locked by another user (FR-8)
 // OR a brand-template locked region for this caller.
@@ -287,7 +288,11 @@ function SelectionGizmo({ api, ids }: { api: CanvasApi; ids: string[] }) {
     // A scaled barcode is encoded again at its new module width and bar
     // height instead of staying stretched; that step also undoes the drag.
     const codes = d.mode === "resize" ? nodes.filter((id) => barcodeOf(locate(store.doc, id)?.node)) : [];
-    const plain = nodes.map((id, i) => ({ id, b: before[i], a: after[i] })).filter((x) => !codes.includes(x.id));
+    // A resized shape with text takes the new size into the shape, so its
+    // text reflows at its own size instead of stretching (lib/shapeText).
+    const shapeTexts = d.mode === "resize" ? nodes.filter((id) => shapeTextOf(locate(store.doc, id)?.node)) : [];
+    const baked = new Set(shapeTexts.filter((id) => store.bakeShapeTextScale(id, before[nodes.indexOf(id)])));
+    const plain = nodes.map((id, i) => ({ id, b: before[i], a: after[i] })).filter((x) => !codes.includes(x.id) && !baked.has(x.id));
     if (plain.length) store.pushApplied([{ kind: "transform", nodes: plain.map((x) => x.id), before: plain.map((x) => x.b), after: plain.map((x) => x.a) }]);
     for (const id of codes) {
       const i = nodes.indexOf(id);

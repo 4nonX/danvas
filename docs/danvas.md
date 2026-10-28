@@ -21,6 +21,7 @@ The other pages in this folder are HyScaler's documentation of HyCanvas and desc
 - [Editor](#editor)
   - [Editor layout](#editor-layout)
   - [Offline copies](#offline-copies)
+  - [Text in shapes](#text-in-shapes)
   - [Barcodes](#barcodes)
   - [Replace object](#replace-object)
   - [Cropping](#cropping)
@@ -123,11 +124,12 @@ Tick several designs (and folders) and the bar at the bottom offers download and
 
 ### Moving designs to another instance
 
-A danvas package (`.danvas.zip`) takes designs from one danvas instance to another with everything they need.
+A danvas package (`.danvas.zip`) takes designs and templates from one danvas instance to another with everything they need.
 
 - **Export**: select designs and folders on the dashboard and choose **danvas package** in the selection bar. The package holds the designs in the open format, every upload they use, the workspace fonts they name (the font files: pass the package on only where their licences allow) and the folder structure below what you selected. Any member who can see the designs can export them.
 - **Import**: on the other instance, open the folder the designs should go to, then **Import**, **danvas package**. The dialog shows what the package holds; **Import** adds the uploads to the workspace's uploads and the fonts to its fonts (fonts need the right to manage workspace fonts; without it the designs show a fallback font and the dialog names the fonts), recreates the folders (an existing folder of the same name is used), and creates the designs pointing at the new uploads. A design whose title already exists in its folder is skipped, so an interrupted import can simply be run again.
 - **What stays behind**: version history, comments, share links and approvals belong to the source instance. A design's brand kit assignment is dropped, since the target has its own brands; a brand kit moves as its own kit file ([Brand kits and fonts](#brand-kits-and-fonts)).
+- **Templates** travel the same way: in Templates, **Export as package** in a template's "..." menu (also in the editor's template panel), for the templates ticked (the box at a card's top left), or **Export all** for every template shown. **Import template** takes a package as well as a `.hyc` file: its templates become templates of the workspace (with **Publish templates**; a title that exists is skipped), its designs go to Projects. A package with templates is format version 2; a danvas before 1.7.0 says it comes from a newer version.
 - A single `.hyc` file (**File**, **danvas file**) still works for one design, but keeps its uploads as references to the instance it came from and carries no fonts.
 
 ### Everyone through single sign-on
@@ -164,7 +166,8 @@ If a workspace has lost its last owner (for example the only owner left the comp
 ### Templates
 
 - **Save as template**: in the editor, **File**, **Save as template**. On the dashboard, **Save as template** in a design's "..." menu, or in the bar for several selected designs: each becomes a template under its own name, with one category and one visibility for all. Needs the right **Publish templates**. A template for everyone (public) still belongs to the workspace it was saved from: it shows in that workspace's Templates, and the workspace's admins may file it in a collection or delete it.
-- **Delete a template**: in Templates, the trash button on a template's card, after a confirmation. Allowed for the person who created the template and for owners and admins of its workspace. Built-in templates cannot be deleted. Designs already made from the template stay as they are.
+- **Export a template**: in Templates or the editor's template panel, a template's "..." menu: **Export as package** (with the uploads and fonts it uses, for another workspace or instance, see [Moving designs to another instance](#moving-designs-to-another-instance)) or **Download as .hyc file** (the document only). Several at once: tick them, or **Export all**.
+- **Delete a template**: in Templates, **Delete template** in a template's "..." menu, after a confirmation. Allowed for the person who created the template and for owners and admins of its workspace. Built-in templates cannot be deleted. Designs already made from the template stay as they are.
 - Instances can hide the built-in templates with `BUILTIN_TEMPLATES=off` (see [`deploy/README.md`](../deploy/README.md)).
 
 ## Template protection
@@ -212,6 +215,17 @@ The browser keeps a copy of every design it opened, so work done without a conne
 - It has changed elsewhere and the copy has changes that never reached the server: they are kept as a version **Offline changes from this browser** in the version history, from where they can be restored or compared, a notice says so, and the current state shows.
 
 A design open in another tab of the same browser is left alone; its tab keeps working. Without a connection nothing can be compared, and the copy is used as before.
+
+### Text in shapes
+
+Any shape takes text: double-click it and type. The text stays inside the shape, kept off its edge by a padding, and wraps at the shape's width; a double-click on the shape or its text edits it again. In an ellipse, a polygon or a star the text sits in the largest rectangle that fits inside; in a triangle on its base.
+
+- **Padding**: in the properties panel under **Text in the shape**, one value for all sides or each side on its own (8 px to start with).
+- **Vertical position**: top, middle (to start with) or bottom.
+- **When the text needs more room**: **The shape grows** (to start with: it gets taller until the text fits, and keeps that size when text is removed), **The text shrinks** (the font gets smaller until it fits) or **The text runs over**.
+- Resizing the shape with the handles reflows the text at its size instead of stretching it. Fill, outline, corner radius and shape type in the properties panel act on the shape; the font, its size and colour on the text while editing.
+- A shape with text is a group of the shape and a text frame. **Ungroup** splits it into the two; a version of danvas before 1.7.0 shows it unchanged, only the text no longer follows when the shape is resized there.
+- Exports draw it like any shape and text. One gap: video exports, rendered on the server, do not shrink text yet, so there **The text shrinks** shows as **The text runs over**.
 
 ### Barcodes
 

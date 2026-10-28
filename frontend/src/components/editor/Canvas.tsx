@@ -53,6 +53,7 @@ import { useComments } from "@/store/comments";
 import { designSurfaceDir } from "@/lib/locale";
 import { tr } from "@/lib/i18n";
 import { barcodeOf, ungroupLabel } from "@/lib/barcode";
+import { shapeTextOf } from "@/lib/shapeText";
 import { BRAND_GRAPHIC_DRAG } from "@/lib/brandGraphics";
 import { prepareSvgFonts } from "@/lib/svgFlatten";
 
@@ -1172,6 +1173,13 @@ export function Canvas() {
   // (A deferred mirror caused a 1-frame double/missing flicker.)
   const editing = useEditor((s) => s.editingTextId);
   const setEditing = (id: string | null) => useEditor.getState().setEditingText(id);
+  // Text in a shape is edited inside its group: the frame is selected and typed
+  // into, and the group stays entered so the next click picks within it.
+  const editShapeText = (groupId: string, textId: string) => {
+    useEditor.getState().select([textId]);
+    useEditor.getState().setEnteredGroup(groupId);
+    setEditing(textId);
+  };
   const [editingSticky, setEditingSticky] = useState<string | null>(null);
   // Connector whose label is being edited (F30 FR-8); opened by double-click.
   const [editingConnectorLabel, setEditingConnectorLabel] = useState<string | null>(null);
@@ -1419,6 +1427,12 @@ export function Canvas() {
     // locked by design yet stays adjustable - double-click opens the crop
     // overlay to pan/zoom it within the page, like a shape's image fill.
     if (loc?.node.locked && !useEditor.getState().isBackgroundImage(hit.id)) return;
+    // Text in a shape: a double-click on the shape or its text edits the text.
+    const inShape = shapeTextOf(loc?.parent);
+    if (inShape) {
+      if (!inShape.group.locked) editShapeText(inShape.group.id, inShape.text.id);
+      return;
+    }
     if (loc?.node.type === "text") {
       setEditing(hit.id);
     } else if (loc?.node.type === "sticky") {
@@ -1429,11 +1443,19 @@ export function Canvas() {
       setEditingConnectorLabel(hit.id);
     } else if (loc?.node.type === "image" && canCrop(loc.node.transform)) {
       useEditor.getState().setCropping(hit.id);
-    } else if (loc?.node.type === "shape" && canCrop(loc.node.transform)) {
+    } else if (loc?.node.type === "shape") {
       // A shape with an image fill adjusts like an image: double-click pans and
       // zooms the fill within the shape (the crop overlay edits fills[0].crop).
+      // Any other shape takes text: the double-click puts it in and starts
+      // typing (lib/shapeText).
       const fill = (loc.node as unknown as { fills?: { type: string }[] }).fills?.[0];
-      if (fill?.type === "image") useEditor.getState().setCropping(hit.id);
+      if (fill?.type === "image") {
+        if (canCrop(loc.node.transform)) useEditor.getState().setCropping(hit.id);
+      } else if (usePresence.getState().canEdit() && !useEditor.getState().readonlyPreview()) {
+        const textId = useEditor.getState().addShapeText(hit.id);
+        const group = textId ? locate(useEditor.getState().doc, textId)?.parent : null;
+        if (textId && group) editShapeText(group.id, textId);
+      }
     } else if (loc?.node.type === "frame") {
       // An EMPTY image frame (single frame or photo-grid cell) is a photo
       // placeholder: double-click opens the image picker and the chosen file

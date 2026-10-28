@@ -1,5 +1,5 @@
-// danvas packages (.danvas.zip): designs taken from one instance to another
-// with everything they need. A .hyc file alone keeps its uploads as
+// danvas packages (.danvas.zip): designs and templates taken from one
+// instance to another with everything they need. A .hyc file alone keeps its uploads as
 // references to the instance it came from, and no font files; a package
 // carries the designs (as .hyc, the open file format), every upload they use,
 // the workspace fonts they name, and the folders they were in.
@@ -15,6 +15,7 @@
 // Layout:
 //   danvas-package.json   the manifest (below)
 //   designs/<n>-<slug>.hyc
+//   templates/<n>-<slug>.hyc   (format version 2: a package with templates)
 //   assets/<id>.<ext>
 //   fonts/<family>-<weight>-<style>.<ext>
 
@@ -26,7 +27,10 @@ import { slug } from "./brandKitFile";
 import { unzipFiles, zipFiles, type ZipEntry } from "./zip";
 
 export const PACKAGE_FORMAT = "danvas.design-package";
-export const PACKAGE_FORMAT_VERSION = 1;
+/** The newest format this version reads. A package is written as version 1
+ *  unless it carries templates (version 2), so older versions keep reading
+ *  design-only packages and say a template package is from a newer version. */
+export const PACKAGE_FORMAT_VERSION = 2;
 export const PACKAGE_MANIFEST = "danvas-package.json";
 export const PACKAGE_SUFFIX = ".danvas.zip";
 /** As many designs as one copy between workspaces takes. */
@@ -47,6 +51,11 @@ export interface PackageAsset {
   /** The upload's URL on the source instance (as the designs may name it). */
   url: string;
 }
+export interface PackageTemplate {
+  file: string;
+  title: string;
+  categories: string[];
+}
 export interface PackageFont {
   family: string;
   weight: number;
@@ -58,6 +67,8 @@ export interface PackageManifest {
   formatVersion: number;
   exportedAt: string;
   designs: PackageDesign[];
+  /** Templates (format version 2); absent in older packages. */
+  templates?: PackageTemplate[];
   assets: PackageAsset[];
   fonts: PackageFont[];
 }
@@ -128,8 +139,17 @@ export interface PackageItem {
   path: string[];
 }
 
+/** A template to take along. */
+export interface PackageTemplateItem {
+  id: string;
+  title: string;
+  categories: string[];
+}
+
 export interface PackageSources {
   designFile(id: string): Promise<DesignFile>;
+  /** Needed when the package takes templates. */
+  templateFile?(id: string): Promise<DesignFile>;
   /** The workspace's uploads by id. */
   assets: Map<string, Pick<UploadedAsset, "id" | "filename" | "mimeType" | "url">>;
   assetBytes(id: string): Promise<Uint8Array>;
@@ -141,9 +161,10 @@ export interface PackageSources {
 export interface PackageExport {
   blob: Blob;
   designs: number;
+  templates: number;
   assets: number;
   fonts: number;
-  /** Designs that could not be read (left out). */
+  /** Designs and templates that could not be read (left out). */
   failedDesigns: string[];
   /** Uploads that could not be read (left out; the designs show them empty). */
   missingAssets: number;
@@ -157,16 +178,18 @@ const EXT: Record<string, string> = {
 const extOf = (filename: string | null | undefined, mime: string | null | undefined, fallback = "bin") =>
   (mime && EXT[mime]) || filename?.match(/\.([a-z0-9]{2,5})$/i)?.[1]?.toLowerCase() || fallback;
 
-/** Build the package for `items` (each design once, with its folder path). */
-export async function exportPackage(items: readonly PackageItem[], src: PackageSources, now = new Date()): Promise<PackageExport> {
-  if (items.length > MAX_PACKAGE_DESIGNS) throw new CodedError("errors.package_too_many", "Too many designs for one package.", { max: MAX_PACKAGE_DESIGNS });
+/** Build the package for `items` (each design once, with its folder path)
+ *  and `templates`. */
+export async function exportPackage(items: readonly PackageItem[], src: PackageSources, now = new Date(), templates: readonly PackageTemplateItem[] = []): Promise<PackageExport> {
+  if (items.length + templates.length > MAX_PACKAGE_DESIGNS) throw new CodedError("errors.package_too_many", "Too many designs for one package.", { max: MAX_PACKAGE_DESIGNS });
   const entries: ZipEntry[] = [];
-  const manifest: PackageManifest = { format: PACKAGE_FORMAT, formatVersion: PACKAGE_FORMAT_VERSION, exportedAt: now.toISOString(), designs: [], assets: [], fonts: [] };
+  const manifest: PackageManifest = { format: PACKAGE_FORMAT, formatVersion: templates.length ? 2 : 1, exportedAt: now.toISOString(), designs: [], assets: [], fonts: [] };
+  if (templates.length) manifest.templates = [];
   const failedDesigns: string[] = [];
   const used = new Set<string>();
   const families = new Set<string>();
   let missingAssets = 0;
-  const total = items.length;
+  const total = items.length + templates.length;
 
   for (const [i, it] of items.entries()) {
     let file: DesignFile;
@@ -183,6 +206,24 @@ export async function exportPackage(items: readonly PackageItem[], src: PackageS
     entries.push({ name: path, data: new Uint8Array(await hycBlob(file).arrayBuffer()) });
     manifest.designs.push({ file: path, title: it.title, path: it.path });
     src.onProgress?.(i + 1, total);
+  }
+
+  for (const [i, t] of templates.entries()) {
+    let file: DesignFile;
+    try {
+      if (!src.templateFile) throw new Error("no template source");
+      file = withoutBrand(await src.templateFile(t.id));
+    } catch {
+      failedDesigns.push(t.title);
+      src.onProgress?.(items.length + i + 1, total);
+      continue;
+    }
+    for (const id of uuidsIn(file)) if (src.assets.has(id)) used.add(id);
+    familiesIn(file, families);
+    const path = `templates/${String(manifest.templates!.length + 1).padStart(3, "0")}-${slug(t.title, "template")}.hyc`;
+    entries.push({ name: path, data: new Uint8Array(await hycBlob(file).arrayBuffer()) });
+    manifest.templates!.push({ file: path, title: t.title, categories: [...t.categories] });
+    src.onProgress?.(items.length + i + 1, total);
   }
 
   for (const id of used) {
@@ -210,7 +251,7 @@ export async function exportPackage(items: readonly PackageItem[], src: PackageS
   }
 
   entries.unshift({ name: PACKAGE_MANIFEST, data: new TextEncoder().encode(JSON.stringify(manifest, null, 2)) });
-  return { blob: zipFiles(entries), designs: manifest.designs.length, assets: manifest.assets.length, fonts: manifest.fonts.length, failedDesigns, missingAssets };
+  return { blob: zipFiles(entries), designs: manifest.designs.length, templates: manifest.templates?.length ?? 0, assets: manifest.assets.length, fonts: manifest.fonts.length, failedDesigns, missingAssets };
 }
 
 /** The download name: the one design's title, or the folder's, or a date. */
@@ -224,6 +265,8 @@ export interface ParsedPackage {
   manifest: PackageManifest;
   /** The designs, read and brought to this version's file format. */
   designs: { title: string; path: string[]; file: DesignFile }[];
+  /** The templates, the same way. */
+  templates: { title: string; categories: string[]; file: DesignFile }[];
   files: Map<string, Uint8Array>;
 }
 
@@ -239,12 +282,16 @@ export function checkPackageManifest(raw: unknown): PackageManifest {
   }
   const okPath = (p: unknown, dir: string) => str(p) && (p as string).startsWith(`${dir}/`) && !(p as string).includes("..");
   const designs = Array.isArray(m.designs) ? m.designs : null;
+  const templates = Array.isArray(m.templates) ? m.templates : [];
   const assets = Array.isArray(m.assets) ? m.assets : [];
   const fonts = Array.isArray(m.fonts) ? m.fonts : [];
-  if (!designs || !designs.length) throw notPackage();
-  if (designs.length > MAX_PACKAGE_DESIGNS) throw new CodedError("errors.package_too_many", "Too many designs for one package.", { max: MAX_PACKAGE_DESIGNS });
+  if (!designs || !(designs.length + templates.length)) throw notPackage();
+  if (designs.length + templates.length > MAX_PACKAGE_DESIGNS) throw new CodedError("errors.package_too_many", "Too many designs for one package.", { max: MAX_PACKAGE_DESIGNS });
   for (const d of designs) {
     if (!okPath(d?.file, "designs") || !str(d?.title) || !Array.isArray(d?.path) || !d.path.every((p) => str(p, 120) && p.trim())) throw notPackage();
+  }
+  for (const t of templates) {
+    if (!okPath(t?.file, "templates") || !str(t?.title) || !Array.isArray(t?.categories) || !t.categories.every((c) => str(c, 120))) throw notPackage();
   }
   for (const a of assets) {
     if (!okPath(a?.file, "assets") || !str(a?.id, 64) || !str(a?.filename) || !str(a?.mimeType, 120) || !str(a?.url, 2000)) throw notPackage();
@@ -252,7 +299,7 @@ export function checkPackageManifest(raw: unknown): PackageManifest {
   for (const f of fonts) {
     if (!okPath(f?.file, "fonts") || !str(f?.family, 200) || typeof f?.weight !== "number" || (f?.style !== "normal" && f?.style !== "italic")) throw notPackage();
   }
-  return { format: PACKAGE_FORMAT, formatVersion: m.formatVersion, exportedAt: str(m.exportedAt) ? m.exportedAt! : "", designs, assets, fonts };
+  return { format: PACKAGE_FORMAT, formatVersion: m.formatVersion, exportedAt: str(m.exportedAt) ? m.exportedAt! : "", designs, ...(templates.length ? { templates } : {}), assets, fonts };
 }
 
 /** Read a .danvas.zip: the manifest, every file it names, and the designs
@@ -278,10 +325,11 @@ export async function readPackage(bytes: Uint8Array): Promise<ParsedPackage> {
     throw notPackage();
   }
   const manifest = checkPackageManifest(raw);
-  const absent = [...manifest.designs.map((d) => d.file), ...manifest.assets.map((a) => a.file), ...manifest.fonts.map((f) => f.file)].filter((f) => !files.has(f));
+  const absent = [...manifest.designs.map((d) => d.file), ...(manifest.templates ?? []).map((t) => t.file), ...manifest.assets.map((a) => a.file), ...manifest.fonts.map((f) => f.file)].filter((f) => !files.has(f));
   if (absent.length) throw new CodedError("errors.package_file_missing", `The package lacks ${absent[0]}.`, { file: absent[0] });
   const designs = manifest.designs.map((d) => ({ title: d.title, path: d.path, file: parseHycFile(new TextDecoder().decode(files.get(d.file)!)) }));
-  return { manifest, designs, files };
+  const templates = (manifest.templates ?? []).map((t) => ({ title: t.title, categories: t.categories, file: parseHycFile(new TextDecoder().decode(files.get(t.file)!)) }));
+  return { manifest, designs, templates, files };
 }
 
 // --- importing --------------------------------------------------------------
@@ -298,11 +346,18 @@ export interface PackageTarget {
   /** Whether the folder already holds a design of this title (skipped). */
   exists(folderId: string | null, title: string): boolean;
   createDesign(title: string, file: DesignFile, folderId: string | null): Promise<void>;
+  /** Create a template of the target workspace; absent when the caller may
+   *  not publish templates there (the package's templates are then reported
+   *  as not imported). */
+  createTemplate?(title: string, file: DesignFile, categories: string[]): Promise<void>;
+  /** Whether the workspace already has a template of this title (skipped). */
+  templateExists?(title: string): boolean;
   onProgress?: (done: number, total: number, label: string) => void;
 }
 
 export interface PackageImportResult {
   designs: { title: string; status: "imported" | "skipped" | "failed"; error?: unknown }[];
+  templates: { title: string; status: "imported" | "skipped" | "failed"; error?: unknown }[];
   assets: number;
   /** Font families that could not be added (no right, or a failed upload). */
   missingFonts: string[];
@@ -313,8 +368,8 @@ export const fontKey = (f: { family: string; weight: number; style: string }) =>
 /** Bring a read package into the target. Each design succeeds or fails on
  *  its own; uploads a design needs are uploaded before it. */
 export async function importPackage(p: ParsedPackage, to: PackageTarget): Promise<PackageImportResult> {
-  const res: PackageImportResult = { designs: [], assets: 0, missingFonts: [] };
-  const total = p.manifest.assets.length + p.manifest.fonts.length + p.designs.length;
+  const res: PackageImportResult = { designs: [], templates: [], assets: 0, missingFonts: [] };
+  const total = p.manifest.assets.length + p.manifest.fonts.length + p.designs.length + p.templates.length;
   let done = 0;
   const step = (label: string) => to.onProgress?.(++done, total, label);
 
@@ -358,6 +413,21 @@ export async function importPackage(p: ParsedPackage, to: PackageTarget): Promis
       res.designs.push({ title: d.title, status: "failed", error });
     }
     step(d.title);
+  }
+
+  for (const t of p.templates) {
+    try {
+      if (!to.createTemplate) throw new CodedError("errors.package_templates_not_allowed", "Your role may not publish templates in this workspace.");
+      if (to.templateExists?.(t.title)) {
+        res.templates.push({ title: t.title, status: "skipped" });
+      } else {
+        await to.createTemplate(t.title, { ...remapReferences(t.file, ids, urls), title: t.title }, t.categories);
+        res.templates.push({ title: t.title, status: "imported" });
+      }
+    } catch (error) {
+      res.templates.push({ title: t.title, status: "failed", error });
+    }
+    step(t.title);
   }
   return res;
 }

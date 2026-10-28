@@ -5,7 +5,7 @@
 import { prepareSvgFonts } from "@/lib/svgFlatten";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type FormEvent } from "react";
-import { Square, SquareRoundCorner, Circle, Triangle, Pentagon, Hexagon, Star, Diamond, Octagon, Frame, QrCode, Barcode, Type, Upload, Search, Table as TableIcon, BarChart3, LineChart, AreaChart, PieChart, Donut, ScatterChart, Radar, Wand2, ImagePlus, Settings2, Trash2, Folder, FolderPlus, Pencil, X, Tag, ChevronLeft, Link as LinkIcon, Mic, Video, MonitorUp, CircleStop, Spline, Clock, LayoutGrid, Shapes, Sparkles, Stethoscope, AlignStartVertical, Play, ChevronDown, Send, Plus, RotateCcw, FileDown, FileText, Paperclip, Layers, Copy, ArrowDown } from "lucide-react";
+import { Square, SquareRoundCorner, Circle, Triangle, Pentagon, Hexagon, Star, Diamond, Octagon, Frame, QrCode, Barcode, Type, Upload, Search, Table as TableIcon, BarChart3, LineChart, AreaChart, PieChart, Donut, ScatterChart, Radar, Wand2, ImagePlus, Settings2, Trash2, Folder, FolderPlus, Pencil, X, Tag, ChevronLeft, Link as LinkIcon, Mic, Video, MonitorUp, CircleStop, Spline, Clock, LayoutGrid, Shapes, Sparkles, Stethoscope, AlignStartVertical, Play, ChevronDown, Send, Plus, RotateCcw, FileDown, FileText, Paperclip, Layers, Copy, ArrowDown, MoreHorizontal, Package } from "lucide-react";
 import { migrate, type AssetRef, type ChartType, type Node, type Fill, type Color, type Theme } from "@hc/schema";
 import { searchFonts, type FontCatalogEntry } from "@hc/text";
 import { toHex, fromHex, relativeLuminance } from "@hc/color";
@@ -33,6 +33,8 @@ import { builtinMasterAndLayouts, type SlideLayout } from "@hc/schema";
 import { shouldGroundInLayouts } from "@/lib/generationRoute";
 import { chooseAction, promptText } from "@/lib/promptDialog";
 import { downloadHycFile } from "@/lib/hycFile";
+import { AnchoredMenu, insideAnchoredMenu } from "@/components/ui/AnchoredMenu";
+import { PackageExportDialog } from "@/components/dashboard/DesignPackage";
 import { generateAltText } from "@/lib/altText";
 import { fonts } from "@/lib/fontProvider";
 import { locate } from "@hc/editor";
@@ -141,6 +143,15 @@ export function TemplatesPanel() {
   // A multi-page template (a presentation kit) also offers its slides one by
   // one; this is the template whose picker is open.
   const [pickFrom, setPickFrom] = useState<TemplateSummary | null>(null);
+  // The template whose "..." menu is open, and the one being exported.
+  const [tplMenu, setTplMenu] = useState<string | null>(null);
+  const [exporting, setExporting] = useState<TemplateSummary | null>(null);
+  useEffect(() => {
+    if (!tplMenu) return;
+    const close = (e: MouseEvent) => { if (!insideAnchoredMenu(e.target) && !(e.target instanceof Element && e.target.closest("[aria-expanded=true]"))) setTplMenu(null); };
+    window.addEventListener("mousedown", close);
+    return () => window.removeEventListener("mousedown", close);
+  }, [tplMenu]);
   // The active page's size drives the suggestions; re-read on page switches
   // and doc edits (a stage resize changes what "matching" means).
   const activePage = useEditor((s) => s.activePage);
@@ -291,15 +302,29 @@ export function TemplatesPanel() {
           <Layers size={12} />
         </button>
       )}
-      <button
-        type="button"
-        onClick={() => void downloadHyc(t)}
-        title={tr("editor.download_as_hyc_file")}
-        aria-label={`Download "${t.title}" as .hyc file`}
-        className="absolute end-1 top-1 rounded-md border border-neutral-200 bg-surface p-1 text-neutral-600 opacity-0 shadow-sm transition hover:text-brand-ink focus-visible:opacity-100 group-hover:opacity-100"
-      >
-        <FileDown size={12} />
-      </button>
+      <div className="absolute end-1 top-1">
+        <button
+          type="button"
+          onClick={() => setTplMenu(tplMenu === t.id ? null : t.id)}
+          aria-label={tr("dashboard.more")}
+          aria-expanded={tplMenu === t.id}
+          className={`rounded-md border border-neutral-200 bg-surface p-1 text-neutral-600 shadow-sm transition hover:text-brand-ink focus-visible:opacity-100 group-hover:opacity-100 ${tplMenu === t.id ? "opacity-100" : "opacity-0"}`}
+        >
+          <MoreHorizontal size={12} />
+        </button>
+        {tplMenu === t.id && (
+          <AnchoredMenu role="menu" className="w-56 rounded-xl border border-neutral-200 bg-surface py-1 text-sm shadow-lg">
+            {brandWorkspaceId && (
+              <button type="button" role="menuitem" onClick={() => { setTplMenu(null); setExporting(t); }} className="flex w-full items-center gap-2.5 px-3 py-2 text-start text-neutral-700 hover:bg-neutral-50">
+                <Package size={15} className="shrink-0" /> {tr("dashboard.export_template_package")}
+              </button>
+            )}
+            <button type="button" role="menuitem" onClick={() => { setTplMenu(null); void downloadHyc(t); }} className="flex w-full items-center gap-2.5 px-3 py-2 text-start text-neutral-700 hover:bg-neutral-50">
+              <FileDown size={15} className="shrink-0" /> {tr("editor.download_as_hyc_file")}
+            </button>
+          </AnchoredMenu>
+        )}
+      </div>
     </div>
   );
 
@@ -307,6 +332,9 @@ export function TemplatesPanel() {
   return (
     <PanelShell title={tr("editor.templates")}>
       {pickFrom && <TemplateSlidesDialog template={pickFrom} onClose={() => setPickFrom(null)} />}
+      {exporting && brandWorkspaceId && (
+        <PackageExportDialog workspaceId={brandWorkspaceId} templates={[{ id: exporting.id, title: exporting.title, categories: exporting.categories ?? [] }]} onClose={() => setExporting(null)} />
+      )}
       {restrictedWorkspace && (
         <p className="mb-2 rounded-lg border border-brand-200 bg-brand-50 px-2.5 py-1.5 text-[11px] leading-snug text-brand-ink">{tr("editor.brand_templates_only")}</p>
       )}

@@ -1,11 +1,13 @@
 // danvas packages in the dashboard (lib/designPackage): export the selected
-// designs and folders as a .danvas.zip with their uploads and fonts, and
-// import such a package into the open folder, for taking designs to another
+// designs and folders, or templates, as a .danvas.zip with their uploads and
+// fonts, and import such a package (designs into the open folder, templates
+// as templates of the workspace), for taking designs to another
 // danvas instance. Import skips a design whose title already exists in its
 // target folder, like the bulk import, so a repeated import adds nothing twice.
 
 import { useEffect, useRef, useState } from "react";
 import { CheckCircle2, FileWarning, Loader2, Package } from "lucide-react";
+import type { DesignFile } from "@hc/schema";
 import type { DesignFolder, HomeItem, UploadedAsset } from "@hc/sdk";
 import { ApiError } from "@hc/sdk";
 import { directUploadWithProgress, oc, resolveAssetUrl } from "@/lib/sdk";
@@ -16,7 +18,7 @@ import { formatDate } from "@/lib/datetime";
 import { useAuth } from "@/store/auth";
 import {
   exportPackage, fontKey, importPackage, packageFileName, packageItems, readPackage,
-  type PackageExport, type PackageImportResult, type ParsedPackage,
+  type PackageExport, type PackageImportResult, type PackageTemplateItem, type ParsedPackage,
 } from "@/lib/designPackage";
 import { tr } from "@/lib/i18n";
 
@@ -42,10 +44,12 @@ function Progress({ done, total, label }: { done: number; total: number; label: 
 }
 
 /** Export: runs once when opened and downloads the package. */
-export function PackageExportDialog({ workspaceId, designIds, folderIds, onClose }: {
+export function PackageExportDialog({ workspaceId, designIds = [], folderIds = [], templates = [], onClose }: {
   workspaceId: string;
-  designIds: string[];
-  folderIds: string[];
+  designIds?: string[];
+  folderIds?: string[];
+  /** Templates to take along (their uploads come from this workspace). */
+  templates?: PackageTemplateItem[];
   onClose: () => void;
 }) {
   const [progress, setProgress] = useState<{ done: number; total: number }>({ done: 0, total: 0 });
@@ -59,24 +63,29 @@ export function PackageExportDialog({ workspaceId, designIds, folderIds, onClose
     void (async () => {
       try {
         // The full lists, not the dashboard's view of them (a search shows only part).
+        const needDesigns = designIds.length + folderIds.length > 0;
         const [designs, folders, assetList, fonts] = await Promise.all([
-          oc.home(workspaceId, "recent"),
-          oc.listDesignFolders(workspaceId),
+          needDesigns ? oc.home(workspaceId, "recent") : Promise.resolve([]),
+          needDesigns ? oc.listDesignFolders(workspaceId) : Promise.resolve([]),
           oc.listAssets(workspaceId) as Promise<UploadedAsset[]>,
           oc.listWorkspaceFonts(workspaceId).catch(() => []),
         ]);
         const items = packageItems(designIds, folderIds, designs, folders);
-        if (!items.length) { setError(tr("dashboard.package_nothing")); return; }
+        if (!items.length && !templates.length) { setError(tr("dashboard.package_nothing")); return; }
         const assets = new Map(assetList.map((a) => [a.id.toLowerCase(), a]));
         const res = await exportPackage(items, {
           designFile: (id) => oc.getDesignFile(id),
+          templateFile: (id) => oc.getTemplateFile(id),
           assets,
           assetBytes: (id) => bytesOf(assets.get(id)!.url),
           fonts,
           fontBytes: (id) => oc.workspaceFontFile(id),
           onProgress: (done, total) => setProgress({ done, total }),
-        });
-        const label = items.length === 1 ? items[0].title : folderIds.length === 1 && !designIds.length ? folders.find((f) => f.id === folderIds[0])?.name ?? null : null;
+        }, new Date(), templates);
+        const label = items.length === 1 && !templates.length ? items[0].title
+          : templates.length === 1 && !items.length ? templates[0].title
+          : folderIds.length === 1 && !designIds.length && !templates.length ? folders.find((f) => f.id === folderIds[0])?.name ?? null
+          : null;
         const href = URL.createObjectURL(res.blob);
         const a = document.createElement("a");
         a.href = href;
@@ -101,7 +110,9 @@ export function PackageExportDialog({ workspaceId, designIds, folderIds, onClose
       {error && <p className="text-sm text-red-600">{error}</p>}
       {result && (
         <div className="flex flex-col gap-2 text-sm text-neutral-700">
-          <p className="flex items-center gap-2"><CheckCircle2 size={16} className="text-emerald-600" /> {tr("dashboard.package_exported", { designs: result.designs, assets: result.assets, fonts: result.fonts })}</p>
+          <p className="flex items-center gap-2"><CheckCircle2 size={16} className="text-emerald-600" /> {result.templates
+            ? tr("dashboard.package_exported_templates", { designs: result.designs, templates: result.templates, assets: result.assets, fonts: result.fonts })
+            : tr("dashboard.package_exported", { designs: result.designs, assets: result.assets, fonts: result.fonts })}</p>
           {result.failedDesigns.length > 0 && <p className="text-xs text-red-600">{tr("dashboard.package_designs_left_out", { titles: result.failedDesigns.join(", ") })}</p>}
           {result.missingAssets > 0 && <p className="text-xs text-amber-700">{tr("dashboard.package_assets_left_out", { count: result.missingAssets })}</p>}
           <p className="text-xs text-neutral-500">{tr("dashboard.package_export_hint")}</p>
@@ -115,10 +126,13 @@ export function PackageExportDialog({ workspaceId, designIds, folderIds, onClose
 }
 
 /** Import: reads the package, shows what it holds, imports on confirmation. */
-export function PackageImportDialog({ file, workspaceId, targetFolderId, onClose, onChanged }: {
+export function PackageImportDialog({ file, workspaceId, targetFolderId, canPublishTemplates = false, onClose, onChanged }: {
   file: File;
   workspaceId: string;
   targetFolderId: string | null;
+  /** The caller may publish templates here; otherwise a package's templates
+   *  are reported as not imported. */
+  canPublishTemplates?: boolean;
   onClose: () => void;
   onChanged: () => void;
 }) {
@@ -146,11 +160,13 @@ export function PackageImportDialog({ file, workspaceId, targetFolderId, onClose
     if (!parsed) return;
     setRunning(true);
     try {
-      const [folders, designs, fonts] = await Promise.all([
+      const [folders, designs, fonts, existingTemplates] = await Promise.all([
         oc.listDesignFolders(workspaceId),
         oc.home(workspaceId, "recent") as Promise<HomeItem[]>,
         oc.listWorkspaceFonts(workspaceId).catch(() => []),
+        parsed.templates.length ? oc.listTemplates({ workspaceId }).catch(() => []) : Promise.resolve([]),
       ]);
+      const templateTitles = new Set(existingTemplates.map((t) => t.title.trim().toLowerCase()));
       // Folder ids by "<parentId>/<lowercased name>", seeded with what exists
       // (an existing folder of the same name is used, as in the bulk import).
       const folderIds = new Map<string, string>();
@@ -196,6 +212,13 @@ export function PackageImportDialog({ file, workspaceId, targetFolderId, onClose
           if (!titles.has(k)) titles.set(k, new Set());
           titles.get(k)!.add(title.trim().toLowerCase());
         },
+        ...(canPublishTemplates ? {
+          createTemplate: async (title: string, f: DesignFile, categories: string[]) => {
+            await oc.saveAsTemplate({ workspaceId, file: f, title, visibility: "workspace", ...(categories[0] ? { category: categories[0] } : {}) });
+            templateTitles.add(title.trim().toLowerCase());
+          },
+        } : {}),
+        templateExists: (title) => templateTitles.has(title.trim().toLowerCase()),
         onProgress: (done, total, label) => setProgress({ done, total, label }),
       });
       setResult(res);
@@ -207,8 +230,9 @@ export function PackageImportDialog({ file, workspaceId, targetFolderId, onClose
     }
   }
 
-  const count = (s: "imported" | "skipped" | "failed") => result?.designs.filter((d) => d.status === s).length ?? 0;
-  const failed = result?.designs.filter((d) => d.status === "failed") ?? [];
+  const all = [...(result?.designs ?? []), ...(result?.templates ?? [])];
+  const count = (s: "imported" | "skipped" | "failed") => all.filter((d) => d.status === s).length;
+  const failed = all.filter((d) => d.status === "failed");
   const m = parsed?.manifest;
   return (
     <Modal open onClose={() => { if (!running) onClose(); }} title={tr("dashboard.package_import_title")} width="w-[32rem]">
@@ -217,7 +241,10 @@ export function PackageImportDialog({ file, workspaceId, targetFolderId, onClose
       {m && !result && !running && (
         <div className="flex flex-col gap-2 text-sm text-neutral-700">
           <p className="flex items-center gap-2 font-medium"><Package size={16} className="text-neutral-500" /> {file.name}</p>
-          <p>{tr("dashboard.package_holds", { designs: m.designs.length, assets: m.assets.length, fonts: m.fonts.length })}</p>
+          <p>{m.templates?.length
+            ? tr("dashboard.package_holds_templates", { designs: m.designs.length, templates: m.templates.length, assets: m.assets.length, fonts: m.fonts.length })
+            : tr("dashboard.package_holds", { designs: m.designs.length, assets: m.assets.length, fonts: m.fonts.length })}</p>
+          {!!m.templates?.length && !canPublishTemplates && <p className="text-xs text-amber-700">{tr("dashboard.package_templates_no_right")}</p>}
           {m.exportedAt && <p className="text-xs text-neutral-500">{tr("dashboard.package_exported_at", { date: formatDate(m.exportedAt, user) })}</p>}
           <p className="text-xs text-neutral-500">{tr("dashboard.package_import_hint")}</p>
         </div>

@@ -87,6 +87,7 @@ import { runActive, useCanvaImport } from "@/store/canvaImport";
 import { CanvaImportDetailsHost, CanvaImportRail } from "./CanvaImportStatus";
 import { BulkImportDialog, entriesFromDrop, entriesFromInput, hasOsFiles, type ImportEntry } from "./BulkImport";
 import { PackageExportDialog, PackageImportDialog } from "./DesignPackage";
+import type { PackageTemplateItem } from "@/lib/designPackage";
 import { fromUnit, MEASURE_UNITS, parseLength, unitInputText, type MeasureUnit } from "@/lib/units";
 import { PRINT_FORMATS } from "@/lib/printFormats";
 import { childrenMap, DropZone, folderPath, FolderPathBar, FolderTile, RailFolderTree, setDragItems, subtreeIds, type DragItems } from "./Folders";
@@ -433,7 +434,11 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   // another danvas instance.
   const packageFileRef = useRef<HTMLInputElement>(null);
   const [packageImport, setPackageImport] = useState<File | null>(null);
-  const [packageExport, setPackageExport] = useState<{ designIds: string[]; folderIds: string[] } | null>(null);
+  const [packageExport, setPackageExport] = useState<{ designIds: string[]; folderIds: string[]; templates?: PackageTemplateItem[] } | null>(null);
+  // Templates ticked on the Templates page (for exporting several), and the
+  // template whose "..." menu is open.
+  const [tplSel, setTplSel] = useState<Set<string>>(new Set());
+  const [tplMenu, setTplMenu] = useState<string | null>(null);
   const bulkFolderRef = useRef<HTMLInputElement>(null);
   // Import from Canva (doc 41). Canva's consent screen sends the browser back
   // with ?canva=connected (open the dialog again), failed or declined.
@@ -980,6 +985,12 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     }
   }
 
+  // Export templates as a package with the uploads and fonts they use.
+  function exportTemplates(list: TemplateSummary[]) {
+    if (!activeWorkspaceId || !list.length) return;
+    setPackageExport({ designIds: [], folderIds: [], templates: list.map((t) => ({ id: t.id, title: t.title, categories: t.categories ?? [] })) });
+  }
+
   // Download a template as a portable .hyc file.
   async function downloadTemplateHyc(t: TemplateSummary) {
     try {
@@ -1233,7 +1244,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   return (
     // overflow-clip, not hidden: a hidden box can still be scrolled by the
     // browser when it moves focus into view.
-    <div className="flex h-screen overflow-clip bg-neutral-50 text-neutral-900" onClick={() => { setMenuFor(null); setFolderMenu(null); setImportMenu(false); }}>
+    <div className="flex h-screen overflow-clip bg-neutral-50 text-neutral-900" onClick={() => { setMenuFor(null); setFolderMenu(null); setImportMenu(false); setTplMenu(null); }}>
       {/* Left rail: fixed to the viewport; only the main column scrolls.
           Collapsible to an icon-only strip (remembered in localStorage). */}
       <aside
@@ -1869,13 +1880,19 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                 <Button variant="secondary" size="sm" onClick={() => setPptxTemplateOpen(true)} title={tr("dashboard.build_a_template_from_a_powerpoint_file")}>
                   <FileUp size={15} /> {tr("dashboard.template_from_powerpoint")}
                 </Button>
+                <Button variant="secondary" size="sm" disabled={!filteredTemplates.length || !activeWorkspaceId} onClick={() => exportTemplates(filteredTemplates)} title={tr("dashboard.export_all_templates_hint")}>
+                  <Package size={15} /> {tr("dashboard.export_all_templates")}
+                </Button>
                 <input
                   ref={importTemplateRef}
                   type="file"
-                  accept={hycAccept}
+                  accept={`${hycAccept},.zip,application/zip`}
                   hidden
                   onChange={(e) => {
-                    void importHycTemplate(e.target.files);
+                    const f = e.target.files?.[0];
+                    // A package (.danvas.zip) brings its templates with their uploads and fonts.
+                    if (f && /\.zip$/i.test(f.name)) setPackageImport(f);
+                    else void importHycTemplate(e.target.files);
                     e.target.value = "";
                   }}
                 />
@@ -1918,6 +1935,17 @@ export function DashboardApp({ view }: { view: DashboardView }) {
               {filteredTemplates.length === 0 ? (
                 <EmptyState message={tr("dashboard.no_templates_yet_open_a_design_and_use_save")} />
               ) : (
+                <>
+                {tplSel.size > 0 && (
+                  <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-brand-200 bg-brand-50 px-3 py-2 text-sm">
+                    <span className="font-medium text-neutral-800">{tr("dashboard.n_selected", { n: tplSel.size })}</span>
+                    <span className="flex-1" />
+                    <Button size="sm" onClick={() => exportTemplates(templates.filter((t) => tplSel.has(t.id)))}>
+                      <Package size={15} /> {tr("dashboard.export_template_package")}
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => setTplSel(new Set())}>{tr("dashboard.clear_selection")}</Button>
+                  </div>
+                )}
                 <ul className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                   {filteredTemplates.map((t) => (
                     <li key={t.id} className="group relative rounded-2xl border border-neutral-200 bg-surface shadow-sm transition hover:shadow-md">
@@ -1935,30 +1963,36 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                         </div>
                         <div className="truncate px-3 py-2.5 text-sm font-semibold text-neutral-800">{t.title}</div>
                       </button>
-                      <div className="absolute end-2 top-2 flex gap-1.5 opacity-0 transition focus-within:opacity-100 group-hover:opacity-100">
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setTplSel((cur) => { const n = new Set(cur); if (n.has(t.id)) n.delete(t.id); else n.add(t.id); return n; }); }}
+                        aria-label={tr("dashboard.select")}
+                        aria-pressed={tplSel.has(t.id)}
+                        className={`absolute start-2 top-2 grid h-5 w-5 place-items-center rounded-md border shadow-sm transition ${
+                          tplSel.has(t.id) ? "border-brand-600 bg-brand-600 text-white" : "border-neutral-300 bg-surface text-transparent opacity-0 focus-visible:opacity-100 group-hover:opacity-100"
+                        }`}
+                      ><Check size={12} strokeWidth={3} /></button>
+                      <div className="absolute end-2 top-2">
                         <button
-                          onClick={() => void downloadTemplateHyc(t)}
-                          title={tr("dashboard.download_as_hyc_file")}
-                          aria-label={`Download "${t.title}" as .hyc file`}
-                          className="rounded-lg border border-neutral-200 bg-surface p-1.5 text-neutral-600 shadow-sm transition hover:text-brand-ink"
-                        >
-                          <FileDown size={14} />
-                        </button>
-                        {t.canDelete && (
-                          <button
-                            onClick={() => void deleteTemplate(t)}
-                            disabled={busy}
-                            title={tr("dashboard.delete_template")}
-                            aria-label={`${tr("dashboard.delete_template")}: ${t.title}`}
-                            className="rounded-lg border border-neutral-200 bg-surface p-1.5 text-neutral-600 shadow-sm transition hover:text-red-600 disabled:opacity-50"
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); setTplMenu(tplMenu === t.id ? null : t.id); }}
+                          aria-label={tr("dashboard.more")}
+                          aria-expanded={tplMenu === t.id}
+                          className={`grid h-7 w-7 place-items-center rounded-lg border border-neutral-200 bg-surface text-neutral-600 shadow-sm transition hover:text-neutral-900 focus-visible:opacity-100 group-hover:opacity-100 ${tplMenu === t.id ? "opacity-100" : "opacity-0"}`}
+                        ><MoreHorizontal size={15} /></button>
+                        {tplMenu === t.id && (
+                          <AnchoredMenu role="menu" className="w-60 rounded-xl border border-neutral-200 bg-surface py-1 text-sm shadow-lg" onClick={(e) => e.stopPropagation()}>
+                            <MenuRow icon={ExternalLink} onClick={() => { setTplMenu(null); void applyTemplate(t); }}>{tr("dashboard.use_this_template")}</MenuRow>
+                            <MenuRow icon={Package} onClick={() => { setTplMenu(null); exportTemplates([t]); }}>{tr("dashboard.export_template_package")}</MenuRow>
+                            <MenuRow icon={FileDown} onClick={() => { setTplMenu(null); void downloadTemplateHyc(t); }}>{tr("dashboard.download_as_hyc_file")}</MenuRow>
+                            {t.canDelete && <MenuRow icon={Trash2} danger onClick={() => { setTplMenu(null); void deleteTemplate(t); }}>{tr("dashboard.delete_template")}</MenuRow>}
+                          </AnchoredMenu>
                         )}
                       </div>
                     </li>
                   ))}
                 </ul>
+                </>
               )}
             </section>
           )}
@@ -2340,18 +2374,20 @@ export function DashboardApp({ view }: { view: DashboardView }) {
       )}
 
       {packageExport && activeWorkspaceId && (
-        <PackageExportDialog workspaceId={activeWorkspaceId} designIds={packageExport.designIds} folderIds={packageExport.folderIds} onClose={() => setPackageExport(null)} />
+        <PackageExportDialog workspaceId={activeWorkspaceId} designIds={packageExport.designIds} folderIds={packageExport.folderIds} templates={packageExport.templates} onClose={() => setPackageExport(null)} />
       )}
       {packageImport && activeWorkspaceId && (
         <PackageImportDialog
           file={packageImport}
           workspaceId={activeWorkspaceId}
           targetFolderId={currentFolder}
+          canPublishTemplates={can("template.publish")}
           onChanged={reloadFolders}
           onClose={() => {
             setPackageImport(null);
             void load(searched).then(setItems);
             reloadFolders();
+            if (activeWorkspaceId) void oc.listTemplates({ workspaceId: activeWorkspaceId, collection: tplCollection ?? undefined }).then(setTemplates, () => {});
           }}
         />
       )}
