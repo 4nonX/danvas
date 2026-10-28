@@ -137,6 +137,7 @@ func serveNotFound(w http.ResponseWriter, root http.FileSystem, gaID string) boo
 		return false
 	}
 	body = injectGA(body, gaID)
+	setStaticCacheHeaders(w, "/404.html")
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusNotFound)
 	_, _ = w.Write(body)
@@ -186,6 +187,7 @@ func serveFile(w http.ResponseWriter, req *http.Request, root http.FileSystem, n
 		problemWithCode(w, req, http.StatusNotFound, "Not Found", "no route for "+req.URL.Path, "no_route")
 		return
 	}
+	setStaticCacheHeaders(w, name)
 	// HTML pages get the analytics snippet injected at serve time (when enabled),
 	// so a self-hoster's tracking id is a runtime env setting, not baked into the
 	// embedded build. The body changes length, so it is written directly rather
@@ -202,11 +204,32 @@ func serveFile(w http.ResponseWriter, req *http.Request, root http.FileSystem, n
 		}
 		// Read failed: fall through to ServeContent from the still-open file.
 	}
-	// Hashed Next assets are content-addressed and safe to cache aggressively.
-	if strings.HasPrefix(name, "/_next/") {
-		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
-	}
 	http.ServeContent(w, req, info.Name(), info.ModTime(), f)
+}
+
+// setStaticCacheHeaders picks the HTTP caching for a file of the exported
+// frontend. The rule that matters is upgrade safety: after a self-hoster swaps
+// the binary, no browser or proxy may keep serving the previous build's pages,
+// because a page names the hashed chunks of its own build and those must match
+// the API now running.
+//   - /_next/*: content addressed, cache for a year.
+//   - /sw.js: always revalidated, so a new build's worker (and with it the
+//     reload offer) is found on the next check. Its scope is the site root,
+//     which is the script's own directory, so no Service-Worker-Allowed header
+//     is needed.
+//   - HTML pages and the manifest: always revalidated. Without this, a
+//     PUBLIC_DIR deploy (whose files carry a modification time) let browsers
+//     reuse a page heuristically after an upgrade.
+func setStaticCacheHeaders(w http.ResponseWriter, name string) {
+	switch {
+	case strings.HasPrefix(name, "/_next/"):
+		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+	case name == "/sw.js":
+		w.Header().Set("Cache-Control", "no-cache")
+		w.Header().Set("Content-Type", "text/javascript; charset=utf-8")
+	case strings.HasSuffix(name, ".html") || strings.HasSuffix(name, ".webmanifest"):
+		w.Header().Set("Cache-Control", "no-cache")
+	}
 }
 
 // sanitizeGAID keeps only the characters a Google Analytics measurement id can
