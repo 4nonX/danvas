@@ -30,6 +30,9 @@ jobs:
       - run: npm run build:frontend
         env:
           NEXT_PUBLIC_BACKEND_URL: /api
+      # First-load JavaScript budget for the dashboard and editor (gzip KB),
+      # so a heavy static import fails here instead of slowing phones down.
+      - run: npm run check:bundle
 
   backend:
     name: Go backend
