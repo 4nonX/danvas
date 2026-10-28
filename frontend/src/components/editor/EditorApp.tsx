@@ -72,7 +72,7 @@ function ViewToggles() {
   const showGrid = useEditor((s) => s.showGrid);
   const snapEnabled = useEditor((s) => s.snapEnabled);
   const st = useEditor.getState;
-  const cls = (on: boolean) => `grid h-8 w-8 place-items-center rounded-lg ${on ? "bg-brand-50 text-brand-ink" : "text-neutral-500 hover:bg-neutral-100"}`;
+  const cls = (on: boolean) => `grid h-8 w-8 place-items-center rounded-lg pointer-coarse:h-10 pointer-coarse:w-10 ${on ? "bg-brand-50 text-brand-ink" : "text-neutral-500 hover:bg-neutral-100"}`;
   return (
     <div className="ms-1 flex items-center gap-0.5">
       <button onClick={() => st().toggleRulers()} title={tr("editor.rulers_guides")} className={cls(showRulers)}><Ruler size={16} /></button>
@@ -1136,7 +1136,7 @@ export function EditorApp() {
               <Share2 size={16} /> {tr("editor.share")}
             </Button>
           )}
-          <Button size="sm" onClick={() => void save()} disabled={!designId || saving || accessMode !== "edit"} title={accessMode !== "edit" ? tr("editor.you_do_not_have_edit_access") : designId ? tr("editor.save_a_snapshot") : tr("editor.open_from_the_dashboard_to_save")}>
+          <Button size="sm" className="pointer-coarse:h-10" onClick={() => void save()} disabled={!designId || saving || accessMode !== "edit"} title={accessMode !== "edit" ? tr("editor.you_do_not_have_edit_access") : designId ? tr("editor.save_a_snapshot") : tr("editor.open_from_the_dashboard_to_save")}>
             {saving ? tr("editor.saving") : tr("editor.save")}
           </Button>
         </div>
