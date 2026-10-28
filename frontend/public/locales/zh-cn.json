@@ -2860,7 +2860,6 @@
   "editor.the_code_regenerates_when_you_change_the_val": "更改数值时代码会重新生成。",
   "editor.the_csv_needs_a_header_row_plus_at_least_one": "CSV需要一个标题行和至少一行数据。",
   "editor.the_designs_main_lineage": "设计的主线",
-  "editor.the_editor_is_optimized_for_larger_screens_s": "编辑器针对较大屏幕优化。部分面板会浮在画布上方以保持可用性。",
   "editor.the_image_provider_did_not_answer": "图像服务商没有响应。",
   "editor.the_outline_needs_at_least_one_page": "大纲至少需要一个页面。",
   "editor.the_owner_has_been_notified_you_will_get_a_n": "已通知所有者。对方回复时你会收到通知。",

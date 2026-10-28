@@ -2860,7 +2860,6 @@
   "editor.the_code_regenerates_when_you_change_the_val": "値を変更するとコードが再生成されます。",
   "editor.the_csv_needs_a_header_row_plus_at_least_one": "CSVにはヘッダー行と少なくとも1行のデータが必要です。",
   "editor.the_designs_main_lineage": "デザインのメイン系統",
-  "editor.the_editor_is_optimized_for_larger_screens_s": "エディターは大きい画面向けに最適化されています。使いやすさのため一部のパネルはキャンバスの上に浮かびます。",
   "editor.the_image_provider_did_not_answer": "画像プロバイダーから応答がありませんでした。",
   "editor.the_outline_needs_at_least_one_page": "アウトラインには少なくとも1ページ必要です。",
   "editor.the_owner_has_been_notified_you_will_get_a_n": "オーナーに通知しました。返答があると通知が届きます。",

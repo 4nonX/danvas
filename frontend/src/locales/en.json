@@ -2860,7 +2860,6 @@
   "editor.the_code_regenerates_when_you_change_the_val": "The code regenerates when you change the value.",
   "editor.the_csv_needs_a_header_row_plus_at_least_one": "The CSV needs a header row plus at least one data row.",
   "editor.the_designs_main_lineage": "The design's main lineage",
-  "editor.the_editor_is_optimized_for_larger_screens_s": "The editor is optimized for larger screens. Some panels float over the canvas to keep it usable.",
   "editor.the_image_provider_did_not_answer": "The image provider did not answer.",
   "editor.the_outline_needs_at_least_one_page": "The outline needs at least one page.",
   "editor.the_owner_has_been_notified_you_will_get_a_n": "The owner has been notified. You will get a notification when they respond.",

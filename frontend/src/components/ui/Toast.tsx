@@ -70,7 +70,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       <div
         role="status"
         aria-live="polite"
-        className="pointer-events-none fixed bottom-4 end-4 z-[100] flex flex-col gap-2"
+        // --oc-toast-lift lets a screen with its own bottom bar (the editor's
+        // phone tab bar) raise toasts above it instead of covering it.
+        className="pointer-events-none fixed bottom-[calc(1rem+var(--oc-toast-lift,0px))] end-4 z-[100] flex flex-col gap-2"
       >
         {toasts.map((t) => {
           const Icon = ICONS[t.kind];
