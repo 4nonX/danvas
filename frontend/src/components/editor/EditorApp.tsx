@@ -4,6 +4,7 @@
 
 import { useCallback, useEffect, useRef, useState, type ComponentType } from "react";
 import { useRouter } from "next/router";
+import dynamic from "next/dynamic";
 import { isAiBusy, requestAi, subscribeOpenProperties } from "@/lib/aiRequests";
 import type { Node as DesignNode } from "@hc/schema";
 import { ChevronLeft, Undo2, Redo2, Download, Play, MonitorPlay, Ruler, Grid3x3, Magnet, LayoutTemplate, History, Eye, Share2, MessageSquare, ShieldCheck, Activity, BarChart3, MoreHorizontal, Send, Globe, Printer, PanelRightClose, PanelRightOpen, Keyboard, X, Accessibility, Maximize2, Minimize2, LayoutGrid, FileDown, Film, Table2, SlidersHorizontal } from "lucide-react";
@@ -30,10 +31,6 @@ import { ShareDialog } from "./ShareDialog";
 import { RequestAccessScreen } from "./RequestAccessScreen";
 import { NotFoundScreen } from "@/components/ui/NotFound";
 import { SaveAsTemplateDialog } from "./SaveAsTemplateDialog";
-import { PublishDialog } from "./PublishDialog";
-import { WebsiteDialog } from "./WebsiteDialog";
-import { PrintDialog } from "./PrintDialog";
-import { AccessibilityDialog } from "./AccessibilityDialog";
 import { PropertiesPanel } from "./PropertiesPanel";
 import { ToolRail } from "./ToolRail";
 import { PagesBar, PagePill } from "./PagesBar";
@@ -59,6 +56,14 @@ import { designSurfaceDir, mirrorInRtl, documentDirection } from "@/lib/locale";
 import { tr } from "@/lib/i18n";
 import { useMediaQuery } from "@/lib/useMediaQuery";
 import { useIsPhone } from "@/lib/useIsPhone";
+
+// Dialogs mounted only while open load on first open, keeping their libraries
+// (publishing with its webhook signing and QR codes, the website builder, print
+// imposition, the accessibility checker) out of the editor's first load.
+const PublishDialog = dynamic(() => import("./PublishDialog").then((m) => m.PublishDialog), { ssr: false });
+const WebsiteDialog = dynamic(() => import("./WebsiteDialog").then((m) => m.WebsiteDialog), { ssr: false });
+const PrintDialog = dynamic(() => import("./PrintDialog").then((m) => m.PrintDialog), { ssr: false });
+const AccessibilityDialog = dynamic(() => import("./AccessibilityDialog").then((m) => m.AccessibilityDialog), { ssr: false });
 
 type Status = "loading" | "ready" | "error" | "forbidden" | "notfound";
 
