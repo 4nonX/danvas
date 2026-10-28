@@ -156,6 +156,7 @@ import { detectSceneSeconds } from "@/lib/video/sceneDetect";
 import { videoTemplates, type VideoTemplate } from "@/lib/video/videoTemplates";
 import { tr } from "@/lib/i18n";
 import { useMediaQuery } from "@/lib/useMediaQuery";
+import { PHONE_QUERY } from "@/lib/useIsPhone";
 import { CodedError, userMessage } from "@/lib/errors";
 
 // ---------------------------------------------------------------------------
@@ -171,9 +172,6 @@ const regularFontStyle = "Regular";
 const TRACK_HEIGHT = 56; // px per track lane
 const GUTTER_WIDTH = 200; // px, the left track-header column
 const GUTTER_WIDTH_PHONE = 148; // px, the narrower phone header (name + options)
-// Phone layout gate: a narrow portrait screen, or a short landscape one on a
-// touch device. Matches the editor shell's phone breakpoint.
-const PHONE_QUERY = "(max-width: 639px), (max-height: 500px) and (pointer: coarse)";
 // Bottom sheet shell for the phone layout. Sits under the app's modals (z-50).
 const SHEET_BASE =
   "fixed inset-x-0 bottom-0 z-[45] max-h-[75dvh] rounded-t-2xl border-t border-neutral-200 bg-surface pb-[env(safe-area-inset-bottom)] shadow-2xl";

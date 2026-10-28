@@ -98,6 +98,7 @@ import { Canvas } from "./Canvas";
 import { ZoomControl } from "./ZoomControl";
 import { tr } from "@/lib/i18n";
 import { useMediaQuery } from "@/lib/useMediaQuery";
+import { PHONE_QUERY } from "@/lib/useIsPhone";
 import { copyText } from "@/lib/clipboard";
 
 // Ephemeral reaction palette: a fixed set of one-shot pings.
@@ -148,9 +149,6 @@ const TOOLBAR_POS_KEY = "oc-wb-toolbar-pos";
 // First-run onboarding is shown once per user (FR-33), tracked in localStorage
 // (a per-user UI preference, not the shared doc).
 const ONBOARD_KEY = "oc-wb-onboarded";
-// Phone layout gate: a narrow portrait screen, or a short landscape one on a
-// touch device. Matches the editor shell's phone breakpoint.
-const PHONE_QUERY = "(max-width: 639px), (max-height: 500px) and (pointer: coarse)";
 // Primary touch target on the phone toolbar (44px). The extra coarse-pointer
 // classes override IconButton's own 40px touch size.
 const PHONE_BTN = "h-11 w-11 pointer-coarse:h-11 pointer-coarse:w-11";

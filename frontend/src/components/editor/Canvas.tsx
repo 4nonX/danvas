@@ -2813,7 +2813,10 @@ export function Canvas() {
             })
           : tr("editor.design_canvas")
       }
-      className="relative h-full w-full overflow-hidden bg-neutral-200 outline-none"
+      // touch-none here, not only on the drawing layer: two fingers that land
+      // on an overlay (a text or sticky editor, the selection handles) must
+      // not zoom the whole page instead of the canvas.
+      className="relative h-full w-full touch-none overflow-hidden bg-neutral-200 outline-none"
       // The design and every overlay positioned over it live in the design's own
       // coordinate space, so the shell's direction must not reach them.
       dir={designSurfaceDir}
