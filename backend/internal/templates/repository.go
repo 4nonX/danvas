@@ -140,6 +140,17 @@ func (s *Service) setTitle(ctx context.Context, id, title string) (TemplateRow, 
 	return t, err
 }
 
+// setFile replaces a template's design (an edit): its file and the style taken
+// from it. A stored preview picture would show the old design, so it goes;
+// the list draws the template from its file then.
+func (s *Service) setFile(ctx context.Context, id string, file, style []byte) (TemplateRow, error) {
+	t, err := scanTemplate(s.db.QueryRow(ctx, `UPDATE "templates" SET "file" = $2, "style" = $3, "thumbnail" = NULL, "updated_at" = now() WHERE id = $1 RETURNING `+tmplCols, id, file, style))
+	if errors.Is(err, pgx.ErrNoRows) {
+		return TemplateRow{}, ErrNotFound
+	}
+	return t, err
+}
+
 // --- collections ---------------------------------------------------------
 
 type collectionRow struct {

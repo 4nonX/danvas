@@ -80,6 +80,14 @@ function persist() {
 }
 
 /** Subscribe to scheme changes (the editor UI re-renders on change). */
+/** The user's overrides, for their settings file. */
+export const shortcutOverrides = (): Record<string, string> => ({ ...overrides });
+/** Take a settings file's overrides; commands this version lacks do no harm. */
+export function setShortcutOverrides(next: Record<string, string>): void {
+  overrides = { ...next };
+  persist();
+}
+
 export function subscribeShortcuts(fn: () => void): () => void {
   listeners.add(fn);
   return () => listeners.delete(fn);

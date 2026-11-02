@@ -25,6 +25,8 @@ func mountTemplates(api chi.Router, tm *templates.Service, acct *accounts.Servic
 		r.Delete("/templates/collections/{id}", templatesDeleteCollectionHandler(tm))
 		r.Get("/templates/{id}", templatesGetHandler(tm))
 		r.Patch("/templates/{id}", templatesRenameHandler(tm))
+		r.Post("/templates/{id}/edit", templatesStartEditHandler(tm))
+		r.Put("/templates/{id}/file", templatesSaveEditHandler(tm))
 		r.Delete("/templates/{id}", templatesDeleteHandler(tm))
 		r.Get("/templates/{id}/file", templatesFileHandler(tm))
 		r.Get("/templates/{id}/fillable-fields", templatesFillableHandler(tm))
@@ -196,8 +198,8 @@ func templatesDeleteCollectionHandler(tm *templates.Service) http.HandlerFunc {
 	}
 }
 
-// templatesDeleteHandler deletes a stored template (its creator, or an owner or
-// admin of its workspace). Designs made from it are untouched.
+// templatesDeleteHandler deletes a stored template (template.delete). Designs
+// made from it are untouched.
 func templatesDeleteHandler(tm *templates.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		u := userFrom(r.Context())
@@ -209,8 +211,44 @@ func templatesDeleteHandler(tm *templates.Service) http.HandlerFunc {
 	}
 }
 
-// templatesRenameHandler renames a stored template (its creator, or a role
-// holding template.rename).
+// templatesStartEditHandler makes the working copy an edit happens on.
+func templatesStartEditHandler(tm *templates.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			Title string `json:"title"`
+		}
+		_ = json.NewDecoder(r.Body).Decode(&body)
+		u := userFrom(r.Context())
+		id, err := tm.StartEdit(r.Context(), u.ID, chi.URLParam(r, "id"), body.Title)
+		if err != nil {
+			templatesProblem(w, r, err)
+			return
+		}
+		writeJSON(w, http.StatusCreated, map[string]string{"designId": id})
+	}
+}
+
+// templatesSaveEditHandler replaces a template's design with the working copy's.
+func templatesSaveEditHandler(tm *templates.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			DesignID string `json:"designId"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "invalid body", "invalid_body")
+			return
+		}
+		u := userFrom(r.Context())
+		t, err := tm.SaveEdit(r.Context(), u.ID, chi.URLParam(r, "id"), body.DesignID)
+		if err != nil {
+			templatesProblem(w, r, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, t)
+	}
+}
+
+// templatesRenameHandler renames a stored template (template.rename).
 func templatesRenameHandler(tm *templates.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var body struct {

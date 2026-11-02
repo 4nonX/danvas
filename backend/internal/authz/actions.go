@@ -59,6 +59,7 @@ const (
 	TemplatePublishPublic Action = "template.publishPublic"
 	TemplateDelete        Action = "template.delete"
 	TemplateRename        Action = "template.rename"
+	TemplateEdit          Action = "template.edit"
 	TemplateCollections   Action = "template.collections"
 
 	BrandKits    Action = "brand.kits"
@@ -70,6 +71,17 @@ const (
 	// BrandCopy copies the workspace's brand kits (one, several or all) into
 	// other workspaces, and into a new one as it is created.
 	BrandCopy Action = "brand.copy"
+
+	// Export*: one right per kind of setting in a workspace's settings file.
+	ExportExportProfiles Action = "export.exportProfiles"
+	ExportPrintPresets   Action = "export.printPresets"
+	ExportColorProfiles  Action = "export.colorProfiles"
+	ExportColorLibraries Action = "export.colorLibraries"
+	ExportRoles          Action = "export.roles"
+	ExportWorkspaceRules Action = "export.workspaceRules"
+	ExportFolderDefaults Action = "export.folderDefaults"
+	// ExportMemberEmails puts the members' e-mail addresses in the file.
+	ExportMemberEmails Action = "export.memberEmails"
 
 	PrintColorProfiles  Action = "print.colorProfiles"
 	PrintExportProfiles Action = "print.exportProfiles"
@@ -135,8 +147,9 @@ var Actions = []ActionDef{
 
 	{TemplatePublish, "templates", false, "member"},
 	{TemplatePublishPublic, "templates", false, "member"},
-	{TemplateDelete, "templates", false, "admin"}, // others' templates; creators always delete their own
-	{TemplateRename, "templates", false, "admin"}, // others' templates; creators always rename their own
+	{TemplateDelete, "templates", true, "admin"}, // own: templates the member created
+	{TemplateRename, "templates", true, "admin"}, // own: templates the member created
+	{TemplateEdit, "templates", true, "admin"},   // own: templates the member created
 	{TemplateCollections, "templates", false, "member"},
 
 	{BrandKits, "brand", false, "admin"},
@@ -148,6 +161,15 @@ var Actions = []ActionDef{
 	{PrintColorProfiles, "print", false, "admin"},
 	{PrintExportProfiles, "print", false, "admin"},
 	{PrintPrintPresets, "print", false, "admin"},
+
+	{ExportExportProfiles, "transfer", false, "admin"},
+	{ExportPrintPresets, "transfer", false, "admin"},
+	{ExportColorProfiles, "transfer", false, "admin"},
+	{ExportColorLibraries, "transfer", false, "admin"},
+	{ExportRoles, "transfer", false, "admin"},
+	{ExportWorkspaceRules, "transfer", false, "admin"},
+	{ExportFolderDefaults, "transfer", false, "admin"},
+	{ExportMemberEmails, "transfer", false, "admin"},
 
 	{FontsManage, "fonts", false, "admin"},
 

@@ -199,5 +199,16 @@
   "editor.rule_spots": "Spot colours",
   "editor.rule_spots_list": "Spot colours other than {names}",
   "editor.rule_spots_desc": "The spot colours the print shop takes, separated by commas; none listed: no spot colours at all. The die line's own colour is always allowed.",
-  "editor.as_die_line_desc": "A cut contour, not artwork: never printed. Vector PDF and EPS draw it in the die line's spot colour when the download includes the die line."
+  "editor.as_die_line_desc": "A cut contour, not artwork: never printed. Vector PDF and EPS draw it in the die line's spot colour when the download includes the die line.",
+  "dashboard.settings_part_color_profiles": "Colour profiles",
+  "dashboard.settings_part_color_libraries": "Colour libraries",
+  "dashboard.settings_license_note": "Colour profiles and colour books are often licensed: check that you may pass them on.",
+  "dashboard.settings_import_without_icc": "These profiles use the default colour profile, because theirs is neither in the file nor here: {names}.",
+  "roles.action_export_color_profiles": "Export colour profiles",
+  "roles.action_export_color_libraries": "Export colour libraries",
+  "roles.hint_export_color_profiles": "Put the workspace's colour profiles in a settings file.",
+  "roles.hint_export_color_libraries": "Put the workspace's colour libraries in a settings file.",
+  "roles.seed_permission_export_color_profiles": "Export colour profiles",
+  "roles.seed_permission_export_color_libraries": "Export colour libraries",
+  "settings.settings_file_desc": "Your own profiles, colour profiles, interface preferences and shortcuts in one file, to keep or to take to another danvas instance."
 }

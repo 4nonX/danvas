@@ -38,6 +38,7 @@ The other pages in this folder are HyScaler's documentation of HyCanvas and desc
 - [Export](#export)
   - [Files for print shops](#files-for-print-shops)
   - [Proof and output check](#proof-and-output-check)
+  - [Settings file: taking settings to another instance](#settings-file-taking-settings-to-another-instance)
   - [Colour list and colour libraries](#colour-list-and-colour-libraries)
   - [Bleed and crop marks](#bleed-and-crop-marks)
   - [Die lines and overprint of elements](#die-lines-and-overprint-of-elements)
@@ -170,10 +171,12 @@ If a workspace has lost its last owner (for example the only owner left the comp
 
 ### Templates
 
-- **Save as template**: in the editor, **File**, **Save as template**. On the dashboard, **Save as template** in a design's "..." menu, or in the bar for several selected designs: each becomes a template under its own name, with one category and one visibility for all. Needs the right **Publish templates**. A template for everyone (public) still belongs to the workspace it was saved from: it shows in that workspace's Templates, and the workspace's admins may file it in a collection or delete it.
+- **Save as template**: in the editor, **File**, **Save as template**. On the dashboard, **Save as template** in a design's "..." menu, or in the bar for several selected designs: each becomes a template under its own name, with one category and one visibility for all. Needs the right **Create templates**, as do importing a template file or package and building a template from PowerPoint; without it these are not offered. A template for everyone (public) still belongs to the workspace it was saved from: it shows in that workspace's Templates, and the workspace's admins may file it in a collection or delete it.
 - **Export a template**: in Templates or the editor's template panel, a template's "..." menu: **Export as package** (with the uploads and fonts it uses, for another workspace or instance, see [Moving designs to another instance](#moving-designs-to-another-instance)) or **Download as .hyc file** (the document only). Several at once: tick them, or **Export all**.
-- **Rename a template**: in Templates, **Rename** in a template's "..." menu. Allowed for the person who created the template and for roles with the right **Rename others' templates** (`template.rename`; by default owners and admins, see [Roles and permissions](#roles-and-permissions)). Built-in templates cannot be renamed. Designs already made from the template keep their names.
-- **Delete a template**: in Templates, **Delete template** in a template's "..." menu, after a confirmation. Allowed for the person who created the template and for owners and admins of its workspace. Built-in templates cannot be deleted. Designs already made from the template stay as they are.
+- **Edit a template**: in Templates, **Edit template** in a template's "..." menu. A working copy opens in the editor, as an ordinary design, with a bar saying which template it is for. **Save template** asks once, then replaces the template's design with it; **Discard** leaves the template as it was. Either way the copy goes to the trash. The template keeps its name, collection and visibility, and designs already made from it stay as they are. The old state of a template is not kept: export it as a package first if you may want it back. Closing the editor without either leaves the copy among the designs.
+- **Rename a template**: in Templates, **Rename** in a template's "..." menu. Designs already made from the template keep their names.
+- **Who may do what**: every step of a template's life is a right under [Roles and permissions](#roles-and-permissions): **Create templates** (`template.publish`), **Publish public templates** (`template.publishPublic`), **Manage template collections** (`template.collections`), and, each for **Own items only** or **Everything in the workspace**, **Edit templates** (`template.edit`), **Rename templates** (`template.rename`) and **Delete templates** (`template.delete`). Nothing is built in for the person who created a template: by default owners and admins hold them on everything and members on what they created, and a role can be given them, or lose them, like any other right. Using a template to make a design takes **Create designs**. Built-in templates cannot be edited, renamed or deleted.
+- **Delete a template**: in Templates, **Delete template** in a template's "..." menu, after a confirmation. Built-in templates cannot be deleted. Designs already made from the template stay as they are.
 - Instances can hide the built-in templates with `BUILTIN_TEMPLATES=off` (see [`deploy/README.md`](../deploy/README.md)).
 
 ## Template protection
@@ -417,6 +420,19 @@ For a CMYK print file the download menu has two more buttons above **Download**:
 The proof also shows elements that overprint as they print (see [Die lines and overprint of elements](#die-lines-and-overprint-of-elements)).
 
 **Max. ink coverage (TAC)**, in the CMYK settings and stored in export profiles, is the total of all four inks the print shop allows; empty means the usual value for the paper (300 % for uncoated, 330 % for coated profiles).
+
+### Settings file: taking settings to another instance
+
+On the dashboard's **Members** page under **Print and export**, **Export settings** writes the workspace's settings to one file, to keep or to take to another danvas instance, and **Import settings** reads such a file. It can hold the export profiles, print presets, colour profiles, colour libraries, roles and permissions, the workspace's rules (print approval, who manages profiles), folder defaults and the members' e-mail addresses, each chosen on its own. Under **Settings**, **Account**, everyone does the same with their own personal profiles, colour profiles, interface preferences and shortcuts.
+
+- **Rights**: each kind has a right of its own under [Roles and permissions](#roles-and-permissions), in the area **Export settings**, held by default by owners and admins. The server checks them. Importing needs the ordinary right for what is created, so nobody gains anything by it.
+- **Licences**: colour profiles and colour books are often licensed. The export says so and does not stop you: passing a file on is your decision.
+- **Profiles and their colour profile**: a profile names its colour profile by the checksum of the file. On import it finds the same file, from the settings file or already in the workspace; if there is none it uses the workspace's default, and the result lists it. Built-in colour profiles need no file.
+- **Before importing**: the dialog lists what the file holds. For names already there you choose **Skip**, **Keep both** (the new one gets a number) or **Replace** (a colour profile counts as the same when its file is, whatever it is called). Nothing becomes a default by being imported. Each item fails on its own, and the result names any that did.
+- **Roles**: a seeded role or permission is recognised by what it is, whatever it is called on the other instance; any other by its name. The owner role is never touched. Nobody can give themselves more than they hold: what exceeds their own rights is refused and named in the result.
+- **Folder defaults**: a folder is found by its path, a profile by its name, so import the profiles too. What finds no match is listed; no folders are created.
+- **Members**: the addresses are left out until ticked, in both dialogs. Importing invites everyone who is not in the workspace yet, by e-mail, with their role from the file where it exists; accounts and passwords do not travel. The right **Export member e-mail addresses** can be given or taken like any other.
+- **Never in the file**: keys, tokens (AI, Canva, API) and passwords. They only work on the instance that made them, so they are set up again.
 
 ### Colour list and colour libraries
 

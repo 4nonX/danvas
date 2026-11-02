@@ -196,6 +196,9 @@ func NewRouter(d Deps) http.Handler {
 		if d.Accounts != nil && d.ColorLibraries != nil {
 			mountColorLibraries(api, d.ColorLibraries, d.Accounts)
 		}
+		if d.Accounts != nil && d.PrintProfiles != nil && d.ColorLibraries != nil && d.ExportProfiles != nil && d.Home != nil {
+			mountSettingsExport(api, d.Accounts, d.PrintProfiles, d.ColorLibraries, d.ExportProfiles, d.Home)
+		}
 		if d.Accounts != nil && d.UIPrefs != nil {
 			mountUIPrefs(api, d.UIPrefs, d.Accounts)
 		}

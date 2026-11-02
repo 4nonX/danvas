@@ -21,6 +21,7 @@ import {
   MoreHorizontal,
   Copy,
   Pencil,
+  SquarePen,
   ExternalLink,
   Settings,
   LogOut,
@@ -99,6 +100,7 @@ import { ApiKeysPanel } from "./ApiKeysPanel";
 import { WorkspaceAiPanel } from "./WorkspaceAiPanel";
 import { PrintProfilesPanel } from "./PrintProfilesPanel";
 import { ColorLibrariesPanel } from "./ColorLibrariesPanel";
+import { SettingsTransfer } from "./SettingsTransfer";
 import { PrintApprovalPanel } from "./PrintApprovalPanel";
 import { BrandPage } from "./BrandPage";
 import { KitChecklist, kitChoiceEmpty, noKits, type KitChoice } from "@/components/brand/KitChecklist";
@@ -448,6 +450,8 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   // template whose "..." menu is open.
   const [tplSel, setTplSel] = useState<Set<string>>(new Set());
   const [tplMenu, setTplMenu] = useState<string | null>(null);
+  // Bumped after a settings import, so the panels below load what it added.
+  const [settingsRev, setSettingsRev] = useState(0);
   const bulkFolderRef = useRef<HTMLInputElement>(null);
   // Import from Canva (doc 41). Canva's consent screen sends the browser back
   // with ?canva=connected (open the dialog again), failed or declined.
@@ -970,6 +974,18 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     } catch (e) {
       toast.error(importErrorMessage(e, tr("dashboard.could_not_import_the_template")));
     } finally {
+      setBusy(false);
+    }
+  }
+
+  // Edit a template: a working copy opens in the editor, which saves it back.
+  async function editTemplate(t: TemplateSummary) {
+    setBusy(true);
+    try {
+      const { designId } = await oc.startTemplateEdit(t.id, tr("dashboard.template_edit_copy_title", { name: t.title }));
+      await router.push({ pathname: "/editor", query: { id: designId, template: t.id, templateName: t.title } });
+    } catch (e) {
+      toast.error(userMessage(e, tr("dashboard.could_not_edit_template")));
       setBusy(false);
     }
   }
@@ -1911,12 +1927,12 @@ export function DashboardApp({ view }: { view: DashboardView }) {
               {/* Header row matches Favorites: title left, controls right. */}
               <div className="mb-3 flex items-center justify-between gap-3">
                 <h2 className="px-2 text-xl font-semibold text-neutral-900">{tr("dashboard.templates")}</h2>
-                <Button variant="secondary" size="sm" disabled={busy} onClick={() => importTemplateRef.current?.click()} title={tr("dashboard.import_a_template_from_a_hyc_file")}>
+                {can("template.publish") && <Button variant="secondary" size="sm" disabled={busy} onClick={() => importTemplateRef.current?.click()} title={tr("dashboard.import_a_template_from_a_hyc_file")}>
                   <FileUp size={15} /> {tr("dashboard.import_template")}
-                </Button>
-                <Button variant="secondary" size="sm" onClick={() => setPptxTemplateOpen(true)} title={tr("dashboard.build_a_template_from_a_powerpoint_file")}>
+                </Button>}
+                {can("template.publish") && <Button variant="secondary" size="sm" onClick={() => setPptxTemplateOpen(true)} title={tr("dashboard.build_a_template_from_a_powerpoint_file")}>
                   <FileUp size={15} /> {tr("dashboard.template_from_powerpoint")}
-                </Button>
+                </Button>}
                 <Button variant="secondary" size="sm" disabled={!filteredTemplates.length || !activeWorkspaceId} onClick={() => exportTemplates(filteredTemplates)} title={tr("dashboard.export_all_templates_hint")}>
                   <Package size={15} /> {tr("dashboard.export_all_templates")}
                 </Button>
@@ -2022,6 +2038,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                             <MenuRow icon={ExternalLink} onClick={() => { setTplMenu(null); void applyTemplate(t); }}>{tr("dashboard.use_this_template")}</MenuRow>
                             <MenuRow icon={Package} onClick={() => { setTplMenu(null); exportTemplates([t]); }}>{tr("dashboard.export_template_package")}</MenuRow>
                             <MenuRow icon={FileDown} onClick={() => { setTplMenu(null); void downloadTemplateHyc(t); }}>{tr("dashboard.download_as_hyc_file")}</MenuRow>
+                            {t.canEdit && <MenuRow icon={SquarePen} onClick={() => { setTplMenu(null); void editTemplate(t); }}>{tr("dashboard.edit_template")}</MenuRow>}
                             {t.canRename && <MenuRow icon={Pencil} onClick={() => { setTplMenu(null); void renameTemplate(t); }}>{tr("dashboard.rename")}</MenuRow>}
                             {t.canDelete && <MenuRow icon={Trash2} danger onClick={() => { setTplMenu(null); void deleteTemplate(t); }}>{tr("dashboard.delete_template")}</MenuRow>}
                           </AnchoredMenu>
@@ -2157,20 +2174,21 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                     {tr("dashboard.print_and_export_hint")}{" "}
                     <Link href={settingsPath("export-profiles")} className="font-medium text-brand-ink hover:underline">{tr("dashboard.print_and_export_mine")}</Link>
                   </p>
-                  <div id="color-profiles" className="scroll-mt-4">
+                  <SettingsTransfer workspaceId={activeWorkspaceId} can={can} onChanged={() => setSettingsRev((v) => v + 1)} />
+                  <div key={settingsRev} id="color-profiles" className="scroll-mt-4">
                     <PrintProfilesPanel
                       scope="workspace"
                       workspaceId={activeWorkspaceId}
                       canEdit={can("print.colorProfiles")}
                     />
                   </div>
-                  <div id="color-libraries" className="scroll-mt-4">
+                  <div key={`l${settingsRev}`} id="color-libraries" className="scroll-mt-4">
                     <ColorLibrariesPanel workspaceId={activeWorkspaceId} canEdit={can("print.colorProfiles")} />
                   </div>
                   {/* Who may manage the export profiles and print presets is
                       set right there (owners and admins by default). */}
-                  <div id="export-profiles" className="scroll-mt-4"><ProfileManager kind="export" scope="workspace" workspaceId={activeWorkspaceId} /></div>
-                  <div id="print-presets" className="scroll-mt-4"><ProfileManager kind="print" scope="workspace" workspaceId={activeWorkspaceId} /></div>
+                  <div key={`e${settingsRev}`} id="export-profiles" className="scroll-mt-4"><ProfileManager kind="export" scope="workspace" workspaceId={activeWorkspaceId} /></div>
+                  <div key={`p${settingsRev}`} id="print-presets" className="scroll-mt-4"><ProfileManager kind="print" scope="workspace" workspaceId={activeWorkspaceId} /></div>
                   <div id="print-approval" className="scroll-mt-4"><PrintApprovalPanel workspaceId={activeWorkspaceId} /></div>
                 </div>
               )}

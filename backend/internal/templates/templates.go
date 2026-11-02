@@ -18,6 +18,7 @@ import (
 	"hycanvas/backend/internal/authz"
 	"math"
 	"sort"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 )
@@ -59,12 +60,14 @@ type Template struct {
 	Version        int             `json:"version"`
 	CreatedAt      string          `json:"createdAt"`
 	UpdatedAt      string          `json:"updatedAt"`
-	// CanDelete: the caller may delete this template (its creator, or an owner
-	// or admin of its workspace). Built-in templates are never deletable.
+	// CanDelete: the caller's role holds template.delete for it (on all, or on
+	// own when they created it). Built-in templates are never deletable.
 	CanDelete bool `json:"canDelete,omitempty"`
-	// CanRename: the caller may rename this template (its creator, or a member
-	// of its workspace whose role holds template.rename). Never on built-ins.
+	// CanRename and CanEdit: the caller's role holds template.rename or
+	// template.edit for this template (on all, or on own when they created
+	// it). Never on built-ins.
 	CanRename bool `json:"canRename,omitempty"`
+	CanEdit   bool `json:"canEdit,omitempty"`
 	// LastInWorkspace: deleting it leaves its workspace without any template,
 	// which ends that workspace's "publishes templates" standing for template
 	// protection. Set only together with CanDelete.
@@ -226,10 +229,11 @@ func (s *Service) List(ctx context.Context, userID string, q TemplateQuery, work
 	var pool []Template
 	trueVis := map[string]string{}
 	deletable := s.deletableFlags(ctx, userID, rows)
-	renamers := map[string]bool{}
+	rights := map[string]bool{}
 	for _, r := range rows {
 		t := rowToTemplate(r)
-		t.CanRename = s.mayRename(ctx, userID, r, renamers)
+		t.CanRename = s.mayChange(ctx, userID, r, authz.TemplateRename, rights)
+		t.CanEdit = s.mayChange(ctx, userID, r, authz.TemplateEdit, rights)
 		trueVis[t.ID] = t.Visibility
 		t.Visibility = "public"
 		t.WorkspaceID = nil
@@ -431,38 +435,21 @@ func (s *Service) SaveAsTemplate(ctx context.Context, userID string, in SaveInpu
 
 // --- delete --------------------------------------------------------------
 
-// mayDelete reports whether a user may delete a stored template: its creator,
-// or a member of its workspace whose role allows deleting others' templates.
-func (s *Service) mayDelete(ctx context.Context, userID string, row TemplateRow, adminOf map[string]bool) bool {
-	if row.OwnerID == userID {
-		return true
-	}
+// mayChange reports whether a user's role in the template's workspace holds a
+// scoped template action for this template: on all, or on own when they created
+// it. Nothing is built in for the creator, so the right can be granted, taken
+// or passed on in the roles like any other. A template without a workspace (no
+// role can apply) stays its creator's. `seen` caches per workspace and scope.
+func (s *Service) mayChange(ctx context.Context, userID string, row TemplateRow, a authz.Action, seen map[string]bool) bool {
+	own := row.OwnerID == userID
 	if row.WorkspaceID == nil {
-		return false
+		return own
 	}
-	ws := *row.WorkspaceID
-	ok, seen := adminOf[ws]
-	if !seen {
-		ok = s.access.Require(ctx, userID, ws, authz.TemplateDelete, "") == nil
-		adminOf[ws] = ok
-	}
-	return ok
-}
-
-// mayRename reports whether a user may rename a stored template: its creator,
-// or a member of its workspace whose role holds template.rename.
-func (s *Service) mayRename(ctx context.Context, userID string, row TemplateRow, renamerOf map[string]bool) bool {
-	if row.OwnerID == userID {
-		return true
-	}
-	if row.WorkspaceID == nil {
-		return false
-	}
-	ws := *row.WorkspaceID
-	ok, seen := renamerOf[ws]
-	if !seen {
-		ok = s.access.Require(ctx, userID, ws, authz.TemplateRename, "") == nil
-		renamerOf[ws] = ok
+	key := string(a) + "|" + *row.WorkspaceID + "|" + strconv.FormatBool(own)
+	ok, known := seen[key]
+	if !known {
+		ok = s.access.Require(ctx, userID, *row.WorkspaceID, a, row.OwnerID) == nil
+		seen[key] = ok
 	}
 	return ok
 }
@@ -471,10 +458,10 @@ func (s *Service) mayRename(ctx context.Context, userID string, row TemplateRow,
 // template of its workspace.
 func (s *Service) deletableFlags(ctx context.Context, userID string, rows []TemplateRow) map[string]bool {
 	out := map[string]bool{}
-	adminOf := map[string]bool{}
+	rights := map[string]bool{}
 	counts := map[string]int{}
 	for _, r := range rows {
-		if !s.mayDelete(ctx, userID, r, adminOf) {
+		if !s.mayChange(ctx, userID, r, authz.TemplateDelete, rights) {
 			continue
 		}
 		last := false
@@ -507,7 +494,7 @@ func (s *Service) Delete(ctx context.Context, userID, id string) error {
 	if !s.canSee(ctx, userID, row) {
 		return ErrNotFound
 	}
-	if !s.mayDelete(ctx, userID, row, map[string]bool{}) {
+	if !s.mayChange(ctx, userID, row, authz.TemplateDelete, map[string]bool{}) {
 		return ErrForbidden
 	}
 	return s.deleteRow(ctx, id)
@@ -516,10 +503,10 @@ func (s *Service) Delete(ctx context.Context, userID, id string) error {
 // maxTitleRunes bounds a template's name.
 const maxTitleRunes = 200
 
-// Rename changes a stored template's name: its creator, or a role holding
-// template.rename. Built-in templates cannot be renamed, and designs already
-// made from it keep their names. A template the caller cannot see reads as not
-// found, one they can see but may not rename as forbidden.
+// Rename changes a stored template's name, under template.rename. Built-in
+// templates cannot be renamed, and designs already made from it keep their
+// names. A template the caller cannot see reads as not found, one they can see
+// but may not rename as forbidden.
 func (s *Service) Rename(ctx context.Context, userID, id, title string) (Template, error) {
 	title = strings.TrimSpace(title)
 	if title == "" || utf8.RuneCountInString(title) > maxTitleRunes {
@@ -535,10 +522,96 @@ func (s *Service) Rename(ctx context.Context, userID, id, title string) (Templat
 	if !s.canSee(ctx, userID, row) {
 		return Template{}, ErrNotFound
 	}
-	if !s.mayRename(ctx, userID, row, map[string]bool{}) {
+	if !s.mayChange(ctx, userID, row, authz.TemplateRename, map[string]bool{}) {
 		return Template{}, ErrForbidden
 	}
 	updated, err := s.setTitle(ctx, id, title)
+	if err != nil {
+		return Template{}, err
+	}
+	return rowToTemplate(updated), nil
+}
+
+// editableRow loads a stored template the user may edit. Built-in templates
+// cannot be edited.
+func (s *Service) editableRow(ctx context.Context, userID, id string) (TemplateRow, error) {
+	if _, ok := findSeed(id); ok {
+		return TemplateRow{}, ErrForbidden
+	}
+	row, err := s.getRow(ctx, id)
+	if err != nil {
+		return TemplateRow{}, err
+	}
+	if !s.canSee(ctx, userID, row) {
+		return TemplateRow{}, ErrNotFound
+	}
+	if !s.mayChange(ctx, userID, row, authz.TemplateEdit, map[string]bool{}) {
+		return TemplateRow{}, ErrForbidden
+	}
+	return row, nil
+}
+
+// StartEdit makes the working copy an edit happens on: an ordinary design of
+// the template's workspace, created by the user, opened in the editor. The
+// template itself stays as it is until SaveEdit.
+func (s *Service) StartEdit(ctx context.Context, userID, id, title string) (string, error) {
+	row, err := s.editableRow(ctx, userID, id)
+	if err != nil {
+		return "", err
+	}
+	if row.WorkspaceID == nil {
+		return "", ErrBadRequest
+	}
+	// The working copy is theirs: saving it takes design.edit at least on own.
+	if err := s.access.Require(ctx, userID, *row.WorkspaceID, authz.DesignEdit, userID); err != nil {
+		return "", ErrForbidden
+	}
+	title = strings.TrimSpace(title)
+	if title == "" || utf8.RuneCountInString(title) > maxTitleRunes {
+		title = row.Title
+	}
+	var file map[string]any
+	if err := json.Unmarshal(row.File, &file); err != nil {
+		return "", err
+	}
+	working, _ := deepCopyDesign(file)
+	return s.persist.CreateDesign(ctx, *row.WorkspaceID, title, working, &userID)
+}
+
+// SaveEdit replaces the template's design with the working copy's. Its id,
+// name, collection and visibility stay; designs made from it are untouched.
+func (s *Service) SaveEdit(ctx context.Context, userID, id, designID string) (Template, error) {
+	row, err := s.editableRow(ctx, userID, id)
+	if err != nil {
+		return Template{}, err
+	}
+	if row.WorkspaceID == nil || designID == "" {
+		return Template{}, ErrBadRequest
+	}
+	dws, err := s.persist.GetWorkspaceID(ctx, designID)
+	if err != nil {
+		return Template{}, ErrNotFound
+	}
+	if dws != *row.WorkspaceID {
+		return Template{}, ErrBadRequest
+	}
+	if err := s.access.AssertMember(ctx, userID, dws, "viewer"); err != nil {
+		return Template{}, ErrForbidden
+	}
+	file, err := s.persist.LoadDesignFile(ctx, designID, dws)
+	if err != nil {
+		return Template{}, ErrNotFound
+	}
+	if pages, ok := file["pages"].([]any); !ok || len(pages) == 0 {
+		return Template{}, ErrBadRequest
+	}
+	file["title"] = row.Title
+	style, _ := json.Marshal(extractStyle(file))
+	raw, err := json.Marshal(file)
+	if err != nil {
+		return Template{}, err
+	}
+	updated, err := s.setFile(ctx, id, raw, style)
 	if err != nil {
 		return Template{}, err
 	}

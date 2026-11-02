@@ -260,8 +260,119 @@ func TestTemplates_DB(t *testing.T) {
 	if f := flags(admin.ID); !f[wsTmpl.ID][0] || f[wsTmpl.ID][1] {
 		t.Fatalf("admin should see canDelete, and it is not the last template (the private one counts): %v", f[wsTmpl.ID])
 	}
-	// Rename: its creator or a role with template.rename (admins by default),
-	// each told by the list; the name reaches the row and the file.
+	// Edit: on all for admins, on own for members, nothing built in. A member
+	// edits a template they created through a working copy; the template keeps
+	// its id, name and visibility, and designs are not part of it.
+	mine, err := svc.SaveAsTemplate(ctx, member.ID, SaveInput{WorkspaceID: ws.ID, File: loaded.File, Title: "Member Tmpl", Visibility: "workspace"})
+	if err != nil {
+		t.Fatalf("member save: %v", err)
+	}
+	if _, err := svc.StartEdit(ctx, member.ID, wsTmpl.ID, "x"); err != ErrForbidden {
+		t.Fatalf("a member must not edit someone else's template, got %v", err)
+	}
+	if _, err := svc.StartEdit(ctx, other.ID, mine.ID, "x"); err != ErrNotFound {
+		t.Fatalf("a non-member should get not found, got %v", err)
+	}
+	if _, err := svc.StartEdit(ctx, admin.ID, mine.ID, "by admin"); err != nil {
+		t.Fatalf("admin edit of another's template: %v", err)
+	}
+	working, err := svc.StartEdit(ctx, member.ID, mine.ID, "Member Tmpl (editing)")
+	if err != nil {
+		t.Fatalf("StartEdit: %v", err)
+	}
+	wf, err := persist.LoadFile(ctx, working, ws.ID)
+	if err != nil {
+		t.Fatalf("load working copy: %v", err)
+	}
+	changed := map[string]any(wf.File)
+	changed["title"] = "Member Tmpl (editing)"
+	changed["editMark"] = "edited"
+	if _, err := persist.Snapshot(ctx, working, ws.ID, persistence.DesignFile(changed), persistence.KindCheckpoint, nil, nil); err != nil {
+		t.Fatalf("save working copy: %v", err)
+	}
+	before, _ := svc.GetFile(ctx, member.ID, mine.ID)
+	if before["editMark"] != nil {
+		t.Fatalf("the template must not change before saving")
+	}
+	saved2, err := svc.SaveEdit(ctx, member.ID, mine.ID, working)
+	if err != nil {
+		t.Fatalf("SaveEdit: %v", err)
+	}
+	if saved2.ID != mine.ID || saved2.Title != "Member Tmpl" {
+		t.Fatalf("id or name changed: %+v", saved2)
+	}
+	after, _ := svc.GetFile(ctx, member.ID, mine.ID)
+	if after["editMark"] != "edited" || after["title"] != "Member Tmpl" {
+		t.Fatalf("file after save: mark %v, title %v", after["editMark"], after["title"])
+	}
+	if _, err := svc.SaveEdit(ctx, member.ID, wsTmpl.ID, working); err != ErrForbidden {
+		t.Fatalf("saving over someone else's template should be forbidden, got %v", err)
+	}
+	if len(seedEntries) > 0 {
+		if _, err := svc.StartEdit(ctx, owner.ID, seedEntries[0].toTemplate().ID, "x"); err != ErrForbidden {
+			t.Fatalf("built-in template edit should be forbidden, got %v", err)
+		}
+	}
+	listed := func(userID, id string) Template {
+		l, err := svc.List(ctx, userID, TemplateQuery{}, ws.ID, "")
+		if err != nil {
+			t.Fatalf("List: %v", err)
+		}
+		for _, x := range l {
+			if x.ID == id {
+				return x
+			}
+		}
+		t.Fatalf("template %s not listed", id)
+		return Template{}
+	}
+	if m := listed(member.ID, mine.ID); !m.CanEdit || !m.CanRename {
+		t.Fatalf("the creator's role holds both on own: %+v", m)
+	}
+	if m := listed(member.ID, wsTmpl.ID); m.CanEdit || m.CanRename {
+		t.Fatalf("own does not reach someone else's template")
+	}
+	// The creator's right lives in the role: taken from it, it is gone. (A member
+	// without a role_id reads the rights of the legacy value, not of a role.)
+	if _, err := tx.Exec(ctx, `UPDATE "workspace_members" SET "role_id" = (SELECT id FROM "workspace_roles" WHERE "workspace_id" = $1 AND "seed_key" = 'member')
+		WHERE "workspace_id" = $1 AND "user_id" = $2`, ws.ID, member.ID); err != nil {
+		t.Fatalf("assign the role: %v", err)
+	}
+	if _, err := tx.Exec(ctx, `DELETE FROM "workspace_role_permissions" rp USING "workspace_permissions" p
+		WHERE p.id = rp."permission_id" AND p."workspace_id" = $1 AND p."seed_key" = 'edit-own-templates'
+		  AND rp."role_id" IN (SELECT id FROM "workspace_roles" WHERE "workspace_id" = $1 AND "seed_key" = 'member')`, ws.ID); err != nil {
+		t.Fatalf("take the right: %v", err)
+	}
+	if m := listed(member.ID, mine.ID); m.CanEdit || m.CanRename {
+		t.Fatalf("a creator without the right must not edit or rename: %+v", m)
+	}
+	if _, err := svc.StartEdit(ctx, member.ID, mine.ID, "x"); err != ErrForbidden {
+		t.Fatalf("a creator without the right: %v", err)
+	}
+	if _, err := svc.Rename(ctx, member.ID, mine.ID, "x"); err != ErrForbidden {
+		t.Fatalf("a creator without the right: %v", err)
+	}
+	// So is deleting, with its own permission: still theirs until it is taken.
+	if m := listed(member.ID, mine.ID); !m.CanDelete {
+		t.Fatalf("the creator's role still holds delete on own: %+v", m)
+	}
+	if _, err := tx.Exec(ctx, `DELETE FROM "workspace_role_permissions" rp USING "workspace_permissions" p
+		WHERE p.id = rp."permission_id" AND p."workspace_id" = $1 AND p."seed_key" = 'delete-own-templates'
+		  AND rp."role_id" IN (SELECT id FROM "workspace_roles" WHERE "workspace_id" = $1 AND "seed_key" = 'member')`, ws.ID); err != nil {
+		t.Fatalf("take the right: %v", err)
+	}
+	if m := listed(member.ID, mine.ID); m.CanDelete {
+		t.Fatalf("a creator without the right must not delete: %+v", m)
+	}
+	if err := svc.Delete(ctx, member.ID, mine.ID); err != ErrForbidden {
+		t.Fatalf("a creator without the right: %v", err)
+	}
+	if err := svc.Delete(ctx, admin.ID, mine.ID); err != nil {
+		t.Fatalf("clean up: %v", err)
+	}
+	// Rename: template.rename on all (admins by default) or on own (the creator
+	// through their role), each told by the list; the name reaches the row and
+	// the file.
 	canRename := func(userID string) bool {
 		l, err := svc.List(ctx, userID, TemplateQuery{}, ws.ID, "")
 		if err != nil {

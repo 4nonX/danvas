@@ -50,6 +50,9 @@ import { CommentsPanel } from "./CommentsPanel";
 import { ActivityPanel } from "./ActivityPanel";
 import { InsightsPanel } from "./InsightsPanel";
 import { ApprovalBanner } from "./ApprovalBanner";
+import { TemplateEditBanner } from "./TemplateEditBanner";
+import { useMyActions } from "@/store/workspaceActions";
+import { hasAction } from "@hc/authz";
 import { NotificationsBell } from "@/components/notifications/NotificationsBell";
 import { PromptHost } from "@/components/ui/PromptHost";
 import { useRealtime, getDesignDoc, resyncFromLiveDoc } from "@/lib/useRealtime";
@@ -272,6 +275,7 @@ function ReflowHintChip() {
 
 export function EditorApp() {
   const router = useRouter();
+  const mayCreateTemplates = hasAction(useMyActions(useBrand((s) => s.workspaceId)), "template.publish");
   const toast = useToast();
   const loadDoc = useEditor((s) => s.loadDoc);
   const setDocTitle = useEditor((s) => s.setDocTitle);
@@ -1063,7 +1067,7 @@ export function EditorApp() {
               // scene-backed designs only (doc/sheet/video content lives in meta).
               ...(docKind === "design"
                 ? [
-                    { icon: LayoutTemplate as TopIcon, label: tr("editor.save_as_template"), onClick: () => setTemplateOpen(true), disabled: !workspaceId, sepBefore: true },
+                    { icon: LayoutTemplate as TopIcon, label: tr("editor.save_as_template"), onClick: () => setTemplateOpen(true), disabled: !workspaceId || !mayCreateTemplates, sepBefore: true },
                     { icon: Send as TopIcon, label: tr("editor.publish_to_social"), onClick: () => setPublishOpen(true) },
                     { icon: Globe as TopIcon, label: tr("editor.publish_as_website"), onClick: () => setWebsiteOpen(true) },
                     { icon: Printer as TopIcon, label: tr("editor.print"), onClick: () => setPrintOpen(true) },
@@ -1256,6 +1260,9 @@ export function EditorApp() {
           <Canvas />
           <PreviewBanner />
           <AccessBanner mode={accessMode} suppressed={approvalLocked} />
+          {designId && typeof router.query.template === "string" && (
+            <TemplateEditBanner designId={designId} templateId={router.query.template} name={typeof router.query.templateName === "string" ? router.query.templateName : ""} />
+          )}
           {designId && (
             <ApprovalBanner
               designId={designId}

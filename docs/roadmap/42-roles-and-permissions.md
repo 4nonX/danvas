@@ -46,15 +46,17 @@ Every guarded route maps to exactly one action. Membership alone still allows re
 | | `share.requests` (answer access requests) | | member |
 | Approvals | `approval.request` | | member |
 | | `approval.decide` (approve, reject, reopen) | | admin |
-| Templates | `template.publish` (in the workspace) | | member |
+| Templates | `template.publish` (create: save a design as a template, import a file, a package or PowerPoint) | | member |
 | | `template.publishPublic` (for every user of the instance) | | member |
-| | `template.delete` (other people's templates; whoever created a template can always delete it) | | admin |
-| | `template.rename` (other people's templates; whoever created a template can always rename it) | | admin |
+| | `template.delete` (own: templates the member created) | yes | admin (member on own) |
+| | `template.rename` (own: templates the member created) | yes | admin (member on own) |
+| | `template.edit` (replace a template's design through a working copy; own: templates the member created) | yes | admin (member on own) |
 | | `template.collections` | | member |
 | Brand | `brand.kits` (create, edit, delete, restore, default kit) | | admin |
 | | `brand.designs` (apply a kit to a design, brand-locked regions, review) | | admin |
 | | `brand.unlock` (lift template locks) | | admin |
 | Print | `print.colorProfiles` | | admin |
+| Settings file | `export.exportProfiles`, `export.printPresets`, `export.colorProfiles`, `export.colorLibraries`, `export.roles`, `export.workspaceRules`, `export.folderDefaults`, `export.memberEmails` (each kind on its own) | | admin |
 | | `print.exportProfiles` | | admin (member when switched) |
 | | `print.printPresets` | | admin (member when switched) |
 | Fonts | `fonts.manage` | | admin |
@@ -91,6 +93,9 @@ Every workspace starts with these, so a new workspace works without setup and th
 | Templates | `template.publish`, `template.publishPublic`, `template.collections` |
 | Manage templates | `template.delete` all |
 | Rename templates | `template.rename` all |
+| Edit templates | `template.edit` all |
+| Edit own templates | `template.edit` own, `template.rename` own |
+| Delete own templates | `template.delete` own |
 | Brand | `brand.kits`, `brand.designs`, `brand.unlock` |
 | Print data | `print.colorProfiles`, `print.exportProfiles`, `print.printPresets` |
 | Fonts | `fonts.manage` |

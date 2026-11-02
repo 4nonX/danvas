@@ -2,6 +2,26 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 1.9.4 (2026-11-02)
+
+### Added
+
+- **Templates can be edited.** **Edit template** in a template's "..." menu opens a working copy in the editor; **Save template** replaces the template's design with it after a confirmation, **Discard** leaves the template as it was, and the copy goes to the trash either way. The template keeps its id, name, collection and visibility, designs already made from it are untouched. Built-in templates cannot be edited.
+- **The new right Edit templates** (`template.edit`), for own templates or for all.
+- **Settings files.** **Export settings** on the **Members** page under **Print and export** writes a workspace's export profiles, print presets, colour profiles, colour libraries, roles and permissions, rules, folder defaults and, when ticked, its members' e-mail addresses to one file. **Import settings** reads it here or on another instance after listing what it holds; for names already there: skip, keep both or replace. Under **Settings**, **Account**, everyone can do the same with their own profiles, colour profiles, interface preferences and shortcuts. Profiles find their colour profile by its file, folder defaults their folder by its path, and whatever finds no match is named in the result. Keys, tokens and passwords are never in the file. A note on licences appears with colour profiles and libraries, and does not stop the export. Importing members sends each one not yet in the workspace an invitation mail, so it is ticked on purpose.
+- **A right per kind of setting**: `export.exportProfiles`, `export.printPresets`, `export.colorProfiles`, `export.colorLibraries`, `export.roles`, `export.workspaceRules`, `export.folderDefaults` and `export.memberEmails`, checked by the server, each with a permission of its own.
+
+### Changed
+
+- **A template's whole life is in the roles.** **Rename templates** (`template.rename`) and **Delete templates** (`template.delete`) now also have a scope. What the creator of a template may do with it is a right in the role and no longer built into the code, so it shows in the roles and can be granted or taken.
+- **Publish templates** is called **Create templates** (`template.publish`, unchanged), and what needs it is only offered with it: importing a template file and building a template from PowerPoint on the dashboard, **Save as template** in the editor. The server refused these before too.
+
+### Upgrading
+
+- One additive migration: every workspace gets the permissions **Edit templates** (on each role that may delete all templates) and **Edit own templates** and **Delete own templates** (on each role that may create templates). A person whose role may not create templates can no longer rename or delete the ones they created earlier, unless their role is given these rights. No change to the file format.
+- A second additive migration: every workspace gets one permission per export right, on each role that may manage roles (owners and admins unless changed). A rollback ignores them.
+- Going back to an earlier version reads `template.rename` and `template.delete` without a scope, so members could then rename and delete other people's templates until the permissions **Edit own templates** and **Delete own templates** are taken from them.
+
 ## 1.9.3 (2026-11-02)
 
 ### Changed

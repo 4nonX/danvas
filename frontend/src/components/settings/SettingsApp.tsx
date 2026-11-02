@@ -24,6 +24,7 @@ import { Modal } from "@/components/ui/Modal";
 import { settingsPath, type SettingsTab } from "./tabs";
 import { PersonalAiSettings } from "./PersonalAiSettings";
 import { ProfileManager } from "./ProfileManager";
+import { SettingsTransfer } from "@/components/dashboard/SettingsTransfer";
 import { PrintProfilesPanel } from "@/components/dashboard/PrintProfilesPanel";
 import { tr } from "@/lib/i18n";
 import { apiCodeMessage, CodedError, userMessage } from "@/lib/errors";
@@ -580,6 +581,9 @@ export function SettingsApp({ tab: urlTab }: { tab: SettingsTab | null }) {
                 </div>
               </Card>
 
+              <Card title={tr("settings.settings_file")} description={tr("settings.settings_file_desc")}>
+                <SettingsTransfer workspaceId={null} />
+              </Card>
               <Card title={tr("settings.your_data")} description={tr("settings.download_everything_in_your_account_or_perma")}>
                 <div className="flex flex-wrap items-center gap-2">
                   <Button variant="secondary" disabled={exporting} onClick={() => void downloadData()}>

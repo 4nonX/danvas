@@ -15,6 +15,7 @@ export type ActionArea =
   | "templates"
   | "brand"
   | "print"
+  | "transfer"
   | "fonts"
   | "ai"
   | "integrations"
@@ -53,8 +54,9 @@ export const ACTIONS = [
   { key: "approval.decide", area: "approvals", scoped: false },
   { key: "template.publish", area: "templates", scoped: false },
   { key: "template.publishPublic", area: "templates", scoped: false },
-  { key: "template.delete", area: "templates", scoped: false },
-  { key: "template.rename", area: "templates", scoped: false },
+  { key: "template.delete", area: "templates", scoped: true },
+  { key: "template.rename", area: "templates", scoped: true },
+  { key: "template.edit", area: "templates", scoped: true },
   { key: "template.collections", area: "templates", scoped: false },
   { key: "brand.kits", area: "brand", scoped: false },
   { key: "brand.designs", area: "brand", scoped: false },
@@ -64,6 +66,14 @@ export const ACTIONS = [
   { key: "print.colorProfiles", area: "print", scoped: false },
   { key: "print.exportProfiles", area: "print", scoped: false },
   { key: "print.printPresets", area: "print", scoped: false },
+  { key: "export.exportProfiles", area: "transfer", scoped: false },
+  { key: "export.printPresets", area: "transfer", scoped: false },
+  { key: "export.colorProfiles", area: "transfer", scoped: false },
+  { key: "export.colorLibraries", area: "transfer", scoped: false },
+  { key: "export.roles", area: "transfer", scoped: false },
+  { key: "export.workspaceRules", area: "transfer", scoped: false },
+  { key: "export.folderDefaults", area: "transfer", scoped: false },
+  { key: "export.memberEmails", area: "transfer", scoped: false },
   { key: "fonts.manage", area: "fonts", scoped: false },
   { key: "ai.use", area: "ai", scoped: false },
   { key: "ai.configure", area: "ai", scoped: false },
@@ -83,7 +93,7 @@ export type Action = (typeof ACTIONS)[number]["key"];
 /** A permission's or a member's actions with their scope. */
 export type ActionSet = Partial<Record<Action, ActionScope>>;
 
-export const ACTION_AREAS: ActionArea[] = ["designs", "folders", "uploads", "sharing", "approvals", "templates", "brand", "print", "fonts", "ai", "integrations", "team"];
+export const ACTION_AREAS: ActionArea[] = ["designs", "folders", "uploads", "sharing", "approvals", "templates", "brand", "print", "transfer", "fonts", "ai", "integrations", "team"];
 
 /** Whether the set allows the action; `own` says the target is the member's. */
 export function allowsAction(set: ActionSet | null | undefined, action: Action, own = false): boolean {

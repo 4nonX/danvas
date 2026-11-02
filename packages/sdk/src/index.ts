@@ -366,12 +366,13 @@ export interface TemplateSummary {
   format: { width: number; height: number; unit: string };
   /** Pages in the template; a presentation kit has one per layout. */
   pageCount?: number;
-  /** The caller may delete it (its creator, or an owner or admin of its
-   *  workspace). Never set on built-in templates. */
+  /** The caller's role holds template.delete for it (on all, or on own when
+   *  they created it). Never set on built-in templates. */
   canDelete?: boolean;
-  /** The caller may rename it (its creator, or a role holding
-   *  template.rename). Never set on built-in templates. */
+  /** The caller's role holds template.rename or template.edit for it (on all,
+   *  or on own when they created it). Never set on built-in templates. */
   canRename?: boolean;
+  canEdit?: boolean;
   /** Deleting it leaves its workspace without any template (template
    *  protection then treats the workspace as no longer publishing). */
   lastInWorkspace?: boolean;
@@ -2282,12 +2283,22 @@ export class HyCanvasClient {
   createTemplateCollection(workspaceId: string, name: string): Promise<TemplateCollectionSummary> {
     return this.request("POST", "/v1/templates/collections", { workspaceId, name });
   }
-  /** Rename a stored template (its creator, or a role holding template.rename). */
+  /** Start editing a stored template (template.edit): a working copy, an
+   *  ordinary design opened in the editor. The template stays as it is until
+   *  saveTemplateEdit. */
+  startTemplateEdit(id: string, title: string): Promise<{ designId: string }> {
+    return this.request("POST", `/v1/templates/${encodeURIComponent(id)}/edit`, { title });
+  }
+  /** Replace the template's design with the working copy's. */
+  saveTemplateEdit(id: string, designId: string): Promise<TemplateSummary> {
+    return this.request("PUT", `/v1/templates/${encodeURIComponent(id)}/file`, { designId });
+  }
+  /** Rename a stored template (template.rename). */
   renameTemplate(id: string, title: string): Promise<TemplateSummary> {
     return this.request("PATCH", `/v1/templates/${encodeURIComponent(id)}`, { title });
   }
-  /** Delete a stored template (its creator, or an owner or admin of its
-   *  workspace). Designs made from it are untouched. */
+  /** Delete a stored template (template.delete). Designs made from it are
+   *  untouched. */
   deleteTemplate(id: string): Promise<void> {
     return this.request("DELETE", `/v1/templates/${encodeURIComponent(id)}`);
   }
@@ -2881,6 +2892,11 @@ export class HyCanvasClient {
   async startOutputCheck(file: Blob, tacLimit: number): Promise<{ jobId: string }> {
     const res = await this.requestRaw("POST", `/v1/output-check?tac=${Math.round(tacLimit)}`, file);
     return (await res.json()) as { jobId: string };
+  }
+
+  /** One part of the workspace's settings file; each has a right of its own. */
+  settingsExportPart(workspaceId: string, part: "exportProfiles" | "printPresets" | "colorProfiles" | "colorLibraries" | "roles" | "workspaceRules" | "folderDefaults" | "memberEmails"): Promise<never> {
+    return this.request("GET", `/v1/workspaces/${workspaceId}/settings-export/${part}`);
   }
 
   // Export profiles: named download settings, personal or per workspace.
