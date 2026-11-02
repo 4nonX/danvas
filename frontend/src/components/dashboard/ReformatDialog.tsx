@@ -27,7 +27,7 @@ export function ReformatDialog({ designs, onClose, onDone, initialSizeMm }: { de
   const [unit, setUnit] = useState<MeasureUnit>("mm");
   const [w, setW] = useState("");
   const [h, setH] = useState("");
-  const [fit, setFit] = useState<ReformatFit>("scale");
+  const [fit, setFit] = useState<ReformatFit>("none");
   const [turn, setTurn] = useState<ReformatTurn>(0);
   const [running, setRunning] = useState(false);
   const [finished, setFinished] = useState(false);
@@ -128,9 +128,9 @@ export function ReformatDialog({ designs, onClose, onDone, initialSizeMm }: { de
   }
 
   const fits: { id: ReformatFit; label: string; desc: string }[] = [
+    { id: "none", label: tr("dashboard.reformat_fit_none"), desc: tr("dashboard.reformat_fit_none_desc") },
     { id: "scale", label: tr("dashboard.reformat_fit_scale"), desc: tr("dashboard.reformat_fit_scale_desc") },
     { id: "relayout", label: tr("dashboard.reformat_fit_relayout"), desc: tr("dashboard.reformat_fit_relayout_desc") },
-    { id: "none", label: tr("dashboard.reformat_fit_none"), desc: tr("dashboard.reformat_fit_none_desc") },
   ];
   const turns: { id: ReformatTurn; label: string }[] = [
     { id: 0, label: tr("dashboard.reformat_turn_none") },

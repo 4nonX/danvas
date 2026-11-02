@@ -2,6 +2,16 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 1.9.3 (2026-11-02)
+
+### Changed
+
+- **Change format starts with Leave as it is**: it is now the first option and the default.
+
+### Upgrading
+
+- No database change, no change to the file format.
+
 ## 1.9.2 (2026-11-02)
 
 ### Fixed
