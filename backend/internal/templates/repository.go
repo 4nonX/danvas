@@ -130,6 +130,16 @@ func (s *Service) setCollection(ctx context.Context, id string, collectionID *st
 	return t, err
 }
 
+// setTitle renames a template, in its row and in its stored file, so both say
+// the same; nothing else in the file changes.
+func (s *Service) setTitle(ctx context.Context, id, title string) (TemplateRow, error) {
+	t, err := scanTemplate(s.db.QueryRow(ctx, `UPDATE "templates" SET "title" = $2, "file" = jsonb_set("file", '{title}', to_jsonb($2::text)), "updated_at" = now() WHERE id = $1 RETURNING `+tmplCols, id, title))
+	if errors.Is(err, pgx.ErrNoRows) {
+		return TemplateRow{}, ErrNotFound
+	}
+	return t, err
+}
+
 // --- collections ---------------------------------------------------------
 
 type collectionRow struct {

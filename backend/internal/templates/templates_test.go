@@ -260,6 +260,58 @@ func TestTemplates_DB(t *testing.T) {
 	if f := flags(admin.ID); !f[wsTmpl.ID][0] || f[wsTmpl.ID][1] {
 		t.Fatalf("admin should see canDelete, and it is not the last template (the private one counts): %v", f[wsTmpl.ID])
 	}
+	// Rename: its creator or a role with template.rename (admins by default),
+	// each told by the list; the name reaches the row and the file.
+	canRename := func(userID string) bool {
+		l, err := svc.List(ctx, userID, TemplateQuery{}, ws.ID, "")
+		if err != nil {
+			t.Fatalf("List: %v", err)
+		}
+		for _, x := range l {
+			if x.ID == wsTmpl.ID {
+				return x.CanRename
+			}
+		}
+		t.Fatalf("template not listed for %s", userID)
+		return false
+	}
+	if canRename(member.ID) || !canRename(admin.ID) || !canRename(owner.ID) {
+		t.Fatalf("canRename: member %v, admin %v, creator %v", canRename(member.ID), canRename(admin.ID), canRename(owner.ID))
+	}
+	if _, err := svc.Rename(ctx, member.ID, wsTmpl.ID, "Nope"); err != ErrForbidden {
+		t.Fatalf("member rename should be forbidden, got %v", err)
+	}
+	if _, err := svc.Rename(ctx, other.ID, wsTmpl.ID, "Nope"); err != ErrNotFound {
+		t.Fatalf("a non-member should get not found, got %v", err)
+	}
+	if _, err := svc.Rename(ctx, admin.ID, wsTmpl.ID, "   "); err != ErrBadRequest {
+		t.Fatalf("an empty name should be a bad request, got %v", err)
+	}
+	if _, err := svc.Rename(ctx, admin.ID, wsTmpl.ID, strings.Repeat("x", maxTitleRunes+1)); err != ErrBadRequest {
+		t.Fatalf("a too long name should be a bad request, got %v", err)
+	}
+	renamed, err := svc.Rename(ctx, admin.ID, wsTmpl.ID, "  Renamed \u00e4  ")
+	if err != nil {
+		t.Fatalf("admin rename: %v", err)
+	}
+	if renamed.Title != "Renamed \u00e4" {
+		t.Fatalf("title = %q", renamed.Title)
+	}
+	renamedFile, err := svc.GetFile(ctx, owner.ID, wsTmpl.ID)
+	if err != nil {
+		t.Fatalf("GetFile: %v", err)
+	}
+	if renamedFile["title"] != "Renamed \u00e4" {
+		t.Fatalf("file title = %v", renamedFile["title"])
+	}
+	if pages, ok := renamedFile["pages"].([]any); !ok || len(pages) == 0 {
+		t.Fatalf("rename must keep the file's pages, got %v", renamedFile["pages"])
+	}
+	if len(seedEntries) > 0 {
+		if _, err := svc.Rename(ctx, owner.ID, seedEntries[0].toTemplate().ID, "Nope"); err != ErrForbidden {
+			t.Fatalf("built-in template rename should be forbidden, got %v", err)
+		}
+	}
 	if err := svc.Delete(ctx, member.ID, wsTmpl.ID); err != ErrForbidden {
 		t.Fatalf("member delete should be forbidden, got %v", err)
 	}

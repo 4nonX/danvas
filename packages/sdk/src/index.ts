@@ -369,6 +369,9 @@ export interface TemplateSummary {
   /** The caller may delete it (its creator, or an owner or admin of its
    *  workspace). Never set on built-in templates. */
   canDelete?: boolean;
+  /** The caller may rename it (its creator, or a role holding
+   *  template.rename). Never set on built-in templates. */
+  canRename?: boolean;
   /** Deleting it leaves its workspace without any template (template
    *  protection then treats the workspace as no longer publishing). */
   lastInWorkspace?: boolean;
@@ -2278,6 +2281,10 @@ export class HyCanvasClient {
   }
   createTemplateCollection(workspaceId: string, name: string): Promise<TemplateCollectionSummary> {
     return this.request("POST", "/v1/templates/collections", { workspaceId, name });
+  }
+  /** Rename a stored template (its creator, or a role holding template.rename). */
+  renameTemplate(id: string, title: string): Promise<TemplateSummary> {
+    return this.request("PATCH", `/v1/templates/${encodeURIComponent(id)}`, { title });
   }
   /** Delete a stored template (its creator, or an owner or admin of its
    *  workspace). Designs made from it are untouched. */

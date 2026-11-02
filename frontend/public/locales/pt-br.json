@@ -5636,5 +5636,10 @@
   "editor.die_line_make_button": "Criar faca",
   "editor.die_line_nothing": "A seleção não desenha nada a seguir.",
   "editor.die_line_made": "Faca criada, com precisão de {mm} mm",
-  "editor.die_line_element_name": "Faca"
+  "editor.die_line_element_name": "Faca",
+  "dashboard.rename_template": "Renomear modelo",
+  "dashboard.could_not_rename_template": "Não foi possível renomear o modelo.",
+  "roles.action_template_rename": "Renomear modelos de outros",
+  "roles.hint_template_rename": "Renomear modelos publicados por outras pessoas. Cada um pode renomear os seus.",
+  "roles.seed_permission_rename_templates": "Renomear modelos"
 }

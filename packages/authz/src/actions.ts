@@ -54,6 +54,7 @@ export const ACTIONS = [
   { key: "template.publish", area: "templates", scoped: false },
   { key: "template.publishPublic", area: "templates", scoped: false },
   { key: "template.delete", area: "templates", scoped: false },
+  { key: "template.rename", area: "templates", scoped: false },
   { key: "template.collections", area: "templates", scoped: false },
   { key: "brand.kits", area: "brand", scoped: false },
   { key: "brand.designs", area: "brand", scoped: false },

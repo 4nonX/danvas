@@ -45,6 +45,7 @@ var SeedPermissions = []SeedPermission{
 	{"approve", set(ApprovalDecide, ScopeAll)},
 	{"templates", set(TemplatePublish, ScopeAll, TemplatePublishPublic, ScopeAll, TemplateCollections, ScopeAll)},
 	{"manage-templates", set(TemplateDelete, ScopeAll)},
+	{"rename-templates", set(TemplateRename, ScopeAll)},
 	{"brand", set(BrandKits, ScopeAll, BrandDesigns, ScopeAll, BrandUnlock, ScopeAll)},
 	{"brand-library", set(BrandLibrary, ScopeAll)},
 	{"brand-copy", set(BrandCopy, ScopeAll)},

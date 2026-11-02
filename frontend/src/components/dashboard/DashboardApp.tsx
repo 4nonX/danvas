@@ -974,6 +974,18 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     }
   }
 
+  async function renameTemplate(t: TemplateSummary) {
+    const name = await promptText({ title: tr("dashboard.rename_template"), label: tr("dashboard.template_name"), defaultValue: t.title, confirmText: tr("dashboard.save") });
+    if (!name || name === t.title) return;
+    try {
+      const updated = await oc.renameTemplate(t.id, name);
+      setTemplates((prev) => prev.map((x) => (x.id === t.id ? { ...x, title: updated.title } : x)));
+      toast.success(tr("dashboard.renamed"));
+    } catch (e) {
+      toast.error(userMessage(e, tr("dashboard.could_not_rename_template")));
+    }
+  }
+
   /** Delete a template after a confirmation. Designs made from it stay; the
    *  last template of a workspace gets a note on template protection. */
   async function deleteTemplate(t: TemplateSummary) {
@@ -2010,6 +2022,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                             <MenuRow icon={ExternalLink} onClick={() => { setTplMenu(null); void applyTemplate(t); }}>{tr("dashboard.use_this_template")}</MenuRow>
                             <MenuRow icon={Package} onClick={() => { setTplMenu(null); exportTemplates([t]); }}>{tr("dashboard.export_template_package")}</MenuRow>
                             <MenuRow icon={FileDown} onClick={() => { setTplMenu(null); void downloadTemplateHyc(t); }}>{tr("dashboard.download_as_hyc_file")}</MenuRow>
+                            {t.canRename && <MenuRow icon={Pencil} onClick={() => { setTplMenu(null); void renameTemplate(t); }}>{tr("dashboard.rename")}</MenuRow>}
                             {t.canDelete && <MenuRow icon={Trash2} danger onClick={() => { setTplMenu(null); void deleteTemplate(t); }}>{tr("dashboard.delete_template")}</MenuRow>}
                           </AnchoredMenu>
                         )}

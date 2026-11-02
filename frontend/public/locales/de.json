@@ -5636,5 +5636,10 @@
   "editor.die_line_make_button": "Stanzkontur erzeugen",
   "editor.die_line_nothing": "Die Auswahl zeichnet nichts, dem die Kontur folgen kann.",
   "editor.die_line_made": "Stanzkontur erzeugt, genau auf {mm} mm",
-  "editor.die_line_element_name": "Stanzkontur"
+  "editor.die_line_element_name": "Stanzkontur",
+  "dashboard.rename_template": "Vorlage umbenennen",
+  "dashboard.could_not_rename_template": "Die Vorlage konnte nicht umbenannt werden.",
+  "roles.action_template_rename": "Vorlagen anderer umbenennen",
+  "roles.hint_template_rename": "Vorlagen umbenennen, die andere veröffentlicht haben. Eigene kann jeder umbenennen.",
+  "roles.seed_permission_rename_templates": "Vorlagen umbenennen"
 }

@@ -5636,5 +5636,10 @@
   "editor.die_line_make_button": "Crear troquel",
   "editor.die_line_nothing": "La selección no dibuja nada que seguir.",
   "editor.die_line_made": "Troquel creado, con precisión de {mm} mm",
-  "editor.die_line_element_name": "Troquel"
+  "editor.die_line_element_name": "Troquel",
+  "dashboard.rename_template": "Cambiar el nombre de la plantilla",
+  "dashboard.could_not_rename_template": "No se pudo cambiar el nombre de la plantilla.",
+  "roles.action_template_rename": "Cambiar el nombre de plantillas de otros",
+  "roles.hint_template_rename": "Cambiar el nombre de plantillas publicadas por otras personas. Cada uno puede cambiar el de las suyas.",
+  "roles.seed_permission_rename_templates": "Cambiar el nombre de plantillas"
 }

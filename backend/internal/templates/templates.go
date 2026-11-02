@@ -19,6 +19,7 @@ import (
 	"math"
 	"sort"
 	"strings"
+	"unicode/utf8"
 )
 
 //go:embed seed.json
@@ -61,6 +62,9 @@ type Template struct {
 	// CanDelete: the caller may delete this template (its creator, or an owner
 	// or admin of its workspace). Built-in templates are never deletable.
 	CanDelete bool `json:"canDelete,omitempty"`
+	// CanRename: the caller may rename this template (its creator, or a member
+	// of its workspace whose role holds template.rename). Never on built-ins.
+	CanRename bool `json:"canRename,omitempty"`
 	// LastInWorkspace: deleting it leaves its workspace without any template,
 	// which ends that workspace's "publishes templates" standing for template
 	// protection. Set only together with CanDelete.
@@ -222,8 +226,10 @@ func (s *Service) List(ctx context.Context, userID string, q TemplateQuery, work
 	var pool []Template
 	trueVis := map[string]string{}
 	deletable := s.deletableFlags(ctx, userID, rows)
+	renamers := map[string]bool{}
 	for _, r := range rows {
 		t := rowToTemplate(r)
+		t.CanRename = s.mayRename(ctx, userID, r, renamers)
 		trueVis[t.ID] = t.Visibility
 		t.Visibility = "public"
 		t.WorkspaceID = nil
@@ -443,6 +449,24 @@ func (s *Service) mayDelete(ctx context.Context, userID string, row TemplateRow,
 	return ok
 }
 
+// mayRename reports whether a user may rename a stored template: its creator,
+// or a member of its workspace whose role holds template.rename.
+func (s *Service) mayRename(ctx context.Context, userID string, row TemplateRow, renamerOf map[string]bool) bool {
+	if row.OwnerID == userID {
+		return true
+	}
+	if row.WorkspaceID == nil {
+		return false
+	}
+	ws := *row.WorkspaceID
+	ok, seen := renamerOf[ws]
+	if !seen {
+		ok = s.access.Require(ctx, userID, ws, authz.TemplateRename, "") == nil
+		renamerOf[ws] = ok
+	}
+	return ok
+}
+
 // deletableFlags maps each row the caller may delete to whether it is the last
 // template of its workspace.
 func (s *Service) deletableFlags(ctx context.Context, userID string, rows []TemplateRow) map[string]bool {
@@ -487,6 +511,38 @@ func (s *Service) Delete(ctx context.Context, userID, id string) error {
 		return ErrForbidden
 	}
 	return s.deleteRow(ctx, id)
+}
+
+// maxTitleRunes bounds a template's name.
+const maxTitleRunes = 200
+
+// Rename changes a stored template's name: its creator, or a role holding
+// template.rename. Built-in templates cannot be renamed, and designs already
+// made from it keep their names. A template the caller cannot see reads as not
+// found, one they can see but may not rename as forbidden.
+func (s *Service) Rename(ctx context.Context, userID, id, title string) (Template, error) {
+	title = strings.TrimSpace(title)
+	if title == "" || utf8.RuneCountInString(title) > maxTitleRunes {
+		return Template{}, ErrBadRequest
+	}
+	if _, ok := findSeed(id); ok {
+		return Template{}, ErrForbidden
+	}
+	row, err := s.getRow(ctx, id)
+	if err != nil {
+		return Template{}, err
+	}
+	if !s.canSee(ctx, userID, row) {
+		return Template{}, ErrNotFound
+	}
+	if !s.mayRename(ctx, userID, row, map[string]bool{}) {
+		return Template{}, ErrForbidden
+	}
+	updated, err := s.setTitle(ctx, id, title)
+	if err != nil {
+		return Template{}, err
+	}
+	return rowToTemplate(updated), nil
 }
 
 // --- collections (FR-3) --------------------------------------------------

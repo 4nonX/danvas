@@ -5636,5 +5636,10 @@
   "editor.die_line_make_button": "生成刀模线",
   "editor.die_line_nothing": "所选内容没有可沿循的图形。",
   "editor.die_line_made": "已生成刀模线，精度 {mm} mm",
-  "editor.die_line_element_name": "刀模线"
+  "editor.die_line_element_name": "刀模线",
+  "dashboard.rename_template": "重命名模板",
+  "dashboard.could_not_rename_template": "无法重命名模板。",
+  "roles.action_template_rename": "重命名他人的模板",
+  "roles.hint_template_rename": "重命名他人发布的模板。每个人都可以重命名自己的模板。",
+  "roles.seed_permission_rename_templates": "重命名模板"
 }

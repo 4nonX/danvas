@@ -2,6 +2,16 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 1.9.1 (2026-11-02)
+
+### Added
+
+- **Templates can be renamed**: **Rename** in a template's "..." menu under Templates, for whoever created the template and for roles with the new right **Rename others' templates** (`template.rename`). Built-in templates cannot be renamed, and designs already made from a template keep their names.
+
+### Upgrading
+
+- One additive migration: every workspace gets the permission **Rename templates**, on each role that may delete other people's templates today (owners and admins unless changed). It can then be granted or taken like any other. A rollback ignores the unknown action. No change to the file format.
+
 ## 1.9.0 (2026-10-28)
 
 ### Added

@@ -58,6 +58,7 @@ const (
 	TemplatePublish       Action = "template.publish"
 	TemplatePublishPublic Action = "template.publishPublic"
 	TemplateDelete        Action = "template.delete"
+	TemplateRename        Action = "template.rename"
 	TemplateCollections   Action = "template.collections"
 
 	BrandKits    Action = "brand.kits"
@@ -135,6 +136,7 @@ var Actions = []ActionDef{
 	{TemplatePublish, "templates", false, "member"},
 	{TemplatePublishPublic, "templates", false, "member"},
 	{TemplateDelete, "templates", false, "admin"}, // others' templates; creators always delete their own
+	{TemplateRename, "templates", false, "admin"}, // others' templates; creators always rename their own
 	{TemplateCollections, "templates", false, "member"},
 
 	{BrandKits, "brand", false, "admin"},

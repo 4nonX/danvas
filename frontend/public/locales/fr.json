@@ -5636,5 +5636,10 @@
   "editor.die_line_make_button": "Créer la ligne de découpe",
   "editor.die_line_nothing": "La sélection ne dessine rien à suivre.",
   "editor.die_line_made": "Ligne de découpe créée, précise à {mm} mm",
-  "editor.die_line_element_name": "Ligne de découpe"
+  "editor.die_line_element_name": "Ligne de découpe",
+  "dashboard.rename_template": "Renommer le modèle",
+  "dashboard.could_not_rename_template": "Impossible de renommer le modèle.",
+  "roles.action_template_rename": "Renommer les modèles des autres",
+  "roles.hint_template_rename": "Renommer des modèles publiés par d'autres personnes. Chacun peut renommer les siens.",
+  "roles.seed_permission_rename_templates": "Renommer les modèles"
 }
