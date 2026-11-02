@@ -119,12 +119,64 @@ describe("a 90 x 40 mm label to 50 x 100 mm upright", () => {
     expect(box("panel").map(Math.round)).toEqual([0, 120, 151, 220]);
     expect(box("right").map(Math.round)).toEqual([10, 10, 70, 110]);
     expect(box("left").map(Math.round)).toEqual([10, 230, 70, 330]);
-    // At a size that does not fit the turned page, the content stays where
-    // the turned page had it (from the top left), as without a turn.
-    const same = reformatDesign(label(), { width: 340, height: 151, fit: "none", turn: -90 });
-    expect([same.pages[0].width, same.pages[0].height]).toEqual([340, 151]);
-    const b = boxMm(same, "panel");
-    expect([b.x0, b.x1].map((v) => Math.round(fromUnit(v, "mm", 96)))).toEqual([0, 151]);
+  });
+
+  it("left as it is, the page stays with its content at a size of the old shape", () => {
+    // 340 x 151 px typed for a label turned left: the page lies as the turned
+    // content does, and everything is still on it, exactly as it was.
+    for (const turn of [-90, 90] as const) {
+      const d = reformatDesign(label(), { width: 340, height: 151, fit: "none", turn });
+      expect([d.pages[0].width, d.pages[0].height]).toEqual([151, 340]);
+      for (const id of ["left", "panel", "right"]) {
+        const b = boxMm(d, id);
+        expect(fromUnit(b.x0, "mm", 96)).toBeGreaterThanOrEqual(-0.5);
+        expect(fromUnit(b.y0, "mm", 96)).toBeGreaterThanOrEqual(-0.5);
+        expect(fromUnit(b.x1, "mm", 96)).toBeLessThanOrEqual(151.5);
+        expect(fromUnit(b.y1, "mm", 96)).toBeLessThanOrEqual(340.5);
+      }
+    }
+    // A larger page of either shape lies the same way; a square one stays.
+    const large = reformatDesign(label(), { width: 400, height: 200, fit: "none", turn: -90 });
+    expect([large.pages[0].width, large.pages[0].height]).toEqual([200, 400]);
+    const square = reformatDesign(label(), { width: 400, height: 400, fit: "none", turn: -90 });
+    expect([square.pages[0].width, square.pages[0].height]).toEqual([400, 400]);
+  });
+
+  it("turns a gradient page background with the page", () => {
+    const stops = [{ position: 0, color: { srgb: { r: 0, g: 0, b: 0, a: 1 } } }, { position: 1, color: { srgb: { r: 1, g: 1, b: 1, a: 1 } } }];
+    const page = (background: unknown) => ({ id: "p", width: 400, height: 200, background, children: [] }) as unknown as Page;
+    const left = turnPage(page({ type: "gradient", gradient: "linear", angle: 0, stops }), -90).background as { angle: number };
+    expect(left.angle).toBe(-90);
+    const right = turnPage(page({ type: "gradient", gradient: "linear", angle: 0, stops }), 90).background as { angle: number };
+    expect(right.angle).toBe(90);
+    // A radial centre at the left edge, turned left, lies at the bottom edge.
+    const radial = turnPage(page({ type: "gradient", gradient: "radial", center: { x: 0, y: 0.5 }, stops }), -90).background as { center: { x: number; y: number } };
+    expect(radial.center).toEqual({ x: 0.5, y: 1 });
+    // The design itself is not changed.
+    const solid = page({ type: "solid", color: { srgb: { r: 1, g: 1, b: 1, a: 1 } } });
+    expect(turnPage(solid, -90).background).toEqual(solid.background);
+  });
+
+  it("scaling a label turned earlier keeps its parts together on the page", () => {
+    // The upright label again, into a page with room on one side: nothing
+    // leaves the page, and the turned panel still runs across all of it.
+    const upright = reformatDesign(label(), { width: MM(50), height: MM(100), fit: "scale", turn: -90, measureUnit: "mm" });
+    const d = reformatDesign(upright, { width: MM(70), height: MM(100), fit: "scale", turn: 0, measureUnit: "mm" });
+    const w = mm(d.pages[0].width), h = mm(d.pages[0].height);
+    expect([w, h]).toEqual([70, 100]);
+    const panel = boxMm(d, "panel");
+    expect([panel.x0, panel.x1]).toEqual([0, 70]);
+    for (const id of ["left", "panel", "right"]) {
+      const b = boxMm(d, id);
+      expect(b.x0).toBeGreaterThanOrEqual(-0.01);
+      expect(b.y0).toBeGreaterThanOrEqual(-0.01);
+      expect(b.x1).toBeLessThanOrEqual(w + 0.01);
+      expect(b.y1).toBeLessThanOrEqual(h + 0.01);
+    }
+    // The order across stays: right above the panel, left below it.
+    const left = boxMm(d, "left"), right = boxMm(d, "right");
+    expect(right.y1).toBeLessThan(panel.y0 + 0.01);
+    expect(left.y0).toBeGreaterThan(panel.y1 - 0.01);
   });
 
   it("still extends the turned panel into the bleed", () => {

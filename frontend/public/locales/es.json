@@ -5300,7 +5300,7 @@
   "roles.seed_permission_color_list": "Lista de colores",
   "editor.profile_color_list": "lista de colores ({files})",
   "editor.color_list_profile_desc": "Cada descarga con este perfil incluye la lista de colores, si el rol puede añadirla.",
-  "dashboard.reformat_turn_same_shape": "Girado, el contenido ya no tiene la forma de esta página: se reduce mucho, se reorganiza o sobresale. Para una etiqueta que va de lado, introduce el tamaño después del giro.",
+  "dashboard.reformat_turn_same_shape": "Girado, el contenido ya no tiene la forma de esta página: se reduce mucho o se reorganiza. Para una etiqueta que va de lado, introduce el tamaño después del giro.",
   "dashboard.reformat_swap_sides": "Intercambiar ancho y alto",
   "editor.elements_search": "Buscar en todos los elementos",
   "editor.elements_results.one": "{count} resultado",
@@ -5641,5 +5641,6 @@
   "dashboard.could_not_rename_template": "No se pudo cambiar el nombre de la plantilla.",
   "roles.action_template_rename": "Cambiar el nombre de plantillas de otros",
   "roles.hint_template_rename": "Cambiar el nombre de plantillas publicadas por otras personas. Cada uno puede cambiar el de las suyas.",
-  "roles.seed_permission_rename_templates": "Cambiar el nombre de plantillas"
+  "roles.seed_permission_rename_templates": "Cambiar el nombre de plantillas",
+  "dashboard.reformat_turn_same_shape_none": "Sin cambios, la página gira con el contenido: queda en {size}."
 }

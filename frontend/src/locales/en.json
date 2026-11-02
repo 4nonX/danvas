@@ -5300,7 +5300,7 @@
   "roles.seed_permission_color_list": "Color list",
   "editor.profile_color_list": "color list ({files})",
   "editor.color_list_profile_desc": "Every download with this profile comes with the color list, for people whose role may add it.",
-  "dashboard.reformat_turn_same_shape": "Turned, the content no longer has the shape of this page: it is shrunk a lot, rebuilt or sticks out. For a label that runs sideways, enter the size after the turn.",
+  "dashboard.reformat_turn_same_shape": "Turned, the content no longer has the shape of this page: it is shrunk a lot or rebuilt. For a label that runs sideways, enter the size after the turn.",
   "dashboard.reformat_swap_sides": "Swap width and height",
   "editor.elements_search": "Search all elements",
   "editor.elements_results.one": "{count} result",
@@ -5641,5 +5641,6 @@
   "dashboard.could_not_rename_template": "Could not rename the template.",
   "roles.action_template_rename": "Rename others' templates",
   "roles.hint_template_rename": "Change the names of templates other people published. Everyone can rename their own.",
-  "roles.seed_permission_rename_templates": "Rename templates"
+  "roles.seed_permission_rename_templates": "Rename templates",
+  "dashboard.reformat_turn_same_shape_none": "Left as it is, the page turns with the content: it ends up {size}."
 }

@@ -2,6 +2,18 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 1.9.2 (2026-11-02)
+
+### Fixed
+
+- **Change format keeps the page and its content together.** With a turn and **Leave as it is**, a size of the design's old shape put the page back across the turned content, which then ran off it (a 90 x 40 mm label became a 90 x 40 mm page with upright content). The page now takes the size the way the turned page lies. A design already changed this way returns to its old state from the version history (the version before **Format ...**).
+- **A gradient page background turns with the page.**
+- **Scale and spread on designs turned earlier.** Turned elements were placed as if they were not turned, so their parts drifted apart when the page gained room. They now go by where they really lie, and a turned colour panel along an edge stretches with the page.
+
+### Upgrading
+
+- No database change, no change to the file format. Existing designs are not changed.
+
 ## 1.9.1 (2026-11-02)
 
 ### Added

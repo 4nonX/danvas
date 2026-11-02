@@ -105,9 +105,12 @@ export function ReformatDialog({ designs, onClose, onDone, initialSizeMm }: { de
 
   async function apply() {
     setRunning(true);
-    const label = tr("dashboard.reformat_version_label", { size: `${w} × ${h} ${unit}` });
     let ok = 0;
     for (const r of ready) {
+      // The size the page really ends up: turned as it is, its sides may swap.
+      const out = previews.get(r.id)!;
+      const pg = out.pages[0];
+      const label = tr("dashboard.reformat_version_label", { size: pg ? `${unitInputText(pg.width, unit, out.dpi ?? 96)} × ${unitInputText(pg.height, unit, out.dpi ?? 96)} ${unit}` : `${w} × ${h} ${unit}` });
       setRows((rs) => rs.map((x) => (x.id === r.id ? { ...x, state: "saving" } : x)));
       try {
         await rewriteDesign(r.id, previews.get(r.id)!, label);
@@ -185,7 +188,7 @@ export function ReformatDialog({ designs, onClose, onDone, initialSizeMm }: { de
             <p className="mt-1.5 text-[11px] leading-snug text-neutral-500">{tr("dashboard.reformat_turn_hint")}</p>
             {sameShape && (
               <div className="mt-1.5 flex items-start gap-2 rounded-lg bg-amber-50 px-2.5 py-2 text-[11px] leading-snug text-amber-800">
-                <span className="min-w-0 flex-1">{tr("dashboard.reformat_turn_same_shape")}</span>
+                <span className="min-w-0 flex-1">{fit === "none" ? tr("dashboard.reformat_turn_same_shape_none", { size: `${h} × ${w} ${unit}` }) : tr("dashboard.reformat_turn_same_shape")}</span>
                 <button
                   type="button"
                   disabled={locked}

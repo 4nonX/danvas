@@ -5300,7 +5300,7 @@
   "roles.seed_permission_color_list": "Liste des couleurs",
   "editor.profile_color_list": "liste des couleurs ({files})",
   "editor.color_list_profile_desc": "Chaque téléchargement avec ce profil reçoit la liste des couleurs, si le rôle peut la joindre.",
-  "dashboard.reformat_turn_same_shape": "Une fois tourné, le contenu n'a plus la forme de cette page : il est fortement réduit, réorganisé ou dépasse. Pour une étiquette qui court de côté, saisissez la taille après la rotation.",
+  "dashboard.reformat_turn_same_shape": "Une fois tourné, le contenu n'a plus la forme de cette page : il est fortement réduit ou réorganisé. Pour une étiquette qui court de côté, saisissez la taille après la rotation.",
   "dashboard.reformat_swap_sides": "Inverser largeur et hauteur",
   "editor.elements_search": "Rechercher dans tous les éléments",
   "editor.elements_results.one": "{count} résultat",
@@ -5641,5 +5641,6 @@
   "dashboard.could_not_rename_template": "Impossible de renommer le modèle.",
   "roles.action_template_rename": "Renommer les modèles des autres",
   "roles.hint_template_rename": "Renommer des modèles publiés par d'autres personnes. Chacun peut renommer les siens.",
-  "roles.seed_permission_rename_templates": "Renommer les modèles"
+  "roles.seed_permission_rename_templates": "Renommer les modèles",
+  "dashboard.reformat_turn_same_shape_none": "Sans changement, la page tourne avec le contenu : elle fera {size}."
 }

@@ -5300,7 +5300,7 @@
   "roles.seed_permission_color_list": "颜色列表",
   "editor.profile_color_list": "颜色列表（{files}）",
   "editor.color_list_profile_desc": "使用此配置文件的每次下载都会附带颜色列表（前提是角色可以添加）。",
-  "dashboard.reformat_turn_same_shape": "旋转后，内容不再符合此页面的形状：会被大幅缩小、重新排列或超出页面。对于横向走纸的标签，请输入旋转后的尺寸。",
+  "dashboard.reformat_turn_same_shape": "旋转后，内容不再符合此页面的形状：会被大幅缩小或重新排列。对于横向走纸的标签，请输入旋转后的尺寸。",
   "dashboard.reformat_swap_sides": "交换宽度和高度",
   "editor.elements_search": "搜索所有元素",
   "editor.elements_results.one": "{count} 个结果",
@@ -5641,5 +5641,6 @@
   "dashboard.could_not_rename_template": "无法重命名模板。",
   "roles.action_template_rename": "重命名他人的模板",
   "roles.hint_template_rename": "重命名他人发布的模板。每个人都可以重命名自己的模板。",
-  "roles.seed_permission_rename_templates": "重命名模板"
+  "roles.seed_permission_rename_templates": "重命名模板",
+  "dashboard.reformat_turn_same_shape_none": "保持不变时，页面随内容一起旋转：尺寸为 {size}。"
 }

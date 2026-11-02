@@ -5300,7 +5300,7 @@
   "roles.seed_permission_color_list": "Lista de cores",
   "editor.profile_color_list": "lista de cores ({files})",
   "editor.color_list_profile_desc": "Cada download com este perfil vem com a lista de cores, se a função puder incluí-la.",
-  "dashboard.reformat_turn_same_shape": "Girado, o conteúdo não tem mais a forma desta página: é muito reduzido, reorganizado ou fica para fora. Para uma etiqueta que corre de lado, informe o tamanho depois do giro.",
+  "dashboard.reformat_turn_same_shape": "Girado, o conteúdo não tem mais a forma desta página: é muito reduzido ou reorganizado. Para uma etiqueta que corre de lado, informe o tamanho depois de girar.",
   "dashboard.reformat_swap_sides": "Trocar largura e altura",
   "editor.elements_search": "Pesquisar todos os elementos",
   "editor.elements_results.one": "{count} resultado",
@@ -5641,5 +5641,6 @@
   "dashboard.could_not_rename_template": "Não foi possível renomear o modelo.",
   "roles.action_template_rename": "Renomear modelos de outros",
   "roles.hint_template_rename": "Renomear modelos publicados por outras pessoas. Cada um pode renomear os seus.",
-  "roles.seed_permission_rename_templates": "Renomear modelos"
+  "roles.seed_permission_rename_templates": "Renomear modelos",
+  "dashboard.reformat_turn_same_shape_none": "Sem alterações, a página gira com o conteúdo: fica com {size}."
 }

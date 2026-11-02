@@ -5300,7 +5300,7 @@
   "roles.seed_permission_color_list": "カラーリスト",
   "editor.profile_color_list": "カラーリスト ({files})",
   "editor.color_list_profile_desc": "このプロファイルでのダウンロードには、ロールに権限があればカラーリストが付きます。",
-  "dashboard.reformat_turn_same_shape": "回転すると内容はこのページの形に合わなくなり、大きく縮小されるか、配置し直されるか、はみ出します。横向きに流れるラベルには、回転後のサイズを入力してください。",
+  "dashboard.reformat_turn_same_shape": "回転すると内容はこのページの形に合わなくなり、大きく縮小されるか、配置し直されます。横向きに流れるラベルの場合は、回転後のサイズを入力してください。",
   "dashboard.reformat_swap_sides": "幅と高さを入れ替え",
   "editor.elements_search": "すべての要素を検索",
   "editor.elements_results.one": "{count} 件",
@@ -5641,5 +5641,6 @@
   "dashboard.could_not_rename_template": "テンプレート名を変更できませんでした。",
   "roles.action_template_rename": "他の人のテンプレート名を変更",
   "roles.hint_template_rename": "他の人が公開したテンプレートの名前を変更。自分のものは誰でも変更できます。",
-  "roles.seed_permission_rename_templates": "テンプレート名の変更"
+  "roles.seed_permission_rename_templates": "テンプレート名の変更",
+  "dashboard.reformat_turn_same_shape_none": "変更しない場合、ページは内容と一緒に回転し、{size} になります。"
 }

@@ -35,11 +35,13 @@ export function reformatPage(page: Page, o: ReformatOptions): Page {
   // Lay out at the size before the turn: a quarter turn swaps the sides.
   const quarter = o.turn !== 0;
   if (o.fit === "none" && quarter) {
-    // Content left as it is: the page turns as a whole, so the content stays
-    // on the page it was on, then the page takes the new size with the
-    // content where it is, as without a turn. Turning a page already given
-    // the new size sent content that did not fit it off the page.
-    return { ...turnPage(page, o.turn as -90 | 90), width: o.width, height: o.height };
+    // Content left as it is: the page turns as a whole and stays with its
+    // content, so it takes the new size the way the turned page lies. A size
+    // of the old shape applied as typed would leave the page across its own
+    // content, which then runs off it.
+    const turned = turnPage(page, o.turn as -90 | 90);
+    const across = o.width !== o.height && turned.width !== turned.height && (o.width > o.height) !== (turned.width > turned.height);
+    return { ...turned, width: across ? o.height : o.width, height: across ? o.width : o.height };
   }
   const lw = quarter ? o.height : o.width;
   const lh = quarter ? o.width : o.height;
@@ -76,15 +78,30 @@ function scalePage(page: Page, w: number, h: number): Page {
   p.height = h;
   type Kid = Page["children"][number];
   type Span = { start: number; len: number; from: number; factor: number };
+  // Where an element really lies on the page, turned or not: an element turned
+  // earlier (a label already changed to upright) has its origin at a corner of
+  // what it covers. `quarter` elements (turned by a multiple of 90 degrees, not
+  // flipped) can take a new box; any other only moves and scales as a whole.
   const box = (n: Kid) => {
     const t = n.transform;
-    return { x: t.x, y: t.y, w: (n.size?.width ?? 0) * Math.abs(t.scaleX), h: (n.size?.height ?? 0) * Math.abs(t.scaleY), straight: (t.rotation ?? 0) % 360 === 0 };
+    const lw = (n.size?.width ?? 0) * Math.abs(t.scaleX), lh = (n.size?.height ?? 0) * Math.abs(t.scaleY);
+    const rot = normDeg(t.rotation ?? 0);
+    const quarter = rot % 90 === 0 && t.scaleX > 0 && t.scaleY > 0;
+    if (quarter) {
+      const across = Math.abs(rot) === 90;
+      const w = across ? lh : lw, h = across ? lw : lh;
+      return { x: rot === 90 || rot === 180 ? t.x - w : t.x, y: rot === -90 || rot === 180 ? t.y - h : t.y, w, h, rot, quarter };
+    }
+    const rad = (rot * Math.PI) / 180, c = Math.cos(rad), sn = Math.sin(rad);
+    const xs = [0, lw * c, -lh * sn, lw * c - lh * sn], ys = [0, lw * sn, lh * c, lw * sn + lh * c];
+    const x0 = Math.min(...xs), y0 = Math.min(...ys);
+    return { x: t.x + x0, y: t.y + y0, w: Math.max(...xs) - x0, h: Math.max(...ys) - y0, rot, quarter };
   };
   const place = (n: Kid, pos: number, len: number, total: number, extra: number) => {
     if (extra <= 0) return { move: 0, grow: 1 };
     const start = pos, end = pos + len;
     // A plain area from an edge over most of the side grows with the room.
-    if (box(n).straight && plainArea(n) && len >= total * 0.6 && (start <= total * 0.01 || end >= total * 0.99)) {
+    if (box(n).quarter && plainArea(n) && len >= total * 0.6 && (start <= total * 0.01 || end >= total * 0.99)) {
       const grow = (len * s + extra) / (len * s);
       return { move: start <= total * 0.01 ? 0 : extra - (grow - 1) * len * s, grow };
     }
@@ -98,7 +115,7 @@ function scalePage(page: Page, w: number, h: number): Page {
   // The grown areas, as where they were and where they go, per side.
   const grown = placed.filter((e) => e.px.grow !== 1 || e.py.grow !== 1);
   const onArea = (e: (typeof placed)[number], axis: "x" | "y"): Span | null => {
-    if (!e.b.straight || !vectorArt(e.n)) return null;
+    if (!e.b.quarter || !vectorArt(e.n)) return null;
     const [pos, len, cross, crossLen] = axis === "x" ? [e.b.x, e.b.w, e.b.y, e.b.h] : [e.b.y, e.b.h, e.b.x, e.b.w];
     for (const a of grown) {
       if (a.n === e.n || (axis === "x" ? a.px.grow : a.py.grow) === 1) continue;
@@ -114,16 +131,24 @@ function scalePage(page: Page, w: number, h: number): Page {
     return null;
   };
   p.children = placed.map((e) => {
-    const t = e.n.transform;
+    const t = e.n.transform, b = e.b;
+    if (!b.quarter) {
+      return { ...e.n, transform: { ...t, x: t.x * s + e.px.move, y: t.y * s + e.py.move, scaleX: t.scaleX * s, scaleY: t.scaleY * s } };
+    }
     const ax = onArea(e, "x"), ay = onArea(e, "y");
+    // The new box on the page, and the origin at its corner again.
+    const left = ax ? ax.from + (b.x - ax.start) * ax.factor : b.x * s + e.px.move;
+    const top = ay ? ay.from + (b.y - ay.start) * ay.factor : b.y * s + e.py.move;
+    const fx = ax ? ax.factor : s * e.px.grow, fy = ay ? ay.factor : s * e.py.grow;
+    const across = Math.abs(b.rot) === 90;
     return {
       ...e.n,
       transform: {
         ...t,
-        x: ax ? ax.from + (t.x - ax.start) * ax.factor : t.x * s + e.px.move,
-        y: ay ? ay.from + (t.y - ay.start) * ay.factor : t.y * s + e.py.move,
-        scaleX: ax ? t.scaleX * ax.factor : t.scaleX * s * e.px.grow,
-        scaleY: ay ? t.scaleY * ay.factor : t.scaleY * s * e.py.grow,
+        x: b.rot === 90 || b.rot === 180 ? left + b.w * fx : left,
+        y: b.rot === -90 || b.rot === 180 ? top + b.h * fy : top,
+        scaleX: t.scaleX * (across ? fy : fx),
+        scaleY: t.scaleY * (across ? fx : fy),
       },
     };
   }) as Page["children"];
@@ -166,6 +191,12 @@ export function turnPage(page: Page, turn: -90 | 90): Page {
     const at = turn === -90 ? { x: y, y: W - x } : { x: H - y, y: x };
     return { ...n, transform: { ...n.transform, ...at, rotation: normDeg((n.transform.rotation ?? 0) + turn) } };
   }) as Page["children"];
+  // The page's own background turns with it.
+  const bg = p.background;
+  if (bg?.type === "gradient") {
+    if (bg.gradient === "linear" || bg.gradient === "conic") bg.angle = normDeg((bg.angle ?? 0) + turn);
+    if (bg.center) bg.center = turn === -90 ? { x: bg.center.y, y: 1 - bg.center.x } : { x: 1 - bg.center.y, y: bg.center.x };
+  }
   // Guides follow the content: a vertical guide at x becomes a horizontal
   // one, and the other way round.
   if (p.guides) {

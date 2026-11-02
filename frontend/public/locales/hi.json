@@ -5300,7 +5300,7 @@
   "roles.seed_permission_color_list": "रंग सूची",
   "editor.profile_color_list": "रंग सूची ({files})",
   "editor.color_list_profile_desc": "इस प्रोफ़ाइल से हर डाउनलोड के साथ रंग सूची आती है, यदि भूमिका इसे जोड़ सकती है।",
-  "dashboard.reformat_turn_same_shape": "घुमाने के बाद सामग्री का आकार इस पेज जैसा नहीं रहता: वह बहुत छोटी हो जाती है, नए सिरे से व्यवस्थित होती है या बाहर निकलती है। बगल में चलने वाले लेबल के लिए घुमाने के बाद का आकार दर्ज करें।",
+  "dashboard.reformat_turn_same_shape": "घुमाने के बाद सामग्री का आकार इस पेज जैसा नहीं रहता: वह बहुत छोटी हो जाती है या फिर से व्यवस्थित होती है। बग़ल में चलने वाले लेबल के लिए घुमाने के बाद का आकार दर्ज करें।",
   "dashboard.reformat_swap_sides": "चौड़ाई और ऊँचाई बदलें",
   "editor.elements_search": "सभी एलिमेंट खोजें",
   "editor.elements_results.one": "{count} परिणाम",
@@ -5641,5 +5641,6 @@
   "dashboard.could_not_rename_template": "टेम्पलेट का नाम नहीं बदला जा सका।",
   "roles.action_template_rename": "दूसरों के टेम्पलेट का नाम बदलें",
   "roles.hint_template_rename": "दूसरे लोगों के प्रकाशित टेम्पलेट का नाम बदलें। हर कोई अपने टेम्पलेट का नाम बदल सकता है।",
-  "roles.seed_permission_rename_templates": "टेम्पलेट का नाम बदलें"
+  "roles.seed_permission_rename_templates": "टेम्पलेट का नाम बदलें",
+  "dashboard.reformat_turn_same_shape_none": "बिना बदलाव के पेज सामग्री के साथ घूमता है: उसका आकार {size} होगा।"
 }

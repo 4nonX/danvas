@@ -5300,7 +5300,7 @@
   "roles.seed_permission_color_list": "Farbliste",
   "editor.profile_color_list": "Farbliste ({files})",
   "editor.color_list_profile_desc": "Jeder Download mit diesem Profil bekommt die Farbliste, sofern die Rolle sie beilegen darf.",
-  "dashboard.reformat_turn_same_shape": "Gedreht hat der Inhalt nicht mehr die Form dieser Seite: Er wird stark verkleinert, umgebaut oder ragt hinaus. Für ein Etikett, das quer läuft, gib die Größe nach dem Drehen ein.",
+  "dashboard.reformat_turn_same_shape": "Gedreht hat der Inhalt nicht mehr die Form dieser Seite: Er wird stark verkleinert oder umgebaut. Für ein Etikett, das quer läuft, gib die Größe nach dem Drehen ein.",
   "dashboard.reformat_swap_sides": "Breite und Höhe tauschen",
   "editor.elements_search": "Alle Elemente durchsuchen",
   "editor.elements_results.one": "{count} Treffer",
@@ -5641,5 +5641,6 @@
   "dashboard.could_not_rename_template": "Die Vorlage konnte nicht umbenannt werden.",
   "roles.action_template_rename": "Vorlagen anderer umbenennen",
   "roles.hint_template_rename": "Vorlagen umbenennen, die andere veröffentlicht haben. Eigene kann jeder umbenennen.",
-  "roles.seed_permission_rename_templates": "Vorlagen umbenennen"
+  "roles.seed_permission_rename_templates": "Vorlagen umbenennen",
+  "dashboard.reformat_turn_same_shape_none": "Unverändert gelassen dreht sich die Seite mit dem Inhalt: Sie wird {size} groß."
 }
