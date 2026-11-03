@@ -433,6 +433,80 @@ func (s *Service) SaveAsTemplate(ctx context.Context, userID string, in SaveInpu
 	return rowToTemplate(row), nil
 }
 
+// --- duplicate -----------------------------------------------------------
+
+// Duplicate makes a new template in the workspace from one the user can see,
+// built-in ones too, and takes template.publish there: it creates a template.
+// The copy is the user's. It keeps the design, category, tags, preview and
+// credits, and the collection when it stays in the same workspace. A public
+// template's copy is for the workspace, since going public has its own right.
+func (s *Service) Duplicate(ctx context.Context, userID, id, workspaceID, title string) (Template, error) {
+	if workspaceID == "" {
+		return Template{}, ErrBadRequest
+	}
+	if err := s.access.Require(ctx, userID, workspaceID, authz.TemplatePublish, ""); err != nil {
+		return Template{}, ErrForbidden
+	}
+	in := createTemplateInput{ownerID: userID, workspaceID: &workspaceID}
+	var raw json.RawMessage
+	var fallbackTitle string
+	if seed, ok := findSeed(id); ok {
+		t := seed.toTemplate()
+		raw, fallbackTitle = seed.File, t.Title
+		if len(t.Categories) > 0 {
+			in.category = nilIfEmpty(t.Categories[0])
+		}
+		in.tags = t.Tags
+		if len(t.PreviewURLs) > 0 {
+			in.thumbnail = nilIfEmpty(t.PreviewURLs[0])
+		}
+		in.visibility = "workspace"
+		if len(t.Attributions) > 0 {
+			in.attribution, _ = json.Marshal(t.Attributions)
+		}
+	} else {
+		row, err := s.getRow(ctx, id)
+		if err != nil {
+			return Template{}, err
+		}
+		if !s.canSee(ctx, userID, row) {
+			return Template{}, ErrNotFound
+		}
+		raw, fallbackTitle = row.File, row.Title
+		in.category, in.tags, in.thumbnail = row.Category, row.Tags, row.Thumbnail
+		in.visibility = strings.ToLower(row.Visibility)
+		if in.visibility == "public" {
+			in.visibility = "workspace"
+		}
+		if row.WorkspaceID != nil && *row.WorkspaceID == workspaceID {
+			in.collectionID = row.CollectionID
+		}
+		in.attribution = row.Attributions
+	}
+	title = strings.TrimSpace(title)
+	if title == "" || utf8.RuneCountInString(title) > maxTitleRunes {
+		title = fallbackTitle
+	}
+	in.title = title
+	// Using a template regenerates its ids, so the copy keeps the file as it is
+	// apart from the title, as a rename does.
+	var file map[string]any
+	if err := json.Unmarshal(raw, &file); err != nil {
+		return Template{}, err
+	}
+	file["title"] = title
+	var err error
+	if in.file, err = json.Marshal(file); err != nil {
+		return Template{}, err
+	}
+	in.style, _ = json.Marshal(extractStyle(file))
+	row, err := s.createRow(ctx, in)
+	if err != nil {
+		return Template{}, err
+	}
+	return rowToTemplate(row), nil
+}
+
 // --- delete --------------------------------------------------------------
 
 // mayChange reports whether a user's role in the template's workspace holds a

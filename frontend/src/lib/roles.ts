@@ -15,6 +15,7 @@ export const actionLabel = (): Record<Action, string> => ({
   "design.trash": tr("roles.action_design_trash"),
   "design.restore": tr("roles.action_design_restore"),
   "design.purge": tr("roles.action_design_purge"),
+  "design.emptyTrash": tr("roles.action_design_empty_trash"),
   "design.download": tr("roles.action_design_download"),
   "design.colorList": tr("roles.action_design_color_list"),
   "design.comment": tr("roles.action_design_comment"),
@@ -75,6 +76,7 @@ export const actionHint = (): Record<Action, string> => ({
   "design.trash": tr("roles.hint_design_trash"),
   "design.restore": tr("roles.hint_design_restore"),
   "design.purge": tr("roles.hint_design_purge"),
+  "design.emptyTrash": tr("roles.hint_design_empty_trash"),
   "design.download": tr("roles.hint_design_download"),
   "design.colorList": tr("roles.hint_design_color_list"),
   "design.comment": tr("roles.hint_design_comment"),
@@ -147,6 +149,7 @@ export const areaLabel = (): Record<ActionArea, string> => ({
 const seededPermissionName = (): Record<string, string> => ({
   "edit-designs": tr("roles.seed_permission_edit_designs"),
   "delete-designs": tr("roles.seed_permission_delete_designs"),
+  "empty-trash": tr("roles.seed_permission_empty_trash"),
   "download-comment": tr("roles.seed_permission_download_comment"),
   "color-list": tr("roles.seed_permission_color_list"),
   "moderate-comments": tr("roles.seed_permission_moderate_comments"),

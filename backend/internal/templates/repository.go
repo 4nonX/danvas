@@ -109,17 +109,21 @@ type createTemplateInput struct {
 	visibility   string // lowercase
 	collectionID *string
 	style        json.RawMessage
+	attribution  json.RawMessage // nil: none
 }
 
 func (s *Service) createRow(ctx context.Context, in createTemplateInput) (TemplateRow, error) {
 	const q = `INSERT INTO "templates" (id,"owner_id","workspace_id",title,category,tags,file,thumbnail,visibility,"collection_id",style,attribution,"updated_at")
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'[]'::jsonb,now()) RETURNING ` + tmplCols
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,now()) RETURNING ` + tmplCols
 	if in.tags == nil {
 		in.tags = []string{}
 	}
+	if in.attribution == nil {
+		in.attribution = json.RawMessage("[]")
+	}
 	return scanTemplate(s.db.QueryRow(ctx, q,
 		uuid.NewString(), in.ownerID, in.workspaceID, in.title, in.category, in.tags, in.file,
-		in.thumbnail, strings.ToUpper(in.visibility), in.collectionID, in.style))
+		in.thumbnail, strings.ToUpper(in.visibility), in.collectionID, in.style, in.attribution))
 }
 
 func (s *Service) setCollection(ctx context.Context, id string, collectionID *string) (TemplateRow, error) {

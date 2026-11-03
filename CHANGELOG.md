@@ -2,6 +2,24 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 1.9.5 (2026-11-03)
+
+### Added
+
+- **Empty trash.** A button in the trash deletes everything in it for good, after a confirmation that says how many designs go. Only the designs shown when confirming are removed: one restored or trashed by someone else in the meantime stays as it is.
+- **The new right Empty the trash** (`design.emptyTrash`), separate from deleting a single design for good. On all it covers the whole trash; on own only the designs the member created, and the confirmation says so.
+- **Delete forever asks first.** Deleting a single design from the trash for good now takes a confirmation that names the design.
+- **Duplicate a template.** **Duplicate** in a template's "..." menu makes a new template from it in the current workspace, built-in templates too. It takes **Create templates** (`template.publish`). The copy belongs to the person who made it and keeps the design, category, tags, preview and credits, and the collection when it stays in the same workspace. A copy of a public template is for the workspace, since going public has its own right.
+
+### Changed
+
+- **A "..." menu acts on everything ticked.** With several items ticked, **Delete** and **Duplicate** in the menu of a ticked design now apply to all ticked designs, as the other actions there already did. **Delete**, in that menu, in a ticked folder's menu and in the selection bar, now takes ticked folders along with the designs: designs go to the trash, folders are deleted and what they hold moves up one level, as with a single folder. It follows **Move designs to the trash** and **Delete folders**, on all or on own, and the confirmation says when something is left out. A template's menu does the same for **Delete**, **Duplicate**, **Export** and **Download**; a bulk delete of templates takes those you may delete and says so. Actions for one item (open, rename, edit) stay with the item, and the menu of an item that is not ticked still acts on that item alone.
+- **The trash only offers what you may do.** **Restore** and **Delete forever** show on a design only with the rights **Restore designs from the trash** and **Delete designs for good** for it, on all or on own. The server always checked this; now the buttons say so too.
+
+### Upgrading
+
+- One additive migration: every workspace gets the permission **Empty the trash**, on each role that may manage roles (owners and admins unless changed). Other roles can be given it in the role settings. A rollback ignores it.
+
 ## 1.9.4 (2026-11-02)
 
 ### Added

@@ -9,6 +9,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -492,11 +493,71 @@ func (s *Service) ListTrash(ctx context.Context, workspaceID string) ([]DesignRe
 	if err != nil {
 		return nil, err
 	}
+	creators, err := s.trashCreators(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
 	out := make([]DesignRecord, 0, len(rows))
 	for _, d := range rows {
-		out = append(out, toRecord(d))
+		rec := toRecord(d)
+		rec.CreatedByID = creators[d.ID]
+		out = append(out, rec)
 	}
 	return out, nil
+}
+
+// EmptyTrashResult counts what EmptyTrash did with the designs it was given.
+type EmptyTrashResult struct {
+	Deleted int `json:"deleted"`
+	Failed  int `json:"failed"`
+	// Skipped were no longer in the trash or not the caller's to remove.
+	Skipped int `json:"skipped"`
+}
+
+// EmptyTrash hard-deletes the given designs. Only the ids the caller confirmed
+// are touched, and only while they are still in this workspace's trash, so a
+// design trashed or restored by someone else in the meantime stays as it is.
+// allowed decides per creator. One failure does not stop the others; the error
+// is returned only when nothing could be deleted.
+func (s *Service) EmptyTrash(ctx context.Context, workspaceID string, ids []string, allowed func(creatorID string) bool) (EmptyTrashResult, error) {
+	var res EmptyTrashResult
+	if s.storage == nil {
+		return res, ErrNoStorage
+	}
+	creators, err := s.trashCreators(ctx, workspaceID)
+	if err != nil {
+		return res, err
+	}
+	seen := make(map[string]bool, len(ids))
+	var firstErr error
+	for _, id := range ids {
+		if seen[id] {
+			continue
+		}
+		seen[id] = true
+		creator, trashed := creators[id]
+		creatorID := ""
+		if creator != nil {
+			creatorID = *creator
+		}
+		if !trashed || !allowed(creatorID) {
+			res.Skipped++
+			continue
+		}
+		if err := s.Purge(ctx, id, workspaceID); err != nil {
+			slog.Warn("empty trash: design not deleted", "design", id, "err", err)
+			res.Failed++
+			if firstErr == nil {
+				firstErr = err
+			}
+			continue
+		}
+		res.Deleted++
+	}
+	if res.Deleted == 0 && firstErr != nil {
+		return res, firstErr
+	}
+	return res, nil
 }
 
 func (s *Service) Rename(ctx context.Context, designID, workspaceID, title string) (DesignRecord, error) {

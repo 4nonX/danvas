@@ -43,6 +43,7 @@ func mountPersistence(api chi.Router, p *persistence.Service, acct *accounts.Ser
 	api.With(requireAuth(acct)).Post("/designs/{id}/crdt-branches", createCrdtBranchHandler(p, acct))
 	api.With(requireAuth(acct)).Post("/designs/{id}/restore", restoreFromTrashHandler(p, acct))
 	api.With(requireAuth(acct)).Get("/workspaces/{wid}/trash", trashHandler(p, acct))
+	api.With(requireAuth(acct)).Post("/workspaces/{wid}/trash/empty", emptyTrashHandler(p, acct))
 	api.With(requireAuth(acct)).Get("/workspaces/{id}/designs", listWorkspaceDesignsHandler(p, acct))
 }
 
@@ -572,6 +573,40 @@ func trashHandler(p *persistence.Service, acct *accounts.Service) http.HandlerFu
 			return
 		}
 		writeJSON(w, http.StatusOK, list)
+	}
+}
+
+// emptyTrashHandler removes the designs the caller confirmed from the trash for
+// good. It takes design.emptyTrash: on all for everything, on own for what the
+// caller created.
+func emptyTrashHandler(p *persistence.Service, acct *accounts.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		wid := chi.URLParam(r, "wid")
+		u := userFrom(r.Context())
+		mr, err := acct.EffectiveRole(r.Context(), u.ID, wid)
+		if err != nil {
+			authProblem(w, r, err)
+			return
+		}
+		if !mr.Actions.Has(authz.DesignEmptyTrash) {
+			authProblem(w, r, &accounts.ActionError{Action: authz.DesignEmptyTrash})
+			return
+		}
+		var body struct {
+			IDs []string `json:"ids"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "invalid body", "invalid_body")
+			return
+		}
+		res, err := p.EmptyTrash(r.Context(), wid, body.IDs, func(creatorID string) bool {
+			return mr.Actions.Allows(authz.DesignEmptyTrash, creatorID != "" && creatorID == u.ID)
+		})
+		if err != nil {
+			persistenceProblem(w, r, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, res)
 	}
 }
 

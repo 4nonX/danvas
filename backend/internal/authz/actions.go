@@ -24,18 +24,21 @@ const (
 )
 
 const (
-	DesignCreate   Action = "design.create"
-	DesignRename   Action = "design.rename"
-	DesignEdit     Action = "design.edit"
-	DesignTrash    Action = "design.trash"
-	DesignRestore  Action = "design.restore"
-	DesignPurge    Action = "design.purge"
-	DesignDownload Action = "design.download"
+	DesignCreate  Action = "design.create"
+	DesignRename  Action = "design.rename"
+	DesignEdit    Action = "design.edit"
+	DesignTrash   Action = "design.trash"
+	DesignRestore Action = "design.restore"
+	DesignPurge   Action = "design.purge"
+	// DesignEmptyTrash removes everything in the trash in one go (own: what the
+	// member created).
+	DesignEmptyTrash Action = "design.emptyTrash"
+	DesignDownload   Action = "design.download"
 	// DesignColorList adds the colour list (every colour in every code, the
 	// brand's references, the nearest library colours) to a download.
 	DesignColorList Action = "design.colorList"
 	DesignComment   Action = "design.comment"
-	DesignPresent  Action = "design.present"
+	DesignPresent   Action = "design.present"
 	// CommentModerate edits and deletes other people's comments.
 	CommentModerate Action = "comment.moderate"
 
@@ -123,6 +126,7 @@ var Actions = []ActionDef{
 	{DesignTrash, "designs", true, "member"},
 	{DesignRestore, "designs", true, "member"},
 	{DesignPurge, "designs", true, "member"},
+	{DesignEmptyTrash, "designs", true, "admin"},
 	{DesignDownload, "designs", false, "viewer"},
 	{DesignColorList, "designs", false, "viewer"},
 	{DesignComment, "designs", false, "viewer"},

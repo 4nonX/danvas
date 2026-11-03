@@ -54,6 +54,9 @@ type DesignRecord struct {
 	// FolderID is the dashboard folder (designs.project_id), so the editor
 	// can find the folder's print defaults (F44).
 	FolderID *string `json:"folderId,omitempty"`
+	// CreatedByID is who created the design; the trash list carries it for the
+	// scoped "Empty trash".
+	CreatedByID *string `json:"createdById,omitempty"`
 }
 
 type Service struct {

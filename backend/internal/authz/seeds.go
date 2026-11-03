@@ -35,6 +35,7 @@ func set(pairs ...any) ActionSet {
 var SeedPermissions = []SeedPermission{
 	{"edit-designs", set(DesignCreate, ScopeAll, DesignRename, ScopeAll, DesignEdit, ScopeAll, DesignPresent, ScopeAll)},
 	{"delete-designs", set(DesignTrash, ScopeAll, DesignRestore, ScopeAll, DesignPurge, ScopeAll)},
+	{"empty-trash", set(DesignEmptyTrash, ScopeAll)},
 	{"download-comment", set(DesignDownload, ScopeAll, DesignComment, ScopeAll)},
 	{"color-list", set(DesignColorList, ScopeAll)},
 	{"moderate-comments", set(CommentModerate, ScopeAll)},

@@ -22,7 +22,7 @@ A living checklist of what ships today versus what is planned. Shipped items are
 ### Content systems
 - [x] Uploads (folders, tags, from-URL, SVG/PDF import, screen/mic recording)
 - [x] Stock (bundled catalog + live Openverse photos, licensing/attribution, faceted filters: category/style/orientation, colorful-first browse order)
-- [x] Templates (categories, save-as-template, workspace collections, locked regions)
+- [x] Templates (categories, save-as-template, workspace collections, locked regions; edit through a working copy, duplicate, rename, delete, with every step a right in the roles)
 - [x] Brand kits (colors/fonts/logos/voice, brand lock with off/warn/block policy, auto-fix, re-skin)
 - [x] Brand kit export and import as a `.brandkit.zip` (documented format), replace-or-rename on a name clash
 - [x] Brand kits copied into other workspaces and into a new workspace (single or all, by checklist; uploads and fonts copied; replace-or-rename), behind the `brand.copy` right
@@ -56,6 +56,8 @@ A living checklist of what ships today versus what is planned. Shipped items are
 - [x] Editor brand panel in rows: colours by palette with adding per palette, fonts shown in themselves, one tile per logo with its versions, a line of each graphics category, brand tools (apply, re-skin, check, version, locked regions, voice) folded below
 - [x] Elements panel in rows (search, pinned and most used tiles, See all, tiles and rows sorted by dragging, hidden rows) and the tool rail in your own order, kept with the account (interface preferences per user)
 - [x] Save as template from the dashboard, for one design or a selection
+- [x] Trash with restore, delete for good and Empty trash, after a confirmation and under a right of its own
+- [x] Tick several designs, folders or templates; the bar and the "..." menu of a ticked item act on all of them
 - [x] Logo versions per brand (named, for light or dark grounds, configurable), logos grouped with their versions; a brand check that checks brand compliance whatever the locks, with an optional WCAG contrast check measured against what is behind the text
 - [x] Multi-instance scale (Redis fan-out, cross-instance roster, CAS lock authority)
 - [x] Comments (threads, pins, @mentions, reactions, resolve, convert-to-task)
@@ -101,6 +103,11 @@ A living checklist of what ships today versus what is planned. Shipped items are
 - [x] Print and export defaults per folder, inherited by subfolders, before personal defaults ([spec 44](roadmap/44-folder-print-defaults.md))
 - [x] Print files only after approval: workspace rule, print PDF/TIFF/EPS/printing and the server's render.pdf held back until the design is approved, approvers exempt, print proof (soft proof, plates, TAC) in the approval banner ([spec 47](roadmap/47-print-approval.md))
 - [x] Finished size in the export profile: designs of another size (or turned) named in the download menu, Change format for exactly those ([spec 48](roadmap/48-profile-finished-size.md))
+- [x] Print shop rules in export profiles: lowest image resolution, thinnest line, smallest text, smallest text in several inks, allowed spot colors, CMYK only, bleed; each off, a warning or a reason to refuse the download
+- [x] Package for the print shop: one zip with the print file, a soft proof of every page, the color list and a report of settings, rules, check, approval and every file's SHA-256
+- [x] Die lines around any element at a set offset, with or without its holes, traced from what is drawn; elements marked as die line are never printed and go into vector PDF and EPS as the die line
+- [x] Overprint per element: overprint mode 1 in vector PDF, the plates used in EPS, computed into CMYK TIFF and image PDF and into the proof
+- [x] Settings files: a workspace's export profiles, print presets, color profiles, color libraries, roles and permissions, rules, folder defaults and, when ticked, member e-mail addresses, each under a right of its own; a person's own profiles, color profiles, interface preferences and shortcuts. Keys, tokens and passwords are never in them
 - [x] Export profiles and print presets: named settings, personal or per workspace, with defaults and full management (create, edit every setting, rename, default, duplicate, delete; own in Settings, the workspace's on its Members page)
 - [x] Print from the editor and the dashboard (one design or a selection): paper handed to the driver (each page's own size, or A4/A3/Letter), actual size or fitted, 150 to 1200 dpi (203 dpi for label printers), bleed and crop marks
 - [x] Website generator (static HTML, SEO, nav, file export), local generation only

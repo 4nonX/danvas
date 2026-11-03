@@ -26,6 +26,7 @@ func mountTemplates(api chi.Router, tm *templates.Service, acct *accounts.Servic
 		r.Get("/templates/{id}", templatesGetHandler(tm))
 		r.Patch("/templates/{id}", templatesRenameHandler(tm))
 		r.Post("/templates/{id}/edit", templatesStartEditHandler(tm))
+		r.Post("/templates/{id}/duplicate", templatesDuplicateHandler(tm))
 		r.Put("/templates/{id}/file", templatesSaveEditHandler(tm))
 		r.Delete("/templates/{id}", templatesDeleteHandler(tm))
 		r.Get("/templates/{id}/file", templatesFileHandler(tm))
@@ -212,6 +213,26 @@ func templatesDeleteHandler(tm *templates.Service) http.HandlerFunc {
 }
 
 // templatesStartEditHandler makes the working copy an edit happens on.
+func templatesDuplicateHandler(tm *templates.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			WorkspaceID string `json:"workspaceId"`
+			Title       string `json:"title"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.WorkspaceID == "" {
+			problemWithCode(w, r, http.StatusBadRequest, "Bad Request", "missing workspaceId", "missing_workspaceid")
+			return
+		}
+		u := userFrom(r.Context())
+		t, err := tm.Duplicate(r.Context(), u.ID, chi.URLParam(r, "id"), body.WorkspaceID, body.Title)
+		if err != nil {
+			templatesProblem(w, r, err)
+			return
+		}
+		writeJSON(w, http.StatusCreated, t)
+	}
+}
+
 func templatesStartEditHandler(tm *templates.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var body struct {

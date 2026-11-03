@@ -120,6 +120,25 @@ func (s *Service) listTrashRows(ctx context.Context, workspaceID string) ([]desi
 	return collectDesigns(rows)
 }
 
+// trashCreators maps the designs in a workspace's trash to who created them.
+func (s *Service) trashCreators(ctx context.Context, workspaceID string) (map[string]*string, error) {
+	rows, err := s.db.Query(ctx, `SELECT id, "created_by_id" FROM "designs" WHERE "workspace_id" = $1 AND "deleted_at" IS NOT NULL`, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := map[string]*string{}
+	for rows.Next() {
+		var id string
+		var creator *string
+		if err := rows.Scan(&id, &creator); err != nil {
+			return nil, err
+		}
+		out[id] = creator
+	}
+	return out, rows.Err()
+}
+
 func collectDesigns(rows pgx.Rows) ([]designRow, error) {
 	var out []designRow
 	for rows.Next() {

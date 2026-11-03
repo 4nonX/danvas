@@ -197,6 +197,8 @@ export interface WorkspaceInvitation {
 
 export interface DesignRecord {
   id: string;
+  /** Who created the design; set in the trash list. */
+  createdById?: string;
   workspaceId: string;
   title: string;
   schemaVersion: number;
@@ -1920,6 +1922,11 @@ export class HyCanvasClient {
   listTrash(workspaceId: string): Promise<DesignRecord[]> {
     return this.request("GET", `/v1/workspaces/${workspaceId}/trash`);
   }
+  /** Delete these designs for good, those still in the trash and the caller's
+   *  to remove (design.emptyTrash); the others are skipped. */
+  emptyTrash(workspaceId: string, ids: string[]): Promise<{ deleted: number; failed: number; skipped: number }> {
+    return this.request("POST", `/v1/workspaces/${workspaceId}/trash/empty`, { ids });
+  }
 
   // --- sharing + permissions --------------------------------------
   /** The caller's resolved access (mode + capabilities) to a design (FR-7). */
@@ -2292,6 +2299,11 @@ export class HyCanvasClient {
   /** Replace the template's design with the working copy's. */
   saveTemplateEdit(id: string, designId: string): Promise<TemplateSummary> {
     return this.request("PUT", `/v1/templates/${encodeURIComponent(id)}/file`, { designId });
+  }
+  /** Copy a template, built-in ones too, into a workspace as a new template
+   *  (template.publish there). */
+  duplicateTemplate(id: string, workspaceId: string, title: string): Promise<TemplateSummary> {
+    return this.request("POST", `/v1/templates/${encodeURIComponent(id)}/duplicate`, { workspaceId, title });
   }
   /** Rename a stored template (template.rename). */
   renameTemplate(id: string, title: string): Promise<TemplateSummary> {

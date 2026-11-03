@@ -54,6 +54,8 @@ import { designFromFile, designImportAccept } from "@/lib/importDesignFile";
 
 import { ApiError, type AiProviderPreset, type BrandKit, type DesignFolder, type DesignRecord, type HomeItem, type MyTask, type StorageUsageView, type TaskStatus, type TemplateCollectionSummary, type TemplateSummary } from "@hc/sdk";
 import { formatBytes } from "@/lib/format";
+import { emptyableDesigns, mayOnTrashed } from "@/lib/trash";
+import { actOn } from "@/lib/selection";
 import { useDateFormat } from "@/lib/datetime";
 import { resolvedTheme, setThemePreference } from "@/lib/theme";
 import { oc } from "@/lib/sdk";
@@ -74,7 +76,7 @@ import { BulkShareDialog } from "./BulkShareDialog";
 import { ReformatDialog } from "./ReformatDialog";
 import { RolesPage } from "./RolesPage";
 import { useMyActions } from "@/store/workspaceActions";
-import { hasAction, type Action } from "@hc/authz";
+import { allowsAction, hasAction, type Action } from "@hc/authz";
 import Link from "next/link";
 import { settingsPath } from "@/components/settings/tabs";
 import { ExportDialog, type ExportTarget } from "@/components/editor/ExportDialog";
@@ -420,6 +422,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     window.localStorage.setItem("hc-dash-templates", open ? "expanded" : "collapsed");
   }
   const [trash, setTrash] = useState<DesignRecord[]>([]);
+  const [emptyingTrash, setEmptyingTrash] = useState(false);
   const [favorites, setFavorites] = useState<HomeItem[]>([]);
   // Storage usage for the rail meter (workspace + account scopes).
   const [storageUsage, setStorageUsage] = useState<StorageUsageView | null>(null);
@@ -556,9 +559,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
       setExportLoading(false);
     }
   };
-  // A design's own menu acts on the whole selection when that design is part
-  // of it (as in a file manager), else on the design alone.
-  const withSelection = (id: string) => (selDesigns.has(id) && selDesigns.size > 1 ? [...selDesigns] : [id]);
+  const withSelection = (id: string) => actOn(id, selDesigns);
   const shareDesigns = (ids: string[]) => {
     if (ids.length === 1) setShareDesignId(ids[0]);
     else if (ids.length > 1) setBulkShare(ids.map((id) => ({ id, title: titleOf(id) })));
@@ -872,24 +873,42 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     }
   }
 
-  /** Move the selected designs to the trash (folders are deleted one by one
-   *  from their own menu, so a bulk action never removes a whole tree). */
-  async function trashSelected() {
-    const ids = [...selDesigns];
-    if (!ids.length) return;
+  /** Delete what is ticked, after a confirmation: designs go to the trash,
+   *  folders are deleted and what they hold moves up one level. What the role
+   *  does not allow at all is left out and the confirmation says so; the server
+   *  checks each item, on own or on all. */
+  async function deleteSelected() {
+    const ids = can("design.trash") ? [...selDesigns] : [];
+    const folderIds = can("folder.delete") ? [...selFolders] : [];
+    if (!ids.length && !folderIds.length) return;
+    const parts: string[] = [];
+    if (ids.length) parts.push(ids.length === 1 ? tr("dashboard.move_one_design_to_trash") : tr("dashboard.move_n_designs_to_trash", { n: ids.length }));
+    if (folderIds.length === 1) parts.push(tr("dashboard.delete_folder_message", { name: folders.find((f) => f.id === folderIds[0])?.name ?? "" }));
+    else if (folderIds.length) parts.push(tr("dashboard.delete_n_folders_message", { n: folderIds.length }));
+    if (ids.length + folderIds.length < selCount) parts.push(tr("dashboard.selection_allowed_only"));
+    const onlyFolders = !ids.length;
+    const title = !folderIds.length ? tr("dashboard.move_to_trash") : !onlyFolders ? tr("dashboard.delete_selection_title") : folderIds.length === 1 ? tr("dashboard.delete_folder") : tr("dashboard.delete_n_folders", { n: folderIds.length });
     const ok = await confirmAction({
-      title: tr("dashboard.move_to_trash"),
-      message: tr("dashboard.move_n_designs_to_trash", { n: ids.length }),
-      confirmText: tr("dashboard.move_to_trash_2"),
+      title,
+      message: parts.join("\n\n"),
+      confirmText: !folderIds.length ? tr("dashboard.move_to_trash_2") : onlyFolders ? title : tr("dashboard.delete"),
       danger: true,
     });
     if (!ok) return;
-    const failed = (await Promise.allSettled(ids.map((id) => oc.deleteDesign(id)))).filter((r) => r.status === "rejected").length;
+    let failed = (await Promise.allSettled(ids.map((id) => oc.deleteDesign(id)))).filter((r) => r.status === "rejected").length;
+    // One after the other: each moves its contents to its parent.
+    for (const id of folderIds) {
+      try {
+        await oc.deleteDesignFolder(id);
+      } catch {
+        failed++;
+      }
+    }
     clearSelection();
     setItems(await load(searched));
     reloadFolders();
-    if (failed) toast.error(tr("dashboard.could_not_delete_n", { n: failed }));
-    else toast.success(tr("dashboard.moved_to_trash"));
+    if (failed) toast.error(!folderIds.length ? tr("dashboard.could_not_delete_n", { n: failed }) : tr("dashboard.could_not_delete_items_n", { n: failed }));
+    else toast.success(!folderIds.length ? tr("dashboard.moved_to_trash") : onlyFolders && folderIds.length === 1 ? tr("dashboard.folder_deleted") : tr("dashboard.selection_deleted"));
   }
 
   /** New designs made while a folder is open land in that folder. */
@@ -905,11 +924,48 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     toast.success(tr("dashboard.restored"));
   }
 
-  async function deleteForever(id: string) {
+  async function deleteForever(d: DesignRecord) {
     if (!activeWorkspaceId) return;
-    await oc.deleteDesign(id, true);
+    const ok = await confirmAction({
+      title: tr("dashboard.delete_forever_confirm_title"),
+      message: tr("dashboard.delete_forever_confirm_message", { name: d.title }),
+      confirmText: tr("dashboard.delete_forever"),
+      danger: true,
+    });
+    if (!ok) return;
+    try {
+      await oc.deleteDesign(d.id, true);
+      toast.success(tr("dashboard.deleted_permanently"));
+    } catch (e) {
+      toast.error(userMessage(e, tr("dashboard.could_not_delete_forever")));
+    }
     setTrash(await oc.listTrash(activeWorkspaceId).catch(() => []));
-    toast.success(tr("dashboard.deleted_permanently"));
+  }
+
+  /** Delete everything in the trash this member may remove, after a confirmation. */
+  async function emptyTrash() {
+    if (!activeWorkspaceId) return;
+    const ids = emptyableDesigns(trash, myActions, user?.id).map((d) => d.id);
+    if (!ids.length) return;
+    const count = ids.length === 1 ? tr("dashboard.empty_trash_confirm_one") : tr("dashboard.empty_trash_confirm_n", { n: ids.length });
+    const ok = await confirmAction({
+      title: tr("dashboard.empty_trash_confirm_title"),
+      message: ids.length < trash.length ? `${count} ${tr("dashboard.empty_trash_confirm_own")}` : count,
+      confirmText: tr("dashboard.empty_trash"),
+      danger: true,
+    });
+    if (!ok) return;
+    setEmptyingTrash(true);
+    try {
+      const res = await oc.emptyTrash(activeWorkspaceId, ids);
+      if (res.failed) toast.error(tr("dashboard.could_not_empty_n", { n: res.failed }));
+      else toast.success(tr("dashboard.trash_emptied"));
+    } catch {
+      toast.error(tr("dashboard.could_not_empty_trash"));
+    } finally {
+      setEmptyingTrash(false);
+    }
+    setTrash(await oc.listTrash(activeWorkspaceId).catch(() => []));
   }
 
   // Import a .hyc file (the open format as JSON) as a NEW design in the active
@@ -990,6 +1046,35 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     }
   }
 
+  // A template's own menu acts on the selection when the template is part of it.
+  const tplWithSelection = (t: TemplateSummary) => {
+    const ids = actOn(t.id, tplSel);
+    return ids.length > 1 ? templates.filter((x) => ids.includes(x.id)) : [t];
+  };
+
+  async function duplicateTemplates(list: TemplateSummary[]) {
+    if (!activeWorkspaceId) return;
+    setBusy(true);
+    let failed = 0;
+    let error: unknown;
+    for (const t of list) {
+      try {
+        await oc.duplicateTemplate(t.id, activeWorkspaceId, tr("dashboard.template_copy_title", { name: t.title }));
+      } catch (e) {
+        failed++;
+        error = e;
+      }
+    }
+    setTemplates(
+      await oc
+        .listTemplates({ workspaceId: activeWorkspaceId, collection: tplCollection ?? undefined })
+        .catch(() => templates),
+    );
+    setBusy(false);
+    if (failed) toast.error(list.length === 1 ? userMessage(error, tr("dashboard.could_not_duplicate_template")) : tr("dashboard.could_not_duplicate_templates_n", { n: failed }));
+    else toast.success(list.length === 1 ? tr("dashboard.template_duplicated") : tr("dashboard.templates_duplicated_n", { n: list.length }));
+  }
+
   async function renameTemplate(t: TemplateSummary) {
     const name = await promptText({ title: tr("dashboard.rename_template"), label: tr("dashboard.template_name"), defaultValue: t.title, confirmText: tr("dashboard.save") });
     if (!name || name === t.title) return;
@@ -1002,24 +1087,27 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     }
   }
 
-  /** Delete a template after a confirmation. Designs made from it stay; the
-   *  last template of a workspace gets a note on template protection. */
-  async function deleteTemplate(t: TemplateSummary) {
-    const message = tr("dashboard.delete_template_message", { name: t.title });
-    const ok = await confirmAction({
-      title: tr("dashboard.delete_template"),
-      message: t.lastInWorkspace ? `${message}\n\n${tr("dashboard.delete_template_last_hint")}` : message,
-      confirmText: tr("dashboard.delete_template"),
-      danger: true,
-    });
+  /** Delete templates after a confirmation, those of the list the member may
+   *  delete. Designs made from them stay; removing a workspace's last templates
+   *  gets a note on template protection. */
+  async function deleteTemplates(selected: TemplateSummary[]) {
+    const list = selected.filter((t) => t.canDelete);
+    if (!list.length) return;
+    const single = selected.length === 1;
+    const removesAll = !tplCollection && allowsAction(myActions, "template.delete") && templates.filter((t) => t.canDelete).every((t) => list.includes(t));
+    const parts = [single ? tr("dashboard.delete_template_message", { name: list[0].title }) : tr("dashboard.delete_n_templates_message", { n: list.length })];
+    if (list.length < selected.length) parts.push(tr("dashboard.delete_n_templates_allowed_only"));
+    if (single ? list[0].lastInWorkspace : removesAll) parts.push(tr("dashboard.delete_template_last_hint"));
+    const label = single ? tr("dashboard.delete_template") : tr("dashboard.delete_n_templates", { n: list.length });
+    const ok = await confirmAction({ title: label, message: parts.join("\n\n"), confirmText: label, danger: true });
     if (!ok) return;
-    try {
-      await oc.deleteTemplate(t.id);
-      setTemplates((prev) => prev.filter((x) => x.id !== t.id));
-      toast.success(tr("dashboard.template_deleted"));
-    } catch (e) {
-      toast.error(userMessage(e, tr("dashboard.could_not_delete_template")));
-    }
+    const results = await Promise.allSettled(list.map((t) => oc.deleteTemplate(t.id)));
+    const gone = new Set(list.filter((_, i) => results[i].status === "fulfilled").map((t) => t.id));
+    setTemplates((prev) => prev.filter((x) => !gone.has(x.id)));
+    setTplSel((prev) => new Set([...prev].filter((id) => !gone.has(id))));
+    const rejected = results.find((r): r is PromiseRejectedResult => r.status === "rejected");
+    if (rejected) toast.error(single ? userMessage(rejected.reason, tr("dashboard.could_not_delete_template")) : tr("dashboard.could_not_delete_templates_n", { n: list.length - gone.size }));
+    else toast.success(single ? tr("dashboard.template_deleted") : tr("dashboard.templates_deleted_n", { n: gone.size }));
   }
 
   // Export templates as a package with the uploads and fonts they use.
@@ -1056,23 +1144,27 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     }
   }
 
-  async function duplicate(item: HomeItem) {
+  async function duplicate(ids: string[]) {
     if (!activeWorkspaceId) return;
     setBusy(true);
-    try {
-      const file = await oc.getDesignFile(item.id);
-      const title = `${item.title} (copy)`;
-      file.title = title;
-      const copy = await oc.createDesign({ workspaceId: activeWorkspaceId, title, from: file });
-      // The copy sits next to the original.
-      if (item.folderId) await oc.moveToFolder(activeWorkspaceId, { designIds: [copy.id], folderId: item.folderId }).catch(() => {});
-      setItems(await load(searched));
-      toast.success(tr("dashboard.design_duplicated"));
-    } catch {
-      toast.error(tr("dashboard.could_not_duplicate_the_design"));
-    } finally {
-      setBusy(false);
+    let failed = 0;
+    for (const id of ids) {
+      try {
+        const file = await oc.getDesignFile(id);
+        const title = `${titleOf(id)} (copy)`;
+        file.title = title;
+        const copy = await oc.createDesign({ workspaceId: activeWorkspaceId, title, from: file });
+        // The copy sits next to the original.
+        const folderId = items.find((i) => i.id === id)?.folderId;
+        if (folderId) await oc.moveToFolder(activeWorkspaceId, { designIds: [copy.id], folderId }).catch(() => {});
+      } catch {
+        failed++;
+      }
     }
+    setItems(await load(searched).catch(() => items));
+    setBusy(false);
+    if (failed) toast.error(ids.length === 1 ? tr("dashboard.could_not_duplicate_the_design") : tr("dashboard.could_not_duplicate_n", { n: failed }));
+    else toast.success(ids.length === 1 ? tr("dashboard.design_duplicated") : tr("dashboard.designs_duplicated_n", { n: ids.length }));
   }
 
   function startFormat(f: Format) {
@@ -1181,10 +1273,10 @@ export function DashboardApp({ view }: { view: DashboardView }) {
           {can("template.publish") && (
             <MenuRow icon={LayoutTemplate} onClick={() => { setMenuFor(null); setTemplateTargets(withSelection(item.id).map((id) => ({ id, title: titleOf(id) }))); }}>{tr("editor.save_as_template")}</MenuRow>
           )}
-          <MenuRow icon={Copy} onClick={() => { setMenuFor(null); void duplicate(item); }}>{tr("dashboard.duplicate")}</MenuRow>
+          <MenuRow icon={Copy} onClick={() => { setMenuFor(null); void duplicate(withSelection(item.id)); }}>{tr("dashboard.duplicate")}</MenuRow>
           <MenuRow icon={Pencil} onClick={() => { setMenuFor(null); setRenameTarget(item); setRenameValue(item.title); }}>{tr("dashboard.rename")}</MenuRow>
           <MenuRow icon={ArrowRightLeft} onClick={() => { setMenuFor(null); setTransferReq({ items: dragPayload("designs", item.id), mode: "move", here: true }); }}>{tr("dashboard.copy_or_move")}</MenuRow>
-          <MenuRow icon={Trash2} danger onClick={() => { setMenuFor(null); setDeleteTarget(item); }}>{tr("dashboard.delete")}</MenuRow>
+          <MenuRow icon={Trash2} danger onClick={() => { setMenuFor(null); if (selDesigns.has(item.id) && selCount > 1) void deleteSelected(); else setDeleteTarget(item); }}>{tr("dashboard.delete")}</MenuRow>
         </AnchoredMenu>
       )}
     </div>
@@ -1542,7 +1634,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                               onRename={() => void renameFolder(f)}
                               onTransfer={() => { setFolderMenu(null); setTransferReq({ items: dragPayload("folders", f.id), mode: "move", here: true }); }}
                               onDefaults={activeWorkspaceId ? () => { setFolderMenu(null); setDefaultsFor(f); } : undefined}
-                              onDelete={() => void deleteFolder(f)}
+                              onDelete={() => { setFolderMenu(null); if (selFolders.has(f.id) && selCount > 1) void deleteSelected(); else void deleteFolder(f); }}
                               onDropItems={(it) => void moveItems(it, f.id)}
                               onDragStart={(e) => setDragItems(e, dragPayload("folders", f.id))}
                               onToggleSelect={() => toggleSel("folders", f.id)}
@@ -2036,11 +2128,12 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                         {tplMenu === t.id && (
                           <AnchoredMenu role="menu" className="w-60 rounded-xl border border-neutral-200 bg-surface py-1 text-sm shadow-lg" onClick={(e) => e.stopPropagation()}>
                             <MenuRow icon={ExternalLink} onClick={() => { setTplMenu(null); void applyTemplate(t); }}>{tr("dashboard.use_this_template")}</MenuRow>
-                            <MenuRow icon={Package} onClick={() => { setTplMenu(null); exportTemplates([t]); }}>{tr("dashboard.export_template_package")}</MenuRow>
-                            <MenuRow icon={FileDown} onClick={() => { setTplMenu(null); void downloadTemplateHyc(t); }}>{tr("dashboard.download_as_hyc_file")}</MenuRow>
+                            <MenuRow icon={Package} onClick={() => { setTplMenu(null); exportTemplates(tplWithSelection(t)); }}>{tr("dashboard.export_template_package")}</MenuRow>
+                            <MenuRow icon={FileDown} onClick={() => { setTplMenu(null); for (const x of tplWithSelection(t)) void downloadTemplateHyc(x); }}>{tr("dashboard.download_as_hyc_file")}</MenuRow>
                             {t.canEdit && <MenuRow icon={SquarePen} onClick={() => { setTplMenu(null); void editTemplate(t); }}>{tr("dashboard.edit_template")}</MenuRow>}
+                            {can("template.publish") && <MenuRow icon={Copy} onClick={() => { setTplMenu(null); void duplicateTemplates(tplWithSelection(t)); }}>{tr("dashboard.duplicate")}</MenuRow>}
                             {t.canRename && <MenuRow icon={Pencil} onClick={() => { setTplMenu(null); void renameTemplate(t); }}>{tr("dashboard.rename")}</MenuRow>}
-                            {t.canDelete && <MenuRow icon={Trash2} danger onClick={() => { setTplMenu(null); void deleteTemplate(t); }}>{tr("dashboard.delete_template")}</MenuRow>}
+                            {t.canDelete && <MenuRow icon={Trash2} danger onClick={() => { setTplMenu(null); void deleteTemplates(tplWithSelection(t)); }}>{tr("dashboard.delete_template")}</MenuRow>}
                           </AnchoredMenu>
                         )}
                       </div>
@@ -2054,7 +2147,14 @@ export function DashboardApp({ view }: { view: DashboardView }) {
 
           {view === "trash" && (
             <section>
-              <h2 className="mb-4 px-2 text-xl font-semibold text-neutral-900">{tr("dashboard.trash")}</h2>
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-2 px-2">
+                <h2 className="text-xl font-semibold text-neutral-900">{tr("dashboard.trash")}</h2>
+                {emptyableDesigns(trash, myActions, user?.id).length > 0 && (
+                  <Button variant="danger" size="sm" className="gap-1.5" disabled={emptyingTrash} onClick={() => void emptyTrash()}>
+                    <Trash2 size={14} /> {tr("dashboard.empty_trash")}
+                  </Button>
+                )}
+              </div>
               {trash.length === 0 ? (
                 <EmptyState message={tr("dashboard.trash_is_empty")} />
               ) : (
@@ -2065,8 +2165,8 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                       <div className="px-3 py-2.5">
                         <div className="truncate text-sm font-semibold text-neutral-800">{d.title}</div>
                         <div className="mt-2 flex gap-2 text-xs">
-                          <button onClick={() => void restoreFromTrash(d.id)} className="font-medium text-brand-ink hover:underline">{tr("dashboard.restore")}</button>
-                          <button onClick={() => void deleteForever(d.id)} className="font-medium text-red-600 hover:underline">{tr("dashboard.delete_forever")}</button>
+                          {mayOnTrashed(d, "design.restore", myActions, user?.id) && <button onClick={() => void restoreFromTrash(d.id)} className="font-medium text-brand-ink hover:underline">{tr("dashboard.restore")}</button>}
+                          {mayOnTrashed(d, "design.purge", myActions, user?.id) && <button onClick={() => void deleteForever(d)} className="font-medium text-red-600 hover:underline">{tr("dashboard.delete_forever")}</button>}
                         </div>
                       </div>
                     </li>
@@ -2332,9 +2432,9 @@ export function DashboardApp({ view }: { view: DashboardView }) {
               )}
             </>
           )}
-          {selDesigns.size > 0 && (
-            <button type="button" onClick={() => void trashSelected()} className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-sm text-red-600 transition hover:bg-red-50">
-              <Trash2 size={15} /> {tr("dashboard.move_to_trash_2")}
+          {((selDesigns.size > 0 && can("design.trash")) || (selFolders.size > 0 && can("folder.delete"))) && (
+            <button type="button" onClick={() => void deleteSelected()} className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-sm text-red-600 transition hover:bg-red-50">
+              <Trash2 size={15} /> {selFolders.size > 0 && can("folder.delete") ? tr("dashboard.delete") : tr("dashboard.move_to_trash_2")}
             </button>
           )}
           <button type="button" onClick={clearSelection} aria-label={tr("dashboard.clear_selection")} title={tr("dashboard.clear_selection")} className="grid h-8 w-8 place-items-center rounded-lg text-neutral-500 transition hover:bg-neutral-100">

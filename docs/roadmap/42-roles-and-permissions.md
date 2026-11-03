@@ -31,6 +31,7 @@ Every guarded route maps to exactly one action. Membership alone still allows re
 | | `design.trash` (move to trash, move to another workspace) | yes | member |
 | | `design.restore` (from trash) | yes | member |
 | | `design.purge` (delete for good) | yes | member |
+| | `design.emptyTrash` (delete everything in the trash in one go; own: designs the member created) | yes | admin |
 | | `design.download` (render, export) | | viewer |
 | | `design.comment` (comment, reply, resolve, react, vote) | | viewer |
 | | `design.present` (live presentation controls) | | member |
@@ -84,6 +85,7 @@ Every workspace starts with these, so a new workspace works without setup and th
 |---|---|
 | Edit designs | `design.create`, `design.rename` all, `design.edit` all, `design.present` |
 | Delete designs | `design.trash` all, `design.restore` all, `design.purge` all |
+| Empty the trash | `design.emptyTrash` all |
 | Download and comment | `design.download`, `design.comment` |
 | Organize folders | `folder.create`, `folder.edit` all, `folder.delete` all |
 | Folder print defaults | `folder.defaults` |
