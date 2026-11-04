@@ -726,7 +726,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
   const blocked = !!gate && gate.blocked; // policy 'block' with violations
   // Print files wait for the designs' approval when the workspace says so.
   const printFile = (format === "pdf" && !taggedPdf) || format === "tiff" || format === "eps";
-  const approvalBlocked = printFile && clearance.blocked;
+  const approvalBlocked = printFile && clearance.held;
   // Print files as one package for the print shop.
   const packaged = handover && printFile;
   const showWarn = gateActive && gate!.policy === "warn" && !warnDismissed;
@@ -1160,7 +1160,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
       for (const f of await colorListFiles(d, id, libraries, colorList ? colorListAs : { pdf: true, csv: true, ase: false })) out.push({ blob: f.blob, name: h.packageName(f.name, taken) });
     }
     const checked = (await checkIssues([{ design: "", doc: d, pages: designPages }]))[0]?.list ?? [];
-    const approval = id ? await oc.designApproval(id).catch(() => null) : null;
+    const approval = id ? await oc.designApproval(id).catch(() => "unavailable" as const) : null;
     const entries = await h.entriesOf(out);
     const report = await h.handoverReportPdf(handoverReport(d, designPages, checked, approval, entries), resolvedLocale());
     out.push({ blob: report, name: h.packageName(`${base}-${tr("editor.handover_report_file")}.pdf`, taken) });
@@ -1169,7 +1169,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
 
   /** What the package's report says (in the user's language when the
    *  report's font can show it, else English). */
-  function handoverReport(d: DesignFile, designPages: number[], checked: ExportIssue[], approval: DesignApprovalView | null, files: { name: string; data: Uint8Array }[]): import("@/lib/print/handover").HandoverReport {
+  function handoverReport(d: DesignFile, designPages: number[], checked: ExportIssue[], approval: DesignApprovalView | "unavailable" | null, files: { name: string; data: Uint8Array }[]): import("@/lib/print/handover").HandoverReport {
     // Shadows tr so the keys stay literal tr() calls (the catalog check reads them).
     const tr = pdfTr;
     const dpi = d.dpi ?? 96;
@@ -1181,8 +1181,10 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
     const level = (l: string) => (l === "block" ? tr("editor.rule_level_block") : l === "warn" ? tr("editor.rule_level_warn") : tr("editor.rule_level_off"));
     const spots = spotNamesOf(withoutDieLines(copy));
     const date = (s?: string | null) => (s ? new Date(s).toLocaleString(resolvedLocale()) : "");
-    const ap = approval?.approval;
-    const approvalLines: (string | [string, string])[] = !ap
+    const ap = approval === "unavailable" ? null : approval?.approval;
+    const approvalLines: (string | [string, string])[] = approval === "unavailable"
+      ? [tr("editor.handover_approval_unavailable")]
+      : !ap
       ? [tr("editor.handover_approval_none")]
       : [
           [tr("editor.handover_approval_status"), { pending: tr("editor.handover_approval_pending"), approved: tr("editor.handover_approval_approved"), rejected: tr("editor.handover_approval_rejected"), reopened: tr("editor.handover_approval_reopened") }[ap.status] ?? ap.status],
@@ -1246,6 +1248,12 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
     if (blocked) return;
     setBusy(true);
     try {
+      // The workspace's approval rule, asked again: it or the approval may
+      // have changed while the menu was open.
+      if (printFile) {
+        const fresh = await clearance.recheck();
+        if (fresh.held) { toast.error(tr(fresh.state === "unavailable" ? "editor.print_approval_unavailable" : "editor.print_approval_needed")); return; }
+      }
       // The print shop's rules, checked again on the design as it is now.
       if (Object.values(rules).some((r) => r.level === "block") && rendersDesign) {
         const fresh = await checkIssues(checkTargets());
@@ -1986,7 +1994,15 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
             )}
           </div>
         )}
-        {approvalBlocked && (
+        {printFile && clearance.state === "unavailable" && (
+          <div className="mb-2 flex flex-col gap-1.5 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-900">
+            <span>{tr("editor.print_approval_unavailable")}</span>
+            <button type="button" onClick={clearance.retry} className="self-start rounded-md bg-amber-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-amber-700">
+              {tr("editor.print_approval_retry")}
+            </button>
+          </div>
+        )}
+        {printFile && clearance.blocked && (
           <div className="mb-2 flex flex-col gap-1.5 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-900">
             <span>{designs && designs.length > 1 ? tr("editor.print_approval_needed_n", { count: clearance.waiting }) : tr("editor.print_approval_needed")}</span>
             {onRequestApproval && (
@@ -1999,7 +2015,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
         <button
           onClick={() => void run()}
           disabled={busy || blocked || approvalBlocked || ruleBlocked}
-          title={blocked ? tr("editor.resolve_brand_violations_to_download") : approvalBlocked ? tr("editor.print_approval_needed") : ruleBlocked ? tr("editor.rules_blocked_title") : undefined}
+          title={blocked ? tr("editor.resolve_brand_violations_to_download") : approvalBlocked ? tr(clearance.state === "loading" ? "editor.print_approval_checking" : clearance.state === "unavailable" ? "editor.print_approval_unavailable" : "editor.print_approval_needed") : ruleBlocked ? tr("editor.rules_blocked_title") : undefined}
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:opacity-50"
         >
           <Download size={16} />

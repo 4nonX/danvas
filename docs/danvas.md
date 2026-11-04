@@ -562,6 +562,7 @@ A workspace can require that print files of a design are made only once it is ap
 
 - Held back until the design's approval is granted: the print PDF, TIFF and EPS in the download menu, printing, and the API's `render.pdf`. PNG, JPG, SVG and the accessible (tagged) PDF stay free for sharing drafts.
 - The download menu and the print dialog say why their buttons are off (for a selection, how many designs still wait) and offer **Request approval**.
+- The rule is asked again at the moment of the download or the print. While it cannot be read, print files wait and the menu offers **Try again**; the package's report says when the approval could not be read, instead of saying there is none.
 - An approved design is locked against edits, so what was approved is what prints. **Reopen** unlocks it and holds print files back again.
 - Roles that decide approvals (owners and admins by default) are not held up.
 - **Print proof** in the approval banner shows the design as it would print before anyone approves it: the soft proof through the design's colour profile, single plates and ink coverage against the TAC limit, with bleed.

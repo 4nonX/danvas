@@ -12,6 +12,10 @@ vi.mock("@/lib/exportFormats", () => ({
   },
 }));
 
+// Loaded here, not in a test: on a busy machine the first load alone can take
+// longer than a test's time limit.
+const { imposeCanvases } = await import("./imposeRaster");
+
 type Call = { op: string; args: number[]; transform: number[] };
 const calls: Call[] = [];
 
@@ -34,7 +38,6 @@ const doc = { dpi: 96, pages: [{ width: mm(90), height: mm(50), bleed: mm(3) }, 
 
 describe("imposed sheet pictures", () => {
   it("places the trim corner of every page on its slot", async () => {
-    const { imposeCanvases } = await import("./imposeRaster");
     calls.length = 0;
     const s = { ...defaultImposeSettings(), on: true };
     const sheets = imposeCanvases(doc, [0, 1], s, [210, 297], 300, true);
@@ -55,7 +58,6 @@ describe("imposed sheet pictures", () => {
   });
 
   it("turns pages a quarter clockwise when the layout does", async () => {
-    const { imposeCanvases } = await import("./imposeRaster");
     calls.length = 0;
     const s = { ...defaultImposeSettings(), on: true, marks: false, orientation: "portrait" as const };
     imposeCanvases(doc, [0], s, [120, 297], 300, true);

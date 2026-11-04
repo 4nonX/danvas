@@ -199,6 +199,9 @@ export function PrintDialog({ open, onClose, designs, workspaceId: workspaceIdPr
   async function go() {
     setBusy(true);
     try {
+      // The approval rule, asked again: it may have changed while this was open.
+      const fresh = await clearance.recheck();
+      if (fresh.held) { toast.error(tr(fresh.state === "unavailable" ? "editor.print_approval_unavailable" : "editor.print_approval_needed")); return; }
       const pages = await renderPages(sheetList, current);
       if (!pages.length) throw new Error("nothing to print");
       await openPrint(pages, current, designs && designs.length > 1 ? tr("editor.print_n_designs", { count: designs.length }) : (doc.title || tr("editor.untitled")));
@@ -338,6 +341,14 @@ export function PrintDialog({ open, onClose, designs, workspaceId: workspaceIdPr
         {/* What the browser hands the printer driver, and what to check there. */}
         <p className="mb-3 rounded-lg bg-neutral-50 p-2 text-[11px] leading-snug text-neutral-500">{tr("editor.print_driver_hint")}</p>
 
+        {clearance.state === "unavailable" && (
+          <div className="mb-3 flex flex-col gap-1.5 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-900">
+            <span>{tr("editor.print_approval_unavailable")}</span>
+            <button type="button" onClick={clearance.retry} className="self-start rounded-md bg-amber-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-amber-700">
+              {tr("editor.print_approval_retry")}
+            </button>
+          </div>
+        )}
         {clearance.blocked && (
           <div className="mb-3 flex flex-col gap-1.5 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-900">
             <span>{designs && designs.length > 1 ? tr("editor.print_approval_needed_n", { count: clearance.waiting }) : tr("editor.print_approval_needed")}</span>
@@ -353,7 +364,7 @@ export function PrintDialog({ open, onClose, designs, workspaceId: workspaceIdPr
           <span className="text-[11px] text-neutral-400">{tr("editor.print_n_sheets", { count: sheetCount })}</span>
           <div className="flex gap-2">
             <button onClick={onClose} className="rounded-lg px-3 py-1.5 text-neutral-600 hover:bg-neutral-100">{tr("editor.cancel")}</button>
-            <button onClick={() => void go()} disabled={busy || clearance.blocked} className="flex items-center gap-2 rounded-lg bg-brand-600 px-3 py-1.5 font-medium text-white hover:bg-brand-700 disabled:opacity-50">
+            <button onClick={() => void go()} disabled={busy || clearance.held} title={clearance.state === "loading" ? tr("editor.print_approval_checking") : undefined} className="flex items-center gap-2 rounded-lg bg-brand-600 px-3 py-1.5 font-medium text-white hover:bg-brand-700 disabled:opacity-50">
               <Printer size={15} /> {busy ? tr("editor.preparing") : tr("editor.print")}
             </button>
           </div>

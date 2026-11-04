@@ -17,7 +17,10 @@ const { VerifyEmailBanner } = await import("./VerifyEmailBanner");
 
 beforeEach(() => {
   cleanup();
-  window.localStorage.clear();
+  // An own store: newer Node versions put their own localStorage in the way of
+  // jsdom's, undefined unless Node is given a file for it.
+  const store = new Map<string, string>();
+  vi.stubGlobal("localStorage", { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => void store.set(k, v) });
   authConfig.mockReset();
 });
 
