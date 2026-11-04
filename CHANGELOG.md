@@ -2,6 +2,18 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 1.9.6 (2026-11-04)
+
+### Fixed
+
+- **Print files wait until the approval rule is known.** The download menu and the print dialog treated a rule that was still loading or could not be read as no rule, so print files could be made in that time. Now they wait while it loads; when it cannot be read they say so and offer **Try again**.
+- **The approval rule is asked again when the file is made**, so an approval reopened while a dialog was open counts.
+- **The print shop report tells an unreadable approval from a missing one.** It said no approval was requested when the approval could not be read; now it says it could not be read.
+
+### Upgrading
+
+- A pure frontend change: no schema change, no migration.
+
 ## 1.9.5 (2026-11-03)
 
 ### Added
