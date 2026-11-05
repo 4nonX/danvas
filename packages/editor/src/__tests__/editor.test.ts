@@ -1,3 +1,4 @@
+import type { TextNode } from "@hc/schema";
 import { describe, it, expect } from "vitest";
 import { createBlankDesign, createNode, type DesignFile, type Node } from "@hc/schema";
 import { applyToPoint, fromTransform } from "@hc/engine";
@@ -43,6 +44,7 @@ import {
   cut,
   captureStyle,
   pasteStyleOps,
+  pasteTextStyle,
   type Command,
   type EditCommand,
   type HandleId,
@@ -699,6 +701,87 @@ describe("copy-style / paste-style (F10 FR-6, AC-4)", () => {
     expect((d.pages[0].children[2] as unknown as { fills: unknown[] }).fills).toHaveLength(1);
     // text target does not receive a node-level fill (handled per run, deferred)
     expect(res.applied["txt"] ?? []).not.toContain("fill");
+  });
+
+  describe("from text to text", () => {
+    const red = { type: "solid", color: { srgb: { r: 1, g: 0, b: 0, a: 1 } } };
+    const blue = { type: "solid", color: { srgb: { r: 0, g: 0, b: 1, a: 1 } } };
+    const para = (runs: unknown[], align: string, direction = "ltr") => ({ runs, style: { align, direction } });
+    const makeText = (id: string, content: unknown[], extra: Record<string, unknown> = {}) =>
+      createNode("text", { id, content, ...extra } as unknown as Partial<Node>) as unknown as TextNode;
+
+    function pair() {
+      const src = makeText(
+        "src",
+        [para([{ text: "Head", style: { fontFamily: "Serif", fontStyle: "Bold", fontSize: 40, fill: red, letterSpacing: 2, case: "upper" }, charStyleId: "h1" }], "center")],
+        { textEffects: [{ kind: "lift", intensity: 1 }] },
+      );
+      const tgt = makeText("tgt", [
+        para([
+          { text: "one ", style: { fontFamily: "Sans", fontStyle: "Regular", fontSize: 12, fill: blue, link: "https://example.org", language: "de", decoration: ["underline"] } },
+          { text: "two", style: { fontFamily: "Mono", fontStyle: "Italic", fontSize: 9, fill: blue }, overrides: { fontSize: 11 } },
+        ], "left", "rtl"),
+        para([{ text: "three", style: { fontFamily: "Sans", fontStyle: "Regular", fontSize: 12, fill: blue } }], "right"),
+      ]);
+      return { src, tgt, d: designWith(src as unknown as Node, tgt as unknown as Node) };
+    }
+
+    it("formats every run and paragraph like the copied text, and keeps the words", () => {
+      const { tgt, d } = pair();
+      pasteTextStyle(tgt, captureStyle(d, "src")!.text!);
+      expect(tgt.content.map((p) => p.runs.map((r) => r.text).join(""))).toEqual(["one two", "three"]);
+      for (const p of tgt.content) {
+        expect(p.style.align).toBe("center");
+        for (const r of p.runs) {
+          expect(r.style).toMatchObject({ fontFamily: "Serif", fontStyle: "Bold", fontSize: 40, fill: red, letterSpacing: 2, case: "upper" });
+          expect(r.style.decoration).toBeUndefined();
+          expect(r.charStyleId).toBe("h1");
+          expect("overrides" in r).toBe(false);
+        }
+      }
+      expect(tgt.textEffects).toEqual([{ kind: "lift", intensity: 1 }]);
+    });
+
+    it("keeps links, language and direction on the target", () => {
+      const { tgt, d } = pair();
+      pasteTextStyle(tgt, captureStyle(d, "src")!.text!);
+      expect(tgt.content[0].runs[0].style).toMatchObject({ link: "https://example.org", language: "de" });
+      expect(tgt.content[0].style.direction).toBe("rtl");
+    });
+
+    it("puts everything back exactly", () => {
+      const { tgt, d } = pair();
+      const before = structuredClone(tgt);
+      const restore = pasteTextStyle(tgt, captureStyle(d, "src")!.text!);
+      restore();
+      expect(tgt).toEqual(before);
+    });
+
+    it("clears text effects the copied text does not have", () => {
+      const { src, tgt, d } = pair();
+      const restore = pasteTextStyle(src, captureStyle(d, "tgt")!.text!);
+      expect("textEffects" in src).toBe(false);
+      restore();
+      expect(src.textEffects).toHaveLength(1);
+      expect(tgt.textEffects).toBeUndefined();
+    });
+
+    it("takes the formatting from the first run there is, and shares nothing with the clip", () => {
+      const src = makeText("a", [para([], "right"), para([{ text: "x", style: { fontFamily: "Serif", fontStyle: "Bold", fontSize: 30, fill: red } }], "center")]);
+      const tgt = makeText("b", [para([{ text: "y", style: { fontFamily: "Sans", fontStyle: "Regular", fontSize: 10, fill: blue } }], "left")]);
+      const d = designWith(src as unknown as Node, tgt as unknown as Node);
+      const clip = captureStyle(d, "a")!.text!;
+      expect(clip.paragraph.style.align).toBe("center");
+      pasteTextStyle(tgt, clip);
+      (tgt.content[0].runs[0].style.fill as { type: string }).type = "changed";
+      expect(clip.run.style.fill).toEqual(red);
+    });
+
+    it("has nothing to copy from a text without runs, or from a shape", () => {
+      const d = designWith(makeText("e", [para([], "left")]) as unknown as Node, shape("s", 0, 0, 10, 10));
+      expect(captureStyle(d, "e")!.text).toBeUndefined();
+      expect(captureStyle(d, "s")!.text).toBeUndefined();
+    });
   });
 
   it("copies a group's paint from inside it and pastes onto the shapes inside a group", () => {

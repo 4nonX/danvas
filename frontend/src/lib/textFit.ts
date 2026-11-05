@@ -34,6 +34,12 @@ export function measuredTextHeight(node: TextNode, content?: Paragraph[]): numbe
   return Math.max(1, Math.round(laid.height));
 }
 
+/** The box an auto-width text needs: its longest line, unwrapped, plus padding. */
+export function measuredAutoWidthBox(node: TextNode): { width: number; height: number } {
+  const laid = layoutText({ ...node, box: { ...node.box, mode: "autoWidth" } } as TextNode, { measure: canvasMeasure });
+  return { width: Math.max(1, Math.ceil(laid.width)), height: Math.max(1, Math.round(laid.height)) };
+}
+
 /** The narrowest box width the text can reflow to without the font shrinking,
  *  i.e. the widest unbreakable token (longest word) plus horizontal padding.
  *  Laying out at width 1 forces every break opportunity to wrap, so the widest

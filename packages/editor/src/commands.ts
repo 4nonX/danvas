@@ -238,9 +238,12 @@ export function applyGroup(
   members: NodeId[],
   parent: ParentRef,
 ): GroupNode | null {
-  const siblings = siblingsForParent(file, parent);
-  if (!siblings) return null;
   const memberSet = new Set(members);
+  // "page" is the page the members are on, not always the first one.
+  const siblings = parent === "page"
+    ? file.pages.find((p) => p.children.some((n) => memberSet.has(n.id)))?.children
+    : siblingsForParent(file, parent);
+  if (!siblings) return null;
 
   // Union AABB of members in parent space; the group origin sits there.
   let union: Rect | null = null;
@@ -278,6 +281,26 @@ export function applyGroup(
   };
   siblings.splice(Math.max(0, insertAt), 0, group);
   return group;
+}
+
+/** Fits a group's box to the children it has left, without moving anything on
+ *  the page. A clipping group's box is its crop, so that one stays. */
+export function fitGroupToChildren(group: GroupNode): void {
+  if (group.clip || !group.children.length) return;
+  let union: Rect | null = null;
+  for (const c of group.children) {
+    const b = parentSpaceAABB(c);
+    union = union ? rectUnion(union, b) : b;
+  }
+  if (!union) return;
+  const m = fromTransform(group.transform);
+  const x = m.a * union.x + m.c * union.y + m.e;
+  const y = m.b * union.x + m.d * union.y + m.f;
+  for (const c of group.children) {
+    c.transform = { ...c.transform, x: c.transform.x - union.x, y: c.transform.y - union.y };
+  }
+  group.transform = { ...group.transform, x, y };
+  group.size = { width: union.width, height: union.height };
 }
 
 /** Dissolve a group, baking its transform into each child to preserve visuals. */

@@ -291,7 +291,7 @@ The model works on a 1024 pixel copy of the photo. Its edge is then fitted to th
 - Group color swatches recolor every use of a color inside a group or selection at once.
 - **Size & position** (properties panel): besides the number fields, a size slider scales the element proportionally (logarithmic, from tiny to twice the page) and a rotation knob turns it (drag around the knob, Shift for 15° steps, double-click for 0°, arrow keys for 1°), about the rotation point set beside it. A drag is one undo step.
 - Pasted elements keep their spot: on another page at exactly the position they had on their own page, on their own page slightly offset from the original (after a cut, in place). **Paste in place** never offsets.
-- Copy and paste style works on groups and carries text colors.
+- Copy and paste style works on groups and carries text colors. From one text to another it carries the whole formatting of the copied text's first characters and paragraph: font, size, weight, color, spacing, alignment and text effects, applied to all of the target text. Its words, links, language and direction stay.
 
 ### Units and exact sizes
 

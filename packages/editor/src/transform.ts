@@ -103,6 +103,28 @@ export function flipNode(node: Node, axis: "h" | "v"): Transform {
   return keepCenterFixed(t, flipped, node.size);
 }
 
+/** Mirror a node as seen on the page, left to right ("h") or top to bottom
+ *  ("v"), whatever its rotation. Its center stays, or with `pivot` is mirrored
+ *  about that point (for several nodes flipped together). */
+export function mirrorNode(node: Node, axis: "h" | "v", pivot?: Point): Transform {
+  const t = node.transform;
+  const cx = node.size.width / 2;
+  const cy = node.size.height / 2;
+  const center = applyToPoint(fromTransform(t), { x: cx, y: cy });
+  const target = {
+    x: pivot && axis === "h" ? 2 * pivot.x - center.x : center.x,
+    y: pivot && axis === "v" ? 2 * pivot.y - center.y : center.y,
+  };
+  // A mirror turns rotation and skew the other way and flips one local axis.
+  const next: Transform = { ...t, rotation: t.rotation ? -t.rotation : 0 };
+  if (t.skewX) next.skewX = -t.skewX;
+  if (t.skewY) next.skewY = -t.skewY;
+  if (axis === "h") next.scaleX = -t.scaleX;
+  else next.scaleY = -t.scaleY;
+  const m = fromTransform(next);
+  return { ...next, x: target.x - (m.a * cx + m.c * cy), y: target.y - (m.b * cx + m.d * cy) };
+}
+
 // Fractional position of a handle within the local box (0=left/top, 1=right/bottom).
 const HANDLE_FRACTION: Record<HandleId, { fx: number; fy: number }> = {
   nw: { fx: 0, fy: 0 },

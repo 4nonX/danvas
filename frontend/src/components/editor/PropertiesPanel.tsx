@@ -350,6 +350,26 @@ function textOf(node: Node): string {
   return content?.map((p) => (p.runs ?? []).map((r) => r.text).join("")).join("\n") ?? "";
 }
 
+/** The words of a text box. Follows edits made elsewhere (on the canvas, undo)
+ *  while it is not being typed in, and writes back only what was typed here. */
+function TextContentField({ id, value, rows, className }: { id: string; value: string; rows: number; className: string }) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  const atFocus = useRef(value);
+  useEffect(() => {
+    if (ref.current && document.activeElement !== ref.current) ref.current.value = value;
+  }, [value]);
+  return (
+    <textarea
+      ref={ref}
+      defaultValue={value}
+      rows={rows}
+      className={className}
+      onFocus={(e) => { atFocus.current = e.target.value; }}
+      onBlur={(e) => { if (e.target.value !== atFocus.current) useEditor.getState().setText(id, e.target.value); }}
+    />
+  );
+}
+
 const BLEND_MODES: BlendMode[] = [
   "normal", "multiply", "screen", "overlay", "darken", "lighten",
   "color-dodge", "color-burn", "hard-light", "soft-light",
@@ -1530,10 +1550,10 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
               the finer controls the toolbar has no room for. Text effects live
               in the Effects side panel. */}
           <Section title={tr("editor.text")} order={ORDER.type}>
-            <textarea
+            <TextContentField
               key={`txt-${id}`}
-              defaultValue={textOf(single.node)}
-              onBlur={(e) => useEditor.getState().setText(id, e.target.value)}
+              id={id}
+              value={textOf(single.node)}
               rows={2}
               className="w-full resize-none rounded-lg border border-neutral-200 bg-surface px-2 py-1.5 text-sm outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
             />

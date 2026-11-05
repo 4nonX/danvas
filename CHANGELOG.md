@@ -2,6 +2,22 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 1.9.7 (2026-11-05)
+
+### Fixed
+
+- **Copy style from text to text carries the whole formatting.** It only carried the color. Now font, size, weight, spacing, case, decoration, alignment, paragraph settings and text effects of the copied text's first characters and paragraph go onto all of the target text. Its words, links, language and direction stay.
+- **Group works on every page.** On the second page and later it did nothing, and neither did Crop on several selected elements, which groups first.
+- **Delete and Cut work inside a group.** An element inside a group stayed where it was. Now it goes, the others keep their place and the group's box fits what is left. A group left empty goes too; a shape and its text go together.
+- **The text field in the properties panel keeps the formatting.** Clicking into it and out again flattened mixed formatting, removed links and added an undo step. It also follows edits made on the canvas now, instead of writing old text back.
+- **Auto W grows the box.** The box width now follows the text, keeping the left edge, center or right edge according to the alignment. It updates when typing ends. Existing boxes fit at their next edit.
+- **Flip mirrors rotated elements in place.** A rotated element jumped. It now mirrors as seen on the page, also with several selected together.
+- **Add page keeps the bleed and crop marks** of the current page.
+
+### Upgrading
+
+- A pure frontend change: no schema change, no migration. Existing designs are not altered until they are edited.
+
 ## 1.9.6 (2026-11-04)
 
 ### Fixed

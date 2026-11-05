@@ -10,11 +10,17 @@
 import {
   childrenOf,
   type BlendMode,
+  type CharStyle,
   type DesignFile,
   type Effect,
   type Fill,
   type Node,
+  type Paragraph,
+  type ParagraphStyle,
+  type Run,
   type Stroke,
+  type TextEffect,
+  type TextNode,
 } from "@hc/schema";
 import { locate, unionAABB } from "./tree";
 import type { ParentRef, SceneOp } from "./commands";
@@ -37,6 +43,16 @@ export interface StyleClip {
   effects?: Effect[];
   opacity?: number;
   blendMode?: BlendMode;
+  /** The formatting of a text, for pasting onto another text. */
+  text?: TextStyleClip;
+}
+
+/** A text's formatting: its first run and first paragraph, as they are stored,
+ *  so a named style or override stays attached. */
+export interface TextStyleClip {
+  run: Pick<Run, "style" | "charStyleId" | "overrides">;
+  paragraph: Pick<Paragraph, "style" | "paraStyleId" | "overrides">;
+  textEffects?: TextEffect[];
 }
 
 // Node types that carry node-level fills / strokes. Text fills live per run
@@ -322,6 +338,81 @@ export function cut(
   };
 }
 
+/** The first run that exists sets the formatting: an empty first paragraph has
+ *  none. A text with no run at all has no character formatting to copy. */
+function captureTextStyle(node: TextNode): TextStyleClip | null {
+  const paragraph = node.content?.find((p) => p.runs?.length);
+  const run = paragraph?.runs[0];
+  if (!paragraph || !run) return null;
+  return deepClone({
+    run: { style: run.style, charStyleId: run.charStyleId, overrides: run.overrides },
+    paragraph: { style: paragraph.style, paraStyleId: paragraph.paraStyleId, overrides: paragraph.overrides },
+    textEffects: node.textEffects,
+  });
+}
+
+// What belongs to a text's words rather than to its look stays on the target.
+const KEPT_CHAR_KEYS: (keyof CharStyle)[] = ["link", "language"];
+const KEPT_PARAGRAPH_KEYS: (keyof ParagraphStyle)[] = ["direction"];
+
+/** Replaces the keys of `target` with those of `source`, in place (the node
+ *  stays the same object for collaboration), except for the kept keys. */
+function restyleInPlace<T extends object>(target: T, source: T, kept: (keyof T)[]): void {
+  const t = target as Record<string, unknown>;
+  const s = deepClone(source) as Record<string, unknown>;
+  for (const k of Object.keys(t)) if (!(k in s) && !kept.includes(k as keyof T)) delete t[k];
+  for (const k of Object.keys(s)) if (!kept.includes(k as keyof T)) t[k] = s[k];
+}
+
+/** Sets a key, or removes it when there is no value (a stored `undefined` is
+ *  not part of the open file format). */
+function setOptional<T extends object, K extends keyof T>(target: T, key: K, value: T[K] | undefined): void {
+  if (value === undefined) delete target[key];
+  else target[key] = deepClone(value);
+}
+
+/**
+ * Formats a whole text like the copied one: every run and paragraph, and its
+ * text effects. The words, links, language and direction stay. Returns how to
+ * put the old formatting back.
+ */
+export function pasteTextStyle(node: TextNode, clip: TextStyleClip): () => void {
+  const before = deepClone({
+    content: node.content.map((p) => ({
+      style: p.style,
+      paraStyleId: p.paraStyleId,
+      overrides: p.overrides,
+      runs: p.runs.map((r) => ({ style: r.style, charStyleId: r.charStyleId, overrides: r.overrides })),
+    })),
+    textEffects: node.textEffects,
+  });
+  for (const p of node.content) {
+    restyleInPlace(p.style, clip.paragraph.style, KEPT_PARAGRAPH_KEYS);
+    setOptional(p, "paraStyleId", clip.paragraph.paraStyleId);
+    setOptional(p, "overrides", clip.paragraph.overrides);
+    for (const r of p.runs) {
+      restyleInPlace(r.style, clip.run.style, KEPT_CHAR_KEYS);
+      setOptional(r, "charStyleId", clip.run.charStyleId);
+      setOptional(r, "overrides", clip.run.overrides);
+    }
+  }
+  setOptional(node, "textEffects", clip.textEffects);
+  return () => {
+    node.content.forEach((p, i) => {
+      const b = before.content[i];
+      restyleInPlace(p.style, b.style, []);
+      setOptional(p, "paraStyleId", b.paraStyleId);
+      setOptional(p, "overrides", b.overrides);
+      p.runs.forEach((r, j) => {
+        restyleInPlace(r.style, b.runs[j].style, []);
+        setOptional(r, "charStyleId", b.runs[j].charStyleId);
+        setOptional(r, "overrides", b.runs[j].overrides);
+      });
+    });
+    setOptional(node, "textEffects", before.textEffects);
+  };
+}
+
 /** Capture style-only properties from a node (FR-6). */
 export function captureStyle(file: DesignFile, nodeId: string): StyleClip | null {
   const loc = locate(file, nodeId);
@@ -335,6 +426,10 @@ export function captureStyle(file: DesignFile, nodeId: string): StyleClip | null
   if (!clip.fills && loc.node.type === "text") {
     const run = (rec.content as { runs?: { style?: { fill?: Fill } }[] }[] | undefined)?.[0]?.runs?.[0];
     if (run?.style?.fill) clip.fills = [deepClone(run.style.fill)];
+  }
+  if (loc.node.type === "text") {
+    const text = captureTextStyle(loc.node as unknown as TextNode);
+    if (text) clip.text = text;
   }
   // A group (imported or vectorized artwork) has no paint of its own: take
   // the first fill and border found inside it.

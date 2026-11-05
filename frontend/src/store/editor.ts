@@ -44,6 +44,7 @@ import {
   type TextEffect,
   type TextNode,
   type TextFlow,
+  childrenOf,
   type Transform,
   type SlideSection,
   type FontRef,
@@ -70,6 +71,10 @@ import {
   remapIds,
   captureStyle,
   pasteStyleOps,
+  pasteTextStyle,
+  fitGroupToChildren,
+  mirrorNode,
+  type TextStyleClip,
   resizePage,
   worldAABB,
   worldMatrix,
@@ -102,10 +107,10 @@ import {
 } from "@hc/engine";
 import { booleanOp, fitCubicBeziers, pathToPolylines, recognizeShape, shapeNodeToParametric, shapeToPath, simplifyPolyline, strokeToOutline, type BooleanOp } from "@hc/geometry";
 import { imageAssets } from "@/lib/assetProvider";
-import { measuredTextHeight } from "@/lib/textFit";
+import { measuredAutoWidthBox, measuredTextHeight } from "@/lib/textFit";
 import { isDieLine, withPrintRole, type PrintRole } from "@/lib/print/nodePrint";
 import { buildDieContour } from "@/lib/print/dieContour";
-import { bakeShapeTextScale, layoutShapeText, restoreShapeTextGeometry, SHAPE_TEXT_KEY, SHAPE_TEXT_PADDING, shapeTextColor, shapeTextFontSize, shapeTextGeometry, shapeTextOf, textArea, type ShapeTextOverflow } from "@/lib/shapeText";
+import { bakeShapeTextScale, layoutShapeText, restoreShapeTextGeometry, SHAPE_TEXT_KEY, SHAPE_TEXT_PADDING, shapeTextColor, shapeTextFontSize, shapeTextGeometry,shapeTextOf, textArea, type ShapeTextOverflow } from "@/lib/shapeText";
 import { conformal, frameCorners, frameRotatable, rebaseInFrame, rotatePt, transformOf, turnSign } from "@/lib/cropFrame";
 import { pageGap, pageOffsets, pageTop } from "@/lib/pageLayout";
 import { cleanGrid, loadViewPrefs, saveViewPrefs, type GridSettings } from "@/lib/viewPrefs";
@@ -1925,13 +1930,34 @@ export const useEditor = create<EditorState>((set, get) => {
   // so "fixed but overflowing" only produced a selection box smaller than the
   // visible text. Auto-fit boxes are exempt: they fit by scaling the FONT
   // inside a deliberate frame, so the frame itself must not move.
+  // An auto-width box follows its text: left aligned text keeps its left edge,
+  // centered its center, right aligned its right edge. For any other box this
+  // does nothing, so an undo can always call it after restoring the text.
+  const fitAutoWidth = (node: Node) => {
+    const n = node as unknown as TextNode;
+    if (n.box?.mode !== "autoWidth") return;
+    const next = measuredAutoWidthBox(n);
+    const dw = next.width - n.size.width;
+    const align = n.content[0]?.style?.align;
+    const shift = align === "center" ? -dw / 2 : align === "right" ? -dw : 0;
+    if (shift) {
+      const rot = (n.transform.rotation * Math.PI) / 180;
+      const dx = shift * n.transform.scaleX;
+      n.transform = { ...n.transform, x: n.transform.x + Math.cos(rot) * dx, y: n.transform.y + Math.sin(rot) * dx };
+    }
+    n.size = { width: next.width, height: next.height };
+    n.box.width = next.width;
+    n.box.height = next.height;
+  };
+
   const refitTextHeight = (node: Node) => {
     // Text in a shape follows the shape instead (and grows it when set to).
     const inShape = shapeTextOf(locate(get().doc, node.id)?.parent);
     if (inShape) { layoutShapeText(inShape, measureShapeText); return; }
     const n = node as unknown as { box?: { mode?: string; height: number; autoFit?: { enabled?: boolean } }; size: { height: number } };
     const mode = n.box?.mode;
-    if (mode !== "autoHeight" && mode !== "fixed") return; // autoWidth: width is the free axis
+    if (mode === "autoWidth") { fitAutoWidth(node); return; }
+    if (mode !== "autoHeight" && mode !== "fixed") return;
     if (mode === "fixed" && n.box?.autoFit?.enabled) return;
     const content = measuredTextHeight(node as unknown as TextNode);
     const h = mode === "autoHeight" ? content : Math.max(n.size.height, content);
@@ -3463,6 +3489,9 @@ export const useEditor = create<EditorState>((set, get) => {
       const seed = tmpl.pages[0];
       seed.name = `Page ${doc.pages.length + 1}`;
       seed.background = structuredClone(cur.background) as never;
+      // A new page of a print document prints like the one before it.
+      if (cur.bleed !== undefined) seed.bleed = cur.bleed;
+      if (cur.printMarks) seed.printMarks = structuredClone(cur.printMarks);
       // Insert a fresh clone each (re)do so undo/redo never share a mutated ref.
       const fresh = structuredClone(seed);
       const at = curPageIndex() + 1;
@@ -5900,11 +5929,13 @@ export const useEditor = create<EditorState>((set, get) => {
       const selection = get().selection.filter((id) => !editBlocked(id));
       if (!styleClip || !selection.length) return;
       const { ops } = pasteStyleOps(doc, selection, styleClip as Parameters<typeof pasteStyleOps>[2]);
-      // A copied solid color also recolors text (selected, or inside a
-      // selected group): text color lives on the runs, which no op covers.
+      // Text (selected, or inside a selected group) takes a copied text's whole
+      // formatting, or at least a copied solid color: both live on the runs,
+      // which no op covers.
+      const textClip = (styleClip as { text?: TextStyleClip }).text;
       const fill = (styleClip as { fills?: Fill[] }).fills?.[0];
       const texts: { content: { runs: { style: { fill?: Fill } }[] }[] }[] = [];
-      if (fill?.type === "solid") {
+      if (textClip || fill?.type === "solid") {
         const visit = (node: Node) => {
           if (node.locked || editBlocked(node.id)) return;
           if (node.type === "text") texts.push(node as unknown as (typeof texts)[number]);
@@ -5913,8 +5944,38 @@ export const useEditor = create<EditorState>((set, get) => {
         for (const id of selection) { const loc = locate(doc, id); if (loc) visit(loc.node); }
       }
       if (!ops.length && !texts.length) return;
-      const before = texts.map((t) => t.content.map((p) => p.runs.map((r) => r.style.fill)));
       const entries = ops.map((op) => commandEntry(op));
+      if (textClip) {
+        // A new font or size changes how tall the text is; undo puts the old
+        // frame back too (refitting would keep a frame that only grows).
+        const framed = texts.map((t) => {
+          const node = t as unknown as Node & { box?: unknown };
+          const st = shapeTextOf(locate(doc, node.id)?.parent);
+          const frame = st ? shapeTextGeometry(st) : structuredClone({ size: node.size, box: node.box });
+          return {
+            node,
+            restoreFrame: () => {
+              if (st) restoreShapeTextGeometry(st, frame as ReturnType<typeof shapeTextGeometry>);
+              else Object.assign(node, structuredClone(frame));
+            },
+          };
+        });
+        let restores: (() => void)[] = [];
+        perform(
+          () => {
+            entries.forEach((e) => e.redo());
+            restores = framed.map(({ node }) => pasteTextStyle(node as unknown as TextNode, textClip));
+            framed.forEach(({ node }) => refitTextHeight(node));
+          },
+          () => {
+            restores.forEach((restore) => restore());
+            framed.forEach(({ restoreFrame }) => restoreFrame());
+            [...entries].reverse().forEach((e) => e.undo());
+          },
+        );
+        return;
+      }
+      const before = texts.map((t) => t.content.map((p) => p.runs.map((r) => r.style.fill)));
       perform(
         () => {
           entries.forEach((e) => e.redo());
@@ -7670,6 +7731,9 @@ export const useEditor = create<EditorState>((set, get) => {
         content: { runs: { text: string; style: unknown }[]; style: unknown }[];
       };
       const old = node.content;
+      // The same words again (leaving the field without a change): nothing to do,
+      // and rewriting would flatten the formatting inside each line.
+      if (old.map((p) => p.runs.map((r) => r.text).join("")).join("\n") === text) return;
       const firstStyle = old[0]?.runs?.[0]?.style;
       if (!firstStyle) return; // no run to inherit style from; never write a styleless run
       const before = structuredClone(old);
@@ -7694,6 +7758,7 @@ export const useEditor = create<EditorState>((set, get) => {
           node.content = structuredClone(before);
           sized.size.height = hBefore;
           sized.box.height = boxHBefore;
+          fitAutoWidth(loc.node);
         },
       );
     },
@@ -8076,6 +8141,7 @@ export const useEditor = create<EditorState>((set, get) => {
           node.size.height = hNext;
           node.box.height = hNext;
           if (reflow?.res.changed) refitTextHeight(loc.node);
+          fitAutoWidth(loc.node);
           if (titleSync) titleSync.pg.name = titleSync.afterName;
           if (inShape) layoutShapeText(inShape, measureShapeText);
         },
@@ -8083,6 +8149,7 @@ export const useEditor = create<EditorState>((set, get) => {
           node.content = structuredClone(before);
           node.size.height = hBefore;
           node.box.height = hBefore;
+          fitAutoWidth(loc.node);
           if (inShape && shapeBefore) restoreShapeTextGeometry(inShape, shapeBefore);
           // Never write an explicit `name: undefined` own key: the CRDT
           // reconcile is key-driven and would propagate it (same hazard as
@@ -8186,11 +8253,14 @@ export const useEditor = create<EditorState>((set, get) => {
     setTextBoxMode: (id, mode) => {
       const loc = locate(get().doc, id);
       if (!loc || loc.node.type !== "text" || loc.node.locked || editBlocked(id)) return;
-      const node = loc.node as unknown as { box: { mode: "fixed" | "autoHeight" | "autoWidth"; height: number }; size: { height: number } };
+      const node = loc.node as unknown as { box: { mode: "fixed" | "autoHeight" | "autoWidth"; height: number; width: number }; size: { width: number; height: number }; transform: Transform };
       const before = node.box.mode;
       if (before === mode) return;
       const hBefore = node.size.height;
       const boxHBefore = node.box.height;
+      const wBefore = node.size.width;
+      const boxWBefore = node.box.width;
+      const tBefore = { ...node.transform };
       perform(
         () => {
           node.box.mode = mode;
@@ -8201,7 +8271,9 @@ export const useEditor = create<EditorState>((set, get) => {
         },
         () => {
           node.box.mode = before;
-          node.size.height = hBefore;
+          node.transform = { ...tBefore };
+          node.size = { ...node.size, width: wBefore, height: hBefore };
+          node.box.width = boxWBefore;
           node.box.height = boxHBefore;
         },
       );
@@ -8350,6 +8422,7 @@ export const useEditor = create<EditorState>((set, get) => {
           node.content = structuredClone(before);
           node.size.height = hBefore;
           node.box.height = boxHBefore;
+          fitAutoWidth(loc.node);
         },
       );
     },
@@ -8370,7 +8443,7 @@ export const useEditor = create<EditorState>((set, get) => {
       const before = texts.map((n) => { const t = n as unknown as T; return { content: structuredClone(t.content), h: t.size.height, bh: t.box.height }; });
       perform(
         () => texts.forEach((n) => { (n as unknown as T).content.forEach((p) => p.runs.forEach((r) => Object.assign(r.style, char))); refitTextHeight(n); }),
-        () => texts.forEach((n, i) => { const t = n as unknown as T; t.content = structuredClone(before[i].content); t.size.height = before[i].h; t.box.height = before[i].bh; }),
+        () => texts.forEach((n, i) => { const t = n as unknown as T; t.content = structuredClone(before[i].content); t.size.height = before[i].h; t.box.height = before[i].bh; fitAutoWidth(n); }),
       );
       return texts.length;
     },
@@ -8913,30 +8986,63 @@ export const useEditor = create<EditorState>((set, get) => {
 
     deleteSelection: () => {
       const { doc, selection } = get();
-      const page = doc.pages[curPageIndex()];
-      const removed = selection
-        .map((id) => {
-          const i = page.children.findIndex((n) => n.id === id);
-          const node = i >= 0 ? page.children[i] : null;
-          // Skip statically-locked nodes, collab-locked-by-others, and brand locked regions.
-          return node && !node.locked && !editBlocked(id) ? { node, index: i } : null;
-        })
-        .filter(Boolean) as { node: Node; index: number }[];
+      const ancestorsOf = (id: string): Node[] => {
+        const out: Node[] = [];
+        for (let p = locate(doc, id)?.parent; p; p = locate(doc, p.id)?.parent) out.push(p);
+        return out;
+      };
+      const targets = new Set<string>();
+      for (const id of selection) {
+        const parent = locate(doc, id)?.parent;
+        // A shape's text and the shape are one object: delete both.
+        targets.add(parent && shapeTextOf(parent) ? parent.id : id);
+      }
+      // Whatever is inside something also being deleted goes with it.
+      for (const id of [...targets]) if (ancestorsOf(id).some((a) => targets.has(a.id))) targets.delete(id);
+      // Skip statically-locked nodes, collab-locked-by-others, and brand locked
+      // regions, and whatever is inside a locked group.
+      for (const id of [...targets]) {
+        const node = locate(doc, id)?.node;
+        if (!node || node.locked || editBlocked(id) || ancestorsOf(id).some((a) => a.locked)) targets.delete(id);
+      }
+      // A group that would be left empty goes too.
+      for (let changed = true; changed; ) {
+        changed = false;
+        for (const id of [...targets]) {
+          const parent = locate(doc, id)?.parent;
+          if (parent?.type === "group" && !parent.locked && !editBlocked(parent.id) && childrenOf(parent).every((c) => targets.has(c.id))) {
+            childrenOf(parent).forEach((c) => targets.delete(c.id));
+            targets.add(parent.id);
+            changed = true;
+            break;
+          }
+        }
+      }
+      const removed = [...targets].map((id) => locate(doc, id)!).filter((l) => l && l.siblings.includes(l.node));
       if (removed.length === 0) return;
-      const ids = removed.map((r) => r.node.id);
+      // The groups that lose a child get a smaller box, innermost first; undo
+      // needs their old geometry and that of the children that shift with it.
+      const shrunk: Node[] = [];
+      for (const r of removed) {
+        for (const a of ancestorsOf(r.node.id)) if (a.type === "group" && !targets.has(a.id) && !shrunk.includes(a)) shrunk.push(a);
+      }
+      shrunk.sort((a, b) => ancestorsOf(b.id).length - ancestorsOf(a.id).length);
+      const geometry = shrunk.flatMap((g) => [g, ...childrenOf(g)]).map((n) => ({ n, transform: { ...n.transform }, size: { ...n.size } }));
       const prevSelection = selection;
       perform(
         () => {
-          for (const id of ids) {
-            const i = page.children.findIndex((n) => n.id === id);
-            if (i >= 0) page.children.splice(i, 1);
+          for (const r of removed) {
+            const i = r.siblings.indexOf(r.node);
+            if (i >= 0) r.siblings.splice(i, 1);
           }
+          shrunk.forEach((g) => fitGroupToChildren(g as never));
           set({ selection: [] });
         },
         () => {
           for (const r of [...removed].sort((a, b) => a.index - b.index)) {
-            page.children.splice(r.index, 0, r.node);
+            r.siblings.splice(r.index, 0, r.node);
           }
+          for (const g of geometry) { g.n.transform = { ...g.transform }; g.n.size = { ...g.size }; }
           set({ selection: prevSelection });
         },
       );
@@ -9081,22 +9187,9 @@ export const useEditor = create<EditorState>((set, get) => {
       // For one node, mirror about its OWN center (correct in its parent space
       // even when nested in a group). For many, mirror about the union center
       // (page space; assumes top-level, which is the common case).
-      const single = targets.length === 1;
+      const pivot = targets.length === 1 ? undefined : { x: box.x + box.width / 2, y: box.y + box.height / 2 };
       const before = targets.map((l) => ({ ...l.node.transform }));
-      const after = targets.map((l) => {
-        const t = { ...l.node.transform };
-        const w = l.node.size.width, h = l.node.size.height;
-        if (axis === "h") {
-          const c = single ? t.x + (t.scaleX * w) / 2 : box.x + box.width / 2;
-          t.x = 2 * c - t.x;
-          t.scaleX = -t.scaleX;
-        } else {
-          const c = single ? t.y + (t.scaleY * h) / 2 : box.y + box.height / 2;
-          t.y = 2 * c - t.y;
-          t.scaleY = -t.scaleY;
-        }
-        return t;
-      });
+      const after = targets.map((l) => mirrorNode(l.node, axis, pivot));
       const apply = (arr: Transform[]) => targets.forEach((l, i) => { l.node.transform = { ...arr[i] }; });
       perform(() => apply(after), () => apply(before));
     },
