@@ -292,6 +292,8 @@ export interface ImportTarget {
   // A person's only:
   setUiPref?(key: string, value: unknown): Promise<unknown>;
   setShortcuts?(overrides: Record<string, string>): void;
+  /** Asked before each item: true ends the import there. */
+  cancelled?(): boolean;
 }
 
 export interface SettingsImportResult {
@@ -305,21 +307,26 @@ export interface SettingsImportResult {
   withoutIcc: string[];
   /** Folder defaults whose folder or profile is not here ("a / b: Profile"). */
   unmatched: string[];
+  /** Stopped before the end; what was imported until then stays. */
+  stopped: boolean;
 }
 
 /** Import the chosen parts. Colour profiles come first, so the profiles can
  *  find theirs. Each item fails on its own; nothing is made a default. */
 export async function importSettingsPackage(pkg: SettingsPackage, parts: readonly SettingsPart[], conflict: SettingsConflict, target: ImportTarget): Promise<SettingsImportResult> {
-  const out: SettingsImportResult = { added: 0, replaced: 0, skipped: 0, failed: [], withoutIcc: [], unmatched: [] };
+  const out: SettingsImportResult = { added: 0, replaced: 0, skipped: 0, failed: [], withoutIcc: [], unmatched: [], stopped: false };
+  // A part not begun yet stays out once the import is stopped.
+  const wants = (part: SettingsPart) => parts.includes(part) && !target.cancelled?.();
   const idOf = new Map<string, string>();
-  const wantsIcc = parts.includes("colorProfiles") || parts.includes("exportProfiles") || parts.includes("printPresets");
+  const wantsIcc = wants("colorProfiles") || wants("exportProfiles") || wants("printPresets");
   if (wantsIcc) {
     try {
       for (const p of await target.iccBytes()) idOf.set(await sha256Hex(p.bytes), p.id);
     } catch { /* the uploads below still say what they can */ }
   }
-  if (parts.includes("colorProfiles")) {
+  if (wants("colorProfiles")) {
     for (const p of pkg.colorProfiles) {
+      if (target.cancelled?.()) break;
       // The same bytes are the same profile, whatever it is called.
       if (idOf.has(p.checksum)) { out.skipped++; continue; }
       try {
@@ -333,16 +340,17 @@ export async function importSettingsPackage(pkg: SettingsPackage, parts: readonl
   }
   // Roles before anything that names one (the members below).
   const roleIdOf = new Map<string, string>();
-  if ((parts.includes("roles") || parts.includes("memberEmails")) && target.rolesView) {
+  if ((wants("roles") || wants("memberEmails")) && target.rolesView) {
     let view: Awaited<ReturnType<NonNullable<ImportTarget["rolesView"]>>> | null = null;
     try {
       view = await target.rolesView();
     } catch { /* creating says what is wrong */ }
     for (const r of view?.roles ?? []) roleIdOf.set(roleKey(r), r.id);
-    if (parts.includes("roles") && view) {
+    if (wants("roles") && view) {
       const permissionIdOf = new Map(view.permissions.map((p) => [roleKey(p), p.id]));
       const namesOfPermissions = view.permissions.map((p) => p.name);
       for (const p of pkg.permissions) {
+        if (target.cancelled?.()) break;
         const same = view.permissions.find((e) => roleKey(e) === p.key);
         try {
           if (same && conflict === "skip") { out.skipped++; continue; }
@@ -363,6 +371,7 @@ export async function importSettingsPackage(pkg: SettingsPackage, parts: readonl
       }
       const namesOfRoles = view.roles.map((r) => r.name);
       for (const r of pkg.roles) {
+        if (target.cancelled?.()) break;
         const same = view.roles.find((e) => roleKey(e) === r.key);
         // The owner role cannot be changed.
         if (same?.protected) { out.skipped++; continue; }
@@ -385,7 +394,7 @@ export async function importSettingsPackage(pkg: SettingsPackage, parts: readonl
       }
     }
   }
-  if (parts.includes("workspaceRules") && pkg.workspaceRules && target.setRules) {
+  if (wants("workspaceRules") && pkg.workspaceRules && target.setRules) {
     try {
       await target.setRules(pkg.workspaceRules);
       out.replaced++;
@@ -400,6 +409,7 @@ export async function importSettingsPackage(pkg: SettingsPackage, parts: readonl
     } catch { /* creating says what is wrong */ }
     const taken = existing.map((e) => e.name);
     for (const p of list) {
+      if (target.cancelled?.()) break;
       const settings = { ...p.settings };
       if (p.iccChecksum) {
         const id = idOf.get(p.iccChecksum);
@@ -423,15 +433,16 @@ export async function importSettingsPackage(pkg: SettingsPackage, parts: readonl
       }
     }
   };
-  if (parts.includes("exportProfiles")) await importProfiles("exportProfiles", "export", pkg.exportProfiles);
-  if (parts.includes("printPresets")) await importProfiles("printPresets", "print", pkg.printPresets);
-  if (parts.includes("colorLibraries")) {
+  if (wants("exportProfiles")) await importProfiles("exportProfiles", "export", pkg.exportProfiles);
+  if (wants("printPresets")) await importProfiles("printPresets", "print", pkg.printPresets);
+  if (wants("colorLibraries")) {
     let existing: { id: string; name: string }[] = [];
     try {
       existing = await target.libraries();
     } catch { /* creating says what is wrong */ }
     const taken = existing.map((e) => e.name);
     for (const l of pkg.colorLibraries) {
+      if (target.cancelled?.()) break;
       const same = existing.find((e) => e.name.trim().toLowerCase() === l.name.trim().toLowerCase());
       try {
         if (same && conflict === "skip") { out.skipped++; continue; }
@@ -452,13 +463,14 @@ export async function importSettingsPackage(pkg: SettingsPackage, parts: readonl
     }
   }
   // After the profiles, which they point at.
-  if (parts.includes("folderDefaults") && target.folders && target.setFolderDefault) {
+  if (wants("folderDefaults") && target.folders && target.setFolderDefault) {
     let folders: { id: string; parentId: string | null; name: string }[] = [];
     try {
       folders = await target.folders();
     } catch { /* each is then reported as not found */ }
     const profiles: Partial<Record<ExportProfileKind, Pick<ExportProfile, "id" | "name">[]>> = {};
     for (const d of pkg.folderDefaults) {
+      if (target.cancelled?.()) break;
       const label = `${d.path.join(" / ")}: ${d.profile}`;
       let parent: string | null = null;
       let found = true;
@@ -479,12 +491,13 @@ export async function importSettingsPackage(pkg: SettingsPackage, parts: readonl
     }
   }
   // An invitation mail goes to each one who is not here yet.
-  if (parts.includes("memberEmails") && target.invite) {
+  if (wants("memberEmails") && target.invite) {
     let here = new Set<string>();
     try {
       here = new Set((await target.memberEmails?.() ?? []).map((e) => e.trim().toLowerCase()));
     } catch { /* inviting someone already here is refused for them alone */ }
     for (const m of pkg.members) {
+      if (target.cancelled?.()) break;
       if (here.has(m.email.trim().toLowerCase())) { out.skipped++; continue; }
       try {
         await target.invite(m.email, roleIdOf.get(m.roleKey));
@@ -494,7 +507,7 @@ export async function importSettingsPackage(pkg: SettingsPackage, parts: readonl
       }
     }
   }
-  if (parts.includes("uiPrefs") && pkg.uiPrefs && target.setUiPref) {
+  if (wants("uiPrefs") && pkg.uiPrefs && target.setUiPref) {
     for (const [k, v] of Object.entries(pkg.uiPrefs)) {
       try {
         await target.setUiPref(k, v);
@@ -504,9 +517,10 @@ export async function importSettingsPackage(pkg: SettingsPackage, parts: readonl
       }
     }
   }
-  if (parts.includes("shortcuts") && pkg.shortcuts && target.setShortcuts) {
+  if (wants("shortcuts") && pkg.shortcuts && target.setShortcuts) {
     target.setShortcuts(pkg.shortcuts);
     out.replaced += Object.keys(pkg.shortcuts).length;
   }
+  out.stopped = !!target.cancelled?.();
   return out;
 }

@@ -155,6 +155,8 @@ export interface PackageSources {
   assetBytes(id: string): Promise<Uint8Array>;
   fonts: WorkspaceFont[];
   fontBytes(id: string): Promise<Uint8Array>;
+  /** Asked before each step: true ends the export with PackageCancelled. */
+  cancelled?(): boolean;
   onProgress?: (done: number, total: number) => void;
 }
 
@@ -178,6 +180,9 @@ const EXT: Record<string, string> = {
 const extOf = (filename: string | null | undefined, mime: string | null | undefined, fallback = "bin") =>
   (mime && EXT[mime]) || filename?.match(/\.([a-z0-9]{2,5})$/i)?.[1]?.toLowerCase() || fallback;
 
+/** The export was stopped; there is no package. */
+export class PackageCancelled extends Error {}
+
 /** Build the package for `items` (each design once, with its folder path)
  *  and `templates`. */
 export async function exportPackage(items: readonly PackageItem[], src: PackageSources, now = new Date(), templates: readonly PackageTemplateItem[] = []): Promise<PackageExport> {
@@ -190,8 +195,10 @@ export async function exportPackage(items: readonly PackageItem[], src: PackageS
   const families = new Set<string>();
   let missingAssets = 0;
   const total = items.length + templates.length;
+  const checkCancelled = () => { if (src.cancelled?.()) throw new PackageCancelled(); };
 
   for (const [i, it] of items.entries()) {
+    checkCancelled();
     let file: DesignFile;
     try {
       file = withoutBrand(await src.designFile(it.id));
@@ -209,6 +216,7 @@ export async function exportPackage(items: readonly PackageItem[], src: PackageS
   }
 
   for (const [i, t] of templates.entries()) {
+    checkCancelled();
     let file: DesignFile;
     try {
       if (!src.templateFile) throw new Error("no template source");
@@ -227,6 +235,7 @@ export async function exportPackage(items: readonly PackageItem[], src: PackageS
   }
 
   for (const id of used) {
+    checkCancelled();
     const a = src.assets.get(id)!;
     try {
       const data = await src.assetBytes(id);
@@ -240,6 +249,7 @@ export async function exportPackage(items: readonly PackageItem[], src: PackageS
 
   const names = new Set<string>();
   for (const f of src.fonts.filter((f) => families.has(f.family))) {
+    checkCancelled();
     try {
       const data = await src.fontBytes(f.id);
       let path = `fonts/${slug(f.family, "font")}-${f.weight}-${f.style}.${extOf(f.fileName, undefined, f.format || "woff2")}`;
@@ -352,29 +362,88 @@ export interface PackageTarget {
   createTemplate?(title: string, file: DesignFile, categories: string[]): Promise<void>;
   /** Whether the workspace already has a template of this title (skipped). */
   templateExists?(title: string): boolean;
+  /** An upload the target already has with exactly these bytes. */
+  findAsset?(data: Uint8Array): Promise<{ id: string; url: string } | null>;
+  /** Asked before each step: true ends the import there. */
+  cancelled?(): boolean;
   onProgress?: (done: number, total: number, label: string) => void;
 }
 
 export interface PackageImportResult {
   designs: { title: string; status: "imported" | "skipped" | "failed"; error?: unknown }[];
   templates: { title: string; status: "imported" | "skipped" | "failed"; error?: unknown }[];
+  /** Uploads the designs now point at, added or already there. */
   assets: number;
+  /** Of those, how many were already there with the same bytes. */
+  reusedAssets: number;
+  /** Uploads that could not be added (the designs show them empty). */
+  failedAssets: number;
   /** Font families that could not be added (no right, or a failed upload). */
   missingFonts: string[];
+  /** Stopped before the end; what is listed is what happened until then. */
+  stopped: boolean;
 }
 
 export const fontKey = (f: { family: string; weight: number; style: string }) => `${f.family}|${f.weight}|${f.style}`;
 
-/** Bring a read package into the target. Each design succeeds or fails on
- *  its own; uploads a design needs are uploaded before it. */
+/** Bring a read package into the target. What is already there is left alone:
+ *  designs and templates of a title that exists are skipped, and only the
+ *  uploads and fonts of those that are really added go in, reusing an upload the
+ *  target already has with the same bytes. Each design succeeds or fails on its
+ *  own; uploads a design needs are in place before it. Stopping ends after the
+ *  current step, and running it again goes on where it stopped. */
 export async function importPackage(p: ParsedPackage, to: PackageTarget): Promise<PackageImportResult> {
-  const res: PackageImportResult = { designs: [], templates: [], assets: 0, missingFonts: [] };
-  const total = p.manifest.assets.length + p.manifest.fonts.length + p.designs.length + p.templates.length;
+  const res: PackageImportResult = { designs: [], templates: [], assets: 0, reusedAssets: 0, failedAssets: 0, missingFonts: [], stopped: false };
+  type Outcome = PackageImportResult["designs"][number];
+  const designs: (Outcome | null)[] = p.designs.map(() => null);
+  const templates: (Outcome | null)[] = p.templates.map(() => null);
+  const finish = (stopped = false) => {
+    res.designs = designs.filter((d): d is Outcome => !!d);
+    res.templates = templates.filter((t): t is Outcome => !!t);
+    res.stopped = stopped;
+    return res;
+  };
+
+  // What is really to be added.
+  const newDesigns: { index: number; folderId: string | null }[] = [];
+  const seenDesigns = new Set<string>();
+  for (const [index, d] of p.designs.entries()) {
+    if (to.cancelled?.()) return finish(true);
+    try {
+      const folderId = await to.folderFor(d.path);
+      const key = `${folderId ?? ""}/${d.title.trim().toLowerCase()}`;
+      if (to.exists(folderId, d.title) || seenDesigns.has(key)) designs[index] = { title: d.title, status: "skipped" };
+      else { seenDesigns.add(key); newDesigns.push({ index, folderId }); }
+    } catch (error) {
+      designs[index] = { title: d.title, status: "failed", error };
+    }
+  }
+  const newTemplates: number[] = [];
+  const seenTemplates = new Set<string>();
+  for (const [index, t] of p.templates.entries()) {
+    const key = t.title.trim().toLowerCase();
+    if (!to.createTemplate) templates[index] = { title: t.title, status: "failed", error: new CodedError("errors.package_templates_not_allowed", "Your role may not publish templates in this workspace.") };
+    else if (to.templateExists?.(t.title) || seenTemplates.has(key)) templates[index] = { title: t.title, status: "skipped" };
+    else { seenTemplates.add(key); newTemplates.push(index); }
+  }
+
+  // Only what those need.
+  const usedIds = new Set<string>();
+  const usedFamilies = new Set<string>();
+  for (const file of [...newDesigns.map((n) => p.designs[n.index].file), ...newTemplates.map((i) => p.templates[i].file)]) {
+    uuidsIn(file, usedIds);
+    familiesIn(file, usedFamilies);
+  }
+  const fonts = p.manifest.fonts.filter((f) => usedFamilies.has(f.family));
+  const assets = p.manifest.assets.filter((a) => usedIds.has(a.id.toLowerCase()));
+
+  const total = assets.length + fonts.length + newDesigns.length + newTemplates.length;
   let done = 0;
   const step = (label: string) => to.onProgress?.(++done, total, label);
 
   const missing = new Set<string>();
-  for (const f of p.manifest.fonts) {
+  for (const f of fonts) {
+    if (to.cancelled?.()) { res.missingFonts = [...missing]; return finish(true); }
     if (!to.hasFonts.has(fontKey(f))) {
       try {
         const name = f.file.split("/").pop()!;
@@ -390,46 +459,46 @@ export async function importPackage(p: ParsedPackage, to: PackageTarget): Promis
 
   const ids = new Map<string, string>();
   const urls = new Map<string, string>();
-  for (const a of p.manifest.assets) {
+  for (const a of assets) {
+    if (to.cancelled?.()) return finish(true);
+    const data = p.files.get(a.file)!;
     try {
-      const up = await to.uploadAsset(new File([p.files.get(a.file)! as BlobPart], a.filename, { type: a.mimeType }), a.filename);
+      const had = await to.findAsset?.(data).catch(() => null);
+      const up = had ?? await to.uploadAsset(new File([data as BlobPart], a.filename, { type: a.mimeType }), a.filename);
       ids.set(a.id.toLowerCase(), up.id);
       if (a.url && a.url !== up.url) urls.set(a.url, up.url);
       res.assets++;
-    } catch { /* the designs show this upload empty */ }
+      if (had) res.reusedAssets++;
+    } catch {
+      res.failedAssets++; // the designs show this upload empty
+    }
     step(a.filename);
   }
 
-  for (const d of p.designs) {
+  for (const { index, folderId } of newDesigns) {
+    if (to.cancelled?.()) return finish(true);
+    const d = p.designs[index];
     try {
-      const folderId = await to.folderFor(d.path);
-      if (to.exists(folderId, d.title)) {
-        res.designs.push({ title: d.title, status: "skipped" });
-      } else {
-        await to.createDesign(d.title, { ...remapReferences(d.file, ids, urls), title: d.title }, folderId);
-        res.designs.push({ title: d.title, status: "imported" });
-      }
+      await to.createDesign(d.title, { ...remapReferences(d.file, ids, urls), title: d.title }, folderId);
+      designs[index] = { title: d.title, status: "imported" };
     } catch (error) {
-      res.designs.push({ title: d.title, status: "failed", error });
+      designs[index] = { title: d.title, status: "failed", error };
     }
     step(d.title);
   }
 
-  for (const t of p.templates) {
+  for (const index of newTemplates) {
+    if (to.cancelled?.()) return finish(true);
+    const t = p.templates[index];
     try {
-      if (!to.createTemplate) throw new CodedError("errors.package_templates_not_allowed", "Your role may not publish templates in this workspace.");
-      if (to.templateExists?.(t.title)) {
-        res.templates.push({ title: t.title, status: "skipped" });
-      } else {
-        await to.createTemplate(t.title, { ...remapReferences(t.file, ids, urls), title: t.title }, t.categories);
-        res.templates.push({ title: t.title, status: "imported" });
-      }
+      await to.createTemplate!(t.title, { ...remapReferences(t.file, ids, urls), title: t.title }, t.categories);
+      templates[index] = { title: t.title, status: "imported" };
     } catch (error) {
-      res.templates.push({ title: t.title, status: "failed", error });
+      templates[index] = { title: t.title, status: "failed", error };
     }
     step(t.title);
   }
-  return res;
+  return finish();
 }
 
 /** What the dashboard knows, for the export: the designs and folders to take

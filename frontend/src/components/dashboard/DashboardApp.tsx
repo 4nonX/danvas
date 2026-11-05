@@ -46,9 +46,11 @@ import {
   List,
   Users,
   Moon,
-  Sun, Sparkles, Wand2, Paperclip, Loader2, X, Folder as FolderIcon, FolderPlus, FolderInput, Check, Download, Share2, Link2, ArrowRightLeft, Printer, Scaling, KeyRound, Shapes, Package, Menu } from "lucide-react";
+  GripVertical, Sun, Sparkles, Wand2, Paperclip, Loader2, X, Folder as FolderIcon, FolderPlus, FolderInput, Check, Download, Share2, Link2, ArrowRightLeft, Printer, Scaling, KeyRound, Shapes, Package, Menu } from "lucide-react";
 import { createBlankDesign } from "@hc/schema";
 import { hycAccept, downloadHycFile, importedTitle, parseHycFile, readFileText } from "@/lib/hycFile";
+import { useUiPref } from "@/lib/uiPrefs";
+import { moveTemplate, normalizeTemplateOrder, sortTemplates, templateOrderKey } from "@/lib/templateOrder";
 import { dialTones } from "@hc/aistudio";
 import { designFromFile, designImportAccept } from "@/lib/importDesignFile";
 
@@ -721,9 +723,16 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   const templateCategories = Array.from(
     new Set(templates.flatMap((t) => t.categories ?? [])),
   ).sort();
-  const filteredTemplates = tplCategory
-    ? templates.filter((t) => (t.categories ?? []).includes(tplCategory))
-    : templates;
+  // Each person arranges the templates for themselves, per workspace.
+  const [tplOrder, setTplOrder] = useUiPref(templateOrderKey(activeWorkspaceId), normalizeTemplateOrder);
+  const [tplDrag, setTplDrag] = useState<{ id: string; over?: string } | null>(null);
+  const filteredTemplates = sortTemplates(
+    tplCategory ? templates.filter((t) => (t.categories ?? []).includes(tplCategory)) : templates,
+    tplOrder,
+  );
+  // On a template shown: filters and collections keep the others in place.
+  const moveTemplateTo = (id: string, overId: string) =>
+    setTplOrder(moveTemplate(sortTemplates(templates, tplOrder).map((t) => t.id), templates, id, overId, !tplCollection));
   // Recents sort (client-side): last edited or name. Shared by Home + Favorites.
   const bySort = (a: HomeItem, b: HomeItem) =>
     sortBy === "name" ? a.title.localeCompare(b.title) : new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
@@ -1017,6 +1026,11 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     try {
       const file = parseHycFile(await readFileText(f));
       const title = importedTitle(file, f.name);
+      const have = await oc.listTemplates({ workspaceId: activeWorkspaceId }).catch(() => []);
+      if (have.some((t) => t.title.trim().toLowerCase() === title.trim().toLowerCase())) {
+        toast.toast(tr("dashboard.template_already_there", { title }), "info");
+        return;
+      }
       await oc.saveAsTemplate({ workspaceId: activeWorkspaceId, file, title, visibility: "workspace" });
       // Refresh with the SAME scope the Templates view loads under (workspace +
       // active collection), so the new card appears without collapsing the
@@ -2092,8 +2106,29 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                   </div>
                 )}
                 <ul className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                  {filteredTemplates.map((t) => (
-                    <li key={t.id} className="group relative rounded-2xl border border-neutral-200 bg-surface shadow-sm transition hover:shadow-md">
+                  {filteredTemplates.map((t, tplIndex) => (
+                    <li
+                      key={t.id}
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.effectAllowed = "move";
+                        e.dataTransfer.setData("application/x-oc-template", t.id);
+                        setTplDrag({ id: t.id });
+                      }}
+                      onDragOver={(e) => {
+                        if (!tplDrag) return;
+                        e.preventDefault();
+                        if (tplDrag.over !== t.id) setTplDrag({ id: tplDrag.id, over: t.id });
+                      }}
+                      onDrop={(e) => {
+                        if (!tplDrag) return;
+                        e.preventDefault();
+                        moveTemplateTo(tplDrag.id, t.id);
+                        setTplDrag(null);
+                      }}
+                      onDragEnd={() => setTplDrag(null)}
+                      className={`group relative rounded-2xl border border-neutral-200 bg-surface shadow-sm transition hover:shadow-md ${tplDrag?.over === t.id && tplDrag.id !== t.id ? "ring-2 ring-brand-400" : ""} ${tplDrag?.id === t.id ? "opacity-50" : ""}`}
+                    >
                       <button
                         onClick={() => void applyTemplate(t)}
                         disabled={busy}
@@ -2117,6 +2152,20 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                           tplSel.has(t.id) ? "border-brand-600 bg-brand-600 text-white" : "border-neutral-300 bg-surface text-transparent opacity-0 focus-visible:opacity-100 group-hover:opacity-100"
                         }`}
                       ><Check size={12} strokeWidth={3} /></button>
+                      <button
+                        type="button"
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => {
+                          const step = e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : 0;
+                          if (!step) return;
+                          e.preventDefault();
+                          const next = filteredTemplates[tplIndex + step];
+                          if (next) moveTemplateTo(t.id, next.id);
+                        }}
+                        aria-label={tr("dashboard.template_move", { name: t.title })}
+                        title={tr("dashboard.template_drag_to_reorder")}
+                        className="absolute left-1/2 top-2 grid h-6 w-7 -translate-x-1/2 cursor-grab place-items-center rounded-md border border-neutral-200 bg-surface text-neutral-500 opacity-0 shadow-sm transition hover:text-neutral-800 focus-visible:opacity-100 group-hover:opacity-100 active:cursor-grabbing"
+                      ><GripVertical size={14} aria-hidden="true" /></button>
                       <div className="absolute end-2 top-2">
                         <button
                           type="button"

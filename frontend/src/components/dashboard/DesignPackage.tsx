@@ -17,7 +17,7 @@ import { userMessage } from "@/lib/errors";
 import { formatDate } from "@/lib/datetime";
 import { useAuth } from "@/store/auth";
 import {
-  exportPackage, fontKey, importPackage, packageFileName, packageItems, readPackage,
+  exportPackage, fontKey, importPackage, PackageCancelled, packageFileName, packageItems, readPackage,
   type PackageExport, type PackageImportResult, type PackageTemplateItem, type ParsedPackage,
 } from "@/lib/designPackage";
 import { tr } from "@/lib/i18n";
@@ -26,6 +26,12 @@ async function bytesOf(url: string): Promise<Uint8Array> {
   const res = await fetch(resolveAssetUrl(url), { credentials: "include" });
   if (!res.ok) throw new Error(`asset ${res.status}`);
   return new Uint8Array(await res.arrayBuffer());
+}
+
+function sameBytes(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
 }
 
 function Progress({ done, total, label }: { done: number; total: number; label: string }) {
@@ -56,6 +62,9 @@ export function PackageExportDialog({ workspaceId, designIds = [], folderIds = [
   const [result, setResult] = useState<PackageExport | null>(null);
   const [error, setError] = useState<string | null>(null);
   const started = useRef(false);
+  const cancelled = useRef(false);
+  // Nothing is downloaded after this, and the work ends at its next step.
+  const cancel = () => { cancelled.current = true; onClose(); };
 
   useEffect(() => {
     if (started.current) return;
@@ -80,8 +89,10 @@ export function PackageExportDialog({ workspaceId, designIds = [], folderIds = [
           assetBytes: (id) => bytesOf(assets.get(id)!.url),
           fonts,
           fontBytes: (id) => oc.workspaceFontFile(id),
+          cancelled: () => cancelled.current,
           onProgress: (done, total) => setProgress({ done, total }),
         }, new Date(), templates);
+        if (cancelled.current) return;
         const label = items.length === 1 && !templates.length ? items[0].title
           : templates.length === 1 && !items.length ? templates[0].title
           : folderIds.length === 1 && !designIds.length && !templates.length ? folders.find((f) => f.id === folderIds[0])?.name ?? null
@@ -96,6 +107,7 @@ export function PackageExportDialog({ workspaceId, designIds = [], folderIds = [
         setTimeout(() => URL.revokeObjectURL(href), 60_000);
         setResult(res);
       } catch (e) {
+        if (e instanceof PackageCancelled || cancelled.current) return;
         setError(userMessage(e, tr("dashboard.package_export_failed")));
       }
     })();
@@ -105,7 +117,7 @@ export function PackageExportDialog({ workspaceId, designIds = [], folderIds = [
 
   const done = !!result || !!error;
   return (
-    <Modal open onClose={() => { if (done) onClose(); }} title={tr("dashboard.package_export_title")} width="w-[30rem]">
+    <Modal open onClose={done ? onClose : cancel} title={tr("dashboard.package_export_title")} width="w-[30rem]">
       {!done && <Progress done={progress.done} total={progress.total} label={tr("dashboard.package_reading_designs", { n: progress.done, m: progress.total || "…" })} />}
       {error && <p className="text-sm text-red-600">{error}</p>}
       {result && (
@@ -119,7 +131,9 @@ export function PackageExportDialog({ workspaceId, designIds = [], folderIds = [
         </div>
       )}
       <div className="mt-5 flex justify-end">
-        <Button onClick={onClose} disabled={!done}>{done ? <CheckCircle2 size={16} /> : <Loader2 size={16} className="animate-spin" />} {tr("dashboard.done")}</Button>
+        {done
+          ? <Button onClick={onClose}><CheckCircle2 size={16} /> {tr("dashboard.done")}</Button>
+          : <Button variant="ghost" onClick={cancel}><Loader2 size={16} className="animate-spin" /> {tr("dashboard.cancel")}</Button>}
       </div>
     </Modal>
   );
@@ -141,6 +155,8 @@ export function PackageImportDialog({ file, workspaceId, targetFolderId, canPubl
   const [running, setRunning] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number; label: string }>({ done: 0, total: 0, label: "" });
   const [result, setResult] = useState<PackageImportResult | null>(null);
+  const [stopping, setStopping] = useState(false);
+  const stop = useRef(false);
   const user = useAuth((s) => s.user);
 
   useEffect(() => {
@@ -160,12 +176,20 @@ export function PackageImportDialog({ file, workspaceId, targetFolderId, canPubl
     if (!parsed) return;
     setRunning(true);
     try {
-      const [folders, designs, fonts, existingTemplates] = await Promise.all([
+      const [folders, designs, fonts, existingTemplates, existingAssets] = await Promise.all([
         oc.listDesignFolders(workspaceId),
         oc.home(workspaceId, "recent") as Promise<HomeItem[]>,
         oc.listWorkspaceFonts(workspaceId).catch(() => []),
         parsed.templates.length ? oc.listTemplates({ workspaceId }).catch(() => []) : Promise.resolve([]),
+        parsed.manifest.assets.length ? (oc.listAssets(workspaceId) as Promise<UploadedAsset[]>).catch(() => []) : Promise.resolve([] as UploadedAsset[]),
       ]);
+      // The workspace's uploads by size: only one of the same size can be the
+      // same file, and only those are fetched to compare.
+      const bySize = new Map<number, UploadedAsset[]>();
+      for (const a of existingAssets) {
+        if (a.byteSize == null) continue;
+        bySize.set(a.byteSize, [...(bySize.get(a.byteSize) ?? []), a]);
+      }
       const templateTitles = new Set(existingTemplates.map((t) => t.title.trim().toLowerCase()));
       // Folder ids by "<parentId>/<lowercased name>", seeded with what exists
       // (an existing folder of the same name is used, as in the bulk import).
@@ -180,8 +204,17 @@ export function PackageImportDialog({ file, workspaceId, targetFolderId, canPubl
       const res = await importPackage(parsed, {
         uploadAsset: async (f, filename) => {
           const a = await directUploadWithProgress(workspaceId, f, { filename });
+          bySize.set(f.size, [...(bySize.get(f.size) ?? []), a]);
           return { id: a.id, url: a.url };
         },
+        findAsset: async (data) => {
+          for (const a of bySize.get(data.length) ?? []) {
+            const have = await bytesOf(a.url).catch(() => null);
+            if (have && sameBytes(have, data)) return { id: a.id, url: a.url };
+          }
+          return null;
+        },
+        cancelled: () => stop.current,
         uploadFont: async (f, face) => {
           try {
             await oc.uploadWorkspaceFont(workspaceId, f, { ...face, fileName: f.name });
@@ -227,6 +260,7 @@ export function PackageImportDialog({ file, workspaceId, targetFolderId, canPubl
       setError(userMessage(e, tr("dashboard.package_import_failed")));
     } finally {
       setRunning(false);
+      setStopping(false);
     }
   }
 
@@ -257,7 +291,9 @@ export function PackageImportDialog({ file, workspaceId, targetFolderId, canPubl
             <div className="rounded-xl bg-neutral-100 py-2"><div className="text-lg font-semibold text-neutral-700">{count("skipped")}</div><div className="text-[11px] text-neutral-500">{tr("dashboard.skipped_existing")}</div></div>
             <div className="rounded-xl bg-red-50 py-2"><div className="text-lg font-semibold text-red-700">{count("failed")}</div><div className="text-[11px] text-red-700">{tr("dashboard.failed")}</div></div>
           </div>
-          {m && result.assets < m.assets.length && <p className="mt-2 text-xs text-amber-700">{tr("dashboard.package_assets_not_uploaded", { count: m.assets.length - result.assets })}</p>}
+          {result.stopped && <p className="mt-2 text-xs text-amber-700">{tr("dashboard.import_stopped")}</p>}
+          {result.reusedAssets > 0 && <p className="mt-2 text-xs text-neutral-500">{tr("dashboard.package_assets_reused", { count: result.reusedAssets })}</p>}
+          {result.failedAssets > 0 && <p className="mt-2 text-xs text-amber-700">{tr("dashboard.package_assets_not_uploaded", { count: result.failedAssets })}</p>}
           {result.missingFonts.length > 0 && <p className="mt-2 text-xs text-amber-700">{tr("dashboard.package_fonts_not_added", { families: result.missingFonts.join(", ") })}</p>}
           {failed.length > 0 && (
             <ul className="oc-scroll mt-3 max-h-40 overflow-y-auto rounded-xl border border-red-100 p-2 text-xs">
@@ -276,7 +312,9 @@ export function PackageImportDialog({ file, workspaceId, targetFolderId, canPubl
           <Button onClick={onClose}><CheckCircle2 size={16} /> {tr("dashboard.done")}</Button>
         ) : (
           <>
-            <Button variant="ghost" onClick={onClose} disabled={running}>{tr("dashboard.cancel")}</Button>
+            {running
+              ? <Button variant="ghost" disabled={stopping} onClick={() => { stop.current = true; setStopping(true); }}>{stopping ? tr("dashboard.package_stopping") : tr("dashboard.stop_import")}</Button>
+              : <Button variant="ghost" onClick={onClose}>{tr("dashboard.cancel")}</Button>}
             <Button onClick={() => void run()} disabled={!parsed || running}>{running ? <Loader2 size={16} className="animate-spin" /> : <Package size={16} />} {tr("dashboard.package_import_action")}</Button>
           </>
         )}

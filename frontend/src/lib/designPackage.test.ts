@@ -9,7 +9,7 @@ import { CodedError } from "./errors";
 import { zipFiles } from "./zip";
 import {
   checkPackageManifest, exportPackage, familiesIn, importPackage, packageItems, readPackage, remapReferences, uuidsIn,
-  PACKAGE_FORMAT, PACKAGE_MANIFEST, type PackageTarget,
+  PACKAGE_FORMAT, PACKAGE_MANIFEST, type PackageTarget, PackageCancelled,
 } from "./designPackage";
 
 const A1 = "11111111-1111-4111-8111-111111111111";
@@ -116,15 +116,81 @@ describe("danvas package", () => {
   it("skips designs already there and fonts the target has; reports fonts it may not add", async () => {
     const { parsed } = await roundTrip();
     const { t, created } = target({
-      exists: (_f, title) => title === "Etikett",
+      exists: (_f, title) => title === "Flyer",
       uploadFont: async () => { throw new Error("forbidden"); },
     });
     const out = await importPackage(parsed, t);
-    expect(out.designs.map((d) => d.status)).toEqual(["skipped", "imported"]);
+    expect(out.designs.map((d) => d.status)).toEqual(["imported", "skipped"]);
     expect(out.missingFonts).toEqual(["Brand Sans"]);
     expect(created).toHaveLength(1);
     const had = target({ hasFonts: new Set(["Brand Sans|700|normal"]), uploadFont: async () => { throw new Error("not called"); } });
     expect((await importPackage(parsed, had.t)).missingFonts).toEqual([]);
+  });
+
+  it("imports nothing twice: all there means no uploads and no fonts", async () => {
+    const { parsed } = await roundTrip();
+    const { t, uploads, created, fontsAdded } = target({ exists: () => true });
+    const out = await importPackage(parsed, t);
+    expect(out.designs.map((d) => d.status)).toEqual(["skipped", "skipped"]);
+    expect(uploads).toEqual([]);
+    expect(fontsAdded).toEqual([]);
+    expect(created).toEqual([]);
+    expect(out.assets).toBe(0);
+    expect(out.failedAssets).toBe(0);
+  });
+
+  it("uses an upload the target already has with the same bytes", async () => {
+    const { parsed } = await roundTrip();
+    const { t, uploads, created } = target({
+      findAsset: async (data) => (new TextDecoder().decode(data).includes(A1) ? { id: "bbbbbbbb-0000-4000-8000-000000000001", url: "/api/v1/assets/had/content" } : null),
+    });
+    const out = await importPackage(parsed, t);
+    expect(out.assets).toBe(2);
+    expect(out.reusedAssets).toBe(1);
+    expect(uploads.map((u) => u.body)).toEqual([`PNG:${A2}`]);
+    expect(JSON.stringify(created.map((c) => c.file))).toContain("bbbbbbbb-0000-4000-8000-000000000001");
+  });
+
+  it("uploads when looking for an existing upload fails", async () => {
+    const { parsed } = await roundTrip();
+    const { t, uploads } = target({ findAsset: async () => { throw new Error("offline"); } });
+    const out = await importPackage(parsed, t);
+    expect(uploads).toHaveLength(2);
+    expect(out.reusedAssets).toBe(0);
+  });
+
+  it("stops when asked, reports what happened, and goes on when run again", async () => {
+    const { parsed } = await roundTrip();
+    const had = new Set<string>();
+    let stop = false;
+    const first = target({
+      exists: (_f, title) => had.has(title),
+      createDesign: async (title) => { had.add(title); stop = true; },
+      cancelled: () => stop,
+    });
+    const out = await importPackage(parsed, first.t);
+    expect(out.stopped).toBe(true);
+    expect(out.designs.map((d) => [d.title, d.status])).toEqual([["Etikett", "imported"]]);
+    stop = false;
+    const second = target({ exists: (_f, title) => had.has(title) });
+    const again = await importPackage(parsed, second.t);
+    expect(again.stopped).toBe(false);
+    expect(again.designs.map((d) => d.status)).toEqual(["skipped", "imported"]);
+    expect(second.created.map((c) => c.title)).toEqual(["Flyer"]);
+  });
+
+  it("stops before anything is added when cancelled at once", async () => {
+    const { parsed } = await roundTrip();
+    const { t, uploads, created } = target({ cancelled: () => true });
+    const out = await importPackage(parsed, t);
+    expect(out.stopped).toBe(true);
+    expect(uploads).toEqual([]);
+    expect(created).toEqual([]);
+  });
+
+  it("an export that is cancelled makes no package", async () => {
+    const items = [{ id: "d1", title: "Etikett", path: [] }];
+    await expect(exportPackage(items, { ...sources, cancelled: () => true })).rejects.toBeInstanceOf(PackageCancelled);
   });
 
   it("takes whole folders with their paths, a folder inside a selected one once", () => {

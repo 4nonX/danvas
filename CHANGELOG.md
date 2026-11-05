@@ -2,6 +2,22 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 1.9.8 (2026-11-05)
+
+### Added
+
+- **Your own order of the templates.** Drag a template to another place on the Templates page, or use the arrow keys on its handle. The order is kept with your account, per workspace; everyone else keeps theirs. A new template comes first.
+- **Cancel and stop.** Exporting a package or a settings file, importing a brand kit, exporting a brand kit and the download menu can be cancelled: nothing is downloaded or changed after that. Importing a package or a settings file can be stopped: what was imported until then stays, and running it again goes on.
+
+### Fixed
+
+- **Importing a package again adds nothing twice.** Its uploads went in again on every import, even when every design and template was skipped. Now only the uploads and fonts of what is really added go in, and an upload the workspace already has with the same bytes is used as it is. Duplicates from earlier imports stay until you remove them.
+- **Import template with a `.hyc` file** imports nothing when a template of that name already exists.
+
+### Upgrading
+
+- A pure frontend change: no schema change, no migration. The order is stored as an interface preference of the account.
+
 ## 1.9.7 (2026-11-05)
 
 ### Fixed

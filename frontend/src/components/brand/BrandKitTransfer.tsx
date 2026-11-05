@@ -46,11 +46,14 @@ export function BrandKitTransfer({
   const toast = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const [exporting, setExporting] = useState(false);
+  // Counts the exports begun; one that is no longer the latest was cancelled.
+  const exportRun = useRef(0);
   const [reading, setReading] = useState(false);
   const [parsed, setParsed] = useState<ParsedKitFile | null>(null);
 
   const doExport = useCallback(async () => {
     if (!kit) return;
+    const run = ++exportRun.current;
     setExporting(true);
     try {
       const [latest, assets, fonts] = await Promise.all([oc.getBrandKit(kit.id), assetMap(workspaceId), oc.listWorkspaceFonts(workspaceId)]);
@@ -64,6 +67,7 @@ export function BrandKitTransfer({
         fonts,
         fontBytes: (id) => oc.workspaceFontFile(id),
       });
+      if (run !== exportRun.current) return;
       const href = URL.createObjectURL(res.blob);
       const a = document.createElement("a");
       a.href = href;
@@ -75,9 +79,9 @@ export function BrandKitTransfer({
       if (res.missing.length) toast.toast(tr("editor.brandkit_export_missing", { count: res.missing.length }), "info");
       else toast.success(tr("editor.brandkit_exported"));
     } catch (e) {
-      toast.error(userMessage(e, tr("editor.brandkit_export_failed")));
+      if (run === exportRun.current) toast.error(userMessage(e, tr("editor.brandkit_export_failed")));
     } finally {
-      setExporting(false);
+      if (run === exportRun.current) setExporting(false);
     }
   }, [kit, workspaceId, toast]);
 
@@ -97,8 +101,8 @@ export function BrandKitTransfer({
     <>
       <div className="flex gap-2">
         {kit && (
-          <button type="button" onClick={() => void doExport()} disabled={exporting} className={btn} title={tr("editor.brandkit_export_hint")}>
-            {exporting ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />} {tr("editor.brandkit_export")}
+          <button type="button" onClick={() => { if (exporting) { exportRun.current++; setExporting(false); } else void doExport(); }} className={btn} title={exporting ? tr("editor.cancel") : tr("editor.brandkit_export_hint")}>
+            {exporting ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />} {exporting ? tr("editor.cancel") : tr("editor.brandkit_export")}
           </button>
         )}
         <button type="button" onClick={() => fileRef.current?.click()} disabled={reading} className={btn} title={tr("editor.brandkit_import_hint")}>
@@ -157,6 +161,9 @@ function ImportDialog({
   const [choice, setChoice] = useState<"replace" | "rename">(existing ? "replace" : "rename");
   const [name, setName] = useState(() => (existing ? freeKitName(m.name, kits.map((k) => k.name)) : m.name));
   const [busy, setBusy] = useState<{ done: number; total: number } | null>(null);
+  const cancelled = useRef(false);
+  // While it runs: no kit is made or changed after this; the work ends at its next step.
+  const cancel = () => { cancelled.current = true; onClose(); };
 
   const replacing = !!existing && choice === "replace";
   const taken = !replacing && !!kitNamed(kits, name);
@@ -195,8 +202,12 @@ function ImportDialog({
         },
         reuse,
         hash: sha256,
-        onProgress: (done, total) => setBusy({ done, total }),
+        onProgress: (done, total) => {
+          if (cancelled.current) throw new Error("cancelled");
+          setBusy({ done, total });
+        },
       });
+      if (cancelled.current) return;
       let kit: BrandKit;
       if (replacing && existing) {
         kit = await oc.updateBrandKit(existing.id, content);
@@ -220,6 +231,7 @@ function ImportDialog({
       toast.success(replacing ? tr("editor.brandkit_replaced", { name: kit.name }) : tr("editor.brandkit_imported", { name: kit.name }));
       await onDone(kit, replacing);
     } catch (e) {
+      if (cancelled.current) return;
       toast.error(userMessage(e, tr("editor.brandkit_import_failed")));
       setBusy(null);
     }
@@ -227,7 +239,7 @@ function ImportDialog({
 
   const radio = "mt-0.5 h-3.5 w-3.5 shrink-0 accent-brand-600";
   return (
-    <Modal open onClose={() => { if (!busy) onClose(); }} title={tr("editor.brandkit_import_title")} width="w-[30rem]">
+    <Modal open onClose={cancel} title={tr("editor.brandkit_import_title")} width="w-[30rem]">
       {existing ? (
         <>
           <p className="mb-3 text-sm text-neutral-700">{tr("editor.brandkit_name_exists", { name: existing.name })}</p>
@@ -291,7 +303,7 @@ function ImportDialog({
       )}
 
       <div className="mt-5 flex justify-end gap-2">
-        <button type="button" onClick={onClose} disabled={!!busy} className="rounded-lg px-3 py-1.5 text-sm font-medium text-neutral-600 hover:bg-neutral-100 disabled:opacity-50">
+        <button type="button" onClick={cancel} className="rounded-lg px-3 py-1.5 text-sm font-medium text-neutral-600 hover:bg-neutral-100 disabled:opacity-50">
           {tr("editor.cancel")}
         </button>
         <button

@@ -126,12 +126,17 @@ function ExportDialog({ workspaceId, allowed, onClose }: { workspaceId: string |
   const labels = partLabel();
   const [chosen, setChosen] = useState<SettingsPart[]>(allowed.filter((p) => !OPT_IN_PARTS.includes(p)));
   const [busy, setBusy] = useState(false);
+  const cancelled = useRef(false);
   const licensed = chosen.includes("colorProfiles") || chosen.includes("colorLibraries");
+
+  // While it runs: nothing is downloaded after this.
+  const cancel = () => { cancelled.current = true; onClose(); };
 
   async function run() {
     setBusy(true);
     try {
       const { blob, failed } = await exportSettingsPackage(chosen, sourcesOf(workspaceId));
+      if (cancelled.current) return;
       const name = `danvas-${tr("dashboard.settings_file_name")}-${new Date().toISOString().slice(0, 10)}.zip`;
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -143,6 +148,7 @@ function ExportDialog({ workspaceId, allowed, onClose }: { workspaceId: string |
       else toast.success(tr("dashboard.settings_exported", { file: name }));
       onClose();
     } catch (e) {
+      if (cancelled.current) return;
       toast.error(userMessage(e, tr("dashboard.settings_export_failed")));
     } finally {
       setBusy(false);
@@ -150,7 +156,7 @@ function ExportDialog({ workspaceId, allowed, onClose }: { workspaceId: string |
   }
 
   return (
-    <Modal open onClose={busy ? () => {} : onClose} title={tr("dashboard.settings_export_title")}>
+    <Modal open onClose={cancel} title={tr("dashboard.settings_export_title")}>
       <div className="flex flex-col gap-3">
         <p className="text-xs text-neutral-500">{tr("dashboard.settings_export_desc")}</p>
         <div className="flex flex-col gap-1.5">
@@ -164,7 +170,7 @@ function ExportDialog({ workspaceId, allowed, onClose }: { workspaceId: string |
         {licensed && <p className="rounded-lg bg-amber-50 p-2.5 text-[11px] leading-snug text-amber-800">{tr("dashboard.settings_license_note")}</p>}
         {chosen.includes("memberEmails") && <p className="rounded-lg bg-amber-50 p-2.5 text-[11px] leading-snug text-amber-800">{tr("dashboard.settings_member_emails_note")}</p>}
         <div className="flex justify-end gap-2">
-          <Button variant="secondary" onClick={onClose} disabled={busy}>{tr("dashboard.cancel")}</Button>
+          <Button variant="secondary" onClick={cancel}>{tr("dashboard.cancel")}</Button>
           <Button onClick={() => void run()} disabled={busy || !chosen.length}>{busy ? tr("dashboard.settings_working") : tr("dashboard.settings_export")}</Button>
         </div>
       </div>
@@ -180,11 +186,13 @@ function ImportDialog({ workspaceId, pkg, may, onClose, onChanged }: { workspace
   const [conflict, setConflict] = useState<SettingsConflict>("skip");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<SettingsImportResult | null>(null);
+  const [stopping, setStopping] = useState(false);
+  const stop = useRef(false);
 
   async function run() {
     setBusy(true);
     try {
-      setResult(await importSettingsPackage(pkg, chosen, conflict, targetOf(workspaceId)));
+      setResult(await importSettingsPackage(pkg, chosen, conflict, { ...targetOf(workspaceId), cancelled: () => stop.current }));
       onChanged();
     } catch (e) {
       toast.error(userMessage(e, tr("dashboard.settings_import_failed")));
@@ -198,6 +206,7 @@ function ImportDialog({ workspaceId, pkg, may, onClose, onChanged }: { workspace
       <Modal open onClose={onClose} title={tr("dashboard.settings_import_title")}>
         <div className="flex flex-col gap-2 text-sm text-neutral-700">
           <p>{tr("dashboard.settings_import_result", { added: result.added, replaced: result.replaced, skipped: result.skipped })}</p>
+          {result.stopped && <p className="rounded-lg bg-amber-50 p-2.5 text-[11px] leading-snug text-amber-800">{tr("dashboard.settings_import_stopped")}</p>}
           {result.withoutIcc.length > 0 && <p className="rounded-lg bg-amber-50 p-2.5 text-[11px] leading-snug text-amber-800">{tr("dashboard.settings_import_without_icc", { names: result.withoutIcc.join(", ") })}</p>}
           {result.unmatched.length > 0 && <p className="rounded-lg bg-amber-50 p-2.5 text-[11px] leading-snug text-amber-800">{tr("dashboard.settings_import_unmatched", { names: result.unmatched.join("; ") })}</p>}
           {result.failed.length > 0 && (
@@ -243,7 +252,9 @@ function ImportDialog({ workspaceId, pkg, may, onClose, onChanged }: { workspace
           </select>
         </label>
         <div className="flex justify-end gap-2">
-          <Button variant="secondary" onClick={onClose} disabled={busy}>{tr("dashboard.cancel")}</Button>
+          {busy
+            ? <Button variant="secondary" disabled={stopping} onClick={() => { stop.current = true; setStopping(true); }}>{stopping ? tr("dashboard.package_stopping") : tr("dashboard.stop_import")}</Button>
+            : <Button variant="secondary" onClick={onClose}>{tr("dashboard.cancel")}</Button>}
           <Button onClick={() => void run()} disabled={busy || !chosen.length}>{busy ? tr("dashboard.settings_working") : tr("dashboard.settings_import")}</Button>
         </div>
       </div>

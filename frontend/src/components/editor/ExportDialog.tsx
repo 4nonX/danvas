@@ -480,6 +480,13 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
   // the dashboard's default; an export profile stores either.
   const [printSource, setPrintSource] = useState<"page" | "fixed">(designs ? "fixed" : "page");
   const [busy, setBusy] = useState(false);
+  // Counts the downloads begun; one that is no longer the latest was cancelled.
+  const runCount = useRef(0);
+  const cancelRun = () => {
+    runCount.current++;
+    setBusy(false);
+    toast.toast(tr("editor.export_cancelled"), "info");
+  };
   // Brand pre-export gate. 'block' policy with violations refuses
   // the export; 'warn' shows a dismissible warning; 'off' is invisible.
   const [gate, setGate] = useState<BrandLintResult | null>(null);
@@ -1246,6 +1253,8 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
       } catch { /* best effort; fall through to local gate */ }
     }
     if (blocked) return;
+    const thisRun = ++runCount.current;
+    const alive = () => runCount.current === thisRun;
     setBusy(true);
     try {
       // The workspace's approval rule, asked again: it or the approval may
@@ -1265,6 +1274,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
         const files: { blob: Blob; name: string }[] = [];
         const folders = new Set<string>();
         for (const t of designs ?? [{ id: designId, doc }]) {
+          if (!alive()) return;
           await whenRenderable(t.doc);
           const base = (t.doc.title || "design").replace(/[\\/:*?"<>|]+/g, "-").trim() || "design";
           let folder = base;
@@ -1274,6 +1284,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
           for (const f of own) files.push({ blob: f.blob, name: bulk ? `${folder}/${f.name}` : f.name });
         }
         const { entriesOf } = await import("@/lib/print/handover");
+        if (!alive()) return;
         const safe = (doc.title || "design").replace(/[^\w.-]+/g, "-").replace(/^-+|-+$/g, "") || "design";
         const zipName = `${bulk ? `danvas-${new Date().toISOString().slice(0, 10)}` : safe}-${tr("editor.handover_zip")}.zip`;
         download(zipFiles(await entriesOf(files)), zipName);
@@ -1283,10 +1294,12 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
       }
       if (!bulk) {
         await whenRenderable(doc);
-        await exportDesign(doc, designId, pages, download, false);
+        await exportDesign(doc, designId, pages, (blob, name) => { if (alive()) download(blob, name); }, false);
+        if (!alive()) return;
         if (withColorList) {
           for (const f of await colorListFiles(doc, designId, await colorLibrariesForRun())) {
             await sleep(400); // a download right after another is often dropped
+            if (!alive()) return;
             download(f.blob, f.name);
           }
         }
@@ -1296,6 +1309,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
         const folders = new Set<string>();
         const libraries = withColorList ? await colorLibrariesForRun() : [];
         for (const t of designs!) {
+          if (!alive()) return;
           const base = (t.doc.title || "design").replace(/[\\/:*?"<>|]+/g, "-").trim() || "design";
           let folder = base;
           for (let n = 2; folders.has(folder.toLowerCase()); n++) folder = `${base} (${n})`;
@@ -1307,12 +1321,14 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
         }
         const entries: ZipEntry[] = [];
         for (const f of files) entries.push({ name: f.name, data: new Uint8Array(await f.blob.arrayBuffer()) });
+        if (!alive()) return;
         const zipName = `danvas-export-${new Date().toISOString().slice(0, 10)}.zip`;
         download(zipFiles(entries), zipName);
         toast.success(tr("editor.downloaded_n_designs", { count: designs!.length, file: zipName }));
       }
       onClose();
     } catch (e) {
+      if (!alive()) return;
       // Coded failures (render timeout, download status) show their translated
       // detail. Everything else keeps the generic cross-origin hint: the
       // common anonymous failure here is a tainted-canvas SecurityError, whose
@@ -1320,7 +1336,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
       const fallback = tr("editor.download_failed_an_image_from_another_site_m");
       toast.error(e instanceof CodedError ? userMessage(e, fallback) : fallback);
     } finally {
-      setBusy(false);
+      if (alive()) setBusy(false);
     }
   }
 
@@ -2021,6 +2037,11 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
           <Download size={16} />
           {busy ? tr("editor.preparing") : packaged ? tr("editor.handover_download") : fileCount > 1 ? tr("editor.download_n_files", { count: fileCount }) : tr("editor.download")}
         </button>
+        {busy && (
+          <button type="button" onClick={cancelRun} className="mt-2 w-full rounded-xl px-3 py-2 text-sm font-medium text-neutral-600 transition hover:bg-neutral-100">
+            {tr("editor.cancel")}
+          </button>
+        )}
         {checkable && checkOpen && (
           <OutputCheckView
             open={checkOpen}
