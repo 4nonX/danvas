@@ -252,7 +252,9 @@ function drawShape(ctx: CanvasLike, node: ShapeNode, assets?: AssetProvider): vo
       const sy = (crop.y + fr.source.y * crop.height) * ih;
       const sw = fr.source.width * crop.width * iw;
       const sh = fr.source.height * crop.height * ih;
-      ctx.drawImage(img as CanvasImageSource, sx, sy, sw, sh, fr.dest.x, fr.dest.y, fr.dest.width, fr.dest.height);
+      const vb = vectorBitmap(ctx, assets, assetId, iw, ih, fr.dest.width, fr.dest.height, sw, sh);
+      if (vb) ctx.drawImage(vb.img as CanvasImageSource, sx * vb.k, sy * vb.k, sw * vb.k, sh * vb.k, fr.dest.x, fr.dest.y, fr.dest.width, fr.dest.height);
+      else ctx.drawImage(img as CanvasImageSource, sx, sy, sw, sh, fr.dest.x, fr.dest.y, fr.dest.width, fr.dest.height);
     } else {
       placeholderBox(ctx, w, h, status === "missing" ? MISSING_FILL : undefined, status === "missing" ? MISSING_STROKE : undefined);
     }
@@ -349,6 +351,45 @@ function drawMedia(ctx: CanvasLike, w: number, h: number, assetId: string, asset
   placeholderBox(ctx, w, h); // loading: neutral skeleton
 }
 
+/** The largest bitmap made for one SVG image (pixels), so a deep zoom on a
+ *  big graphic does not ask for a giant canvas. */
+const MAX_VECTOR_RASTER_PX = 16_000_000;
+
+/**
+ * A vector (SVG) image drawn from a cached bitmap instead of the SVG itself,
+ * where the provider offers one and this is a screen or raster canvas: the
+ * browser then does not re-render the SVG on every frame (slow in Firefox).
+ * The bitmap's resolution is the next power of two at or above what this draw
+ * needs, so it is never softer than drawing the SVG directly, and zooming
+ * makes a new one only when it crosses a power of two. Vector backends (the
+ * PDF, EPS and SVG exports) have no canvas element and keep drawing the SVG.
+ * Returns the bitmap and its pixels per source pixel, or null.
+ */
+function vectorBitmap(
+  ctx: CanvasLike,
+  assets: AssetProvider | undefined,
+  assetId: string,
+  natW: number,
+  natH: number,
+  destW: number,
+  destH: number,
+  sourceW: number,
+  sourceH: number,
+): { img: unknown; k: number } | null {
+  if (!assets?.raster || !(ctx as { canvas?: unknown }).canvas) return null;
+  const t = ctx.getTransform?.();
+  if (!t || !(natW > 0) || !(natH > 0) || !(sourceW > 0) || !(sourceH > 0)) return null;
+  const sx = Math.hypot(t.a, t.b), sy = Math.hypot(t.c, t.d);
+  // Device pixels per source pixel this draw needs, on the denser axis.
+  const need = Math.max((Math.abs(destW) * sx) / sourceW, (Math.abs(destH) * sy) / sourceH);
+  if (!(need > 0) || !Number.isFinite(need)) return null;
+  let k = 2 ** Math.ceil(Math.log2(need));
+  while (k > 1 / 64 && natW * k * natH * k > MAX_VECTOR_RASTER_PX) k /= 2;
+  const w = Math.max(1, Math.round(natW * k)), h = Math.max(1, Math.round(natH * k));
+  const img = assets.raster(assetId, w, h);
+  return img ? { img, k: w / natW } : null;
+}
+
 /**
  * Draw an image honoring its crop sub-rectangle, fit mode, and focal point.
  * The crop (normalized to the full source) selects the visible region of the
@@ -432,6 +473,13 @@ function drawImageNode(ctx: CanvasLike, node: ImageNode, w: number, h: number, a
               sx *= fx; sw *= fx; sy *= fy; sh *= fy;
             }
           }
+        }
+      }
+      if (img === assets?.image(assetId)) {
+        const vb = vectorBitmap(ctx, assets, assetId, srcW, srcH, fr.dest.width, fr.dest.height, sw, sh);
+        if (vb) {
+          ctx.drawImage(vb.img, sx * vb.k, sy * vb.k, sw * vb.k, sh * vb.k, fr.dest.x, fr.dest.y, fr.dest.width, fr.dest.height);
+          return;
         }
       }
       ctx.drawImage(img, sx, sy, sw, sh, fr.dest.x, fr.dest.y, fr.dest.width, fr.dest.height);

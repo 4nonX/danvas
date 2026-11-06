@@ -389,7 +389,7 @@ export function ShareDialog({ open, onClose, designId, focusRequests }: { open: 
       try {
         const next = await oc.rotateShareLink(link.id);
         const copied = await copyText(linkUrl(next.token));
-        toast.success(copied ? "Link rotated; new link copied." : tr("editor.link_rotated_copy_the_new_link_below"));
+        toast.success(copied ? tr("editor.link_rotated_copied") : tr("editor.link_rotated_copy_the_new_link_below"));
         await reload();
       } catch (e) {
         toast.error(errMessage(e, tr("editor.could_not_rotate_the_link")));
@@ -416,10 +416,7 @@ export function ShareDialog({ open, onClose, designId, focusRequests }: { open: 
         <div className="grid place-items-center py-10 text-neutral-400"><Spinner /></div>
       ) : !canShare ? (
         <div className="py-6 text-sm text-neutral-600">
-          <p>
-            You have {data ? modeLabel()[data.myAccess.mode].toLowerCase() : "limited"} access to this design and
-            cannot change its sharing.
-          </p>
+          <p>{tr("editor.share_no_rights", { access: data ? modeLabel()[data.myAccess.mode].toLowerCase() : tr("editor.share_limited") })}</p>
           <p className="mt-1 text-neutral-500">{tr("editor.ask_an_owner_or_admin_to_grant_you_access")}</p>
         </div>
       ) : (
@@ -428,7 +425,7 @@ export function ShareDialog({ open, onClose, designId, focusRequests }: { open: 
           {requests.length > 0 && (
             <section ref={requestsRef} className="rounded-lg border border-amber-200 bg-amber-50/60 p-3">
               <h3 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-amber-800">
-                <UserCheck size={15} /> Requests to access ({requests.length})
+                <UserCheck size={15} /> {tr("editor.requests_to_access", { count: requests.length })}
               </h3>
               <ul className="flex flex-col gap-1.5">
                 {requests.map((req) => {
@@ -510,7 +507,7 @@ export function ShareDialog({ open, onClose, designId, focusRequests }: { open: 
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm text-neutral-800">{label.primary}</span>
                         {label.secondary && <span className="block truncate text-xs text-neutral-400">{label.secondary}</span>}
-                        {g.invitedByName && <span className="block truncate text-[11px] text-neutral-400">Invited by {g.invitedByName}</span>}
+                        {g.invitedByName && <span className="block truncate text-[11px] text-neutral-400">{tr("editor.invited_by", { name: g.invitedByName })}</span>}
                       </span>
                       {!canManageRoles && role && <span className="rounded bg-brand-50 px-1.5 py-0.5 text-xs font-medium text-brand-ink">{role}</span>}
                       <ModeSelect value={g.mode} onChange={(m) => void changeGrant(g, m)} disabled={isPending(g.id)} ariaLabel={tr("editor.access_level_for_name", { name: principalLabel(g).primary })} />
@@ -586,7 +583,7 @@ export function ShareDialog({ open, onClose, designId, focusRequests }: { open: 
                 aria-expanded={linkOptionsOpen}
               >
                 <ChevronRight size={13} className={`transition-transform ${linkOptionsOpen ? "rotate-90" : ""}`} />
-                Link options
+                {tr("editor.link_options")}
                 {(linkPassword || linkExpiry || linkRequireSignin) && (
                   <span className="rounded-full bg-brand-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-ink">{tr("editor.set")}</span>
                 )}
@@ -619,7 +616,7 @@ export function ShareDialog({ open, onClose, designId, focusRequests }: { open: 
                     <Input type="datetime-local" value={linkExpiry} onChange={(e) => setLinkExpiry(e.target.value)} className="h-9" />
                   </label>
                   <label className="flex cursor-pointer items-center gap-2 text-xs text-neutral-600 sm:col-span-2">
-                    <input type="checkbox" checked={linkRequireSignin} onChange={(e) => setLinkRequireSignin(e.target.checked)} />
+                    <input type="checkbox" checked={linkRequireSignin} onChange={(e) => setLinkRequireSignin(e.target.checked)} className="h-4 w-4 shrink-0 accent-brand-600" />
                     {tr("editor.require_people_to_sign_in_to_open_the_link")}
                   </label>
                 </div>
@@ -641,7 +638,7 @@ export function ShareDialog({ open, onClose, designId, focusRequests }: { open: 
                         <span className="flex flex-wrap items-center gap-1.5 text-xs font-medium text-neutral-500">
                           {l.hasPassword && <span className="inline-flex items-center gap-0.5 rounded bg-neutral-100 px-1.5 py-0.5"><Lock size={11} /> {tr("editor.password_2")}</span>}
                           {l.requireSignin && <span className="rounded bg-neutral-100 px-1.5 py-0.5">{tr("editor.sign_in")}</span>}
-                          {l.expiresAt && <span className="rounded bg-neutral-100 px-1.5 py-0.5">expires {new Date(l.expiresAt).toLocaleString()}</span>}
+                          {l.expiresAt && <span className="rounded bg-neutral-100 px-1.5 py-0.5">{tr("editor.link_expires", { date: new Date(l.expiresAt).toLocaleString() })}</span>}
                           {l.disabled && <span className="rounded bg-red-50 px-1.5 py-0.5 text-red-600">{tr("editor.disabled")}</span>}
                         </span>
                         <span className="ms-auto flex items-center gap-0.5">
@@ -687,8 +684,7 @@ export function ShareDialog({ open, onClose, designId, focusRequests }: { open: 
                             type="checkbox"
                             checked={l.requireSignin}
                             disabled={busy}
-                            onChange={(e) => void patchLink(l, { requireSignin: e.target.checked }, e.target.checked ? tr("editor.sign_in_required") : tr("editor.sign_in_no_longer_required"))}
-                          />
+                            onChange={(e) => void patchLink(l, { requireSignin: e.target.checked }, e.target.checked ? tr("editor.sign_in_required") : tr("editor.sign_in_no_longer_required"))} className="h-4 w-4 shrink-0 accent-brand-600" />
                           <span>{tr("editor.require_sign_in")}</span>
                         </label>
                       </div>

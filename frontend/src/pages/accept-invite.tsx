@@ -131,7 +131,7 @@ export default function AcceptInvitePage() {
           await refreshWorkspaces();
           const wsId = (m as { workspaceId?: string } | undefined)?.workspaceId ?? inv.workspaceId;
           setActiveWorkspace(wsId);
-          toast.success(`You joined ${inv.workspaceName || "the workspace"}.`);
+          toast.success(inv.workspaceName ? tr("page.you_joined_named", { name: inv.workspaceName }) : tr("page.you_joined_workspace"));
           void router.push("/dashboard");
         } else {
           toast.success(tr("page.invitation_declined"));
@@ -277,7 +277,7 @@ export default function AcceptInvitePage() {
                         </span>
                       </div>
                       <p className="mt-1 inline-flex items-center gap-1 text-xs text-neutral-500">
-                        <Clock size={11} /> expires {new Date(inv.expiresAt).toLocaleDateString()}
+                        <Clock size={11} /> {tr("editor.link_expires", { date: new Date(inv.expiresAt).toLocaleDateString() })}
                       </p>
                     </div>
                   </div>

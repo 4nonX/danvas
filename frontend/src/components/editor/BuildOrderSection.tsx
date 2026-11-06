@@ -42,6 +42,11 @@ export function BuildOrderSection() {
     setDragging(null);
     setOverOrder(null);
     if (fromOrder === null) return;
+    move(fromOrder, toOrder);
+  };
+  // One step to another place in the build (by drag, or Alt+Up/Down).
+  const move = (fromOrder: number, toOrder: number) => {
+    if (toOrder < 1 || toOrder > steps.length || toOrder === fromOrder) return;
     const childIndex = childIndexForBuildOrder(page, fromOrder, toOrder);
     if (childIndex === null) return;
     const moving = steps[fromOrder - 1];
@@ -64,10 +69,8 @@ export function BuildOrderSection() {
   return (
     <div className="flex flex-col" data-testid="build-order">
       <div className="flex items-center justify-between px-3 pb-1.5 pt-1 text-[11px] text-neutral-500">
-        <span>
-          {steps.length} animation{steps.length === 1 ? "" : "s"}
-        </span>
-        <span className="tabular-nums">{ms(totalMs)} total</span>
+        <span>{tr("editor.n_animations", { count: steps.length })}</span>
+        <span className="tabular-nums">{tr("editor.total_duration", { time: ms(totalMs) })}</span>
       </div>
       <ol className="flex flex-col">
         {steps.map((step) => (
@@ -83,6 +86,7 @@ export function BuildOrderSection() {
             }}
             onDragOver={() => setOverOrder(step.order)}
             onDrop={() => drop(step.order)}
+            onMove={(delta) => move(step.order, step.order + delta)}
             onDragEnd={() => {
               dragOrder.current = null;
               setDragging(null);
@@ -104,6 +108,7 @@ function BuildRow({
   onDragOver,
   onDrop,
   onDragEnd,
+  onMove,
 }: {
   step: BuildStep;
   scale: number;
@@ -113,6 +118,8 @@ function BuildRow({
   onDragOver: () => void;
   onDrop: () => void;
   onDragEnd: () => void;
+  /** Alt+Up (-1) or Alt+Down (+1). */
+  onMove: (delta: -1 | 1) => void;
 }) {
   return (
     <li
@@ -128,7 +135,15 @@ function BuildRow({
       // Selecting swaps the properties panel to node mode, unmounting this strip.
       // So select on an explicit click, never on pointer-down (which begins a drag).
       onClick={() => useEditor.getState().select([step.nodeId])}
-      className={`group border-t-2 px-2 py-1.5 ${showDrop ? "border-t-brand-500" : "border-t-transparent"} ${
+      tabIndex={0}
+      aria-label={tr("editor.reorder_with_keys", { name: step.nodeName || step.nodeId })}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") { useEditor.getState().select([step.nodeId]); return; }
+        if (!e.altKey || (e.key !== "ArrowUp" && e.key !== "ArrowDown")) return;
+        e.preventDefault();
+        onMove(e.key === "ArrowUp" ? -1 : 1);
+      }}
+      className={`group border-t-2 px-2 py-1.5 outline-none focus-visible:ring-2 focus-visible:ring-brand-300 ${showDrop ? "border-t-brand-500" : "border-t-transparent"} ${
         selected ? "bg-brand-50" : "hover:bg-neutral-50"
       }`}
     >

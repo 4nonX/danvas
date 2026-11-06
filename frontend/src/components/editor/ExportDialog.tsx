@@ -409,6 +409,8 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
   const taggedPdf = pdfMode === "tagged";
   const [scale, setScale] = useState(1);
   const [transparent, setTransparent] = useState(true);
+  // SVG and vector PDF: the page background left out (off unless asked).
+  const [noBackground, setNoBackground] = useState(false);
   const [quality, setQuality] = useState(92); // jpg quality 0..100
   const [zipBatch, setZipBatch] = useState(true); // bundle multi-page non-PDF exports into one .zip
   const [selected, setSelected] = useState<number[]>([]); // page indices to export
@@ -539,7 +541,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
 
   // The menu's settings as an export profile stores them.
   const currentSettings: ExportSettings = {
-    v: 1, format, pdfMode, scale, transparent, quality, zip: zipBatch, tiffDpi,
+    v: 1, format, pdfMode, scale, transparent, noBackground, quality, zip: zipBatch, tiffDpi,
     color: printColor, iccProfileId: profileId, intent, blackOnly, overprintBlack, pdfx, registration, dieLine, tacLimit, roundMm, extendBleed,
     print: printSource === "fixed" ? { source: "fixed", override } : { source: "page", bleed: withBleed, marks: withMarks },
     impose,
@@ -554,6 +556,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
     setPdfMode(s.pdfMode);
     setScale(s.scale);
     setTransparent(s.transparent);
+    setNoBackground(s.noBackground);
     setQuality(s.quality);
     setZipBatch(s.zip);
     setTiffDpi(s.tiffDpi);
@@ -641,6 +644,11 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
   const [issues, setIssues] = useState<{ design: string; list: ExportIssue[] }[]>([]);
   const rendersDesign = format !== "hyc" && format !== "md" && format !== "lottie";
   const vectorOut = format === "svg" || format === "eps" || (format === "pdf" && pdfMode !== "image");
+  // Where a background can be left out: transparency in the raster formats,
+  // nothing drawn under the elements in SVG and the vector PDFs.
+  const rasterAlpha = format === "png" || format === "apng" || format === "gif";
+  const vectorBg = format === "svg" || (format === "pdf" && pdfMode !== "image");
+  const leaveOutBackground = vectorBg && noBackground;
   const printOut = format === "pdf" || format === "tiff" || format === "eps";
   const overrideBleed = override.bleed;
   // The pages exported (as `pages` below, which comes after the early return).
@@ -930,7 +938,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
       // Drawn by the editor's engine like the vector PDF, so it looks exactly
       // like the design; the words are real text in the author's reading order.
       const { exportVectorPdf } = await import("@/lib/vectorPdf");
-      const out = await exportVectorPdf(doc, pages, { assets: imageAssets, title: doc.title, tagged: true, lang: resolvedLocale() });
+      const out = await exportVectorPdf(doc, pages, { assets: imageAssets, title: doc.title, tagged: true, lang: resolvedLocale(), noBackground: leaveOutBackground });
       emit(out.blob, `${safeBase}.pdf`);
       if (!quiet) toast.success(tr("editor.downloaded_file", { file: `${safeBase}.pdf` }));
     } else if (format === "tiff" || format === "eps") {
@@ -969,7 +977,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
       const converter = await makeConverter();
       try {
         const out = await exportVectorPdf(doc, pages, {
-          assets: imageAssets, title: doc.title, print: useSheet, extras: printExtras, impose: imposeOpt,
+          assets: imageAssets, title: doc.title, print: useSheet, extras: printExtras, impose: imposeOpt, noBackground: leaveOutBackground,
           converter, blackOnly, overprintBlack: !!converter && blackOnly && overprintBlack, pdfx: !!converter && pdfx,
         });
         emit(out.blob, `${safeBase}.pdf`);
@@ -1050,7 +1058,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
       const renderBlob = async (i: number): Promise<Blob | null> => {
         // SVG goes through the engine like the vector PDF, so it matches the
         // editor exactly (text as outlines, effects as embedded patches).
-        if (vectorSvg) return new Blob([await vectorSvg(doc, i, { assets: imageAssets, print: useSheet })], { type: "image/svg+xml" });
+        if (vectorSvg) return new Blob([await vectorSvg(doc, i, { assets: imageAssets, print: useSheet, noBackground: leaveOutBackground })], { type: "image/svg+xml" });
         return rasterBlob(doc, i, { format: format === "png" ? "png" : "jpg", scale, opaque, print: useSheet, quality });
       };
       for (let k = 0; k < pages.length; k++) {
@@ -1444,7 +1452,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
                             // The acronym leads so the visible text is still
                             // the start of the name (WCAG 2.5.3).
                             aria-label={`${f.acronym}. ${f.badge ? `${f.badge}. ` : ""}${f.desc}`}
-                            className="peer sr-only"
+                            className="peer sr-only accent-brand-600"
                           />
                           <span
                             className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition peer-focus-visible:ring-2 peer-focus-visible:ring-brand-400 ${
@@ -1503,7 +1511,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
                     disabled={m.disabled}
                     onChange={() => setPdfMode(m.id)}
                     data-testid={m.id === "tagged" ? "export-tagged-pdf" : `export-pdf-${m.id}`}
-                    className="mt-0.5 h-3.5 w-3.5 accent-brand-500"
+                    className="mt-0.5 h-3.5 w-3.5 accent-brand-600"
                   />
                   <span className="min-w-0">
                     <span className="block text-xs font-medium text-neutral-700">{m.label}</span>
@@ -1585,32 +1593,36 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
                   </span>
                   <span className="mt-1 block text-[11px] leading-snug text-neutral-400">{tr("editor.tac_limit_desc")}</span>
                 </label>
-                {vectorPrint && (
-                  <label className="flex cursor-pointer items-start justify-between gap-3 text-xs">
-                    <span className="text-neutral-600">
-                      {tr("editor.black_ink_only")}
-                      <span className="mt-0.5 block text-[11px] leading-snug text-neutral-400">{tr("editor.black_ink_only_desc")}</span>
-                    </span>
-                    <input type="checkbox" checked={blackOnly} onChange={(e) => setBlackOnly(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-brand-600" />
-                  </label>
-                )}
-                {vectorPrint && blackOnly && (
-                  <label className="flex cursor-pointer items-start justify-between gap-3 text-xs">
-                    <span className="text-neutral-600">
-                      {tr("editor.overprint_black")}
-                      <span className="mt-0.5 block text-[11px] leading-snug text-neutral-400">{tr("editor.overprint_black_desc")}</span>
-                    </span>
-                    <input type="checkbox" checked={overprintBlack} onChange={(e) => setOverprintBlack(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-brand-600" />
-                  </label>
-                )}
-                {format === "pdf" && (
-                  <label className="flex cursor-pointer items-start justify-between gap-3 text-xs">
-                    <span className="text-neutral-600">
-                      {tr("editor.pdfx4")}
-                      <span className="mt-0.5 block text-[11px] leading-snug text-neutral-400">{tr("editor.pdfx4_desc")}</span>
-                    </span>
-                    <input type="checkbox" checked={pdfx} onChange={(e) => setPdfx(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-brand-600" />
-                  </label>
+                {(vectorPrint || format === "pdf") && (
+                  <div className="flex flex-col gap-2 rounded-lg border border-neutral-200 p-2.5">
+                  {vectorPrint && (
+                    <label className="flex cursor-pointer items-start justify-between gap-3 text-xs">
+                      <span className="text-neutral-600">
+                        {tr("editor.black_ink_only")}
+                        <span className="mt-0.5 block text-[11px] leading-snug text-neutral-400">{tr("editor.black_ink_only_desc")}</span>
+                      </span>
+                      <input type="checkbox" checked={blackOnly} onChange={(e) => setBlackOnly(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-brand-600" />
+                    </label>
+                  )}
+                  {vectorPrint && blackOnly && (
+                    <label className="flex cursor-pointer items-start justify-between gap-3 text-xs">
+                      <span className="text-neutral-600">
+                        {tr("editor.overprint_black")}
+                        <span className="mt-0.5 block text-[11px] leading-snug text-neutral-400">{tr("editor.overprint_black_desc")}</span>
+                      </span>
+                      <input type="checkbox" checked={overprintBlack} onChange={(e) => setOverprintBlack(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-brand-600" />
+                    </label>
+                  )}
+                  {format === "pdf" && (
+                    <label className="flex cursor-pointer items-start justify-between gap-3 text-xs">
+                      <span className="text-neutral-600">
+                        {tr("editor.pdfx4")}
+                        <span className="mt-0.5 block text-[11px] leading-snug text-neutral-400">{tr("editor.pdfx4_desc")}</span>
+                      </span>
+                      <input type="checkbox" checked={pdfx} onChange={(e) => setPdfx(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-brand-600" />
+                    </label>
+                  )}
+                  </div>
                 )}
               </>
             )}
@@ -1806,18 +1818,30 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
           </div>
         )}
 
-        {/* PNG transparency. */}
-        {format === "png" && (
-          <label className="mb-3 flex cursor-pointer items-center justify-between text-sm">
-            <span className="text-neutral-600">{tr("editor.transparent_background")}</span>
-            <input type="checkbox" checked={transparent} onChange={(e) => setTransparent(e.target.checked)} className="h-4 w-4 accent-brand-600" />
-          </label>
+        {/* Background: transparent in PNG and the animations, left out in SVG and vector PDF. */}
+        {(vectorBg || rasterAlpha) && (
+          <div className="mb-3 rounded-lg border border-neutral-200 p-2.5">
+            <label className="flex cursor-pointer items-start justify-between gap-3 text-xs">
+              <span className="text-neutral-600">
+                {tr("editor.transparent_background")}
+                <span className="mt-0.5 block text-[11px] leading-snug text-neutral-400">
+                  {vectorBg ? tr("editor.transparent_background_desc_vector") : tr("editor.transparent_background_desc_raster")}
+                </span>
+              </span>
+              <input
+                type="checkbox"
+                checked={vectorBg ? noBackground : transparent}
+                onChange={(e) => (vectorBg ? setNoBackground : setTransparent)(e.target.checked)}
+                className="mt-0.5 h-4 w-4 shrink-0 accent-brand-600"
+              />
+            </label>
+          </div>
         )}
 
         {/* Colour list beside the download, whatever the format (a right of
             its own). */}
         {rendersDesign && mayColorList && (
-          <div className="mb-3 rounded-xl border border-neutral-200 p-3">
+          <div className="mb-3 rounded-lg border border-neutral-200 p-2.5">
             <label className="flex cursor-pointer items-start justify-between gap-3 text-xs">
               <span className="text-neutral-600">
                 {tr("editor.color_list")}
@@ -1845,7 +1869,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
 
         {/* Print files as a package for the print shop. */}
         {printFile && (
-          <label className="mb-3 flex cursor-pointer items-start justify-between gap-3 rounded-xl border border-neutral-200 p-3 text-xs">
+          <label className="mb-3 flex cursor-pointer items-start justify-between gap-3 rounded-lg border border-neutral-200 p-2.5 text-xs">
             <span className="text-neutral-600">
               {tr("editor.handover")}
               <span className="mt-0.5 block text-[11px] leading-snug text-neutral-400">{tr("editor.handover_desc")}</span>
@@ -1857,19 +1881,12 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
         {/* The print shop's rules (from the export profile). */}
         {rendersDesign && <RulesSummary rules={rules} />}
 
-        {/* Batch: bundle multiple pages into one .zip (non-PDF formats). */}
-        {format !== "pdf" && pages.length > 1 && !packaged && (
-          <label className="mb-3 flex cursor-pointer items-center justify-between text-sm">
-            <span className="text-neutral-600">{tr("editor.combine_pages_into_a_zip")}</span>
-            <input type="checkbox" checked={zipBatch} onChange={(e) => setZipBatch(e.target.checked)} className="h-4 w-4 accent-brand-600" />
-          </label>
-        )}
 
         {/* Page selection (multi-page docs only). */}
         {pageCount > 1 && !bulk && (
           <div className="mb-3">
             <div className="mb-1.5 flex items-center justify-between">
-              <label className="text-xs font-medium text-neutral-500">Pages ({pages.length}/{pageCount})</label>
+              <label className="text-xs font-medium text-neutral-500">{tr("editor.pages_count", { count: pages.length, total: pageCount })}</label>
               <div className="flex gap-2 text-[11px] font-medium">
                 <button type="button" onClick={() => setSelected(doc.pages.map((_, i) => i))} className="text-brand-ink hover:underline">{tr("editor.all")}</button>
                 <button type="button" onClick={() => setSelected([Math.min(activePage, pageCount - 1)])} className="text-neutral-500 hover:underline">{tr("editor.current")}</button>
@@ -1884,7 +1901,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
                     type="button"
                     onClick={() => togglePage(i)}
                     aria-pressed={on}
-                    title={`Page ${i + 1}`}
+                    title={tr("editor.page_n", { n: i + 1 })}
                     className={`h-7 min-w-7 rounded-md px-2 text-xs font-medium transition ${on ? "bg-brand-600 text-white" : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"}`}
                   >
                     {i + 1}
@@ -1894,6 +1911,19 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
             </div>
             {!isRaster && format === "pdf" && <p className="mt-1.5 text-[11px] text-neutral-400">{tr("editor.exported_as_one_pdf")}</p>}
             {(isRaster || format === "svg") && pages.length > 1 && <p className="mt-1.5 text-[11px] text-neutral-400">{tr("editor.n_separate_files", { count: pages.length })}</p>}
+          </div>
+        )}
+
+        {/* Several pages as one .zip: only the formats that make a file per page. */}
+        {(format === "png" || format === "jpg" || format === "svg") && pages.length > 1 && !packaged && (
+          <div className="mb-3 rounded-lg border border-neutral-200 p-2.5">
+            <label className="flex cursor-pointer items-start justify-between gap-3 text-xs">
+              <span className="text-neutral-600">
+                {tr("editor.combine_pages_into_a_zip")}
+                <span className="mt-0.5 block text-[11px] leading-snug text-neutral-400">{tr("editor.combine_pages_desc")}</span>
+              </span>
+              <input type="checkbox" checked={zipBatch} onChange={(e) => setZipBatch(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-brand-600" />
+            </label>
           </div>
         )}
 

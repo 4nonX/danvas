@@ -1813,7 +1813,7 @@ function addDeckLogoRefs(doc: DesignFile, refs: AssetRef[]): string[] {
   const added: string[] = [];
   for (const ref of refs) {
     if (addAssetRef(doc, ref)) added.push(ref.id);
-    if (typeof window !== "undefined") imageAssets.register(ref.id, ref.url);
+    if (typeof window !== "undefined") imageAssets.register(ref.id, ref.url, ref.kind === "svg" ? "image/svg+xml" : ref.mime);
   }
   return added;
 }

@@ -114,7 +114,7 @@ export function WorkspaceAiPolicy({ workspaceId, presets }: { workspaceId: strin
           <label className="flex max-w-2xl items-start gap-2.5 text-sm text-neutral-700">
             <input
               type="checkbox"
-              className="mt-0.5 h-4 w-4"
+              className="mt-0.5 h-4 w-4 accent-brand-600"
               checked={personalAllowed}
               disabled={saving}
               onChange={(e) => void save({ ...latest.current, allowPersonalKeys: e.target.checked })}

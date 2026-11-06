@@ -41,7 +41,6 @@ export function ColorLibrariesPanel({ workspaceId, canEdit }: { workspaceId: str
   const toast = useToast();
   const [libraries, setLibraries] = useState<ColorLibrary[] | null>(null);
   const [busy, setBusy] = useState(false);
-  const [armedDelete, setArmedDelete] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const reload = useCallback(async () => {
@@ -122,14 +121,11 @@ export function ColorLibrariesPanel({ workspaceId, canEdit }: { workspaceId: str
   }
 
   async function remove(l: ColorLibrary) {
-    if (armedDelete !== l.id) {
-      setArmedDelete(l.id);
-      setTimeout(() => setArmedDelete((cur) => (cur === l.id ? null : cur)), 3500);
-      return;
-    }
-    setArmedDelete(null);
+    const ok = await confirmAction({ title: tr("dashboard.remove_named_title", { name: l.name }), message: tr("dashboard.remove_item_message", { name: l.name }), confirmText: tr("dashboard.remove"), danger: true });
+    if (!ok) return;
     try {
       await oc.deleteColorLibrary(l.id);
+      toast.success(tr("dashboard.item_removed", { name: l.name }));
       await reload();
     } catch (e) {
       toast.error(userMessage(e, tr("dashboard.could_not_remove_color_library")));
@@ -170,9 +166,9 @@ export function ColorLibrariesPanel({ workspaceId, canEdit }: { workspaceId: str
                 <button
                   type="button"
                   onClick={() => void remove(l)}
-                  className={`flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium transition ${armedDelete === l.id ? "bg-red-50 text-red-600 ring-1 ring-red-300" : "text-neutral-400 hover:bg-neutral-100 hover:text-red-600"}`}
+                  className={`flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium transition text-neutral-400 hover:bg-neutral-100 hover:text-red-600`}
                 >
-                  <Trash2 size={13} /> {armedDelete === l.id ? tr("dashboard.click_again_to_remove") : tr("dashboard.remove")}
+                  <Trash2 size={13} /> {tr("dashboard.remove")}
                 </button>
               </span>
             )}

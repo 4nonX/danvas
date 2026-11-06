@@ -19,6 +19,8 @@ import { dashboardPath } from "./views";
 import { useToast } from "@/components/ui/Toast";
 import { Button } from "@/components/ui/Button";
 import { tr } from "@/lib/i18n";
+import { confirmAction } from "@/lib/promptDialog";
+import { userMessage } from "@/lib/errors";
 
 const rank: Record<WorkspaceRole, number> = { viewer: 1, member: 2, admin: 3, owner: 4 };
 
@@ -280,6 +282,11 @@ export function MembersPanel({
   async function removeMember(m: WorkspaceMemberView) {
     if (!workspaceId) return;
     const self = m.userId === myUserId;
+    const name = m.name || m.email;
+    const ok = await confirmAction(self
+      ? { title: tr("dashboard.leave_workspace"), message: tr("dashboard.leave_workspace_message"), confirmText: tr("dashboard.leave_workspace"), danger: true }
+      : { title: tr("dashboard.remove_member_named", { name }), message: tr("dashboard.remove_member_message", { name }), confirmText: tr("dashboard.remove_member_confirm"), danger: true });
+    if (!ok) return;
     try {
       await oc.removeMember(workspaceId, m.userId);
       toast.success(self ? tr("dashboard.you_left_the_workspace") : tr("dashboard.member_removed", { name: m.name || m.email }));
@@ -288,8 +295,8 @@ export function MembersPanel({
         return;
       }
       await reload();
-    } catch {
-      toast.error(self ? tr("dashboard.could_not_leave_a_workspace_needs_an_owner") : tr("dashboard.could_not_remove_this_member"));
+    } catch (e) {
+      toast.error(userMessage(e, self ? tr("dashboard.could_not_leave_a_workspace_needs_an_owner") : tr("dashboard.could_not_remove_this_member")));
     }
   }
 
@@ -318,6 +325,8 @@ export function MembersPanel({
 
   async function revoke(inv: WorkspaceInvitation) {
     if (!workspaceId) return;
+    const ok = await confirmAction({ title: tr("dashboard.revoke_invitation_title"), message: tr("dashboard.revoke_invitation_message", { email: inv.email }), confirmText: tr("dashboard.revoke"), danger: true });
+    if (!ok) return;
     try {
       await oc.revokeInvitation(workspaceId, inv.id);
       toast.success(tr("dashboard.invitation_revoked"));
@@ -716,6 +725,8 @@ function CustomRolesSection({ workspaceId }: { workspaceId: string }) {
   }
 
   async function remove(r: CustomRoleView) {
+    const ok = await confirmAction({ title: tr("dashboard.delete_role"), message: tr("dashboard.delete_role_message", { name: r.name }), confirmText: tr("dashboard.delete_role"), danger: true });
+    if (!ok) return;
     try {
       await oc.deleteCustomRole(r.id);
       toast.success(tr("dashboard.role_deleted"));
@@ -800,7 +811,7 @@ function CustomRolesSection({ workspaceId }: { workspaceId: string }) {
                   caps.includes(c.id) ? "border-brand-300 bg-brand-50 font-medium text-brand-ink" : "border-neutral-200 text-neutral-600 hover:border-neutral-300"
                 }`}
               >
-                <input type="checkbox" className="sr-only" checked={caps.includes(c.id)} onChange={() => toggleCap(c.id)} />
+                <input type="checkbox" className="sr-only accent-brand-600" checked={caps.includes(c.id)} onChange={() => toggleCap(c.id)} />
                 {c.label}
               </label>
             ))}

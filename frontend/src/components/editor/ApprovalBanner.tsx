@@ -258,7 +258,7 @@ export function ApprovalBanner({ designId, requestOpen, onRequestClose, onLockCh
           />
           <div className="flex justify-end gap-2">
             <Button variant="ghost" size="sm" onClick={() => setRejecting(false)}>{tr("editor.cancel")}</Button>
-            <Button size="sm" onClick={() => void decide("reject", note.trim() || undefined)} disabled={busy}>{tr("editor.reject")}</Button>
+            <Button size="sm" onClick={() => void decide("reject", note.trim() || undefined)} disabled={busy}>{busy ? <Spinner /> : tr("editor.reject")}</Button>
           </div>
         </div>
       </Modal>
@@ -277,7 +277,7 @@ export function ApprovalBanner({ designId, requestOpen, onRequestClose, onLockCh
                 {people.map((p) => (
                   <li key={p.id}>
                     <label className="flex cursor-pointer items-center gap-2 px-3 py-2 hover:bg-neutral-50">
-                      <input type="checkbox" checked={selected.has(p.id)} onChange={() => toggle(p.id)} />
+                      <input type="checkbox" checked={selected.has(p.id)} onChange={() => toggle(p.id)} className="h-4 w-4 shrink-0 accent-brand-600" />
                       <span className="min-w-0 flex-1 truncate text-sm text-neutral-700">{p.name}</span>
                       {p.email && <span className="truncate text-xs text-neutral-400">{p.email}</span>}
                     </label>
@@ -288,14 +288,14 @@ export function ApprovalBanner({ designId, requestOpen, onRequestClose, onLockCh
           </div>
           <div>
             <p className="mb-2 text-sm font-semibold text-neutral-800">{tr("editor.policy")}</p>
-            <div className="flex gap-4 text-sm text-neutral-700">
-              <label className="flex items-center gap-2">
-                <input type="radio" name="policy" checked={policy === "any"} onChange={() => setPolicy("any")} />
-                {tr("editor.any_approver")}
+            <div className="flex gap-1.5 text-sm text-neutral-800">
+              <label className={`flex flex-1 cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2 text-sm ${policy === "any" ? "border-brand-500 bg-brand-50" : "border-neutral-200"}`}>
+                <input type="radio" name="policy" checked={policy === "any"} onChange={() => setPolicy("any")} className="accent-brand-600" />
+                <span className="font-medium">{tr("editor.any_approver")}</span>
               </label>
-              <label className="flex items-center gap-2">
-                <input type="radio" name="policy" checked={policy === "all"} onChange={() => setPolicy("all")} />
-                {tr("editor.all_approvers")}
+              <label className={`flex flex-1 cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2 text-sm ${policy === "all" ? "border-brand-500 bg-brand-50" : "border-neutral-200"}`}>
+                <input type="radio" name="policy" checked={policy === "all"} onChange={() => setPolicy("all")} className="accent-brand-600" />
+                <span className="font-medium">{tr("editor.all_approvers")}</span>
               </label>
             </div>
           </div>

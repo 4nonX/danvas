@@ -4557,7 +4557,7 @@ export function VideoSurface(props: { workspaceId?: string; designId?: string })
                     e.stopPropagation();
                     setConfirmDeleteAsset(a);
                   }}
-                  className="rounded p-1 text-neutral-400 opacity-0 hover:bg-neutral-300 hover:text-red-600 dark:hover:text-red-400 group-hover:opacity-100"
+                  className="rounded p-1 text-neutral-400 opacity-0 hover:bg-neutral-300 hover:text-red-600 dark:hover:text-red-400 group-hover:opacity-100 focus-visible:opacity-100"
                 >
                   <Trash2 size={12} />
                 </button>
@@ -5331,8 +5331,7 @@ export function VideoSurface(props: { workspaceId?: string; designId?: string })
               <input
                 type="checkbox"
                 checked={captionStyle.burnIn !== false}
-                onChange={(e) => patchCaptionStyle({ burnIn: e.target.checked })}
-              />
+                onChange={(e) => patchCaptionStyle({ burnIn: e.target.checked })} className="h-4 w-4 shrink-0 accent-brand-600" />
               {tr("editor.burn_in")}
             </label>
             <label className="flex items-center gap-1 text-neutral-500">
@@ -6521,8 +6520,7 @@ export function VideoSurface(props: { workspaceId?: string; designId?: string })
                             checked={!!d}
                             disabled={audioish.length < 2}
                             title={audioish.length < 2 ? tr("editor.needs_two_tracks_that_carry_audio") : tr("editor.lower_the_music_under_the_voice_automaticall")} aria-label={audioish.length < 2 ? tr("editor.needs_two_tracks_that_carry_audio") : tr("editor.lower_the_music_under_the_voice_automaticall")}
-                            onChange={(e) => (e.target.checked ? setDuck({}) : setDuck(null))}
-                          />
+                            onChange={(e) => (e.target.checked ? setDuck({}) : setDuck(null))} className="h-4 w-4 shrink-0 accent-brand-600" />
                         </label>
                         {d && (
                           <>
@@ -7410,8 +7408,7 @@ function ClipInspector(props: {
             disabled={editDisabled || !!clip.sequenceId}
             checked={reversed}
             title={clip.sequenceId ? tr("editor.sequences_cannot_play_in_reverse") : tr("editor.play_the_clip_backwards_audio_mutes")} aria-label={clip.sequenceId ? tr("editor.sequences_cannot_play_in_reverse") : tr("editor.play_the_clip_backwards_audio_mutes")}
-            onChange={(e) => props.onSetSpeed((e.target.checked ? -1 : 1) * Math.abs(clip.speed))}
-          />
+            onChange={(e) => props.onSetSpeed((e.target.checked ? -1 : 1) * Math.abs(clip.speed))} className="h-4 w-4 shrink-0 accent-brand-600" />
         </label>
         {reversed && (
           <div className="text-[10px] font-medium text-pink-600 dark:text-pink-400">{tr("editor.plays_in_reverse_audio_muted")}</div>
@@ -7450,8 +7447,7 @@ function ClipInspector(props: {
               checked={!!clip.chromaKey}
               onChange={(e) =>
                 props.onSetChroma(e.target.checked ? { keyColor: "#00ff00", tolerance: 0.35, spill: 0.5, edgeFeather: 6 } : null)
-              }
-            />
+              } className="h-4 w-4 shrink-0 accent-brand-600" />
             {tr("editor.key_out_a_color")}
           </label>
           {clip.chromaKey && (
@@ -7595,8 +7591,7 @@ function ClipInspector(props: {
                     ? { x: 0, y: 0, width: props.mediaDims!.w, height: props.mediaDims!.h }
                     : undefined,
                 })
-              }
-            />
+              } className="h-4 w-4 shrink-0 accent-brand-600" />
             {tr("editor.crop_the_source")}
           </label>
           {clip.crop && (
@@ -7779,8 +7774,7 @@ function ClipInspector(props: {
                 type="checkbox"
                 disabled={editDisabled}
                 checked={!!clip.title?.background}
-                onChange={(e) => props.onSetTitle({ background: e.target.checked ? "rgba(0,0,0,0.6)" : undefined })}
-              />
+                onChange={(e) => props.onSetTitle({ background: e.target.checked ? "rgba(0,0,0,0.6)" : undefined })} className="h-4 w-4 shrink-0 accent-brand-600" />
               <input
                 type="color"
                 disabled={editDisabled || !clip.title?.background}
@@ -8276,7 +8270,7 @@ function ExportDialog(props: {
                 <input
                   type="radio"
                   name="export-kind"
-                  className="mt-0.5"
+                  className="mt-0.5 accent-brand-600"
                   disabled={disabled}
                   checked={kind === k.kind}
                   onChange={() => {
@@ -8301,7 +8295,7 @@ function ExportDialog(props: {
         <div className="mt-3 flex flex-wrap items-center gap-4">
           {!isServer && (
             <label className="flex items-center gap-1.5 text-neutral-600" title={tr("editor.mp4_is_used_when_the_browser_supports_record")}>
-              <input type="checkbox" checked={preferWebm} onChange={(e) => setPreferWebm(e.target.checked)} />
+              <input type="checkbox" checked={preferWebm} onChange={(e) => setPreferWebm(e.target.checked)} className="h-4 w-4 shrink-0 accent-brand-600" />
               {tr("editor.prefer_webm")}
             </label>
           )}
@@ -8322,7 +8316,7 @@ function ExportDialog(props: {
           )}
           {isServer && kind !== "mp3" && props.captionsPresent && (
             <label className="flex items-center gap-1.5 text-neutral-600">
-              <input type="checkbox" checked={burnCaptions} onChange={(e) => setBurnCaptions(e.target.checked)} />
+              <input type="checkbox" checked={burnCaptions} onChange={(e) => setBurnCaptions(e.target.checked)} className="h-4 w-4 shrink-0 accent-brand-600" />
               {tr("editor.burn_captions")}
             </label>
           )}
@@ -8378,8 +8372,7 @@ function ExportDialog(props: {
               type="checkbox"
               disabled={!props.hasRange}
               checked={useRange && props.hasRange}
-              onChange={(e) => setUseRange(e.target.checked)}
-            />
+              onChange={(e) => setUseRange(e.target.checked)} className="h-4 w-4 shrink-0 accent-brand-600" />
             {tr("editor.marked_range_only")}
           </label>
           {!props.hasRange && (

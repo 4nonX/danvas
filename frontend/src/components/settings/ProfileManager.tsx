@@ -17,6 +17,7 @@ import { describeSettings, defaultExportSettings, freeName, normalizeSettings } 
 import { defaultPrintSettings, describePrintSettings, normalizePrintSettings } from "@/lib/printPresets";
 import { listProfileOptions, type ProfileOption } from "@/lib/print/profiles";
 import { useDateFormat } from "@/lib/datetime";
+import { confirmAction } from "@/lib/promptDialog";
 import { tr } from "@/lib/i18n";
 import { ProfileSettingsEditor } from "./ProfileSettingsEditor";
 
@@ -33,7 +34,6 @@ export function ProfileManager(props: Props) {
   const [view, setView] = useState<ExportProfileView | null>(null);
   const [icc, setIcc] = useState<ProfileOption[]>([]);
   const [editing, setEditing] = useState<{ id: string; field: "name" | "description"; value: string } | null>(null);
-  const [armedDelete, setArmedDelete] = useState<string | null>(null);
   const [editingSettings, setEditingSettings] = useState<ExportProfile | null>(null);
   const [busy, setBusy] = useState(false);
   // Two kinds, two vocabularies: both texts are literal keys.
@@ -97,12 +97,8 @@ export function ProfileManager(props: Props) {
   }
 
   async function remove(p: ExportProfile) {
-    if (armedDelete !== p.id) {
-      setArmedDelete(p.id);
-      setTimeout(() => setArmedDelete((cur) => (cur === p.id ? null : cur)), 3500);
-      return;
-    }
-    setArmedDelete(null);
+    const ok = await confirmAction({ title: tr("dashboard.remove_named_title", { name: p.name }), message: tr("dashboard.remove_item_message", { name: p.name }), confirmText: tr("dashboard.remove"), danger: true });
+    if (!ok) return;
     await run(() => oc.deleteExportProfile(p.id), t(tr("editor.export_profile_deleted", { name: p.name }), tr("editor.print_preset_deleted", { name: p.name })));
   }
 
@@ -216,9 +212,9 @@ export function ProfileManager(props: Props) {
                     type="button"
                     disabled={busy}
                     onClick={() => void remove(p)}
-                    className={`flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium transition ${armedDelete === p.id ? "bg-red-50 text-red-600 ring-1 ring-red-300" : "text-neutral-400 hover:bg-neutral-100 hover:text-red-600"}`}
+                    className={`flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium transition text-neutral-400 hover:bg-neutral-100 hover:text-red-600`}
                   >
-                    <Trash2 size={13} /> {armedDelete === p.id ? tr("dashboard.click_again_to_remove") : tr("dashboard.remove")}
+                    <Trash2 size={13} /> {tr("dashboard.remove")}
                   </button>
                 )}
               </span>

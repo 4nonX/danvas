@@ -204,6 +204,10 @@ export interface AssetProvider {
   status(assetId: string): AssetStatus;
   /** Subscribe to "this asset changed state"; returns an unsubscribe fn. */
   onChange(cb: (assetId: string) => void): () => void;
+  /** Optional: a vector (SVG) asset as a bitmap of `width` x `height` pixels,
+   *  drawn once and kept, for the screen. Null when the asset is no vector or
+   *  the bitmap cannot be made; the caller then draws the image itself. */
+  raster?(assetId: string, width: number, height: number): unknown | null;
 }
 
 export interface EngineConfig {

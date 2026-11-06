@@ -2,6 +2,41 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 1.9.9 (2026-11-06)
+
+### Added
+
+- **Transparent background for SVG and PDF.** The vector and accessible PDF and SVG can leave the page background out, so only the elements are drawn; animated PNG and GIF now show the option they already followed. It sits in its own card in the download menu, with what it leaves out. A rectangle or picture covering the page is an element and stays.
+- **Trash: several at once.** Tick designs in the trash, then **Restore** or **Delete forever** in the bar.
+- **Templates bar**: **Download as .hyc file**, **Duplicate** and **Delete** for the ticked templates, as in their menu.
+- **Export as package** in a design's and a folder's "..." menu, under one name everywhere.
+- **Stop** for **Change format** while it saves; **Continue in the background** for copying to another workspace and copying brands, which run on the server.
+- **Reading order and build order** move with Alt+Up and Alt+Down, as layers do.
+
+### Changed
+
+- **Removing a member, leaving a workspace, revoking an invitation, deleting a role or a comment** ask first.
+- **One kind of confirmation:** API keys, colour profiles, colour libraries, fonts, permissions, brand kit versions, uploads and the Canva integration ask in the same dialog as everything else, instead of "click again"; their deletions now confirm with a message.
+- **Brand kit import** uses uploads the workspace already has with the same bytes, as the package import does.
+- **Escape** closes the print dialog, publishing, the website dialog, magic resize, the proof and the output check (inside the download menu, only the proof or check).
+- **Controls look the same everywhere:** every on/off option in the properties panel is a switch; checkboxes and radio buttons have one style; the download menu has one card style, the .zip option sits by the pages and shows only where it does something, and black ink and PDF/X-4 share a card.
+- **File menu:** Print and Serial print follow Download.
+- **Your settings file** is also offered on the Export profiles, Print presets and Colour profiles pages, and the lists load again after an import.
+- **The Canva and AI setup links** go to their section of the Members page, and the texts name that page.
+- **Faster drawing of SVG graphics:** each SVG is drawn once into a picture at the size the screen needs and reused, instead of the browser drawing it again on every frame (noticeable in Firefox). Exports keep the SVG itself.
+- About 45 texts that were only in English are translated.
+
+### Fixed
+
+- Moving one design to the trash, renaming one, restoring one and creating a workspace showed nothing when they failed; creating a workspace could run twice on a double click.
+- Trash, Templates and Favourites said "empty" while loading and when loading failed.
+- Leaving a workspace always said it needs an owner, whatever the error; printing always blamed an external image.
+- Buttons shown on hover are shown on keyboard focus too.
+
+### Upgrading
+
+- A pure frontend change: no schema change, no migration.
+
 ## 1.9.8 (2026-11-05)
 
 ### Added

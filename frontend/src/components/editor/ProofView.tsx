@@ -13,6 +13,7 @@ import type { CmykConverter, RenderingIntent } from "@/lib/print/cms";
 import { profileBytes } from "@/lib/print/profiles";
 import { gamutMask, highlight, inkAt, maskPlate, plateImage, PLATES, tacStats, type Plate } from "@/lib/print/proof";
 import { dieLineTint, renderProof } from "@/lib/print/proofRender";
+import { useEscapeKey } from "@/lib/useEscapeKey";
 import { tr } from "@/lib/i18n";
 
 type Mode = "proof" | Plate | "spot" | "tac" | "gamut";
@@ -51,6 +52,7 @@ export interface ProofViewProps {
 
 export function ProofView({ open, onClose, doc, pages, parts, profileId, profileName, intent, blackOnly, tacLimit, dieLine }: ProofViewProps) {
   const [page, setPage] = useState(pages[0] ?? 0);
+  useEscapeKey(onClose, open);
   const [mode, setMode] = useState<Mode>("proof");
   const [paperWhite, setPaperWhite] = useState(false);
   const [tinted, setTinted] = useState(true);

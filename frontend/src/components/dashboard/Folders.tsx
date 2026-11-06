@@ -4,7 +4,7 @@
 // only render it and report what the user did.
 
 import { useState, type DragEvent, type ReactNode } from "react";
-import { ChevronRight, Folder as FolderIcon, FolderOpen, FolderPlus, MoreHorizontal, Pencil, Trash2, Check, LayoutTemplate, ArrowRightLeft, Printer } from "lucide-react";
+import { ChevronRight, Folder as FolderIcon, FolderOpen, FolderPlus, MoreHorizontal, Pencil, Trash2, Check, LayoutTemplate, ArrowRightLeft, Printer, Package } from "lucide-react";
 import type { DesignFolder } from "@hc/sdk";
 import { AnchoredMenu } from "@/components/ui/AnchoredMenu";
 import { Button } from "@/components/ui/Button";
@@ -97,7 +97,7 @@ export function useDropTarget(onDrop: (items: DragItems) => void) {
 
 /** A folder in the Projects grid: open on click, drop designs/folders on it. */
 export function FolderTile({
-  folder, subfolders, selected, menuOpen, onOpen, onToggleMenu, onRename, onTransfer, onDefaults, onDelete, onDropItems, onDragStart, onToggleSelect,
+  folder, subfolders, selected, menuOpen, onOpen, onToggleMenu, onRename, onTransfer, onDefaults, onExport, onDelete, onDropItems, onDragStart, onToggleSelect,
 }: {
   folder: DesignFolder;
   subfolders: number;
@@ -111,6 +111,8 @@ export function FolderTile({
   onTransfer: () => void;
   /** The folder's print defaults (absent: not offered). */
   onDefaults?: () => void;
+  /** Export the folder (or the selection with it) as a danvas package. */
+  onExport?: () => void;
   onDelete: () => void;
   onDropItems: (items: DragItems) => void;
   onDragStart: (e: DragEvent) => void;
@@ -141,7 +143,7 @@ export function FolderTile({
         aria-label={tr("dashboard.select")}
         aria-pressed={selected}
         className={`absolute -start-2 -top-2 grid h-5 w-5 place-items-center rounded-md border shadow-sm transition ${
-          selected ? "border-brand-600 bg-brand-600 text-white" : "border-neutral-300 bg-surface text-transparent opacity-0 group-hover:opacity-100"
+          selected ? "border-brand-600 bg-brand-600 text-white" : "border-neutral-300 bg-surface text-transparent opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
         }`}
       ><Check size={12} strokeWidth={3} /></button>
       <button type="button" onClick={onOpen} className="flex min-w-0 flex-1 items-center gap-3 text-start">
@@ -156,7 +158,7 @@ export function FolderTile({
           type="button"
           onClick={(e) => { e.stopPropagation(); onToggleMenu(); }}
           aria-label={tr("dashboard.more")}
-          className="grid h-7 w-7 place-items-center rounded-lg text-neutral-400 opacity-0 transition hover:bg-neutral-100 hover:text-neutral-700 group-hover:opacity-100 aria-expanded:opacity-100"
+          className="grid h-7 w-7 place-items-center rounded-lg text-neutral-400 opacity-0 transition hover:bg-neutral-100 hover:text-neutral-700 group-hover:opacity-100 aria-expanded:opacity-100 focus-visible:opacity-100"
           aria-expanded={menuOpen}
         ><MoreHorizontal size={16} /></button>
         {menuOpen && (
@@ -165,6 +167,7 @@ export function FolderTile({
             <FolderMenuRow icon={Pencil} onClick={onRename}>{tr("dashboard.rename")}</FolderMenuRow>
             <FolderMenuRow icon={ArrowRightLeft} onClick={onTransfer}>{tr("dashboard.copy_or_move")}</FolderMenuRow>
             {onDefaults && <FolderMenuRow icon={Printer} onClick={onDefaults}>{tr("dashboard.folder_defaults_menu")}</FolderMenuRow>}
+            {onExport && <FolderMenuRow icon={Package} onClick={onExport}>{tr("dashboard.export_template_package")}</FolderMenuRow>}
             <FolderMenuRow icon={Trash2} danger onClick={onDelete}>{tr("dashboard.delete_folder")}</FolderMenuRow>
           </AnchoredMenu>
         )}
@@ -476,7 +479,7 @@ export function FolderPicker({
               onClick={() => startNaming(id)}
               title={label}
               aria-label={label}
-              className={`grid h-7 w-7 shrink-0 place-items-center rounded-md text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-700 focus-visible:opacity-100 ${value === id ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
+              className={`grid h-7 w-7 shrink-0 place-items-center rounded-md text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-700 focus-visible:opacity-100 ${value === id ? "opacity-100" : "opacity-0 group-hover:opacity-100 focus-visible:opacity-100"}`}
             ><FolderPlus size={14} /></button>
           )}
         </div>

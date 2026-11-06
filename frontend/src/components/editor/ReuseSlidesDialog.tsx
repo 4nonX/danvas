@@ -214,7 +214,7 @@ export function ReuseSlidesDialog({ open, onClose, currentDesignId }: { open: bo
               <div className="mt-2 flex shrink-0 items-center gap-3 border-t border-neutral-100 pt-2.5">
                 {themeChoice && (
                   <label className="flex cursor-pointer items-center gap-1.5 text-xs text-neutral-600">
-                    <input type="checkbox" checked={matchTheme} onChange={(e) => setMatchTheme(e.target.checked)} />
+                    <input type="checkbox" checked={matchTheme} onChange={(e) => setMatchTheme(e.target.checked)} className="h-4 w-4 shrink-0 accent-brand-600" />
                     {tr("editor.match_this_documents_theme")}
                   </label>
                 )}

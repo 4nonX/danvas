@@ -135,6 +135,12 @@ export function TransferDialog({
   };
 
   const busy = progress !== null;
+  // The server does the work as a job and cannot be stopped from here: closing
+  // leaves it running, and says so.
+  const leaveRunning = () => {
+    toast.toast(tr("dashboard.transfer_continues"), "info");
+    onClose();
+  };
   const targetName = targets.find((w) => w.id === target)?.name ?? "";
   const folderName = folder ? (folders?.find((f) => f.id === folder)?.name ?? "") : tr("dashboard.projects");
 
@@ -174,7 +180,7 @@ export function TransferDialog({
   }
 
   return (
-    <Modal open onClose={() => { if (!busy) onClose(); }} title={tr("dashboard.transfer_title")} width="w-[30rem]">
+    <Modal open onClose={busy ? leaveRunning : onClose} title={tr("dashboard.transfer_title")} width="w-[30rem]">
       {targets.length === 0 ? (
         <p className="text-sm text-neutral-600">{tr("dashboard.transfer_no_targets")}</p>
       ) : (
@@ -241,7 +247,7 @@ export function TransferDialog({
         </>
       )}
       <div className="mt-5 flex justify-end gap-2">
-        <Button variant="ghost" onClick={onClose} disabled={busy}>{tr("dashboard.cancel")}</Button>
+        <Button variant="ghost" onClick={busy ? leaveRunning : onClose}>{busy ? tr("dashboard.continue_in_background") : tr("dashboard.cancel")}</Button>
         {targets.length > 0 && (
           <Button onClick={() => void start()} disabled={busy || !target || folders === null || (here && mode === "move" && folder === (currentFolder ?? null))}>
             {busy && <Loader2 size={14} className="animate-spin" />}

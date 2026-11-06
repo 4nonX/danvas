@@ -17,6 +17,7 @@ import { userMessage } from "@/lib/errors";
 import { readFontMeta } from "@/lib/fontMeta";
 import { loadWorkspaceFonts } from "@/lib/workspaceFonts";
 import { fonts } from "@/lib/fontProvider";
+import { confirmAction } from "@/lib/promptDialog";
 import { tr } from "@/lib/i18n";
 
 type Pending = { file: File; family: string; weight: number; style: "normal" | "italic" };
@@ -28,7 +29,6 @@ export function WorkspaceFontsPanel({ workspaceId, canEdit }: { workspaceId: str
   const [list, setList] = useState<WorkspaceFont[] | null>(null);
   const [pending, setPending] = useState<Pending[] | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
-  const [armed, setArmed] = useState<string | null>(null);
   const [renaming, setRenaming] = useState<{ from: string; to: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -109,15 +109,12 @@ export function WorkspaceFontsPanel({ workspaceId, canEdit }: { workspaceId: str
     await reload();
   }
 
-  async function remove(key: string, ids: string[]) {
-    if (armed !== key) {
-      setArmed(key);
-      setTimeout(() => setArmed((cur) => (cur === key ? null : cur)), 3500);
-      return;
-    }
-    setArmed(null);
+  async function remove(name: string, ids: string[]) {
+    const ok = await confirmAction({ title: tr("dashboard.remove_named_title", { name }), message: tr("dashboard.remove_font_message", { name }), confirmText: tr("dashboard.remove"), danger: true });
+    if (!ok) return;
     try {
       for (const id of ids) await oc.deleteWorkspaceFont(id);
+      toast.success(tr("dashboard.item_removed", { name }));
     } catch (e) {
       toast.error(userMessage(e, tr("dashboard.could_not_update_font")));
     }
@@ -219,10 +216,10 @@ export function WorkspaceFontsPanel({ workspaceId, canEdit }: { workspaceId: str
               {canEdit && (
                 <button
                   type="button"
-                  onClick={() => void remove(`fam:${family}`, faces.map((f) => f.id))}
-                  className={`ms-auto flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium transition ${armed === `fam:${family}` ? "bg-red-50 text-red-600 ring-1 ring-red-300" : "text-neutral-400 hover:bg-neutral-100 hover:text-red-600"}`}
+                  onClick={() => void remove(family, faces.map((f) => f.id))}
+                  className={`ms-auto flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium transition text-neutral-400 hover:bg-neutral-100 hover:text-red-600`}
                 >
-                  <Trash2 size={13} /> {armed === `fam:${family}` ? tr("dashboard.click_again_to_remove") : tr("dashboard.remove")}
+                  <Trash2 size={13} /> {tr("dashboard.remove")}
                 </button>
               )}
             </div>
@@ -234,9 +231,9 @@ export function WorkspaceFontsPanel({ workspaceId, canEdit }: { workspaceId: str
                   {canEdit && (
                     <button
                       type="button"
-                      aria-label={tr("dashboard.remove")}
-                      onClick={() => void remove(f.id, [f.id])}
-                      className={`ms-0.5 rounded px-0.5 ${armed === f.id ? "bg-red-100 text-red-600" : "text-neutral-400 hover:text-red-600"}`}
+                      aria-label={tr("dashboard.remove_named_title", { name: `${family} ${styleLabel(f.weight, f.style)}` })}
+                      onClick={() => void remove(`${family} ${styleLabel(f.weight, f.style)}`, [f.id])}
+                      className="ms-0.5 rounded px-0.5 text-neutral-400 hover:text-red-600"
                     >
                       ×
                     </button>

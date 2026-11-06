@@ -17,7 +17,7 @@ export function kitChoiceEmpty(c: KitChoice): boolean {
 
 export function KitChecklist({ kits, value, onChange, disabled }: { kits: BrandKit[]; value: KitChoice; onChange: (v: KitChoice) => void; disabled?: boolean }) {
   const ticked = (id: string) => value.all || value.kitIds.includes(id);
-  const box = "h-4 w-4 shrink-0 rounded border-neutral-300 accent-brand-500";
+  const box = "h-4 w-4 shrink-0 rounded border-neutral-300 accent-brand-600";
   return (
     <div className="flex flex-col gap-1.5">
       <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-neutral-800">

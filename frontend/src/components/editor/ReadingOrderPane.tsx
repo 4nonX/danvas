@@ -85,7 +85,15 @@ export function ReadingOrderPane() {
                 setOverIndex(null);
               }}
               onPointerDown={() => useEditor.getState().select([node.id])}
-              className={`group flex items-center gap-1.5 border-t-2 px-2 py-1.5 text-sm ${
+              tabIndex={0}
+              aria-label={tr("editor.reorder_with_keys", { name: nodeDisplayName(node) })}
+              onKeyDown={(e) => {
+                if (!e.altKey || (e.key !== "ArrowUp" && e.key !== "ArrowDown")) return;
+                e.preventDefault();
+                const to = i + (e.key === "ArrowUp" ? -1 : 1);
+                if (to >= 0 && to < ordered.length) useEditor.getState().moveReadingOrder(i, to);
+              }}
+              className={`group flex items-center gap-1.5 border-t-2 px-2 py-1.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-brand-300 ${
                 showDrop ? "border-t-brand-500" : "border-t-transparent"
               } ${selected ? "bg-brand-50 text-brand-ink" : "text-neutral-700 hover:bg-neutral-50"}`}
             >

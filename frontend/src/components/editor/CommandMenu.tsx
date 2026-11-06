@@ -96,8 +96,8 @@ export function CommandMenu({ onExport, onShortcuts, workspaceId }: { onExport: 
       if (all) {
         const { done, failed } = await generateAltTextForAll(workspaceId);
         if (!done && !failed) toast.success(tr("editor.no_images_to_describe"));
-        else if (failed) toast.success(`Alt text written for ${done} image${done === 1 ? "" : "s"} (${failed} failed).`);
-        else toast.success(`Alt text written for ${done} image${done === 1 ? "" : "s"}.`);
+        else if (failed) toast.success(tr("editor.alt_text_written_failed", { count: done, failed }));
+        else toast.success(tr("editor.alt_text_written", { count: done }));
       } else {
         const ok = await generateAltText(workspaceId);
         toast.success(ok ? tr("editor.alt_text_written") : tr("editor.select_a_single_image_first"));
@@ -139,7 +139,7 @@ export function CommandMenu({ onExport, onShortcuts, workspaceId }: { onExport: 
       setOpen(false);
       setQuery("");
       cmd.run();
-      toast.success(`Ran: ${cmd.label}`);
+      toast.success(tr("editor.ran_command", { name: cmd.label }));
     } catch {
       // No AI config (400) or provider failure (502), or any parse issue: degrade
       // to the normal palette so the user can still pick a command manually.

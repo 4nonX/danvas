@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 import { userMessage } from "@/lib/errors";
 import { createCmykConverter } from "@/lib/print/cms";
+import { confirmAction } from "@/lib/promptDialog";
 import { tr } from "@/lib/i18n";
 
 export type PrintProfilesScope = { scope: "workspace"; workspaceId: string; canEdit: boolean } | { scope: "user" };
@@ -26,7 +27,6 @@ export function PrintProfilesPanel(props: PrintProfilesScope) {
   const toast = useToast();
   const [profiles, setProfiles] = useState<PrintProfile[] | null>(null);
   const [busy, setBusy] = useState(false);
-  const [armedDelete, setArmedDelete] = useState<string | null>(null);
   const [renaming, setRenaming] = useState<{ id: string; name: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -94,17 +94,14 @@ export function PrintProfilesPanel(props: PrintProfilesScope) {
   }
 
   async function remove(p: PrintProfile) {
-    if (armedDelete !== p.id) {
-      setArmedDelete(p.id);
-      setTimeout(() => setArmedDelete((cur) => (cur === p.id ? null : cur)), 3500);
-      return;
-    }
-    setArmedDelete(null);
+    const ok = await confirmAction({ title: tr("dashboard.remove_named_title", { name: p.name }), message: tr("dashboard.remove_item_message", { name: p.name }), confirmText: tr("dashboard.remove"), danger: true });
+    if (!ok) return;
     try {
       await oc.deletePrintProfile(p.id);
+      toast.success(tr("dashboard.item_removed", { name: p.name }));
       await reload();
     } catch (e) {
-      toast.error(userMessage(e, tr("dashboard.could_not_update_print_profile")));
+      toast.error(userMessage(e, tr("dashboard.could_not_remove_print_profile")));
     }
   }
 
@@ -182,9 +179,9 @@ export function PrintProfilesPanel(props: PrintProfilesScope) {
                 <button
                   type="button"
                   onClick={() => void remove(p)}
-                  className={`flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium transition ${armedDelete === p.id ? "bg-red-50 text-red-600 ring-1 ring-red-300" : "text-neutral-400 hover:bg-neutral-100 hover:text-red-600"}`}
+                  className={`flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium transition text-neutral-400 hover:bg-neutral-100 hover:text-red-600`}
                 >
-                  <Trash2 size={13} /> {armedDelete === p.id ? tr("dashboard.click_again_to_remove") : tr("dashboard.remove")}
+                  <Trash2 size={13} /> {tr("dashboard.remove")}
                 </button>
               </span>
             )}

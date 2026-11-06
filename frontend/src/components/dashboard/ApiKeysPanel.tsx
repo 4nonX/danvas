@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
 import { userMessage } from "@/lib/errors";
+import { confirmAction } from "@/lib/promptDialog";
 import { tr } from "@/lib/i18n";
 
 const ALL_SCOPES = ["generate", "read", "export"] as const;
@@ -32,7 +33,6 @@ export function ApiKeysPanel({ workspaceId }: { workspaceId: string }) {
   const [minting, setMinting] = useState(false);
   // The one-time raw key, shown until dismissed (never persisted client-side).
   const [freshKey, setFreshKey] = useState<string | null>(null);
-  const [armedRevoke, setArmedRevoke] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
     try {
@@ -72,12 +72,8 @@ export function ApiKeysPanel({ workspaceId }: { workspaceId: string }) {
   }
 
   async function revoke(k: ApiKeyView) {
-    if (armedRevoke !== k.id) {
-      setArmedRevoke(k.id);
-      setTimeout(() => setArmedRevoke((cur) => (cur === k.id ? null : cur)), 3500);
-      return;
-    }
-    setArmedRevoke(null);
+    const ok = await confirmAction({ title: tr("dashboard.revoke_api_key_title"), message: tr("dashboard.revoke_api_key_message", { name: k.label }), confirmText: tr("dashboard.revoke"), danger: true });
+    if (!ok) return;
     try {
       await oc.revokeApiKey(workspaceId, k.id);
       toast.success(tr("dashboard.api_key_revoked"));
@@ -125,8 +121,7 @@ export function ApiKeysPanel({ workspaceId }: { workspaceId: string }) {
                   if (e.target.checked) next.add(s);
                   else next.delete(s);
                   setScopes(next);
-                }}
-              />
+                }} className="h-4 w-4 shrink-0 accent-brand-600" />
               {scopeLabel(s)}
             </label>
           ))}
@@ -181,9 +176,9 @@ export function ApiKeysPanel({ workspaceId }: { workspaceId: string }) {
               {!k.revoked && (
                 <button
                   onClick={() => void revoke(k)}
-                  className={`ms-auto flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium transition ${armedRevoke === k.id ? "bg-red-50 text-red-600 ring-1 ring-red-300" : "text-neutral-400 hover:bg-neutral-100 hover:text-red-600"}`}
+                  className={`ms-auto flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium transition text-neutral-400 hover:bg-neutral-100 hover:text-red-600`}
                 >
-                  <ShieldOff size={13} /> {armedRevoke === k.id ? tr("dashboard.click_again_to_revoke") : tr("dashboard.revoke")}
+                  <ShieldOff size={13} /> {tr("dashboard.revoke")}
                 </button>
               )}
             </li>

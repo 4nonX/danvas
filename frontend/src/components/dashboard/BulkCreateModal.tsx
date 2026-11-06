@@ -153,9 +153,9 @@ function BulkCreateBody({
       setResult(res);
       setStep("done");
       if (res.truncated) {
-        toast.toast(`Generated ${res.created.length} designs (dataset truncated to the cap).`, "info");
+        toast.toast(tr("dashboard.generated_n_designs_capped", { count: res.created.length }), "info");
       } else {
-        toast.success(`Generated ${res.created.length} designs.`);
+        toast.success(tr("dashboard.generated_n_designs", { count: res.created.length }));
       }
     } catch {
       toast.error(tr("dashboard.bulk_create_failed"));

@@ -24,7 +24,7 @@ const FORMATS: ExportFormat[] = ["pdf", "png", "jpg", "svg", "tiff", "eps", "ppt
 const OVERRIDE_DEFAULT: PrintOverride = { bleed: true, bleedMm: 3, marks: false, style: "solid", weightPt: 0.25, lengthMm: 5, offsetMm: 3 };
 
 const select = "h-8 w-full rounded-lg border border-neutral-200 bg-surface px-2 text-xs outline-none focus:border-brand-400";
-const box = "h-3.5 w-3.5 accent-brand-500";
+const box = "h-3.5 w-3.5 accent-brand-600";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (

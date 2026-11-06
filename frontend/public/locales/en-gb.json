@@ -2,7 +2,7 @@
   "app.hook_feature_and_call_to_action_scenes_on_bo": "Hook, feature, and call-to-action scenes on bold colour pages.",
   "app.one_full_bleed_color_page_with_a_large_cente": "One full-bleed colour page with a large centred statement.",
   "brands.add_color": "Add colour",
-  "brands.ai_not_connected_hint": "Connect an AI provider in workspace settings to also get a suggested voice and font pairing. Logos and colours work without one.",
+  "brands.ai_not_connected_hint": "Connect an AI provider on the Members page to also get a suggested voice and font pairing. Logos and colours work without one.",
   "brands.color_role": "Colour role",
   "brands.colors": "Colours",
   "brands.export_check_block_rule": "Exports are blocked until off-brand colours, fonts, and logos are fixed",
@@ -210,5 +210,8 @@
   "roles.hint_export_color_libraries": "Put the workspace's colour libraries in a settings file.",
   "roles.seed_permission_export_color_profiles": "Export colour profiles",
   "roles.seed_permission_export_color_libraries": "Export colour libraries",
-  "settings.settings_file_desc": "Your own profiles, colour profiles, interface preferences and shortcuts in one file, to keep or to take to another danvas instance."
+  "settings.settings_file_desc": "Your own profiles, colour profiles, interface preferences and shortcuts in one file, to keep or to take to another danvas instance.",
+  "dashboard.could_not_remove_print_profile": "Could not remove the colour profile.",
+  "brand.kit_generated_from_logo": "Brand kit generated from the logo ({count} colours).",
+  "settings.title_color_profiles": "Colour profiles"
 }

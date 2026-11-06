@@ -78,7 +78,7 @@ export function Step1Access() {
                 setAppUrl("");
               }
             }}
-            className="h-4 w-4 rounded border-neutral-300 accent-[var(--color-brand-600)]"
+            className="h-4 w-4 rounded border-neutral-300 accent-[var(--color-brand-600)] accent-brand-600"
           />
           {tr("installation.running_hycanvas_behind_a_proxy")}
         </label>

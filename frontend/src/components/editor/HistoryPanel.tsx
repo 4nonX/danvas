@@ -188,7 +188,7 @@ export function HistoryPanel({
       setUpdates(all);
       setTruncated(wasTruncated);
       scrubLoaded.current = true;
-      if (wasTruncated) toast.toast("Timeline is long; showing the oldest edits. Scrub-restore is disabled here.", "info");
+      if (wasTruncated) toast.toast(tr("editor.timeline_truncated"), "info");
     } catch {
       toast.error(tr("editor.could_not_load_the_timeline"));
     } finally {

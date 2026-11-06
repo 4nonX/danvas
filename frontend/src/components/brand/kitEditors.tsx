@@ -14,6 +14,9 @@ import { useToast } from "@/components/ui/Toast";
 import { CodedError, userMessage } from "@/lib/errors";
 import { fonts } from "@/lib/fontProvider";
 import { useWorkspaceFontFamilies } from "@/lib/workspaceFonts";
+import { confirmAction } from "@/lib/promptDialog";
+import { formatDateTime } from "@/lib/datetime";
+import { useAuth } from "@/store/auth";
 import { tr } from "@/lib/i18n";
 import { ArtworkPreview } from "@/components/ui/ArtworkPreview";
 
@@ -35,12 +38,9 @@ function FONT_FAMILY_OPTIONS() {
 /** A kit's version history with a two-step restore (FR-9, brand.kits). */
 export function VersionHistory({ kitId, onRestored }: { kitId: string; onRestored: (kit: BrandKit) => void | Promise<void> }) {
   const toast = useToast();
+  const user = useAuth((s) => s.user);
   const [versions, setVersions] = useState<BrandKitVersion[] | null>(null);
   const [busy, setBusy] = useState(false);
-  // Two-step restore confirm (matches the app's in-app dialog style): the first
-  // click arms a version, the second within the window restores it.
-  const [confirmVersion, setConfirmVersion] = useState<number | null>(null);
-  const confirmTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loadedFor = useRef<string | null>(null);
 
   const load = useCallback(async () => {
@@ -62,11 +62,7 @@ export function VersionHistory({ kitId, onRestored }: { kitId: string; onRestore
     if (loadedFor.current !== kitId) void load();
   }, [kitId, load]);
 
-  useEffect(() => () => { if (confirmTimer.current) clearTimeout(confirmTimer.current); }, []);
-
   const restore = useCallback(async (version: number) => {
-    if (confirmTimer.current) { clearTimeout(confirmTimer.current); confirmTimer.current = null; }
-    setConfirmVersion(null);
     setBusy(true);
     try {
       const updated = await oc.restoreBrandKitVersion(kitId, version);
@@ -80,13 +76,11 @@ export function VersionHistory({ kitId, onRestored }: { kitId: string; onRestore
     }
   }, [kitId, onRestored, load, toast]);
 
-  // Arm (first click) or restore (second click within the window).
-  const onRestoreClick = useCallback((version: number) => {
-    if (confirmVersion === version) { void restore(version); return; }
-    if (confirmTimer.current) clearTimeout(confirmTimer.current);
-    setConfirmVersion(version);
-    confirmTimer.current = setTimeout(() => setConfirmVersion(null), 3500);
-  }, [confirmVersion, restore]);
+  // Asked first, like every other change to the brand that replaces something.
+  const onRestoreClick = useCallback(async (version: number) => {
+    const ok = await confirmAction({ title: tr("brand.restore_version_title", { version }), message: tr("brand.restore_version_message", { version }), confirmText: tr("editor.restore") });
+    if (ok) void restore(version);
+  }, [restore]);
 
   return (
     <>
@@ -98,15 +92,15 @@ export function VersionHistory({ kitId, onRestored }: { kitId: string; onRestore
             <li key={v.id} className="flex items-center justify-between rounded-lg border border-neutral-100 bg-neutral-50 px-2 py-1.5 text-xs">
               <span className="text-neutral-600">
                 v{v.version}
-                <span className="ms-2 text-[10px] text-neutral-400">{new Date(v.createdAt).toLocaleString()}</span>
+                <span className="ms-2 text-[10px] text-neutral-400">{formatDateTime(v.createdAt, user)}</span>
               </span>
               <button
-                onClick={() => onRestoreClick(v.version)}
+                onClick={() => void onRestoreClick(v.version)}
                 disabled={busy}
-                title={confirmVersion === v.version ? tr("editor.click_again_to_restore_history_is_preserved") : `Restore to v${v.version}`}
-                className={`flex items-center gap-1 hover:underline disabled:opacity-50 ${confirmVersion === v.version ? "font-semibold text-red-600" : "text-brand-ink"}`}
+                title={tr("brand.restore_version_title", { version: v.version })}
+                className="flex items-center gap-1 text-brand-ink hover:underline disabled:opacity-50"
               >
-                <RotateCcw size={12} /> {confirmVersion === v.version ? tr("editor.confirm_restore") : tr("editor.restore")}
+                <RotateCcw size={12} /> {tr("editor.restore")}
               </button>
             </li>
           ))}
@@ -327,7 +321,7 @@ export function GenerateFromLogo({
       });
 
       onCreated(filled);
-      toast.success(`Brand kit generated from logo (${palette.length} colors).`);
+      toast.success(tr("brand.kit_generated_from_logo", { count: palette.length }));
     } catch {
       toast.error(tr("editor.couldnt_generate_a_brand_kit_from_that_logo"));
     } finally {

@@ -133,7 +133,7 @@ export function Step3Storage() {
                 type="checkbox"
                 checked={storage.s3.forcePathStyle}
                 onChange={(e) => setS3({ forcePathStyle: e.target.checked })}
-                className="h-4 w-4 rounded border-neutral-300 accent-[var(--color-brand-600)]"
+                className="h-4 w-4 rounded border-neutral-300 accent-[var(--color-brand-600)] accent-brand-600"
               />
               {tr("installation.path_style_addressing_required_by_most_minio")}
             </label>

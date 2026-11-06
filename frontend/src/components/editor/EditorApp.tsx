@@ -878,7 +878,7 @@ export function EditorApp() {
       const headers = matrix[0].map((h) => h.trim());
       const rows = matrix.slice(1).map((r) => Object.fromEntries(headers.map((h, i) => [h, r[i] ?? ""])));
       const n = useEditor.getState().bulkMergePages(rows);
-      if (n) toast.success(`Created ${n} slide${n === 1 ? "" : "s"} from ${f.name} (tokens: ${headers.map((h) => `{{${h}}}`).join(", ")}).`);
+      if (n) toast.success(tr("editor.created_slides_from_file", { count: n, file: f.name, tokens: headers.map((h) => `{{${h}}}`).join(", ") }));
       else toast.error(tr("editor.nothing_merged_is_the_current_page_the_templ"));
     } catch {
       toast.error(tr("editor.could_not_read_that_csv"));
@@ -907,7 +907,7 @@ export function EditorApp() {
         if (!doc) {
           // Nothing to checkpoint yet: the branch document has not loaded, so
           // there is no state to upload and no basis to call the work saved.
-          toast.error("The branch is still loading; try again in a moment.");
+          toast.error(tr("editor.branch_still_loading"));
           return;
         }
         // A checkpoint COMPACTS the lineage: the server drops rows older than
@@ -938,7 +938,7 @@ export function EditorApp() {
       if (!Array.isArray(file.pages) || file.pages.length === 0) {
         // A blank zero-page file means the document has not loaded yet (the
         // server would 422 it anyway); saving now could only lose work.
-        toast.error("The design is still loading; try again in a moment.");
+        toast.error(tr("editor.design_still_loading"));
         return;
       }
       const saved = await oc.saveSnapshot(designId, { file, kind: "checkpoint" });
@@ -1052,6 +1052,9 @@ export function EditorApp() {
               ...(isCompact && designId && canShare ? [{ icon: Share2 as TopIcon, label: tr("editor.share"), onClick: () => setShareOpen(true) }] : []),
               ...(designId ? [{ icon: Save as TopIcon, label: tr("editor.save"), onClick: () => void save(), disabled: saving || accessMode !== "edit", sepBefore: isCompact }] : []),
               ...(docKind === "design" || docKind === "whiteboard" ? [{ icon: Download as TopIcon, label: tr("editor.download"), onClick: () => setExportOpen(true) }] : []),
+              // Print beside Download, as in the header; approval gates both.
+              ...(docKind === "design" ? [{ icon: Printer as TopIcon, label: tr("editor.print"), onClick: () => setPrintOpen(true) }, { icon: FileSpreadsheet as TopIcon, label: tr("editor.serial_menu"), onClick: () => setSerialOpen(true) }] : []),
+              ...(designId && canApprove && docKind === "design" ? [{ icon: ShieldCheck as TopIcon, label: tr("editor.request_approval"), onClick: () => setApprovalRequestOpen(true) }] : []),
               // The document as a portable .hyc file (the open format as
               // readable JSON): every kind, saved or not, downloads what is
               // currently on screen.
@@ -1062,7 +1065,6 @@ export function EditorApp() {
               ...(designId ? [{ icon: History as TopIcon, label: tr("editor.version_history"), onClick: () => showPanel("history"), sepBefore: true }] : []),
               ...(designId ? [{ icon: Activity as TopIcon, label: tr("editor.activity_feed"), onClick: () => showPanel("activity") }] : []),
               ...(designId && canMember ? [{ icon: BarChart3 as TopIcon, label: tr("editor.engagement_insights"), onClick: () => showPanel("insights") }] : []),
-              ...(designId && canApprove && docKind === "design" ? [{ icon: ShieldCheck as TopIcon, label: tr("editor.request_approval"), onClick: () => setApprovalRequestOpen(true) }] : []),
               // Template/publish/print render the page scene, so they apply to
               // scene-backed designs only (doc/sheet/video content lives in meta).
               ...(docKind === "design"
@@ -1070,8 +1072,6 @@ export function EditorApp() {
                     { icon: LayoutTemplate as TopIcon, label: tr("editor.save_as_template"), onClick: () => setTemplateOpen(true), disabled: !workspaceId || !mayCreateTemplates, sepBefore: true },
                     { icon: Send as TopIcon, label: tr("editor.publish_to_social"), onClick: () => setPublishOpen(true) },
                     { icon: Globe as TopIcon, label: tr("editor.publish_as_website"), onClick: () => setWebsiteOpen(true) },
-                    { icon: Printer as TopIcon, label: tr("editor.print"), onClick: () => setPrintOpen(true) },
-                    { icon: FileSpreadsheet as TopIcon, label: tr("editor.serial_menu"), onClick: () => setSerialOpen(true) },
                   ]
                 : []),
               ...(docKind === "design" && pageCount > 1

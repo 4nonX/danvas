@@ -4,7 +4,7 @@
 // before anything is saved; saving records it as a named version, so the
 // state before stays in each design's version history.
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { Check, Loader2, RotateCcw, RotateCw, X } from "lucide-react";
 import type { DesignFile } from "@hc/schema";
 import { Modal } from "@/components/ui/Modal";
@@ -31,6 +31,8 @@ export function ReformatDialog({ designs, onClose, onDone, initialSizeMm }: { de
   const [turn, setTurn] = useState<ReformatTurn>(0);
   const [running, setRunning] = useState(false);
   const [finished, setFinished] = useState(false);
+  const [stopping, setStopping] = useState(false);
+  const stop = useRef(false);
 
   // Load every design; the first one sets the starting size and unit, unless
   // the size is given (an export profile's finished size, F48).
@@ -107,6 +109,8 @@ export function ReformatDialog({ designs, onClose, onDone, initialSizeMm }: { de
     setRunning(true);
     let ok = 0;
     for (const r of ready) {
+      // Stopped: the designs done so far keep their new size.
+      if (stop.current) break;
       // The size the page really ends up: turned as it is, its sides may swap.
       const out = previews.get(r.id)!;
       const pg = out.pages[0];
@@ -206,7 +210,7 @@ export function ReformatDialog({ designs, onClose, onDone, initialSizeMm }: { de
             <div role="radiogroup" aria-label={tr("dashboard.reformat_fit")} className="flex flex-col gap-1.5">
               {fits.map((f) => (
                 <label key={f.id} className={`flex cursor-pointer items-start gap-2 rounded-lg border p-2.5 transition ${fit === f.id ? "border-brand-400 bg-brand-50" : "border-neutral-200 hover:bg-neutral-50"}`}>
-                  <input type="radio" name="reformat-fit" checked={fit === f.id} disabled={locked} onChange={() => setFit(f.id)} className="mt-0.5 h-3.5 w-3.5 accent-brand-500" />
+                  <input type="radio" name="reformat-fit" checked={fit === f.id} disabled={locked} onChange={() => setFit(f.id)} className="mt-0.5 h-3.5 w-3.5 accent-brand-600" />
                   <span className="min-w-0">
                     <span className="block text-xs font-medium text-neutral-700">{f.label}</span>
                     <span className="mt-0.5 block text-[11px] leading-snug text-neutral-500">{f.desc}</span>
@@ -250,7 +254,9 @@ export function ReformatDialog({ designs, onClose, onDone, initialSizeMm }: { de
             <Button onClick={onClose}>{tr("dashboard.reformat_close")}</Button>
           ) : (
             <>
-              <Button variant="secondary" onClick={onClose} disabled={running}>{tr("dashboard.cancel")}</Button>
+              {running
+                ? <Button variant="secondary" disabled={stopping} onClick={() => { stop.current = true; setStopping(true); }}>{stopping ? tr("dashboard.package_stopping") : tr("dashboard.stop_import")}</Button>
+                : <Button variant="secondary" onClick={onClose}>{tr("dashboard.cancel")}</Button>}
               <Button onClick={() => void apply()} disabled={running || loading || !ready.length}>
                 {running ? <Loader2 size={14} className="animate-spin" /> : null}
                 {tr("dashboard.reformat_apply", { count: ready.length })}

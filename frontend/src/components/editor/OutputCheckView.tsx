@@ -15,6 +15,7 @@ import { profileBytes } from "@/lib/print/profiles";
 import { checkPrintFile, type FileExpectation, type FileFinding } from "@/lib/print/fileCheck";
 import { highlight } from "@/lib/print/proof";
 import { CodedError, userMessage } from "@/lib/errors";
+import { useEscapeKey } from "@/lib/useEscapeKey";
 import { tr } from "@/lib/i18n";
 
 const PROCESS = ["Cyan", "Magenta", "Yellow", "Black"];
@@ -67,6 +68,7 @@ export function OutputCheckView({ open, onClose, build, expect, tacLimit, profil
   const [error, setError] = useState<string | null>(null);
   const [stage, setStage] = useState<"build" | "separate">("build");
   const [pageIdx, setPageIdx] = useState(0);
+  useEscapeKey(onClose, open);
   const [mode, setMode] = useState<Mode>("proof");
   const [proof, setProof] = useState<{ page: number; width: number; height: number; rgba: Uint8ClampedArray } | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);

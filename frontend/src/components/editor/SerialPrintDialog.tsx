@@ -6,7 +6,7 @@
 // encoded is left out and listed.
 
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, FileSpreadsheet, Printer, FileDown, Type, Barcode, QrCode, AlertTriangle } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileSpreadsheet, Printer, FileDown, Type, Barcode, QrCode, AlertTriangle, Loader2 } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
@@ -135,9 +135,9 @@ export function SerialPrintDialog({ open, onClose }: { open: boolean; onClose: (
               </label>
             )}
             {sheets && (
-              <label className="flex items-center gap-2 text-xs text-neutral-600">
-                <input type="checkbox" checked={headerRow} onChange={(e) => setHeaderRow(e.target.checked)} className="h-3.5 w-3.5 accent-brand-600" />
-                {tr("editor.serial_header_row")}
+              <label className="flex cursor-pointer items-center justify-between gap-3 text-xs text-neutral-600">
+                <span>{tr("editor.serial_header_row")}</span>
+                <input type="checkbox" checked={headerRow} onChange={(e) => setHeaderRow(e.target.checked)} className="h-4 w-4 shrink-0 accent-brand-600" />
               </label>
             )}
             {table && <p className="text-[11px] text-neutral-500">{tr("editor.serial_table_size", { rows: rowCount, columns: table.headers.length })}</p>}
@@ -216,7 +216,7 @@ export function SerialPrintDialog({ open, onClose }: { open: boolean; onClose: (
             {filled.length > 0 && table && <span className="me-auto text-[11px] text-neutral-500">{tr("editor.serial_will_make", { count: Math.max(0, to - from + 1), pages: doc.pages.length })}</span>}
             <Button variant="secondary" onClick={onClose} disabled={busy}>{tr("editor.cancel")}</Button>
             <Button variant="secondary" disabled={busy || !table || !rowCount || !filled.length} onClick={() => void build("print")}><Printer size={14} /> {tr("editor.serial_print")}</Button>
-            <Button disabled={busy || !table || !rowCount || !filled.length} onClick={() => void build("pdf")}><FileDown size={14} /> {tr("editor.serial_download")}</Button>
+            <Button disabled={busy || !table || !rowCount || !filled.length} onClick={() => void build("pdf")}>{busy ? <Loader2 size={14} className="animate-spin" /> : <FileDown size={14} />} {tr("editor.serial_download")}</Button>
           </div>
         </div>
       </Modal>

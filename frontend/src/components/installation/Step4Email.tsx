@@ -88,7 +88,7 @@ export function Step4Email() {
             type="checkbox"
             checked={smtp.enabled}
             onChange={(e) => setSMTP({ enabled: e.target.checked })}
-            className="h-4 w-4 rounded border-neutral-300 accent-[var(--color-brand-600)]"
+            className="h-4 w-4 rounded border-neutral-300 accent-[var(--color-brand-600)] accent-brand-600"
           />
           {tr("installation.send_email_via_smtp")}
         </label>

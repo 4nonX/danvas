@@ -329,7 +329,7 @@ export function DocSurface(props: { workspaceId?: string; designId?: string }): 
             document.body.appendChild(a);
             a.click();
             a.remove();
-            toast.success(`Exported ${format.toUpperCase()}.`);
+            toast.success(tr("editor.exported_format", { format: format.toUpperCase() }));
             return;
           }
           if (job.status === "failed") {

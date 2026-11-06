@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Node } from "@hc/schema";
 import { locate } from "@hc/editor";
 import { useEditor } from "@/store/editor";
+import { userMessage } from "@/lib/errors";
 import { tr } from "@/lib/i18n";
 import { imageAssets } from "@/lib/assetProvider";
 import { vectorizeImageNode, type VectorizeResult } from "@/lib/vectorize";
@@ -79,7 +80,7 @@ export function VectorizePanel() {
         if (runId.current === id) setState((s) => ({ ...s, progress: Math.max(0.01, p) }));
       })
         .then((result) => { if (runId.current === id) setState({ key, result, progress: 1 }); })
-        .catch((e: unknown) => { if (runId.current === id) setState({ key, result: null, progress: 1, error: e instanceof Error ? e.message : String(e) }); });
+        .catch((e: unknown) => { if (runId.current === id) setState({ key, result: null, progress: 1, error: userMessage(e, tr("editor.vectorize_failed")) }); });
     }, 250);
     return () => clearTimeout(t);
     // Re-trace when the options (or the selected image) change.

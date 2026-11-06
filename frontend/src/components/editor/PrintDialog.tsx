@@ -16,6 +16,8 @@ import type { DesignFile, Node } from "@hc/schema";
 import { useEditor } from "@/store/editor";
 import { useBrand } from "@/store/brand";
 import { useToast } from "@/components/ui/Toast";
+import { Button } from "@/components/ui/Button";
+import { CodedError, userMessage } from "@/lib/errors";
 import { renderPageCanvas } from "@/lib/exportFormats";
 import { initialPrintOverride, printSheet, pxToMm, withPrintOverride, type PrintOverride } from "@/lib/print/sheet";
 import { cappedPrintDpi, describePrintSettings, normalizePrintSettings, paperLabel, PRINT_DPIS, printDpiLabel, printScale, samePrintSettings, type PrintSettings } from "@/lib/printPresets";
@@ -27,6 +29,7 @@ import { ProfileBar } from "./ProfileBar";
 import { issueText, type ExportTarget } from "./ExportDialog";
 import { exportIssues, type ExportIssue } from "@/lib/exportIssues";
 import { barcodeOf } from "@/lib/barcode";
+import { useEscapeKey } from "@/lib/useEscapeKey";
 import { tr } from "@/lib/i18n";
 
 type Job = { doc: DesignFile; pages: number[] };
@@ -153,6 +156,7 @@ function BarcodePrintCheck({ jobs, dpi }: { jobs: Job[]; dpi: number }) {
 
 export function PrintDialog({ open, onClose, designs, workspaceId: workspaceIdProp, onRequestApproval }: { open: boolean; onClose: () => void; designs?: ExportTarget[]; workspaceId?: string | null; onRequestApproval?: () => void }): React.ReactElement | null {
   const toast = useToast();
+  useEscapeKey(onClose, open);
   const editorDoc = useEditor((s) => s.doc);
   const activePage = useEditor((s) => s.activePage);
   useEditor((s) => s.rev); // re-read the live doc on edits
@@ -206,8 +210,11 @@ export function PrintDialog({ open, onClose, designs, workspaceId: workspaceIdPr
       if (!pages.length) throw new Error("nothing to print");
       await openPrint(pages, current, designs && designs.length > 1 ? tr("editor.print_n_designs", { count: designs.length }) : (doc.title || tr("editor.untitled")));
       onClose();
-    } catch {
-      toast.error(tr("editor.couldnt_prepare_the_print_an_external_image"));
+    } catch (e) {
+      // Coded failures say what went wrong; anything else is almost always an
+      // image from another site that the browser will not let us draw.
+      const fallback = tr("editor.couldnt_prepare_the_print_an_external_image");
+      toast.error(e instanceof CodedError ? userMessage(e, fallback) : fallback);
     } finally {
       setBusy(false);
     }
@@ -363,7 +370,7 @@ export function PrintDialog({ open, onClose, designs, workspaceId: workspaceIdPr
         <div className="flex items-center justify-between gap-2 text-sm">
           <span className="text-[11px] text-neutral-400">{tr("editor.print_n_sheets", { count: sheetCount })}</span>
           <div className="flex gap-2">
-            <button onClick={onClose} className="rounded-lg px-3 py-1.5 text-neutral-600 hover:bg-neutral-100">{tr("editor.cancel")}</button>
+            <Button variant="ghost" size="sm" onClick={onClose}>{tr("editor.cancel")}</Button>
             <button onClick={() => void go()} disabled={busy || clearance.held} title={clearance.state === "loading" ? tr("editor.print_approval_checking") : undefined} className="flex items-center gap-2 rounded-lg bg-brand-600 px-3 py-1.5 font-medium text-white hover:bg-brand-700 disabled:opacity-50">
               <Printer size={15} /> {busy ? tr("editor.preparing") : tr("editor.print")}
             </button>

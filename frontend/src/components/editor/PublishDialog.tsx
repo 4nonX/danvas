@@ -51,6 +51,7 @@ import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 import { useToast } from "@/components/ui/Toast";
 import { mirrorInRtl } from "@/lib/locale";
+import { useEscapeKey } from "@/lib/useEscapeKey";
 import { tr } from "@/lib/i18n";
 import { userMessage } from "@/lib/errors";
 
@@ -148,6 +149,7 @@ export function PublishDialog({
   workspaceId?: string;
 }): React.ReactElement | null {
   const toast = useToast();
+  useEscapeKey(onClose, open);
 
   const [tab, setTab] = useState<Tab>("publish");
 
@@ -366,6 +368,8 @@ export function PublishDialog({
       onClick={onClose}
     >
       <div
+        role="dialog"
+        aria-modal="true"
         className="flex max-h-[88vh] w-[40rem] max-w-[94vw] flex-col overflow-hidden rounded-xl bg-surface shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
@@ -537,7 +541,7 @@ export function PublishDialog({
                       className="w-full rounded-md border border-neutral-300 px-2.5 py-1.5 text-sm outline-none focus:border-neutral-500"
                     />
                     <p className="mt-1 text-[11px] text-neutral-400">
-                      Interpreted as local wall-clock time ({tz.label}).
+                      {tr("editor.local_time_note", { zone: tz.label })}
                     </p>
                   </div>
                 )}

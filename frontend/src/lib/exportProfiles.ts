@@ -28,6 +28,8 @@ export interface ExportSettings {
   /** Size multiplier of the raster formats (1 = the design's own size). */
   scale: number;
   transparent: boolean;
+  /** SVG and vector or accessible PDF: the page background left out. */
+  noBackground: boolean;
   /** JPG quality, 0..100. */
   quality: number;
   /** Several files bundled into one zip. */
@@ -140,7 +142,7 @@ const FORMATS: ExportFormat[] = ["png", "jpg", "pdf", "svg", "apng", "gif", "lot
 /** What a new menu starts from; also fills in what an older profile lacks. */
 export function defaultExportSettings(): ExportSettings {
   return {
-    v: 1, format: "png", pdfMode: "vector", scale: 1, transparent: true, quality: 92, zip: true, tiffDpi: 300,
+    v: 1, format: "png", pdfMode: "vector", scale: 1, transparent: true, noBackground: false, quality: 92, zip: true, tiffDpi: 300,
     color: "cmyk", iccProfileId: null, intent: "relative", blackOnly: true, overprintBlack: true, pdfx: true, registration: true,
     dieLine: { on: false, name: tr("editor.die_line_default_name"), radiusMm: 2 },
     tacLimit: null,
@@ -192,6 +194,7 @@ export function normalizeSettings(raw: unknown): ExportSettings {
     pdfMode: r.pdfMode === "image" || r.pdfMode === "tagged" ? r.pdfMode : "vector",
     scale: num(r.scale, d.scale, 0.1, 10),
     transparent: bool(r.transparent, d.transparent),
+    noBackground: bool(r.noBackground, d.noBackground),
     quality: num(r.quality, d.quality, 1, 100),
     zip: bool(r.zip, d.zip),
     tiffDpi: num(r.tiffDpi, d.tiffDpi, 72, 2400),
@@ -252,7 +255,8 @@ export function describeSettings(s: ExportSettings, iccName: (id: string) => str
   if (raster && s.scale !== 1) parts.push(PRINT_300.some((dpi) => Math.abs(s.scale * dpi - 300) < 0.5) ? "300 dpi" : `${mmText(s.scale)}×`);
   if (f === "tiff") parts.push(`${s.tiffDpi} dpi`);
   if (f === "jpg") parts.push(tr("editor.profile_quality", { q: s.quality }));
-  if (f === "png" && s.transparent) parts.push(tr("editor.profile_transparent"));
+  if ((f === "png" || f === "apng" || f === "gif") && s.transparent) parts.push(tr("editor.profile_transparent"));
+  if ((f === "svg" || (f === "pdf" && s.pdfMode !== "image")) && s.noBackground) parts.push(tr("editor.profile_transparent"));
   const cmykCapable = f === "tiff" || f === "eps" || (f === "pdf" && s.pdfMode !== "tagged");
   if (cmykCapable) {
     const icc = s.iccProfileId ? iccName(s.iccProfileId) ?? tr("editor.profile_chosen_icc") : tr("editor.profile_default_icc");

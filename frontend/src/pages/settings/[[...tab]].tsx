@@ -2,8 +2,7 @@ import Head from "next/head";
 import dynamic from "next/dynamic";
 import type { GetStaticPaths, GetStaticProps } from "next";
 import { RequireAuth } from "@/components/RequireAuth";
-import {
-  settingsTabTitles,
+import {
   settingsTabs,
   type SettingsTab,
 } from "@/components/settings/tabs";
@@ -40,7 +39,7 @@ export default function SettingsPage({ tab }: SettingsPageProps) {
     <>
       <Head>
         <meta key="viewport" name="viewport" content={VIEWPORT} />
-        <title>{`${settingsTabTitles[tab ?? "account"]} · ${tr("page.hycanvas_2")}`}</title>
+        <title>{`${({ account: tr("settings.title_account"), security: tr("settings.title_security"), notifications: tr("settings.title_notifications"), ai: tr("settings.title_ai"), "export-profiles": tr("settings.title_export_profiles"), "print-presets": tr("settings.title_print_presets"), "color-profiles": tr("settings.title_color_profiles") })[tab ?? "account"]} · ${tr("page.hycanvas_2")}`}</title>
       </Head>
       <RequireAuth>
         <SettingsApp tab={tab} />

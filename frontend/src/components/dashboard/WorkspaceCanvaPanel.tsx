@@ -15,6 +15,7 @@ import { oc } from "@/lib/sdk";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 import { userMessage } from "@/lib/errors";
+import { confirmAction } from "@/lib/promptDialog";
 import { tr } from "@/lib/i18n";
 
 const DEVELOPER_PORTAL = "https://www.canva.com/developers/integrations";
@@ -26,7 +27,6 @@ export function WorkspaceCanvaPanel({ workspaceId, canEdit }: { workspaceId: str
   const [clientId, setClientId] = useState("");
   const [secret, setSecret] = useState("");
   const [busy, setBusy] = useState(false);
-  const [armed, setArmed] = useState(false);
 
   const load = useCallback(() => Promise.all([
     oc.getCanvaIntegration(workspaceId).catch(() => null),
@@ -54,8 +54,8 @@ export function WorkspaceCanvaPanel({ workspaceId, canEdit }: { workspaceId: str
   }
 
   async function remove() {
-    if (!armed) { setArmed(true); return; }
-    setArmed(false);
+    const ok = await confirmAction({ title: tr("dashboard.canva_remove_title"), message: tr("dashboard.canva_remove_message"), confirmText: tr("dashboard.canva_remove_integration"), danger: true });
+    if (!ok) return;
     setBusy(true);
     try {
       await oc.deleteCanvaIntegration(workspaceId);
@@ -68,6 +68,8 @@ export function WorkspaceCanvaPanel({ workspaceId, canEdit }: { workspaceId: str
   }
 
   async function disconnect() {
+    const ok = await confirmAction({ title: tr("dashboard.canva_disconnect_title"), message: tr("dashboard.canva_disconnect_message"), confirmText: tr("dashboard.canva_disconnect"), danger: true });
+    if (!ok) return;
     try {
       await oc.disconnectCanva(workspaceId);
       await load();
@@ -130,8 +132,8 @@ export function WorkspaceCanvaPanel({ workspaceId, canEdit }: { workspaceId: str
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
             {integration.configured && (
-              <Button size="sm" variant={armed ? "danger" : "ghost"} disabled={busy} onClick={() => void remove()} onBlur={() => setArmed(false)}>
-                {armed ? tr("dashboard.canva_confirm_remove") : tr("dashboard.canva_remove_integration")}
+              <Button size="sm" variant="ghost" disabled={busy} onClick={() => void remove()}>
+                {tr("dashboard.canva_remove_integration")}
               </Button>
             )}
             <Button

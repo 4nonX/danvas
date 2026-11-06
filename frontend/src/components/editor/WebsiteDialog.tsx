@@ -30,6 +30,7 @@ import { resolveAssetUrl as resolveBackendUrl } from "@/lib/sdk";
 import { useToast } from "@/components/ui/Toast";
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
+import { useEscapeKey } from "@/lib/useEscapeKey";
 import { tr } from "@/lib/i18n";
 
 type Tab = "settings" | "preview" | "export";
@@ -98,6 +99,7 @@ export function WebsiteDialog({
   workspaceId?: string;
 }): React.ReactElement | null {
   const toast = useToast();
+  useEscapeKey(onClose);
   const doc = useEditor((s) => s.doc);
   // `rev` bumps on every document mutation; recomputing on it keeps the live
   // preview in sync if the design changes while the dialog is open.
@@ -176,7 +178,7 @@ export function WebsiteDialog({
     result.files.forEach((f, i) => {
       setTimeout(() => download(new Blob([f.body], { type: f.contentType }), f.path), i * 120);
     });
-    toast.success(`Downloading ${result.files.length} files (no zip lib; files arrive individually)`);
+    toast.success(tr("editor.website_files_downloading", { count: result.files.length }));
   }
 
   const byteLen = (s: string) => new Blob([s]).size;
@@ -185,6 +187,8 @@ export function WebsiteDialog({
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/30" onClick={onClose}>
       <div
+        role="dialog"
+        aria-modal="true"
         className="flex max-h-[88vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-surface shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
@@ -248,8 +252,7 @@ export function WebsiteDialog({
                   <input
                     type="checkbox"
                     checked={site.settings.password?.enabled ?? false}
-                    onChange={(e) => patchSettings({ password: { enabled: e.target.checked } })}
-                  />
+                    onChange={(e) => patchSettings({ password: { enabled: e.target.checked } })} className="h-4 w-4 shrink-0 accent-brand-600" />
                 </Field>
               </section>
 
@@ -299,8 +302,7 @@ export function WebsiteDialog({
                         type="checkbox"
                         checked={n.visible}
                         onChange={() => toggleNavVisible(n.id)}
-                        title={tr("editor.show_in_nav")} aria-label={tr("editor.show_in_nav")}
-                      />
+                        title={tr("editor.show_in_nav")} aria-label={tr("editor.show_in_nav")} className="h-4 w-4 shrink-0 accent-brand-600" />
                       <input
                         className={`${INPUT_CLS} flex-1`}
                         value={n.label}

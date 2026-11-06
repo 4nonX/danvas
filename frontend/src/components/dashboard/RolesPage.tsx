@@ -11,6 +11,7 @@ import { Copy, History, KeyRound, Lock, Pencil, Plus, Shield, Trash2, Users } fr
 import { ACTION_AREAS, coversActions, unionActions, type Action, type ActionScope, type ActionSet } from "@hc/authz";
 import type { RoleEventView, WorkspacePermissionView, WorkspaceRoleView, WorkspaceRolesView } from "@hc/sdk";
 import { oc } from "@/lib/sdk";
+import { confirmAction } from "@/lib/promptDialog";
 import { tr } from "@/lib/i18n";
 import { userMessage } from "@/lib/errors";
 import { useDateFormat } from "@/lib/datetime";
@@ -55,7 +56,6 @@ export function RolesPage({ workspaceId }: { workspaceId: string }) {
   const [editPerm, setEditPerm] = useState<WorkspacePermissionView | "new" | null>(null);
   const [copyPerm, setCopyPerm] = useState<WorkspacePermissionView | null>(null);
   const [deleting, setDeleting] = useState<WorkspaceRoleView | null>(null);
-  const [armedPerm, setArmedPerm] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
     try {
@@ -93,12 +93,13 @@ export function RolesPage({ workspaceId }: { workspaceId: string }) {
   const mayEditPerm = (p: WorkspacePermissionView) => manage && coversActions(mine, p.actions);
 
   async function removePermission(p: WorkspacePermissionView) {
-    if (armedPerm !== p.id) {
-      setArmedPerm(p.id);
-      setTimeout(() => setArmedPerm((cur) => (cur === p.id ? null : cur)), 3500);
-      return;
-    }
-    setArmedPerm(null);
+    const ok = await confirmAction({
+      title: tr("roles.delete"),
+      message: p.roleIds.length ? tr("roles.confirm_delete_used", { count: p.roleIds.length }) : tr("dashboard.remove_item_message", { name: permissionName(p) }),
+      confirmText: tr("roles.delete"),
+      danger: true,
+    });
+    if (!ok) return;
     try {
       await oc.deleteWorkspacePermission(p.id);
       toast.success(tr("roles.permission_deleted", { name: permissionName(p) }));
@@ -214,9 +215,9 @@ export function RolesPage({ workspaceId }: { workspaceId: string }) {
                       type="button"
                       disabled={!mayEditPerm(p)}
                       onClick={() => void removePermission(p)}
-                      className={`flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium transition disabled:opacity-40 ${armedPerm === p.id ? "bg-red-50 text-red-600 ring-1 ring-red-300" : "text-neutral-500 hover:bg-neutral-100 hover:text-red-600"}`}
+                      className={`flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium transition disabled:opacity-40 text-neutral-500 hover:bg-neutral-100 hover:text-red-600`}
                     >
-                      <Trash2 size={13} /> {armedPerm === p.id ? (p.roleIds.length ? tr("roles.confirm_delete_used", { count: p.roleIds.length }) : tr("roles.confirm_delete")) : tr("roles.delete")}
+                      <Trash2 size={13} /> {tr("roles.delete")}
                     </button>
                   </span>
                 )}
@@ -329,7 +330,7 @@ function RoleEditor({ workspaceId, view, role, copyOf, onClose, onSaved }: {
                   return (
                     <li key={p.id}>
                       <label className={`flex items-start gap-2 px-3 py-2 ${allowed ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`} title={allowed ? undefined : tr("roles.not_yours_to_give")}>
-                        <input type="checkbox" checked={picked.has(p.id)} disabled={!allowed} onChange={() => toggle(p.id)} className="mt-0.5 h-3.5 w-3.5 accent-brand-500" />
+                        <input type="checkbox" checked={picked.has(p.id)} disabled={!allowed} onChange={() => toggle(p.id)} className="mt-0.5 h-3.5 w-3.5 accent-brand-600" />
                         <span className="min-w-0">
                           <span className="block text-xs font-medium text-neutral-700">{permissionName(p)}</span>
                           <span className="mt-0.5 block text-[11px] leading-snug text-neutral-500">{actionsSummary(p.actions, 6)}</span>
@@ -432,7 +433,7 @@ function PermissionEditor({ workspaceId, mine, permission, copyOf, onClose, onSa
                         checked={!!value}
                         disabled={!held}
                         onChange={(e) => set(a.key, e.target.checked ? (a.scoped && held === "own" ? "own" : "all") : null)}
-                        className="mt-0.5 h-3.5 w-3.5 accent-brand-500"
+                        className="mt-0.5 h-3.5 w-3.5 accent-brand-600"
                         aria-label={labels[a.key]}
                       />
                       <span className="min-w-0 flex-1">

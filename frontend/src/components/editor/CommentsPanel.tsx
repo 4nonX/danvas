@@ -29,6 +29,7 @@ import { useEditor } from "@/store/editor";
 import { useAuth } from "@/store/auth";
 import { anchorPagePoint } from "@/components/editor/CommentPins";
 import { useToast } from "@/components/ui/Toast";
+import { confirmAction } from "@/lib/promptDialog";
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 import { initials, avatarColor } from "@/lib/avatar";
@@ -368,6 +369,8 @@ function CommentRow({ comment, people, canComment, userId, isRoot, onChanged }: 
     try { await oc.reactComment(comment.id, emoji); onChanged(); } catch { toast.error(tr("editor.reaction_failed")); }
   }
   async function remove() {
+    const ok = await confirmAction({ title: tr("editor.delete_comment_title"), message: tr("editor.delete_comment_message"), confirmText: tr("editor.delete_comment_confirm"), danger: true });
+    if (!ok) return;
     try { await oc.deleteComment(comment.id); onChanged(); } catch { toast.error(tr("editor.delete_failed")); }
   }
   async function saveEdit(body: string, mentions: string[]) {
@@ -381,7 +384,7 @@ function CommentRow({ comment, people, canComment, userId, isRoot, onChanged }: 
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2">
           <span className="truncate text-sm font-semibold text-neutral-800">{comment.authorName}</span>
-          <span className="ms-auto shrink-0 text-[11px] text-neutral-400">{relativeTime(comment.createdAt)}{comment.editedAt ? " · edited" : ""}</span>
+          <span className="ms-auto shrink-0 text-[11px] text-neutral-400">{relativeTime(comment.createdAt)}{comment.editedAt ? ` · ${tr("editor.comment_edited")}` : ""}</span>
         </div>
         {editing ? (
           <div className="mt-1">

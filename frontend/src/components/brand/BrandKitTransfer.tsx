@@ -172,23 +172,26 @@ function ImportDialog({
   const run = useCallback(async () => {
     setBusy({ done: 0, total: 0 });
     try {
-      // Replacing reuses the assets the kit already has when the file carries
-      // the same bytes, so a kit exported and imported again keeps its ids.
+      // A file the workspace already has with the same bytes is used as it
+      // is, not uploaded again: only uploads of a size the file carries are
+      // read to compare. Replacing a kit prefers its own uploads, so a kit
+      // exported and imported again keeps its ids.
       const reuse = new Map<string, string>();
-      if (replacing && existing) {
-        const assets = await assetMap(workspaceId);
-        const ids = new Set([
-          ...existing.logos.flatMap((l) => [l.assetId, l.variants?.dark, l.variants?.light]),
-          ...existing.collections.flatMap((c) => c.assetIds),
-        ].filter((x): x is string => !!x));
-        for (const id of ids) {
-          const a = assets.get(id);
-          if (!a) continue;
-          try {
-            const h = await sha256(await bytesOf(a.url));
-            if (h) reuse.set(h, id);
-          } catch { /* not reusable, uploaded again */ }
-        }
+      const assets = await assetMap(workspaceId).catch(() => new Map<string, UploadedAsset>());
+      const sizes = new Set([...parsed.files.values()].map((d) => d.length));
+      const own = new Set(replacing && existing ? [
+        ...existing.logos.flatMap((l) => [l.assetId, l.variants?.dark, l.variants?.light]),
+        ...existing.collections.flatMap((c) => c.assetIds),
+      ].filter((x): x is string => !!x) : []);
+      const candidates = [...assets.values()].filter((a) => own.has(a.id) || (a.byteSize != null && sizes.has(a.byteSize)));
+      // The kit's own last, so they win over another upload of the same bytes.
+      candidates.sort((a, b) => Number(own.has(a.id)) - Number(own.has(b.id)));
+      for (const a of candidates) {
+        if (cancelled.current) return;
+        try {
+          const h = await sha256(await bytesOf(a.url));
+          if (h) reuse.set(h, a.id);
+        } catch { /* not reusable, uploaded again */ }
       }
       const content = await uploadKitContent(parsed, {
         uploadAsset: (file, filename) => directUploadWithProgress(workspaceId, file, { filename }),

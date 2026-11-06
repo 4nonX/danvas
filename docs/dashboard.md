@@ -21,7 +21,7 @@ Every design lives in exactly one workspace. You get a personal workspace on sig
 - **My tasks**: items assigned to you (for example from design comments).
 - **Templates**: the template library (below).
 - **Members**: who is in the workspace, their roles, and invitations.
-- **Trash**: deleted designs, restorable until deleted for good. **Delete forever** takes one design, **Empty trash** everything, each after a confirmation and with its own right; the buttons show only with the right.
+- **Trash**: deleted designs, restorable until deleted for good. **Delete forever** takes one design, or the ticked ones (tick them as in Projects; **Restore** in the bar brings them back), **Empty trash** everything, each after a confirmation and with its own right; the buttons show only with the right.
 
 Tick designs, folders or templates to act on several at once, in the bar that appears or in the "..." menu of a ticked item. **Delete** there takes everything ticked: designs go to the trash, folders are deleted and what they hold moves up one level. Actions for one item (open, rename, edit) stay with that item, and the menu of an item that is not ticked acts on it alone.
 

@@ -101,6 +101,7 @@ Between workspaces:
 - A brand kit assignment the target does not have is dropped, so the designs follow the target's default kit.
 - **Copy** leaves the originals where they are. **Move** puts them in the trash once they are copied, so they can be restored from there, and removes source folders it emptied. Version history, comments and share links stay with the originals.
 - Copying needs view access to the source, moving needs membership. The copied uploads count towards the target's storage.
+- The copy runs on the server. **Continue in the background** closes the dialog while it runs; the designs appear in their place when it is done. It cannot be stopped from the browser.
 
 Design cards say when a design was last edited ("5 minutes ago", "yesterday"); the exact date and time show on hover.
 
@@ -113,6 +114,7 @@ Design cards say when a design was last edited ("5 minutes ago", "yesterday"); t
 - **Content**: **Leave as it is** (the default: only the page changes), **Scale and spread** (everything grows or shrinks by one factor, so text keeps its line breaks; the space left over is shared out by where things sit, and colour areas that run along an edge stretch with it) or **Lay out anew** (as Magic Resize does).
 
 The dialog previews the result for every design before anything changes. **Change format** then saves each design as a version named after the size (Format 50 × 100 mm); the state before stays in the version history, from where it can be restored. Designs edited live get the change in their edit history as well, so an editor opened later starts from it; close the designs in every editor before changing them. Combined with **Extend artwork into the bleed** on download, the turned colour areas still fill the bleed.
+**Stop**, while the designs are being saved, ends after the one being saved; those done keep their new size.
 
 ### Importing
 
@@ -132,7 +134,7 @@ Tick several designs (and folders) and the bar at the bottom offers download and
 
 A danvas package (`.danvas.zip`) takes designs and templates from one danvas instance to another with everything they need.
 
-- **Export**: select designs and folders on the dashboard and choose **danvas package** in the selection bar. The package holds the designs in the open format, every upload they use, the workspace fonts they name (the font files: pass the package on only where their licences allow) and the folder structure below what you selected. Any member who can see the designs can export them.
+- **Export**: select designs and folders on the dashboard and choose **Export as package** in the selection bar, or in a design's or folder's "..." menu (with the selection, when that design or folder is ticked). The package holds the designs in the open format, every upload they use, the workspace fonts they name (the font files: pass the package on only where their licences allow) and the folder structure below what you selected. Any member who can see the designs can export them.
 - **Import**: on the other instance, open the folder the designs should go to, then **Import**, **danvas package**. The dialog shows what the package holds; **Import** adds the uploads to the workspace's uploads and the fonts to its fonts (fonts need the right to manage workspace fonts; without it the designs show a fallback font and the dialog names the fonts), recreates the folders (an existing folder of the same name is used), and creates the designs pointing at the new uploads. A design whose title already exists in its folder is skipped, and only the uploads and fonts of what is really added go in; an upload the workspace already has with the same bytes is used as it is. So importing a package again adds nothing twice, and an interrupted import can simply be run again. **Stop** ends the import after the current step; what was imported until then stays.
 - **What stays behind**: version history, comments, share links and approvals belong to the source instance. A design's brand kit assignment is dropped, since the target has its own brands; a brand kit moves as its own kit file ([Brand kits and fonts](#brand-kits-and-fonts)).
 - **Templates** travel the same way: in Templates, **Export as package** in a template's "..." menu (also in the editor's template panel), for the templates ticked (the box at a card's top left), or **Export all** for every template shown. **Import template** takes a package as well as a `.hyc` file: its templates become templates of the workspace (with **Publish templates**; a title that exists is skipped), its designs go to Projects. A package with templates is format version 2; a danvas before 1.7.0 says it comes from a newer version.
@@ -175,7 +177,7 @@ If a workspace has lost its last owner (for example the only owner left the comp
 - **Export a template**: in Templates or the editor's template panel, a template's "..." menu: **Export as package** (with the uploads and fonts it uses, for another workspace or instance, see [Moving designs to another instance](#moving-designs-to-another-instance)) or **Download as .hyc file** (the document only). Several at once: tick them, or **Export all**.
 - **Edit a template**: in Templates, **Edit template** in a template's "..." menu. A working copy opens in the editor, as an ordinary design, with a bar saying which template it is for. **Save template** asks once, then replaces the template's design with it; **Discard** leaves the template as it was. Either way the copy goes to the trash. The template keeps its name, collection and visibility, and designs already made from it stay as they are. The old state of a template is not kept: export it as a package first if you may want it back. Closing the editor without either leaves the copy among the designs.
 - **Duplicate a template**: in Templates, **Duplicate** in a template's "..." menu makes a new template from it in the current workspace, built-in templates too. Needs **Create templates**. The copy belongs to whoever made it and keeps the design, category, tags, preview and credits, and the collection when it stays in the same workspace. A copy of a public template is for the workspace; making it public is a step of its own.
-- **Several at once**: tick templates, then **Delete**, **Duplicate**, **Export as package** or **Download as .hyc file** in the "..." menu of a ticked one applies to all ticked. A bulk delete takes those you may delete and says so.
+- **Several at once**: tick templates, then **Delete**, **Duplicate**, **Export as package** or **Download as .hyc file**, in the selection bar or in the "..." menu of a ticked one, applies to all ticked. A bulk delete takes those you may delete and says so.
 - **Your order**: drag a template to another place on the Templates page, or use the arrow keys on its handle. The order is yours, kept with your account per workspace; others keep theirs. A new template comes first.
 - **Rename a template**: in Templates, **Rename** in a template's "..." menu. Designs already made from the template keep their names.
 - **Import template** with a `.hyc` file imports nothing when a template of that name already exists.
@@ -386,6 +388,8 @@ All of these are drawn by the same engine as the editor, so they match what you 
 
 The download menu checks what the chosen format would lose before the file is made, and lists it with the page and element: a font that is unknown here or did not load (a fallback font draws the text), an image that did not load, for the vector formats a font with no file to outline the text from (the text becomes a picture in the file), and for PDF, TIFF and EPS an image placed at under 150 dpi, lines thinner than 0.25 pt, text under 8 pt printed in several inks (in CMYK), and artwork or a coloured page background reaching the edge of a page exported without bleed. These are warnings; an export profile can set its print shop's own limits and let a broken rule refuse the download ([Print shop rules](#print-shop-rules)).
 
+**Transparent background** in the download menu leaves the page background out: PNG, animated PNG and GIF are transparent where nothing is drawn (on by default for PNG), SVG and the vector and accessible PDF draw only the elements, with nothing under them (off by default). JPG, the image PDF, TIFF and EPS always have a background. A picture or shape that covers the page is an element, not the background, and stays.
+
 To check every format against the editor after a change to the export, run `npm run test:export` (see [`tests/export`](../tests/export/README.md)).
 
 ### Files for print shops
@@ -403,6 +407,7 @@ What a print shop needs depends on the format; the download menu offers each opt
 | Die line in a spot colour | yes | | yes | | | | |
 | Overprint of chosen elements | yes | computed in | yes | computed in | | | |
 | Resolution written into the file | | | | yes | yes | yes | |
+| Without the page background | yes | | | | | yes | yes |
 
 - **Vector PDF** is the file print shops usually ask for: every shape, text (as outlines) and graphic stays an object of its own, so the print shop can open it in Illustrator and change a colour. With CMYK it carries the profile as its output intent and, with **PDF/X-4** on, is marked as PDF/X-4 (version, XMP metadata, trapping flag, page boxes). Transparency stays live.
 - **Black ink only** prints pure black as 100 % K instead of a four-colour black; **Overprint black** then lets it print over what is under it, so no white gap shows when the plates are slightly out of register. In EPS, which has no overprint mode, black is written as the Black separation for this.
@@ -427,7 +432,7 @@ The proof also shows elements that overprint as they print (see [Die lines and o
 
 ### Settings file: taking settings to another instance
 
-On the dashboard's **Members** page under **Print and export**, **Export settings** writes the workspace's settings to one file, to keep or to take to another danvas instance, and **Import settings** reads such a file. It can hold the export profiles, print presets, colour profiles, colour libraries, roles and permissions, the workspace's rules (print approval, who manages profiles), folder defaults and the members' e-mail addresses, each chosen on its own. Under **Settings**, **Account**, everyone does the same with their own personal profiles, colour profiles, interface preferences and shortcuts.
+On the dashboard's **Members** page under **Print and export**, **Export settings** writes the workspace's settings to one file, to keep or to take to another danvas instance, and **Import settings** reads such a file. It can hold the export profiles, print presets, colour profiles, colour libraries, roles and permissions, the workspace's rules (print approval, who manages profiles), folder defaults and the members' e-mail addresses, each chosen on its own. Under **Settings**, everyone does the same with their own personal profiles, colour profiles, interface preferences and shortcuts: on **Account**, and on the **Export profiles**, **Print presets** and **Colour profiles** pages above their lists.
 
 - **Rights**: each kind has a right of its own under [Roles and permissions](#roles-and-permissions), in the area **Export settings**, held by default by owners and admins. The server checks them. Importing needs the ordinary right for what is created, so nobody gains anything by it.
 - **Licences**: colour profiles and colour books are often licensed. The export says so and does not stop you: passing a file on is your decision.

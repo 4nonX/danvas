@@ -8,6 +8,7 @@ import { useState } from "react";
 import { Wand2, X } from "lucide-react";
 import { useEditor } from "@/store/editor";
 import { useToast } from "@/components/ui/Toast";
+import { useEscapeKey } from "@/lib/useEscapeKey";
 import { tr } from "@/lib/i18n";
 import { fromUnit, measureUnitOf, parseLength, unitInputText } from "@/lib/units";
 
@@ -60,6 +61,7 @@ const formatSets = (dpi: number): { label: string; emoji: string; sizes: { w: nu
 ];
 
 export function MagicResizeDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+  useEscapeKey(onClose, open);
   const toast = useToast();
   const [picked, setPicked] = useState<Record<string, { w: number; h: number }>>({});
   // The custom size as typed, in the design's unit.
@@ -101,7 +103,7 @@ export function MagicResizeDialog({ open, onClose }: { open: boolean; onClose: (
       <div role="dialog" aria-label={tr("editor.magic_resize")} className="fixed left-1/2 top-1/2 z-50 max-h-[80vh] w-[26rem] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-neutral-200 bg-surface p-4 shadow-2xl">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="flex items-center gap-1.5 text-base font-semibold text-neutral-900"><Wand2 size={16} className="text-brand-ink" /> {tr("editor.resize_and_switch")}</h2>
-          <button onClick={onClose} className="grid h-7 w-7 place-items-center rounded-lg text-neutral-400 hover:bg-neutral-100"><X size={16} /></button>
+          <button onClick={onClose} aria-label={tr("editor.close")} className="grid h-7 w-7 place-items-center rounded-lg text-neutral-400 hover:bg-neutral-100"><X size={16} /></button>
         </div>
         {/* Magic Switch: one-click format targets (incl. a multi-size social set). */}
         <div className="mb-3">

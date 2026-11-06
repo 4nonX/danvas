@@ -553,7 +553,7 @@ export function WhiteboardSurface(props: {
     // rejection handler below would never run.
     void copyText(diagramToMermaid(spec)).then((ok) =>
       ok
-        ? toast.success(`Copied ${spec.nodes.length} nodes / ${spec.edges.length} edges as Mermaid.`)
+        ? toast.success(tr("editor.copied_as_mermaid", { nodes: spec.nodes.length, edges: spec.edges.length }))
         : toast.error(tr("editor.clipboard_unavailable")),
     );
   }, [toast]);
@@ -568,7 +568,7 @@ export function WhiteboardSurface(props: {
       for (let i = 0; i < 400; i++) {
         const job = await oc.getJob<WhiteboardToDeckResult>(jobId);
         if (job.status === "completed" && job.result?.designId) {
-          toast.success(`Created a ${job.result.slides}-slide deck.`);
+          toast.success(tr("editor.created_deck_n", { count: job.result.slides }));
           router.push({ pathname: "/editor", query: { id: job.result.designId } });
           return;
         }
@@ -619,12 +619,12 @@ export function WhiteboardSurface(props: {
   const runFlowchart = useCallback(() => {
     const n = autoLayoutFlowchart();
     if (n === 0) toast.toast(tr("editor.connect_nodes_with_arrows_first_auto_layout"), "info");
-    else toast.success(`Arranged ${n} connected node${n === 1 ? "" : "s"} into a flowchart.`);
+    else toast.success(tr("editor.arranged_flowchart", { count: n }));
   }, [toast]);
   const runMindMap = useCallback(() => {
     const n = autoLayoutMindMap();
     if (n === 0) toast.toast(tr("editor.connect_nodes_with_arrows_first_mind_map_lay"), "info");
-    else toast.success(`Arranged ${n} connected node${n === 1 ? "" : "s"} into a mind map.`);
+    else toast.success(tr("editor.arranged_mindmap", { count: n }));
   }, [toast]);
 
   // Real per-user identity for vote accounting: the server-assigned
@@ -2150,7 +2150,7 @@ function VoteSetup(props: {
           type="checkbox"
           checked={anonymous}
           onChange={(e) => setAnonymous(e.target.checked)}
-          className="h-4 w-4 accent-brand-500"
+          className="h-4 w-4 accent-brand-600"
         />
       </label>
       <Button size="sm" block onClick={() => props.onOpen(budget, anonymous)}>

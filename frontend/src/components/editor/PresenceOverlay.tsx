@@ -18,6 +18,7 @@ import { usePresence } from "@/store/presence";
 import { serverNow } from "@/lib/realtime";
 import type { CanvasApi } from "@/lib/useEditorCanvas";
 import { presenceFallback } from "@/lib/theme.generated";
+import { tr } from "@/lib/i18n";
 
 // A reaction animates for this long; past it we stop rendering, so a latched or
 // roster-snapshot reaction never replays stale on a late joiner.
@@ -214,7 +215,7 @@ export function PresenceOverlay({ api }: { api: CanvasApi }) {
             key={`lock:${nodeId}`}
             className="absolute grid h-5 w-5 place-items-center rounded-full text-white shadow-sm ring-2 ring-white"
             style={{ left: tl.x, top: tl.y, transform: "translate(-50%, -50%)", background: holder.color }}
-            title={`Locked by ${holder.name}`}
+            title={tr("editor.locked_by", { name: holder.name })}
           >
             <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
               <rect x={3} y={11} width={18} height={11} rx={2} />

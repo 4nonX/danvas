@@ -3,7 +3,7 @@
 // gesture = one undo step), and wheel pan / ctrl-wheel zoom about the cursor.
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { MousePointer2, PenTool, Pencil, Minus, MoveUpRight, Square, Circle, Type, MessageSquarePlus, Copy, ClipboardPaste, CopyPlus, Trash2, Group, Ungroup, ArrowUp, ArrowDown, ChevronsUp, ChevronsDown, FlipHorizontal2, FlipVertical2, Paintbrush, PaintBucket, Lock, LockOpen, Eye, EyeOff, BoxSelect, Wallpaper, ImageUp, Crop } from "lucide-react";
+import { MousePointer2, PenTool, Pencil, Minus, MoveUpRight, Square, Circle, Type, MessageSquarePlus, Copy, ClipboardPaste, CopyPlus, Trash2, Group, Ungroup, ArrowUp, ArrowDown, ChevronsUp, ChevronsDown, FlipHorizontal2, FlipVertical2, Paintbrush, PaintBucket, Lock, LockOpen, Eye, EyeOff, BoxSelect, Wallpaper, ImageUp, Crop, Link2 } from "lucide-react";
 import type { CharStyle, Color, Node as SchemaNode, Page, Paragraph, ParagraphStyle, TextNode, Transform } from "@hc/schema";
 import { isDecorative, resolveReadingOrder } from "@hc/schema";
 import { locate, moveTransform, marqueeSelect, parentSpaceDelta, worldMatrix, worldAABB, unionAABB, snap, spacingSnap, type SpacingGuide, type EditCommand } from "@hc/editor";
@@ -764,7 +764,8 @@ function TextEditOverlay({ api, id, onClose }: { api: CanvasApi; id: string; onC
             }}
             className="h-7 w-7 rounded text-sm text-neutral-700 hover:bg-neutral-100"
             title={tr("editor.link_selected_text")}
-          >🔗</button>
+            aria-label={tr("editor.link_selected_text")}
+          ><Link2 size={14} className="mx-auto" /></button>
         </div>
       )}
     </>

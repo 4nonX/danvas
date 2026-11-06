@@ -239,9 +239,10 @@ export function DashboardApp({ view }: { view: DashboardView }) {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [menuFor, setMenuFor] = useState<string | null>(null);
-  const [renameTarget, setRenameTarget] = useState<HomeItem | null>(null);
-  const [renameValue, setRenameValue] = useState("");
-  const [deleteTarget, setDeleteTarget] = useState<HomeItem | null>(null);
+  const [wsBusy, setWsBusy] = useState(false);
+  // Trash and templates load on their own: "empty" only once they are known.
+  const [trashLoad, setTrashLoad] = useState<"loading" | "ready" | "failed">("loading");
+  const [tplLoad, setTplLoad] = useState<"loading" | "ready" | "failed">("loading");
   const [wsModal, setWsModal] = useState(false);
   // A new workspace can take brands of the active one (brand.copy): nothing
   // ticked unless chosen.
@@ -424,6 +425,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     window.localStorage.setItem("hc-dash-templates", open ? "expanded" : "collapsed");
   }
   const [trash, setTrash] = useState<DesignRecord[]>([]);
+  const [trashSel, setTrashSel] = useState<Set<string>>(new Set());
   const [emptyingTrash, setEmptyingTrash] = useState(false);
   const [favorites, setFavorites] = useState<HomeItem[]>([]);
   // Storage usage for the rail meter (workspace + account scopes).
@@ -650,11 +652,17 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     if (view !== "trash" || !activeWorkspaceId) return;
     let cancelled = false;
     void (async () => {
-      const t = await oc.listTrash(activeWorkspaceId).catch(() => []);
-      if (!cancelled) setTrash(t);
+      try {
+        const t = await oc.listTrash(activeWorkspaceId);
+        if (!cancelled) { setTrash(t); setTrashLoad("ready"); }
+      } catch {
+        if (!cancelled) setTrashLoad("failed");
+      }
     })();
     return () => {
       cancelled = true;
+      // The next load starts from "not known yet".
+      setTrashLoad("loading");
     };
   }, [view, activeWorkspaceId]);
 
@@ -706,16 +714,17 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     if (view !== "templates" || !activeWorkspaceId) return;
     let cancelled = false;
     void (async () => {
-      const tpls = await oc
-        .listTemplates({
-          workspaceId: activeWorkspaceId,
-          collection: tplCollection ?? undefined,
-        })
-        .catch(() => []);
-      if (!cancelled) setTemplates(tpls);
+      try {
+        const tpls = await oc.listTemplates({ workspaceId: activeWorkspaceId, collection: tplCollection ?? undefined });
+        if (!cancelled) { setTemplates(tpls); setTplLoad("ready"); }
+      } catch {
+        if (!cancelled) setTplLoad("failed");
+      }
     })();
     return () => {
       cancelled = true;
+      // The next load starts from "not known yet".
+      setTplLoad("loading");
     };
   }, [view, activeWorkspaceId, tplCollection, tplRefresh]);
 
@@ -928,9 +937,52 @@ export function DashboardApp({ view }: { view: DashboardView }) {
 
   async function restoreFromTrash(id: string) {
     if (!activeWorkspaceId) return;
-    await oc.restoreDesign(id);
-    setTrash(await oc.listTrash(activeWorkspaceId).catch(() => []));
+    try {
+      await oc.restoreDesign(id);
+    } catch (e) {
+      toast.error(userMessage(e, tr("dashboard.could_not_restore")));
+      return;
+    }
+    setTrash(await oc.listTrash(activeWorkspaceId).catch(() => trash));
     toast.success(tr("dashboard.restored"));
+  }
+
+  /** Restore the ticked designs this member may restore. */
+  async function restoreSelectedTrash() {
+    if (!activeWorkspaceId) return;
+    const list = trash.filter((d) => trashSel.has(d.id) && mayOnTrashed(d, "design.restore", myActions, user?.id));
+    if (!list.length) return;
+    const failed = (await Promise.allSettled(list.map((d) => oc.restoreDesign(d.id)))).filter((r) => r.status === "rejected").length;
+    setTrashSel(new Set());
+    setTrash(await oc.listTrash(activeWorkspaceId).catch(() => trash));
+    if (failed) toast.error(tr("dashboard.could_not_restore"));
+    else toast.success(tr("dashboard.restored"));
+  }
+
+  /** Delete the ticked designs for good, those this member may remove. */
+  async function deleteSelectedTrashForever() {
+    if (!activeWorkspaceId) return;
+    const ids = trash.filter((d) => trashSel.has(d.id) && mayOnTrashed(d, "design.purge", myActions, user?.id)).map((d) => d.id);
+    if (!ids.length) return;
+    const ok = await confirmAction({
+      title: tr("dashboard.delete_forever_confirm_title"),
+      message: ids.length === 1 ? tr("dashboard.empty_trash_confirm_one") : tr("dashboard.empty_trash_confirm_n", { n: ids.length }),
+      confirmText: tr("dashboard.delete_forever"),
+      danger: true,
+    });
+    if (!ok) return;
+    setEmptyingTrash(true);
+    try {
+      const res = await oc.emptyTrash(activeWorkspaceId, ids);
+      if (res.failed) toast.error(tr("dashboard.could_not_empty_n", { n: res.failed }));
+      else toast.success(tr("dashboard.deleted_permanently"));
+    } catch (e) {
+      toast.error(userMessage(e, tr("dashboard.could_not_delete_forever")));
+    } finally {
+      setEmptyingTrash(false);
+    }
+    setTrashSel(new Set());
+    setTrash(await oc.listTrash(activeWorkspaceId).catch(() => trash));
   }
 
   async function deleteForever(d: DesignRecord) {
@@ -1008,7 +1060,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
       const { file, title } = await designFromFile(f);
       const rec = await oc.createDesign({ workspaceId: activeWorkspaceId, title, from: file });
       await fileIntoCurrentFolder(rec.id);
-      toast.success(`Imported "${title}".`);
+      toast.success(tr("dashboard.imported_named", { title }));
       await open(rec.id);
     } catch (e) {
       toast.error(importErrorMessage(e, tr("dashboard.could_not_import_the_file")));
@@ -1040,7 +1092,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
           .listTemplates({ workspaceId: activeWorkspaceId, collection: tplCollection ?? undefined })
           .catch(() => templates),
       );
-      toast.success(`Template "${title}" imported.`);
+      toast.success(tr("dashboard.template_imported_named", { title }));
     } catch (e) {
       toast.error(importErrorMessage(e, tr("dashboard.could_not_import_the_template")));
     } finally {
@@ -1165,7 +1217,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     for (const id of ids) {
       try {
         const file = await oc.getDesignFile(id);
-        const title = `${titleOf(id)} (copy)`;
+        const title = tr("dashboard.template_copy_title", { name: titleOf(id) });
         file.title = title;
         const copy = await oc.createDesign({ workspaceId: activeWorkspaceId, title, from: file });
         // The copy sits next to the original.
@@ -1215,25 +1267,49 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     if (searched) void runSearch("");
   }
 
-  async function confirmRename() {
-    if (!renameTarget || !renameValue.trim()) return;
-    await oc.renameDesign(renameTarget.id, renameValue.trim());
-    setRenameTarget(null);
-    toast.success(tr("dashboard.renamed"));
-    setItems(await load(searched));
+  /** Rename one design, as folders and templates are renamed. */
+  async function renameDesign(item: HomeItem) {
+    const name = await promptText({ title: tr("dashboard.rename_design"), label: tr("dashboard.title"), defaultValue: item.title, confirmText: tr("dashboard.save") });
+    if (!name?.trim() || name.trim() === item.title) return;
+    try {
+      await oc.renameDesign(item.id, name.trim());
+      toast.success(tr("dashboard.renamed"));
+      setItems(await load(searched));
+    } catch (e) {
+      toast.error(userMessage(e, tr("dashboard.could_not_rename_design")));
+    }
   }
 
-  async function confirmDelete() {
-    if (!deleteTarget) return;
-    await oc.deleteDesign(deleteTarget.id);
-    setDeleteTarget(null);
-    toast.success(tr("dashboard.moved_to_trash"));
-    setItems(await load(searched));
+  /** Move one design to the trash, with the same question as for several. */
+  async function trashDesign(item: HomeItem) {
+    const ok = await confirmAction({
+      title: tr("dashboard.move_to_trash"),
+      message: `“${item.title}”\n\n${tr("dashboard.move_one_design_to_trash")}`,
+      confirmText: tr("dashboard.move_to_trash_2"),
+      danger: true,
+    });
+    if (!ok) return;
+    try {
+      await oc.deleteDesign(item.id);
+      toast.success(tr("dashboard.moved_to_trash"));
+      setItems(await load(searched));
+    } catch (e) {
+      toast.error(userMessage(e, tr("dashboard.could_not_move_to_trash")));
+    }
   }
 
   async function createWorkspace() {
-    if (!wsName.trim()) return;
-    const ws = await oc.createWorkspace({ name: wsName.trim(), kind: "team" });
+    if (!wsName.trim() || wsBusy) return;
+    setWsBusy(true);
+    let ws;
+    try {
+      ws = await oc.createWorkspace({ name: wsName.trim(), kind: "team" });
+    } catch (e) {
+      toast.error(userMessage(e, tr("dashboard.could_not_create_workspace")));
+      return;
+    } finally {
+      setWsBusy(false);
+    }
     const source = activeWorkspaceId;
     const choice = wsKitChoice;
     await refreshWorkspaces();
@@ -1241,7 +1317,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
     setWsModal(false);
     setWsName("");
     setWsKitChoice(noKits);
-    toast.success(`Workspace “${ws.name}” created.`);
+    toast.success(tr("dashboard.workspace_created", { name: ws.name }));
     // The brands chosen come along in the background (a job on the server).
     if (source && canCopyBrands && !kitChoiceEmpty(choice)) {
       runBrandCopy({ sourceWorkspaceId: source, all: choice.all, kitIds: choice.kitIds, targetWorkspaceIds: [ws.id], replace: false })
@@ -1288,9 +1364,10 @@ export function DashboardApp({ view }: { view: DashboardView }) {
             <MenuRow icon={LayoutTemplate} onClick={() => { setMenuFor(null); setTemplateTargets(withSelection(item.id).map((id) => ({ id, title: titleOf(id) }))); }}>{tr("editor.save_as_template")}</MenuRow>
           )}
           <MenuRow icon={Copy} onClick={() => { setMenuFor(null); void duplicate(withSelection(item.id)); }}>{tr("dashboard.duplicate")}</MenuRow>
-          <MenuRow icon={Pencil} onClick={() => { setMenuFor(null); setRenameTarget(item); setRenameValue(item.title); }}>{tr("dashboard.rename")}</MenuRow>
+          <MenuRow icon={Pencil} onClick={() => { setMenuFor(null); void renameDesign(item); }}>{tr("dashboard.rename")}</MenuRow>
           <MenuRow icon={ArrowRightLeft} onClick={() => { setMenuFor(null); setTransferReq({ items: dragPayload("designs", item.id), mode: "move", here: true }); }}>{tr("dashboard.copy_or_move")}</MenuRow>
-          <MenuRow icon={Trash2} danger onClick={() => { setMenuFor(null); if (selDesigns.has(item.id) && selCount > 1) void deleteSelected(); else setDeleteTarget(item); }}>{tr("dashboard.delete")}</MenuRow>
+          <MenuRow icon={Package} onClick={() => { setMenuFor(null); setPackageExport({ designIds: withSelection(item.id), folderIds: selDesigns.has(item.id) ? [...selFolders] : [] }); }}>{tr("dashboard.export_template_package")}</MenuRow>
+          <MenuRow icon={Trash2} danger onClick={() => { setMenuFor(null); if (selDesigns.has(item.id) && selCount > 1) void deleteSelected(); else void trashDesign(item); }}>{tr("dashboard.delete")}</MenuRow>
         </AnchoredMenu>
       )}
     </div>
@@ -1308,7 +1385,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
         aria-label={tr("dashboard.select")}
         aria-pressed={on}
         className={`grid h-5 w-5 shrink-0 place-items-center rounded-md border shadow-sm transition ${
-          on ? "border-brand-600 bg-brand-600 text-white" : `border-neutral-300 bg-surface text-transparent ${selCount ? "" : "opacity-0 group-hover:opacity-100"}`
+          on ? "border-brand-600 bg-brand-600 text-white" : `border-neutral-300 bg-surface text-transparent ${selCount ? "" : "opacity-0 group-hover:opacity-100 focus-visible:opacity-100"}`
         }`}
       ><Check size={12} strokeWidth={3} /></button>
     );
@@ -1352,7 +1429,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
           {itemWhere(item) && <><span aria-hidden>·</span><FolderIcon size={11} className="shrink-0" /><span className="truncate">{itemWhere(item)}</span></>}
         </div>
       </button>
-      <button onClick={() => void toggleFavorite(item)} aria-label={item.starred ? tr("dashboard.unfavorite") : tr("dashboard.favorite")} className={`grid h-8 w-8 place-items-center rounded-lg transition ${item.starred ? "text-amber-400" : "text-neutral-400 opacity-0 hover:bg-neutral-100 group-hover:opacity-100"}`}><Star size={15} fill={item.starred ? "currentColor" : "none"} /></button>
+      <button onClick={() => void toggleFavorite(item)} aria-label={item.starred ? tr("dashboard.unfavorite") : tr("dashboard.favorite")} className={`grid h-8 w-8 place-items-center rounded-lg transition ${item.starred ? "text-amber-400" : "text-neutral-400 opacity-0 hover:bg-neutral-100 group-hover:opacity-100 focus-visible:opacity-100"}`}><Star size={15} fill={item.starred ? "currentColor" : "none"} /></button>
       {itemMenu(item)}
     </li>
   );
@@ -1648,6 +1725,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                               onRename={() => void renameFolder(f)}
                               onTransfer={() => { setFolderMenu(null); setTransferReq({ items: dragPayload("folders", f.id), mode: "move", here: true }); }}
                               onDefaults={activeWorkspaceId ? () => { setFolderMenu(null); setDefaultsFor(f); } : undefined}
+                              onExport={() => { setFolderMenu(null); setPackageExport(selFolders.has(f.id) ? { designIds: [...selDesigns], folderIds: [...selFolders] } : { designIds: [], folderIds: [f.id] }); }}
                               onDelete={() => { setFolderMenu(null); if (selFolders.has(f.id) && selCount > 1) void deleteSelected(); else void deleteFolder(f); }}
                               onDropItems={(it) => void moveItems(it, f.id)}
                               onDragStart={(e) => setDragItems(e, dragPayload("folders", f.id))}
@@ -1844,7 +1922,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                       // just saves the detour of finding that out in the editor.
                       <button
                         type="button"
-                        onClick={() => gotoView("members")}
+                        onClick={() => void router.push(`${dashboardPath("members")}#ai`)}
                         className="flex items-center gap-1.5 rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-[11px] text-amber-800 transition hover:border-amber-400"
                       >
                         <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
@@ -2020,7 +2098,9 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                 <h2 className="px-2 text-xl font-semibold text-neutral-900">{tr("dashboard.favorites")}</h2>
                 {favorites.length > 0 && viewControls()}
               </div>
-              {favorites.length === 0 ? (
+              {loading ? (
+                <div className="grid place-items-center py-16 text-neutral-400"><Spinner className="text-2xl" /></div>
+              ) : favorites.length === 0 ? (
                 <EmptyState message={tr("dashboard.no_favorites_yet_tap_the_star_on_a_design_to")} />
               ) : (
                 itemsList(sortedFavorites)
@@ -2091,7 +2171,11 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                   ))}
                 </div>
               )}
-              {filteredTemplates.length === 0 ? (
+              {filteredTemplates.length === 0 && tplLoad === "loading" ? (
+                <div className="grid place-items-center py-16 text-neutral-400"><Spinner className="text-2xl" /></div>
+              ) : filteredTemplates.length === 0 && tplLoad === "failed" ? (
+                <EmptyState message={tr("dashboard.list_load_failed")} />
+              ) : filteredTemplates.length === 0 ? (
                 <EmptyState message={tr("dashboard.no_templates_yet_open_a_design_and_use_save")} />
               ) : (
                 <>
@@ -2102,6 +2186,19 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                     <Button size="sm" onClick={() => exportTemplates(templates.filter((t) => tplSel.has(t.id)))}>
                       <Package size={15} /> {tr("dashboard.export_template_package")}
                     </Button>
+                    <Button size="sm" variant="secondary" onClick={() => { for (const x of templates.filter((t) => tplSel.has(t.id))) void downloadTemplateHyc(x); }}>
+                      <FileDown size={15} /> {tr("dashboard.download_as_hyc_file")}
+                    </Button>
+                    {can("template.publish") && (
+                      <Button size="sm" variant="secondary" onClick={() => void duplicateTemplates(templates.filter((t) => tplSel.has(t.id)))}>
+                        <Copy size={15} /> {tr("dashboard.duplicate")}
+                      </Button>
+                    )}
+                    {templates.some((t) => tplSel.has(t.id) && t.canDelete) && (
+                      <Button size="sm" variant="danger" onClick={() => void deleteTemplates(templates.filter((t) => tplSel.has(t.id)))}>
+                        <Trash2 size={15} /> {tr("dashboard.delete")}
+                      </Button>
+                    )}
                     <Button size="sm" variant="ghost" onClick={() => setTplSel(new Set())}>{tr("dashboard.clear_selection")}</Button>
                   </div>
                 )}
@@ -2204,12 +2301,39 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                   </Button>
                 )}
               </div>
-              {trash.length === 0 ? (
+              {trash.length === 0 && trashLoad === "loading" ? (
+                <div className="grid place-items-center py-16 text-neutral-400"><Spinner className="text-2xl" /></div>
+              ) : trash.length === 0 && trashLoad === "failed" ? (
+                <EmptyState message={tr("dashboard.list_load_failed")} />
+              ) : trash.length === 0 ? (
                 <EmptyState message={tr("dashboard.trash_is_empty")} />
               ) : (
+                <>
+                {trashSel.size > 0 && (
+                  <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-brand-200 bg-brand-50 px-3 py-2 text-sm">
+                    <span className="font-medium text-neutral-800">{tr("dashboard.n_selected", { n: trashSel.size })}</span>
+                    <span className="flex-1" />
+                    {trash.some((d) => trashSel.has(d.id) && mayOnTrashed(d, "design.restore", myActions, user?.id)) && (
+                      <Button size="sm" variant="secondary" onClick={() => void restoreSelectedTrash()}>{tr("dashboard.restore")}</Button>
+                    )}
+                    {trash.some((d) => trashSel.has(d.id) && mayOnTrashed(d, "design.purge", myActions, user?.id)) && (
+                      <Button size="sm" variant="danger" disabled={emptyingTrash} onClick={() => void deleteSelectedTrashForever()}><Trash2 size={15} /> {tr("dashboard.delete_forever")}</Button>
+                    )}
+                    <Button size="sm" variant="ghost" onClick={() => setTrashSel(new Set())}>{tr("dashboard.clear_selection")}</Button>
+                  </div>
+                )}
                 <ul className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                   {trash.map((d) => (
-                    <li key={d.id} className="overflow-hidden rounded-2xl border border-neutral-200 bg-surface shadow-sm">
+                    <li key={d.id} className="group relative overflow-hidden rounded-2xl border border-neutral-200 bg-surface shadow-sm">
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setTrashSel((cur) => { const n = new Set(cur); if (n.has(d.id)) n.delete(d.id); else n.add(d.id); return n; }); }}
+                        aria-label={tr("dashboard.select")}
+                        aria-pressed={trashSel.has(d.id)}
+                        className={`absolute start-2 top-2 grid h-5 w-5 place-items-center rounded-md border shadow-sm transition ${
+                          trashSel.has(d.id) ? "border-brand-600 bg-brand-600 text-white" : "border-neutral-300 bg-surface text-transparent opacity-0 focus-visible:opacity-100 group-hover:opacity-100"
+                        }`}
+                      ><Check size={12} strokeWidth={3} /></button>
                       <div className="aspect-[4/3] bg-neutral-100"><DesignThumb designId={d.id} trashed /></div>
                       <div className="px-3 py-2.5">
                         <div className="truncate text-sm font-semibold text-neutral-800">{d.title}</div>
@@ -2221,6 +2345,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                     </li>
                   ))}
                 </ul>
+                </>
               )}
             </section>
           )}
@@ -2251,7 +2376,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                             <span className="block truncate text-sm font-medium text-neutral-800">{t.body}</span>
                             <span className="block truncate text-xs text-neutral-400">
                               {t.designTitle}
-                              {t.task?.dueAt ? ` · due ${df.date(t.task.dueAt)}` : ""}
+                              {t.task?.dueAt ? ` · ${tr("dashboard.task_due", { date: df.date(t.task.dueAt) })}` : ""}
                             </span>
                           </span>
                           <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${tone[status]}`}>{label[status]}</span>
@@ -2296,18 +2421,22 @@ export function DashboardApp({ view }: { view: DashboardView }) {
                   Every member can SEE what is connected (they are the ones it
                   generates for); only an admin can change it, matching the
                   server's own viewer-to-read, admin-to-write split. */}
-              <WorkspaceAiPanel
-                workspaceId={activeWorkspaceId}
-                canEdit={can("ai.configure")}
-              />
+              <div id="ai" className="scroll-mt-4">
+                <WorkspaceAiPanel
+                  workspaceId={activeWorkspaceId}
+                  canEdit={can("ai.configure")}
+                />
+              </div>
               {/* Workspace fonts live on the Brand page, under Fonts (F50). */}
               {/* Import from Canva: the admin registers the workspace's Canva
                   integration; each member's own connection shows here too. */}
               {activeWorkspaceId && (
-                <WorkspaceCanvaPanel
-                  workspaceId={activeWorkspaceId}
-                  canEdit={can("canva.configure")}
-                />
+                <div id="canva" className="scroll-mt-4">
+                  <WorkspaceCanvaPanel
+                    workspaceId={activeWorkspaceId}
+                    canEdit={can("canva.configure")}
+                  />
+                </div>
               )}
               {activeWorkspaceId && can("apiKeys.manage") && (
                 <ApiKeysPanel workspaceId={activeWorkspaceId} />
@@ -2458,7 +2587,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
             <ArrowRightLeft size={15} /> {tr("dashboard.copy_or_move")}
           </button>
           <button type="button" onClick={() => setPackageExport({ designIds: [...selDesigns], folderIds: [...selFolders] })} title={tr("dashboard.export_package_hint")} className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-sm text-neutral-700 transition hover:bg-neutral-100">
-            <Package size={15} /> {tr("dashboard.export_package")}
+            <Package size={15} /> {tr("dashboard.export_template_package")}
           </button>
           {selDesigns.size > 0 && (
             <>
@@ -2603,7 +2732,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
           workspaceId={activeWorkspaceId}
           targetFolderId={currentFolder}
           isAdmin={can("canva.configure")}
-          onOpenSettings={() => { closeCanva(); gotoView("members"); }}
+          onOpenSettings={() => { closeCanva(); void router.push(`${dashboardPath("members")}#canva`); }}
           errorMessage={(e) => importErrorMessage(e, tr("dashboard.canva_import_failed"))}
           onClose={() => {
             closeCanva();
@@ -2614,21 +2743,6 @@ export function DashboardApp({ view }: { view: DashboardView }) {
       )}
 
 
-      <Modal open={!!renameTarget} onClose={() => setRenameTarget(null)} title={tr("dashboard.rename_design")}>
-        <Input label={tr("dashboard.title")} value={renameValue} onChange={(e) => setRenameValue(e.target.value)} autoFocus />
-        <div className="mt-5 flex justify-end gap-2">
-          <Button variant="ghost" onClick={() => setRenameTarget(null)}>{tr("dashboard.cancel")}</Button>
-          <Button onClick={() => void confirmRename()}>{tr("dashboard.save")}</Button>
-        </div>
-      </Modal>
-
-      <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} title={tr("dashboard.move_to_trash")}>
-        <p className="text-sm text-neutral-600">“{deleteTarget?.title}” will be moved to trash. You can restore it later.</p>
-        <div className="mt-5 flex justify-end gap-2">
-          <Button variant="ghost" onClick={() => setDeleteTarget(null)}>{tr("dashboard.cancel")}</Button>
-          <Button variant="danger" onClick={() => void confirmDelete()}>{tr("dashboard.move_to_trash_2")}</Button>
-        </div>
-      </Modal>
 
       <BulkCreateModal
         open={bulkOpen}
@@ -2650,7 +2764,7 @@ export function DashboardApp({ view }: { view: DashboardView }) {
         )}
         <div className="mt-5 flex justify-end gap-2">
           <Button variant="ghost" onClick={() => setWsModal(false)}>{tr("dashboard.cancel")}</Button>
-          <Button onClick={() => void createWorkspace()}>{tr("dashboard.create")}</Button>
+          <Button onClick={() => void createWorkspace()} disabled={wsBusy || !wsName.trim()}>{wsBusy && <Spinner />} {tr("dashboard.create")}</Button>
         </div>
       </Modal>
     </div>

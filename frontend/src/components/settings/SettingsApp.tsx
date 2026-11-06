@@ -144,6 +144,8 @@ export function SettingsApp({ tab: urlTab }: { tab: SettingsTab | null }) {
 
   // Profile form.
   const [name, setName] = useState(user?.name ?? "");
+  // Bumped after a settings file is imported, so the lists load again.
+  const [profilesRev, setProfilesRev] = useState(0);
   // Seeded from the DEVICE preference first: picking a language remounts the
   // app (the tree is keyed on the catalog version), which resets this form.
   // Without this, the dropdown snapped back to the account value after the
@@ -582,7 +584,7 @@ export function SettingsApp({ tab: urlTab }: { tab: SettingsTab | null }) {
               </Card>
 
               <Card title={tr("settings.settings_file")} description={tr("settings.settings_file_desc")}>
-                <SettingsTransfer workspaceId={null} />
+                <SettingsTransfer workspaceId={null} onChanged={() => setProfilesRev((n) => n + 1)} />
               </Card>
               <Card title={tr("settings.your_data")} description={tr("settings.download_everything_in_your_account_or_perma")}>
                 <div className="flex flex-wrap items-center gap-2">
@@ -652,7 +654,7 @@ export function SettingsApp({ tab: urlTab }: { tab: SettingsTab | null }) {
                     </ul>
                     <button type="button" onClick={copyCodes} className="inline-flex items-center gap-1.5 self-start text-sm font-medium text-brand-ink hover:underline"><Copy size={14} /> {tr("settings.copy_codes")}</button>
                     <label className="flex items-start gap-2 text-sm text-neutral-700">
-                      <input type="checkbox" checked={acknowledged} onChange={(e) => setAcknowledged(e.target.checked)} className="mt-0.5" />
+                      <input type="checkbox" checked={acknowledged} onChange={(e) => setAcknowledged(e.target.checked)} className="mt-0.5 accent-brand-600" />
                       {tr("settings.i_have_saved_these_recovery_codes")}
                     </label>
                     <div>
@@ -734,8 +736,8 @@ export function SettingsApp({ tab: urlTab }: { tab: SettingsTab | null }) {
                   {notificationPrefTypes().map(({ type, label }) => (
                     <Fragment key={type}>
                       <span className="text-neutral-700">{label}</span>
-                      <input type="checkbox" aria-label={`Email: ${label}`} className="h-4 w-4 justify-self-center" disabled={emailTypes === null || savingPrefs} checked={!!emailTypes?.includes(type)} onChange={() => void toggleEmailType(type)} />
-                      <input type="checkbox" aria-label={`Push: ${label}`} className="h-4 w-4 justify-self-center" disabled={pushTypes === null || savingPrefs || pushState !== "subscribed"} checked={!!pushTypes?.includes(type)} onChange={() => void togglePushType(type)} />
+                      <input type="checkbox" aria-label={`Email: ${label}`} className="h-4 w-4 justify-self-center accent-brand-600" disabled={emailTypes === null || savingPrefs} checked={!!emailTypes?.includes(type)} onChange={() => void toggleEmailType(type)} />
+                      <input type="checkbox" aria-label={`Push: ${label}`} className="h-4 w-4 justify-self-center accent-brand-600" disabled={pushTypes === null || savingPrefs || pushState !== "subscribed"} checked={!!pushTypes?.includes(type)} onChange={() => void togglePushType(type)} />
                     </Fragment>
                   ))}
                 </div>
@@ -744,18 +746,21 @@ export function SettingsApp({ tab: urlTab }: { tab: SettingsTab | null }) {
           )}
 
           {tab === "ai" && <PersonalAiSettings />}
-          {tab === "export-profiles" && <ProfileManager kind="export" scope="personal" />}
-          {tab === "print-presets" && <ProfileManager kind="print" scope="personal" />}
-          {tab === "color-profiles" && <PrintProfilesPanel scope="user" />}
+          {/* Your settings file sits with the lists it fills, as the workspace's does. */}
+          {(tab === "export-profiles" || tab === "print-presets" || tab === "color-profiles") && (
+            <Card title={tr("settings.settings_file")} description={tr("settings.settings_file_desc")}>
+              <SettingsTransfer workspaceId={null} onChanged={() => setProfilesRev((n) => n + 1)} />
+            </Card>
+          )}
+          {tab === "export-profiles" && <ProfileManager key={profilesRev} kind="export" scope="personal" />}
+          {tab === "print-presets" && <ProfileManager key={profilesRev} kind="print" scope="personal" />}
+          {tab === "color-profiles" && <PrintProfilesPanel key={profilesRev} scope="user" />}
         </main>
       </div>
 
       {confirmingDelete && (
         <Modal open onClose={() => setConfirmingDelete(false)} title={tr("settings.delete_account")} width="w-[26rem]">
-          <p className="text-sm text-neutral-600">
-            This permanently deletes your account and any workspaces only you belong to, including their designs.
-            Workspaces you share with others stay, and you are removed from them. This cannot be undone.
-          </p>
+          <p className="text-sm text-neutral-600">{tr("settings.delete_account_warning")}</p>
           {deleteError && <div role="alert" className="mt-4 rounded-xl bg-red-50 px-3.5 py-2.5 text-sm text-red-700">{deleteError}</div>}
           <div className="mt-4 flex flex-col gap-3">
             <Input label={tr("settings.confirm_your_password")} type="password" value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} autoComplete="current-password" autoFocus />

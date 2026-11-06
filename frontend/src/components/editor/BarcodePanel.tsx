@@ -215,12 +215,12 @@ export function BarcodeSettings({ spec, onChange, mod, idPrefix }: { spec: Barco
       </div>
       <SizeNote mod={mod} spec={spec} />
       <label className="flex items-center gap-2 text-xs text-neutral-600">
-        <input type="checkbox" checked={spec.quietZones} onChange={(e) => set({ quietZones: e.target.checked })} />
+        <input type="checkbox" checked={spec.quietZones} onChange={(e) => set({ quietZones: e.target.checked })} className="h-4 w-4 shrink-0 accent-brand-600" />
         {tr("editor.barcode_quiet_zones")}
       </label>
       {(spec.symbology === "datamatrix" || spec.symbology === "gs1datamatrix") && (
         <label className="flex items-center gap-2 text-xs text-neutral-600">
-          <input type="checkbox" checked={!!spec.rectangular} onChange={(e) => set({ rectangular: e.target.checked || undefined })} />
+          <input type="checkbox" checked={!!spec.rectangular} onChange={(e) => set({ rectangular: e.target.checked || undefined })} className="h-4 w-4 shrink-0 accent-brand-600" />
           {tr("editor.barcode_rectangular")}
         </label>
       )}
@@ -236,7 +236,7 @@ export function BarcodeSettings({ spec, onChange, mod, idPrefix }: { spec: Barco
         </label>
       )}
       <label className="flex items-center gap-2 text-xs text-neutral-600">
-        <input type="checkbox" checked={spec.text} onChange={(e) => set({ text: e.target.checked })} />
+        <input type="checkbox" checked={spec.text} onChange={(e) => set({ text: e.target.checked })} className="h-4 w-4 shrink-0 accent-brand-600" />
         {tr("editor.barcode_text")}
       </label>
       {spec.text && (
@@ -265,7 +265,7 @@ export function BarcodeSettings({ spec, onChange, mod, idPrefix }: { spec: Barco
       </div>
       <div className="flex items-center gap-2">
         <label className="flex w-20 shrink-0 items-center gap-1.5 text-[11px] text-neutral-400">
-          <input type="checkbox" checked={!!spec.background} onChange={(e) => set({ background: e.target.checked ? { srgb: { r: 1, g: 1, b: 1, a: 1 }, cmyk: { c: 0, m: 0, y: 0, k: 0 } } : null })} />
+          <input type="checkbox" checked={!!spec.background} onChange={(e) => set({ background: e.target.checked ? { srgb: { r: 1, g: 1, b: 1, a: 1 }, cmyk: { c: 0, m: 0, y: 0, k: 0 } } : null })} className="h-4 w-4 shrink-0 accent-brand-600" />
           {tr("editor.barcode_background")}
         </label>
         {spec.background && (

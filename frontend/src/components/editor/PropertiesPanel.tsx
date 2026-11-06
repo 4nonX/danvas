@@ -166,7 +166,7 @@ function ColorHarmony({ baseHex, onPick }: { baseHex: string; onPick: (hex: stri
         {harmonySchemes.map((s) => <option key={s} value={s}>{s.replace("-", " ")}</option>)}
       </select>
       <div className="flex flex-wrap gap-1.5">
-        {swatches.map((c, i) => <Swatch key={`${c}-${i}`} color={c} title={`Apply ${c}`} onClick={() => onPick(c)} />)}
+        {swatches.map((c, i) => <Swatch key={`${c}-${i}`} color={c} title={tr("editor.apply_color", { color: c })} onClick={() => onPick(c)} />)}
       </div>
     </div>
   );
@@ -315,15 +315,15 @@ function VideoSection({ node }: { node: Node }) {
         <span className="w-16 shrink-0 text-end text-[10px] tabular-nums text-neutral-400">{fmt(time)} / {fmt(dur)}</span>
       </div>
       <div className="flex items-center gap-2">
-        <button onClick={() => st.setVideoProps(id, { trimStartMs: Math.round(time * 1000) })} className="flex-1 rounded-lg bg-neutral-100 px-2 py-1.5 text-[11px] text-neutral-600 hover:bg-neutral-200" title={tr("editor.trim_start_to_playhead")}>Set start ({fmt(trimStart)})</button>
-        <button onClick={() => st.setVideoProps(id, { trimEndMs: Math.round(time * 1000) })} className="flex-1 rounded-lg bg-neutral-100 px-2 py-1.5 text-[11px] text-neutral-600 hover:bg-neutral-200" title={tr("editor.trim_end_to_playhead")}>Set end ({fmt(trimEnd)})</button>
+        <button onClick={() => st.setVideoProps(id, { trimStartMs: Math.round(time * 1000) })} className="flex-1 rounded-lg bg-neutral-100 px-2 py-1.5 text-[11px] text-neutral-600 hover:bg-neutral-200" title={tr("editor.trim_start_to_playhead")}>{tr("editor.set_start", { time: fmt(trimStart) })}</button>
+        <button onClick={() => st.setVideoProps(id, { trimEndMs: Math.round(time * 1000) })} className="flex-1 rounded-lg bg-neutral-100 px-2 py-1.5 text-[11px] text-neutral-600 hover:bg-neutral-200" title={tr("editor.trim_end_to_playhead")}>{tr("editor.set_end", { time: fmt(trimEnd) })}</button>
         {((v.trimStartMs ?? 0) > 0 || (v.trimEndMs ?? 0) > 0) && (
           <button onClick={() => st.setVideoProps(id, { trimStartMs: 0, trimEndMs: 0 })} className="rounded-lg bg-neutral-100 px-2 py-1.5 text-[11px] text-neutral-500 hover:bg-neutral-200" title={tr("editor.clear_trim")}>↺</button>
         )}
       </div>
-      <div className="flex items-center gap-4 text-[11px] text-neutral-600">
-        <label className="flex items-center gap-1.5"><input type="checkbox" checked={!!v.muted} onChange={(e) => st.setVideoProps(id, { muted: e.target.checked })} /> {tr("editor.mute")}</label>
-        <label className="flex items-center gap-1.5"><input type="checkbox" checked={!!v.loop} onChange={(e) => st.setVideoProps(id, { loop: e.target.checked })} /> {tr("editor.loop")}</label>
+      <div className="flex flex-col gap-2">
+        <label className="flex items-center justify-between gap-2 text-sm text-neutral-600"><span>{tr("editor.mute")}</span><Toggle checked={!!v.muted} onChange={(on) => st.setVideoProps(id, { muted: on })} /></label>
+        <label className="flex items-center justify-between gap-2 text-sm text-neutral-600"><span>{tr("editor.loop")}</span><Toggle checked={!!v.loop} onChange={(on) => st.setVideoProps(id, { loop: on })} /></label>
       </div>
     </Section>
   );
@@ -1023,9 +1023,9 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
         <p
           className="flex items-center gap-1.5 rounded px-2 py-1 text-[11px] font-medium text-white"
           style={{ background: lockedByOtherHolder.color }}
-          title={`Locked by ${lockedByOtherHolder.name}`}
+          title={tr("editor.locked_by", { name: lockedByOtherHolder.name })}
         >
-          <Lock size={12} /> Locked by {lockedByOtherHolder.name}
+          <Lock size={12} /> {tr("editor.locked_by", { name: lockedByOtherHolder.name })}
         </p>
       )}
       {single && (() => {
@@ -1251,7 +1251,7 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
                   key={k}
                   onClick={() => useEditor.getState().setShapeKind(id, k)}
                   className={`grid h-8 place-items-center rounded-lg border text-sm transition ${cur === k ? "border-brand-300 bg-brand-50 text-brand-ink" : "border-transparent bg-neutral-100 text-neutral-600 hover:bg-neutral-200"}`}
-                  title={`Make ${k}`}
+                  title={({ rect: tr("editor.rectangle"), ellipse: tr("editor.ellipse"), triangle: tr("editor.triangle"), polygon: tr("editor.polygon"), star: tr("editor.star") })[k]}
                 >{label}</button>
               ))}
             </div>
@@ -1568,7 +1568,7 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
                   key={p.label}
                   onClick={() => setChar({ fontSize: p.size, axes: { ...(cs?.axes ?? {}), wght: p.wght } })}
                   className="flex-1 rounded-lg border border-transparent bg-neutral-100 px-2 py-1.5 text-xs font-medium text-neutral-600 transition hover:bg-neutral-200"
-                  title={`Apply ${p.label} style`}
+                  title={tr("editor.apply_named_style", { name: p.label })}
                 >{p.label}</button>
               ))}
             </div>
@@ -1720,7 +1720,7 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
                       key={m}
                       onClick={() => setPara({ list: { type: "bullet", level: ps.list!.level ?? 0, marker: m } })}
                       className={`h-8 min-w-[32px] rounded-lg border px-1.5 text-sm transition ${on ? "border-brand-300 bg-brand-50 text-brand-ink" : "border-transparent bg-neutral-100 text-neutral-600 hover:bg-neutral-200"}`}
-                      title={`Bullet ${m}`}
+                      title={tr("editor.bullet_marker", { marker: m })}
                     >{m}</button>
                   );
                 })}
@@ -1737,7 +1737,7 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
                   <div className="flex items-center gap-1.5">
                     <span className="w-12 shrink-0 text-[11px] text-neutral-400">{tr("editor.align")}</span>
                     {(["top", "middle", "bottom"] as const).map((v) => (
-                      <button key={v} onClick={() => useEditor.getState().setVerticalAlign(id, v)} className={`flex-1 ${ebtn(vAlign === v)}`} title={`Vertical: ${v}`}>{v[0].toUpperCase()}</button>
+                      <button key={v} onClick={() => useEditor.getState().setVerticalAlign(id, v)} className={`flex-1 ${ebtn(vAlign === v)}`} title={tr("editor.vertical_named", { value: ({ top: tr("editor.v_top"), middle: tr("editor.v_middle"), bottom: tr("editor.v_bottom") })[v] })}>{({ top: tr("editor.v_top"), middle: tr("editor.v_middle"), bottom: tr("editor.v_bottom") })[v][0].toUpperCase()}</button>
                     ))}
                     <span className="mx-0.5 h-5 w-px bg-neutral-200" />
                     <button onClick={() => setChar({ script: script === "super" ? "normal" : "super" })} className={ebtn(script === "super")} title={tr("editor.superscript")}>x²</button>
@@ -1882,13 +1882,9 @@ export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null }
           ) : null;
         return (
           <Section title={tr("editor.photo_grid")} order={ORDER.type}>
-            <label className="flex items-center gap-2 text-[11px] text-neutral-500">
-              <input
-                type="checkbox"
-                checked={!!g.masonry}
-                onChange={(e) => useEditor.getState().setGridMasonry(id, e.target.checked)}
-              />
-              {tr("editor.masonry")}
+            <label className="flex items-center justify-between gap-2 text-sm text-neutral-600">
+              <span>{tr("editor.masonry")}</span>
+              <Toggle checked={!!g.masonry} onChange={(on) => useEditor.getState().setGridMasonry(id, on)} />
             </label>
             <div className="grid grid-cols-3 gap-2">
               {/* Rows have no meaning once each column advances on its own, so
@@ -2206,8 +2202,9 @@ function KeyframeEditor({ node }: { node: Node }) {
     <div className="flex flex-col gap-2 rounded-lg border border-neutral-200 p-2">
       <div className="flex items-center justify-between">
         <span className="text-[11px] font-medium text-neutral-600">{tr("editor.keyframes")}</span>
-        <label className="flex items-center gap-1 text-[10px] text-neutral-500">
-          <input type="checkbox" checked={!!track.loop} onChange={(e) => set({ ...track, loop: e.target.checked })} className="h-3 w-3 accent-brand-600" />{tr("editor.loop_2")}
+        <label className="flex items-center gap-2 text-[11px] text-neutral-500">
+          {tr("editor.loop_2")}
+          <Toggle checked={!!track.loop} onChange={(on) => set({ ...track, loop: on })} />
         </label>
       </div>
       <div className="relative h-6 rounded bg-neutral-100">
@@ -2256,9 +2253,9 @@ function KeyframeEditor({ node }: { node: Node }) {
               <span>{tr("editor.motion_path_n_points", { count: track.path.length })}</span>
               <button onClick={() => set({ ...track, path: undefined, orient: undefined })} className="text-rose-600 hover:underline">{tr("editor.clear")}</button>
             </div>
-            <label className="flex items-center gap-1 text-[10px] text-neutral-500">
-              <input type="checkbox" checked={!!track.orient} onChange={(e) => set({ ...track, orient: e.target.checked || undefined })} className="h-3 w-3 accent-brand-600" />
-              {tr("editor.orient_to_path")}
+            <label className="flex items-center justify-between gap-2 text-[11px] text-neutral-500">
+              <span>{tr("editor.orient_to_path")}</span>
+              <Toggle checked={!!track.orient} onChange={(on) => set({ ...track, orient: on || undefined })} />
             </label>
           </>
         ) : (
@@ -2680,10 +2677,7 @@ function PageLayoutSection({ page, workspaceId }: { page: Page; workspaceId: str
   if (!layouts.length) {
     return (
       <Section title={tr("editor.layout")}>
-        <p className="mb-2 text-[11px] leading-relaxed text-neutral-500">
-          Slide layouts give each slide a title and content placeholders, and make slide titles readable by screen
-          readers.
-        </p>
+        <p className="mb-2 text-[11px] leading-relaxed text-neutral-500">{tr("editor.slide_layouts_hint")}</p>
         <button type="button" onClick={() => st.ensureSlideLayouts()} className={actionBtnCls} data-testid="add-layouts">
           {tr("editor.add_slide_layouts")}
         </button>
@@ -2713,15 +2707,9 @@ function PageLayoutSection({ page, workspaceId }: { page: Page; workspaceId: str
       {/* F40 E16: per-page adaptive-reflow opt-out (absent = on). Shown only
           while the page is layout-linked, where reflow can act. */}
       {known && (
-        <label className="mt-1.5 flex cursor-pointer items-center gap-2 text-xs text-neutral-600">
-          <input
-            type="checkbox"
-            data-testid="autoflow-toggle"
-            checked={autoflowOn}
-            onChange={(e) => st.setPageAutoflow(useEditor.getState().activePage, e.target.checked)}
-            className="h-3.5 w-3.5 rounded border-neutral-300 accent-brand-600"
-          />
-          {tr("editor.auto_fit_slide_content")}
+        <label className="mt-1.5 flex items-center justify-between gap-2 text-sm text-neutral-600">
+          <span>{tr("editor.auto_fit_slide_content")}</span>
+          <Toggle testId="autoflow-toggle" checked={autoflowOn} onChange={(on) => st.setPageAutoflow(useEditor.getState().activePage, on)} />
         </label>
       )}
       {extractButton}
@@ -3016,15 +3004,9 @@ function NodeAccessibilitySection({ node }: { node: Node }) {
         onChange={(e) => st.setNodeAltText(node.id, e.target.value)}
         className="w-full resize-y rounded-lg border border-neutral-200 bg-surface px-2 py-1.5 text-sm text-neutral-800 outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-100 disabled:opacity-50"
       />
-      <label className="mt-2 flex items-center gap-2 text-sm text-neutral-700">
-        <input
-          type="checkbox"
-          data-testid="decorative-toggle"
-          checked={decorative}
-          onChange={(e) => st.setNodeDecorative(node.id, e.target.checked)}
-          className="h-4 w-4 rounded border-neutral-300 accent-brand-600"
-        />
-        {tr("editor.decorative_skip_for_screen_readers")}
+      <label className="mt-2 flex items-center justify-between gap-2 text-sm text-neutral-600">
+        <span>{tr("editor.decorative_skip_for_screen_readers")}</span>
+        <Toggle testId="decorative-toggle" checked={decorative} onChange={(on) => st.setNodeDecorative(node.id, on)} />
       </label>
       {/* AI description (F22 images; C29 charts from their DATA). */}
       {(node.type === "image" || node.type === "chart") && !decorative && (
@@ -3294,14 +3276,14 @@ function PagePrintSection({ page }: { page: Page }) {
   const hasMarks = !!page.printMarks?.crop;
   return (
     <Section title={tr("editor.print_section")} defaultOpen={hasBleed || hasMarks}>
-      <label className="flex items-center justify-between gap-2 text-sm text-neutral-700">
+      <label className="flex items-center justify-between gap-2 text-sm text-neutral-600">
         <span>{tr("editor.bleed")}</span>
-        <input type="checkbox" checked={hasBleed} onChange={(e) => setPagesBleed([index], e.target.checked)} className="h-4 w-4 accent-brand-500" />
+        <Toggle checked={hasBleed} onChange={(on) => setPagesBleed([index], on)} />
       </label>
       {hasBleed && <BleedField indexes={[index]} />}
-      <label className="flex items-center justify-between gap-2 text-sm text-neutral-700">
+      <label className="flex items-center justify-between gap-2 text-sm text-neutral-600">
         <span>{tr("editor.crop_marks")}</span>
-        <input type="checkbox" checked={hasMarks} onChange={(e) => setPagesMarks([index], e.target.checked)} className="h-4 w-4 accent-brand-500" />
+        <Toggle checked={hasMarks} onChange={(on) => setPagesMarks([index], on)} />
       </label>
       {hasMarks && <MarkFields indexes={[index]} />}
       {doc.pages.length > 1 && (
@@ -3325,14 +3307,9 @@ function PagePresentSection({ page }: { page: Page }) {
   const autoSec = typeof autoMs === "number" ? Math.round(autoMs / 100) / 10 : "";
   return (
     <Section title={tr("editor.present")}>
-      <label className="flex items-center justify-between gap-2 text-sm text-neutral-700">
+      <label className="flex items-center justify-between gap-2 text-sm text-neutral-600">
         <span>{tr("editor.hide_slide_while_presenting")}</span>
-        <input
-          type="checkbox"
-          checked={hidden}
-          onChange={(e) => st.setPageHidden(e.target.checked)}
-          className="h-4 w-4 accent-brand-500"
-        />
+        <Toggle checked={hidden} onChange={(on) => st.setPageHidden(on)} />
       </label>
       <div>
         <div className="mb-1 text-[11px] font-medium text-neutral-400">{tr("editor.speaker_notes")}</div>
@@ -3868,11 +3845,12 @@ function BrandLockHint() {
 /** A pill switch, replacing native checkboxes. `ariaLabel` names the switch for
  *  assistive technology when the adjacent row text is not programmatically
  *  associated (the common layout here is a sibling span, not a label). */
-function Toggle({ checked, onChange, disabled, ariaLabel }: { checked: boolean; onChange: (v: boolean) => void; disabled?: boolean; ariaLabel?: string }) {
+function Toggle({ checked, onChange, disabled, ariaLabel, testId }: { checked: boolean; onChange: (v: boolean) => void; disabled?: boolean; ariaLabel?: string; testId?: string }) {
   return (
     <button
       type="button"
       role="switch"
+      data-testid={testId}
       aria-checked={checked}
       aria-label={ariaLabel}
       disabled={disabled}

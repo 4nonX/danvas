@@ -116,7 +116,7 @@ export function TemplateSlidesDialog({ template, onClose }: { template: Template
             </div>
             <div className="mt-2 flex shrink-0 items-center gap-3 border-t border-neutral-100 pt-2.5">
               <label className="flex cursor-pointer items-center gap-1.5 text-xs text-neutral-600">
-                <input type="checkbox" checked={allOn} onChange={(e) => setSelected(e.target.checked ? new Set(file.pages.map((_, i) => i)) : new Set())} />
+                <input type="checkbox" checked={allOn} onChange={(e) => setSelected(e.target.checked ? new Set(file.pages.map((_, i) => i)) : new Set())} className="h-4 w-4 shrink-0 accent-brand-600" />
                 {tr("editor.select_all")}
               </label>
               <Button size="sm" className="ms-auto" disabled={!selected.size} onClick={insert}>

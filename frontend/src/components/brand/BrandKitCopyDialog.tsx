@@ -7,6 +7,7 @@ import { AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
 import type { BrandKit, BrandKitCopyResult } from "@hc/sdk";
 import { hasAction } from "@hc/authz";
 import { Modal } from "@/components/ui/Modal";
+import { useToast } from "@/components/ui/Toast";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/store/auth";
 import { useWorkspaceActions } from "@/store/workspaceActions";
@@ -41,8 +42,15 @@ export function BrandKitCopyDialog({ workspaceId, kits, initialKitId, onClose }:
   useEffect(() => () => { cancelled.current = true; }, []);
 
   const busy = progress !== null;
+  const toast = useToast();
+  // The copy runs on the server and cannot be stopped from here: closing
+  // leaves it running, and says so.
+  const leaveRunning = () => {
+    toast.toast(tr("brand.copy_continues"), "info");
+    onClose();
+  };
   const nameOf = (id: string) => workspaces.find((w) => w.id === id)?.name ?? "";
-  const box = "h-4 w-4 shrink-0 rounded border-neutral-300 accent-brand-500";
+  const box = "h-4 w-4 shrink-0 rounded border-neutral-300 accent-brand-600";
 
   const start = async () => {
     setError(null);
@@ -62,7 +70,7 @@ export function BrandKitCopyDialog({ workspaceId, kits, initialKitId, onClose }:
   };
 
   return (
-    <Modal open onClose={busy ? () => {} : onClose} title={tr("brand.copy_title")} width="w-[34rem] max-w-full">
+    <Modal open onClose={busy ? leaveRunning : onClose} title={tr("brand.copy_title")} width="w-[34rem] max-w-full">
       <div className="flex max-h-[75vh] flex-col gap-4 overflow-hidden">
         <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto pe-1">
           {result ? (
@@ -138,7 +146,7 @@ export function BrandKitCopyDialog({ workspaceId, kits, initialKitId, onClose }:
             <Button onClick={onClose}>{tr("brand.copy_close")}</Button>
           ) : (
             <>
-              <Button variant="secondary" onClick={onClose} disabled={busy}>{tr("dashboard.cancel")}</Button>
+              <Button variant="secondary" onClick={busy ? leaveRunning : onClose}>{busy ? tr("dashboard.continue_in_background") : tr("dashboard.cancel")}</Button>
               <Button onClick={() => void start()} disabled={busy || kitChoiceEmpty(choice) || targets.length === 0}>{tr("brand.copy_start")}</Button>
             </>
           )}

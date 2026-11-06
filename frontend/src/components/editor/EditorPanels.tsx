@@ -31,7 +31,7 @@ import {
   isComposedSlide, slideItemOf, slideTextDump, reviseSlideSystemPrompt, reviseSlideSchema, reviseSlideItem, recomposeSlide } from "@hc/aistudio";
 import { builtinMasterAndLayouts, type SlideLayout } from "@hc/schema";
 import { shouldGroundInLayouts } from "@/lib/generationRoute";
-import { chooseAction, promptText } from "@/lib/promptDialog";
+import { chooseAction, confirmAction, promptText } from "@/lib/promptDialog";
 import { downloadHycFile } from "@/lib/hycFile";
 import { AnchoredMenu, insideAnchoredMenu } from "@/components/ui/AnchoredMenu";
 import { PackageExportDialog } from "@/components/dashboard/DesignPackage";
@@ -98,29 +98,6 @@ function useDebouncedValue<T>(value: T, delay = 280): T {
   return debounced;
 }
 
-/**
- * Two-step confirm for an immediate, non-undoable action. Returns an `armed` id
- * and a `confirm(id, run)` callback: the first call arms that id (the caller
- * shows a "click again" affordance) and the second call within the window runs
- * the action. Auto-disarms after a few seconds. setState only fires from event
- * handlers / a cleaned-up timeout, so it stays React-compiler-safe.
- */
-function useArmedConfirm(timeoutMs = 3500) {
-  const [armed, setArmed] = useState<string | null>(null);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
-  const disarm = useCallback(() => {
-    if (timer.current) { clearTimeout(timer.current); timer.current = null; }
-    setArmed(null);
-  }, []);
-  const confirm = useCallback((id: string, run: () => void) => {
-    if (armed === id) { disarm(); run(); return; }
-    if (timer.current) clearTimeout(timer.current);
-    setArmed(id);
-    timer.current = setTimeout(() => setArmed(null), timeoutMs);
-  }, [armed, disarm, timeoutMs]);
-  return { armed, confirm, disarm };
-}
 
 /** After an insert, just confirm with a subtle toast. The node is already placed
  *  at the current viewport center and selected by addNode, so it appears where
@@ -396,7 +373,7 @@ export function TemplatesPanel() {
 }
 
 function afterInsert(toast: ReturnType<typeof useToast>, label: string) {
-  toast.success(`Added ${label}`);
+  toast.success(tr("editor.added_item", { name: label }));
 }
 
 export function PanelShell({ title, children, fill, roomy }: { title: string; children: React.ReactNode; fill?: boolean; roomy?: boolean }) {
@@ -823,7 +800,7 @@ function FontRow({ entry, onPick }: { entry: FontCatalogEntry; onPick: (family: 
       onClick={() => onPick(entry.family)}
       className="flex w-full items-center justify-between rounded-lg bg-neutral-50 px-3 py-2 text-start text-[15px] text-neutral-800 hover:bg-brand-50"
       style={{ fontFamily: cssStack(entry) }}
-      title={`Use ${entry.family}`}
+      title={tr("editor.use_font", { family: entry.family })}
     >
       <span className="truncate">{entry.system ? tr("editor.system_default") : entry.family}</span>
       <span className="ms-2 shrink-0 text-[10px] uppercase tracking-wide text-neutral-300">{entry.category}</span>
@@ -890,7 +867,7 @@ export function TextPanel() {
           // Embed the font in the design (data URL) so it loads cross-device when
           // the design is opened elsewhere, not just in this browser's localStorage.
           useEditor.getState().addDocFont({ id: `font-${crypto.randomUUID()}`, family, url: dataUrl });
-          applyFont(family); force(); toast.success(`Added font “${family}”.`);
+          applyFont(family); force(); toast.success(tr("editor.added_font", { family }));
         } else toast.error(tr("editor.couldnt_load_that_font_file"));
       });
     };
@@ -924,7 +901,7 @@ export function TextPanel() {
     pushRecentFont(family);
     force();
     const id = selectedTextId();
-    if (id) { useEditor.getState().setTextStyle(id, { fontFamily: family }); toast.success(`Applied ${family}`); }
+    if (id) { useEditor.getState().setTextStyle(id, { fontFamily: family }); toast.success(tr("editor.applied_font", { family })); }
     else addText(tr("editor.your_text"), 32, 400, family); // addText toasts + frames the new box
   };
 
@@ -998,7 +975,7 @@ export function TextPanel() {
             <div className="flex flex-col gap-1">
               <span className="px-1 text-[10px] uppercase tracking-wide text-neutral-300">{tr("editor.your_fonts")}</span>
               {customFams.map((f) => (
-                <button key={`c-${f}`} onClick={() => applyFont(f)} style={{ fontFamily: `'${f}', sans-serif` }} className="flex w-full items-center justify-between rounded-lg bg-neutral-50 px-3 py-2 text-start text-[15px] text-neutral-800 hover:bg-brand-50" title={`Use ${f}`}>
+                <button key={`c-${f}`} onClick={() => applyFont(f)} style={{ fontFamily: `'${f}', sans-serif` }} className="flex w-full items-center justify-between rounded-lg bg-neutral-50 px-3 py-2 text-start text-[15px] text-neutral-800 hover:bg-brand-50" title={tr("editor.use_font", { family: f })}>
                   <span className="truncate">{f}</span>
                   <span className="ms-2 shrink-0 text-[10px] uppercase tracking-wide text-neutral-300">{tr("editor.custom")}</span>
                 </button>
@@ -1123,7 +1100,6 @@ export function UploadsPanel({
   const [searching, setSearching] = useState(false); // subtle in-flight on re-search
   const [dragOver, setDragOver] = useState(false);
   const [editing, setEditing] = useState<string | null>(null); // asset id whose tags are open
-  const confirmDelete = useArmedConfirm();
 
   // Fetch the visible asset list + usage (honoring the selected folder + the
   // debounced search box). Returns the data; callers decide whether to apply it.
@@ -1410,7 +1386,7 @@ export function UploadsPanel({
       if (!pages.length) { toast.error(tr("editor.couldnt_read_any_pages_from_that_pdf")); return; }
       const elements = pages.reduce((n, p) => n + p.nodes.length, 0);
       useEditor.getState().importPdfPages(pages);
-      toast.success(`Imported ${pages.length} page${pages.length > 1 ? "s" : ""} (${elements} text elements).`);
+      toast.success(tr("editor.imported_pages", { count: pages.length, elements }));
     } catch {
       toast.error(tr("editor.couldnt_import_that_pdf"));
     }
@@ -1485,9 +1461,9 @@ export function UploadsPanel({
                     Tab-reachable and reappear on keyboard focus. */}
                 <button onClick={() => void renameFolder(f)} title={tr("editor.rename_folder")} className="grid h-5 w-5 place-items-center rounded text-neutral-400 opacity-0 hover:text-brand-ink focus-visible:opacity-100 group-hover:opacity-100"><Pencil size={12} /></button>
                 <button
-                  onClick={() => confirmDelete.confirm(`folder:${f.id}`, () => void deleteFolder(f))}
-                  title={confirmDelete.armed === `folder:${f.id}` ? tr("editor.click_again_to_delete") : tr("editor.delete_folder")}
-                  className={`grid h-5 w-5 place-items-center rounded ${confirmDelete.armed === `folder:${f.id}` ? "bg-red-600 text-white" : "text-neutral-400 opacity-0 hover:text-red-600 focus-visible:opacity-100 group-hover:opacity-100"}`}
+                  onClick={() => void confirmAction({ title: tr("editor.delete_folder"), message: tr("editor.delete_upload_folder_message", { name: f.name }), confirmText: tr("editor.delete_folder"), danger: true }).then((ok) => { if (ok) void deleteFolder(f); })}
+                  title={tr("editor.delete_folder")}
+                  className="grid h-5 w-5 place-items-center rounded text-neutral-400 opacity-0 hover:text-red-600 focus-visible:opacity-100 group-hover:opacity-100"
                 >
                   <Trash2 size={12} />
                 </button>
@@ -1559,9 +1535,9 @@ export function UploadsPanel({
                 <button onClick={() => setEditing((id) => (id === a.id ? null : a.id))} title={tr("editor.edit_tags")} className="grid h-6 w-6 place-items-center rounded-full bg-surface/90 text-neutral-500 shadow hover:text-brand-ink"><Tag size={12} /></button>
                 <button onClick={() => void renameAsset(a)} title={tr("editor.rename")} className="grid h-6 w-6 place-items-center rounded-full bg-surface/90 text-neutral-500 shadow hover:text-brand-ink"><Pencil size={12} /></button>
                 <button
-                  onClick={() => confirmDelete.confirm(`asset:${a.id}`, () => void removeAsset(a.id))}
-                  title={confirmDelete.armed === `asset:${a.id}` ? tr("editor.click_again_to_delete") : tr("editor.delete_upload")}
-                  className={`grid h-6 w-6 place-items-center rounded-full shadow ${confirmDelete.armed === `asset:${a.id}` ? "bg-red-600 text-white" : "bg-surface/90 text-neutral-500 hover:text-red-600"}`}
+                  onClick={() => void confirmAction({ title: tr("editor.delete_upload"), message: tr("editor.delete_upload_message", { name: a.filename ?? "" }), confirmText: tr("editor.delete_upload"), danger: true }).then((ok) => { if (ok) void removeAsset(a.id); })}
+                  title={tr("editor.delete_upload")}
+                  className="grid h-6 w-6 place-items-center rounded-full bg-surface/90 text-neutral-500 shadow hover:text-red-600"
                 >
                   <Trash2 size={13} />
                 </button>
@@ -5751,7 +5727,7 @@ function HarmonizeSection() {
     const changes = [...proposal.fonts, ...proposal.colors, ...proposal.radii];
     const n = useEditor.getState().applyHarmonize(changes);
     setProposal(null);
-    toast.success(n > 0 ? `Harmonized ${n} element${n === 1 ? "" : "s"}.` : "Nothing to harmonize.");
+    toast.success(n > 0 ? tr("editor.harmonized_n", { count: n }) : tr("editor.nothing_to_harmonize"));
   }, [proposal, toast]);
 
   const changeCount = proposal ? proposal.fonts.length + proposal.colors.length + proposal.radii.length : 0;
@@ -5871,7 +5847,7 @@ function AutoAnimateSection() {
     const plan = autoAnimatePlan(animateBoxesForPage(st.doc, st.activePage), style);
     const n = st.autoAnimate(plan);
     if (n > 0) {
-      toast.success(`Animated ${n} element${n === 1 ? "" : "s"}.`);
+      toast.success(tr("editor.animated_n", { count: n }));
       st.playAnimations();
     } else {
       toast.toast(tr("editor.no_elements_to_animate"), "info");

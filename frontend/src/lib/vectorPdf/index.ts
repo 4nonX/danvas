@@ -108,6 +108,8 @@ export interface VectorPdfOptions {
   /** Several pages on one sheet (F45): the layout and the sheet size in mm
    *  (portrait). Not with `tagged`. */
   impose?: { settings: ImposeSettings; sheetMm: [number, number] };
+  /** Leave the page background out: only the elements are drawn, on nothing. */
+  noBackground?: boolean;
 }
 
 export interface DrawPagesOptions {
@@ -122,6 +124,8 @@ export interface DrawPagesOptions {
   print?: boolean | PrintParts;
   /** Registration-colour marks and a die line. */
   extras?: PrintExtras;
+  /** Leave the page background out. */
+  noBackground?: boolean;
 }
 
 export interface DrawnPage {
@@ -147,7 +151,7 @@ export interface DrawnPage {
 /** Shared setup of every vector export: the device size of each page and
  *  the font files its text needs (found by drawing the pages once in a
  *  collect pass, then loaded). */
-async function preparePages(doc: DesignFile, pageIndexes: number[], assets: unknown, print: boolean | PrintParts = false) {
+async function preparePages(doc: DesignFile, pageIndexes: number[], assets: unknown, print: boolean | PrintParts = false, noBackground = false) {
   const dpi = (doc as unknown as { dpi?: number }).dpi ?? 96;
   const docFonts = ((doc as unknown as { fonts?: { family?: string; url?: string }[] }).fonts) ?? [];
   if (typeof document !== "undefined" && document.fonts?.ready) await document.fonts.ready;
@@ -160,7 +164,7 @@ async function preparePages(doc: DesignFile, pageIndexes: number[], assets: unkn
     const vp: Viewport = sheetViewport(sheet, zoom);
     return { index: i, pg, zoom, width: vp.width, height: vp.height, vp, sheet };
   });
-  const renderOpts = { assets, clear: false } as Parameters<typeof renderScene>[3];
+  const renderOpts = { assets, clear: false, skipBackground: noBackground } as Parameters<typeof renderScene>[3];
 
   // Pass 1: which font faces does the text use?
   const wanted = new Map<string, FaceRequest>();
@@ -185,7 +189,7 @@ async function preparePages(doc: DesignFile, pageIndexes: number[], assets: unkn
 }
 
 export async function drawPages(doc: DesignFile, pageIndexes: number[], opts: DrawPagesOptions = {}): Promise<{ dpi: number; pages: DrawnPage[]; resources: PdfResources; stats: PdfPageStats }> {
-  const { dpi, pages, renderOpts, faces, vectorSources } = await preparePages(doc, pageIndexes, opts.assets, opts.print);
+  const { dpi, pages, renderOpts, faces, vectorSources } = await preparePages(doc, pageIndexes, opts.assets, opts.print, opts.noBackground);
   // Die line elements are not artwork: drawn apart, as the die line.
   const art = withoutDieLines(doc);
 
@@ -299,8 +303,8 @@ async function writeTextFont(w: PdfWriter, tf: TextFont): Promise<number> {
 
 /** Render one page of a design to a standalone SVG through the same engine
  *  as the editor, so layout, text and effects match it (see svgCanvas.ts). */
-export async function exportVectorSvg(doc: DesignFile, pageIndex: number, opts: { assets?: unknown; print?: boolean | PrintParts } = {}): Promise<string> {
-  const { pages, renderOpts, faces, vectorSources } = await preparePages(doc, [pageIndex], opts.assets, opts.print);
+export async function exportVectorSvg(doc: DesignFile, pageIndex: number, opts: { assets?: unknown; print?: boolean | PrintParts; noBackground?: boolean } = {}): Promise<string> {
+  const { pages, renderOpts, faces, vectorSources } = await preparePages(doc, [pageIndex], opts.assets, opts.print, opts.noBackground);
   const p = pages[0];
   const ctx = new SvgCanvas({ width: p.width, height: p.height, faces, vectorSources });
   ctx.save();
@@ -318,7 +322,7 @@ export async function exportVectorPdf(doc: DesignFile, pageIndexes: number[], op
   // On a sheet the items keep their bleed; the sheet has the cut marks.
   const print = impose ? { bleed: printParts(opts.print ?? false).bleed, marks: false } : opts.print;
   const { dpi, pages, resources, stats } = await drawPages(doc, pageIndexes, {
-    assets: opts.assets, tagged: opts.tagged, print, extras: opts.extras,
+    assets: opts.assets, tagged: opts.tagged, print, extras: opts.extras, noBackground: opts.noBackground,
     color: conv ? { cmyk: (r, g, b) => conv.cmyk(r, g, b), blackOnly: opts.blackOnly ?? true, overprintBlack: !!opts.overprintBlack } : undefined,
   });
   const pdfx = !!opts.pdfx && !!conv && !opts.tagged;
