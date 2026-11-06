@@ -10,7 +10,7 @@
 // offset 0, so it behaves exactly as before.
 
 import { useCallbackRef } from "@/lib/useCallbackRef";
-import { useEffect, useRef, type RefObject } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { createScene, type CanvasLike, type Point, type Scene, type Viewport } from "@hc/engine";
 import { pageToScreen, screenToPage } from "@hc/engine";
 import { renderScene } from "@hc/engine";
@@ -19,6 +19,7 @@ import { useEditor } from "@/store/editor";
 import { imageAssets } from "@/lib/assetProvider";
 import { fonts } from "@/lib/fontProvider";
 import { pageGap, pageOffsets } from "@/lib/pageLayout";
+import { createFrameScheduler, type FrameScheduler } from "@/lib/frameScheduler";
 
 export interface CanvasApi {
   scene: () => Scene | null;
@@ -30,14 +31,60 @@ export interface CanvasApi {
   pageIndexAt: (screen: Point) => number;
 }
 
+/**
+ * During a gesture on the active page, its top-level elements split into those
+ * below the moving ones, the moving ones (from the lowest to the highest moving
+ * element, so anything between them is redrawn too and the order stays exact)
+ * and those above. Null when the selection is not all on the active page.
+ */
+export function gestureLayers(
+  doc: { pages: { children: { id: string }[] }[] },
+  activeIdx: number,
+  selection: readonly string[],
+  topAncestor: (id: string) => string,
+): { below: string[]; moving: string[]; above: string[]; key: string } | null {
+  const kids = doc.pages[activeIdx]?.children ?? [];
+  if (!selection.length || !kids.length) return null;
+  const index = new Map(kids.map((n, i) => [n.id, i]));
+  let lo = Infinity, hi = -Infinity;
+  for (const id of selection) {
+    const i = index.get(topAncestor(id));
+    if (i === undefined) return null;
+    lo = Math.min(lo, i);
+    hi = Math.max(hi, i);
+  }
+  // An element above that blends (multiply, screen, ...) must blend with what
+  // moves under it, so from the first such one up everything is drawn live.
+  for (let i = hi + 1; i < kids.length; i++) if (blends(kids[i])) { hi = kids.length - 1; break; }
+  const ids = kids.map((n) => n.id);
+  return { below: ids.slice(0, lo), moving: ids.slice(lo, hi + 1), above: ids.slice(hi + 1), key: `${lo}-${hi}-${ids.length}-${ids[lo]}` };
+}
+
+/** Whether a node or anything inside it uses a blend mode other than normal. */
+function blends(node: unknown): boolean {
+  const n = node as { blendMode?: string; children?: unknown[]; child?: unknown; operands?: unknown[] };
+  if (n.blendMode && n.blendMode !== "normal") return true;
+  for (const c of [...(n.children ?? []), ...(n.operands ?? []), ...(n.child ? [n.child] : [])]) if (blends(c)) return true;
+  return false;
+}
+
+/** A canvas of the given size, reusing `old` when it fits. */
+function layerCanvas(w: number, h: number, old?: HTMLCanvasElement): HTMLCanvasElement {
+  const c = old ?? document.createElement("canvas");
+  if (c.width !== w) c.width = w;
+  if (c.height !== h) c.height = h;
+  return c;
+}
+
 export function useEditorCanvas(canvasRef: RefObject<HTMLCanvasElement | null>): CanvasApi {
   // Lazily-built, per-page scene cache, invalidated when the doc rev changes.
   // Only pages that are drawn (visible) get built, so a 100+ page document does
   // O(visible) work per edit/scroll instead of O(all pages).
   const sceneCacheRef = useRef<{ rev: number; scenes: Map<number, Scene> }>({ rev: -1, scenes: new Map() });
   const sizeRef = useRef({ width: 1, height: 1, dpr: 1 });
+  // The pictures of what does not move during a gesture (see renderNow).
+  const layersRef = useRef<{ key: string; below: HTMLCanvasElement; above: HTMLCanvasElement; hasAbove: boolean } | null>(null);
   const fittedRef = useRef(false);
-  const rev = useEditor((s) => s.rev);
   const viewport = useEditor((s) => s.viewport);
   const activePage = useEditor((s) => s.activePage);
   const editingTextId = useEditor((s) => s.editingTextId);
@@ -85,7 +132,7 @@ export function useEditorCanvas(canvasRef: RefObject<HTMLCanvasElement | null>):
     return s;
   };
 
-  const render = useCallbackRef(() => {
+  const renderNow = useCallbackRef(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const dpr = window.devicePixelRatio || 1;
@@ -168,36 +215,91 @@ export function useEditorCanvas(canvasRef: RefObject<HTMLCanvasElement | null>):
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     } else {
-      // Two-pass render so no page's content is ever clipped or covered by another
-      // page's background: pass 1 draws every visible page's background (bottom),
-      // pass 2 draws all content on top. Content that overflows a page edge stays
-      // visible on the pasteboard and above neighbouring pages' backgrounds.
-      visible.forEach((i, k) => {
-        const vp: Viewport = { ...base, panY: base.panY - offs[i] };
-        renderScene(getScene(i), ctx as unknown as CanvasLike, vp, { assets: imageAssets, clear: k === 0 ? undefined : false, backgroundOnly: true });
-      });
-      // Content pass. During a drag, draw the active page's content last so the
-      // dragged element sits above other pages' content too.
-      const order = live ? [...visible].sort((a, b) => (a === activeIdx ? 1 : 0) - (b === activeIdx ? 1 : 0)) : visible;
-      for (const i of order) {
-        const vp: Viewport = { ...base, panY: base.panY - offs[i] };
-        renderScene(getScene(i), ctx as unknown as CanvasLike, vp, { assets: imageAssets, clear: false, skipBackground: true, skipNodeId, hiddenIds, fadeIds, clipToPage, revealIds, unclipIds });
+      // Draws the visible pages into `c`: the backgrounds (unless left out), then
+      // the content, with `activeHidden` left out of the active page and
+      // `onlyActive` drawing the active page's content alone.
+      const draw = (c: CanvasRenderingContext2D, o: { activeHidden?: ReadonlySet<string>; backgrounds: boolean; onlyActive?: boolean }) => {
+        // Two-pass render so no page's content is ever clipped or covered by another
+        // page's background: pass 1 draws every visible page's background (bottom),
+        // pass 2 draws all content on top. Content that overflows a page edge stays
+        // visible on the pasteboard and above neighbouring pages' backgrounds.
+        if (o.backgrounds) {
+          visible.forEach((i, k) => {
+            const vp: Viewport = { ...base, panY: base.panY - offs[i] };
+            renderScene(getScene(i), c as unknown as CanvasLike, vp, { assets: imageAssets, clear: k === 0 ? undefined : false, backgroundOnly: true });
+          });
+        }
+        // Content pass. During a drag, draw the active page's content last so the
+        // dragged element sits above other pages' content too.
+        const order = live ? [...visible].sort((a, b) => (a === activeIdx ? 1 : 0) - (b === activeIdx ? 1 : 0)) : visible;
+        for (const i of order) {
+          if (o.onlyActive && i !== activeIdx) continue;
+          const vp: Viewport = { ...base, panY: base.panY - offs[i] };
+          const hid = i === activeIdx && o.activeHidden ? new Set([...(hiddenIds ?? []), ...o.activeHidden]) : hiddenIds;
+          renderScene(getScene(i), c as unknown as CanvasLike, vp, { assets: imageAssets, clear: false, skipBackground: true, skipNodeId, hiddenIds: hid, fadeIds, clipToPage, revealIds, unclipIds });
+        }
+      };
+      const layers = live ? gestureLayers(doc, activeIdx, selection, topAncestor) : null;
+      if (!layers) {
+        layersRef.current = null;
+        draw(ctx, { backgrounds: true });
+      } else {
+        // A gesture: what does not move is drawn once into two pictures (below
+        // and above the moving elements, so the stacking stays exact), and each
+        // frame draws picture, moving elements, picture.
+        const key = [bw, bh, base.zoom, base.panX, base.panY, activeIdx, layers.key, skipNodeId ?? "", [...(revealIds ?? [])].join(","), [...(hiddenIds ?? [])].join(",")].join("|");
+        let cache = layersRef.current;
+        if (!cache || cache.key !== key) {
+          const below = layerCanvas(bw, bh, cache?.below);
+          const above = layerCanvas(bw, bh, cache?.above);
+          const bctx = below.getContext("2d");
+          const actx = above.getContext("2d");
+          if (!bctx || !actx) { layersRef.current = null; draw(ctx, { backgrounds: true }); return; }
+          draw(bctx, { backgrounds: true, activeHidden: new Set([...layers.moving, ...layers.above]) });
+          actx.setTransform(1, 0, 0, 1, 0, 0);
+          actx.clearRect(0, 0, bw, bh);
+          if (layers.above.length) draw(actx, { backgrounds: false, onlyActive: true, activeHidden: new Set([...layers.below, ...layers.moving]) });
+          cache = { key, below, above, hasAbove: layers.above.length > 0 };
+          layersRef.current = cache;
+        }
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, bw, bh);
+        ctx.drawImage(cache.below, 0, 0);
+        draw(ctx, { backgrounds: false, onlyActive: true, activeHidden: new Set([...layers.below, ...layers.above]) });
+        if (cache.hasAbove) {
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.drawImage(cache.above, 0, 0);
+        }
       }
     }
   });
 
+  // Every reason to repaint (an edit, the viewport, hover, an image or font
+  // that finished loading, a resize) asks the scheduler; it draws once per
+  // frame at most, and after a slow drawing waits as long again, so a heavy
+  // design makes the canvas update less often instead of freezing the page.
+  const [scheduler] = useState<FrameScheduler>(() => createFrameScheduler(() => renderNow()));
+  const render = useCallbackRef(() => scheduler.request());
+  useEffect(() => () => scheduler.cancel(), [scheduler]);
+
   // On a doc change, (re)register assets/fonts and repaint. Scenes rebuild lazily
   // per visible page via getScene (the cache invalidates on the rev change).
+  // Subscribed directly, so an edit does not re-render the canvas component.
   useEffect(() => {
-    const doc = useEditor.getState().doc;
-    imageAssets.registerAll(doc.assets ?? []);
-    fonts.ensureForDoc(doc);
-    render();
-  }, [rev, render]);
+    const onDoc = () => {
+      const doc = useEditor.getState().doc;
+      imageAssets.registerAll(doc.assets ?? []);
+      fonts.ensureForDoc(doc);
+      render();
+    };
+    onDoc();
+    return useEditor.subscribe((s, prev) => { if (s.rev !== prev.rev || s.doc !== prev.doc) onDoc(); });
+  }, [render]);
 
-  // Repaint when an image asset or a web font finishes loading.
-  useEffect(() => imageAssets.onChange(() => render()), [render]);
-  useEffect(() => fonts.onChange(() => render()), [render]);
+  // Repaint when an image asset or a web font finishes loading (the stored
+  // pictures of a gesture would show it missing, so they go).
+  useEffect(() => imageAssets.onChange(() => { layersRef.current = null; render(); }), [render]);
+  useEffect(() => fonts.onChange(() => { layersRef.current = null; render(); }), [render]);
 
   // Repaint on viewport, active-page, text-edit (skip), mask-refine (skip),
   // live-transform, or hover change (hover reveals a selected/overflowing

@@ -32,6 +32,7 @@ import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 import { useEscapeKey } from "@/lib/useEscapeKey";
 import { tr } from "@/lib/i18n";
+import { useDocRev } from "@/lib/useDocRev";
 
 type Tab = "settings" | "preview" | "export";
 type Device = "desktop" | "tablet" | "mobile";
@@ -103,7 +104,7 @@ export function WebsiteDialog({
   const doc = useEditor((s) => s.doc);
   // `rev` bumps on every document mutation; recomputing on it keeps the live
   // preview in sync if the design changes while the dialog is open.
-  const rev = useEditor((s) => s.rev);
+  const rev = useDocRev();
 
   const [tab, setTab] = useState<Tab>("settings");
   const [device, setDevice] = useState<Device>("desktop");

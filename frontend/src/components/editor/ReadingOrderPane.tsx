@@ -16,9 +16,10 @@ import { isDecorative, nodeAltText, resolveReadingOrder } from "@hc/schema";
 import { useEditor } from "@/store/editor";
 import { tr } from "@/lib/i18n";
 import { nodeDisplayName } from "@/lib/nodeName";
+import { useDocRev } from "@/lib/useDocRev";
 
 export function ReadingOrderPane() {
-  useEditor((s) => s.rev);
+  useDocRev();
   const selection = useEditor((s) => s.selection);
   const activePage = useEditor((s) => s.activePage);
   const doc = useEditor.getState().doc;

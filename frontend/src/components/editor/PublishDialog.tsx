@@ -54,6 +54,7 @@ import { mirrorInRtl } from "@/lib/locale";
 import { useEscapeKey } from "@/lib/useEscapeKey";
 import { tr } from "@/lib/i18n";
 import { userMessage } from "@/lib/errors";
+import { useDocRev } from "@/lib/useDocRev";
 
 type Tab = "publish" | "planner" | "qr";
 
@@ -187,7 +188,7 @@ export function PublishDialog({
   // subscribed so edits in place (which keep the same `doc` reference) re-render.
   const doc = useEditor((s) => s.doc);
   const activePage = useEditor((s) => s.activePage);
-  useEditor((s) => s.rev);
+  useDocRev();
 
   if (!open) return null;
 

@@ -66,6 +66,7 @@ import { ProofView } from "./ProofView";
 import { OutputCheckView } from "./OutputCheckView";
 import { whenRenderable } from "@/lib/loadDesignForExport";
 import { BleedField, BleedInput, MarkFields, MarkInputs, setPagesBleed, setPagesMarks } from "./PrintSettings";
+import { useDocRev } from "@/lib/useDocRev";
 
 type Format = "png" | "jpg" | "pdf" | "svg" | "apng" | "gif" | "lottie" | "mp4" | "pptx" | "md" | "hyc" | "tiff" | "eps";
 
@@ -393,7 +394,7 @@ export function ExportDialog({ open, onClose, designs, workspaceId: workspaceIdP
   const bulk = (designs?.length ?? 0) > 1;
   // Editor rev drives a debounced gate re-fetch so fixing violations in the
   // Brand panel while this dialog is open keeps the block/warn state current.
-  const rev = useEditor((s) => s.rev);
+  const rev = useDocRev();
   const brandDesignId = useBrand((s) => s.designId);
   const designId = designs ? (designs[0]?.id ?? null) : brandDesignId;
   // Credits compiled from node provenance (attribution-required stock assets,

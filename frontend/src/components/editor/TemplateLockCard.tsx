@@ -13,6 +13,7 @@ import { lockOf, type TemplateLockLevel } from "@/lib/templateLock";
 import { useEditor } from "@/store/editor";
 import { lockWorkspaceName, useTemplateLock } from "@/store/templateLock";
 import { layerLabel } from "./LayerPanel";
+import { useDocRev } from "@/lib/useDocRev";
 
 type Choice = TemplateLockLevel | "none";
 
@@ -22,7 +23,7 @@ export function TemplateLockCard() {
   // Rights and contacts arrive asynchronously; re-render when they do.
   useTemplateLock((s) => s.workspaces);
   useTemplateLock((s) => s.canManage);
-  useEditor((s) => s.rev);
+  useDocRev();
   const selection = useEditor((s) => s.selection);
   const tl = useTemplateLock.getState();
 

@@ -14,6 +14,7 @@ import { pageAssigneeOf, pageStatusColor, pageStatusLabel, pageStatusOf } from "
 import { mirrorInRtl } from "@/lib/locale";
 import { tr } from "@/lib/i18n";
 import { fromUnit } from "@/lib/units";
+import { useDocRev } from "@/lib/useDocRev";
 
 const THUMB_W = 54;
 const THUMB_H = 34;
@@ -32,7 +33,7 @@ const pageSizePresets = (dpi: number): { label: string; w: number; h: number; mm
 
 
 export function PagesBar() {
-  useEditor((s) => s.rev);
+  useDocRev();
   const active = useEditor((s) => s.activePage);
   const doc = useEditor.getState().doc;
   const pages = doc.pages;
@@ -327,7 +328,7 @@ function SectionChip({ section, count }: { section: SlideSection; count: number 
  * costs a phone about an eighth of its height, so it is not shown there.
  */
 export function PagePill({ onOverview }: { onOverview: () => void }) {
-  useEditor((s) => s.rev);
+  useDocRev();
   const active = useEditor((s) => s.activePage);
   const total = useEditor.getState().doc.pages.length;
   const st = useEditor.getState;

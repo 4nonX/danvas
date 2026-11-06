@@ -10,9 +10,10 @@ import { useEffect, useRef, useState } from "react";
 import { createScene, renderScene, type CanvasLike, type Viewport } from "@hc/engine";
 import { imageAssets } from "@/lib/assetProvider";
 import { useEditor } from "@/store/editor";
+import { useDocRev } from "@/lib/useDocRev";
 
 export function SlideThumb({ index, width, height }: { index: number; width: number; height: number }) {
-  const rev = useEditor((s) => s.rev);
+  const rev = useDocRev();
   const activePage = useEditor((s) => s.activePage);
   const liveRev = index === activePage ? rev : 0;
   const ref = useRef<HTMLCanvasElement>(null);

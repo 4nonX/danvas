@@ -15,10 +15,11 @@ import { imageAssets } from "@/lib/assetProvider";
 import { vectorizeImageNode, type VectorizeResult } from "@/lib/vectorize";
 import { contourToPathData } from "@/lib/vectorize/trace";
 import { AnimateSection, ImageEffectsSection, NodeEffects, TextEffectPicker } from "./PropertiesPanel";
+import { useDocRev } from "@/lib/useDocRev";
 
 /** The single selected node, or null for no or several selected nodes. */
 function useSingleNode(): Node | null {
-  useEditor((s) => s.rev);
+  useDocRev();
   const selection = useEditor((s) => s.selection);
   if (selection.length !== 1) return null;
   return (locate(useEditor.getState().doc, selection[0])?.node as Node | undefined) ?? null;

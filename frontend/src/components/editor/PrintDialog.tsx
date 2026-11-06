@@ -31,6 +31,7 @@ import { exportIssues, type ExportIssue } from "@/lib/exportIssues";
 import { barcodeOf } from "@/lib/barcode";
 import { useEscapeKey } from "@/lib/useEscapeKey";
 import { tr } from "@/lib/i18n";
+import { useDocRev } from "@/lib/useDocRev";
 
 type Job = { doc: DesignFile; pages: number[] };
 
@@ -132,7 +133,7 @@ function barcodePrinterDpi(docs: DesignFile[]): number | null {
 /** Barcodes the chosen resolution draws with too few pixels per module (or
  *  that may not scan for another reason), listed under the resolution. */
 function BarcodePrintCheck({ jobs, dpi }: { jobs: Job[]; dpi: number }) {
-  const rev = useEditor((s) => s.rev);
+  const rev = useDocRev();
   const [issues, setIssues] = useState<ExportIssue[]>([]);
   const key = jobs.map((j) => j.pages.join(",")).join("|");
   useEffect(() => {
@@ -159,7 +160,7 @@ export function PrintDialog({ open, onClose, designs, workspaceId: workspaceIdPr
   useEscapeKey(onClose, open);
   const editorDoc = useEditor((s) => s.doc);
   const activePage = useEditor((s) => s.activePage);
-  useEditor((s) => s.rev); // re-read the live doc on edits
+  useDocRev(); // re-read the live doc on edits
   const brandWorkspaceId = useBrand((s) => s.workspaceId);
   const editorFolderId = useBrand((s) => s.folderId);
   const workspaceId = workspaceIdProp ?? brandWorkspaceId;

@@ -35,6 +35,7 @@ import { fonts } from "@/lib/fontProvider";
 import { oc, resolveAssetUrl } from "@/lib/sdk";
 import { useToast } from "@/components/ui/Toast";
 import { tr } from "@/lib/i18n";
+import { useDocRev } from "@/lib/useDocRev";
 
 /** Map a lint violation's typed fix to the store's BrandFixTarget, or null when
  *  there is no safe auto-fix (restore_logo / missing fix). */
@@ -82,7 +83,7 @@ export function BrandPanel({ workspaceId }: { workspaceId: string | null }) {
   const pinnedVersion = useBrand((s) => s.pinnedVersion);
   const lockedRegions = useBrand((s) => s.lockedRegions);
   // Editor rev drives debounced live re-lint after edits (FR-8).
-  const rev = useEditor((s) => s.rev);
+  const rev = useDocRev();
   const selection = useEditor((s) => s.selection);
 
   const [kits, setKits] = useState<BrandKit[]>([]);
@@ -1023,7 +1024,7 @@ function AddBrandColors({ existing, onAdd }: { existing: string[]; onAdd: (color
   // Starts at the brand's first colour (a neighbour is the usual addition).
   const [hex, setHex] = useState(existing[0] ?? "#000000");
   const selection = useEditor((s) => s.selection);
-  const rev = useEditor((s) => s.rev);
+  const rev = useDocRev();
   const toast = useToast();
   // A selected photo or logo suggests its own colours: the dominant ones the
   // palette does not hold yet, each a click to add. Recomputed as the

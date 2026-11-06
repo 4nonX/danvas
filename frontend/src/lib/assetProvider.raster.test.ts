@@ -29,16 +29,21 @@ async function provider() {
 const settle = () => new Promise((r) => setTimeout(r, 0));
 
 describe("SVG bitmaps", () => {
+  it("is not offered to the engine for now (1.9.9 froze Firefox), so SVGs draw as in 1.9.8", async () => {
+    const p = await provider();
+    expect("raster" in p).toBe(false);
+  });
+
   it("makes one for an SVG, keeps it, and makes another only for a new size", async () => {
     const p = await provider();
     p.registerAll([{ id: "a", url: "/api/v1/assets/a/content", kind: "image", mime: "image/svg+xml" }]);
     await settle();
-    const first = p.raster("a", 200, 100) as HTMLCanvasElement;
+    const first = p.vectorRaster("a", 200, 100) as HTMLCanvasElement;
     expect(first).toBeInstanceOf(HTMLCanvasElement);
     expect([first.width, first.height]).toEqual([200, 100]);
-    expect(p.raster("a", 200, 100)).toBe(first);
+    expect(p.vectorRaster("a", 200, 100)).toBe(first);
     expect(drawn).toBe(1);
-    expect(p.raster("a", 400, 200)).not.toBe(first);
+    expect(p.vectorRaster("a", 400, 200)).not.toBe(first);
     expect(drawn).toBe(2);
   });
 
@@ -50,16 +55,16 @@ describe("SVG bitmaps", () => {
     ]);
     p.register("d", "data:image/svg+xml;base64,AAAA");
     await settle();
-    for (const id of ["k", "n", "d"]) expect(p.raster(id, 10, 10)).not.toBeNull();
+    for (const id of ["k", "n", "d"]) expect(p.vectorRaster(id, 10, 10)).not.toBeNull();
   });
 
   it("makes none for a photo, a missing asset or one still loading", async () => {
     const p = await provider();
     p.registerAll([{ id: "photo", url: "/x/p.jpg", kind: "image", mime: "image/jpeg" }]);
-    expect(p.raster("photo", 10, 10)).toBeNull();
+    expect(p.vectorRaster("photo", 10, 10)).toBeNull();
     await settle();
-    expect(p.raster("photo", 10, 10)).toBeNull();
-    expect(p.raster("nope", 10, 10)).toBeNull();
+    expect(p.vectorRaster("photo", 10, 10)).toBeNull();
+    expect(p.vectorRaster("nope", 10, 10)).toBeNull();
     expect(drawn).toBe(0);
   });
 
@@ -67,9 +72,9 @@ describe("SVG bitmaps", () => {
     const p = await provider();
     p.register("a", "/x/a.svg");
     await settle();
-    const before = p.raster("a", 50, 50);
+    const before = p.vectorRaster("a", 50, 50);
     p.register("a", "/x/a-new.svg");
     await settle();
-    expect(p.raster("a", 50, 50)).not.toBe(before);
+    expect(p.vectorRaster("a", 50, 50)).not.toBe(before);
   });
 });

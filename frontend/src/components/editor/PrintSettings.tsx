@@ -10,6 +10,7 @@ import { useEditor } from "@/store/editor";
 import { tr } from "@/lib/i18n";
 import { marksMmOf, marksPatchPx, mmToPx, pxToMm } from "@/lib/print/sheet";
 import { ColorField } from "./ColorField";
+import { useDocRev } from "@/lib/useDocRev";
 
 /** The bleed a page gets when it is switched on: the common 3 mm. */
 export const BLEED_DEFAULT_MM = 3;
@@ -106,7 +107,7 @@ export function MarkInputs({ marks, onChange }: { marks: MarksMm; onChange: (pat
 
 /** The bleed of the pages, in millimetres. */
 export function BleedField({ indexes }: { indexes: number[] }) {
-  useEditor((s) => s.rev);
+  useDocRev();
   const dpi = useEditor.getState().doc.dpi ?? 96;
   const page = pagesAt(indexes)[0];
   if (!page) return null;
@@ -115,7 +116,7 @@ export function BleedField({ indexes }: { indexes: number[] }) {
 
 /** The crop marks of the pages. */
 export function MarkFields({ indexes }: { indexes: number[] }) {
-  useEditor((s) => s.rev);
+  useDocRev();
   const dpi = useEditor.getState().doc.dpi ?? 96;
   const page = pagesAt(indexes)[0];
   if (!page) return null;

@@ -59,6 +59,7 @@ import { ManageProfilesLinks } from "@/components/editor/ManageProfilesLinks";
 import { userMessage } from "@/lib/errors";
 import { barcodeOf, ungroupLabel } from "@/lib/barcode";
 import { SHAPE_TEXT_OVERFLOWS, shapeTextOf, type ShapeText, type ShapeTextOverflow } from "@/lib/shapeText";
+import { useDocRev } from "@/lib/useDocRev";
 
 type IconType = ComponentType<{ size?: number | string; strokeWidth?: number; className?: string }>;
 
@@ -423,7 +424,7 @@ function Field({
  *  workspace's default. Changing it shows those colours anew (one undo). */
 function DesignColorProfile() {
   const doc = useEditor((s) => s.doc);
-  useEditor((s) => s.rev);
+  useDocRev();
   const workspaceId = useBrand((s) => s.workspaceId);
   const [options, setOptions] = useState<ProfileOption[] | null>(null);
   useEffect(() => {
@@ -681,7 +682,7 @@ function QrLogoControl({ id, logoAssetId, logoScale, workspaceId }: { id: string
 }
 
 export function PropertiesPanel({ workspaceId }: { workspaceId?: string | null } = {}) {
-  useEditor((s) => s.rev);
+  useDocRev();
   const selection = useEditor((s) => s.selection);
   const activePage = useEditor((s) => s.activePage);
   // The table cell targeted by the cell-formatting controls (F27).
@@ -2602,7 +2603,7 @@ function InteractionSection({ node, doc }: { node: Node; doc: DesignFile }) {
  *  is itself one undoable action, so a deck opts in explicitly. */
 function PageLayoutSection({ page, workspaceId }: { page: Page; workspaceId: string | null }) {
   const st = useEditor.getState();
-  const rev = useEditor((s) => s.rev);
+  const rev = useDocRev();
   const toast = useToast();
   const [extracting, setExtracting] = useState(false);
   const doc = useEditor.getState().doc as unknown as {
@@ -2752,7 +2753,7 @@ function ThemeRow({ active, colors, name, testId, onClick }: { active: boolean; 
 
 function DeckThemeSection() {
   const st = useEditor.getState();
-  const rev = useEditor((s) => s.rev);
+  const rev = useDocRev();
   const brandKit = useBrand((s) => s.kit);
   const doc = useEditor.getState().doc as unknown as { theme?: Theme };
   const current = doc.theme?.id;
@@ -2979,7 +2980,7 @@ function DeckThemeSection() {
  *  Shown for every node type, because meaning is not the preserve of images. */
 function NodeAccessibilitySection({ node }: { node: Node }) {
   const st = useEditor.getState();
-  const rev = useEditor((s) => s.rev);
+  const rev = useDocRev();
   void rev;
   const toast = useToast();
   const [altBusy, setAltBusy] = useState(false);

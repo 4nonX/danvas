@@ -82,6 +82,7 @@ import { stickerLabel, stickerCategoryLabel } from "@/lib/stickers";
 import { documentDirection } from "@/lib/locale";
 import { apiCodeMessage, CodedError, userMessage } from "@/lib/errors";
 import { useWorkspaceFontFamilies } from "@/lib/workspaceFonts";
+import { useDocRev } from "@/lib/useDocRev";
 
 /**
  * Debounce a rapidly-changing value (search boxes, filters) so dependent work
@@ -132,7 +133,7 @@ export function TemplatesPanel() {
   // The active page's size drives the suggestions; re-read on page switches
   // and doc edits (a stage resize changes what "matching" means).
   const activePage = useEditor((s) => s.activePage);
-  const rev = useEditor((s) => s.rev);
+  const rev = useDocRev();
   const pageSize = useMemo(() => {
     const d = useEditor.getState().doc;
     const pg = d.pages[Math.min(activePage, d.pages.length - 1)];
@@ -5640,7 +5641,7 @@ function CritiqueSection() {
   // Re-derive on every doc mutation / page switch so fixes update the list live
   // (mirrors brand-lint), without a setState-in-effect. `active` gates the first
   // analysis to a user click.
-  const rev = useEditor((s) => s.rev);
+  const rev = useDocRev();
   const activePage = useEditor((s) => s.activePage);
   const [active, setActive] = useState(false);
 
@@ -5714,7 +5715,7 @@ function CritiqueSection() {
 
 function HarmonizeSection() {
   const toast = useToast();
-  useEditor((s) => s.rev);
+  useDocRev();
   const [proposal, setProposal] = useState<HarmonizeProposal | null>(null);
 
   const preview = useCallback(() => {
@@ -5786,7 +5787,7 @@ function HarmonizeSection() {
 
 function AutoLayoutSection() {
   const toast = useToast();
-  const rev = useEditor((s) => s.rev);
+  const rev = useDocRev();
   const activePage = useEditor((s) => s.activePage);
   const [active, setActive] = useState(false);
 
@@ -5839,7 +5840,7 @@ function AutoLayoutSection() {
 
 function AutoAnimateSection() {
   const toast = useToast();
-  useEditor((s) => s.rev);
+  useDocRev();
   const [style, setStyle] = useState<AnimateStyle>("fade");
 
   const apply = useCallback(() => {
@@ -5923,7 +5924,7 @@ let providerCatalogCache: AiProviderPreset[] | null = null;
 
 export function AiPanel({ workspaceId, designId = null }: { workspaceId: string | null; designId?: string | null }) {
   // Re-render when the doc changes so the brand-voice indicator stays current.
-  useEditor((s) => s.rev);
+  useDocRev();
   // The active design's brand voice, already loaded by EditorApp via
   // useBrand.setDesign, so reading it here needs no extra fetch (FR-7).
   const brandVoice = useBrand((s) => s.kit?.voice ?? null);

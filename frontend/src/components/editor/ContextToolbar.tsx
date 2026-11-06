@@ -32,6 +32,7 @@ import { useWorkspaceFontFamilies } from "@/lib/workspaceFonts";
 import { pasteOnNextSelection } from "@/lib/formatPainter";
 import { barcodeOf, ungroupLabel } from "@/lib/barcode";
 import { openReplace, ReplaceModeChips } from "./ReplaceObjectDialog";
+import { useDocRev } from "@/lib/useDocRev";
 
 const btn =
   "flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-md px-2 text-sm text-neutral-700 transition hover:bg-neutral-100 disabled:opacity-40 disabled:hover:bg-transparent";
@@ -105,7 +106,7 @@ function NumIn({ value, onCommit, min, width = 56, label }: { value: number; onC
 }
 
 export function ContextToolbar({ propsOpen, onToggleProps }: { propsOpen: boolean; onToggleProps: () => void }) {
-  useEditor((s) => s.rev);
+  useDocRev();
   const selection = useEditor((s) => s.selection);
   const activePage = useEditor((s) => s.activePage);
   const cropping = useEditor((s) => s.cropping);

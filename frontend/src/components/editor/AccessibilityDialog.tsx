@@ -15,6 +15,7 @@ import { generateAltText } from "@/lib/altText";
 import { useToast } from "@/components/ui/Toast";
 import { userMessage } from "@/lib/errors";
 import { tr, trOr } from "@/lib/i18n";
+import { useDocRev } from "@/lib/useDocRev";
 
 // The list mirrors the shipped catalogs plus the RTL scripts the export path
 // shapes. i18n-ignore: a language picker shows each language in its OWN name.
@@ -96,7 +97,7 @@ function fixFor(i: A11yIssue): { label: string; run: (workspaceId: string | null
 }
 
 export function AccessibilityDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const rev = useEditor((s) => s.rev);
+  const rev = useDocRev();
   const toast = useToast();
   const workspaceId = useBrand((s) => s.workspaceId);
   const [fixing, setFixing] = useState<string | null>(null);

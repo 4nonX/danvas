@@ -23,12 +23,13 @@ import { useEditor } from "@/store/editor";
 import { imageAssets } from "@/lib/assetProvider";
 import { fonts } from "@/lib/fontProvider";
 import { pageGap, pageOffsets } from "@/lib/pageLayout";
+import { useDocRev } from "@/lib/useDocRev";
 
 const MAP_W = 150;
 const MAP_MAX_H = 110;
 
 export function MiniMap() {
-  const rev = useEditor((s) => s.rev);
+  const rev = useDocRev();
   const activePage = useEditor((s) => s.activePage);
   const viewport = useEditor((s) => s.viewport);
   const viewportSize = useEditor((s) => s.viewportSize);

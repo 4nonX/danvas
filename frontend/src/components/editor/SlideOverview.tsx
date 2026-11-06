@@ -21,12 +21,13 @@ import { usePresence } from "@/store/presence";
 import { SlideThumb } from "./SlideThumb";
 import { pageAssigneeOf, pageStatusColor, pageStatusLabel, pageStatusOf, pageStatusValues } from "@/lib/pageStatus";
 import { tr } from "@/lib/i18n";
+import { useDocRev } from "@/lib/useDocRev";
 
 const GRID_W = 200;
 const GRID_H = 130;
 
 export function SlideOverview({ open, onClose }: { open: boolean; onClose: () => void }) {
-  useEditor((s) => s.rev);
+  useDocRev();
   const activePage = useEditor((s) => s.activePage);
   const doc = useEditor.getState().doc;
   const [view, setView] = useState<"grid" | "outline" | "board">("grid");
@@ -191,7 +192,7 @@ export function SlideOverview({ open, onClose }: { open: boolean; onClose: () =>
  *  status select and an assignee select per card. Drag a card onto a column to
  *  restatus it - the same store action the selects use, one undo step each. */
 function StatusBoard({ onOpen }: { onOpen: (i: number) => void }) {
-  useEditor((s) => s.rev);
+  useDocRev();
   const doc = useEditor.getState().doc;
   const canEdit = usePresence((s) => s.canEdit()) && !useEditor.getState().readonlyPreview();
   const workspaceId = useBrand((s) => s.workspaceId);

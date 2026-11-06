@@ -17,6 +17,7 @@ import { effectiveLock, lockOf, locksBelow } from "@/lib/templateLock";
 import { layerDropIndex } from "@/lib/layerOrder";
 import { tr } from "@/lib/i18n";
 import { barcodeOf } from "@/lib/barcode";
+import { useDocRev } from "@/lib/useDocRev";
 
 /** The end-of-list drop target's id in the drag state. */
 const BACK = "\u0000back";
@@ -75,7 +76,7 @@ function buildRows(siblings: Node[], depth: number, expanded: Set<string>, out: 
 }
 
 export function LayerPanel() {
-  useEditor((s) => s.rev);
+  useDocRev();
   const selection = useEditor((s) => s.selection);
   const activePage = useEditor((s) => s.activePage);
   const doc = useEditor.getState().doc;

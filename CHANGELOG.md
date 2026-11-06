@@ -2,6 +2,21 @@
 
 All notable changes to danvas are listed here, newest first. Versions follow the `VERSION` file. After 0.1.10 no part of a version goes past 9: the next release is 0.2.0. Self-hosters upgrade by swapping the binary; every release keeps existing designs openable (see the zero data loss rules in `CLAUDE.md`).
 
+## 2.0.0 (2026-11-06)
+
+### Changed
+
+- **The editor no longer freezes on large designs or in slower browsers.** How it updates is rebuilt from the bottom:
+  - The editor no longer re-renders as a whole on every change; it reacts only when the design switches between saved and unsaved.
+  - The canvas draws at most once per frame, however many changes, hovers, loaded images or fonts ask for it. After a slow frame it waits as long again (half a second at most), so typing, clicking and scrolling always get their turn: a heavy design updates less often instead of freezing the page.
+  - Side panels and dialogs update at most once per frame, and while something is dragged, resized or rotated a few times a second, with the final state when it stops. The canvas and its handles still follow every frame.
+  - While dragging, resizing or rotating, what does not move is kept as two pictures (below and above the moving elements, so the stacking stays exact) and only the moving elements are drawn each frame. Elements above that blend with what lies under them are drawn live, as before.
+- The SVG picture cache added in 1.9.9 is off again: it did not help where it was meant to, and the changes above cover more.
+
+### Upgrading
+
+- A pure frontend change: no schema change, no migration. The version jumps to 2.0.0 because no part of a version goes past 9.
+
 ## 1.9.9 (2026-11-06)
 
 ### Added

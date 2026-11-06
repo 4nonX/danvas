@@ -16,9 +16,10 @@ import { isDecorative, nodeAltText, resolveReadingOrder } from "@hc/schema";
 import { useEditor } from "@/store/editor";
 import { tr } from "@/lib/i18n";
 import { nodeAnnouncedName } from "@/lib/nodeName";
+import { useDocRev } from "@/lib/useDocRev";
 
 export function A11yTree() {
-  useEditor((s) => s.rev);
+  useDocRev();
   const selection = useEditor((s) => s.selection);
   const activePage = useEditor((s) => s.activePage);
   const [active, setActive] = useState(0);

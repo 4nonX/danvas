@@ -14,6 +14,7 @@ import { GripVertical } from "lucide-react";
 import { childIndexForBuildOrder, planBuildOrder, startModeLabel, type BuildStep } from "@hc/engine";
 import { useEditor } from "@/store/editor";
 import { tr } from "@/lib/i18n";
+import { useDocRev } from "@/lib/useDocRev";
 
 /** ms -> a compact "1.2s" / "400ms" label. */
 function ms(v: number): string {
@@ -21,7 +22,7 @@ function ms(v: number): string {
 }
 
 export function BuildOrderSection() {
-  useEditor((s) => s.rev);
+  useDocRev();
   const activePage = useEditor((s) => s.activePage);
   const selection = useEditor((s) => s.selection);
   const doc = useEditor.getState().doc;

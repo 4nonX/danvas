@@ -314,9 +314,10 @@ export function EditorApp() {
   // Dirty tracking: the doc has unsaved edits whenever its revision counter has
   // moved past the revision captured at the last save (markClean). Subscribing
   // to both keeps the indicator and the unload guard reactive.
-  const rev = useEditor((s) => s.rev);
-  const savedRev = useEditor((s) => s.savedRev);
-  const dirty = rev !== savedRev;
+  // Only whether it is dirty, not the counter itself: subscribing to every
+  // change here re-rendered the whole editor (every panel, the canvas) on every
+  // pointer move of a drag.
+  const dirty = useEditor((s) => s.rev !== s.savedRev);
   const [status, setStatus] = useState<Status>("loading");
   // The design id the caller was denied; drives the "Request access" screen.
   const [forbiddenId, setForbiddenId] = useState<string | null>(null);

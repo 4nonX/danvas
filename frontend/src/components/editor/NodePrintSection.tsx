@@ -12,12 +12,13 @@ import { isDieLine, isOverprint } from "@/lib/print/nodePrint";
 import { tr } from "@/lib/i18n";
 import { CollapsibleSection } from "./EditorPanels";
 import { NumField } from "./PrintSettings";
+import { useDocRev } from "@/lib/useDocRev";
 
 /** Panel order: after appearance, before interactivity. */
 const ORDER = 6.5;
 
 export function NodePrintSection() {
-  useEditor((s) => s.rev);
+  useDocRev();
   const selection = useEditor((s) => s.selection);
   const toast = useToast();
   const [offsetMm, setOffsetMm] = useState(2);

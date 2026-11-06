@@ -100,8 +100,12 @@ class ImageAssetProvider implements AssetProvider {
   }
 
   /** An SVG asset as a bitmap of width x height, drawn once and kept (the
-   *  oldest go when the budget is full). Null for anything but a loaded SVG. */
-  raster(assetId: string, width: number, height: number): unknown | null {
+   *  oldest go when the budget is full). Null for anything but a loaded SVG.
+   *  Not offered to the engine as `raster` for now: in 1.9.9 it made Firefox
+   *  freeze on designs with several large SVGs (bitmaps over the budget were
+   *  made again on every frame). Screen drawing is as in 1.9.8 until it is
+   *  reworked and measured. */
+  vectorRaster(assetId: string, width: number, height: number): unknown | null {
     const e = this.entries.get(assetId);
     if (!e?.svg || e.status !== "ready" || !(e.img instanceof HTMLImageElement) || typeof document === "undefined") return null;
     if (width * height > RASTER_BUDGET_PX) return null;
